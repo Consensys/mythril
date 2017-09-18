@@ -36,7 +36,7 @@ if (args.disassemble):
     elif (args.transaction_hash):
 
         try:
-            encoded_bytecode = util.bytecode_from_blockchain(args.transaction_hash)
+            encoded_bytecode = util.bytecode_from_blockchain(args.transaction_hash, args.rpchost[0], args.rpcport[0])
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC: " + str(e.message))
 

@@ -13,7 +13,7 @@ def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=85
     creation_tx_hash = ID of transaction that created the contract.
     """
 
-    eth = EthJsonRpcWithDebug('127.0.0.1', 8545)
+    eth = EthJsonRpcWithDebug(rpc_host, rpc_port)
 
     trace = eth.traceTransaction(creation_tx_hash)
 
