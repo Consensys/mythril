@@ -39,7 +39,6 @@ if (args.disassemble):
 
             encoded_bytecode = util.bytecode_from_blockchain(args.transaction_hash, args.rpchost, args.rpcport)
 
-            print(encoded_bytecode)
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC" + str(e.message))
 
@@ -64,9 +63,9 @@ elif (args.assemble):
     assembly = asm.assemble(disassembly)
 
     if (args.outfile):
-        util.string_to_file(args.outfile, assembly)
+        util.raw_bytes_to_file(args.outfile, assembly)
     else:
-        print("0x" + codecs.encode(assembly, "hex_codec"))
+        print("0x" + str(codecs.encode(assembly, "hex_codec"), 'ascii'))
 
 else:
 

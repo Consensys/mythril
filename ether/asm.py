@@ -6,14 +6,6 @@ import re
 regex_PUSH = re.compile('^PUSH(\d*)$')
 
 
-def safe_decode(hex_encoded_string):
-    if (hex_encoded_string.startswith("0x")):
-
-        return codecs.decode(hex_encoded_string[2:], 'hex_codec')
-    else:
-        return codecs.decode(hex_encoded_string, 'hex_codec')
-
-
 def disassembly_to_easm(disassembly):
     easm = ""
 
@@ -21,7 +13,7 @@ def disassembly_to_easm(disassembly):
         easm += instruction['opcode']
 
         if 'argument' in instruction:
-            easm += " 0x" + instruction['argument']
+            easm += " 0x" + codecs.decode(instruction['argument'], 'ascii')
 
         easm += "\n"
 
@@ -117,7 +109,7 @@ def disassemble(bytecode):
         instruction = {}
 
         try:
-            opcode = opcodes.opcodes[ord(bytecode[i])]
+            opcode = opcodes.opcodes[bytecode[i]]
         except KeyError:
             # invalid opcode
             disassembly.append({'opcode': "INVALID"})
@@ -151,10 +143,10 @@ def assemble(disassembly):
         except RuntimeError:
             opcode = 0xbb
 
-        bytecode += chr(opcode)
+        bytecode += opcode.to_bytes(1, byteorder='big')
 
         if 'argument' in instruction:
 
-            bytecode += codecs.decode(instruction['argument'], 'hex_codec')
+            bytecode += bytes(instruction['argument'], 'ascii')
 
     return bytecode

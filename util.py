@@ -1,11 +1,12 @@
 from ether.jsonrpc import EthJsonRpcWithDebug
+import codecs
 
 
 def safe_decode(hex_encoded_string):
     if (hex_encoded_string.startswith("0x")):
-        return hex_encoded_string[2:].decode("hex")
+        return codecs.decode(hex_encoded_string[2:], 'hex_codec')
     else:
-        return hex_encoded_string.decode("hex")
+        return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
 def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=8545):
@@ -24,12 +25,17 @@ def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=85
     raise RuntimeError("Transaction trace didn't return any bytecode")
 
 
+def raw_bytes_to_file(filename, bytestring):
+    with open(filename, 'wb') as f:
+        f.write(bytestring)
+
+
 def string_to_file(filename, string):
-    outfile = open(filename, "w")
-    outfile.write(string)
-    outfile.close()
+    with open(filename, 'w') as f:
+        f.write(string)
 
 
 def file_to_string(filename):
-    infile = open(filename, "r")
-    return infile.read()
+    with open(filename, 'r') as f:
+        data = f.read()
+    return data
