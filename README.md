@@ -47,7 +47,7 @@ $ ./mythril.py -a code.easm
 0x61405063607080905050
 ```
 
-The virtual machine language is described in the [Ethereum Yellowpaper](http://gavwood.com/paper.pdf)
+The virtual machine language is described in the [Ethereum Yellowpaper](http://gavwood.com/paper.pdf).
 
 ### Loading a contract from the Ethereum blockchain
 
@@ -62,3 +62,5 @@ To load contract code from your node, pass the TxID of the transaction that crea
 ```bash
 ./mythril.py -d -t 0xbf7518b40ab1242af74229512592f77736569157faffbf373cc1b4f5d499b967
 ```
+
+Note: If you want to get code from the Ethereum mainnet, it is easier to download it from [Etherscan](https://etherscan.io).
