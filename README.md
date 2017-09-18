@@ -60,7 +60,7 @@ $ geth --syncmode full --rpc --rpcapi eth,debug
 To load contract code from your node, pass the TxID of the transaction that created the contract:
 
 ```bash
-./mythril.py -d -t 0xbf7518b40ab1242af74229512592f77736569157faffbf373cc1b4f5d499b967
+./mythril.py -d -t ./mythril.py -d -t 0x23112645da9ae684270de843faaeb44918c79a09e019d3a6cf8b87041020340e
 ```
 
 Note: If you want to get code from the Ethereum mainnet, it is easier to download it from [Etherscan](https://etherscan.io).
