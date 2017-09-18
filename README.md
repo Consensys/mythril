@@ -31,7 +31,7 @@ Mythril can assemble code from input files that contain one instruction per line
 $ ./mythril.py -d -c "0x606060405050" -o code.easm
 ```
 
-Edit the instructions in a text editor. For example, we can change the two `PUSH` instruction from the original example:
+Edit the instructions in a text editor. For example, we can modify the `PUSH` instructions from the original example:
 
 ```
 PUSH2 0x4050
