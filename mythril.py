@@ -19,12 +19,12 @@ def exitWithError(message):
 parser = argparse.ArgumentParser(description='Ethereum VM bytecode assembler/ disassembler')
 
 parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or -t')
-parser.add_argument('-a', '--assemble', nargs=1, help='produce bytecode from easm input file', metavar='INPUT FILE')
-parser.add_argument('-c', '--code', nargs=1, help='bytecode string ("6060604052...")', metavar='BYTECODE')
+parser.add_argument('-a', '--assemble', help='produce bytecode from easm input file', metavar='INPUT FILE')
+parser.add_argument('-c', '--code', help='bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-t', '--transaction_hash', help='id of contract creation transaction')
 parser.add_argument('-o', '--outfile')
-parser.add_argument('--rpchost', nargs=1, default='127.0.0.1', help='RPC host')
-parser.add_argument('--rpcport', nargs=1, default=8545, help='RPC port')
+parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
+parser.add_argument('--rpcport', type=int, default=[8545], help='RPC port')
 
 args = parser.parse_args()
 
@@ -32,13 +32,16 @@ args = parser.parse_args()
 if (args.disassemble):
 
     if (args.code):
-        encoded_bytecode = args.code[0]
+        encoded_bytecode = args.code
     elif (args.transaction_hash):
 
         try:
-            encoded_bytecode = util.bytecode_from_blockchain(args.transaction_hash, args.rpchost[0], args.rpcport[0])
+
+            encoded_bytecode = util.bytecode_from_blockchain(args.transaction_hash, args.rpchost, args.rpcport)
+
+            print(encoded_bytecode)
         except Exception as e:
-            exitWithError("Exception loading bytecode via RPC: " + str(e.message))
+            exitWithError("Exception loading bytecode via RPC" + str(e.message))
 
     else:
         exitWithError("Disassembler: Pass either the -c or -t flag to specify the input bytecode")
@@ -54,7 +57,7 @@ if (args.disassemble):
 
 elif (args.assemble):
 
-    easm = util.file_to_string(args.assemble[0])
+    easm = util.file_to_string(args.assemble)
 
     disassembly = asm.easm_to_disassembly(easm)
 
