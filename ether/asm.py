@@ -1,0 +1,161 @@
+from ethereum import opcodes
+import re
+import binascii
+
+
+regex_PUSH = re.compile('^PUSH(\d*)$')
+
+
+def safe_decode(hex_encoded_string):
+    if (hex_encoded_string.startswith("0x")):
+        return hex_encoded_string[2:].decode("hex")
+    else:
+        return hex_encoded_string.decode("hex")
+
+
+def disassembly_to_easm(disassembly):
+    easm = ""
+
+    for instruction in disassembly:
+        easm += instruction['opcode']
+
+        if 'argument' in instruction:
+            easm += " 0x" + instruction['argument']
+
+        easm += "\n"
+
+    return easm
+
+
+def easm_to_disassembly(easm):
+
+    regex_CODELINE = re.compile('^([A-Z0-9]+)(?:\s+([0-9a-fA-Fx]+))?$')
+
+    disassembly = []
+
+    codelines = easm.split('\n')
+
+    for line in codelines:
+
+        m = re.search(regex_CODELINE, line)
+
+        if not m:
+            # Invalid code line
+            continue
+
+        instruction = {}
+
+        instruction['opcode'] = m.group(1)
+
+        if m.group(2):
+            instruction['argument'] = m.group(2)[2:]
+
+        disassembly.append(instruction)
+
+    return disassembly
+
+
+def get_opcode_from_name(name):
+
+    for opcode, value in opcodes.opcodes.items():
+
+        if name == value[0]:
+
+            return opcode
+
+    raise RuntimeError("Unknown opcode")
+
+
+def find_opcode_sequence(pattern, disassembly):
+    match_indexes = []
+
+    pattern_length = len(pattern)
+
+    for i in range(0, len(disassembly) - pattern_length):
+
+        if disassembly[i]['opcode'] == pattern[0]:
+
+            matched = True
+
+            for j in range(1, len(pattern)):
+
+                if not (disassembly[i + j]['opcode'] == pattern[j]):
+                    matched = False
+                    break
+
+            if (matched):
+                match_indexes.append(i)
+
+    return match_indexes
+
+
+def resolve_functions(disassembly):
+
+    function_stubs = find_opcode_sequence(['PUSH4', 'EQ', 'PUSH2', 'JUMPI'], disassembly)
+
+    functions = []
+
+    for index in function_stubs:
+        func = {}
+
+        func['hash'] = disassembly[index]['argument']
+        func['address'] = disassembly[index + 2]['argument']
+
+        functions.append(func)
+
+    return functions
+
+
+def disassemble(encoded_bytecode):
+
+    bytecode = safe_decode(encoded_bytecode)
+
+    disassembly = []
+    i = 0
+
+    while i < len(bytecode):
+
+        instruction = {}
+
+        try:
+            opcode = opcodes.opcodes[ord(bytecode[i])]
+        except KeyError:
+            # invalid opcode
+            disassembly.append({'opcode': "INVALID"})
+            i += 1
+            continue
+
+        instruction['opcode'] = opcode[0]
+
+        m = re.search(regex_PUSH, opcode[0])
+
+        if m:
+            argument = bytecode[i+1:i+1+int(m.group(1))]
+            instruction['argument'] = argument.encode("hex")
+            i += int(m.group(1))
+
+        disassembly.append(instruction)
+
+        i += 1
+
+    return disassembly
+
+
+def assemble(disassembly):
+
+    bytecode = ""
+
+    for instruction in disassembly:
+
+        try:
+            opcode = get_opcode_from_name(instruction['opcode'])
+        except RuntimeError:
+            opcode = 0xbb
+
+        bytecode += binascii.hexlify(chr(opcode))
+
+        if 'argument' in instruction:
+
+            bytecode += instruction['argument']
+
+    return bytecode
