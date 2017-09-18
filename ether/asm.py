@@ -1,4 +1,5 @@
 from ethereum import opcodes
+import codecs
 import re
 import binascii
 
@@ -8,9 +9,10 @@ regex_PUSH = re.compile('^PUSH(\d*)$')
 
 def safe_decode(hex_encoded_string):
     if (hex_encoded_string.startswith("0x")):
-        return hex_encoded_string[2:].decode("hex")
+
+        return codecs.decode(hex_encoded_string[2:], 'hex_codec')
     else:
-        return hex_encoded_string.decode("hex")
+        return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
 def disassembly_to_easm(disassembly):
@@ -131,7 +133,7 @@ def disassemble(encoded_bytecode):
 
         if m:
             argument = bytecode[i+1:i+1+int(m.group(1))]
-            instruction['argument'] = argument.encode("hex")
+            instruction['argument'] = codecs.encode(argument, "hex_codec")
             i += int(m.group(1))
 
         disassembly.append(instruction)
