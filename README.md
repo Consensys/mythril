@@ -25,10 +25,31 @@ POP
 
 ### Modifying and re-assembling code
 
--- TODO --
+Mythril can assemble code from input files that contain one instruction per line. To start from an existing contract, save the disassembly to a text file:
+
+```bash
+$ ./mythril.py -d -c "0x606060405050" -o code.easm
+```
+
+Edit the instructions in a text editor. For example, we can change the two `PUSH` instruction from the original example:
+
+```
+PUSH2 0x4050
+PUSH4 0x60708090
+POP
+POP
+```
+
+Save the file and run Mythril with the `-a` flag to re-assemble:
+
+```
+$ ./mythril.py -a code.easm 
+0x61405063607080905050
+```
+
+The virtual machine language is described in the [Ethereum Yellowpaper](http://gavwood.com/paper.pdf)
 
 ### Loading a contract from the Ethereum blockchain
-
 
 You can also load code from an existing contract in the Ethereum blockchain. For this, you need to have a full node running, and the RPC debug interface must be activated. For example, when running `geth` you can do this as follows:
 
