@@ -49,7 +49,7 @@ $ ./mythril.py -a code.easm
 
 The virtual machine language is described in the [Ethereum Yellowpaper](http://gavwood.com/paper.pdf).
 
-### Loading a contract from the Ethereum blockchain
+### Disassembling a contract from the Ethereum blockchain
 
 You can also load code from an existing contract in the Ethereum blockchain. For this, you need to have a full node running, and the RPC debug interface must be activated. For example, when running `geth` you can do this as follows:
 
@@ -60,7 +60,7 @@ $ geth --syncmode full --rpc --rpcapi eth,debug
 To load contract code from your node, pass the TxID of the transaction that created the contract:
 
 ```bash
-./mythril.py -d -t ./mythril.py -d -t 0x23112645da9ae684270de843faaeb44918c79a09e019d3a6cf8b87041020340e
+$ ./mythril.py -d -t 0x23112645da9ae684270de843faaeb44918c79a09e019d3a6cf8b87041020340e -o some_contract.easm
 ```
 
 Note: If you want to get code from the Ethereum mainnet, it is easier to download it from [Etherscan](https://etherscan.io).
