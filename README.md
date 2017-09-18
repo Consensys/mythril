@@ -1,0 +1,43 @@
+# Mythril
+
+Mythril is a simple assembler and disassembler for Ethereum VM bytecode. It is useful for low-level testing/fuzzing of EVM implementations.
+
+## Installation
+
+Clone the git repo:
+
+```bash
+$ git clone https://github.com/b-mueller/mythril/
+$ pip install -r requirements.txt
+```
+
+## Usage
+
+To disassemble a piece of bytecode, pass it on the command line:
+
+```bash
+$ ./mythril.py -d -c "0x606060405050"
+PUSH1 0x60
+PUSH1 0x40
+POP
+POP
+```
+
+### Modifying and re-assembling code
+
+-- TODO --
+
+### Loading a contract from the Ethereum blockchain
+
+
+You can also load code from an existing contract in the Ethereum blockchain. For this, you need to have a full node running, and the RPC debug interface must be activated. For example, when running `geth` you can do this as follows:
+
+```bash
+$ geth --syncmode full --rpc --rpcapi eth,debug
+```
+
+To load contract code from your node, pass the TxID of the transaction that created the contract:
+
+```bash
+./mythril.py -d -t 0xbf7518b40ab1242af74229512592f77736569157faffbf373cc1b4f5d499b967
+```
