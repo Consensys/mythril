@@ -1,7 +1,6 @@
 from ethereum import opcodes
 import codecs
 import re
-import binascii
 
 
 regex_PUSH = re.compile('^PUSH(\d*)$')
@@ -108,9 +107,7 @@ def resolve_functions(disassembly):
     return functions
 
 
-def disassemble(encoded_bytecode):
-
-    bytecode = safe_decode(encoded_bytecode)
+def disassemble(bytecode):
 
     disassembly = []
     i = 0
@@ -145,7 +142,7 @@ def disassemble(encoded_bytecode):
 
 def assemble(disassembly):
 
-    bytecode = ""
+    bytecode = b""
 
     for instruction in disassembly:
 
@@ -154,10 +151,10 @@ def assemble(disassembly):
         except RuntimeError:
             opcode = 0xbb
 
-        bytecode += binascii.hexlify(chr(opcode))
+        bytecode += chr(opcode)
 
         if 'argument' in instruction:
 
-            bytecode += instruction['argument']
+            bytecode += codecs.decode(instruction['argument'], 'hex_codec')
 
     return bytecode
