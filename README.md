@@ -1,6 +1,6 @@
 # Mythril
 
-Mythril is an assembler and disassembler for Ethereum VM bytecode. It is useful for low-level testing/fuzzing of EVM implementations.
+Mythril is an assembler and disassembler for Ethereum VM bytecode. It was created for low-level testing/fuzzing of EVM implementations.
 
 ## Installation
 
