@@ -15,8 +15,6 @@ def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=85
 
     eth = EthJsonRpcWithDebug('127.0.0.1', 8545)
 
-    # receipt = eth.eth_getTransactionReceipt(creation_tx_hash)
-
     trace = eth.traceTransaction(creation_tx_hash)
 
     if trace['returnValue']:

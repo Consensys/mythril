@@ -23,8 +23,8 @@ parser.add_argument('-a', '--assemble', nargs=1, help='produce bytecode from eas
 parser.add_argument('-c', '--code', nargs=1, help='bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-t', '--transaction_hash', help='id of contract creation transaction')
 parser.add_argument('-o', '--outfile')
-parser.add_argument('--rpchost', nargs=1, help='RPC host')
-parser.add_argument('--rpcport', nargs=1, help='RPC port')
+parser.add_argument('--rpchost', nargs=1, default='127.0.0.1', help='RPC host')
+parser.add_argument('--rpcport', nargs=1, default=8545, help='RPC port')
 
 args = parser.parse_args()
 
