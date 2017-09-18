@@ -24,7 +24,7 @@ parser.add_argument('-c', '--code', help='bytecode string ("6060604052...")', me
 parser.add_argument('-t', '--transaction_hash', help='id of contract creation transaction')
 parser.add_argument('-o', '--outfile')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
-parser.add_argument('--rpcport', type=int, default=[8545], help='RPC port')
+parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
 args = parser.parse_args()
 
