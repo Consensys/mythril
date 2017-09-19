@@ -51,8 +51,7 @@ The virtual machine language is described in the [Ethereum Yellowpaper](http://g
 
 ### Tracing EVM execution
 
-You can run a piece of bytecode in the [PyEthereum](https://github.com/ethereum/pyethereum) VM and trace its execution using the `-t` flag. This will output the instructions executed as well as the state of the stack for every execution step. You can run code directly from the command line,.
-
+You can run a piece of bytecode in the [PyEthereum](https://github.com/ethereum/pyethereum) VM and trace its execution using the `-t` flag. This will output the instructions executed as well as the state of the stack for every execution step. To run code from the command line, use:
 
 ```bash
 $ ./mythril.py -t -c "0x606060405050"
