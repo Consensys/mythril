@@ -23,6 +23,7 @@ setup(
     url='https://github.com/b-mueller/mythril',
 
     author='Bernhard Mueller',
+    author_email='bernhard.mueller11@gmail.com',
 
     license='MIT',
 
