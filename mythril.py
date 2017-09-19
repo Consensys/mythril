@@ -18,12 +18,12 @@ def exitWithError(message):
 
 parser = argparse.ArgumentParser(description='Ethereum VM bytecode assembler/ disassembler')
 
-parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or  --transaction_hash')
+parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or  --txid')
 parser.add_argument('-a', '--assemble', help='produce bytecode from easm input file', metavar='INPUT FILE')
 parser.add_argument('-t', '--trace',  action='store_true', help='trace bytecode provided via the -c argument')
 parser.add_argument('-c', '--code', help='bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-o', '--outfile')
-parser.add_argument('--transaction_hash', help='id of contract creation transaction')
+parser.add_argument('--txid', help='id of contract creation transaction')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
@@ -34,17 +34,17 @@ if (args.disassemble):
 
     if (args.code):
         encoded_bytecode = args.code
-    elif (args.transaction_hash):
+    elif (args.txid):
 
         try:
 
-            encoded_bytecode = util.bytecode_from_blockchain(args.transaction_hash, args.rpchost, args.rpcport)
+            encoded_bytecode = util.bytecode_from_blockchain(args.txid, args.rpchost, args.rpcport)
 
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC" + str(e.message))
 
     else:
-        exitWithError("Disassembler: Provide the input bytecode via the -c or --transaction_hash arguments")
+        exitWithError("Disassembler: Provide the input bytecode via the -c or --txid arguments")
 
     disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
 
