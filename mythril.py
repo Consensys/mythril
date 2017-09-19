@@ -4,7 +4,7 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from ether import asm
+from ether import asm,evm
 import sys
 import codecs
 import argparse
@@ -18,11 +18,12 @@ def exitWithError(message):
 
 parser = argparse.ArgumentParser(description='Ethereum VM bytecode assembler/ disassembler')
 
-parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or -t')
+parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or  --transaction_hash')
 parser.add_argument('-a', '--assemble', help='produce bytecode from easm input file', metavar='INPUT FILE')
+parser.add_argument('-t', '--trace',  action='store_true', help='trace bytecode provided via the -c argument')
 parser.add_argument('-c', '--code', help='bytecode string ("6060604052...")', metavar='BYTECODE')
-parser.add_argument('-t', '--transaction_hash', help='id of contract creation transaction')
 parser.add_argument('-o', '--outfile')
+parser.add_argument('--transaction_hash', help='id of contract creation transaction')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
@@ -43,7 +44,7 @@ if (args.disassemble):
             exitWithError("Exception loading bytecode via RPC" + str(e.message))
 
     else:
-        exitWithError("Disassembler: Pass either the -c or -t flag to specify the input bytecode")
+        exitWithError("Disassembler: Provide the input bytecode via the -c or --transaction_hash arguments")
 
     disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
 
@@ -67,6 +68,14 @@ elif (args.assemble):
     else:
         print("0x" + str(codecs.encode(assembly, "hex_codec"), 'ascii'))
 
-else:
+elif (args.trace):
 
+    if args.code:     
+
+        evm.trace(util.safe_decode(args.code))
+
+    else:
+        exitWithError("Trace: Provide the input bytecode using -c <bytecode>")
+
+else:
     parser.print_help()
