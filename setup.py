@@ -121,7 +121,7 @@ doesn't seem to be maintained anymore, and I needed to make some changes to it).
 setup(
     name='mythril',
 
-    version='0.1.3',
+    version='0.1.6',
 
     description='Mythril is an assembler and disassembler for Ethereum VM bytecode',
     long_description=long_description,
