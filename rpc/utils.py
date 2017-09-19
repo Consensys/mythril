@@ -1,4 +1,4 @@
-from ethjsonrpc.constants import BLOCK_TAGS
+from .constants import BLOCK_TAGS
 
 
 def hex_to_dec(x):

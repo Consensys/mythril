@@ -1,21 +1,24 @@
 from setuptools import setup, find_packages
 from codecs import open
-from os import path
+import os
 
-here = path.abspath(path.dirname(__file__))
 
+here = os.path.abspath(os.path.dirname(__file__))
 
 try:
     import pypandoc
-    long_description = pypandoc.convert('README.md', 'rst')
+
+    long_description = pypandoc.convert(os.path.join(here,'README.md'), 'rst')
 except(IOError, ImportError):
-    long_description = open('README.md').read()
+# Get the long description from the README file
+    with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+        long_description = f.read()
 
 
 setup(
     name='mythril',
 
-    version='0.1.0',
+    version='0.1.1',
 
     description='Mythril is an assembler and disassembler for Ethereum VM bytecode',
     long_description=long_description,

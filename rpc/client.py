@@ -7,9 +7,9 @@ from requests.exceptions import ConnectionError as RequestsConnectionError
 from ethereum import utils
 from ethereum.abi import encode_abi, decode_abi
 
-from ethjsonrpc.constants import BLOCK_TAGS, BLOCK_TAG_LATEST
-from ethjsonrpc.utils import hex_to_dec, clean_hex, validate_block
-from ethjsonrpc.exceptions import (ConnectionError, BadStatusCodeError,
+from .constants import BLOCK_TAGS, BLOCK_TAG_LATEST
+from .utils import hex_to_dec, clean_hex, validate_block
+from .exceptions import (ConnectionError, BadStatusCodeError,
                                    BadJsonError, BadResponseError)
 
 GETH_DEFAULT_RPC_PORT = 8545

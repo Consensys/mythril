@@ -5,3 +5,5 @@ __pycache__
 *.easm
 *.asm
 mythril.egg-info
+build
+dist
