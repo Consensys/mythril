@@ -1,6 +1,7 @@
-from ethereum import opcodes
-import codecs
+import sys
 import re
+import codecs
+from ethereum import opcodes
 
 
 regex_PUSH = re.compile('^PUSH(\d*)$')
@@ -109,8 +110,13 @@ def disassemble(bytecode):
         instruction = {}
 
         try:
-            opcode = opcodes.opcodes[bytecode[i]]
+            if (sys.version_info > (3, 0)):
+                opcode = opcodes.opcodes[bytecode[i]]
+            else:
+                 opcode = opcodes.opcodes[ord(bytecode[i])]
+
         except KeyError:
+
             # invalid opcode
             disassembly.append({'opcode': "INVALID"})
             i += 1
