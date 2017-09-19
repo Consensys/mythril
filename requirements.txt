@@ -1,2 +1,1 @@
 ethereum==2.0.4
-ethjsonrpc==0.3.0

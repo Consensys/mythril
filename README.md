@@ -83,3 +83,7 @@ $ ./mythril.py -d --txid 0x23112645da9ae684270de843faaeb44918c79a09e019d3a6cf8b8
 ```
 
 Note: If you want to get code from the Ethereum mainnet, it is easier to download it from [Etherscan](https://etherscan.io).
+
+## Credit
+
+JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).

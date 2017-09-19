@@ -4,11 +4,10 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from ether import asm,evm
+from ether import asm,evm,util
 import sys
 import codecs
 import argparse
-import util
 
 
 def exitWithError(message):
