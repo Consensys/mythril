@@ -4,11 +4,18 @@ Mythril is an assembler and disassembler for Ethereum VM bytecode. It was create
 
 ## Installation
 
-Clone the git repo:
+Install from Pypi:
+
+```bash
+$ pip install mythril
+```
+
+Or, clone the GitHub repo to install the newest master branch:
 
 ```bash
 $ git clone https://github.com/b-mueller/mythril/
-$ pip install -r requirements.txt
+$ cd mythril
+$ python setup.py install
 ```
 
 ## Usage
@@ -16,7 +23,7 @@ $ pip install -r requirements.txt
 To disassemble a piece of bytecode, pass it on the command line:
 
 ```bash
-$ ./mythril.py -d -c "0x606060405050"
+$ mythril -d -c "0x606060405050"
 PUSH1 0x60
 PUSH1 0x40
 POP
@@ -28,7 +35,7 @@ POP
 Mythril can assemble code from input files that contain one instruction per line. To start from an existing contract, save the disassembly to a text file:
 
 ```bash
-$ ./mythril.py -d -c "0x606060405050" -o code.easm
+$ mythril -d -c "0x606060405050" -o code.easm
 ```
 
 Edit the instructions in a text editor. For example, we can modify the `PUSH` instructions from the original example:
@@ -43,7 +50,7 @@ POP
 Save the file and run Mythril with the `-a` flag to re-assemble:
 
 ```
-$ ./mythril.py -a code.easm 
+$ mythril -a code.easm 
 0x61405063607080905050
 ```
 
@@ -64,8 +71,8 @@ vm stack=[b'96'] op=POP steps=3 depth=0 gas=b'999992' pc=b'5' inst=80
 For larger contracts, you might prefer to compile them to a binary file instead:
 
 ```
-$ ./mythril.py -a contract.easm -o contract.bin
-$ ./mythril.py --trace -f contract.bin
+$ mythril -a contract.easm -o contract.bin
+$ mythril --trace -f contract.bin
 ```
 
 ### Disassembling a contract from the Ethereum blockchain
@@ -79,7 +86,7 @@ $ geth --syncmode full --rpc --rpcapi eth,debug
 To load contract code from your node, pass the TxID of the transaction that created the contract:
 
 ```bash
-$ ./mythril.py -d --txid 0x23112645da9ae684270de843faaeb44918c79a09e019d3a6cf8b87041020340e -o some_contract.easm
+$ mythril -d --txid 0x23112645da9ae684270de843faaeb44918c79a09e019d3a6cf8b87041020340e -o some_contract.easm
 ```
 
 Note: If you want to get code from the Ethereum mainnet, it is easier to download it from [Etherscan](https://etherscan.io).
