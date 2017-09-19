@@ -18,11 +18,12 @@ def exitWithError(message):
 
 parser = argparse.ArgumentParser(description='Ethereum VM bytecode assembler/ disassembler')
 
-parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or  --txid')
-parser.add_argument('-a', '--assemble', help='produce bytecode from easm input file', metavar='INPUT FILE')
-parser.add_argument('-t', '--trace',  action='store_true', help='trace bytecode provided via the -c argument')
-parser.add_argument('-c', '--code', help='bytecode string ("6060604052...")', metavar='BYTECODE')
+parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c, -f or --txid')
+parser.add_argument('-a', '--assemble', help='produce bytecode from easm input file', metavar='INPUTFILE')
+parser.add_argument('-t', '--trace',  action='store_true', help='trace bytecode provided via the -c or -f argument')
+parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-o', '--outfile')
+parser.add_argument('-f', '--infile', metavar='INPUTFILE')
 parser.add_argument('--txid', help='id of contract creation transaction')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
@@ -43,8 +44,17 @@ if (args.disassemble):
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC" + str(e.message))
 
+    elif (args.infile):
+
+        try:
+
+            encoded_bytecode = util.file_to_string(args.infile).rstrip()
+
+        except Exception as e:
+            exitWithError("Exception loading bytecode from file" + str(e.message))
+
     else:
-        exitWithError("Disassembler: Provide the input bytecode via the -c or --txid arguments")
+        exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE, -f INPUT_FILE or --txid TXID")
 
     disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
 
@@ -72,10 +82,21 @@ elif (args.trace):
 
     if args.code:     
 
-        evm.trace(util.safe_decode(args.code))
+        bytecode = util.safe_decode(args.code)
+
+    elif (args.infile):
+
+        try:
+
+            bytecode = util.file_to_raw_bytes(args.infile)
+
+        except Exception as e:
+            exitWithError("Exception loading bytecode from file" + str(e.message))
 
     else:
-        exitWithError("Trace: Provide the input bytecode using -c <bytecode>")
+        exitWithError("Trace: Provide the input bytecode using -c BYTECODE or -f INPUT_FILE")
+
+    evm.trace(bytecode)
 
 else:
     parser.print_help()

@@ -30,6 +30,12 @@ def raw_bytes_to_file(filename, bytestring):
         f.write(bytestring)
 
 
+def file_to_raw_bytes(filename):
+    with open(filename, 'rb') as f:
+        data = f.read()
+    return data
+
+
 def string_to_file(filename, string):
     with open(filename, 'w') as f:
         f.write(string)

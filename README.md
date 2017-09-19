@@ -51,14 +51,22 @@ The virtual machine language is described in the [Ethereum Yellowpaper](http://g
 
 ### Tracing EVM execution
 
-You can run a piece of bytecode in the [PyEthereum](https://github.com/ethereum/pyethereum) VM and trace its execution using the `-t` flag. This will output the instructions executed as well as the state of the stack for every execution step. 
+You can run a piece of bytecode in the [PyEthereum](https://github.com/ethereum/pyethereum) VM and trace its execution using the `-t` flag. This will output the instructions executed as well as the state of the stack for every execution step. You can run code directly from the command line,.
+
 
 ```bash
-$ ./mythril.py -t -c "0x606060405050" 
-vm address=b'\x01#Eg\x89\xab\xcd\xef\x01#Eg\x89\xab\xcd\xef\x01#Eg' gas=b'1000000' storage={'storage': {}, 'balance': '0', 'nonce': '0', 'code': '0x'} steps=0 depth=0 pushvalue=96 stack=[] pc=b'0' op=PUSH1 inst=96
-vm gas=b'999997' steps=1 depth=0 pushvalue=64 stack=[b'96'] pc=b'2' op=PUSH1 inst=96
-vm gas=b'999994' steps=2 depth=0 stack=[b'96', b'64'] pc=b'4' op=POP inst=80
-vm gas=b'999992' steps=3 depth=0 stack=[b'96'] pc=b'5' op=POP inst=80
+$ ./mythril.py -t -c "0x606060405050"
+vm stack=[] op=PUSH1 steps=0 pc=b'0' address=b'\x01#Eg\x89\xab\xcd\xef\x01#Eg\x89\xab\xcd\xef\x01#Eg' depth=0 pushvalue=96 gas=b'1000000' storage={'code': '0x', 'nonce': '0', 'balance': '0', 'storage': {}} inst=96
+vm stack=[b'96'] op=PUSH1 steps=1 depth=0 pushvalue=64 gas=b'999997' pc=b'2' inst=96
+vm stack=[b'96', b'64'] op=POP steps=2 depth=0 gas=b'999994' pc=b'4' inst=80
+vm stack=[b'96'] op=POP steps=3 depth=0 gas=b'999992' pc=b'5' inst=80
+```
+
+For larger contracts, you might prefer to compile them to a binary file instead:
+
+```
+$ ./mythril.py -a contract.easm -o contract.bin
+$ ./mythril.py --trace -f contract.bin
 ```
 
 ### Disassembling a contract from the Ethereum blockchain
