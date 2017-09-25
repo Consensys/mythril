@@ -14,7 +14,7 @@ def disassembly_to_easm(disassembly):
         easm += instruction['opcode']
 
         if 'argument' in instruction:
-            easm += " 0x" + codecs.decode(instruction['argument'], 'ascii')
+            easm += " 0x" + codecs.decode(instruction['argument'], 'utf-8')
 
         easm += "\n"
 

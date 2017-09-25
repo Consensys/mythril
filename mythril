@@ -75,7 +75,7 @@ elif (args.assemble):
     if (args.outfile):
         util.raw_bytes_to_file(args.outfile, assembly)
     else:
-        print("0x" + str(codecs.encode(assembly, "hex_codec"), 'ascii'))
+        print("0x" + str(codecs.encode(assembly, "hex_codec"), 'utf-8'))
 
 elif (args.trace):
 
