@@ -89,8 +89,8 @@ elif (args.trace):
 
             bytecode = util.file_to_raw_bytes(args.infile)
 
-        except Exception as e:
-            exitWithError("Exception loading bytecode from file" + str(e.message))
+        except FileNotFoundError:
+            exitWithError("Error loading bytecode: Input file not found")
 
     else:
         exitWithError("Trace: Provide the input bytecode using -c BYTECODE or -f INPUT_FILE")
