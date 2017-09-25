@@ -5,6 +5,7 @@
 """
 
 from ether import asm,evm,util
+from rpc.client import EthJsonRpc
 import sys
 import codecs
 import argparse
@@ -26,6 +27,7 @@ parser.add_argument('-f', '--infile', metavar='INPUTFILE')
 parser.add_argument('--txid', help='id of contract creation transaction')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
+parser.add_argument('--find-easm', help='search blockchain for opcode sequence')
 
 args = parser.parse_args()
 
@@ -41,7 +43,7 @@ if (args.disassemble):
             encoded_bytecode = util.bytecode_from_blockchain(args.txid, args.rpchost, args.rpcport)
 
         except Exception as e:
-            exitWithError("Exception loading bytecode via RPC" + str(e.message))
+            exitWithError("Exception loading bytecode via RPC: " + str(e))
 
     elif (args.infile):
 
@@ -50,7 +52,7 @@ if (args.disassemble):
             encoded_bytecode = util.file_to_string(args.infile).rstrip()
 
         except Exception as e:
-            exitWithError("Exception loading bytecode from file" + str(e.message))
+            exitWithError("Exception loading bytecode from file: " + str(e))
 
     else:
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE, -f INPUT_FILE or --txid TXID")
@@ -96,6 +98,43 @@ elif (args.trace):
         exitWithError("Trace: Provide the input bytecode using -c BYTECODE or -f INPUT_FILE")
 
     evm.trace(bytecode)
+
+elif (args.find_easm):
+
+    eth = EthJsonRpc(args.rpchost, args.rpcport)
+
+    searchstring = args.find_easm.replace(',',"\n")
+
+    blockNum = eth.eth_blockNumber()
+
+    while(blockNum > 0):
+
+        print(blockNum)
+
+        block = eth.eth_getBlockByNumber(blockNum)
+
+        for tx in block['transactions']:
+
+            if not tx['to']:
+
+                try:
+                    encoded_bytecode = util.bytecode_from_blockchain(tx['hash'], args.rpchost, args.rpcport)
+
+                    disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
+
+                    easm_text = asm.disassembly_to_easm(disassembly)
+
+                except RuntimeError as e:
+                    # Error getting contract code from transaction
+                    pass
+
+                if searchstring in easm_text:
+
+                    receipt = eth.eth_getTransactionReceipt(tx['hash'])
+
+                    print("Found contract " + receipt['contractAddress'] + " created by transaction " + tx['hash'])
+
+        blockNum -= 1
 
 else:
     parser.print_help()
