@@ -153,6 +153,6 @@ def assemble(disassembly):
 
         if 'argument' in instruction:
 
-            bytecode += bytes(instruction['argument'], 'ascii')
+            bytecode += codecs.decode(instruction['argument'], 'hex_codec')
 
     return bytecode
