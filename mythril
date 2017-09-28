@@ -19,7 +19,7 @@ def exitWithError(message):
 parser = argparse.ArgumentParser(description='Smart contract bug hunting on the Ethereum blockchain')
 
 parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or --id')
-parser.add_argument('-t', '--trace',  action='store_true', help='trace contract code provided via the -c or --id argument')
+parser.add_argument('-t', '--trace',  action='store_true', help='trace bytecode provided via the -c argument')
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-o', '--outfile')
 parser.add_argument('--id', help='contract id')
@@ -45,7 +45,6 @@ if (args.disassemble):
 
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC: " + str(e))
-
     elif (args.infile):
 
         try:
@@ -56,7 +55,7 @@ if (args.disassemble):
             exitWithError("Exception loading bytecode from file: " + str(e))
 
     else:
-        exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE, -f INPUT_FILE or --txid TXID")
+        exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
 
     disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
 
@@ -72,15 +71,6 @@ elif (args.trace):
     if args.code:     
 
         bytecode = util.safe_decode(args.code)
-
-    elif (args.infile):
-
-        try:
-
-            bytecode = util.file_to_raw_bytes(args.infile)
-
-        except FileNotFoundError:
-            exitWithError("Error loading bytecode: Input file not found")
 
     else:
         exitWithError("Trace: Provide the input bytecode using -c BYTECODE or -f INPUT_FILE")
