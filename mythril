@@ -5,7 +5,7 @@
 """
 
 from ether import asm,evm,util
-from rpc.client import EthJsonRpc
+from contractstorage import ContractStorage
 import sys
 import codecs
 import argparse
@@ -25,11 +25,14 @@ parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("60606040
 parser.add_argument('-o', '--outfile')
 parser.add_argument('-f', '--infile', metavar='INPUTFILE')
 parser.add_argument('--txid', help='id of contract creation transaction')
+parser.add_argument('--init-db', action='store_true', help='Initialize the contract database')
+parser.add_argument('--search', help='search contract database')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
-parser.add_argument('--find-easm', help='search blockchain for opcode sequence')
 
 args = parser.parse_args()
+
+storage = ContractStorage()
 
 
 if (args.disassemble):
@@ -99,42 +102,12 @@ elif (args.trace):
 
     evm.trace(bytecode)
 
-elif (args.find_easm):
+elif (args.search):
 
-    eth = EthJsonRpc(args.rpchost, args.rpcport)
+    storage.search(args.search)
 
-    searchstring = args.find_easm.replace(',',"\n")
-
-    blockNum = eth.eth_blockNumber()
-
-    while(blockNum > 0):
-
-        print(blockNum)
-
-        block = eth.eth_getBlockByNumber(blockNum)
-
-        for tx in block['transactions']:
-
-            if not tx['to']:
-
-                try:
-                    encoded_bytecode = util.bytecode_from_blockchain(tx['hash'], args.rpchost, args.rpcport)
-
-                    disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
-
-                    easm_text = asm.disassembly_to_easm(disassembly)
-
-                except RuntimeError as e:
-                    # Error getting contract code from transaction
-                    pass
-
-                if searchstring in easm_text:
-
-                    receipt = eth.eth_getTransactionReceipt(tx['hash'])
-
-                    print("Found contract " + receipt['contractAddress'] + " created by transaction " + tx['hash'])
-
-        blockNum -= 1
+elif (args.init_db):
+        storage.initialize(args.rpchost, args.rpcport)  
 
 else:
     parser.print_help()
