@@ -67,19 +67,6 @@ if (args.disassemble):
     else:
         sys.stdout.write(easm_text)
 
-elif (args.assemble):
-
-    easm = util.file_to_string(args.assemble)
-
-    disassembly = asm.easm_to_disassembly(easm)
-
-    assembly = asm.assemble(disassembly)
-
-    if (args.outfile):
-        util.raw_bytes_to_file(args.outfile, assembly)
-    else:
-        print("0x" + str(codecs.encode(assembly, "hex_codec"), 'utf-8'))
-
 elif (args.trace):
 
     if args.code:     
