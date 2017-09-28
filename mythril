@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""mythril.py: Ethereum VM bytecode assembler/ disassembler
+"""mythril.py: Smart contract bug hunting on the Ethereum blockchain
 
    http://www.github.com/b-mueller/mythril
 """
@@ -16,34 +16,32 @@ def exitWithError(message):
     sys.exit()
 
 
-parser = argparse.ArgumentParser(description='Ethereum VM bytecode assembler/ disassembler')
+parser = argparse.ArgumentParser(description='Smart contract bug hunting on the Ethereum blockchain')
 
-parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c, -f or --txid')
-parser.add_argument('-a', '--assemble', help='produce bytecode from easm input file', metavar='INPUTFILE')
-parser.add_argument('-t', '--trace',  action='store_true', help='trace bytecode provided via the -c or -f argument')
+parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or --id')
+parser.add_argument('-t', '--trace',  action='store_true', help='trace contract code provided via the -c or --id argument')
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-o', '--outfile')
-parser.add_argument('-f', '--infile', metavar='INPUTFILE')
-parser.add_argument('--txid', help='id of contract creation transaction')
+parser.add_argument('--id', help='contract id')
 parser.add_argument('--init-db', action='store_true', help='Initialize the contract database')
 parser.add_argument('--search', help='search contract database')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
-args = parser.parse_args()
 
 storage = ContractStorage()
 
+
+args = parser.parse_args()
 
 if (args.disassemble):
 
     if (args.code):
         encoded_bytecode = args.code
-    elif (args.txid):
+    elif (args.id):
 
         try:
-
-            encoded_bytecode = util.bytecode_from_blockchain(args.txid, args.rpchost, args.rpcport)
+            encoded_bytecode = storage.get_contract_code_by_address(args.id)
 
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC: " + str(e))

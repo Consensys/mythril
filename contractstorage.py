@@ -64,6 +64,15 @@ class ContractStorage:
             blockNum -= 1
 
 
+    def get_contract_code_by_address(self, address):
+
+        Contract = Query()
+        Instance = Query()
+
+        ret = self.db.search(Contract.instances.any(Instance.address == address))
+
+        return ret[0]['code']
+
 
     def search(self, expression):
 
