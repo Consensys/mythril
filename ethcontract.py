@@ -1,15 +1,14 @@
 from ether import asm, util
 import re
+import persistent
 
 
-class ETHContract:
 
-    def __init__(self, code = "", balance = 0):
+class ETHCode(persistent.Persistent):
+
+    def __init__(self, code = ""):
 
         self.disassembly = asm.disassemble(util.safe_decode(code))
-        self.easm_code = asm.disassembly_to_easm(self.disassembly)
-        self.balance = balance
-
 
     def matches_expression(self, expression):
 
@@ -45,3 +44,20 @@ class ETHContract:
 
         return eval(str_eval)
 
+
+class CodeHashByAddress(persistent.Persistent):
+
+    def __init__(self, code_hash, balance = 0):
+        self.code_hash = code_hash
+        self.balance = balance
+
+class AddressesByCodeHash(persistent.Persistent):
+
+    def __init__(self, address, balance = 0):
+        self.addresses = [address]
+        self.balances = [balance]
+
+    def add(self, address, balance = 0):
+        self.addresses.append(address)
+        self.balances.append(balance)
+        self._p_changed = True

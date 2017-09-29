@@ -10,6 +10,9 @@ from contractstorage import ContractStorage
 import sys
 import argparse
 from rpc.client import EthJsonRpc
+import ZODB
+from ZODB import FileStorage
+import os
 
 
 def searchCallback(address):
@@ -35,8 +38,21 @@ parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
 
-storage = ContractStorage()
+app_root = os.path.dirname(os.path.realpath(__file__))
+db_path = os.path.join(app_root, "database", "contractstorage.fs")
 
+storage = FileStorage.FileStorage(db_path)
+db = ZODB.DB(storage)
+connection = db.open()
+storage_root = connection.root()
+
+try:
+    contract_storage = storage_root['contractStorage']
+except KeyError:
+    contract_storage = ContractStorage()
+    storage_root['contractStorage'] = contract_storage
+
+print(len(contract_storage.get_all()))
 
 args = parser.parse_args()
 
@@ -104,7 +120,7 @@ elif (args.search):
     storage.search(args.search, searchCallback)
 
 elif (args.init_db):
-    storage.initialize(args.rpchost, args.rpcport)
+    contract_storage.initialize(args.rpchost, args.rpcport)
 
 elif (args.hash):
     print(utils.sha3(args.hash)[:4].hex())
