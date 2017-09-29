@@ -5,6 +5,7 @@
 """
 
 from ether import asm,evm,util
+from ethereum import utils
 from contractstorage import ContractStorage
 import sys
 import argparse
@@ -28,6 +29,7 @@ parser.add_argument('-a', '--address', default='0x0123456789ABCDEF0123456789ABCD
 parser.add_argument('-o', '--outfile')
 parser.add_argument('--data', help='message call input data for tracing')
 parser.add_argument('--search', help='search the contract database')
+parser.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
 parser.add_argument('--init-db', action='store_true', help='Initialize the contract database')
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
@@ -102,7 +104,10 @@ elif (args.search):
     storage.search(args.search, searchCallback)
 
 elif (args.init_db):
-        storage.initialize(args.rpchost, args.rpcport)  
+    storage.initialize(args.rpchost, args.rpcport)
+
+elif (args.hash):
+    print(utils.sha3(args.hash)[:4].hex())
 
 else:
     parser.print_help()
