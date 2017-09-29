@@ -1,11 +1,8 @@
 from rpc.client import EthJsonRpc
 from ethcontract import ETHCode, AddressesByCodeHash, CodeHashByAddress
-from ether import util
 from ethereum import utils
-import codecs
 import hashlib
 import re
-import ZODB
 import persistent
 import persistent.list
 import transaction
@@ -64,8 +61,13 @@ class ContractStorage(persistent.Persistent):
                     m = CodeHashByAddress(contract_hash, contract_balance)
                     self.address_to_hash_map[contract_address] = m
 
-                    m = AddressesByCodeHash(contract_address, contract_balance)
-                    self.hash_to_addresses_map[contract_hash] = m
+                    try:
+                        self.hash_to_addresses_map[contract_hash]
+                    except KeyError:
+                        m = AddressesByCodeHash()
+                        self.hash_to_addresses_map[contract_hash] = m
+                    
+                    self.hash_to_addresses_map[contract_hash].add(contract_address, contract_balance)
 
                     transaction.commit()
 
@@ -73,13 +75,11 @@ class ContractStorage(persistent.Persistent):
             blockNum -= 1
 
 
-
-    def get_all(self):
-        return self.contracts
-
     def get_contract_code_by_address(self, address):
 
-        pass
+        contract_hash = self.address_to_hash_map(address)
+
+        return self.contracts[contract_hash]
 
 
     def search(self, expression, callback_func):
@@ -93,12 +93,16 @@ class ContractStorage(persistent.Persistent):
 
             expression = expression.replace(m, sign_hash)
 
-        for c in self.contracts:
+        all_keys = list(self.contracts)
 
-            for instance in c['instances']:
+        for k in all_keys:
 
-                contract = ETHContract(c['code'], instance['balance'])
+            if self.contracts[k].matches_expression(expression):
 
-                if (contract.matches_expression(expression)):
-                    callback_func(instance['address'])
+                m = hashlib.md5()
+                m.update(self.contracts[k].code.encode('UTF-8'))
+                contract_hash = m.digest()
 
+                m = self.hash_to_addresses_map[contract_hash]
+
+                callback_func(m.addresses)

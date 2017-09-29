@@ -15,8 +15,9 @@ from ZODB import FileStorage
 import os
 
 
-def searchCallback(address):
-    print(address)
+def searchCallback(addresses):
+    print("Match found in contract deployed at: ")
+    print(addresses)
 
 def exitWithError(message):
     print(message)
@@ -51,8 +52,6 @@ try:
 except KeyError:
     contract_storage = ContractStorage()
     storage_root['contractStorage'] = contract_storage
-
-print(len(contract_storage.get_all()))
 
 args = parser.parse_args()
 
@@ -114,10 +113,9 @@ elif (args.trace):
 
     print(output)
 
-
 elif (args.search):
 
-    storage.search(args.search, searchCallback)
+    contract_storage.search(args.search, searchCallback)
 
 elif (args.init_db):
     contract_storage.initialize(args.rpchost, args.rpcport)
