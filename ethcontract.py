@@ -45,7 +45,7 @@ class ETHCode(persistent.Persistent):
 
 class InstanceList(persistent.Persistent):
 
-    def __init__(self):
+    def __init__():
         self.addresses = []
         self.balances = []
         pass

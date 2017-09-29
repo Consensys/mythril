@@ -97,4 +97,4 @@ class ContractStorage(persistent.Persistent):
 
                 m = self.instance_lists[contract_hash]
 
-                callback_func(m.addresses)
+                callback_func(self.contracts[k].code, m.addresses)

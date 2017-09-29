@@ -15,7 +15,7 @@ from ZODB import FileStorage
 import os
 
 
-def searchCallback(addresses):
+def searchCallback(code, addresses):
     print("MATCHED CONTRACT DEPLOYED AT: ")
     print("\n".join(addresses))
 
