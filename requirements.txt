@@ -1,1 +1,2 @@
-ethereum==2.0.4
+ethereum>=2.0.4
+ZODB>=5.3.0
