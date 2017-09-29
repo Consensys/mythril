@@ -1,8 +1,10 @@
 from rpc.client import EthJsonRpc
 from ethcontract import ETHContract
+from ethereum import utils
 from tinydb import TinyDB, Query
 import codecs
 import hashlib
+import re
 
 
 class ContractStorage:
@@ -78,13 +80,23 @@ class ContractStorage:
 
         all_contracts = self.db.all()
 
+        matches = re.findall(r'func\[([a-zA-Z0-9\s,()]+)\]', expression)
+
+        for m in matches:
+            # Pre-calculate function signature hashes
+
+            sign_hash = utils.sha3(m)[:4].hex()
+
+            print(sign_hash)
+
+            expression = expression.replace(m, sign_hash)
+
         for c in all_contracts:
 
             for instance in c['instances']:
 
-                if ('balance' in instance):
-                    contract = ETHContract(c['code'], instance['balance'])
+                contract = ETHContract(c['code'], instance['balance'])
 
-                    if (contract.matches_expression(expression)):
-                        print("Found contract:" + instance['address'])
+                if (contract.matches_expression(expression)):
+                    print("Found contract:" + instance['address'])
 

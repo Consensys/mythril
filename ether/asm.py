@@ -83,23 +83,6 @@ def find_opcode_sequence(pattern, disassembly):
     return match_indexes
 
 
-def resolve_functions(disassembly):
-
-    function_stubs = find_opcode_sequence(['PUSH4', 'EQ', 'PUSH2', 'JUMPI'], disassembly)
-
-    functions = []
-
-    for index in function_stubs:
-        func = {}
-
-        func['hash'] = disassembly[index]['argument']
-        func['address'] = disassembly[index + 2]['argument']
-
-        functions.append(func)
-
-    return functions
-
-
 def disassemble(bytecode):
 
     disassembly = []
