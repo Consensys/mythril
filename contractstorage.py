@@ -76,7 +76,7 @@ class ContractStorage:
         return ret[0]['code']
 
 
-    def search(self, expression):
+    def search(self, expression, callback_func):
 
         all_contracts = self.db.all()
 
@@ -87,8 +87,6 @@ class ContractStorage:
 
             sign_hash = utils.sha3(m)[:4].hex()
 
-            print(sign_hash)
-
             expression = expression.replace(m, sign_hash)
 
         for c in all_contracts:
@@ -98,5 +96,5 @@ class ContractStorage:
                 contract = ETHContract(c['code'], instance['balance'])
 
                 if (contract.matches_expression(expression)):
-                    print("Found contract:" + instance['address'])
+                    callback_func(instance['address'])
 

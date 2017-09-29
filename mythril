@@ -11,6 +11,9 @@ import argparse
 from rpc.client import EthJsonRpc
 
 
+def searchCallback(address):
+    print(address)
+
 def exitWithError(message):
     print(message)
     sys.exit()
@@ -86,15 +89,17 @@ elif (args.trace):
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
 
     if (args.data):
-        evm.trace(util.safe_decode(encoded_bytecode), args.address, args.data)
+        output = evm.trace(util.safe_decode(encoded_bytecode), args.address, args.data)
 
     else:
-        evm.trace(util.safe_decode(encoded_bytecode), args.address)
+        output = evm.trace(util.safe_decode(encoded_bytecode), args.address)
+
+    print(output)
 
 
 elif (args.search):
 
-    storage.search(args.search)
+    storage.search(args.search, searchCallback)
 
 elif (args.init_db):
         storage.initialize(args.rpchost, args.rpcport)  

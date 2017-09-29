@@ -8,3 +8,4 @@ mythril.egg-info
 build
 dist
 contracts.json
+hunt*

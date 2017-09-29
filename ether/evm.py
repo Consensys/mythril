@@ -2,7 +2,7 @@ from ethereum import vm, messages, transactions
 from ethereum.state import State
 from ethereum.slogging import get_logger
 from logging import StreamHandler
-import sys
+from io import StringIO
 import codecs
 from .util import safe_decode
 
@@ -11,7 +11,8 @@ def trace(code, address = "", calldata = ""):
 
 	logHandlers = ['eth.vm.op', 'eth.vm.op.stack', 'eth.vm.op.memory', 'eth.vm.op.storage']
 
-	streamHandler = StreamHandler(sys.stdout)
+	output = StringIO()
+	streamHandler = StreamHandler(output)
 
 	for handler in logHandlers:
 		log_vm_op = get_logger(handler)
@@ -29,3 +30,11 @@ def trace(code, address = "", calldata = ""):
 	message = vm.Message(addr_from, addr_to, 0, 21000, data, code_address=addr_to)
 
 	res, gas, dat = vm.vm_execute(ext, message, code)
+
+	streamHandler.flush()
+
+	# print(output.getvalue())
+
+	ret = output.getvalue()
+
+	return ret
