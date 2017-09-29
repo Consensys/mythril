@@ -1,5 +1,5 @@
 from rpc.client import EthJsonRpc
-from ethcontract import ETHCode, AddressesByCodeHash, CodeHashByAddress
+from ethcontract import ETHCode, InstanceList
 from ethereum import utils
 import hashlib
 import re
@@ -13,8 +13,7 @@ class ContractStorage(persistent.Persistent):
 
     def __init__(self):
         self.contracts = BTree()
-        self.address_to_hash_map = BTree()
-        self.hash_to_addresses_map = BTree()
+        self.instance_lists= BTree()
         self.last_block = 0
 
     def initialize(self, rpchost, rpcport):
@@ -57,17 +56,10 @@ class ContractStorage(persistent.Persistent):
                         self.contracts[contract_hash]
                     except KeyError:
                         self.contracts[contract_hash] = code
+                        m = InstanceList()
+                        self.instance_lists[contract_hash] = m
 
-                    m = CodeHashByAddress(contract_hash, contract_balance)
-                    self.address_to_hash_map[contract_address] = m
-
-                    try:
-                        self.hash_to_addresses_map[contract_hash]
-                    except KeyError:
-                        m = AddressesByCodeHash()
-                        self.hash_to_addresses_map[contract_hash] = m
-                    
-                    self.hash_to_addresses_map[contract_hash].add(contract_address, contract_balance)
+                    self.instance_lists[contract_hash].add(contract_address, contract_balance)
 
                     transaction.commit()
 
@@ -103,6 +95,6 @@ class ContractStorage(persistent.Persistent):
                 m.update(self.contracts[k].code.encode('UTF-8'))
                 contract_hash = m.digest()
 
-                m = self.hash_to_addresses_map[contract_hash]
+                m = self.instance_lists[contract_hash]
 
                 callback_func(m.addresses)

@@ -16,8 +16,8 @@ import os
 
 
 def searchCallback(addresses):
-    print("Match found in contract deployed at: ")
-    print(addresses.join("\n"))
+    print("MATCHED CONTRACT DEPLOYED AT: ")
+    print("\n".join(addresses))
 
 def exitWithError(message):
     print(message)

@@ -43,13 +43,7 @@ class ETHCode(persistent.Persistent):
         return eval(str_eval)
 
 
-class CodeHashByAddress(persistent.Persistent):
-
-    def __init__(self, code_hash, balance = 0):
-        self.code_hash = code_hash
-        self.balance = balance
-
-class AddressesByCodeHash(persistent.Persistent):
+class InstanceList(persistent.Persistent):
 
     def __init__(self):
         self.addresses = []
