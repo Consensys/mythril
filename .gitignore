@@ -9,4 +9,4 @@ build
 dist
 contracts.json
 hunt*
-utils
+*.fs*

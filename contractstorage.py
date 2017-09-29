@@ -1,23 +1,33 @@
 from rpc.client import EthJsonRpc
-from ethcontract import ETHContract
+from ethcontract import ETHCode, AddressesByCodeHash, CodeHashByAddress
 from ethereum import utils
-from tinydb import TinyDB, Query
-import codecs
 import hashlib
 import re
+import persistent
+import persistent.list
+import transaction
+from BTrees.OOBTree import BTree
 
 
-class ContractStorage:
+class ContractStorage(persistent.Persistent):
 
     def __init__(self):
-        self.db = TinyDB('./contracts.json')
-
+        self.contracts = BTree()
+        self.address_to_hash_map = BTree()
+        self.hash_to_addresses_map = BTree()
+        self.last_block = 0
 
     def initialize(self, rpchost, rpcport):
 
         eth = EthJsonRpc(rpchost, rpcport)
 
-        blockNum = eth.eth_blockNumber()
+        if self.last_block:
+            blockNum = self.last_block
+            print("Resuming synchronization from block " + str(blockNum))
+        else:
+
+            blockNum = eth.eth_blockNumber()
+            print("Starting synchronization from latest block: " + str(blockNum))
 
         while(blockNum > 0):
 
@@ -35,50 +45,44 @@ class ContractStorage:
                     contract_address = receipt['contractAddress']
 
                     contract_code = eth.eth_getCode(contract_address)
-
-                    m = hashlib.md5()
-
-                    m.update(contract_code.encode('UTF-8'))
-
-                    contract_hash = codecs.encode(m.digest(), 'hex_codec')
-                    contract_id = contract_hash.decode("utf-8")
-
                     contract_balance = eth.eth_getBalance(contract_address)
 
-                    Contract = Query()
+                    code = ETHCode(contract_code)
 
-                    new_instance = {'address': contract_address, 'balance': contract_balance}
+                    m = hashlib.md5()
+                    m.update(contract_code.encode('UTF-8'))
+                    contract_hash = m.digest()
 
-                    s = self.db.search(Contract.id == contract_id)
+                    try:
+                        self.contracts[contract_hash]
+                    except KeyError:
+                        self.contracts[contract_hash] = code
 
-                    if not len(s):
+                    m = CodeHashByAddress(contract_hash, contract_balance)
+                    self.address_to_hash_map[contract_address] = m
 
-                        self.db.insert({'id': contract_id, 'code': contract_code, 'instances': [new_instance]})
+                    try:
+                        self.hash_to_addresses_map[contract_hash]
+                    except KeyError:
+                        m = AddressesByCodeHash()
+                        self.hash_to_addresses_map[contract_hash] = m
+                    
+                    self.hash_to_addresses_map[contract_hash].add(contract_address, contract_balance)
 
-                    else:
+                    transaction.commit()
 
-                        instances = s[0]['instances']
-
-                        instances.append(new_instance)
-
-                        self.db.update({'instances': instances}, Contract.id == contract_id)
-
+            self.last_block = blockNum
             blockNum -= 1
 
 
     def get_contract_code_by_address(self, address):
 
-        Contract = Query()
-        Instance = Query()
+        contract_hash = self.address_to_hash_map(address)
 
-        ret = self.db.search(Contract.instances.any(Instance.address == address))
-
-        return ret[0]['code']
+        return self.contracts[contract_hash]
 
 
     def search(self, expression, callback_func):
-
-        all_contracts = self.db.all()
 
         matches = re.findall(r'func\[([a-zA-Z0-9\s,()]+)\]', expression)
 
@@ -89,12 +93,16 @@ class ContractStorage:
 
             expression = expression.replace(m, sign_hash)
 
-        for c in all_contracts:
+        all_keys = list(self.contracts)
 
-            for instance in c['instances']:
+        for k in all_keys:
 
-                contract = ETHContract(c['code'], instance['balance'])
+            if self.contracts[k].matches_expression(expression):
 
-                if (contract.matches_expression(expression)):
-                    callback_func(instance['address'])
+                m = hashlib.md5()
+                m.update(self.contracts[k].code.encode('UTF-8'))
+                contract_hash = m.digest()
 
+                m = self.hash_to_addresses_map[contract_hash]
+
+                callback_func(m.addresses)
