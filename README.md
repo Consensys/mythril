@@ -1,6 +1,6 @@
 # Mythril
 
-Mythril is a bug hunting tool/framework the Ethereum blockchain.
+Mythril is a bug hunting tool and framework for the Ethereum blockchain.
 
 ## Installation
 
