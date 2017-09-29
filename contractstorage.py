@@ -1,5 +1,5 @@
 from rpc.client import EthJsonRpc
-from ethcontract import ETHCode, InstanceList
+from ether.ethcontract import ETHCode, InstanceList
 from ethereum import utils
 import hashlib
 import re
