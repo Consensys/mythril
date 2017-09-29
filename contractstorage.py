@@ -67,13 +67,6 @@ class ContractStorage(persistent.Persistent):
             blockNum -= 1
 
 
-    def get_contract_code_by_address(self, address):
-
-        contract_hash = self.address_to_hash_map(address)
-
-        return self.contracts[contract_hash]
-
-
     def search(self, expression, callback_func):
 
         matches = re.findall(r'func\[([a-zA-Z0-9\s,()]+)\]', expression)
