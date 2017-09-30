@@ -4,7 +4,9 @@ Mythril is a bug hunting tool and framework for the Ethereum blockchain.
 
 ## Be responsible!
 
+The purpose of this tool is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure) and don't exploit or disclose the vulnerability before the funds have been moved.
 
+* Side note: Please do not attempt to brand vulnerabilities with names like "etherbleed" or "chainshock".
 
 ## Installation and setup
 
@@ -39,7 +41,7 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
-The default behavior is to only sync contracts with a non-zero balance. You can disable this behaviour with the `--sync-all` flag, but note that this will result in a very large (multi-gigabyte) database.
+The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but note that this will result in a very large (multi-gigabyte) database.
 
 ## Command line usage
 
@@ -69,7 +71,7 @@ JUMPI
 (...)
 ```
 
-## Custom scripts
+## Custom static / dynamic analysis
 
 -- TODO --
 
