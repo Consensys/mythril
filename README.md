@@ -34,6 +34,9 @@ Starting synchronization from latest block: 4323706
 Processing block 4323000, 3 individual contracts in database
 (...)
 ```
+
+The default behavior is to only sync contracts with a non-zero balance. You can disable this behaviour with the `--sync-all` flag, but note that this will result in a very large (multi-gigabyte) database.
+
 ## Command line usage
 
 -- TODO --
