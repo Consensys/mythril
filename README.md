@@ -52,9 +52,9 @@ The `mythril` command line tool allows you to easily access most of Mythril's fu
 The search feature allows you to find contract instances that contain specific function calls and opcode sequences. It supports simple boolean expressions, such as:
 
 ```bash
-$ mythril --search "func[changeMultisig(address)]"
-$ mythril --search "code[PUSH1 0x50,POP]"
-$ mythril --search "func[changeMultisig(address)] and code[PUSH1 0x50,POP]"
+$ mythril --search "func#changeMultisig(address)#"
+$ mythril --search "code#PUSH1 0x50,POP#"
+$/mythril --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 ```
 
 ### Other commands
@@ -62,11 +62,11 @@ $ mythril --search "func[changeMultisig(address)] and code[PUSH1 0x50,POP]"
 You can also disassemble and trace code using the '-d' and '-t' flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the '--data' flag.
 
 ```
-$ ./mythril -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
+$ mythril -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
 PUSH1 0x60
 PUSH1 0x40
 (...)
-$ ./mythril -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
+$ mythril -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
 vm storage={'storage': {}, 'nonce': '0', 'balance': '0', 'code': '0x'} gas=b'21000' stack=[] address=b'6e\xf2\xbf\x19\xee^ vE\xf3\xe65\xbf\x0fIa\xd6a\xc0' depth=0 steps=0 inst=96 pushvalue=96 pc=b'0' op=PUSH1
 vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b'2'
 vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'

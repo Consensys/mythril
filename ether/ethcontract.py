@@ -42,7 +42,7 @@ class ETHContract(persistent.Persistent):
         easm_code = self.get_easm()
         str_eval = ''
 
-        matches = re.findall(r'func:([a-zA-Z0-9\s,(\[\]]+?\))', expression)
+        matches = re.findall(r'func#([a-zA-Z0-9\s,(\\)\[\]]+)#', expression)
 
         for m in matches:
             # Calculate function signature hashes
@@ -60,14 +60,14 @@ class ETHContract(persistent.Persistent):
                 str_eval += token
                 continue
 
-            m = re.match(r'^code:([a-zA-Z0-9\s,\[\]]+)', token)
+            m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
 
             if (m):
                 code = m.group(1).replace(",", "\\n")
                 str_eval += "\"" + code + "\" in easm_code"
                 continue
 
-            m = re.match(r'^func:([a-zA-Z0-9\s,()\[\]]+)$', token)
+            m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
 
             if (m):
                 str_eval += "\"" + m.group(1) + "\" in easm_code"               
