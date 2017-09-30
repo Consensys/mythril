@@ -72,8 +72,6 @@ class ETHContract(persistent.Persistent):
             if (m):
                 str_eval += "\"" + m.group(1) + "\" in easm_code"               
 
-                print(str_eval)
-
                 continue
 
         return eval(str_eval)
