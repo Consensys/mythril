@@ -16,7 +16,7 @@ class ContractStorage(persistent.Persistent):
         self.instance_lists= BTree()
         self.last_block = 0
 
-    def initialize(self, rpchost, rpcport):
+    def initialize(self, rpchost, rpcport, sync_all):
 
         eth = EthJsonRpc(rpchost, rpcport)
 
@@ -46,8 +46,8 @@ class ContractStorage(persistent.Persistent):
                     contract_code = eth.eth_getCode(contract_address)
                     contract_balance = eth.eth_getBalance(contract_address)
 
-                    if not contract_balance:
-                        # skip contracts with zero balance.
+                    if not contract_balance or sync_all:
+                        # skip contracts with zero balance (disable with --sync-all)
                         continue
 
                     code = ETHCode(contract_code)
@@ -94,4 +94,4 @@ class ContractStorage(persistent.Persistent):
 
                 m = self.instance_lists[contract_hash]
 
-                callback_func(self.contracts[k].code, m.addresses)
+                callback_func(contract_hash.hex(), self.contracts[k].code, m.addresses, m.balances)
