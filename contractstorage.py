@@ -31,7 +31,7 @@ class ContractStorage(persistent.Persistent):
         while(blockNum > 0):
 
             if not blockNum % 1000:
-                print("Processing block: " + str(blockNum))
+                print("Processing block " + str(blockNum) + ", " + str(len(self.contracts.keys())) + " individual contracts in database")
 
             block = eth.eth_getBlockByNumber(blockNum)
 
@@ -45,6 +45,10 @@ class ContractStorage(persistent.Persistent):
 
                     contract_code = eth.eth_getCode(contract_address)
                     contract_balance = eth.eth_getBalance(contract_address)
+
+                    if not contract_balance:
+                        # skip contracts with zero balance.
+                        continue
 
                     code = ETHCode(contract_code)
 

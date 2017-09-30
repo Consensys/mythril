@@ -21,13 +21,12 @@ def trace(code, address = "", calldata = ""):
 
 	addr_from = codecs.decode('0123456789ABCDEF0123456789ABCDEF01234567', 'hex_codec')
 	addr_to = safe_decode(address)
-	data = safe_decode(calldata)
 
 	state = State()
 
 	ext = messages.VMExt(state, transactions.Transaction(0, 0, 21000, addr_from, 0, addr_to))
 
-	message = vm.Message(addr_from, addr_to, 0, 21000, data, code_address=addr_to)
+	message = vm.Message(addr_from, addr_to, 0, 21000, calldata, code_address=addr_to)
 
 	res, gas, dat = vm.vm_execute(ext, message, code)
 
