@@ -1,12 +1,12 @@
 # Mythril
 
+<img height="60px" align="right" src="/static/mythril.png"/>
+
 Mythril is a bug hunting tool and framework for the Ethereum blockchain.
 
 ## Be responsible!
 
-The purpose of this tool is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure) and don't exploit or disclose the vulnerability before the funds have been moved.
-
-* Side note: Please do not attempt to brand vulnerabilities with names like "etherbleed" or "chainshock".
+The purpose of this tool is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure), and don't attempt to brand it with a name like "etherbleed" or "chainshock".
 
 ## Installation and setup
 
