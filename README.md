@@ -59,7 +59,7 @@ $/mythril --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 
 ### Other commands
 
-You can also disassemble and trace code using the '-d' and '-t' flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the '--data' flag.
+You can also disassemble and trace code using the `-d` and `-t` flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the `--data` flag.
 
 ```
 $ mythril -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
