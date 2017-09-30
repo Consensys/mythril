@@ -3,11 +3,18 @@ import re
 import persistent
 
 
-class ETHCode(persistent.Persistent):
+class ETHContract(persistent.Persistent):
 
     def __init__(self, code = ""):
 
         self.code = code
+
+
+    def get_xrefs(self):
+
+        disassembly = asm.disassemble(util.safe_decode(self.code))
+
+        print(disassembly)
 
 
     def matches_expression(self, expression):

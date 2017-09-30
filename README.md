@@ -57,23 +57,28 @@ $ mythril --search "code[PUSH1 0x50,POP]"
 $ mythril --search "func[changeMultisig(address)] and code[PUSH1 0x50,POP]"
 ```
 
-### Tracing code in the EVM
+### Other commands
+
+You can also disassemble and trace code using the '-d' and '-t' flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the '--data' flag.
 
 ```
 $ ./mythril -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
 PUSH1 0x60
 PUSH1 0x40
-MSTORE
-CALLDATASIZE
-ISZERO
-PUSH2 0x00ac
-JUMPI
 (...)
+$ ./mythril -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
+vm storage={'storage': {}, 'nonce': '0', 'balance': '0', 'code': '0x'} gas=b'21000' stack=[] address=b'6e\xf2\xbf\x19\xee^ vE\xf3\xe65\xbf\x0fIa\xd6a\xc0' depth=0 steps=0 inst=96 pushvalue=96 pc=b'0' op=PUSH1
+vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b'2'
+vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'
 ```
 
-## Custom static / dynamic analysis
+Do note however that the disassembly / debugging functionality is currently quite bare-bones. If you are planning to do manual analysis, I recommend using [remix](https://remix.ethereum.org/) and [etherscan](https://etherscan.io).
 
--- TODO --
+## Custom scripts
+
+By combining modules of Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) you can perform more complex static/dynamic analysis tasks.
+
+-- TODO: Add example(s) --
 
 ## Credit
 

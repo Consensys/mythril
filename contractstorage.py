@@ -1,5 +1,5 @@
 from rpc.client import EthJsonRpc
-from ether.ethcontract import ETHCode, InstanceList
+from ether.ethcontract import ETHContract, InstanceList
 from ethereum import utils
 import hashlib
 import re
@@ -50,7 +50,7 @@ class ContractStorage(persistent.Persistent):
                         # skip contracts with zero balance (disable with --sync-all)
                         continue
 
-                    code = ETHCode(contract_code)
+                    code = ETHContract(contract_code)
 
                     m = hashlib.md5()
                     m.update(contract_code.encode('UTF-8'))
@@ -94,4 +94,4 @@ class ContractStorage(persistent.Persistent):
 
                 m = self.instance_lists[contract_hash]
 
-                callback_func(contract_hash.hex(), self.contracts[k].code, m.addresses, m.balances)
+                callback_func(contract_hash.hex(), self.contracts[k], m.addresses, m.balances)

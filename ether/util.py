@@ -1,5 +1,8 @@
 from rpc.client import EthJsonRpc
 import codecs
+from ethereum.abi import encode_abi, encode_int
+from ethereum.utils import zpad
+from ethereum.abi import method_id
 
 
 def safe_decode(hex_encoded_string):
@@ -24,6 +27,13 @@ def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=85
 
     raise RuntimeError("Transaction trace didn't return any bytecode")
 
+
+def encode_calldata(func_name, arg_types, args):
+
+    mid = method_id(func_name, arg_types)
+    function_selector = zpad(encode_int(mid), 4)
+    args = encode_abi(arg_types, args)
+    return function_selector + args
 
 def raw_bytes_to_file(filename, bytestring):
     with open(filename, 'wb') as f:
