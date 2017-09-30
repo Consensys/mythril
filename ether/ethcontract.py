@@ -1,6 +1,7 @@
 from ether import asm, util
 import re
 import persistent
+from ethereum import utils
 
 
 class ETHContract(persistent.Persistent):
@@ -26,13 +27,30 @@ class ETHContract(persistent.Persistent):
         return xrefs
 
 
+    def get_disassembly(self):
+
+        return asm.disassemble(util.safe_decode(self.code))
+
+
+    def get_easm(self):
+
+        return asm.disassembly_to_easm(asm.disassemble(util.safe_decode(self.code)))
+
+
     def matches_expression(self, expression):
 
-        disassembly = asm.disassemble(util.safe_decode(self.code))
+        easm_code = self.get_easm()
+        str_eval = ''
 
-        easm_code = asm.disassembly_to_easm(disassembly)
+        matches = re.findall(r'func:([a-zA-Z0-9\s,(\[\]]+?\))', expression)
 
-        str_eval = ""
+        for m in matches:
+            # Calculate function signature hashes
+
+            sign_hash = utils.sha3(m)[:4].hex()
+
+            expression = expression.replace(m, sign_hash)
+
 
         tokens = re.split("( and | or )", expression, re.IGNORECASE)
 
@@ -42,17 +60,19 @@ class ETHContract(persistent.Persistent):
                 str_eval += token
                 continue
 
-            m = re.match(r'^code\[([a-zA-Z0-9\s,]+)\]$', token)
+            m = re.match(r'^code:([a-zA-Z0-9\s,\[\]]+)', token)
 
             if (m):
                 code = m.group(1).replace(",", "\\n")
                 str_eval += "\"" + code + "\" in easm_code"
                 continue
 
-            m = re.match(r'^func\[([a-zA-Z0-9\s,()]+)\]$', token)
+            m = re.match(r'^func:([a-zA-Z0-9\s,()\[\]]+)$', token)
 
             if (m):
                 str_eval += "\"" + m.group(1) + "\" in easm_code"               
+
+                print(str_eval)
 
                 continue
 

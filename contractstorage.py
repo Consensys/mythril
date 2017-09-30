@@ -1,8 +1,6 @@
 from rpc.client import EthJsonRpc
 from ether.ethcontract import ETHContract, InstanceList
-from ethereum import utils
 import hashlib
-import re
 import os
 import persistent
 import persistent.list
@@ -95,15 +93,6 @@ class ContractStorage(persistent.Persistent):
 
 
     def search(self, expression, callback_func):
-
-        matches = re.findall(r'func\[([a-zA-Z0-9\s,()]+)\]', expression)
-
-        for m in matches:
-            # Pre-calculate function signature hashes
-
-            sign_hash = utils.sha3(m)[:4].hex()
-
-            expression = expression.replace(m, sign_hash)
 
         all_keys = list(self.contracts)
 
