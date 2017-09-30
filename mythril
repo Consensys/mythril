@@ -6,12 +6,11 @@
 
 from ether import asm,evm,util
 from ethereum import utils
-from contractstorage import ContractStorage
+from contractstorage import get_persistent_storage
 import sys
 import argparse
 from rpc.client import EthJsonRpc
-import ZODB
-from ZODB import FileStorage
+
 import os
 
 
@@ -46,21 +45,7 @@ parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 app_root = os.path.dirname(os.path.realpath(__file__))
 db_dir = os.path.join(app_root, "database")
 
-if not os.path.exists(db_dir):
-    os.makedirs(db_dir)
-
-db_path = os.path.join(db_dir, "contractstorage.fs")
-
-storage = FileStorage.FileStorage(db_path)
-db = ZODB.DB(storage)
-connection = db.open()
-storage_root = connection.root()
-
-try:
-    contract_storage = storage_root['contractStorage']
-except KeyError:
-    contract_storage = ContractStorage()
-    storage_root['contractStorage'] = contract_storage
+contract_storage = get_persistent_storage(db_dir)
 
 args = parser.parse_args()
 

@@ -3,10 +3,33 @@ from ether.ethcontract import ETHContract, InstanceList
 from ethereum import utils
 import hashlib
 import re
+import os
 import persistent
 import persistent.list
 import transaction
 from BTrees.OOBTree import BTree
+import ZODB
+from ZODB import FileStorage
+
+
+def get_persistent_storage(db_dir):
+    if not os.path.exists(db_dir):
+        os.makedirs(db_dir)
+
+    db_path = os.path.join(db_dir, "contractstorage.fs")
+
+    storage = FileStorage.FileStorage(db_path)
+    db = ZODB.DB(storage)
+    connection = db.open()
+    storage_root = connection.root()
+
+    try:
+        contract_storage = storage_root['contractStorage']
+    except KeyError:
+        contract_storage = ContractStorage()
+        storage_root['contractStorage'] = contract_storage
+
+    return contract_storage
 
 
 class ContractStorage(persistent.Persistent):

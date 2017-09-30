@@ -14,7 +14,16 @@ class ETHContract(persistent.Persistent):
 
         disassembly = asm.disassemble(util.safe_decode(self.code))
 
-        print(disassembly)
+        xrefs = []
+
+        for instruction in disassembly:
+            if instruction['opcode'] == "PUSH20":
+                if instruction['argument']:
+                    xref = instruction['argument'].decode("utf-8")
+                    if xref not in xrefs:
+                        xrefs.append(xref)
+
+        return xrefs
 
 
     def matches_expression(self, expression):
