@@ -2,11 +2,11 @@
 
 <img height="60px" align="right" src="/static/mythril.png"/>
 
-Mythril is a bug hunting tool and framework for the Ethereum blockchain.
+Mythril is a bug hunting framework for the Ethereum blockchain.
 
 ## Be responsible!
 
-The purpose of this tool is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure), and don't attempt to brand it with a name like "etherbleed" or "chainshock".
+The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue or vulnerable contract instances, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure) as opposed to stealing Ether from unsuspecting users. Also, note that vulnerability branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and others in the security community.
 
 ## Installation and setup
 
@@ -59,7 +59,7 @@ $ mythril --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 
 ### Other commands
 
-You can also disassemble and trace code using the '-d' and '-t' flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the '--data' flag.
+You can also disassemble and trace code using the `-d` and `-t` flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the `--data` flag.
 
 ```
 $ mythril -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
