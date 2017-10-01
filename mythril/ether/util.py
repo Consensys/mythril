@@ -1,4 +1,4 @@
-from rpc.client import EthJsonRpc
+from mythril.rpc.client import EthJsonRpc
 import codecs
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad

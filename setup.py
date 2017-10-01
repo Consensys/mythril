@@ -9,7 +9,7 @@ long_description = '''
 setup(
     name='mythril',
 
-    version='0.2.3',
+    version='0.2.4',
 
     description='A bug hunting tool framework for the Ethereum blockchain',
     long_description=long_description,
@@ -51,5 +51,5 @@ setup(
     extras_require={
     },
 
-    scripts=['mythril']
+    scripts=['mythril/mythril']
 )

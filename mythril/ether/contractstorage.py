@@ -1,5 +1,5 @@
-from rpc.client import EthJsonRpc
-from ether.ethcontract import ETHContract, InstanceList
+from mythril.rpc.client import EthJsonRpc
+from mythril.ether.ethcontract import ETHContract, InstanceList
 import hashlib
 import os
 import persistent

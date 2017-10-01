@@ -4,15 +4,15 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from ether import asm,evm,util
-from ether.contractstorage import get_persistent_storage
+from mythril.ether import asm,evm,util
+from mythril.ether.contractstorage import get_persistent_storage
+from mythril.rpc.client import EthJsonRpc
 from ethereum import utils
 import sys
 import argparse
-from rpc.client import EthJsonRpc
-
 import os
 
+DEFAULT_DB_DIR = "~/.mythril"
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash )
@@ -41,9 +41,10 @@ parser.add_argument('--sync-all', action='store_true', help='Also sync contracts
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
-
-app_root = os.path.dirname(os.path.realpath(__file__))
-db_dir = os.path.join(app_root, "database")
+try:
+    db_dir = os.environ['DB_DIR']
+except KeyError:
+    db_dir = DEFAULT_DB_DIR
 
 contract_storage = get_persistent_storage(db_dir)
 
