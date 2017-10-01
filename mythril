@@ -5,8 +5,8 @@
 """
 
 from ether import asm,evm,util
+from ether.contractstorage import get_persistent_storage
 from ethereum import utils
-from contractstorage import get_persistent_storage
 import sys
 import argparse
 from rpc.client import EthJsonRpc

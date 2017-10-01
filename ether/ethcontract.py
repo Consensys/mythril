@@ -20,9 +20,11 @@ class ETHContract(persistent.Persistent):
         for instruction in disassembly:
             if instruction['opcode'] == "PUSH20":
                 if instruction['argument']:
-                    xref = instruction['argument'].decode("utf-8")
-                    if xref not in xrefs:
-                        xrefs.append(xref)
+                    addr = instruction['argument'].decode("utf-8")
+
+                    if (re.match(r'^[a-zA-Z0-9]{40}$', addr)):
+                        if addr not in xrefs:
+                            xrefs.append(addr)
 
         return xrefs
 
@@ -70,7 +72,7 @@ class ETHContract(persistent.Persistent):
             m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in easm_code"               
+                str_eval += "\"" + m.group(1) + "\" in easm_code" 
 
                 continue
 

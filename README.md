@@ -54,7 +54,7 @@ The search feature allows you to find contract instances that contain specific f
 ```bash
 $ mythril --search "func#changeMultisig(address)#"
 $ mythril --search "code#PUSH1 0x50,POP#"
-$/mythril --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
+$ mythril --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 ```
 
 ### Other commands

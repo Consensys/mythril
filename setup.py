@@ -9,9 +9,9 @@ long_description = '''
 setup(
     name='mythril',
 
-    version='0.2.0',
+    version='0.2.3',
 
-    description='Mythril is a bug hunting tool and framework for the Ethereum blockchain.',
+    description='A bug hunting tool framework for the Ethereum blockchain',
     long_description=long_description,
 
     url='https://github.com/b-mueller/mythril',
