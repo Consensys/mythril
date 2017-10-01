@@ -1,4 +1,4 @@
-from ether import asm, util
+from mythril.ether import asm, util
 import re
 import persistent
 from ethereum import utils
