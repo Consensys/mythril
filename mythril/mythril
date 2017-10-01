@@ -12,7 +12,7 @@ import sys
 import argparse
 import os
 
-DEFAULT_DB_DIR = "~/.mythril"
+DEFAULT_DB_DIR = os.path.join(os.path.expanduser('~'), ".mythril")
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash )
