@@ -7,6 +7,3 @@ __pycache__
 mythril.egg-info
 build
 dist
-contracts.json
-hunt*
-*.fs*
