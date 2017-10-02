@@ -33,7 +33,7 @@ def encode_calldata(func_name, arg_types, args):
     mid = method_id(func_name, arg_types)
     function_selector = zpad(encode_int(mid), 4)
     args = encode_abi(arg_types, args)
-    return function_selector + args
+    return "0x" + function_selector + args
 
 def raw_bytes_to_file(filename, bytestring):
     with open(filename, 'wb') as f:
