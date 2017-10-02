@@ -13,7 +13,7 @@ The purpose of project is to aid discovery of vulnerable smart contracts on the 
 Install from Pypi:
 
 ```bash
-$ pip install mythril
+$ pip install mythril==0.2.8
 ```
 
 Or, clone the GitHub repo to install the newest master branch:
@@ -41,11 +41,11 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
-The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but note that this will result in a very large (multi-gigabyte) database.
+The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but note that this will result in a huge (as in: dozens of GB) database.
 
 ## Command line usage
 
-The `mythril` command line tool allows you to easily access most of Mythril's functionality.
+The `mythril` command line tool allows you to conveniently access some of Mythril's functionality.
 
 ### Searching the database
 
@@ -76,7 +76,7 @@ Do note however that the disassembly / debugging functionality is still quite ba
 
 #### Finding cross-references
 
-It is often useful to know what other addresses are referenced by a particular contract. Let's say you are looking for conditions similar to the [Parity Multisig Wallet Bug](http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/). First, you want to find a list of contracts that use the `DELEGATECALL` opcode:
+It is often useful to find other contracts referenced by a particular contract. Let's assume you want to search for contracts that fulfill conditions similar to the [Parity Multisig Wallet Bug](http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/). First, you want to find a list of contracts that use the `DELEGATECALL` opcode:
 
 ```
 $ mythril --search "code#DELEGATECALL#"
@@ -90,18 +90,16 @@ Address: 0x156d5687a201affb3f1e632dcfb9fde4b0128211, balance: 295000000000000000
 (...)
 ```
 
-You can then use the `--xrefs` flag to find other contracts referenced by each of those contracts:
+You can then use the `--xrefs` flag to find the addresses of other contracts referenced:
 
 ```
 $ mythril/mythril --xrefs 07459966443977122e639cbf7804c446
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
-Then, head to Etherscan to check out the source code, or use the tracer to dynamically test for issues.
+The command-line search is useful for identifying contracts with interesting opcode patterns. You can either use this information as a starting point for manual analysis, or build more complex static and dynamic analysis using Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules.
 
 ## Custom scripts
-
-By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules you can perform more complex static/dynamic analysis tasks.
 
 -- TODO: Add example(s) --
 
