@@ -11,7 +11,7 @@ setup(
 
     version='0.2.8',
 
-    description='A bug hunting tool framework for the Ethereum blockchain',
+    description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
 
     url='https://github.com/b-mueller/mythril',
