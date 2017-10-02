@@ -20,7 +20,7 @@ $ cd mythril
 $ python setup.py install
 ```
 
-You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (not that Mythril uses non-standard RPC APIs offered by go-ethereum, so other clients likely won't work). Start the node as follows:
+You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
 
 ```bash
 $ geth --rpc --rpcapi eth,admin,debug --syncmode fast
