@@ -77,7 +77,10 @@ if (args.disassemble):
     else:
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
 
-    disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
+    try:
+        disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
+    except binascii.Error:
+        exitWithError("Disassembler: Invalid code string.")
 
     easm_text = asm.disassembly_to_easm(disassembly)
 
