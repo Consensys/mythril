@@ -2,7 +2,7 @@
 
 <img height="60px" align="right" src="/static/mythril.png"/>
 
-Mythril is a bug hunting framework for the Ethereum blockchain.
+Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
 
 ## Be responsible!
 
