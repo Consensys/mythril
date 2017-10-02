@@ -35,7 +35,7 @@ $ geth --rpc --rpcapi eth,admin,debug --syncmode fast
 Mythril builds its own contract database using RPC sync. Unfortunately, this process is slow - however, you don't need to sync the whole blockchain right away. If you abort the syncing process with `ctrl+c`, it will auto-resume the next time you run the `--init-db` command.
 
 ```bash
-$ mythril --init-db
+$ myth --init-db
 Starting synchronization from latest block: 4323706
 Processing block 4323000, 3 individual contracts in database
 (...)
@@ -105,7 +105,7 @@ The command-line search is useful for identifying contracts with interesting opc
 
 ## Issues
 
-The RPC database sync is not a very good solution. I explored some other options, including:
+The RPC database sync solution is not very efficient. I explored some other options, including:
 
 - Using PyEthereum: I encountered issues syncing PyEthereum with Homestead. Also, PyEthApp only supports Python 2.7, which causes issues with other important packages.
 - Accessing the Go-Ethereum LevelDB: This would be a great option. However, PyEthereum database code seems unable to deal with Go-Ethereum's LevelDB. It would take quite a bit of effort to figure this out.
