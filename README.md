@@ -101,7 +101,7 @@ Then, head to Etherscan to check out the source code, or use the tracer to dynam
 
 ## Custom scripts
 
-By combining modules of Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) you can perform more complex static/dynamic analysis tasks.
+By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules you can perform more complex static/dynamic analysis tasks.
 
 -- TODO: Add example(s) --
 
