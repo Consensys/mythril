@@ -7,16 +7,6 @@ Mythril
 
 Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
 
-Be responsible!
----------------
-
-The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and
-support research for novel security flaws. If you do find an exploitable issue or vulnerable
-contract instances, please `do the right
-thing <https://en.wikipedia.org/wiki/Responsible_disclosure>`__. Also, note that vulnerability
-branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and
-others in the security community.
-
 Installation and setup
 ----------------------
 
@@ -156,6 +146,17 @@ Credit
 
 JSON RPC library is adapted from `ethjsonrpc <https://github.com/ConsenSys/ethjsonrpc>`__ (it
 doesn't seem to be maintained anymore, and I needed to make some changes to it).
+
+Act responsibly!
+---------------
+
+The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and
+support research for novel security flaws. If you do find an exploitable issue or vulnerable
+contract instances, please `do the right
+thing <https://en.wikipedia.org/wiki/Responsible_disclosure>`__. Also, note that vulnerability
+branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and
+others in the security community.
+
 '''
 
 
