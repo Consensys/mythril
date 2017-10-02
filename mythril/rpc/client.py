@@ -99,7 +99,8 @@ class EthJsonRpc(object):
         if sig is not None and args is not None:
              types = sig[sig.find('(') + 1: sig.find(')')].split(',')
              encoded_params = encode_abi(types, args)
-             code += encoded_params.encode('hex')
+             code += encoded_params.hex()
+    
         return self.eth_sendTransaction(from_address=from_, gas=gas, data=code)
 
     def get_contract_address(self, tx):
