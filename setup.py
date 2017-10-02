@@ -51,7 +51,7 @@ with ``ctrl+c``, it will auto-resume the next time you run the ``--init-db`` com
 
 .. code:: bash
 
-    $ mythril --init-db
+    $ myth --init-db
     Starting synchronization from latest block: 4323706
     Processing block 4323000, 3 individual contracts in database
     (...)
@@ -73,9 +73,9 @@ opcode sequences. It supports simple boolean expressions, such as:
 
 .. code:: bash
 
-    $ mythril --search "func#changeMultisig(address)#"
-    $ mythril --search "code#PUSH1 0x50,POP#"
-    $ mythril --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
+    $ myth --search "func#changeMultisig(address)#"
+    $ myth --search "code#PUSH1 0x50,POP#"
+    $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 
 Disassembler
 ~~~~~~~~~~~~
@@ -86,7 +86,7 @@ the ``--data`` flag.
 
 ::
 
-    $ mythril -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
+    $ myth -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
     PUSH1 0x60
     PUSH1 0x40
     (...)
@@ -123,7 +123,7 @@ You can then use the ``--xrefs`` flag to find other contracts referenced by each
 
 ::
 
-    $ mythril/mythril --xrefs 07459966443977122e639cbf7804c446
+    $ myth --xrefs 07459966443977122e639cbf7804c446
     5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 
 Then, head to Etherscan to check out the source code, or use the tracer to dynamically test for
@@ -162,7 +162,7 @@ doesn't seem to be maintained anymore, and I needed to make some changes to it).
 setup(
     name='mythril',
 
-    version='0.2.9',
+    version='0.2.10',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
