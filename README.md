@@ -37,6 +37,8 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
+Note that the process doesn't take quite as long as it first seems, as the blocks get smaller towards the beginning of the chain.
+
 The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but note that this will result in a huge (as in: dozens of GB) database.
 
 ## Command line usage
