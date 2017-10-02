@@ -7,3 +7,4 @@ __pycache__
 mythril.egg-info
 build
 dist
+*.lock
