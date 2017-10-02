@@ -1,5 +1,5 @@
 from mythril.rpc.client import EthJsonRpc
-from mythril.ether.ethcontract import ETHContract, InstanceList
+from .mythril.ether.ethcontract import ETHContract, InstanceList
 import hashlib
 import os
 import persistent
@@ -36,6 +36,11 @@ class ContractStorage(persistent.Persistent):
         self.contracts = BTree()
         self.instance_lists= BTree()
         self.last_block = 0
+
+
+    def get_contract_by_hash(self, contract_hash):
+        return self.contracts[contract_hash]
+
 
     def initialize(self, rpchost, rpcport, sync_all):
 
