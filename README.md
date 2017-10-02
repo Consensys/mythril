@@ -105,7 +105,7 @@ The command-line search is useful for identifying contracts with interesting opc
 
 ## Issues
 
-The RPC database sync is not a very good solution. I explored some other options, including:
+The RPC database sync solution is not very efficient. I explored some other options, including:
 
 - Using PyEthereum: I encountered issues syncing PyEthereum with Homestead. Also, PyEthApp only supports Python 2.7, which causes issues with other important packages.
 - Accessing the Go-Ethereum LevelDB: This would be a great option. However, PyEthereum database code seems unable to deal with Go-Ethereum's LevelDB. It would take quite a bit of effort to figure this out.
