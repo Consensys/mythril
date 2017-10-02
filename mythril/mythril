@@ -109,7 +109,10 @@ elif (args.trace):
 
 elif (args.search):
 
-    contract_storage.search(args.search, searchCallback)
+    try:
+        contract_storage.search(args.search, searchCallback)
+    except SyntaxError:
+        print("Syntax error in search expression.")
 
 elif (args.xrefs):
 
