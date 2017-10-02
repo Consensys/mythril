@@ -4,10 +4,6 @@
 
 Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
 
-## Be responsible!
-
-The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue or vulnerable contract instances, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure). Also, note that vulnerability branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and others in the security community.
-
 ## Installation and setup
 
 Install from Pypi:
@@ -88,9 +84,9 @@ Address: 0x156d5687a201affb3f1e632dcfb9fde4b0128211, balance: 295000000000000000
 (...)
 ```
 
-Note that "code hash" in the above output refers to the contract's index in the database. The following lines starting with "Address" list the addresses of contract instances in the Ethereum blockchain (all with the same code).
+Note that "code hash" in the above output refers to the contract's index in the database. The following lines ("Address: ...") list instances of same contract deployed on the blockchain.
 
-You can then use the `--xrefs` flag to find the addresses of other contracts referenced:
+You can then use the `--xrefs` flag to find the addresses of referenced contracts:
 
 ```
 $ myth --xrefs 07459966443977122e639cbf7804c446
@@ -116,3 +112,7 @@ I'm writing this in my spare time, so contributors would be highly welcome!
 ## Credit
 
 JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
+
+## Act responsibly!
+
+The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue or vulnerable contract instances, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure). Also, note that vulnerability branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and others in the security community.
