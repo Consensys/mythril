@@ -13,7 +13,7 @@ The purpose of project is to aid discovery of vulnerable smart contracts on the 
 Install from Pypi:
 
 ```bash
-$ pip install mythril
+$ pip install mythril==0.2.8
 ```
 
 Or, clone the GitHub repo to install the newest master branch:
