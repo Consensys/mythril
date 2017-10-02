@@ -22,7 +22,7 @@ class ETHContract(persistent.Persistent):
                 if instruction['argument']:
                     addr = instruction['argument'].decode("utf-8")
 
-                    if (re.match(r'^[a-zA-Z0-9]{40}$', addr)):
+                    if (re.match(r'^[a-zA-Z0-9]{40}$', addr) and addr != "ffffffffffffffffffffffffffffffffffffffff"):
                         if addr not in xrefs:
                             xrefs.append(addr)
 

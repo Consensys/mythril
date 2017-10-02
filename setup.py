@@ -162,7 +162,7 @@ doesn't seem to be maintained anymore, and I needed to make some changes to it).
 setup(
     name='mythril',
 
-    version='0.2.8',
+    version='0.2.9',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
@@ -204,5 +204,5 @@ setup(
     extras_require={
     },
 
-    scripts=['mythril/mythril']
+    scripts=['myth']
 )
