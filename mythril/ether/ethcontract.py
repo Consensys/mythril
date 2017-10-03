@@ -13,30 +13,30 @@ class ETHContract(persistent.Persistent):
 
     def get_xrefs(self):
 
-        disassembly = asm.disassemble(util.safe_decode(self.code))
+        instruction_list = asm.disassemble(util.safe_decode(self.code))
 
         xrefs = []
 
-        for instruction in disassembly:
+        for instruction in instruction_list:
             if instruction['opcode'] == "PUSH20":
                 if instruction['argument']:
-                    addr = instruction['argument'].decode("utf-8")
+                    addr = instruction['argument']
 
-                    if (re.match(r'^[a-zA-Z0-9]{40}$', addr) and addr != "ffffffffffffffffffffffffffffffffffffffff"):
+                    if (re.match(r'^0x[a-zA-Z0-9]{40}$', addr) and addr != "0xffffffffffffffffffffffffffffffffffffffff"):
                         if addr not in xrefs:
                             xrefs.append(addr)
 
         return xrefs
 
 
-    def get_disassembly(self):
+    def get_instruction_list(self):
 
         return asm.disassemble(util.safe_decode(self.code))
 
 
     def get_easm(self):
 
-        return asm.disassembly_to_easm(asm.disassemble(util.safe_decode(self.code)))
+        return asm.instruction_list_to_easm(asm.disassemble(util.safe_decode(self.code)))
 
 
     def matches_expression(self, expression):

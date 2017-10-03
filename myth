@@ -5,6 +5,7 @@
 """
 
 from mythril.ether import asm,evm,util
+from disassembler.disassembly import Disassembly
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.rpc.client import EthJsonRpc
 from ethereum import utils
@@ -78,11 +79,12 @@ if (args.disassemble):
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
 
     try:
-        disassembly = asm.disassemble(util.safe_decode(encoded_bytecode))
+        disassembly = Disassembly(encoded_bytecode)
+        # instruction_list = asm.disassemble(util.safe_decode(encoded_bytecode))
     except binascii.Error:
         exitWithError("Disassembler: Invalid code string.")
 
-    easm_text = asm.disassembly_to_easm(disassembly)
+    easm_text = disassembly.get_easm()
 
     if (args.outfile):
         util.string_to_file(args.outfile, easm_text)

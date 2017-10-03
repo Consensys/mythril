@@ -2,30 +2,34 @@ import sys
 import re
 import codecs
 from ethereum import opcodes
+from mythril.ether import util
 
 
 regex_PUSH = re.compile('^PUSH(\d*)$')
 
 
-def disassembly_to_easm(disassembly):
+def instruction_list_to_easm(instruction_list):
     easm = ""
 
-    for instruction in disassembly:
-        easm += instruction['opcode']
+    # print(instruction_list)
+
+    for instruction in instruction_list:
+
+        easm += str(instruction['address']) + " " + instruction['opcode']
 
         if 'argument' in instruction:
-            easm += " 0x" + codecs.decode(instruction['argument'], 'utf-8')
+            easm += " " + instruction['argument']
 
         easm += "\n"
 
     return easm
 
 
-def easm_to_disassembly(easm):
+def easm_to_instruction_list(easm):
 
     regex_CODELINE = re.compile('^([A-Z0-9]+)(?:\s+([0-9a-fA-Fx]+))?$')
 
-    disassembly = []
+    instruction_list = []
 
     codelines = easm.split('\n')
 
@@ -44,9 +48,9 @@ def easm_to_disassembly(easm):
         if m.group(2):
             instruction['argument'] = m.group(2)[2:]
 
-        disassembly.append(instruction)
+        instruction_list.append(instruction)
 
-    return disassembly
+    return instruction_list
 
 
 def get_opcode_from_name(name):
@@ -60,20 +64,20 @@ def get_opcode_from_name(name):
     raise RuntimeError("Unknown opcode")
 
 
-def find_opcode_sequence(pattern, disassembly):
+def find_opcode_sequence(pattern, instruction_list):
     match_indexes = []
 
     pattern_length = len(pattern)
 
-    for i in range(0, len(disassembly) - pattern_length):
+    for i in range(0, len(instruction_list) - pattern_length):
 
-        if disassembly[i]['opcode'] == pattern[0]:
+        if instruction_list[i]['opcode'] == pattern[0]:
 
             matched = True
 
             for j in range(1, len(pattern)):
 
-                if not (disassembly[i + j]['opcode'] == pattern[j]):
+                if not (instruction_list[i + j]['opcode'] == pattern[j]):
                     matched = False
                     break
 
@@ -85,24 +89,26 @@ def find_opcode_sequence(pattern, disassembly):
 
 def disassemble(bytecode):
 
-    disassembly = []
-    i = 0
+    instruction_list = []
+    addr = 0
 
-    while i < len(bytecode):
+    while addr < len(bytecode):
 
         instruction = {}
 
+        instruction['address'] = addr
+
         try:
             if (sys.version_info > (3, 0)):
-                opcode = opcodes.opcodes[bytecode[i]]
+                opcode = opcodes.opcodes[bytecode[addr]]
             else:
-                 opcode = opcodes.opcodes[ord(bytecode[i])]
+                opcode = opcodes.opcodes[ord(bytecode[addr])]
 
         except KeyError:
 
             # invalid opcode
-            disassembly.append({'opcode': "INVALID"})
-            i += 1
+            instruction_list.append({'address': addr, 'opcode': "INVALID"})
+            addr += 1
             continue
 
         instruction['opcode'] = opcode[0]
@@ -110,22 +116,22 @@ def disassemble(bytecode):
         m = re.search(regex_PUSH, opcode[0])
 
         if m:
-            argument = bytecode[i+1:i+1+int(m.group(1))]
-            instruction['argument'] = codecs.encode(argument, "hex_codec")
-            i += int(m.group(1))
+            argument = bytecode[addr+1:addr+1+int(m.group(1))]
+            instruction['argument'] = "0x" + argument.hex()
+            addr += int(m.group(1))
 
-        disassembly.append(instruction)
+        instruction_list.append(instruction)
 
-        i += 1
+        addr += 1
 
-    return disassembly
+    return instruction_list
 
 
-def assemble(disassembly):
+def assemble(instruction_list):
 
     bytecode = b""
 
-    for instruction in disassembly:
+    for instruction in instruction_list:
 
         try:
             opcode = get_opcode_from_name(instruction['opcode'])
@@ -136,6 +142,6 @@ def assemble(disassembly):
 
         if 'argument' in instruction:
 
-            bytecode += codecs.decode(instruction['argument'], 'hex_codec')
+            bytecode += util.safe_decode(instruction['argument'])
 
     return bytecode

@@ -70,7 +70,7 @@ vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b
 vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'
 ```
 
-Do note however that the disassembly / debugging functionality is still quite bare-bones. For manual analysis & debugging I recommend using [remix](https://remix.ethereum.org/) and [etherscan](https://etherscan.io).
+Do note however that the instruction_list / debugging functionality is still quite bare-bones. For manual analysis & debugging I recommend using [remix](https://remix.ethereum.org/) and [etherscan](https://etherscan.io).
 
 #### Finding cross-references
 
