@@ -28,7 +28,7 @@ $ geth --rpc --rpcapi eth,admin,debug --syncmode fast
 
 ### Database initialization
 
-Mythril builds its own contract database using RPC sync. Unfortunately, this process is slow - however, you don't need to sync the whole blockchain right away. If you abort the syncing process with `ctrl+c`, it will auto-resume the next time you run the `--init-db` command.
+Mythril builds its own contract database to enable fast search operations. Unfortunately, this process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
 
 ```bash
 $ myth --init-db
@@ -37,9 +37,9 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
-Note that the process doesn't take quite as long as it first seems, as the blocks get smaller towards the beginning of the chain.
+Note that syncing doesn't take quite as long as it first seems, because the blocks get smaller towards the beginning of the chain.
 
-The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but note that this will result in a huge (as in: dozens of GB) database.
+The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
 
 ## Command line usage
 
