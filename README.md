@@ -4,16 +4,12 @@
 
 Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
 
-## Be responsible!
-
-The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue or vulnerable contract instances, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure). Also, note that vulnerability branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and others in the security community.
-
 ## Installation and setup
 
 Install from Pypi:
 
 ```bash
-$ pip install mythril==0.2.9
+$ pip install mythril==0.2.10
 ```
 
 Or, clone the GitHub repo to install the newest master branch:
@@ -24,7 +20,7 @@ $ cd mythril
 $ python setup.py install
 ```
 
-You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (not that Mythril uses non-standard RPC APIs offered by go-ethereum, so other clients likely won't work). Start the node as follows:
+You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
 
 ```bash
 $ geth --rpc --rpcapi eth,admin,debug --syncmode fast
@@ -32,7 +28,7 @@ $ geth --rpc --rpcapi eth,admin,debug --syncmode fast
 
 ### Database initialization
 
-Mythril builds its own contract database using RPC sync. Unfortunately, this process is slow - however, you don't need to sync the whole blockchain right away. If you abort the syncing process with `ctrl+c`, it will auto-resume the next time you run the `--init-db` command.
+Mythril builds its own contract database to enable fast search operations. Unfortunately, this process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
 
 ```bash
 $ myth --init-db
@@ -41,7 +37,9 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
-The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but note that this will result in a huge (as in: dozens of GB) database.
+Note that syncing doesn't take quite as long as it first seems, because the blocks get smaller towards the beginning of the chain.
+
+The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
 
 ## Command line usage
 
@@ -88,9 +86,9 @@ Address: 0x156d5687a201affb3f1e632dcfb9fde4b0128211, balance: 295000000000000000
 (...)
 ```
 
-Note that "code hash" in the above output refers to the contract's index in the database. The following lines starting with "Address" list the addresses of contract instances in the Ethereum blockchain (all with the same code).
+Note that "code hash" in the above output refers to the contract's index in the database. The following lines ("Address: ...") list instances of same contract deployed on the blockchain.
 
-You can then use the `--xrefs` flag to find the addresses of other contracts referenced:
+You can then use the `--xrefs` flag to find the addresses of referenced contracts:
 
 ```
 $ myth --xrefs 07459966443977122e639cbf7804c446
@@ -101,7 +99,10 @@ The command-line search is useful for identifying contracts with interesting opc
 
 ## Custom scripts
 
--- TODO: Add example(s) --
+TODO
+
+- Add examples for static/dynamic analysis
+- API documentation
 
 ## Issues
 
@@ -116,3 +117,7 @@ I'm writing this in my spare time, so contributors would be highly welcome!
 ## Credit
 
 JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
+
+## Act responsibly!
+
+The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue or vulnerable contract instances, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure). Also, note that vulnerability branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and others in the security community.
