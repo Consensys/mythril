@@ -26,7 +26,7 @@ class Disassembly:
         self.instruction_list = asm.disassemble(util.safe_decode(code))
         self.blocks = []
         self.func_to_addr = {}
-        self.addr_to_func = []
+        self.addr_to_func = {}
 
         # Parse jump table & resolve function names
 
@@ -47,7 +47,7 @@ class Disassembly:
 
             try:
                 offset = self.instruction_list[i+2]['argument']
-                jump_target = self.instruction_list[i]['address'] + int(offset, 16)
+                jump_target = int(offset, 16)
 
                 self.func_to_addr[func_name] = jump_target
                 self.addr_to_func[jump_target] = func_name
@@ -56,7 +56,7 @@ class Disassembly:
 
         # Parse instructions into basic blocks
 
-        current_block = Block(0, 0, "prologue")
+        current_block = Block(0, 0, "PROLOGUE")
 
         index = 0
         blocklen = 0
@@ -69,8 +69,8 @@ class Disassembly:
 
                 try:
                     func_name = self.addr_to_func[instruction['address']]
-                except IndexError:
-                    func_name = "UNKNOWN_JUMPDEST"
+                except KeyError:
+                    func_name = "JUMPDEST_UNK"
                 
                 current_block.update_length(blocklen)
                 self.blocks.append(current_block)
@@ -80,12 +80,13 @@ class Disassembly:
             index += 1
 
 
+
     def get_easm(self):
 
-        easm = ""
+        easm = asm.instruction_list_to_easm(self.instruction_list[0:self.blocks[0].length])
 
-        for block in self.blocks:
-            easm += str(self.instruction_list[block.code_index]['address']) + " --- " + block.funcname + "---\n"
+        for block in self.blocks[1:]:
+            easm += str(self.instruction_list[block.code_index]['address']) + " #### " + block.funcname + " ####\n"
             
             easm += asm.instruction_list_to_easm(self.instruction_list[block.code_index + 1:block.code_index + block.length])
 
