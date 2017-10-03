@@ -4,7 +4,7 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from mythril.ether import asm,evm,util
+from mythril.ether import evm,util
 from disassembler.disassembly import Disassembly
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.rpc.client import EthJsonRpc
