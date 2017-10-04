@@ -88,6 +88,11 @@ class Disassembly:
 
             index += 1
         
+        # Add the last block
+
+        current_block.update_length(blocklen)
+        self.blocks.append(current_block)
+
         # Resolve cross-references
 
         for block in self.blocks:
