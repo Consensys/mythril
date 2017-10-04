@@ -86,7 +86,7 @@ if (args.disassemble):
         sys.stdout.write(easm_text)
 
     if (args.graph):
-        generate_callgraph(disassembly, '/Users/berndt/Desktop/test.svg')
+        generate_callgraph(disassembly, args.graph)
 
 
 elif (args.trace):

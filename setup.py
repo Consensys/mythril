@@ -169,7 +169,7 @@ others in the security community.
 setup(
     name='mythril',
 
-    version='0.2.10',
+    version='0.2.11',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
