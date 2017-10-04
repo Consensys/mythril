@@ -10,7 +10,11 @@ import ZODB
 from ZODB import FileStorage
 
 
-def get_persistent_storage(db_dir):
+def get_persistent_storage(db_dir = None):
+
+    if not db_dir:
+        db_dir = os.path.join(os.path.expanduser('~'), ".mythril")
+
     if not os.path.exists(db_dir):
         os.makedirs(db_dir)
 
@@ -105,10 +109,10 @@ class ContractStorage(persistent.Persistent):
 
             if self.contracts[k].matches_expression(expression):
 
-                m = hashlib.md5()
-                m.update(self.contracts[k].code.encode('UTF-8'))
-                contract_hash = m.digest()
+                # m = hashlib.md5()
+                # m.update(self.contracts[k].code.encode('UTF-8'))
+                # contract_hash = m.digest()
 
-                m = self.instance_lists[contract_hash]
+                m = self.instance_lists[k]
 
-                callback_func(contract_hash.hex(), self.contracts[k], m.addresses, m.balances)
+                callback_func(k.hex(), self.contracts[k], m.addresses, m.balances)

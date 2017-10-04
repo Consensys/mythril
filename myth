@@ -15,7 +15,6 @@ import sys
 import argparse
 import os
 
-DEFAULT_DB_DIR = os.path.join(os.path.expanduser('~'), ".mythril")
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash )
@@ -49,7 +48,7 @@ parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 try:
     db_dir = os.environ['DB_DIR']
 except KeyError:
-    db_dir = DEFAULT_DB_DIR
+    db_dir = None
 
 contract_storage = get_persistent_storage(db_dir)
 
