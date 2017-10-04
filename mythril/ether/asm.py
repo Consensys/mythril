@@ -69,7 +69,7 @@ def find_opcode_sequence(pattern, instruction_list):
 
     pattern_length = len(pattern)
 
-    for i in range(0, len(instruction_list) - pattern_length):
+    for i in range(0, len(instruction_list) - pattern_length + 1):
 
         if instruction_list[i]['opcode'] == pattern[0]:
 

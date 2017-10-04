@@ -1,23 +1,28 @@
-from mythril.ether import asm,evm,util
-from mythril.rpc.client import EthJsonRpc
-from ethereum import utils
-import binascii
-import sys
+from mythril.ether import asm,util
 import os
 import json
+import sys
 
 
 class Block:
 
-    def __init__(self, code_index, start_addr, funcname):
+    def __init__(self, id, code_index, funcname):
+        self.id = id
         self.code_index = code_index
         self.funcname = funcname
-        self.xrefs = []
-
+        self.instruction_list = []
 
     def update_length(self, num_instructions):
         self.length = num_instructions
+        self.start_addr = self.instruction_list[0]['address']
+        self.end_addr = self.instruction_list[-1]['address']
 
+    def get_easm(self):
+
+        easm = str(self.instruction_list[0]['address']) + " " + self.funcname + "\n"
+        easm += asm.instruction_list_to_easm(self.instruction_list[1:])
+
+        return easm
 
 
 class Disassembly:
@@ -25,6 +30,7 @@ class Disassembly:
     def __init__(self, code):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
         self.blocks = []
+        self.xrefs = []
         self.func_to_addr = {}
         self.addr_to_func = {}
 
@@ -60,25 +66,48 @@ class Disassembly:
 
         index = 0
         blocklen = 0
+        blocknumber = 1
 
         for instruction in self.instruction_list:
-
-            blocklen += 1
 
             if (instruction['opcode'] == "JUMPDEST"):
 
                 try:
-                    func_name = self.addr_to_func[instruction['address']]
+                    func_name = "- FUNCTION " + self.addr_to_func[instruction['address']] + " -"
                 except KeyError:
-                    func_name = "JUMPDEST_UNK"
+                    func_name = "- JUMPDEST_UNK -"
                 
                 current_block.update_length(blocklen)
                 self.blocks.append(current_block)
-                current_block = Block(index, instruction['address'], func_name)
+                current_block = Block(blocknumber, index, func_name)
                 blocklen = 0
+                blocknumber += 1
+                
+            current_block.instruction_list.append(instruction)
+            blocklen += 1
 
             index += 1
+        
+        # Resolve cross-references
 
+        for block in self.blocks:
+
+            jmp_indices = asm.find_opcode_sequence(["JUMP"], block.instruction_list)
+            jmp_indices += asm.find_opcode_sequence(["JUMPI"], block.instruction_list)
+
+            for i in jmp_indices:
+                try:
+                    dest_hex = block.instruction_list[i - 1]['argument']
+                    dest = int(dest_hex[2:], 16)
+                except:
+                    continue
+
+                j = 0
+
+                while(self.blocks[j].end_addr < dest):
+                    j += 1
+
+                self.xrefs.append((block.id, self.blocks[j].id))
 
 
     def get_easm(self):
@@ -86,8 +115,6 @@ class Disassembly:
         easm = asm.instruction_list_to_easm(self.instruction_list[0:self.blocks[0].length])
 
         for block in self.blocks[1:]:
-            easm += str(self.instruction_list[block.code_index]['address']) + " #### " + block.funcname + " ####\n"
-            
-            easm += asm.instruction_list_to_easm(self.instruction_list[block.code_index + 1:block.code_index + block.length])
+            easm += block.get_easm()
 
         return easm

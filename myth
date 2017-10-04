@@ -6,6 +6,7 @@
 
 from mythril.ether import evm,util
 from disassembler.disassembly import Disassembly
+from disassembler.callgraph import generate_callgraph
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.rpc.client import EthJsonRpc
 from ethereum import utils
@@ -30,11 +31,12 @@ def exitWithError(message):
 
 parser = argparse.ArgumentParser(description='Bug hunting on the Ethereum blockchain')
 
-parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, use with -c or -a')
+parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, specify input with -c or -a')
 parser.add_argument('-t', '--trace', action='store_true', help='trace, use with -c or -a and --data (optional)')
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-a', '--address', default='0x0123456789ABCDEF0123456789ABCDEF01234567', help='contract address')
 parser.add_argument('-o', '--outfile')
+parser.add_argument('-g', '--graph', help='when disassembling, also generate a callgraph', metavar='OUTPUT_FILE')
 parser.add_argument('--data', help='message call input data for tracing')
 parser.add_argument('--search', help='search the contract database')
 parser.add_argument('--xrefs', help='get xrefs from contract in database', metavar='CONTRACT_HASH')
@@ -66,14 +68,6 @@ if (args.disassemble):
 
         except Exception as e:
             exitWithError("Exception loading bytecode via RPC: " + str(e))
-    elif (args.infile):
-
-        try:
-
-            encoded_bytecode = util.file_to_string(args.infile).rstrip()
-
-        except Exception as e:
-            exitWithError("Exception loading bytecode from file: " + str(e))
 
     else:
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
@@ -90,6 +84,10 @@ if (args.disassemble):
         util.string_to_file(args.outfile, easm_text)
     else:
         sys.stdout.write(easm_text)
+
+    if (args.graph):
+        generate_callgraph(disassembly, '/Users/berndt/Desktop/test.svg')
+
 
 elif (args.trace):
 
