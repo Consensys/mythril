@@ -121,14 +121,9 @@ $ myth --xrefs 07459966443977122e639cbf7804c446
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
-The command-line search is useful for identifying contracts with interesting opcode patterns. You can either use this information as a starting point for manual analysis, or build more complex static and dynamic analysis using Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules.
-
 ## Custom scripts
 
-TODO
-
-- Add examples for static/dynamic analysis
-- API documentation
+By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules, you can automate more complex static and dynamic analysis tasks. Here is an [example](https://github.com/b-mueller/mythril/blob/master/examples/find-fallback-dcl.py).
 
 ## Issues
 
@@ -142,8 +137,10 @@ I'm writing this in my spare time, so contributors would be highly welcome!
 
 ## Credit
 
-JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
+- JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
 
-## Act responsibly!
+- The signature data in `signatures.json` has been obtained from the [Ethereum Function Signature Database](https://www.4byte.directory).
+
+## Disclaimer: Act responsibly!
 
 The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and support research for novel security flaws. If you do find an exploitable issue or vulnerable contract instances, please [do the right thing](https://en.wikipedia.org/wiki/Responsible_disclosure). Also, note that vulnerability branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and others in the security community.
