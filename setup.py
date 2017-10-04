@@ -15,7 +15,7 @@ Install from Pypi:
 
 .. code:: bash
 
-    $ pip install mythril==0.3.0
+    $ pip install mythril
 
 Or, clone the GitHub repo to install the newest master branch:
 
@@ -219,7 +219,7 @@ security community.
 setup(
     name='mythril',
 
-    version='0.3.0',
+    version='0.3.1',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
