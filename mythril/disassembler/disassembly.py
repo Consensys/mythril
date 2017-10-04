@@ -116,9 +116,9 @@ class Disassembly:
 
                 self.xrefs.append((block.id, self.blocks[j].id))
 
-            # if the last instruction isn't a JUMP(I) or halt, also add a reference to the following block
+            # if the last instruction isn't an unconditional jump or halt, also add a reference to the following block
 
-            if (block.id < len(self.blocks)) and (block.instruction_list[block.length - 1]['opcode'] not in ['JUMP', 'JUMPI', 'STOP', 'THROW', 'REVERT', 'INVALID']):
+            if (block.id < len(self.blocks)) and (block.instruction_list[block.length - 1]['opcode'] not in ['JUMP', 'STOP', 'THROW', 'REVERT', 'INVALID']):
                 self.xrefs.append((block.id, block.id + 1))
                 
 
