@@ -46,8 +46,7 @@ for k in contract_keys:
 
             disassembly = Disassembly(code)
 
-            # if contract.matches_expression("func#initWallet(address[],uint256,uint256)#"):
-            if contract.matches_expression("code#PUSH#"):
+            if contract.matches_expression("func#initWallet(address[],uint256,uint256)#"):
                 print ("initWallet() in referenced library contract: " + xref)
 
                 # Save list of contracts that forward calls to this library contract
