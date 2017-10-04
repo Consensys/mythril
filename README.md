@@ -57,20 +57,50 @@ $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 
 ### Disassembler
 
-You can also disassemble and trace code using the `-d` and `-t` flags, respectively. When tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via the `--data` flag.
+Use the `-d` flag to disassemble code. The disassembler accepts a bytecode string or a contract address as its input.
 
 ```
-$ myth -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
-PUSH1 0x60
-PUSH1 0x40
+$ myth -d -c "$ ./myth -d -c "5060"
+0 PUSH1 0x60
+```
+
+Specifying an address via `-a ADDRESS` will download the contract code from your node:
+
+```
+$ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
+0 PUSH1 0x60
+2 PUSH1 0x40
+4 MSTORE
+5 CALLDATASIZE
 (...)
+```
+
+Mythril will try to resolve function names using the signatures in `database/signature.json`.
+
+
+```
+1135 - FUNCTION safeAdd(uint256,uint256) -
+1136 CALLVALUE
+1137 ISZERO
+```
+
+Adding the `-g FILENAME` option will output a call graph:
+
+$ myth -d -a "0xFa52274DD61E1643d2205169732f29114BC240b3" -g ./graph.svg
+
+![callgraph](https://github.com/b-mueller/mythril/raw/master/static/graph.svg "Call graph")
+
+Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with immediately preceding `PUSH`, but dynamic jumps and function calls.
+
+### Tracing Code
+
+You can run a code trace in the PyEthereum virtual machine. Optionally, input data can be passed via the `--data` flag.
+
 $ myth -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
 vm storage={'storage': {}, 'nonce': '0', 'balance': '0', 'code': '0x'} gas=b'21000' stack=[] address=b'6e\xf2\xbf\x19\xee^ vE\xf3\xe65\xbf\x0fIa\xd6a\xc0' depth=0 steps=0 inst=96 pushvalue=96 pc=b'0' op=PUSH1
 vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b'2'
 vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'
 ```
-
-Do note however that the instruction_list / debugging functionality is still quite bare-bones. For manual analysis & debugging I recommend using [remix](https://remix.ethereum.org/) and [etherscan](https://etherscan.io).
 
 #### Finding cross-references
 
