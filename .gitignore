@@ -9,3 +9,4 @@ build
 dist
 *.rst
 *.lock
+*.svg
