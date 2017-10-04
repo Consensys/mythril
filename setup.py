@@ -261,5 +261,7 @@ setup(
     extras_require={
     },
 
+    include_package_data=True,
+
     scripts=['myth']
 )
