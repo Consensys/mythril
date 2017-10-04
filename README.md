@@ -64,21 +64,14 @@ $ myth -d -c "$ ./myth -d -c "5060"
 0 PUSH1 0x60
 ```
 
-Specifying an address via `-a ADDRESS` will download the contract code from your node:
+Specifying an address via `-a ADDRESS` will download the contract code from your node. Mythril will try to resolve function names using the signatures in `database/signature.json`:
 
 ```
 $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 0 PUSH1 0x60
 2 PUSH1 0x40
 4 MSTORE
-5 CALLDATASIZE
 (...)
-```
-
-Mythril will try to resolve function names using the signatures in `database/signature.json`.
-
-
-```
 1135 - FUNCTION safeAdd(uint256,uint256) -
 1136 CALLVALUE
 1137 ISZERO
