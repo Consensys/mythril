@@ -7,6 +7,7 @@ styles = {
         'fontsize': '16',
         'fontcolor': 'white',
         'bgcolor': '#333333',
+        'concentrate':'true',
     },
     'nodes': {
         'fontname': 'Helvetica',
