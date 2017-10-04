@@ -85,7 +85,7 @@ $ myth -d -a "0xFa52274DD61E1643d2205169732f29114BC240b3" -g ./graph.svg
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph.png "Call graph")
 
-Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with immediately preceding `PUSH`, but dynamic jumps and function calls.
+Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with immediately preceding `PUSH`, but doesn't understand dynamic jumps and function calls.
 
 ### Tracing Code
 
