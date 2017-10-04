@@ -1,7 +1,6 @@
 from mythril.ether import asm,util
 import os
 import json
-import sys
 
 
 class Block:

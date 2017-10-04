@@ -109,10 +109,6 @@ class ContractStorage(persistent.Persistent):
 
             if self.contracts[k].matches_expression(expression):
 
-                # m = hashlib.md5()
-                # m.update(self.contracts[k].code.encode('UTF-8'))
-                # contract_hash = m.digest()
-
                 m = self.instance_lists[k]
 
                 callback_func(k.hex(), self.contracts[k], m.addresses, m.balances)
