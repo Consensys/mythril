@@ -1,6 +1,5 @@
 import sys
 import re
-import codecs
 from ethereum import opcodes
 from mythril.ether import util
 
