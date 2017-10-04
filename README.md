@@ -121,14 +121,9 @@ $ myth --xrefs 07459966443977122e639cbf7804c446
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
-The command-line search is useful for identifying contracts with interesting opcode patterns. You can either use this information as a starting point for manual analysis, or build more complex static and dynamic analysis using Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules.
-
 ## Custom scripts
 
-TODO
-
-- Add examples for static/dynamic analysis
-- API documentation
+By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules, you can automate more complex static and dynamic analysis tasks. Here is an [example](https://github.com/b-mueller/mythril/blob/master/examples/find-fallback-dcl.py).
 
 ## Issues
 
