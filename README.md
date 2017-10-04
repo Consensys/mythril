@@ -59,14 +59,14 @@ $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 
 Use the `-d` flag to disassemble code. The disassembler accepts a bytecode string or a contract address as its input.
 
-```
+```bash
 $ myth -d -c "$ ./myth -d -c "5060"
 0 PUSH1 0x60
 ```
 
 Specifying an address via `-a ADDRESS` will download the contract code from your node. Mythril will try to resolve function names using the signatures in `database/signature.json`:
 
-```
+```bash
 $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 0 PUSH1 0x60
 2 PUSH1 0x40
@@ -79,7 +79,7 @@ $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 
 Adding the `-g FILENAME` option will output a call graph:
 
-```
+```bash
 $ myth -d -a "0xFa52274DD61E1643d2205169732f29114BC240b3" -g ./graph.svg
 ```
 
@@ -91,6 +91,7 @@ Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with
 
 You can run a code trace in the PyEthereum virtual machine. Optionally, input data can be passed via the `--data` flag.
 
+```bash
 $ myth -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
 vm storage={'storage': {}, 'nonce': '0', 'balance': '0', 'code': '0x'} gas=b'21000' stack=[] address=b'6e\xf2\xbf\x19\xee^ vE\xf3\xe65\xbf\x0fIa\xd6a\xc0' depth=0 steps=0 inst=96 pushvalue=96 pc=b'0' op=PUSH1
 vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b'2'
@@ -101,7 +102,7 @@ vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'
 
 It is often useful to find other contracts referenced by a particular contract. Let's assume you want to search for contracts that fulfill conditions similar to the [Parity Multisig Wallet Bug](http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/). First, you want to find a list of contracts that use the `DELEGATECALL` opcode:
 
-```
+```bash
 $ myth --search "code#DELEGATECALL#"
 Matched contract with code hash 07459966443977122e639cbf7804c446
 Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
@@ -115,7 +116,7 @@ Note that "code hash" in the above output refers to the contract's index in the 
 
 You can then use the `--xrefs` flag to find the addresses of referenced contracts:
 
-```
+```bash
 $ myth --xrefs 07459966443977122e639cbf7804c446
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
