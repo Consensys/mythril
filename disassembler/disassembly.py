@@ -104,8 +104,11 @@ class Disassembly:
 
                 j = 0
 
-                while(self.blocks[j].end_addr < dest):
-                    j += 1
+                try:
+                    while(self.blocks[j].end_addr < dest):
+                        j += 1
+                except IndexError:
+                    continue
 
                 self.xrefs.append((block.id, self.blocks[j].id))
 
