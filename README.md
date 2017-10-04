@@ -9,7 +9,7 @@ Mythril is a reverse engineering and bug hunting framework for the Ethereum bloc
 Install from Pypi:
 
 ```bash
-$ pip install mythril==0.2.10
+$ pip install mythril==0.3.0
 ```
 
 Or, clone the GitHub repo to install the newest master branch:

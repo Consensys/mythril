@@ -5,7 +5,8 @@ long_description = '''
 Mythril
 =======
 
-Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
+Mythril is a reverse engineering and bug hunting framework for the
+Ethereum blockchain.
 
 Installation and setup
 ----------------------
@@ -14,7 +15,7 @@ Install from Pypi:
 
 .. code:: bash
 
-    $ pip install mythril
+    $ pip install mythril==0.3.0
 
 Or, clone the GitHub repo to install the newest master branch:
 
@@ -24,9 +25,11 @@ Or, clone the GitHub repo to install the newest master branch:
     $ cd mythril
     $ python setup.py install
 
-You also need a `go-ethereum <https://github.com/ethereum/go-ethereum>`__ node that is synced with
-the network (not that Mythril uses non-standard RPC APIs offered by go-ethereum, so other clients
-likely won't work). Start the node as follows:
+You also need a
+`go-ethereum <https://github.com/ethereum/go-ethereum>`__ node that is
+synced with the network (note that Mythril uses non-standard RPC APIs
+only supported by go-ethereum, so other clients likely won't work).
+Start the node as follows:
 
 .. code:: bash
 
@@ -35,9 +38,11 @@ likely won't work). Start the node as follows:
 Database initialization
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Mythril builds its own contract database using RPC sync. Unfortunately, this process is slow -
-however, you don't need to sync the whole blockchain right away. If you abort the syncing process
-with ``ctrl+c``, it will auto-resume the next time you run the ``--init-db`` command.
+Mythril builds its own contract database to enable fast search
+operations. Unfortunately, this process is slow. You don't need to sync
+the whole blockchain right away though: If you abort the syncing process
+with ``ctrl+c``, it will be auto-resumed the next time you run the
+``--init-db`` command.
 
 .. code:: bash
 
@@ -46,20 +51,25 @@ with ``ctrl+c``, it will auto-resume the next time you run the ``--init-db`` com
     Processing block 4323000, 3 individual contracts in database
     (...)
 
-The default behavior is to only sync contracts with a non-zero balance. You can disable this
-behavior with the ``--sync-all`` flag, but note that this will result in a very large
-(multi-gigabyte) database.
+Note that syncing doesn't take quite as long as it first seems, because
+the blocks get smaller towards the beginning of the chain.
+
+The default behavior is to only sync contracts with a non-zero balance.
+You can disable this behavior with the ``--sync-all`` flag, but be aware
+that this will result in a huge (as in: dozens of GB) database.
 
 Command line usage
 ------------------
 
-The ``mythril`` command line tool allows you to easily access most of Mythril's functionality.
+The Mythril command line tool (aptly named ``myth``) allows you to
+conveniently access some of Mythril's functionality.
 
 Searching the database
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The search feature allows you to find contract instances that contain specific function calls and
-opcode sequences. It supports simple boolean expressions, such as:
+The search feature allows you to find contract instances that contain
+specific function calls and opcode sequences. It supports simple boolean
+expressions, such as:
 
 .. code:: bash
 
@@ -70,44 +80,70 @@ opcode sequences. It supports simple boolean expressions, such as:
 Disassembler
 ~~~~~~~~~~~~
 
-You can also disassemble and trace code using the ``-d`` and ``-t`` flags, respectively. When
-tracing, the code is run in the PyEthereum virtual machine with the (optional) input data passed via
-the ``--data`` flag.
+Use the ``-d`` flag to disassemble code. The disassembler accepts a
+bytecode string or a contract address as its input.
 
-::
+.. code:: bash
 
-    $ myth -d -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
+    $ myth -d -c "$ ./myth -d -c "5060"
+    0 PUSH1 0x60
+
+Specifying an address via ``-a ADDRESS`` will download the contract code
+from your node. Mythril will try to resolve function names using the
+signatures in ``database/signature.json``:
+
+.. code:: bash
+
+    $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
     0 PUSH1 0x60
     2 PUSH1 0x40
+    4 MSTORE
     (...)
-    208 #### changeMultisig(address) ####
-    209 CALLVALUE
-    210 ISZERO
-    211 PUSH2 0x00db
+    1135 - FUNCTION safeAdd(uint256,uint256) -
+    1136 CALLVALUE
+    1137 ISZERO
 
+Adding the ``-g FILENAME`` option will output a call graph:
 
-    $ mythril -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
+.. code:: bash
+
+    $ myth -d -a "0xFa52274DD61E1643d2205169732f29114BC240b3" -g ./graph.svg
+
+.. figure:: https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph.png
+   :alt: Call graph
+
+   callgraph
+
+Note that currently, Mythril only processes ``JUMP`` and ``JUMPI``
+instructions with immediately preceding ``PUSH``, but doesn't understand
+dynamic jumps and function calls.
+
+Tracing Code
+~~~~~~~~~~~~
+
+You can run a code trace in the PyEthereum virtual machine. Optionally,
+input data can be passed via the ``--data`` flag.
+
+.. code:: bash
+
+    $ myth -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
     vm storage={'storage': {}, 'nonce': '0', 'balance': '0', 'code': '0x'} gas=b'21000' stack=[] address=b'6e\xf2\xbf\x19\xee^ vE\xf3\xe65\xbf\x0fIa\xd6a\xc0' depth=0 steps=0 inst=96 pushvalue=96 pc=b'0' op=PUSH1
     vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b'2'
     vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'
 
-Do note however that the debugging / tracing functionality is still quite bare-bones. For manual
-analysis & debugging I recommend using `remix <https://remix.ethereum.org/>`__ and
-`etherscan <https://etherscan.io>`__.
-
 Finding cross-references
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-It is often useful to know what other addresses are referenced by a particular contract. Let's say
-you are looking for conditions similar to the `Parity Multisig Wallet
-Bug <http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/>`__. First, you want to find a
-list of contracts that use the ``DELEGATECALL`` opcode:
+It is often useful to find other contracts referenced by a particular
+contract. Let's assume you want to search for contracts that fulfill
+conditions similar to the `Parity Multisig Wallet
+Bug <http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/>`__.
+First, you want to find a list of contracts that use the
+``DELEGATECALL`` opcode:
 
-::
+.. code:: bash
 
-    $ mythril --search "code#DELEGATECALL#"
-    Matched contract with code hash 05e8f07600bd384d82a71aaccaf4b3d3
-    Address: 0x432f96e95d249351391583cef9cbda38f26238c8, balance: 1000000000000000
+    $ myth --search "code#DELEGATECALL#"
     Matched contract with code hash 07459966443977122e639cbf7804c446
     Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
     Address: 0x3582d2a3b67d63ed10f1ecaef0dca71b9283b543, balance: 92000000000000000000
@@ -115,61 +151,75 @@ list of contracts that use the ``DELEGATECALL`` opcode:
     Address: 0x156d5687a201affb3f1e632dcfb9fde4b0128211, balance: 29500000000000000000
     (...)
 
-You can then use the ``--xrefs`` flag to find other contracts referenced by each of those contracts:
+Note that "code hash" in the above output refers to the contract's index
+in the database. The following lines ("Address: ...") list instances of
+same contract deployed on the blockchain.
 
-::
+You can then use the ``--xrefs`` flag to find the addresses of
+referenced contracts:
+
+.. code:: bash
 
     $ myth --xrefs 07459966443977122e639cbf7804c446
     5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 
-Then, head to Etherscan to check out the source code, or use the tracer to dynamically test for
-issues.
+The command-line search is useful for identifying contracts with
+interesting opcode patterns. You can either use this information as a
+starting point for manual analysis, or build more complex static and
+dynamic analysis using Mythril and
+`PyEthereum <https://github.com/ethereum/pyethereum>`__ modules.
 
 Custom scripts
 --------------
 
-By combining Mythril and `PyEthereum <https://github.com/ethereum/pyethereum>`__ modules you can
-perform more complex static/dynamic analysis tasks.
+TODO
 
--- TODO: Add example(s) --
+-  Add examples for static/dynamic analysis
+-  API documentation
 
 Issues
 ------
 
-The RPC database sync is not a very good solution. I explored some other options, including:
+The RPC database sync solution is not very efficient. I explored some
+other options, including:
 
--  Using PyEthereum: I encountered issues syncing PyEthereum with Homestead. Also, PyEthApp only
-   supports Python 2.7, which causes issues with other important packages.
--  Accessing the Go-Ethereum LevelDB: This would be a great option. However, PyEthereum database
-   code seems unable to deal with Go-Ethereum's LevelDB. It would take quite a bit of effort to
-   figure this out.
+-  Using PyEthereum: I encountered issues syncing PyEthereum with
+   Homestead. Also, PyEthApp only supports Python 2.7, which causes
+   issues with other important packages.
+-  Accessing the Go-Ethereum LevelDB: This would be a great option.
+   However, PyEthereum database code seems unable to deal with
+   Go-Ethereum's LevelDB. It would take quite a bit of effort to figure
+   this out.
 -  IPC might allow for faster sync then RPC - haven't tried it yet.
 
-I'm writing this in my spare time, so contributors would be highly welcome!
+I'm writing this in my spare time, so contributors would be highly
+welcome!
 
 Credit
 ------
 
-JSON RPC library is adapted from `ethjsonrpc <https://github.com/ConsenSys/ethjsonrpc>`__ (it
-doesn't seem to be maintained anymore, and I needed to make some changes to it).
+JSON RPC library is adapted from
+`ethjsonrpc <https://github.com/ConsenSys/ethjsonrpc>`__ (it doesn't
+seem to be maintained anymore, and I needed to make some changes to it).
 
 Act responsibly!
----------------
+----------------
 
-The purpose of project is to aid discovery of vulnerable smart contracts on the Ethereum mainnet and
-support research for novel security flaws. If you do find an exploitable issue or vulnerable
-contract instances, please `do the right
-thing <https://en.wikipedia.org/wiki/Responsible_disclosure>`__. Also, note that vulnerability
-branding ("etherbleed", "chainshock",...) is highly discouraged as it will annoy the author and
-others in the security community.
-
+The purpose of project is to aid discovery of vulnerable smart contracts
+on the Ethereum mainnet and support research for novel security flaws.
+If you do find an exploitable issue or vulnerable contract instances,
+please `do the right
+thing <https://en.wikipedia.org/wiki/Responsible_disclosure>`__. Also,
+note that vulnerability branding ("etherbleed", "chainshock",...) is
+highly discouraged as it will annoy the author and others in the
+security community.
 '''
 
 
 setup(
     name='mythril',
 
-    version='0.2.11',
+    version='0.3.0',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
