@@ -86,9 +86,11 @@ Mythril will try to resolve function names using the signatures in `database/sig
 
 Adding the `-g FILENAME` option will output a call graph:
 
+```
 $ myth -d -a "0xFa52274DD61E1643d2205169732f29114BC240b3" -g ./graph.svg
+```
 
-![callgraph](https://github.com/b-mueller/mythril/raw/master/static/graph.svg "Call graph")
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph.png "Call graph")
 
 Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with immediately preceding `PUSH`, but dynamic jumps and function calls.
 
