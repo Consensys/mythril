@@ -120,10 +120,13 @@ class Disassembly:
 
             # if the last instruction isn't an unconditional jump or halt, also add a reference to the following block
 
-            if (block.id < len(self.blocks)) and (block.instruction_list[block.length - 1]['opcode'] not in ['JUMP', 'STOP', 'THROW', 'REVERT', 'INVALID']):
-                if not (block.id, self.blocks[j].id) in self.xrefs:
-                    self.xrefs.append((block.id, block.id + 1))
-                
+            try:
+                if (block.id < len(self.blocks)) and (block.instruction_list[block.length - 1]['opcode'] not in ['JUMP', 'STOP', 'THROW', 'REVERT', 'INVALID']):
+                    if not (block.id, self.blocks[j].id) in self.xrefs:
+                        self.xrefs.append((block.id, block.id + 1))
+            except UnboundLocalError:
+                # quickfix
+                continue
 
     def get_easm(self):
 
