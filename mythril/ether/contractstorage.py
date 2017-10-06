@@ -80,7 +80,7 @@ class ContractStorage(persistent.Persistent):
                         # skip contracts with zero balance (disable with --sync-all)
                         continue
 
-                    code = ETHContract(contract_code)
+                    code = ETHContract(contract_code, tx['input'])
 
                     m = hashlib.md5()
                     m.update(contract_code.encode('UTF-8'))

@@ -6,9 +6,10 @@ from ethereum import utils
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code = ""):
+    def __init__(self, code, creation_code = ""):
 
         self.code = code
+        self.creation_code = creation_code
 
 
     def get_xrefs(self):
