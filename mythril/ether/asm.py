@@ -116,7 +116,7 @@ def disassemble(bytecode):
 
         if m:
             argument = bytecode[addr+1:addr+1+int(m.group(1))]
-            instruction['argument'] = "0x" + argument.hex()
+            instruction['argument'] = "0x" + argument.encode("hex")
             addr += int(m.group(1))
 
         instruction_list.append(instruction)
