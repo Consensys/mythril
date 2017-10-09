@@ -23,20 +23,25 @@ for k in contract_keys:
 
     if 'DELEGATECALL' in ret:
 
-        print("DELEGATECALL in fallback function: Contract 0x" + k.hex())
+        print("DELEGATECALL in fallback function: Contract 0x" + k.hex() + " deployed at: ")
+
+        instance_list = contract_storage.instance_lists[k]
+
+        for i in range(1, len(instance_list.addresses)):
+            print("Address: " + instance_list.addresses[i] + ", balance: " + str(instance_list.balances[i]))
 
         # contract.get_xrefs() should contain the delegateCall() target (library contract)
 
+        print("Referenced contracts:")
+
         xrefs = contract.get_xrefs()
+
+        print ("\n".join(xrefs))
 
         '''
         from here on are many different options!
 
-        - trace functions in the referenced library contracts and look for SSTORE operations
-        - deploy the contract on testrpc or testnet and trigger functions using RPC
-        --> see class mythril.rpc.client.EthJsonRpc
-
-        For this example, we'll simply check if the library contract contains the initWallet() function
+        In this example, we'll only check one of the refernced contracts contains the initWallet() function
         If it does, we save the disassembly and callgraph for further analysis
         
         '''
