@@ -35,7 +35,6 @@ def testCase(contract_addr, function_selector, arg_types, args):
     if re.match(r'^UNK_0x', function_selector):
         args = encode_abi(['address'], [addr_schnupper])
         data= function_selector[4:] + args.hex()
-        print(data)
     else:
         data = util.encode_calldata(function_selector, arg_types, args)
 
