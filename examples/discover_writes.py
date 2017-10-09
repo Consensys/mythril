@@ -7,7 +7,7 @@ import re
 import os
 
 
-# Search for any contract functions write an address to storage.
+# Discover contract functions that write the sender address, or an address passed as an argument, to storage.
 # Needs testrpc running on port 8546
 
 # testrpc --port 8546 --gasLimit 0xFFFFFF --account 0x0b6f3fd29ca0e570faf9d0bb8945858b9c337cd2a2ff89d65013eec412a4a811,500000000000000000000 --account 0x2194ac1cd3b9ca6cccc1a90aa2c6f944994b80bb50c82b973adce7f288734d5c,500000000000000000000
@@ -18,7 +18,6 @@ addr_schnupper = "0xadc2f8617191ff60a36c3c136170cc69c03e64cd"
 
 contract_storage = get_persistent_storage(os.path.join(os.path.expanduser('~'), ".mythril"))
 testrpc = EthJsonRpc("localhost", 8546)
-
 
 testargs1 = [
     ([], []),
@@ -32,6 +31,7 @@ testargs1 = [
 
 
 def testCase(contract_addr, function_selector, arg_types, args):
+
     if re.match(r'^UNK_0x', function_selector):
         args = encode_abi(['address'], [addr_schnupper])
         data= function_selector[4:] + args.hex()
