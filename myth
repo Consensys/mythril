@@ -134,7 +134,7 @@ elif (args.init_db):
     contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all)
 
 elif (args.hash):
-    print(utils.sha3(args.hash)[:4].hex())
+    print("0x" + utils.sha3(args.hash)[:4].hex())
 
 else:
     parser.print_help()
