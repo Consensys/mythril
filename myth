@@ -14,7 +14,7 @@ import binascii
 import sys
 import argparse
 import os
-
+import re
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash )
@@ -103,12 +103,16 @@ elif (args.trace):
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
 
     if (args.data):
-        output = evm.trace(encoded_bytecode, args.address, args.data)
+        trace = evm.trace(encoded_bytecode, args.address, args.data)
 
     else:
-        output = evm.trace(encoded_bytecode, args.address)
+        trace = evm.trace(encoded_bytecode, args.address)
 
-    print(output)
+    for i in trace:
+        if (re.match(r'^PUSH.*', i['op'])):
+            print(str(i['pc']) + " " + i['op'] + " " + i['pushvalue'] + ";\tSTACK: " + i['stack'])
+        else:
+            print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
 
 elif (args.search):
 
