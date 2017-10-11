@@ -1,15 +1,19 @@
 from mythril.rpc.client import EthJsonRpc
-import codecs
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id
 
 
 def safe_decode(hex_encoded_string):
+
+    # print(type(hex_encoded_string))
+
     if (hex_encoded_string.startswith("0x")):
-        return codecs.decode(hex_encoded_string[2:], 'hex_codec')
+        return bytes.fromhex(hex_encoded_string[2:])
+        # return codecs.decode(, 'hex_codec')
     else:
-        return codecs.decode(hex_encoded_string, 'hex_codec')
+        return bytes.fromhex(hex_encoded_string)
+        # return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
 def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=8545):
