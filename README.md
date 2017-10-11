@@ -92,10 +92,16 @@ Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with
 You can run a code trace in the PyEthereum virtual machine. Optionally, input data can be passed via the `--data` flag.
 
 ```bash
+$ myth -t -c "0x60506050"
+0 PUSH1 0x50;	STACK: []
+2 PUSH1 0x50;	STACK: [0x50]
+
 $ myth -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
-vm storage={'storage': {}, 'nonce': '0', 'balance': '0', 'code': '0x'} gas=b'21000' stack=[] address=b'6e\xf2\xbf\x19\xee^ vE\xf3\xe65\xbf\x0fIa\xd6a\xc0' depth=0 steps=0 inst=96 pushvalue=96 pc=b'0' op=PUSH1
-vm op=PUSH1 gas=b'20997' stack=[b'96'] depth=0 steps=1 inst=96 pushvalue=64 pc=b'2'
-vm op=MSTORE gas=b'20994' stack=[b'96', b'64'] depth=0 steps=2 inst=82 pc=b'4'
+0 PUSH1 0x60;	STACK: []
+2 PUSH1 0x40;	STACK: [0x60]
+4 MSTORE;	STACK: [0x60, 0x40]
+5 CALLDATASIZE;	STACK: []
+(...)
 ```
 
 #### Finding cross-references
