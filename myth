@@ -33,7 +33,7 @@ parser = argparse.ArgumentParser(description='Bug hunting on the Ethereum blockc
 parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, specify input with -c or -a')
 parser.add_argument('-t', '--trace', action='store_true', help='trace, use with -c or -a and --data (optional)')
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
-parser.add_argument('-a', '--address', default='0x0123456789ABCDEF0123456789ABCDEF01234567', help='contract address')
+parser.add_argument('-a', '--address', help='contract address')
 parser.add_argument('-o', '--outfile')
 parser.add_argument('-g', '--graph', help='when disassembling, also generate a callgraph', metavar='OUTPUT_FILE')
 parser.add_argument('--data', help='message call input data for tracing')
