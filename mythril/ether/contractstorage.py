@@ -61,7 +61,7 @@ class ContractStorage(persistent.Persistent):
         while(blockNum > 0):
 
             if not blockNum % 1000:
-                print("Processing block " + str(blockNum) + ", " + str(len(self.contracts.keys())) + " individual contracts in database")
+                print("Processing block " + str(blockNum) + ", " + str(len(self.contracts.keys())) + " unique contracts in database")
 
             block = eth.eth_getBlockByNumber(blockNum)
 
