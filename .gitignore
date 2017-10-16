@@ -10,5 +10,4 @@ dist
 *.rst
 *.lock
 *.svg
-laser-ethereum/*
-laser-ethereum
+laser*
