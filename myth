@@ -9,6 +9,7 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.disassembler.callgraph import generate_callgraph
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.rpc.client import EthJsonRpc
+from mythril.ipc.client import EthIpc
 from ethereum import utils
 import binascii
 import sys
@@ -36,6 +37,7 @@ parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("60606040
 parser.add_argument('-a', '--address', help='contract address')
 parser.add_argument('-o', '--outfile')
 parser.add_argument('-g', '--graph', help='when disassembling, also generate a callgraph', metavar='OUTPUT_FILE')
+parser.add_argument('--ipc', help='use ipc interface', action='store_true')
 parser.add_argument('--data', help='message call input data for tracing')
 parser.add_argument('--search', help='search the contract database')
 parser.add_argument('--xrefs', help='get xrefs from contract in database', metavar='CONTRACT_HASH')
@@ -59,14 +61,21 @@ if (args.disassemble):
     if (args.code):
         encoded_bytecode = args.code
     elif (args.address):
+        if args.ipc:
+            try:
+                eth = EthIpc()
 
-        try:
-            eth = EthJsonRpc(args.rpchost, args.rpcport)
+                encoded_bytecode = eth.eth_getCode(args.address)
+            except Exception as e:
+                exitWithError("Exception loading bytecode via IPC: " + str(e))
 
-            encoded_bytecode = eth.eth_getCode(args.address)
+            try:
+                eth = EthJsonRpc(args.rpchost, args.rpcport)
 
-        except Exception as e:
-            exitWithError("Exception loading bytecode via RPC: " + str(e))
+                encoded_bytecode = eth.eth_getCode(args.address)
+
+            except Exception as e:
+                exitWithError("Exception loading bytecode via RPC: " + str(e))
 
     else:
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
@@ -94,10 +103,13 @@ elif (args.trace):
         encoded_bytecode = args.code
 
     elif (args.address):
+        if args.ipc:
+            eth = EthIpc()
+            encoded_bytecode = eth.eth_getCode(args.address)
 
-        eth = EthJsonRpc(args.rpchost, args.rpcport)
-
-        encoded_bytecode = eth.eth_getCode(args.address)
+        else:
+            eth = EthJsonRpc(args.rpchost, args.rpcport)
+            encoded_bytecode = eth.eth_getCode(args.address)
 
     else:
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
@@ -135,7 +147,10 @@ elif (args.xrefs):
         exitWithError("Contract not found in the database.")        
 
 elif (args.init_db):
-    contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all)
+    if args.ipc:
+        contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
+    else:
+        contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
 
 elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())

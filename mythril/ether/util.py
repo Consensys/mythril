@@ -1,4 +1,5 @@
 from mythril.rpc.client import EthJsonRpc
+from mythril.ipc.client import EthIpc
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id
@@ -16,20 +17,22 @@ def safe_decode(hex_encoded_string):
         # return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
-def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=8545):
+def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=8545, ipc):
     """Load bytecode from a local node via
     creation_tx_hash = ID of transaction that created the contract.
     """
+    if ipc:
+        pass
+    else:
+        eth = EthJsonRpc(rpc_host, rpc_port)
 
-    eth = EthJsonRpc(rpc_host, rpc_port)
+        trace = eth.traceTransaction(creation_tx_hash)
 
-    trace = eth.traceTransaction(creation_tx_hash)
+        if trace['returnValue']:
 
-    if trace['returnValue']:
+            return trace['returnValue']
 
-        return trace['returnValue']
-
-    raise RuntimeError("Transaction trace didn't return any bytecode")
+        raise RuntimeError("Transaction trace didn't return any bytecode")
 
 
 def encode_calldata(func_name, arg_types, args):

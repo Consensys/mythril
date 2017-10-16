@@ -1,4 +1,5 @@
 from mythril.rpc.client import EthJsonRpc
+from mythril.ipc.client import EthIpc
 from mythril.ether.ethcontract import ETHContract, InstanceList
 import hashlib
 import os
@@ -46,9 +47,11 @@ class ContractStorage(persistent.Persistent):
         return self.contracts[contract_hash]
 
 
-    def initialize(self, rpchost, rpcport, sync_all):
-
-        eth = EthJsonRpc(rpchost, rpcport)
+    def initialize(self, rpchost, rpcport, sync_all, ipc):
+        if ipc:
+            eth = EthIpc()
+        else:
+            eth = EthJsonRpc(rpchost, rpcport)
 
         if self.last_block:
             blockNum = self.last_block
