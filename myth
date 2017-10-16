@@ -34,8 +34,7 @@ parser.add_argument('-d', '--disassemble',  action='store_true', help='disassemb
 parser.add_argument('-t', '--trace', action='store_true', help='trace, use with -c or -a and --data (optional)')
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-a', '--address', help='contract address')
-parser.add_argument('-o', '--outfile')
-parser.add_argument('-g', '--graph', help='when disassembling, also generate a callgraph', metavar='OUTPUT_FILE')
+parser.add_argument('-g', '--graph', help='generate a call graph', metavar='OUTPUT_FILE')
 parser.add_argument('--data', help='message call input data for tracing')
 parser.add_argument('--search', help='search the contract database')
 parser.add_argument('--xrefs', help='get xrefs from contract in database', metavar='CONTRACT_HASH')
@@ -54,7 +53,7 @@ contract_storage = get_persistent_storage(db_dir)
 
 args = parser.parse_args()
 
-if (args.disassemble):
+if (args.disassemble or args.graph):
 
     if (args.code):
         encoded_bytecode = args.code
@@ -69,7 +68,7 @@ if (args.disassemble):
             exitWithError("Exception loading bytecode via RPC: " + str(e))
 
     else:
-        exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
+        exitWithError("No input bytecode. Please provide the code via -c BYTECODE or -a address")
 
     try:
         disassembly = Disassembly(encoded_bytecode)
@@ -77,16 +76,20 @@ if (args.disassemble):
     except binascii.Error:
         exitWithError("Disassembler: Invalid code string.")
 
-    easm_text = disassembly.get_easm()
+    if (args.disassemble):
 
-    if (args.outfile):
-        util.string_to_file(args.outfile, easm_text)
-    else:
+        easm_text = disassembly.get_easm()
         sys.stdout.write(easm_text)
 
     if (args.graph):
-        generate_callgraph(disassembly, args.graph)
 
+        try:
+            disassembly = Disassembly(encoded_bytecode)
+            # instruction_list = asm.disassemble(util.safe_decode(encoded_bytecode))
+        except binascii.Error:
+            exitWithError("Disassembler: Invalid code string.")
+
+        generate_callgraph(disassembly, args.graph)
 
 elif (args.trace):
 
