@@ -17,7 +17,7 @@ def safe_decode(hex_encoded_string):
         # return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
-def bytecode_from_blockchain(creation_tx_hash, rpc_host='127.0.0.1', rpc_port=8545, ipc):
+def bytecode_from_blockchain(creation_tx_hash, ipc, rpc_host='127.0.0.1', rpc_port=8545):
     """Load bytecode from a local node via
     creation_tx_hash = ID of transaction that created the contract.
     """
