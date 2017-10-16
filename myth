@@ -11,11 +11,15 @@ from mythril.ether.contractstorage import get_persistent_storage
 from mythril.rpc.client import EthJsonRpc
 from ethereum import utils
 from laser.ethereum import laserfree
+import logging
 import binascii
 import sys
 import argparse
 import os
 import re
+
+
+
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash )
@@ -37,6 +41,7 @@ parser.add_argument('-g', '--graph', help='generate a call graph', metavar='OUTP
 parser.add_argument('-l', '--fire-lasers', action='store_true', help='detect vulnerabilities, use with -c or -a')
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-a', '--address', help='contract address')
+parser.add_argument('-v', type=int, help='log level (0-2)')
 parser.add_argument('--data', help='message call input data for tracing')
 parser.add_argument('--search', help='search the contract database')
 parser.add_argument('--xrefs', help='get xrefs from contract in database', metavar='CONTRACT_HASH')
@@ -46,6 +51,7 @@ parser.add_argument('--sync-all', action='store_true', help='Also sync contracts
 parser.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 parser.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 
+
 try:
     db_dir = os.environ['DB_DIR']
 except KeyError:
@@ -54,6 +60,10 @@ except KeyError:
 contract_storage = get_persistent_storage(db_dir)
 
 args = parser.parse_args()
+
+if (args.v):
+    if (0 <= args.v < 3):
+        logging.basicConfig(level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
 
 if (args.disassemble or args.graph or args.fire_lasers):
 
