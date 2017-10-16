@@ -1,9 +1,6 @@
 import json
 import warnings
 
-#import requests
-#from requests.adapters import HTTPAdapter
-#from requests.exceptions import ConnectionError as RequestsConnectionError
 from ethereum import utils
 from ethereum.abi import encode_abi, decode_abi
 from web3 import Web3, IPCProvider
@@ -13,15 +10,7 @@ from .constants import BLOCK_TAGS, BLOCK_TAG_LATEST
 from .utils import hex_to_dec, clean_hex, validate_block
 from .exceptions import (ConnectionError, BadStatusCodeError,
                                    BadJsonError, BadResponseError)
-
-#GETH_DEFAULT_RPC_PORT = 8545
-#ETH_DEFAULT_RPC_PORT = 8545
-#PARITY_DEFAULT_RPC_PORT = 8545
-#PYETHAPP_DEFAULT_RPC_PORT = 4000
-GETH_PATH = None
 IPC_PATH = None
-MAX_RETRIES = 3
-JSON_MEDIA_TYPE = 'application/json'
 
 
 '''
@@ -37,9 +26,8 @@ class EthIpc(object):
     DEFAULT_GAS_PRICE = 50 * 10**9  # 50 gwei
 
     def __init__(self, ipc_path=IPC_PATH):
+        #not used so far
         self.ipc_path = ipc_path
-
- 
 
     def _encode_function(self, signature, param_values):
 
