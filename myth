@@ -77,7 +77,7 @@ if (args.disassemble or args.graph or args.fire_lasers):
                 encoded_bytecode = eth.eth_getCode(args.address)
             except Exception as e:
                 exitWithError("Exception loading bytecode via IPC: " + str(e))
-
+        else:
             try:
                 eth = EthJsonRpc(args.rpchost, args.rpcport)
 
