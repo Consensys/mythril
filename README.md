@@ -77,56 +77,29 @@ $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 1137 ISZERO
 ```
 
-Adding the `-g FILENAME` option will output a call graph:
-
-```bash
-$ myth -g /.graph -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
-```
-
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph2.png "Call graph")
-
-
-
-
-### Tracing Code
-
-You can run a code trace in the PyEthereum virtual machine. Optionally, input data can be passed via the `--data` flag.
-
-```bash
-$ myth -t -c "0x60506050"
-0 PUSH1 0x50;	STACK: []
-2 PUSH1 0x50;	STACK: [0x50]
-
-$ myth -t -a "0x3665f2bf19ee5e207645f3e635bf0f4961d661c0"
-0 PUSH1 0x60;	STACK: []
-2 PUSH1 0x40;	STACK: [0x60]
-4 MSTORE;	STACK: [0x60, 0x40]
-5 CALLDATASIZE;	STACK: []
-(...)
-```
-
 #### Finding cross-references
 
-It is often useful to find other contracts referenced by a particular contract. Let's assume you want to search for contracts that fulfill conditions similar to the [Parity Multisig Wallet Bug](http://hackingdistributed.com/2017/07/22/deep-dive-parity-bug/). First, you want to find a list of contracts that use the `DELEGATECALL` opcode:
+It is often useful to find other contracts referenced by a particular contract. E.g.:
 
 ```bash
 $ myth --search "code#DELEGATECALL#"
 Matched contract with code hash 07459966443977122e639cbf7804c446
 Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
-Address: 0x3582d2a3b67d63ed10f1ecaef0dca71b9283b543, balance: 92000000000000000000
-Address: 0x4b9bc00c35f7cee95c65c3c9836040c37dec9772, balance: 89000000000000000000
-Address: 0x156d5687a201affb3f1e632dcfb9fde4b0128211, balance: 29500000000000000000
-(...)
-```
-
-Note that "code hash" in the above output refers to the contract's index in the database. The following lines ("Address: ...") list instances of same contract deployed on the blockchain.
-
-You can then use the `--xrefs` flag to find the addresses of referenced contracts:
-
-```bash
 $ myth --xrefs 07459966443977122e639cbf7804c446
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
+
+### Symbolic execution
+
+Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. Use the `-g FILENAME` option generate a call graph:
+
+```bash
+$ myth -g ./graph -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
+```
+
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph2.png "Call graph")
+
+Nodes in the resulting graph represent basic blocks while edges represent conditional and unconditional jumps.
 
 ## Custom scripts
 
