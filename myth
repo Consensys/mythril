@@ -19,8 +19,6 @@ import os
 import re
 
 
-
-
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash )
 
