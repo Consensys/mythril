@@ -257,7 +257,7 @@ setup(
         'ZODB>=5.3.0',
         'graphviz>=0.8',
         'z3-solver>=4.5'
-        'laser-ethereum==0.1.2'
+        'laser-ethereum'
     ],
 
     python_requires='>=3.5',
