@@ -83,7 +83,9 @@ Adding the `-g FILENAME` option will output a call graph:
 $ myth -g /.graph -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph.png "Call graph")
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph2.png "Call graph")
+
+
 
 
 ### Tracing Code
