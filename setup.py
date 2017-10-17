@@ -254,7 +254,8 @@ setup(
     install_requires=[
         'ethereum>=2.0.4',
         'ZODB>=5.3.0',
-        'graphviz>=0.8'
+        'graphviz>=0.8',
+        'web3'
     ],
 
     python_requires='>=3.5',
