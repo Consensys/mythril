@@ -23,7 +23,7 @@ $ python setup.py install
 You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
 
 ```bash
-$ geth --rpc --rpcapi eth,admin,debug --syncmode fast
+$ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
 ### Database initialization
@@ -37,7 +37,7 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
-Note that syncing doesn't take quite as long as it first seems, because the blocks get smaller towards the beginning of the chain.
+Mythril retrieves contract data over RPC by default. You can switch to IPC using the `--ipc` flag.
 
 The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
 
@@ -80,12 +80,11 @@ $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 Adding the `-g FILENAME` option will output a call graph:
 
 ```bash
-$ myth -d -a "0xFa52274DD61E1643d2205169732f29114BC240b3" -g ./graph.svg
+$ myth -g /.graph -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph.png "Call graph")
 
-Note that currently, Mythril only processes `JUMP` and `JUMPI` instructions with immediately preceding `PUSH`, but doesn't understand dynamic jumps and function calls.
 
 ### Tracing Code
 
@@ -133,11 +132,10 @@ By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) mo
 
 ## Issues
 
-The RPC database sync solution is not very efficient. I explored some other options, including:
+The database sync is currently not very efficient. 
 
 - Using PyEthereum: I encountered issues syncing PyEthereum with Homestead. Also, PyEthApp only supports Python 2.7, which causes issues with other important packages.
 - Accessing the Go-Ethereum LevelDB: This would be a great option. However, PyEthereum database code seems unable to deal with Go-Ethereum's LevelDB. It would take quite a bit of effort to figure this out.
-- IPC might allow for faster sync then RPC - haven't tried it yet.
 
 I'm writing this in my spare time, so contributors would be highly welcome!
 
