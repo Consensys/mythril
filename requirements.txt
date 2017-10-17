@@ -4,4 +4,3 @@ graphviz>=0.8
 z3-solver>=4.5
 web3
 laser-ethereum
-
