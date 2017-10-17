@@ -256,7 +256,7 @@ setup(
         'web3',
         'ZODB>=5.3.0',
         'graphviz>=0.8',
-        'z3-solver>=4.5'
+        'z3-solver>=4.5',
         'laser-ethereum'
     ],
 
