@@ -10,3 +10,5 @@ dist
 *.rst
 *.lock
 *.svg
+laser*
+lol.py

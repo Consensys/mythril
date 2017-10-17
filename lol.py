@@ -2,7 +2,7 @@ import os
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.rpc.client import EthJsonRpc
 from mythril.disassembler.disassembly import Disassembly
-from laser.ethereum import laserfree
+from laser_ethereum import laserfree
 import logging
 
 app_root = os.path.dirname(os.path.realpath(__file__))

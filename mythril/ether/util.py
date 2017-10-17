@@ -4,7 +4,6 @@ from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id
 
-
 def safe_decode(hex_encoded_string):
 
     # print(type(hex_encoded_string))
@@ -33,6 +32,10 @@ def bytecode_from_blockchain(creation_tx_hash, ipc, rpc_host='127.0.0.1', rpc_po
             return trace['returnValue']
 
         raise RuntimeError("Transaction trace didn't return any bytecode")
+
+
+def fire_lasers(disassembly):
+    return laserfree.analysis(disassembly)
 
 
 def encode_calldata(func_name, arg_types, args):
