@@ -41,7 +41,6 @@ parser.add_argument('-l', '--fire-lasers', action='store_true', help='detect vul
 parser.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 parser.add_argument('-a', '--address', help='contract address')
 parser.add_argument('-o', '--outfile')
-parser.add_argument('-g', '--graph', help='when disassembling, also generate a callgraph', metavar='OUTPUT_FILE')
 parser.add_argument('--ipc', help='use ipc interface', action='store_true')
 parser.add_argument('-v', type=int, help='log level (0-2)')
 parser.add_argument('--data', help='message call input data for tracing')
