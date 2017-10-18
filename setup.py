@@ -256,7 +256,7 @@ setup(
         'web3',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum>=0.1.3'
+        'laser-ethereum>=0.1.4'
     ],
 
     python_requires='>=3.5',

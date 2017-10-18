@@ -2,4 +2,4 @@ ethereum>=2.0.4
 ZODB>=5.3.0
 z3-solver>=4.5
 web3
-laser-ethereum
+laser-ethereum>=0.1.4
