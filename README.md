@@ -20,6 +20,8 @@ $ cd mythril
 $ python setup.py install
 ```
 
+Note that Mythril requires Python 3.5 to work.
+
 You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
 
 ```bash
