@@ -110,7 +110,7 @@ def serialize(_svm):
 
 
 
-def generate_callgraph(disassembly, file):
+def generate_callgraph(disassembly):
 
     _svm = svm.SVM(disassembly)
 
@@ -118,4 +118,4 @@ def generate_callgraph(disassembly, file):
 
     html = graph_html.replace("[JS]", serialize(_svm))
 
-    print(html)
+    return html

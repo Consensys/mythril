@@ -101,7 +101,14 @@ if (args.disassemble or args.graph or args.fire_lasers):
 
     elif (args.graph):
 
-        generate_callgraph(disassembly, args.graph)
+        html = generate_callgraph(disassembly)
+
+        try:
+            with open(args.graph, "w") as f:
+                f.write(html)
+        except Exception as e:
+            print("Error saving graph: " + str(e))
+
 
     elif (args.fire_lasers):
 
