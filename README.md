@@ -93,7 +93,7 @@ $ myth --xrefs 07459966443977122e639cbf7804c446
 
 ### Symbolic execution
 
-Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. The `-g FILENAME` option generates an interactive jsViz graph:
+Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
 ```bash
 $ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
