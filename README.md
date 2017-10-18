@@ -20,6 +20,8 @@ $ cd mythril
 $ python setup.py install
 ```
 
+Note that Mythril requires Python 3.5 to work.
+
 You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
 
 ```bash
@@ -28,7 +30,7 @@ $ geth --rpc --rpcapi eth,debug --syncmode fast
 
 ### Database initialization
 
-Mythril builds its own contract database to enable fast search operations. This is to enable operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in seconds instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
+Mythril builds its own contract database to enable fast search operations. This is to enable operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in ~~seconds~~ minutes instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
 
 ```bash
 $ myth --init-db
@@ -91,15 +93,13 @@ $ myth --xrefs 07459966443977122e639cbf7804c446
 
 ### Symbolic execution
 
-Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. Use the `-g FILENAME` option generate a call graph:
+Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. The `-g FILENAME` option generates an interactive jsViz graph:
 
 ```bash
-$ myth -g ./graph -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
+$ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph2.png "Call graph")
-
-Nodes in the resulting graph represent basic blocks while edges represent conditional and unconditional jumps.
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph3.png "Call graph")
 
 ## Custom scripts
 
