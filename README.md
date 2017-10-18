@@ -91,15 +91,13 @@ $ myth --xrefs 07459966443977122e639cbf7804c446
 
 ### Symbolic execution
 
-Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. Use the `-g FILENAME` option generate a call graph:
+Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. The `-g FILENAME` option generates an interactive jsViz graph:
 
 ```bash
-$ myth -g ./graph -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
+$ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph2.png "Call graph")
-
-Nodes in the resulting graph represent basic blocks while edges represent conditional and unconditional jumps.
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph3.png "Call graph")
 
 ## Custom scripts
 
