@@ -121,9 +121,8 @@ def serialize(_svm):
           except Z3Exception:
               label = str(edge.condition)
       
-      label = re.sub("[0]{8}[0]+", "0000(...)", label)
-      label = re.sub("[f]{8}[f]+", "ffff(...)", label)
-      label = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", label)
+      label = re.sub("([[\d]{2}\d+)",  lambda m: hex(int(m.group(1))), label)
+      code = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", code)
 
       edges.append("{from: " + str(edge.as_dict()['from']) + ', to: ' + str(edge.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
 
