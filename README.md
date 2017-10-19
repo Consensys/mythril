@@ -99,7 +99,7 @@ Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly
 $ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph3.png "Call graph")
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph4.png "Call graph")
 
 ## Custom scripts
 
