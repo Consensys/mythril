@@ -64,8 +64,6 @@ try:
 except KeyError:
     db_dir = None
 
-contract_storage = get_persistent_storage(db_dir)
-
 args = parser.parse_args()
 
 if (args.v):
@@ -155,34 +153,36 @@ elif (args.trace):
         else:
             print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
 
-elif (args.search):
-
-    try:
-        contract_storage.search(args.search, searchCallback)
-    except SyntaxError:
-        exitWithError("Syntax error in search expression.")
-
-elif (args.xrefs):
-
-    try:
-        contract_hash = util.safe_decode(args.xrefs)
-    except binascii.Error:
-        exitWithError("Invalid contract hash.")
-
-    try:
-        contract = contract_storage.get_contract_by_hash(contract_hash)
-        print("\n".join(contract.get_xrefs()))
-    except KeyError:
-        exitWithError("Contract not found in the database.")        
-
-elif (args.init_db):
-    if args.ipc:
-        contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
-    else:
-        contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
-
-elif (args.hash):
-    print("0x" + utils.sha3(args.hash)[:4].hex())
-
 else:
-    parser.print_help()
+    contract_storage = get_persistent_storage(db_dir)
+    if (args.search):
+
+        try:
+            contract_storage.search(args.search, searchCallback)
+        except SyntaxError:
+            exitWithError("Syntax error in search expression.")
+
+    elif (args.xrefs):
+
+        try:
+            contract_hash = util.safe_decode(args.xrefs)
+        except binascii.Error:
+            exitWithError("Invalid contract hash.")
+
+        try:
+            contract = contract_storage.get_contract_by_hash(contract_hash)
+            print("\n".join(contract.get_xrefs()))
+        except KeyError:
+            exitWithError("Contract not found in the database.")        
+
+    elif (args.init_db):
+        if args.ipc:
+            contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
+        else:
+            contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
+
+    elif (args.hash):
+        print("0x" + utils.sha3(args.hash)[:4].hex())
+
+    else:
+        parser.print_help()
