@@ -54,19 +54,7 @@ $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 1137 ISZERO
 ```
 
-#### Finding cross-references
-
-It is often useful to find other contracts referenced by a particular contract. E.g.:
-
-```bash
-$ myth --search "code#DELEGATECALL#"
-Matched contract with code hash 07459966443977122e639cbf7804c446
-Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
-$ myth --xrefs 07459966443977122e639cbf7804c446
-5b9e8728e316bbeb692d22daaab74f6cbf2c4691
-```
-
-### Symbolic execution
+### Control flow graph
 
 Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
@@ -78,7 +66,7 @@ $ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 
 The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout. If that happens, disable the effect with the `--disable-physics` flag.
 
-## Contract search
+### Contract search
 
 Mythril builds its own contract database to enable fast search operations. This is to enable operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in ~~seconds~~ minutes instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
 
@@ -93,7 +81,7 @@ Mythril retrieves contract data over RPC by default. You can switch to IPC using
 
 The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
 
-### Searching from the command line
+#### Searching from the command line
 
 The search feature allows you to find contract instances that contain specific function calls and opcode sequences. It supports simple boolean expressions, such as:
 
@@ -101,6 +89,18 @@ The search feature allows you to find contract instances that contain specific f
 $ myth --search "func#changeMultisig(address)#"
 $ myth --search "code#PUSH1 0x50,POP#"
 $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
+```
+
+#### Finding cross-references
+
+It is often useful to find other contracts referenced by a particular contract. E.g.:
+
+```bash
+$ myth --search "code#DELEGATECALL#"
+Matched contract with code hash 07459966443977122e639cbf7804c446
+Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
+$ myth --xrefs 07459966443977122e639cbf7804c446
+5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
 ## Issues
