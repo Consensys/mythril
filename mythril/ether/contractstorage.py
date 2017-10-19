@@ -74,31 +74,33 @@ class ContractStorage(persistent.Persistent):
 
                     receipt = eth.eth_getTransactionReceipt(tx['hash'])
 
-                    contract_address = receipt['contractAddress']
+                    if receipt is not None:
 
-                    contract_code = eth.eth_getCode(contract_address)
-                    contract_balance = eth.eth_getBalance(contract_address)
+                        contract_address = receipt['contractAddress']
 
-                    if not contract_balance or sync_all:
-                        # skip contracts with zero balance (disable with --sync-all)
-                        continue
+                        contract_code = eth.eth_getCode(contract_address)
+                        contract_balance = eth.eth_getBalance(contract_address)
 
-                    code = ETHContract(contract_code, tx['input'])
+                        if not contract_balance or sync_all:
+                            # skip contracts with zero balance (disable with --sync-all)
+                            continue
 
-                    m = hashlib.md5()
-                    m.update(contract_code.encode('UTF-8'))
-                    contract_hash = m.digest()
+                        code = ETHContract(contract_code, tx['input'])
 
-                    try:
-                        self.contracts[contract_hash]
-                    except KeyError:
-                        self.contracts[contract_hash] = code
-                        m = InstanceList()
-                        self.instance_lists[contract_hash] = m
+                        m = hashlib.md5()
+                        m.update(contract_code.encode('UTF-8'))
+                        contract_hash = m.digest()
 
-                    self.instance_lists[contract_hash].add(contract_address, contract_balance)
+                        try:
+                            self.contracts[contract_hash]
+                        except KeyError:
+                            self.contracts[contract_hash] = code
+                            m = InstanceList()
+                            self.instance_lists[contract_hash] = m
 
-                    transaction.commit()
+                        self.instance_lists[contract_hash].add(contract_address, contract_balance)
+
+                        transaction.commit()
 
             self.last_block = blockNum
             blockNum -= 1

@@ -1,0 +1,121 @@
+<html>
+ <head>
+  <style type="text/css">
+   #mynetwork {
+    background-color: #000000;
+   }
+
+   body {
+    background-color: #000000;
+    color: #ffffff;
+   }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+    var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+        color: {
+          border: '#26996f',
+          background: '#1f7e5b',
+          highlight: {
+            border: '#26996f',
+            background: '#28a16f'
+          }  
+        }
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: true,
+      }   
+    
+  }
+
+  var nodes = [
+{id: 0, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x0057\n12 JUMPI\n13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x3ccfd60b\n60 EQ\n61 PUSH2 0x005c\n64 JUMPI\n65 DUP1\n66 PUSH4 0xf8b2cb4f\n71 EQ\n72 PUSH2 0x0071\n75 JUMPI\n76 DUP1\n77 PUSH4 0xfcddd056\n82 EQ\n83 PUSH2 0x00be\n86 JUMPI\n87 JUMPDEST\n88 PUSH1 0x00\n90 DUP1\n91 REVERT\n'},
+{id: 198, size: 150, 'label': '198 JUMPDEST\n199 STOP\n'},
+{id: 113, size: 150, 'label': '113 getBalance(address)\n114 CALLVALUE\n115 ISZERO\n116 PUSH2 0x007c\n119 JUMPI\n120 PUSH1 0x00\n122 DUP1\n123 REVERT\n'},
+{id: 168, size: 150, 'label': '168 JUMPDEST\n169 PUSH1 0x40\n171 MLOAD\n172 DUP1\n173 DUP3\n174 DUP2\n175 MSTORE\n176 PUSH1 0x20\n178 ADD\n179 SWAP2\n180 POP\n181 POP\n182 PUSH1 0x40\n184 MLOAD\n185 DUP1\n186 SWAP2\n187 SUB\n188 SWAP1\n189 RETURN\n'},
+{id: 92, size: 150, 'label': '92 withdraw()\n93 CALLVALUE\n94 ISZERO\n95 PUSH2 0x0067\n98 JUMPI\n99 PUSH1 0x00\n101 DUP1\n102 REVERT\n'},
+{id: 103, size: 150, 'label': '103 JUMPDEST\n104 PUSH2 0x006f\n107 PUSH2 0x00c8\n110 JUMP\n'},
+{id: 190, size: 150, 'label': '190 _function_0xfcddd056\n191 PUSH2 0x00c6\n194 PUSH2 0x021c\n197 JUMP\n'},
+{id: 398, size: 150, 'label': '398 JUMPDEST\n399 PUSH1 0x00\n401 DUP1\n402 PUSH1 0x00\n404 CALLER\n405 PUSH20 0xffffffff(...)\n426 AND\n427 PUSH20 0xffffffff(...)\n448 AND\n449 DUP2\n450 MSTORE\n451 PUSH1 0x20\n453 ADD\n454 SWAP1\n455 DUP2\n456 MSTORE\n457 PUSH1 0x20\n459 ADD\n460 PUSH1 0x00\n462 SHA3\n463 DUP2\n464 SWAP1\n465 SSTORE\n466 POP\n467 JUMP\n'},
+{id: 111, size: 150, 'label': '111 JUMPDEST\n112 STOP\n'},
+{id: 200, size: 150, 'label': '200 JUMPDEST\n201 PUSH1 0x00\n203 DUP1\n204 PUSH1 0x00\n206 CALLER\n207 PUSH20 0xffffffff(...)\n228 AND\n229 PUSH20 0xffffffff(...)\n250 AND\n251 DUP2\n252 MSTORE\n253 PUSH1 0x20\n255 ADD\n256 SWAP1\n257 DUP2\n258 MSTORE\n259 PUSH1 0x20\n261 ADD\n262 PUSH1 0x00\n264 SHA3\n265 SLOAD\n266 GT\n267 ISZERO\n268 ISZERO\n269 PUSH2 0x0115\n272 JUMPI\n273 PUSH1 0x00\n275 DUP1\n276 REVERT\n'},
+{id: 468, size: 150, 'label': '468 JUMPDEST\n469 PUSH1 0x00\n471 DUP1\n472 PUSH1 0x00\n474 DUP4\n475 PUSH20 0xffffffff(...)\n496 AND\n497 PUSH20 0xffffffff(...)\n518 AND\n519 DUP2\n520 MSTORE\n521 PUSH1 0x20\n523 ADD\n524 SWAP1\n525 DUP2\n526 MSTORE\n527 PUSH1 0x20\n529 ADD\n530 PUSH1 0x00\n532 SHA3\n533 SLOAD\n534 SWAP1\n535 POP\n536 SWAP2\n537 SWAP1\n538 POP\n539 JUMP\n'},
+{id: 277, size: 150, 'label': '277 JUMPDEST\n278 CALLER\n279 PUSH20 0xffffffff(...)\n300 AND\n301 PUSH1 0x00\n303 DUP1\n304 CALLER\n305 PUSH20 0xffffffff(...)\n326 AND\n327 PUSH20 0xffffffff(...)\n348 AND\n349 DUP2\n350 MSTORE\n351 PUSH1 0x20\n353 ADD\n354 SWAP1\n355 DUP2\n356 MSTORE\n357 PUSH1 0x20\n359 ADD\n360 PUSH1 0x00\n362 SHA3\n363 SLOAD\n364 PUSH1 0x40\n366 MLOAD\n367 PUSH1 0x00\n369 PUSH1 0x40\n371 MLOAD\n372 DUP1\n373 DUP4\n374 SUB\n375 DUP2\n376 DUP6\n377 DUP8\n378 PUSH2 0x8796\n381 GAS\n382 SUB\n383 CALL\n384 SWAP3\n385 POP\n386 POP\n387 POP\n388 ISZERO\n389 ISZERO\n390 PUSH2 0x018e\n393 JUMPI\n394 PUSH1 0x00\n396 DUP1\n397 REVERT\n'},
+{id: 87, size: 150, 'label': '87 JUMPDEST\n88 PUSH1 0x00\n90 DUP1\n91 REVERT\n'},
+{id: 124, size: 150, 'label': '124 JUMPDEST\n125 PUSH2 0x00a8\n128 PUSH1 0x04\n130 DUP1\n131 DUP1\n132 CALLDATALOAD\n133 PUSH20 0xffffffff(...)\n154 AND\n155 SWAP1\n156 PUSH1 0x20\n158 ADD\n159 SWAP1\n160 SWAP2\n161 SWAP1\n162 POP\n163 POP\n164 PUSH2 0x01d4\n167 JUMP\n'},
+{id: 540, size: 150, 'label': '540 JUMPDEST\n541 CALLVALUE\n542 PUSH1 0x00\n544 DUP1\n545 CALLER\n546 PUSH20 0xffffffff(...)\n567 AND\n568 PUSH20 0xffffffff(...)\n589 AND\n590 DUP2\n591 MSTORE\n592 PUSH1 0x20\n594 ADD\n595 SWAP1\n596 DUP2\n597 MSTORE\n598 PUSH1 0x20\n600 ADD\n601 PUSH1 0x00\n603 SHA3\n604 PUSH1 0x00\n606 DUP3\n607 DUP3\n608 SLOAD\n609 ADD\n610 SWAP3\n611 POP\n612 POP\n613 DUP2\n614 SWAP1\n615 SSTORE\n616 POP\n617 JUMP\n'}
+];
+var edges = [
+{from: 0, to: 87, 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize))', 'smooth': {'type': 'cubicBezier'}},
+{from: 398, to: 111, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 277, to: 398, 'arrows': 'to', 'label': 'Not(retval_384_115 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: 200, to: 277, 'arrows': 'to', 'label': 'Not(storage_sha_hash == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: 103, to: 200, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 92, to: 103, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 92, 'arrows': 'to', 'label': 'Extract0xff,0xe0, calldata_0) ==0x3ccfd60b', 'smooth': {'type': 'cubicBezier'}},
+{from: 468, to: 168, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 124, to: 468, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 113, to: 124, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 113, 'arrows': 'to', 'label': 'Extract0xff,0xe0, calldata_0) ==0xf8b2cb4f', 'smooth': {'type': 'cubicBezier'}},
+{from: 540, to: 198, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 190, to: 540, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 190, 'arrows': 'to', 'label': 'Extract0xff,0xe0, calldata_0) ==0xfcddd056', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / Ethereum LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br /></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+var data = {'nodes': nodes, 'edges': edges}
+var gph = new vis.Network(container, data, options);
+</script>
+</body>
+</html>
