@@ -73,7 +73,7 @@ graph_html = '''<html>
       },
 
       physics:{
-        enabled: true,
+        enabled: [ENABLE_PHYSICS],
       }   
     
   }
@@ -128,12 +128,13 @@ def serialize(_svm):
 
 
 
-def generate_callgraph(disassembly):
+def generate_callgraph(disassembly, physics):
 
     _svm = svm.SVM(disassembly)
 
     _svm.sym_exec()
 
     html = graph_html.replace("[JS]", serialize(_svm))
+    html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html
