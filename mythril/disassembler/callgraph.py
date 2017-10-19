@@ -1,4 +1,6 @@
 from laser.ethereum import svm
+from z3 import Z3Exception, simplify
+import re
 
 
 graph_html = '''<html>
@@ -28,7 +30,7 @@ graph_html = '''<html>
         improvedLayout:true,
         hierarchical: {
           enabled:true,
-          levelSeparation: 500,
+          levelSeparation: 450,
           nodeSpacing: 200,
           treeSpacing: 100,
           blockShifting: true,
@@ -100,11 +102,30 @@ def serialize(_svm):
 
     for n in _svm.nodes:
 
-        nodes.append("{id: " + str(_svm.nodes[n].as_dict()['id']) + ", size: 150, 'label': '" + _svm.nodes[n].as_dict()['code'] + "'}")
+        code =  _svm.nodes[n].as_dict()['code']
 
-    for e in _svm.edges:
+        code = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", code)
 
-        edges.append("{from: " + str(e.as_dict()['from']) + ', to: ' + str(e.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + str(e.condition).replace("\n", "") + "', 'smooth': {'type': 'cubicBezier'}}")
+        nodes.append("{id: " + str(_svm.nodes[n].as_dict()['id']) + ", size: 150, 'label': '" + code + "'}")
+
+
+
+    for edge in _svm.edges:
+
+      if (edge.condition is None):
+          label = ""
+      else:
+
+          try:
+              label = str(simplify(edge.condition))
+          except Z3Exception:
+              label = str(edge.condition)
+      
+      label = re.sub("[0]{8}[0]+", "0000(...)", label)
+      label = re.sub("[f]{8}[f]+", "ffff(...)", label)
+      label = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", label)
+
+      edges.append("{from: " + str(edge.as_dict()['from']) + ', to: ' + str(edge.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
 
     return "var nodes = [\n" + ",\n".join(nodes) + "\n];\nvar edges = [\n" + ",\n".join(edges) + "\n];"
 
