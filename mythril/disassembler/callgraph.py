@@ -108,8 +108,6 @@ def serialize(_svm):
 
         nodes.append("{id: " + str(_svm.nodes[n].as_dict()['id']) + ", size: 150, 'label': '" + code + "'}")
 
-
-
     for edge in _svm.edges:
 
       if (edge.condition is None):
@@ -117,11 +115,11 @@ def serialize(_svm):
       else:
 
           try:
-              label = str(simplify(edge.condition))
+            label = str(simplify(edge.condition))
           except Z3Exception:
-              label = str(edge.condition)
+            label = str(edge.condition).replace("\n", "")
       
-      label = re.sub("([[\d]{2}\d+)",  lambda m: hex(int(m.group(1))), label)
+      label = re.sub("[^_]([[\d]{2}\d+)",  lambda m: hex(int(m.group(1))), label)
       code = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", code)
 
       edges.append("{from: " + str(edge.as_dict()['from']) + ', to: ' + str(edge.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
