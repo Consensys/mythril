@@ -101,6 +101,8 @@ $ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph5.png "Call graph")
 
+The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout. If that happens, disable the effect with the `--disable-physics` flag.
+
 ## Custom scripts
 
 By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules, you can automate more complex static and dynamic analysis tasks. Here is an [example](https://github.com/b-mueller/mythril/blob/master/examples/find-fallback-dcl.py).
