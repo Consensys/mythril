@@ -219,7 +219,7 @@ security community.
 setup(
     name='mythril',
 
-    version='0.5.3',
+    version='0.5.4',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
@@ -256,7 +256,7 @@ setup(
         'web3',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum>=0.1.5'
+        'laser-ethereum>=0.1.6'
     ],
 
     python_requires='>=3.5',
