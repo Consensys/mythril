@@ -28,41 +28,16 @@ You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-### Database initialization
-
-Mythril builds its own contract database to enable fast search operations. This is to enable operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in ~~seconds~~ minutes instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
-
-```bash
-$ myth --init-db
-Starting synchronization from latest block: 4323706
-Processing block 4323000, 3 individual contracts in database
-(...)
-```
-
-Mythril retrieves contract data over RPC by default. You can switch to IPC using the `--ipc` flag.
-
-The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
-
 ## Command line usage
 
 The Mythril command line tool (aptly named `myth`) allows you to conveniently access some of Mythril's functionality.
-
-### Searching the database
-
-The search feature allows you to find contract instances that contain specific function calls and opcode sequences. It supports simple boolean expressions, such as:
-
-```bash
-$ myth --search "func#changeMultisig(address)#"
-$ myth --search "code#PUSH1 0x50,POP#"
-$ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
-```
 
 ### Disassembler
 
 Use the `-d` flag to disassemble code. The disassembler accepts a bytecode string or a contract address as its input.
 
 ```bash
-$ myth -d -c "$ ./myth -d -c "5060"
+$ myth -d -c "0x6060"
 0 PUSH1 0x60
 ```
 
@@ -106,6 +81,31 @@ The "bounce" effect, while awesome (and thus enabled by default), sometimes mess
 ## Custom scripts
 
 By combining Mythril and [PyEthereum](https://github.com/ethereum/pyethereum) modules, you can automate more complex static and dynamic analysis tasks. Here is an [example](https://github.com/b-mueller/mythril/blob/master/examples/find-fallback-dcl.py).
+
+## Contract search
+
+Mythril builds its own contract database to enable fast search operations. This is to enable operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in ~~seconds~~ minutes instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
+
+```bash
+$ myth --init-db
+Starting synchronization from latest block: 4323706
+Processing block 4323000, 3 individual contracts in database
+(...)
+```
+
+Mythril retrieves contract data over RPC by default. You can switch to IPC using the `--ipc` flag.
+
+The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
+
+### Searching from the command line
+
+The search feature allows you to find contract instances that contain specific function calls and opcode sequences. It supports simple boolean expressions, such as:
+
+```bash
+$ myth --search "func#changeMultisig(address)#"
+$ myth --search "code#PUSH1 0x50,POP#"
+$ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
+```
 
 ## Issues
 
