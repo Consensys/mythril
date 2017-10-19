@@ -692,6 +692,8 @@ class EthIpc(object):
         return self._call('debug_getBlockRlp', [number])
 
     def traceTransaction(self, txHash):
-
-        return self._call('debug_traceTransaction', [txHash])
+        #atm not directly accessible, so something like this is needed
+        #https://github.com/pipermerriam/web3.py/issues/308
+        #web3.manager.request_blocking('debug_traceTransaction', ["TX_ID_AS_HEX_STRING"])
+        return self.web3.manager.request_blocking('debug_traceTransaction', [txHash])
 
