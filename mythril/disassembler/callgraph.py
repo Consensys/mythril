@@ -115,7 +115,7 @@ def serialize(_svm):
       else:
 
           try:
-            label = str(simplify(edge.condition))
+            label = str(simplify(edge.condition)).replace("\n", "")
           except Z3Exception:
             label = str(edge.condition).replace("\n", "")
       
