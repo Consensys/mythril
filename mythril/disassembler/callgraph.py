@@ -104,7 +104,7 @@ def serialize(_svm):
 
         code =  _svm.nodes[n].as_dict()['code']
 
-        code = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", code)
+        code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
         nodes.append("{id: " + str(_svm.nodes[n].as_dict()['id']) + ", size: 150, 'label': '" + code + "'}")
 
@@ -120,7 +120,7 @@ def serialize(_svm):
             label = str(edge.condition).replace("\n", "")
       
       label = re.sub("[^_]([[\d]{2}\d+)",  lambda m: hex(int(m.group(1))), label)
-      code = re.sub("([0-9a-f]{8})(\d+)",  lambda m: m.group(1) + "(...)", code)
+      code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
       edges.append("{from: " + str(edge.as_dict()['from']) + ', to: ' + str(edge.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
 
