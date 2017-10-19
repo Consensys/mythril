@@ -48,7 +48,7 @@ class Disassembly:
             try:
                 func_name = signatures[func_hash]
             except KeyError:
-                func_name = "UNK_" + func_hash
+                func_name = "_function_" + func_hash
 
             try:
                 offset = self.instruction_list[i+2]['argument']
