@@ -28,6 +28,8 @@ You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
+Ideally, the node should be fully synced before starting to work with Mythril - otherwise you won't be able to retrieve recent contracts via RPC or IPC.
+
 ## Command line usage
 
 The Mythril command line tool (aptly named `myth`) allows you to conveniently access some of Mythril's functionality.
