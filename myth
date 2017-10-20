@@ -55,7 +55,7 @@ options.add_argument('--sync-all', action='store_true', help='Also sync contract
 options.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 options.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
-options.add_argument('--disable-physics', action='store_true', help='disable graph physics simulation')
+options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
 
@@ -109,12 +109,10 @@ if (args.disassemble or args.graph or args.fire_lasers):
 
     elif (args.graph):
 
-        if (args.disable_physics):
-            physics = False
-        else:
-            physics = True
+        if args.enable_physics is not None:
+            physics = True 
 
-        html = generate_callgraph(disassembly, physics)
+        html = generate_callgraph(disassembly, args.enable_physics)
 
         try:
             with open(args.graph, "w") as f:
@@ -156,8 +154,10 @@ elif (args.trace):
         else:
             print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
 
-else:
+elif args.search or args.xrefs or args.init_db:
+
     contract_storage = get_persistent_storage(db_dir)
+
     if (args.search):
 
         try:
@@ -184,8 +184,8 @@ else:
         else:
             contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
 
-    elif (args.hash):
-        print("0x" + utils.sha3(args.hash)[:4].hex())
+elif (args.hash):
+    print("0x" + utils.sha3(args.hash)[:4].hex())
 
-    else:
-        parser.print_help()
+else:
+    parser.print_help()
