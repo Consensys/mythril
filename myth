@@ -34,7 +34,6 @@ def exitWithError(message):
 
 parser = argparse.ArgumentParser(description='Bug hunting on the Ethereum blockchain')
 
-
 commands = parser.add_argument_group('commands')
 commands.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, specify input with -c or -a')
 commands.add_argument('-t', '--trace', action='store_true', help='trace, use with -c or -a and --data (optional)')
@@ -54,6 +53,7 @@ options = parser.add_argument_group('options')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 options.add_argument('--rpcport', type=int, default=8545, help='RPC port')
+options.add_argument('--rpctls', type=bool, default=False, help='RPC port')
 options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
@@ -84,7 +84,7 @@ if (args.disassemble or args.graph or args.fire_lasers):
                 exitWithError("Exception loading bytecode via IPC: " + str(e))
         else:
             try:
-                eth = EthJsonRpc(args.rpchost, args.rpcport)
+                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
                 encoded_bytecode = eth.eth_getCode(args.address)
 
@@ -136,7 +136,7 @@ elif (args.trace):
             encoded_bytecode = eth.eth_getCode(args.address)
 
         else:
-            eth = EthJsonRpc(args.rpchost, args.rpcport)
+            eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
             encoded_bytecode = eth.eth_getCode(args.address)
 
     else:
@@ -180,9 +180,9 @@ elif args.search or args.xrefs or args.init_db:
 
     elif (args.init_db):
         if args.ipc:
-            contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
+                contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
         else:
-            contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
+            contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
 
 elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())
