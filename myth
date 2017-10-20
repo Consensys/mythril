@@ -94,10 +94,13 @@ if (args.disassemble or args.graph or args.fire_lasers):
     else:
         exitWithError("No input bytecode. Please provide the code via -c BYTECODE or -a address")
 
-    try:
-        disassembly = Disassembly(encoded_bytecode)
-    except binascii.Error:
-        exitWithError("Disassembler: Invalid code string.")
+    if encoded_bytecode is not None:
+        logging.debug("Input bytecode: " + encoded_bytecode)
+
+        try:
+            disassembly = Disassembly(encoded_bytecode)
+        except binascii.Error:
+            exitWithError("Disassembler: Invalid code string.")
 
     if (args.disassemble):
 

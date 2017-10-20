@@ -2,8 +2,6 @@ import unittest
 from mythril.disassembler.disassembly import Disassembly
 
 
-
-
 class ETHContractTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -14,5 +12,4 @@ class DisassembyTestCase(ETHContractTestCase):
     def runTest(self):
 
         disassembly = Disassembly(self.code)
-
-        self.assertEqual(len(disassembly.blocks), 162, 'Disassembler error: Incorrect number of blocks generated)')
+        self.assertEqual(len(disassembly.instruction_list), 3537)
