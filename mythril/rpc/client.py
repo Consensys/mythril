@@ -587,44 +587,6 @@ class EthJsonRpc(object):
         '''
         return self._call('eth_submitHashrate', [hex(hash_rate), client_id])
 
-    def db_putString(self, db_name, key, value):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#db_putstring
-
-        TESTED
-        '''
-        warnings.warn('deprecated', DeprecationWarning)
-        return self._call('db_putString', [db_name, key, value])
-
-    def db_getString(self, db_name, key):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#db_getstring
-
-        TESTED
-        '''
-        warnings.warn('deprecated', DeprecationWarning)
-        return self._call('db_getString', [db_name, key])
-
-    def db_putHex(self, db_name, key, value):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#db_puthex
-
-        TESTED
-        '''
-        if not value.startswith('0x'):
-            value = '0x{}'.format(value)
-        warnings.warn('deprecated', DeprecationWarning)
-        return self._call('db_putHex', [db_name, key, value])
-
-    def db_getHex(self, db_name, key):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#db_gethex
-
-        TESTED
-        '''
-        warnings.warn('deprecated', DeprecationWarning)
-        return self._call('db_getHex', [db_name, key])
-
     def shh_version(self):
         '''
         https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_version
