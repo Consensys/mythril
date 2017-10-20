@@ -7,7 +7,6 @@ from io import StringIO
 import re
 
 
-
 def trace(code, calldata = ""):
 
 	logHandlers = ['eth.vm.op', 'eth.vm.op.stack', 'eth.vm.op.memory', 'eth.vm.op.storage']
