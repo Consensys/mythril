@@ -34,7 +34,7 @@ The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ether
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-Most features will work out of the box, however for search operations you need to initialize the database first.
+Most features will work out of the box. For search operations you need to [build a contract database first](#contract-search).
 
 ## Command line usage
 
