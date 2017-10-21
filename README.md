@@ -22,7 +22,7 @@ $ python setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-You also need an Ethereum node that is synced with the network. By default, Mythril will assume that a local node is running and query it via the default RPC port. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
+You also need an Ethereum node that is synced with the network. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
 
 ```
 $ myth --rpchost=mainnet.infura.io/{API-KEY} --rpcport=443  --rpctls=True (... etc ...)
@@ -34,7 +34,7 @@ The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ether
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-Most features will work out of the box, however for search operations you need to initialize the database first.
+Most features will work out of the box. For search operations you need to [build a contract database first](#contract-search).
 
 ## Command line usage
 
@@ -108,15 +108,6 @@ Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
 $ myth --xrefs 07459966443977122e639cbf7804c446
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
-
-## Issues
-
-The database sync is currently not very efficient. 
-
-- Using PyEthereum: I encountered issues syncing PyEthereum with Homestead. Also, PyEthApp only supports Python 2.7, which causes issues with other important packages.
-- Accessing the Go-Ethereum LevelDB: This would be a great option. However, PyEthereum database code seems unable to deal with Go-Ethereum's LevelDB. It would take quite a bit of effort to figure this out.
-
-I'm writing this in my spare time, so contributors would be highly welcome!
 
 ## Credit
 
