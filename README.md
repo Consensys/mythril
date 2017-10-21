@@ -22,13 +22,19 @@ $ python setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
+You also need an Ethereum node that is synced with the network. By default, Mythril will assume that a local node is running and query it via the default RPC port. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
+
+```
+$ myth --rpchost=mainnet.infura.io/{API-KEY} --rpcport=443  --rpctls=True (... etc ...)
+```
+
+The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ethereum). Start your local node as follows:
 
 ```bash
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-Ideally, the node should be fully synced before starting to work with Mythril - otherwise you won't be able to retrieve recent contracts via RPC or IPC.
+Most features will work out of the box, however for search operations you need to initialize the database first.
 
 ## Command line usage
 
@@ -78,8 +84,6 @@ Starting synchronization from latest block: 4323706
 Processing block 4323000, 3 individual contracts in database
 (...)
 ```
-
-Mythril retrieves contract data over RPC by default. You can switch to IPC using the `--ipc` flag.
 
 The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
 
