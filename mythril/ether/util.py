@@ -21,17 +21,18 @@ def bytecode_from_blockchain(creation_tx_hash, ipc, rpc_host='127.0.0.1', rpc_po
     creation_tx_hash = ID of transaction that created the contract.
     """
     if ipc:
-        pass
+        eth = EthIpc()
+
     else:
         eth = EthJsonRpc(rpc_host, rpc_port)
 
-        trace = eth.traceTransaction(creation_tx_hash)
+    trace = eth.traceTransaction(creation_tx_hash)
 
-        if trace['returnValue']:
+    if trace['returnValue']:
 
-            return trace['returnValue']
+        return trace['returnValue']
 
-        raise RuntimeError("Transaction trace didn't return any bytecode")
+    raise RuntimeError("Transaction trace didn't return any bytecode")
 
 
 def fire_lasers(disassembly):
