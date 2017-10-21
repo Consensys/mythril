@@ -67,7 +67,7 @@ $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly used for CFG generation. The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
 ```bash
-$ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
+$ myth -d -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
