@@ -105,6 +105,10 @@ class ContractStorage(persistent.Persistent):
             self.last_block = blockNum
             blockNum -= 1
 
+        # If we've finished initializing the database, start over from the end of the chain if we want to initialize again
+        self.last_block = 0
+        transaction.commit()
+
 
     def search(self, expression, callback_func):
 
