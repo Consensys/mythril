@@ -1,5 +1,4 @@
 import json
-import warnings
 
 import requests
 from requests.adapters import HTTPAdapter

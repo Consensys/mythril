@@ -7,11 +7,11 @@ graph_html = '''<html>
  <head>
   <style type="text/css">
    #mynetwork {
-    background-color: #000000;
+    background-color: #232625;
    }
 
    body {
-    background-color: #000000;
+    background-color: #232625;
     color: #ffffff;
    }
   </style>
