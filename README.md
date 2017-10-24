@@ -105,7 +105,7 @@ It is often useful to find other contracts referenced by a particular contract. 
 $ myth --search "code#DELEGATECALL#"
 Matched contract with code hash 07459966443977122e639cbf7804c446
 Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
-$ myth --xrefs 07459966443977122e639cbf7804c446
+$ myth --xrefs -a 0x76799f77587738bfeef09452df215b63d2cfb08a
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
