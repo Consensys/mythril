@@ -38,7 +38,7 @@ parser = argparse.ArgumentParser(description='Bug hunting on the Ethereum blockc
 commands = parser.add_argument_group('commands')
 commands.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, specify input with -c or -a')
 commands.add_argument('-t', '--trace', action='store_true', help='trace, use with -c or -a and --data (optional)')
-commands.add_argument('-g', '--graph', help='generate a call graph', metavar='OUTPUT_FILE')
+commands.add_argument('-g', '--graph', help='generate a control flow graph', metavar='OUTPUT_FILE')
 commands.add_argument('-l', '--fire-lasers', action='store_true', help='detect vulnerabilities, use with -c or -a')
 commands.add_argument('-s', '--search', help='search the contract database')
 commands.add_argument('--xrefs', action='store_true', help='get xrefs from a contract, use with -c or -a')
