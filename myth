@@ -69,13 +69,39 @@ except KeyError:
 
 args = parser.parse_args()
 
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.trace):
+    parser.print_help()
+    sys.exit()
+
 if (args.v):
     if (0 <= args.v < 3):
         logging.basicConfig(level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
 
 elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())
-    sys.exit(0)
+    sys.exit()
+
+
+# Search commands
+
+if args.search or args.init_db:
+
+    contract_storage = get_persistent_storage(db_dir)
+
+    if (args.search):
+
+        try:
+            contract_storage.search(args.search, searchCallback)
+        except SyntaxError:
+            exitWithError("Syntax error in search expression.")
+
+    elif (args.init_db):
+        if args.ipc:
+                contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
+        else:
+            contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
+
+    sys.exit()
 
 # Establish RPC/IPC connection if necessary
 
@@ -93,7 +119,7 @@ if (args.address or args.infile):
             except Exception as e:
                 exitWithError("Error establishing RPC connection: " + str(e))
 
-# Get bytecode for main module
+# Get encoded bytecode for main module
 
 if (args.code):
     encoded_bytecode = args.code
@@ -102,11 +128,9 @@ elif (args.address):
 elif (args.infile):
     pass
 else:
-    exitWithError("No input bytecode. Please provide the code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
-
+    exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
 
 logging.debug("Input bytecode: " + encoded_bytecode)
-
 
 try:
     disassembly = Disassembly(encoded_bytecode)
@@ -172,24 +196,6 @@ elif (args.trace):
             print(str(i['pc']) + " " + i['op'] + " " + i['pushvalue'] + ";\tSTACK: " + i['stack'])
         else:
             print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
-
-elif args.search or args.init_db:
-
-    contract_storage = get_persistent_storage(db_dir)
-
-    if (args.search):
-
-        try:
-            contract_storage.search(args.search, searchCallback)
-        except SyntaxError:
-            exitWithError("Syntax error in search expression.")
-
-    elif (args.init_db):
-        if args.ipc:
-                contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
-        else:
-            contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
-
 
 
 else:
