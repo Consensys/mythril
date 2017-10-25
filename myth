@@ -12,6 +12,7 @@ from mythril.ether.ethcontract import ETHContract
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from ethereum import utils
+import subprocess
 from laser.ethereum import laserfree
 import logging
 import binascii
@@ -22,7 +23,7 @@ import re
 
 
 def searchCallback(code_hash, code, addresses, balances):
-    print("Matched contract with code hash " + code_hash )
+    print("Matched contract with code hash " + code_hash)
 
     for i in range(0, len(addresses)):
         print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
@@ -96,9 +97,6 @@ if args.search or args.init_db:
             exitWithError("Syntax error in search expression.")
 
     elif (args.init_db):
-        if args.ipc:
-                contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
-        else:
             contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
 
     sys.exit()
@@ -126,7 +124,12 @@ if (args.code):
 elif (args.address):
     encoded_bytecode = eth.eth_getCode(args.address)
 elif (args.infile):
-    pass
+
+    output = subprocess.check_output(["solc", "--bin-runtime", args.infile])
+
+    m = re.search(r"runtime part: \\n(.*)\\n", str(output))
+    encoded_bytecode = m.group(1)
+
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
 
