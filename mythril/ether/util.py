@@ -3,6 +3,9 @@ from mythril.ipc.client import EthIpc
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id
+import subprocess
+import re
+
 
 def safe_decode(hex_encoded_string):
 
@@ -14,6 +17,13 @@ def safe_decode(hex_encoded_string):
     else:
         return bytes.fromhex(hex_encoded_string)
         # return codecs.decode(hex_encoded_string, 'hex_codec')
+
+
+def compile_solidity(file):
+    output = subprocess.check_output(["solc", "--bin-runtime", file])
+
+    m = re.search(r"runtime part: \\n(.*)\\n", str(output))
+    return m.group(1)
 
 
 def bytecode_from_blockchain(creation_tx_hash, ipc, rpc_host='127.0.0.1', rpc_port=8545, rpc_tls=False):
