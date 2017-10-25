@@ -73,6 +73,9 @@ if (args.v):
     if (0 <= args.v < 3):
         logging.basicConfig(level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
 
+elif (args.hash):
+    print("0x" + utils.sha3(args.hash)[:4].hex())
+    sys.exit(0)
 
 # Establish RPC/IPC connection if necessary
 
@@ -99,7 +102,7 @@ elif (args.address):
 elif (args.infile):
     pass
 else:
-    exitWithError("No input bytecode. Please provide the code via -c BYTECODE or -a address")
+    exitWithError("No input bytecode. Please provide the code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
 
 
 logging.debug("Input bytecode: " + encoded_bytecode)
@@ -187,8 +190,7 @@ elif args.search or args.init_db:
         else:
             contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
 
-elif (args.hash):
-    print("0x" + utils.sha3(args.hash)[:4].hex())
+
 
 else:
     parser.print_help()
