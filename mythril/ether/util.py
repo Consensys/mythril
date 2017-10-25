@@ -8,15 +8,10 @@ import re
 
 
 def safe_decode(hex_encoded_string):
-
-    # print(type(hex_encoded_string))
-
     if (hex_encoded_string.startswith("0x")):
         return bytes.fromhex(hex_encoded_string[2:])
-        # return codecs.decode(, 'hex_codec')
     else:
         return bytes.fromhex(hex_encoded_string)
-        # return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
 def compile_solidity(file):
@@ -45,12 +40,7 @@ def bytecode_from_blockchain(creation_tx_hash, ipc, rpc_host='127.0.0.1', rpc_po
     raise RuntimeError("Transaction trace didn't return any bytecode")
 
 
-def fire_lasers(disassembly):
-    return laserfree.analysis(disassembly)
-
-
 def encode_calldata(func_name, arg_types, args):
-
     mid = method_id(func_name, arg_types)
     function_selector = zpad(encode_int(mid), 4)
     args = encode_abi(arg_types, args)
