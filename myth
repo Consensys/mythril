@@ -49,7 +49,7 @@ commands.add_argument('--init-db', action='store_true', help='initialize the con
 inputs = parser.add_argument_group('input arguments')
 inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 inputs.add_argument('-i', '--infile', help='solidity input file', metavar='INPUT_FILE')
-# inputs.add_argument('-l', '--libs', help='comma-separated list of solidity library files', metavar='LIBRARY_FILES')
+inputs.add_argument('-l', '--libs', help='comma-separated list of solidity library files', metavar='LIBRARY_FILES')
 inputs.add_argument('-a', '--address', help='pull contract from the mainnet', metavar='CONTRACT_ADDRESS')
 inputs.add_argument('--data', help='message call input data for tracing')
 
@@ -88,7 +88,6 @@ elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())
     sys.exit()
 
-
 # Search commands
 
 if args.search or args.init_db:
@@ -123,6 +122,24 @@ if (args.address or args.infile):
             except Exception as e:
                 exitWithError("Error establishing RPC connection: " + str(e))
 
+# Handle libs
+
+libraries = {}
+
+if (args.libs):
+    files = args.libs.split(",")
+
+    c = 0
+
+    for file in files:
+
+        address = binascii.b2a_hex(os.urandom(20)).decode('UTF-8')
+        bytecode = compile_solidity(solc_binary, args.infile)
+
+        libraries[address] = bytecode
+
+    print(libraries)
+
 # Get encoded bytecode for main module
 
 if (args.code):
@@ -131,6 +148,7 @@ elif (args.address):
     encoded_bytecode = eth.eth_getCode(args.address)
 elif (args.infile):
     encoded_bytecode =  compile_solidity(solc_binary, args.infile)
+    print(encoded_bytecode)
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
 

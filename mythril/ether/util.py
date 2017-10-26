@@ -15,7 +15,7 @@ def safe_decode(hex_encoded_string):
 def compile_solidity(solc_binary, file):
     output = subprocess.check_output(["solc", "--bin-runtime", file],  stderr=subprocess.DEVNULL)
 
-    m = re.search(r"runtime part: \\n(.*)\\n", str(output))
+    m = re.search(r"runtime part: \\n([0-9a-f]+)\\n", str(output))
     return m.group(1)
 
 
