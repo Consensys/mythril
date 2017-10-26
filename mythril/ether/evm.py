@@ -56,7 +56,7 @@ def trace(code, calldata = ""):
 				if (len(stackitems)): 
 
 					for i in range(0, len(stackitems) - 1):
-						stack += hex(int(stackitems[i]))	+ ", "			
+						stack += hex(int(stackitems[i]))	+ ", "
 
 					stack += hex(int(stackitems[-1]))
 
@@ -73,5 +73,3 @@ def trace(code, calldata = ""):
 				trace.append({'pc': pc, 'op': op, 'stack': stack})	
 
 	return trace
-
-
