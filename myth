@@ -14,6 +14,7 @@ from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from ethereum import utils
 from laser.ethereum import laserfree
+import yaml
 import logging
 import binascii
 import sys
@@ -62,11 +63,17 @@ options.add_argument('--ipc', help='use IPC interface instead of RPC', action='s
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
+# Get config values
 
 try:
     db_dir = os.environ['DB_DIR']
 except KeyError:
     db_dir = None
+
+try:
+    solc_binary = os.environ['SOLC']
+except KeyError:
+    solc_binary = 'solc'
 
 args = parser.parse_args()
 
