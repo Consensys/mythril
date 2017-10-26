@@ -14,7 +14,6 @@ from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from ethereum import utils
 from laser.ethereum import laserfree
-import yaml
 import logging
 import binascii
 import sys
@@ -131,7 +130,7 @@ if (args.code):
 elif (args.address):
     encoded_bytecode = eth.eth_getCode(args.address)
 elif (args.infile):
-    encoded_bytecode =  compile_solidity(args.infile)
+    encoded_bytecode =  compile_solidity(solc_binary, args.infile)
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
 
