@@ -6,11 +6,11 @@ from ethereum import utils
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code = ""):
+    def __init__(self, code, creation_code = "", name = ""):
 
         self.code = code
         self.creation_code = creation_code
-
+        self.name = name
 
     def get_xrefs(self):
 
@@ -30,7 +30,7 @@ class ETHContract(persistent.Persistent):
         return xrefs
 
 
-    def get_instruction_list(self):
+    def get_disassembly(self):
 
         return asm.disassemble(util.safe_decode(self.code))
 

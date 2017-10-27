@@ -4,7 +4,7 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from mythril.ether import evm
+from mythril.ether import evm, util
 from mythril.disassembler.disassembly import Disassembly
 from mythril.disassembler.callgraph import generate_callgraph
 from mythril.ether.contractstorage import get_persistent_storage
@@ -48,8 +48,7 @@ commands.add_argument('--init-db', action='store_true', help='initialize the con
 
 inputs = parser.add_argument_group('input arguments')
 inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
-inputs.add_argument('-i', '--infile', help='solidity input file', metavar='INPUT_FILE')
-inputs.add_argument('-l', '--libs', help='comma-separated list of solidity library files', metavar='LIBRARY_FILES')
+inputs.add_argument('-i', '--infiles', help='comma-separated list of solidity files', metavar='INPUT_FILES')
 inputs.add_argument('-a', '--address', help='pull contract from the mainnet', metavar='CONTRACT_ADDRESS')
 inputs.add_argument('--data', help='message call input data for tracing')
 
@@ -108,7 +107,7 @@ if args.search or args.init_db:
 
 # Establish RPC/IPC connection if necessary
 
-if (args.address or args.infile):
+if (args.address or args.infiles):
         if args.ipc:
             try:
                 eth = EthIpc()
@@ -122,48 +121,36 @@ if (args.address or args.infile):
             except Exception as e:
                 exitWithError("Error establishing RPC connection: " + str(e))
 
-# Handle libs
+# Load code
 
-libraries = {}
+contracts = []
 
-if (args.libs):
-    files = args.libs.split(",")
+if (args.code):
+    contracts.append(ETHContract(args.code))
+elif (args.address):
+    contracts.append(ETHContract(eth.eth_getCode(args.address)))
 
-    c = 0
+elif (args.infiles):
+    files = args.infiles.split(",")
 
     for file in files:
 
-        address = binascii.b2a_hex(os.urandom(20)).decode('UTF-8')
-        bytecode = compile_solidity(solc_binary, args.infile)
+        name, bytecode = compile_solidity(solc_binary, file)
 
-        libraries[address] = bytecode
+        contract = ETHContract(bytecode, name=name)
 
-    print(libraries)
+        contracts.append(contract)
 
-# Get encoded bytecode for main module
-
-if (args.code):
-    encoded_bytecode = args.code
-elif (args.address):
-    encoded_bytecode = eth.eth_getCode(args.address)
-elif (args.infile):
-    encoded_bytecode =  compile_solidity(solc_binary, args.infile)
-    print(encoded_bytecode)
 else:
-    exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILE")
+    exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
 
-logging.debug("Input bytecode: " + encoded_bytecode)
-
-try:
-    disassembly = Disassembly(encoded_bytecode)
-except binascii.Error:
-    exitWithError("Disassembler: Invalid code string.")
+logging.info("Loaded " + str(len(contracts)) + " contracts")
 
 # Process commands
 
 if (args.disassemble):
 
-    easm_text = disassembly.get_easm()
+    easm_text = contracts[0].get_easm()
     sys.stdout.write(easm_text)
 
 elif (args.graph):
@@ -171,7 +158,7 @@ elif (args.graph):
     if args.enable_physics is not None:
         physics = True 
 
-    html = generate_callgraph(disassembly, args.enable_physics)
+    html = generate_callgraph(contracts[0].get_disassembly(), args.enable_physics)
 
     try:
         with open(args.graph, "w") as f:
@@ -182,36 +169,36 @@ elif (args.graph):
 
 elif (args.xrefs):
 
-    contract = ETHContract(encoded_bytecode)
+    contract = ETHContract(bytecode)
 
     print("\n".join(contract.get_xrefs()))
 
 elif (args.fire_lasers):
 
-    laserfree.fire(disassembly)
+    laserfree.fire(contracts[0].get_disassembly())
 
 elif (args.trace):
 
     if (args.code):
-        encoded_bytecode = args.code
+        bytecode = args.code
 
     elif (args.address):
         if args.ipc:
             eth = EthIpc()
-            encoded_bytecode = eth.eth_getCode(args.address)
+            bytecode = eth.eth_getCode(args.address)
 
         else:
             eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
-            encoded_bytecode = eth.eth_getCode(args.address)
+            bytecode = eth.eth_getCode(args.address)
 
     else:
         exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
 
     if (args.data):
-        trace = evm.trace(encoded_bytecode, args.data)
+        trace = evm.trace(bytecode, args.data)
 
     else:
-        trace = evm.trace(encoded_bytecode)
+        trace = evm.trace(bytecode)
 
     for i in trace:
         if (re.match(r'^PUSH.*', i['op'])):
