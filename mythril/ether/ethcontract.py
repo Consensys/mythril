@@ -1,17 +1,17 @@
-from mythril.ether import util
 from mythril.disassembler.disassembly import Disassembly
-import re
-import persistent
 from ethereum import utils
+import persistent
+import re
 
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code = "", name = ""):
+    def __init__(self, code, creation_code="", name="", address=""):
 
         self.code = code
         self.creation_code = creation_code
         self.name = name
+        self.address = address
 
     def get_xrefs(self):
 
