@@ -159,7 +159,12 @@ elif (args.graph):
     if args.enable_physics is not None:
         physics = True 
 
-    html = generate_callgraph(contracts[0].get_disassembly(), args.enable_physics)
+    modules = []
+
+    for contract in contracts:
+        modules.append(contract.as_dict())
+
+    html = generate_callgraph(modules, args.enable_physics)
 
     try:
         with open(args.graph, "w") as f:
