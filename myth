@@ -162,6 +162,7 @@ elif (args.graph):
     modules = []
 
     for contract in contracts:
+        print(str(contract.as_dict()))
         modules.append(contract.as_dict())
 
     html = generate_callgraph(modules, args.enable_physics)
