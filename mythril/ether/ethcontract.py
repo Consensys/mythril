@@ -1,4 +1,5 @@
-from mythril.ether import asm, util
+from mythril.ether import util
+from mythril.disassembler.disassembly import Disassembly
 import re
 import persistent
 from ethereum import utils
@@ -14,7 +15,7 @@ class ETHContract(persistent.Persistent):
 
     def get_xrefs(self):
 
-        instruction_list = asm.disassemble(util.safe_decode(self.code))
+        instruction_list = Disassembly(self.code).instruction_list
 
         xrefs = []
 
@@ -32,12 +33,12 @@ class ETHContract(persistent.Persistent):
 
     def get_disassembly(self):
 
-        return asm.disassemble(util.safe_decode(self.code))
+        return Disassembly(self.code)
 
 
     def get_easm(self):
 
-        return asm.instruction_list_to_easm(asm.disassemble(util.safe_decode(self.code)))
+        return Disassembly(self.code).get_easm()
 
 
     def matches_expression(self, expression):

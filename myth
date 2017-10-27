@@ -121,7 +121,7 @@ if (args.address or args.infiles):
             except Exception as e:
                 exitWithError("Error establishing RPC connection: " + str(e))
 
-# Load code
+# Load contract(s) code
 
 contracts = []
 
@@ -145,6 +145,7 @@ else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
 
 logging.info("Loaded " + str(len(contracts)) + " contracts")
+print(contracts)
 
 # Process commands
 
