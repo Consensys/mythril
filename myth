@@ -124,7 +124,7 @@ if (args.address or args.infiles):
 contracts = []
 
 if (args.code):
-    contracts.append(ETHContract(args.code), address = util.get_random_address())
+    contracts.append(ETHContract(args.code, address = util.get_random_address()))
 elif (args.address):
     contracts.append(ETHContract(eth.eth_getCode(args.address), address = args.address))
 elif (args.infiles):
