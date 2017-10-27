@@ -52,6 +52,10 @@ inputs.add_argument('--data', help='message call input data for tracing')
 
 options = parser.add_argument_group('options')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
+options.add_argument('--infura-mainnet', type=bool, default=False, help='Use Infura Node service, default shorter setting equivalent to: --rpchost=mainnet.infura.io --rpcport=443 --rpctls="True"')
+options.add_argument('--infura-rinkeby', type=bool, default=False, help='Use Infura Node service, default shorter setting equivalent to: --rpchost=rinkeby.infura.io --rpcport=443 --rpctls="True"')
+options.add_argument('--infura-kovan', type=bool, default=False, help='Use Infura Node service, default shorter setting equivalent to: --rpchost=kovan.infura.io --rpcport=443 --rpctls="True"')
+options.add_argument('--infura-ropsten', type=bool, default=False, help='Use Infura Node service, default shorter setting equivalent to: --rpchost=ropsten.infura.io --rpcport=443 --rpctls="True"')
 options.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 options.add_argument('--rpcport', type=int, default=8545, help='RPC port')
 options.add_argument('--rpctls', type=bool, default=False, help='RPC port')
@@ -85,7 +89,16 @@ if (args.disassemble or args.graph or args.fire_lasers or args.xrefs):
                 exitWithError("Exception loading bytecode via IPC: " + str(e))
         else:
             try:
-                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+                if args.infura_mainnet:
+                    eth = EthJsonRpc('mainnet.infura.io', 443, True) 
+                elif args.infura_rinkeby:
+                    eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+                elif args.infura_kovan:
+                    eth = EthJsonRpc('kovan.infura.io', 443, True)
+                elif args.infura_ropsten:
+                    eth = EthJsonRpc('ropsten.infura.io', 443, True) 
+                else:
+                    eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
                 encoded_bytecode = eth.eth_getCode(args.address)
 
@@ -144,7 +157,16 @@ elif (args.trace):
             encoded_bytecode = eth.eth_getCode(args.address)
 
         else:
-            eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+            if args.infura_mainnet:
+                    eth = EthJsonRpc('mainnet.infura.io', 443, True) 
+            elif args.infura_rinkeby:
+                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+            elif args.infura_kovan:
+                eth = EthJsonRpc('kovan.infura.io', 443, True)
+            elif args.infura_ropsten:
+                eth = EthJsonRpc('ropsten.infura.io', 443, True) 
+            else:
+                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
             encoded_bytecode = eth.eth_getCode(args.address)
 
     else:
