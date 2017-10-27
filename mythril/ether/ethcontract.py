@@ -13,6 +13,17 @@ class ETHContract(persistent.Persistent):
         self.name = name
         self.address = address
 
+    def as_dict(self):
+
+        return {
+            'address': self.address,
+            'name': self.name,
+            'code': self.code,
+            'creation_code': self.creation_code,
+            'disassembly': self.get_disassembly()
+        }
+
+
     def get_xrefs(self):
 
         instruction_list = Disassembly(self.code).instruction_list

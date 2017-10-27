@@ -85,7 +85,7 @@ elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())
     sys.exit()
 
-# Search commands
+# Database search ops
 
 if args.search or args.init_db:
 
@@ -119,33 +119,35 @@ if (args.address or args.infiles):
             except Exception as e:
                 exitWithError("Error establishing RPC connection: " + str(e))
 
-# Load contract(s) code
+# Load input contracts
 
 contracts = []
 
 if (args.code):
-    contracts.append(ETHContract(args.code))
+    contracts.append(ETHContract(args.code), address = util.get_random_address())
 elif (args.address):
     contracts.append(ETHContract(eth.eth_getCode(args.address), address = args.address))
-
 elif (args.infiles):
     files = args.infiles.split(",")
+
+    counter = 0
 
     for file in files:
 
         name, bytecode = compile_solidity(solc_binary, file)
 
-        contract = ETHContract(bytecode, name = name, address = util.get_random_address())
+        # Max. 16 contracts supported
+
+        contract = ETHContract(bytecode, name = name, address = "0x" + hex(counter)[2:] * 40)
+        counter += 1
 
         contracts.append(contract)
+        logging.info(contract.name + " at " + contract.address)
 
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
 
-logging.info("Loaded " + str(len(contracts)) + " contracts")
-print(contracts)
-
-# Process commands
+# Commands
 
 if (args.disassemble):
 
@@ -174,7 +176,12 @@ elif (args.xrefs):
 
 elif (args.fire_lasers):
 
-    laserfree.fire(contracts[0].get_disassembly())
+    modules = []
+
+    for contract in contracts:
+        modules.append(contract.as_dict())
+
+    laserfree.fire(modules)
 
 elif (args.trace):
 

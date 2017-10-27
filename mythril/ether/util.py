@@ -29,3 +29,4 @@ def encode_calldata(func_name, arg_types, args):
 
 def get_random_address():
     return binascii.b2a_hex(os.urandom(20)).decode('UTF-8')
+
