@@ -4,6 +4,17 @@
 
 Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
 
+  * [Installation and setup](#installation-and-setup)
+  * [Command line usage](#command-line-usage)
+    + [Input formats](#input-formats)
+      - [Working with on-chain contracts](#working-with-on-chain-contracts)
+      - [Working with Solidity files](#working-with-solidity-files)
+    + [Disassembler](#disassembler)
+    + [Control flow graph](#control-flow-graph)
+    + [Contract search](#contract-search)
+      - [Searching from the command line](#searching-from-the-command-line)
+      - [Finding cross-references](#finding-cross-references)
+
 ## Installation and setup
 
 Install from Pypi:
@@ -22,7 +33,17 @@ $ python setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-You also need an Ethereum node that is synced with the network. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
+## Command line usage
+
+The Mythril command line tool (aptly named `myth`) allows you to conveniently access most of Mythril's functionality.
+
+### Input formats
+
+Mythril can handle various sources and input formats, including bytecode, addresses of contracts on the blockchain, and Solidity source code files.
+
+#### Working with on-chain contracts
+
+To pull contracts from the blockchain you need an Ethereum node that is synced with the network. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
 
 ```
 $ myth --rpchost=mainnet.infura.io/{API-KEY} --rpcport=443  --rpctls=True (... etc ...)
@@ -34,11 +55,13 @@ The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ether
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-Most features will work out of the box. For search operations you need to [build a contract database first](#contract-search).
+#### Working with Solidity files
 
-## Command line usage
+In order to work with Solidity source code files, the [`solc` command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
-The Mythril command line tool (aptly named `myth`) allows you to conveniently access some of Mythril's functionality.
+```bash
+$ myth -g ./graph.html myContract.sol
+```
 
 ### Disassembler
 
