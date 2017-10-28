@@ -215,7 +215,7 @@ elif (args.trace):
 
         else:
             if args.infura_mainnet:
-                eth = EthJsonRpc('mainnet.infura.io', 443, True) 
+                eth = EthJsonRpc('mainnet.infura.io', 443, True)
             elif args.infura_rinkeby:
                 eth = EthJsonRpc('rinkeby.infura.io', 443, True)
             elif args.infura_kovan:
