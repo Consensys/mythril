@@ -106,7 +106,7 @@ def serialize(_svm):
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-        nodes.append("{id: " + str(_svm.nodes[n].as_dict()['id']) + ", size: 150, 'label': '" + code + "'}")
+        nodes.append("{id: '" + str(_svm.nodes[n].as_dict()['id']) + "', size: 150, 'label': '" + code + "'}")
 
     for edge in _svm.edges:
 
@@ -122,7 +122,7 @@ def serialize(_svm):
       label = re.sub("([^_])([\d]{2}\d+)",  lambda m: m.group(1) + hex(int(m.group(2))), label)
       code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-      edges.append("{from: " + str(edge.as_dict()['from']) + ', to: ' + str(edge.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
+      edges.append("{from: '" + str(edge.as_dict()['from']) + "', to: '" + str(edge.as_dict()['to']) + "', 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
 
     return "var nodes = [\n" + ",\n".join(nodes) + "\n];\nvar edges = [\n" + ",\n".join(edges) + "\n];"
 
