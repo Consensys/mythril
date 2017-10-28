@@ -160,7 +160,7 @@ elif (args.graph):
     if args.enable_physics is not None:
         physics = True 
 
-    modules = []
+    modules = {}
 
     for contract in contracts:
         print(str(contract.as_dict()))
