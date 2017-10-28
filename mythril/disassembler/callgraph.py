@@ -128,9 +128,9 @@ def serialize(_svm):
 
 
 
-def generate_callgraph(contracts, physics):
+def generate_callgraph(modules, physics):
 
-    _svm = svm.SVM(contracts)
+    _svm = svm.SVM(modules)
 
     _svm.sym_exec()
 

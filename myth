@@ -77,6 +77,8 @@ try:
 except KeyError:
     solc_binary = 'solc'
 
+# Parse cmdline args
+
 args = parser.parse_args()
 
 if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.trace):
@@ -134,32 +136,33 @@ if (args.address or len(args.solidity_file)):
             except Exception as e:
                 exitWithError("Error establishing RPC connection: " + str(e))
 
-# Load input contracts
+# Load / compile input contracts
 
 contracts = []
 
 if (args.code):
-    contracts.append(ETHContract(args.code, address = util.get_random_address()))
+    contracts.append(ETHContract(args.code, address = util.get_indexed_address(0)))
 elif (args.address):
     contracts.append(ETHContract(eth.eth_getCode(args.address), address = args.address))
 elif (len(args.solidity_file)):
-    counter = 0
+    index = 0
 
     for file in args.solidity_file:
 
         file = file.replace("~", str(Path.home())) # Expand user path
         name, bytecode = compile_solidity(solc_binary, file)
 
-        # Max. 16 contracts supported
+        # Max. 16 contracts supported!
 
-        contract = ETHContract(bytecode, name = name, address = "0x" + hex(counter)[2:] * 40)
-        counter += 1
+        contract = ETHContract(bytecode, name = name, address = util.get_indexed_address(index))
+        index += 1
 
         contracts.append(contract)
         logging.info(contract.name + " at " + contract.address)
 
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
+
 
 # Commands
 
@@ -168,72 +171,13 @@ if (args.disassemble):
     easm_text = contracts[0].get_easm()
     sys.stdout.write(easm_text)
 
-elif (args.graph):
-
-    if args.enable_physics is not None:
-        physics = True 
-
-    modules = []
-
-    for contract in contracts:
-        modules.append(contract.as_dict())
-
-    html = generate_callgraph(modules, args.enable_physics)
-
-    try:
-        with open(args.graph, "w") as f:
-            f.write(html)
-    except Exception as e:
-
-        print("Error saving graph: " + str(e))
-
-elif (args.xrefs):
-
-    contract = ETHContract(bytecode)
-
-    print("\n".join(contract.get_xrefs()))
-
-elif (args.fire_lasers):
-
-    modules = []
-
-    for contract in contracts:
-        modules.append(contract.as_dict())
-
-    laserfree.fire(modules)
-
 elif (args.trace):
 
-    if (args.code):
-        bytecode = args.code
-
-    elif (args.address):
-        if args.ipc:
-            eth = EthIpc()
-            bytecode = eth.eth_getCode(args.address)
-
-        else:
-            if args.infura_mainnet:
-                eth = EthJsonRpc('mainnet.infura.io', 443, True)
-            elif args.infura_rinkeby:
-                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
-            elif args.infura_kovan:
-                eth = EthJsonRpc('kovan.infura.io', 443, True)
-            elif args.infura_ropsten:
-                eth = EthJsonRpc('ropsten.infura.io', 443, True) 
-            else:
-                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
-
-            bytecode = eth.eth_getCode(args.address)
-
-    else:
-        exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
-
     if (args.data):
-        trace = evm.trace(bytecode, args.data)
+        trace = evm.trace(contracts[0].code, args.data)
 
     else:
-        trace = evm.trace(bytecode)
+        trace = evm.trace(contracts[0].code)
 
     for i in trace:
         if (re.match(r'^PUSH.*', i['op'])):
@@ -241,6 +185,36 @@ elif (args.trace):
         else:
             print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
 
+elif (args.xrefs):
+
+    print("\n".join(contracts[0].get_xrefs()))
+
+elif (args.graph) or (args.fire_lasers):
+
+    # Convert to LASER SVM format
+
+    modules = {}
+
+    for contract in contracts:
+        modules[contract.address] = contract.as_dict()
+
+    if (args.graph):
+
+        if args.enable_physics is not None:
+            physics = True 
+
+        html = generate_callgraph(modules, args.enable_physics)
+
+        try:
+            with open(args.graph, "w") as f:
+                f.write(html)
+        except Exception as e:
+
+            print("Error saving graph: " + str(e))
+
+    else:
+
+        laserfree.fire(modules)
 
 else:
     parser.print_help()

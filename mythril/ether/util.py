@@ -30,3 +30,7 @@ def encode_calldata(func_name, arg_types, args):
 def get_random_address():
     return binascii.b2a_hex(os.urandom(20)).decode('UTF-8')
 
+
+def get_indexed_address(index):
+    return "0x" + (hex(index)[2:] * 40)
+
