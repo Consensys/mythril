@@ -13,4 +13,4 @@ class SVMTestCase(unittest.TestCase):
 
         html = generate_callgraph(modules, False)
 
-        self.assertTrue("var nodes = [\n{id: \'metaCoin:0\'" in html)
+        self.assertTrue("var nodes = [\n{id: \'metaCoin:" in html)
