@@ -100,17 +100,15 @@ def serialize(_svm, color_map):
     nodes = []
     edges = []
 
-    print(_svm.nodes)
+    for node_key in _svm.nodes:
 
-    for n in _svm.nodes:
-
-        code =  _svm.nodes[n].as_dict()['code']
+        code =  _svm.nodes[node_key].as_dict()['code']
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-        color = color_map[_svm.nodes[n].as_dict()['module_name']]
+        color = color_map[_svm.nodes[node_key].as_dict()['module_name']]
 
-        nodes.append("{id: '" + str(_svm.nodes[n].as_dict()['id']) + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
+        nodes.append("{id: '" + node_key + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
 
     for edge in _svm.edges:
 
