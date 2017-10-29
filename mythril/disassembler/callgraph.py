@@ -49,14 +49,6 @@ graph_html = '''<html>
           align: 'left',
           color: '#FFFFFF',
         },
-        color: {
-          border: '#26996f',
-          background: '#1f7e5b',
-          highlight: {
-            border: '#26996f',
-            background: '#28a16f'
-          }  
-        }
       },
       edges:{
         font: {
@@ -95,10 +87,20 @@ var gph = new vis.Network(container, data, options);
 '''
 
 
-def serialize(_svm):
+colors = [
+  "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
+  "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
+  "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
+  "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
+]  
+
+
+def serialize(_svm, color_map):
 
     nodes = []
     edges = []
+
+    print(_svm.nodes)
 
     for n in _svm.nodes:
 
@@ -106,7 +108,9 @@ def serialize(_svm):
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-        nodes.append("{id: '" + str(_svm.nodes[n].as_dict()['id']) + "', size: 150, 'label': '" + code + "'}")
+        color = color_map[_svm.nodes[n].as_dict()['module_name']]
+
+        nodes.append("{id: '" + str(_svm.nodes[n].as_dict()['id']) + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
 
     for edge in _svm.edges:
 
@@ -134,7 +138,15 @@ def generate_callgraph(modules, physics):
 
     _svm.sym_exec()
 
-    html = graph_html.replace("[JS]", serialize(_svm))
+    i = 0
+
+    color_map = {}
+
+    for k in modules:
+      color_map[modules[k]['name']] = colors[i]
+      i += 1
+
+    html = graph_html.replace("[JS]", serialize(_svm, color_map))
     html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html
