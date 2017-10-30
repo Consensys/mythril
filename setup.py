@@ -219,7 +219,7 @@ security community.
 setup(
     name='mythril',
 
-    version='0.7.2',
+    version='0.7.3',
 
     description='A reversing and bug hunting framework for the Ethereum blockchain',
     long_description=long_description,
