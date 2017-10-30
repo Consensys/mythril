@@ -141,9 +141,9 @@ if (args.address or len(args.solidity_file)):
 contracts = []
 
 if (args.code):
-    contracts.append(ETHContract(args.code, address = util.get_indexed_address(0)))
+    contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
 elif (args.address):
-    contracts.append(ETHContract(eth.eth_getCode(args.address), address = args.address))
+    contracts.append(ETHContract(eth.eth_getCode(args.address), name=args.address, address = args.address))
 elif (len(args.solidity_file)):
     index = 0
 
