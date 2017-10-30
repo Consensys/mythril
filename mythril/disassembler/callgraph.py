@@ -1,4 +1,3 @@
-from laser.ethereum import svm
 from z3 import Z3Exception, simplify
 import re
 
@@ -130,21 +129,19 @@ def serialize(_svm, color_map):
 
 
 
-def generate_callgraph(modules, main_address, physics):
+def generate_callgraph(svm, main_address, physics):
 
-    _svm = svm.SVM(modules)
-
-    _svm.sym_exec(main_address)
+    svm.sym_exec(main_address)
 
     i = 0
 
     color_map = {}
 
-    for k in modules:
-      color_map[modules[k]['name']] = colors[i]
+    for k in svm.modules:
+      color_map[svm.modules[k]['name']] = colors[i]
       i += 1
 
-    html = graph_html.replace("[JS]", serialize(_svm, color_map))
+    html = graph_html.replace("[JS]", serialize(svm, color_map))
     html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html
