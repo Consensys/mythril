@@ -1,6 +1,7 @@
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id
+from mythril.exceptions import CompilerError
 import subprocess
 import binascii
 import os
@@ -15,7 +16,14 @@ def safe_decode(hex_encoded_string):
 
 
 def compile_solidity(solc_binary, file):
-    output = subprocess.check_output(["solc", "--bin-runtime", file],  stderr=subprocess.DEVNULL)
+    try:
+        output = subprocess.check_output(["solc", "--bin-runtime", file], stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as exc:
+        message = "Error compiling input file. solc output:\n" + str(exc.output)
+        raise CompilerError(message)
+    except FileNotFoundError:
+        raise CompilerError("Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")        
+
     m = re.search(r":(.*?) =======\\nBinary of the runtime part: \\n([0-9a-f]+)\\n", str(output))
     return [m.group(1), m.group(2)]
 
