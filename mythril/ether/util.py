@@ -30,7 +30,9 @@ def compile_solidity(solc_binary, file):
         err = "Error compiling input file. Solc returned:\n" + stderr.decode("UTF-8")
         raise CompilerError(err)
 
-    m = re.search(r":(.*?) =======\\nBinary of the runtime part: \\n([0-9a-f]+)\\n", str(stdout))
+    # out = out.replace("[\n\s]", "")
+
+    m = re.search(r":(.*?) =======\nBinary of the runtime part: \n([0-9a-f]+)\n", out)
     return [m.group(1), m.group(2)]
 
 
