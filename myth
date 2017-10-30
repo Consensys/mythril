@@ -201,11 +201,13 @@ elif (args.graph) or (args.fire_lasers):
 
     if (args.dynld):
         loader = DynLoader(eth)
-        _svm = svm.SVM(modules, loader)
+        _svm = svm.SVM(modules, dynamic_loader=loader)
     else:
         _svm = svm.SVM(modules)       
 
     if (args.graph):
+
+        _svm.simplify_model = True
 
         if args.enable_physics is not None:
             physics = True 
