@@ -130,11 +130,11 @@ def serialize(_svm, color_map):
 
 
 
-def generate_callgraph(modules, physics):
+def generate_callgraph(modules, main_address, physics):
 
     _svm = svm.SVM(modules)
 
-    _svm.sym_exec()
+    _svm.sym_exec(main_address)
 
     i = 0
 
