@@ -1,67 +1,52 @@
-from mythril.rpc.client import EthJsonRpc
-from mythril.ipc.client import EthIpc
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id
+from mythril.exceptions import CompilerError
+import subprocess
+from subprocess import Popen, PIPE
+import binascii
+import os
+import re
+
 
 def safe_decode(hex_encoded_string):
-
-    # print(type(hex_encoded_string))
-
     if (hex_encoded_string.startswith("0x")):
         return bytes.fromhex(hex_encoded_string[2:])
-        # return codecs.decode(, 'hex_codec')
     else:
         return bytes.fromhex(hex_encoded_string)
-        # return codecs.decode(hex_encoded_string, 'hex_codec')
 
 
-def bytecode_from_blockchain(creation_tx_hash, ipc, rpc_host='127.0.0.1', rpc_port=8545):
-    """Load bytecode from a local node via
-    creation_tx_hash = ID of transaction that created the contract.
-    """
-    if ipc:
-        pass
-    else:
-        eth = EthJsonRpc(rpc_host, rpc_port)
+def compile_solidity(solc_binary, file):
 
-        trace = eth.traceTransaction(creation_tx_hash)
+    try:
+        p = Popen(["solc", "--bin-runtime", file], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+    except FileNotFoundError:
+        raise CompilerError("Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")        
 
-        if trace['returnValue']:
+    out = stdout.decode("UTF-8")
 
-            return trace['returnValue']
+    if out == "":
+        err = "Error compiling input file. Solc returned:\n" + stderr.decode("UTF-8")
+        raise CompilerError(err)
 
-        raise RuntimeError("Transaction trace didn't return any bytecode")
+    # out = out.replace("[\n\s]", "")
 
-
-def fire_lasers(disassembly):
-    return laserfree.analysis(disassembly)
+    m = re.search(r":(.*?) =======\nBinary of the runtime part: \n([0-9a-f]+)\n", out)
+    return [m.group(1), m.group(2)]
 
 
 def encode_calldata(func_name, arg_types, args):
-
     mid = method_id(func_name, arg_types)
     function_selector = zpad(encode_int(mid), 4)
     args = encode_abi(arg_types, args)
     return "0x" + function_selector.hex() + args.hex()
 
-def raw_bytes_to_file(filename, bytestring):
-    with open(filename, 'wb') as f:
-        f.write(bytestring)
+
+def get_random_address():
+    return binascii.b2a_hex(os.urandom(20)).decode('UTF-8')
 
 
-def file_to_raw_bytes(filename):
-    with open(filename, 'rb') as f:
-        data = f.read()
-    return data
+def get_indexed_address(index):
+    return "0x" + (hex(index)[2:] * 40)
 
-
-def string_to_file(filename, string):
-    with open(filename, 'w') as f:
-        f.write(string)
-
-
-def file_to_string(filename):
-    with open(filename, 'r') as f:
-        data = f.read()
-    return data

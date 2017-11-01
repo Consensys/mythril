@@ -2,11 +2,11 @@
  <head>
   <style type="text/css">
    #mynetwork {
-    background-color: #000000;
+    background-color: #232625;
    }
 
    body {
-    background-color: #000000;
+    background-color: #232625;
     color: #ffffff;
    }
   </style>
@@ -68,43 +68,61 @@
       },
 
       physics:{
-        enabled: true,
+        enabled: false,
       }   
     
   }
 
   var nodes = [
-{id: 0, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x0057\n12 JUMPI\n13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x3ccfd60b\n60 EQ\n61 PUSH2 0x005c\n64 JUMPI\n65 DUP1\n66 PUSH4 0xf8b2cb4f\n71 EQ\n72 PUSH2 0x0071\n75 JUMPI\n76 DUP1\n77 PUSH4 0xfcddd056\n82 EQ\n83 PUSH2 0x00be\n86 JUMPI\n87 JUMPDEST\n88 PUSH1 0x00\n90 DUP1\n91 REVERT\n'},
-{id: 198, size: 150, 'label': '198 JUMPDEST\n199 STOP\n'},
-{id: 113, size: 150, 'label': '113 getBalance(address)\n114 CALLVALUE\n115 ISZERO\n116 PUSH2 0x007c\n119 JUMPI\n120 PUSH1 0x00\n122 DUP1\n123 REVERT\n'},
-{id: 168, size: 150, 'label': '168 JUMPDEST\n169 PUSH1 0x40\n171 MLOAD\n172 DUP1\n173 DUP3\n174 DUP2\n175 MSTORE\n176 PUSH1 0x20\n178 ADD\n179 SWAP2\n180 POP\n181 POP\n182 PUSH1 0x40\n184 MLOAD\n185 DUP1\n186 SWAP2\n187 SUB\n188 SWAP1\n189 RETURN\n'},
-{id: 92, size: 150, 'label': '92 withdraw()\n93 CALLVALUE\n94 ISZERO\n95 PUSH2 0x0067\n98 JUMPI\n99 PUSH1 0x00\n101 DUP1\n102 REVERT\n'},
-{id: 103, size: 150, 'label': '103 JUMPDEST\n104 PUSH2 0x006f\n107 PUSH2 0x00c8\n110 JUMP\n'},
-{id: 190, size: 150, 'label': '190 _function_0xfcddd056\n191 PUSH2 0x00c6\n194 PUSH2 0x021c\n197 JUMP\n'},
-{id: 398, size: 150, 'label': '398 JUMPDEST\n399 PUSH1 0x00\n401 DUP1\n402 PUSH1 0x00\n404 CALLER\n405 PUSH20 0xffffffff(...)\n426 AND\n427 PUSH20 0xffffffff(...)\n448 AND\n449 DUP2\n450 MSTORE\n451 PUSH1 0x20\n453 ADD\n454 SWAP1\n455 DUP2\n456 MSTORE\n457 PUSH1 0x20\n459 ADD\n460 PUSH1 0x00\n462 SHA3\n463 DUP2\n464 SWAP1\n465 SSTORE\n466 POP\n467 JUMP\n'},
-{id: 111, size: 150, 'label': '111 JUMPDEST\n112 STOP\n'},
-{id: 200, size: 150, 'label': '200 JUMPDEST\n201 PUSH1 0x00\n203 DUP1\n204 PUSH1 0x00\n206 CALLER\n207 PUSH20 0xffffffff(...)\n228 AND\n229 PUSH20 0xffffffff(...)\n250 AND\n251 DUP2\n252 MSTORE\n253 PUSH1 0x20\n255 ADD\n256 SWAP1\n257 DUP2\n258 MSTORE\n259 PUSH1 0x20\n261 ADD\n262 PUSH1 0x00\n264 SHA3\n265 SLOAD\n266 GT\n267 ISZERO\n268 ISZERO\n269 PUSH2 0x0115\n272 JUMPI\n273 PUSH1 0x00\n275 DUP1\n276 REVERT\n'},
-{id: 468, size: 150, 'label': '468 JUMPDEST\n469 PUSH1 0x00\n471 DUP1\n472 PUSH1 0x00\n474 DUP4\n475 PUSH20 0xffffffff(...)\n496 AND\n497 PUSH20 0xffffffff(...)\n518 AND\n519 DUP2\n520 MSTORE\n521 PUSH1 0x20\n523 ADD\n524 SWAP1\n525 DUP2\n526 MSTORE\n527 PUSH1 0x20\n529 ADD\n530 PUSH1 0x00\n532 SHA3\n533 SLOAD\n534 SWAP1\n535 POP\n536 SWAP2\n537 SWAP1\n538 POP\n539 JUMP\n'},
-{id: 277, size: 150, 'label': '277 JUMPDEST\n278 CALLER\n279 PUSH20 0xffffffff(...)\n300 AND\n301 PUSH1 0x00\n303 DUP1\n304 CALLER\n305 PUSH20 0xffffffff(...)\n326 AND\n327 PUSH20 0xffffffff(...)\n348 AND\n349 DUP2\n350 MSTORE\n351 PUSH1 0x20\n353 ADD\n354 SWAP1\n355 DUP2\n356 MSTORE\n357 PUSH1 0x20\n359 ADD\n360 PUSH1 0x00\n362 SHA3\n363 SLOAD\n364 PUSH1 0x40\n366 MLOAD\n367 PUSH1 0x00\n369 PUSH1 0x40\n371 MLOAD\n372 DUP1\n373 DUP4\n374 SUB\n375 DUP2\n376 DUP6\n377 DUP8\n378 PUSH2 0x8796\n381 GAS\n382 SUB\n383 CALL\n384 SWAP3\n385 POP\n386 POP\n387 POP\n388 ISZERO\n389 ISZERO\n390 PUSH2 0x018e\n393 JUMPI\n394 PUSH1 0x00\n396 DUP1\n397 REVERT\n'},
-{id: 87, size: 150, 'label': '87 JUMPDEST\n88 PUSH1 0x00\n90 DUP1\n91 REVERT\n'},
-{id: 124, size: 150, 'label': '124 JUMPDEST\n125 PUSH2 0x00a8\n128 PUSH1 0x04\n130 DUP1\n131 DUP1\n132 CALLDATALOAD\n133 PUSH20 0xffffffff(...)\n154 AND\n155 SWAP1\n156 PUSH1 0x20\n158 ADD\n159 SWAP1\n160 SWAP2\n161 SWAP1\n162 POP\n163 POP\n164 PUSH2 0x01d4\n167 JUMP\n'},
-{id: 540, size: 150, 'label': '540 JUMPDEST\n541 CALLVALUE\n542 PUSH1 0x00\n544 DUP1\n545 CALLER\n546 PUSH20 0xffffffff(...)\n567 AND\n568 PUSH20 0xffffffff(...)\n589 AND\n590 DUP2\n591 MSTORE\n592 PUSH1 0x20\n594 ADD\n595 SWAP1\n596 DUP2\n597 MSTORE\n598 PUSH1 0x20\n600 ADD\n601 PUSH1 0x00\n603 SHA3\n604 PUSH1 0x00\n606 DUP3\n607 DUP3\n608 SLOAD\n609 ADD\n610 SWAP3\n611 POP\n612 POP\n613 DUP2\n614 SWAP1\n615 SSTORE\n616 POP\n617 JUMP\n'}
+{id: 256, size: 150, 'label': '256 JUMPDEST\n257 PUSH1 0x40\n259 MLOAD\n260 DUP1\n261 DUP3\n262 DUP2\n263 MSTORE\n264 PUSH1 0x20\n266 ADD\n267 SWAP2\n268 POP\n269 POP\n270 PUSH1 0x40\n272 MLOAD\n273 DUP1\n274 SWAP2\n275 SUB\n276 SWAP1\n277 RETURN\n'},
+{id: 0, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x006d\n12 JUMPI\n13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x1803334e\n60 EQ\n61 PUSH2 0x0072\n64 JUMPI\n65 DUP1\n66 PUSH4 0x2e1a7d4d\n71 EQ\n72 PUSH2 0x0087\n75 JUMPI\n76 DUP1\n77 PUSH4 0x41c0e1b5\n82 EQ\n83 PUSH2 0x00aa\n86 JUMPI\n87 DUP1\n88 PUSH4 0x69774c2d\n93 EQ\n94 PUSH2 0x00bf\n97 JUMPI\n98 DUP1\n99 PUSH4 0xf8b2cb4f\n104 EQ\n105 PUSH2 0x00c9\n108 JUMPI\n109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n'},
+{id: 770, size: 150, 'label': '770 JUMPDEST\n771 PUSH1 0x00\n773 DUP1\n774 PUSH1 0x00\n776 DUP4\n777 PUSH20 0xffffffff(...)\n798 AND\n799 PUSH20 0xffffffff(...)\n820 AND\n821 DUP2\n822 MSTORE\n823 PUSH1 0x20\n825 ADD\n826 SWAP1\n827 DUP2\n828 MSTORE\n829 PUSH1 0x20\n831 ADD\n832 PUSH1 0x00\n834 SHA3\n835 SLOAD\n836 SWAP1\n837 POP\n838 SWAP2\n839 SWAP1\n840 POP\n841 JUMP\n'},
+{id: 133, size: 150, 'label': '133 JUMPDEST\n134 STOP\n'},
+{id: 135, size: 150, 'label': '135 withdraw(uint256)\n136 CALLVALUE\n137 ISZERO\n138 PUSH2 0x0092\n141 JUMPI\n142 PUSH1 0x00\n144 DUP1\n145 REVERT\n'},
+{id: 201, size: 150, 'label': '201 getBalance(address)\n202 CALLVALUE\n203 ISZERO\n204 PUSH2 0x00d4\n207 JUMPI\n208 PUSH1 0x00\n210 DUP1\n211 REVERT\n'},
+{id: 653, size: 150, 'label': '653 JUMPDEST\n654 CALLER\n655 PUSH20 0xffffffff(...)\n676 AND\n677 SUICIDE\n'},
+{id: 146, size: 150, 'label': '146 JUMPDEST\n147 PUSH2 0x00a8\n150 PUSH1 0x04\n152 DUP1\n153 DUP1\n154 CALLDATALOAD\n155 SWAP1\n156 PUSH1 0x20\n158 ADD\n159 SWAP1\n160 SWAP2\n161 SWAP1\n162 POP\n163 POP\n164 PUSH2 0x0159\n167 JUMP\n'},
+{id: 212, size: 150, 'label': '212 JUMPDEST\n213 PUSH2 0x0100\n216 PUSH1 0x04\n218 DUP1\n219 DUP1\n220 CALLDATALOAD\n221 PUSH20 0xffffffff(...)\n242 AND\n243 SWAP1\n244 PUSH1 0x20\n246 ADD\n247 SWAP1\n248 SWAP2\n249 SWAP1\n250 POP\n251 POP\n252 PUSH2 0x0302\n255 JUMP\n'},
+{id: 278, size: 150, 'label': '278 JUMPDEST\n279 CALLER\n280 PUSH1 0x01\n282 PUSH1 0x00\n284 PUSH2 0x0100\n287 EXP\n288 DUP2\n289 SLOAD\n290 DUP2\n291 PUSH20 0xffffffff(...)\n312 MUL\n313 NOT\n314 AND\n315 SWAP1\n316 DUP4\n317 PUSH20 0xffffffff(...)\n338 AND\n339 MUL\n340 OR\n341 SWAP1\n342 SSTORE\n343 POP\n344 JUMP\n'},
+{id: 345, size: 150, 'label': '345 JUMPDEST\n346 PUSH1 0x00\n348 DUP1\n349 PUSH1 0x00\n351 CALLER\n352 PUSH20 0xffffffff(...)\n373 AND\n374 PUSH20 0xffffffff(...)\n395 AND\n396 DUP2\n397 MSTORE\n398 PUSH1 0x20\n400 ADD\n401 SWAP1\n402 DUP2\n403 MSTORE\n404 PUSH1 0x20\n406 ADD\n407 PUSH1 0x00\n409 SHA3\n410 SLOAD\n411 EQ\n412 ISZERO\n413 PUSH2 0x01a5\n416 JUMPI\n417 PUSH1 0x00\n419 DUP1\n420 REVERT\n'},
+{id: 421, size: 150, 'label': '421 JUMPDEST\n422 DUP1\n423 PUSH1 0x00\n425 DUP1\n426 CALLER\n427 PUSH20 0xffffffff(...)\n448 AND\n449 PUSH20 0xffffffff(...)\n470 AND\n471 DUP2\n472 MSTORE\n473 PUSH1 0x20\n475 ADD\n476 SWAP1\n477 DUP2\n478 MSTORE\n479 PUSH1 0x20\n481 ADD\n482 PUSH1 0x00\n484 SHA3\n485 PUSH1 0x00\n487 DUP3\n488 DUP3\n489 SLOAD\n490 SUB\n491 SWAP3\n492 POP\n493 POP\n494 DUP2\n495 SWAP1\n496 SSTORE\n497 POP\n498 CALLER\n499 PUSH20 0xffffffff(...)\n520 AND\n521 PUSH2 0x08fc\n524 DUP3\n525 SWAP1\n526 DUP2\n527 ISZERO\n528 MUL\n529 SWAP1\n530 PUSH1 0x40\n532 MLOAD\n533 PUSH1 0x00\n535 PUSH1 0x40\n537 MLOAD\n538 DUP1\n539 DUP4\n540 SUB\n541 DUP2\n542 DUP6\n543 DUP9\n544 DUP9\n545 CALL\n546 SWAP4\n547 POP\n548 POP\n549 POP\n550 POP\n551 ISZERO\n552 ISZERO\n553 PUSH2 0x0231\n556 JUMPI\n557 PUSH1 0x00\n559 DUP1\n560 REVERT\n'},
+{id: 678, size: 150, 'label': '678 JUMPDEST\n679 PUSH1 0x00\n681 CALLVALUE\n682 EQ\n683 ISZERO\n684 PUSH2 0x02b4\n687 JUMPI\n688 PUSH1 0x00\n690 DUP1\n691 REVERT\n'},
+{id: 168, size: 150, 'label': '168 JUMPDEST\n169 STOP\n'},
+{id: 170, size: 150, 'label': '170 kill()\n171 CALLVALUE\n172 ISZERO\n173 PUSH2 0x00b5\n176 JUMPI\n177 PUSH1 0x00\n179 DUP1\n180 REVERT\n'},
+{id: 199, size: 150, 'label': '199 JUMPDEST\n200 STOP\n'},
+{id: 109, size: 150, 'label': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n'},
+{id: 561, size: 150, 'label': '561 JUMPDEST\n562 POP\n563 JUMP\n'},
+{id: 114, size: 150, 'label': '114 _function_0x1803334e\n115 CALLVALUE\n116 ISZERO\n117 PUSH2 0x007d\n120 JUMPI\n121 PUSH1 0x00\n123 DUP1\n124 REVERT\n'},
+{id: 692, size: 150, 'label': '692 JUMPDEST\n693 CALLVALUE\n694 PUSH1 0x00\n696 DUP1\n697 CALLER\n698 PUSH20 0xffffffff(...)\n719 AND\n720 PUSH20 0xffffffff(...)\n741 AND\n742 DUP2\n743 MSTORE\n744 PUSH1 0x20\n746 ADD\n747 SWAP1\n748 DUP2\n749 MSTORE\n750 PUSH1 0x20\n752 ADD\n753 PUSH1 0x00\n755 SHA3\n756 PUSH1 0x00\n758 DUP3\n759 DUP3\n760 SLOAD\n761 ADD\n762 SWAP3\n763 POP\n764 POP\n765 DUP2\n766 SWAP1\n767 SSTORE\n768 POP\n769 JUMP\n'},
+{id: 181, size: 150, 'label': '181 JUMPDEST\n182 PUSH2 0x00bd\n185 PUSH2 0x0234\n188 JUMP\n'},
+{id: 564, size: 150, 'label': '564 JUMPDEST\n565 PUSH1 0x01\n567 PUSH1 0x00\n569 SWAP1\n570 SLOAD\n571 SWAP1\n572 PUSH2 0x0100\n575 EXP\n576 SWAP1\n577 DIV\n578 PUSH20 0xffffffff(...)\n599 AND\n600 PUSH20 0xffffffff(...)\n621 AND\n622 CALLER\n623 PUSH20 0xffffffff(...)\n644 AND\n645 EQ\n646 ISZERO\n647 ISZERO\n648 PUSH2 0x028d\n651 JUMPI\n652 INVALID\n'},
+{id: 125, size: 150, 'label': '125 JUMPDEST\n126 PUSH2 0x0085\n129 PUSH2 0x0116\n132 JUMP\n'},
+{id: 191, size: 150, 'label': '191 _function_0x69774c2d\n192 PUSH2 0x00c7\n195 PUSH2 0x02a6\n198 JUMP\n'}
 ];
 var edges = [
-{from: 0, to: 87, 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize))', 'smooth': {'type': 'cubicBezier'}},
-{from: 398, to: 111, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
-{from: 277, to: 398, 'arrows': 'to', 'label': 'Not(retval_384_115 == 0)', 'smooth': {'type': 'cubicBezier'}},
-{from: 200, to: 277, 'arrows': 'to', 'label': 'Not(storage_sha_hash == 0)', 'smooth': {'type': 'cubicBezier'}},
-{from: 103, to: 200, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
-{from: 92, to: 103, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
-{from: 0, to: 92, 'arrows': 'to', 'label': 'Extract0xff,0xe0, calldata_0) ==0x3ccfd60b', 'smooth': {'type': 'cubicBezier'}},
-{from: 468, to: 168, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
-{from: 124, to: 468, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
-{from: 113, to: 124, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
-{from: 0, to: 113, 'arrows': 'to', 'label': 'Extract0xff,0xe0, calldata_0) ==0xf8b2cb4f', 'smooth': {'type': 'cubicBezier'}},
-{from: 540, to: 198, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
-{from: 190, to: 540, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
-{from: 0, to: 190, 'arrows': 'to', 'label': 'Extract0xff,0xe0, calldata_0) ==0xfcddd056', 'smooth': {'type': 'cubicBezier'}}
+{from: 0, to: 109, 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize))', 'smooth': {'type': 'cubicBezier'}},
+{from: 278, to: 133, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 125, to: 278, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 114, to: 125, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 114, 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_0) == 0x1803334e', 'smooth': {'type': 'cubicBezier'}},
+{from: 561, to: 168, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 421, to: 561, 'arrows': 'to', 'label': 'Not(retval_546_333 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: 345, to: 421, 'arrows': 'to', 'label': 'Not(storage_98ea2e05 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: 146, to: 345, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 135, to: 146, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 135, 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_0) == 0x2e1a7d4d', 'smooth': {'type': 'cubicBezier'}},
+{from: 564, to: 653, 'arrows': 'to', 'label': 'Extract(0x9f, 0, caller) == Extract(0xa7, 8, storage_1)', 'smooth': {'type': 'cubicBezier'}},
+{from: 181, to: 564, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 170, to: 181, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 170, 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_0) == 0x41c0e1b5', 'smooth': {'type': 'cubicBezier'}},
+{from: 692, to: 199, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 678, to: 692, 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: 191, to: 678, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 191, 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_0) == 0x69774c2d', 'smooth': {'type': 'cubicBezier'}},
+{from: 770, to: 256, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 212, to: 770, 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: 201, to: 212, 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: 0, to: 201, 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_0) == 0xf8b2cb4f', 'smooth': {'type': 'cubicBezier'}}
 ];
 
   </script>

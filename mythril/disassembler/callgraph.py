@@ -1,4 +1,3 @@
-from laser.ethereum import svm
 from z3 import Z3Exception, simplify
 import re
 
@@ -7,11 +6,11 @@ graph_html = '''<html>
  <head>
   <style type="text/css">
    #mynetwork {
-    background-color: #000000;
+    background-color: #232625;
    }
 
    body {
-    background-color: #000000;
+    background-color: #232625;
     color: #ffffff;
    }
   </style>
@@ -49,14 +48,6 @@ graph_html = '''<html>
           align: 'left',
           color: '#FFFFFF',
         },
-        color: {
-          border: '#26996f',
-          background: '#1f7e5b',
-          highlight: {
-            border: '#26996f',
-            background: '#28a16f'
-          }  
-        }
       },
       edges:{
         font: {
@@ -95,18 +86,28 @@ var gph = new vis.Network(container, data, options);
 '''
 
 
-def serialize(_svm):
+colors = [
+  "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
+  "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
+  "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
+  "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
+]  
+
+
+def serialize(_svm, color_map):
 
     nodes = []
     edges = []
 
-    for n in _svm.nodes:
+    for node_key in _svm.nodes:
 
-        code =  _svm.nodes[n].as_dict()['code']
+        code =  _svm.nodes[node_key].as_dict()['code']
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-        nodes.append("{id: " + str(_svm.nodes[n].as_dict()['id']) + ", size: 150, 'label': '" + code + "'}")
+        color = color_map[_svm.nodes[node_key].as_dict()['module_name']]
+
+        nodes.append("{id: '" + node_key + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
 
     for edge in _svm.edges:
 
@@ -118,23 +119,29 @@ def serialize(_svm):
             label = str(simplify(edge.condition)).replace("\n", "")
           except Z3Exception:
             label = str(edge.condition).replace("\n", "")
-      
-      label = re.sub("[^_]([[\d]{2}\d+)",  lambda m: hex(int(m.group(1))), label)
+    
+      label = re.sub("([^_])([\d]{2}\d+)",  lambda m: m.group(1) + hex(int(m.group(2))), label)
       code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-      edges.append("{from: " + str(edge.as_dict()['from']) + ', to: ' + str(edge.as_dict()['to']) + ", 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
+      edges.append("{from: '" + str(edge.as_dict()['from']) + "', to: '" + str(edge.as_dict()['to']) + "', 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
 
     return "var nodes = [\n" + ",\n".join(nodes) + "\n];\nvar edges = [\n" + ",\n".join(edges) + "\n];"
 
 
 
-def generate_callgraph(disassembly, physics):
+def generate_callgraph(svm, main_address, physics):
 
-    _svm = svm.SVM(disassembly)
+    svm.sym_exec(main_address)
 
-    _svm.sym_exec()
+    i = 0
 
-    html = graph_html.replace("[JS]", serialize(_svm))
+    color_map = {}
+
+    for k in svm.modules:
+      color_map[svm.modules[k]['name']] = colors[i]
+      i += 1
+
+    html = graph_html.replace("[JS]", serialize(svm, color_map))
     html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html

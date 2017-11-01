@@ -4,6 +4,17 @@
 
 Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
 
+  * [Installation and setup](#installation-and-setup)
+  * [Command line usage](#command-line-usage)
+    + [Input formats](#input-formats)
+      - [Working with on-chain contracts](#working-with-on-chain-contracts)
+      - [Working with Solidity files](#working-with-solidity-files)
+    + [Disassembler](#disassembler)
+    + [Control flow graph](#control-flow-graph)
+    + [Contract search](#contract-search)
+      - [Searching from the command line](#searching-from-the-command-line)
+      - [Finding cross-references](#finding-cross-references)
+
 ## Installation and setup
 
 Install from Pypi:
@@ -22,15 +33,35 @@ $ python setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-You also need a [go-ethereum](https://github.com/ethereum/go-ethereum) node that is synced with the network (note that Mythril uses non-standard RPC APIs only supported by go-ethereum, so other clients likely won't work). Start the node as follows:
+## Command line usage
+
+The Mythril command line tool (aptly named `myth`) allows you to conveniently access most of Mythril's functionality.
+
+### Input formats
+
+Mythril can handle various sources and input formats, including bytecode, addresses of contracts on the blockchain, and Solidity source code files.
+
+#### Working with on-chain contracts
+
+To pull contracts from the blockchain you need an Ethereum node that is synced with the network. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
+
+```
+$ myth --rpchost=mainnet.infura.io/{API-KEY} --rpcport=443  --rpctls=True (... etc ...)
+```
+
+The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ethereum). Start your local node as follows:
 
 ```bash
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-## Command line usage
+#### Working with Solidity files
 
-The Mythril command line tool (aptly named `myth`) allows you to conveniently access some of Mythril's functionality.
+In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
+
+```bash
+$ myth -g ./graph.html myContract.sol
+```
 
 ### Disassembler
 
@@ -62,9 +93,9 @@ Mythril integrates the LASER symbolic virtual machine. Right now, this is mainly
 $ myth -g ./graph.html -a "0xFa52274DD61E1643d2205169732f29114BC240b3"
 ```
 
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph6.png "Call graph")
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
 
-The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout. If that happens, disable the effect with the `--disable-physics` flag.
+~~The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout.~~ Try adding the `--enable-physics` flag for a very entertaining "bounce" effect that unfortunately completely destroys usability.
 
 ### Contract search
 
@@ -76,8 +107,6 @@ Starting synchronization from latest block: 4323706
 Processing block 4323000, 3 individual contracts in database
 (...)
 ```
-
-Mythril retrieves contract data over RPC by default. You can switch to IPC using the `--ipc` flag.
 
 The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
 
@@ -99,18 +128,9 @@ It is often useful to find other contracts referenced by a particular contract. 
 $ myth --search "code#DELEGATECALL#"
 Matched contract with code hash 07459966443977122e639cbf7804c446
 Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
-$ myth --xrefs 07459966443977122e639cbf7804c446
+$ myth --xrefs -a 0x76799f77587738bfeef09452df215b63d2cfb08a
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
-
-## Issues
-
-The database sync is currently not very efficient. 
-
-- Using PyEthereum: I encountered issues syncing PyEthereum with Homestead. Also, PyEthApp only supports Python 2.7, which causes issues with other important packages.
-- Accessing the Go-Ethereum LevelDB: This would be a great option. However, PyEthereum database code seems unable to deal with Go-Ethereum's LevelDB. It would take quite a bit of effort to figure this out.
-
-I'm writing this in my spare time, so contributors would be highly welcome!
 
 ## Credit
 

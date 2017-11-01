@@ -47,11 +47,11 @@ class ContractStorage(persistent.Persistent):
         return self.contracts[contract_hash]
 
 
-    def initialize(self, rpchost, rpcport, sync_all, ipc):
+    def initialize(self, rpchost, rpcport, rpctls, sync_all, ipc):
         if ipc:
             eth = EthIpc()
         else:
-            eth = EthJsonRpc(rpchost, rpcport)
+            eth = EthJsonRpc(rpchost, rpcport, rpctls)
 
         if self.last_block:
             blockNum = self.last_block
@@ -104,6 +104,10 @@ class ContractStorage(persistent.Persistent):
 
             self.last_block = blockNum
             blockNum -= 1
+
+        # If we've finished initializing the database, start over from the end of the chain if we want to initialize again
+        self.last_block = 0
+        transaction.commit()
 
 
     def search(self, expression, callback_func):

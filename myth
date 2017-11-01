@@ -4,16 +4,19 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from mythril.ether import evm,util
-from mythril.disassembler.disassembly import Disassembly
+from mythril.ether import evm, util
 from mythril.disassembler.callgraph import generate_callgraph
 from mythril.ether.contractstorage import get_persistent_storage
+from mythril.ether.ethcontract import ETHContract
+from mythril.ether.util import compile_solidity
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
+from mythril.support.loader import DynLoader
+from mythril.exceptions import CompilerError
 from ethereum import utils
-from laser.ethereum import laserfree
+from laser.ethereum import svm, laserfree
+from pathlib import Path
 import logging
-import binascii
 import sys
 import argparse
 import os
@@ -21,7 +24,7 @@ import re
 
 
 def searchCallback(code_hash, code, addresses, balances):
-    print("Matched contract with code hash " + code_hash )
+    print("Matched contract with code hash " + code_hash)
 
     for i in range(0, len(addresses)):
         print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
@@ -33,128 +36,72 @@ def exitWithError(message):
 
 
 parser = argparse.ArgumentParser(description='Bug hunting on the Ethereum blockchain')
+parser.add_argument("solidity_file", nargs='*')
 
 
 commands = parser.add_argument_group('commands')
-commands.add_argument('-d', '--disassemble',  action='store_true', help='disassemble, specify input with -c or -a')
-commands.add_argument('-t', '--trace', action='store_true', help='trace, use with -c or -a and --data (optional)')
-commands.add_argument('-g', '--graph', help='generate a call graph', metavar='OUTPUT_FILE')
-commands.add_argument('-l', '--fire-lasers', action='store_true', help='detect vulnerabilities, use with -c or -a')
-commands.add_argument('-s', '--search', help='search the contract database')
-commands.add_argument('--xrefs', help='get xrefs from contract in database', metavar='CONTRACT_HASH')
+commands.add_argument('-d', '--disassemble',  action='store_true', help='disassemble')
+commands.add_argument('-g', '--graph', help='generate a control flow graph', metavar='OUTPUT_FILE')
+commands.add_argument('-x', '--fire-lasers', action='store_true', help='detect vulnerabilities')
+commands.add_argument('-t', '--trace', action='store_true', help='trace contract, use with --data (optional)')
+commands.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
+commands.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
 commands.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
 commands.add_argument('--init-db', action='store_true', help='initialize the contract database')
 
 inputs = parser.add_argument_group('input arguments')
 inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
-inputs.add_argument('-a', '--address', help='contract address')
+inputs.add_argument('-a', '--address', help='pull contract from the blockchain', metavar='CONTRACT_ADDRESS')
+inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies (experimental)')
 inputs.add_argument('--data', help='message call input data for tracing')
 
 options = parser.add_argument_group('options')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
+options.add_argument('--infura-mainnet', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=mainnet.infura.io --rpcport=443 --rpctls="True"')
+options.add_argument('--infura-rinkeby', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=rinkeby.infura.io --rpcport=443 --rpctls="True"')
+options.add_argument('--infura-kovan', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=kovan.infura.io --rpcport=443 --rpctls="True"')
+options.add_argument('--infura-ropsten', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=ropsten.infura.io --rpcport=443 --rpctls="True"')
 options.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
 options.add_argument('--rpcport', type=int, default=8545, help='RPC port')
+options.add_argument('--rpctls', type=bool, default=False, help='RPC port')
 options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
-options.add_argument('--disable-physics', action='store_true', help='disable graph physics simulation')
+options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
+# Get config values
 
 try:
     db_dir = os.environ['DB_DIR']
 except KeyError:
     db_dir = None
 
+try:
+    solc_binary = os.environ['SOLC']
+except KeyError:
+    solc_binary = 'solc'
+
+# Parse cmdline args
+
 args = parser.parse_args()
+
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.trace):
+    parser.print_help()
+    sys.exit()
 
 if (args.v):
     if (0 <= args.v < 3):
         logging.basicConfig(level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
 
-if (args.disassemble or args.graph or args.fire_lasers):
+elif (args.hash):
+    print("0x" + utils.sha3(args.hash)[:4].hex())
+    sys.exit()
 
-    if (args.code):
-        encoded_bytecode = args.code
-    elif (args.address):
-        if args.ipc:
-            try:
-                eth = EthIpc()
+# Database search ops
 
-                encoded_bytecode = eth.eth_getCode(args.address)
-            except Exception as e:
-                exitWithError("Exception loading bytecode via IPC: " + str(e))
-        else:
-            try:
-                eth = EthJsonRpc(args.rpchost, args.rpcport)
+if args.search or args.init_db:
 
-                encoded_bytecode = eth.eth_getCode(args.address)
-
-            except Exception as e:
-                exitWithError("Exception loading bytecode via RPC: " + str(e))
-
-    else:
-        exitWithError("No input bytecode. Please provide the code via -c BYTECODE or -a address")
-
-    try:
-        disassembly = Disassembly(encoded_bytecode)
-    except binascii.Error:
-        exitWithError("Disassembler: Invalid code string.")
-
-    if (args.disassemble):
-
-        easm_text = disassembly.get_easm()
-        sys.stdout.write(easm_text)
-
-    elif (args.graph):
-
-        if (args.disable_physics):
-            physics = False
-        else:
-            physics = True
-
-        html = generate_callgraph(disassembly, physics)
-
-        try:
-            with open(args.graph, "w") as f:
-                f.write(html)
-        except Exception as e:
-            print("Error saving graph: " + str(e))
-
-
-    elif (args.fire_lasers):
-
-        laserfree.fire(disassembly)
-
-elif (args.trace):
-
-    if (args.code):
-        encoded_bytecode = args.code
-
-    elif (args.address):
-        if args.ipc:
-            eth = EthIpc()
-            encoded_bytecode = eth.eth_getCode(args.address)
-
-        else:
-            eth = EthJsonRpc(args.rpchost, args.rpcport)
-            encoded_bytecode = eth.eth_getCode(args.address)
-
-    else:
-        exitWithError("Disassembler: Provide the input bytecode via -c BYTECODE or --id ID")
-
-    if (args.data):
-        trace = evm.trace(encoded_bytecode, args.data)
-
-    else:
-        trace = evm.trace(encoded_bytecode)
-
-    for i in trace:
-        if (re.match(r'^PUSH.*', i['op'])):
-            print(str(i['pc']) + " " + i['op'] + " " + i['pushvalue'] + ";\tSTACK: " + i['stack'])
-        else:
-            print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
-
-else:
     contract_storage = get_persistent_storage(db_dir)
+
     if (args.search):
 
         try:
@@ -162,27 +109,126 @@ else:
         except SyntaxError:
             exitWithError("Syntax error in search expression.")
 
-    elif (args.xrefs):
-
-        try:
-            contract_hash = util.safe_decode(args.xrefs)
-        except binascii.Error:
-            exitWithError("Invalid contract hash.")
-
-        try:
-            contract = contract_storage.get_contract_by_hash(contract_hash)
-            print("\n".join(contract.get_xrefs()))
-        except KeyError:
-            exitWithError("Contract not found in the database.")        
-
     elif (args.init_db):
-        if args.ipc:
-            contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
-        else:
-            contract_storage.initialize(args.rpchost, args.rpcport, args.sync_all, args.ipc)
+            contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
 
-    elif (args.hash):
-        print("0x" + utils.sha3(args.hash)[:4].hex())
+    sys.exit()
+
+# Establish RPC/IPC connection if necessary
+
+if (args.address or len(args.solidity_file)):
+        if args.ipc:
+            try:
+                eth = EthIpc()
+
+            except Exception as e:
+                exitWithError("Error establishing IPC connection: " + str(e))
+        else:
+            try:
+                if args.infura_mainnet:
+                    eth = EthJsonRpc('mainnet.infura.io', 443, True) 
+                elif args.infura_rinkeby:
+                    eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+                elif args.infura_kovan:
+                    eth = EthJsonRpc('kovan.infura.io', 443, True)
+                elif args.infura_ropsten:
+                    eth = EthJsonRpc('ropsten.infura.io', 443, True) 
+                else:
+                    eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+
+            except Exception as e:
+                exitWithError("Error establishing RPC connection: " + str(e))
+
+# Load / compile input contracts
+
+contracts = []
+
+if (args.code):
+    contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
+elif (args.address):
+    contracts.append(ETHContract(eth.eth_getCode(args.address), name=args.address, address = args.address))
+elif (len(args.solidity_file)):
+    index = 0
+
+    for file in args.solidity_file:
+
+        file = file.replace("~", str(Path.home())) # Expand user path
+
+        try:
+            name, bytecode = compile_solidity(solc_binary, file)
+        except CompilerError as e:
+            exitWithError(e)
+
+        # Max. 16 contracts supported!
+
+        contract = ETHContract(bytecode, name = name, address = util.get_indexed_address(index))
+        index += 1
+
+        contracts.append(contract)
+        logging.info(contract.name + " at " + contract.address)
+
+else:
+    exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
+
+# Commands
+
+if (args.disassemble):
+
+    easm_text = contracts[0].get_easm()
+    sys.stdout.write(easm_text)
+
+elif (args.trace):
+
+    if (args.data):
+        trace = evm.trace(contracts[0].code, args.data)
 
     else:
-        parser.print_help()
+        trace = evm.trace(contracts[0].code)
+
+    for i in trace:
+        if (re.match(r'^PUSH.*', i['op'])):
+            print(str(i['pc']) + " " + i['op'] + " " + i['pushvalue'] + ";\tSTACK: " + i['stack'])
+        else:
+            print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
+
+elif (args.xrefs):
+
+    print("\n".join(contracts[0].get_xrefs()))
+
+elif (args.graph) or (args.fire_lasers):
+
+    # Convert to LASER SVM format
+
+    modules = {}
+
+    for contract in contracts:
+        modules[contract.address] = contract.as_dict()
+
+    if (args.dynld):
+        loader = DynLoader(eth)
+        _svm = svm.SVM(modules, dynamic_loader=loader)
+    else:
+        _svm = svm.SVM(modules)       
+
+    if (args.graph):
+
+        _svm.simplify_model = True
+
+        if args.enable_physics is not None:
+            physics = True 
+
+        html = generate_callgraph(_svm, contracts[0].address, args.enable_physics)
+
+        try:
+            with open(args.graph, "w") as f:
+                f.write(html)
+        except Exception as e:
+
+            print("Error saving graph: " + str(e))
+
+    else:
+
+        laserfree.fire(modules, contracts[0].address)
+
+else:
+    parser.print_help()

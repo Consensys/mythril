@@ -14,9 +14,9 @@ class Getinstruction_listTestCase(ETHContractTestCase):
 
         contract = ETHContract(self.code, self.creation_code)
 
-        instruction_list = contract.get_instruction_list()
+        disassembly = contract.get_disassembly()
 
-        self.assertEqual(len(instruction_list), 71, 'Error disassembling code using ETHContract.get_instruction_list()')
+        self.assertEqual(len(disassembly.instruction_list), 71, 'Error disassembling code using ETHContract.get_instruction_list()')
 
 class GetEASMTestCase(ETHContractTestCase):
 
