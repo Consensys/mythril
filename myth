@@ -126,13 +126,13 @@ if (args.address or len(args.solidity_file)):
         else:
             try:
                 if args.infura_mainnet:
-                    eth = EthJsonRpc('mainnet.infura.io', 443, True) 
+                    eth = EthJsonRpc('mainnet.infura.io', 443, True)
                 elif args.infura_rinkeby:
                     eth = EthJsonRpc('rinkeby.infura.io', 443, True)
                 elif args.infura_kovan:
                     eth = EthJsonRpc('kovan.infura.io', 443, True)
                 elif args.infura_ropsten:
-                    eth = EthJsonRpc('ropsten.infura.io', 443, True) 
+                    eth = EthJsonRpc('ropsten.infura.io', 443, True)
                 else:
                     eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
@@ -159,7 +159,7 @@ elif (len(args.solidity_file)):
         except CompilerError as e:
             exitWithError(e)
 
-        # Max. 16 contracts supported!
+        # Max. 16 input files supported!
 
         contract = ETHContract(bytecode, name = name, address = util.get_indexed_address(index))
         index += 1

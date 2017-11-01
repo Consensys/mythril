@@ -256,7 +256,7 @@ setup(
         'web3',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum==0.2.4',
+        'laser-ethereum==0.2.5',
         'requests',
         'BTrees'
     ],
