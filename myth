@@ -208,14 +208,14 @@ elif (args.graph) or (args.fire_lasers):
         loader = DynLoader(eth)
         _svm = svm.SVM(modules, dynamic_loader=loader)
     else:
-        _svm = svm.SVM(modules)       
+        _svm = svm.SVM(modules)
 
     if (args.graph):
 
         _svm.simplify_model = True
 
         if args.enable_physics is not None:
-            physics = True 
+            physics = True
 
         html = generate_callgraph(_svm, contracts[0].address, args.enable_physics)
 
@@ -228,7 +228,8 @@ elif (args.graph) or (args.fire_lasers):
 
     else:
 
-        laserfree.fire(modules, contracts[0].address)
+        _svm.sym_exec(contracts[0].address)
+        laserfree.fire(_svm)
 
 else:
     parser.print_help()
