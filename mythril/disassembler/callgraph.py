@@ -91,6 +91,10 @@ colors = [
   "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
   "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
   "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
+  "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
+  "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
+  "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
+  "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
 ]  
 
 
