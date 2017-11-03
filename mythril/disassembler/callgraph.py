@@ -98,22 +98,22 @@ colors = [
 ]  
 
 
-def serialize(_svm, color_map):
+def serialize(statespace, color_map):
 
     nodes = []
     edges = []
 
-    for node_key in _svm.nodes:
+    for node_key in statespace.nodes:
 
-        code =  _svm.nodes[node_key].as_dict()['code']
+        code =  statespace.nodes[node_key].as_dict()['code']
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-        color = color_map[_svm.nodes[node_key].as_dict()['module_name']]
+        color = color_map[statespace.nodes[node_key].as_dict()['module_name']]
 
         nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
 
-    for edge in _svm.edges:
+    for edge in statespace.edges:
 
       if (edge.condition is None):
           label = ""
@@ -133,19 +133,17 @@ def serialize(_svm, color_map):
 
 
 
-def generate_callgraph(svm, main_address, physics):
-
-    svm.sym_exec(main_address)
+def generate_graph(statespace, physics):
 
     i = 0
 
     color_map = {}
 
-    for k in svm.modules:
-      color_map[svm.modules[k]['name']] = colors[i]
+    for k in statespace.modules:
+      color_map[statespace.modules[k]['name']] = colors[i]
       i += 1
 
-    html = graph_html.replace("[JS]", serialize(svm, color_map))
+    html = graph_html.replace("[JS]", serialize(statespace, color_map))
     html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html
