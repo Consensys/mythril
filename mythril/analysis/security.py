@@ -1,3 +1,3 @@
-def fire_lasers:
+def fire_lasers(statespace):
 	pass
 	

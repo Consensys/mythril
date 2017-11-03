@@ -198,12 +198,12 @@ elif (args.xrefs):
 
 elif (args.graph) or (args.fire_lasers):
 
-    if (args.dynld):
-        loader = DynLoader(eth)
- 
     if (args.graph):
 
-        states = StateSpace(contracts, dynamic_loader=loader, simplify_model=True)
+        if (args.dynld):
+            states = StateSpace(contracts, dynamic_loader=DynLoader(eth), simplified=True)
+        else:
+            states = StateSpace(contracts, simplified=True)
 
         if args.enable_physics is not None:
             physics = True
@@ -218,7 +218,10 @@ elif (args.graph) or (args.fire_lasers):
 
     else:
 
-        states = StateSpace(contracts, dynamic_loader=loader)
+        if (args.dynld):
+            states = StateSpace(contracts, dynamic_loader=DynLoader(eth))
+        else:
+            states = StateSpace(contracts)
 
         fire_lasers(states)
 
