@@ -25,3 +25,7 @@ class StateSpace:
         self.modules = modules
         self.nodes = _svm.nodes
         self.edges = _svm.edges
+
+        # Analysis
+
+

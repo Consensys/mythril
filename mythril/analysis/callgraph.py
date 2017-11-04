@@ -133,7 +133,7 @@ def serialize(statespace, color_map):
 
 
 
-def generate_graph(statespace, physics):
+def generate_graph(statespace, physics = False):
 
     i = 0
 

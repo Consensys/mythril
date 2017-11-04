@@ -5,7 +5,6 @@
 """
 
 from mythril.ether import evm, util
-from mythril.disassembler.callgraph import generate_graph
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import compile_solidity
@@ -14,6 +13,7 @@ from mythril.ipc.client import EthIpc
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
+from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
 from ethereum import utils
 from pathlib import Path
