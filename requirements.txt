@@ -2,6 +2,6 @@ ethereum>=2.0.4
 ZODB>=5.3.0
 z3-solver>=4.5
 web3
-laser-ethereum==0.2.7
+laser-ethereum==0.2.8
 requests
 BTrees
