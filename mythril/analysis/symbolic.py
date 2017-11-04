@@ -28,4 +28,10 @@ class StateSpace:
 
         # Analysis
 
+        self.calls = []
+        self.sstores = {}
+        self.sloads = {}
 
+        for node in _svm.nodes:
+            for instruction in node.instruction_list:
+                logging.info(instruction)
