@@ -94,7 +94,7 @@ Specify the target contract with the `-a` option:
 
 ```bash
 $ myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd -v1
-$ myth -g ./graph.html 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+$ myth -g -a ./graph.html 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
 Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as library contracts, from the blockchain:
