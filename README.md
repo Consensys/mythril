@@ -70,7 +70,7 @@ Alternatively, compile the code on [Remix](http://remix.ethereum.org) and pass t
 $ myth -x -c "0x5060(...)"
 ```
 
-If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set appropriately in the source). The contract passed in the first argument will be executed as the "main" contract.
+If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set accordingly in the source). The contract passed in the first argument will be executed as the "main" contract.
 
 ```bash
 $ myth -x myContract.sol myLibrary.sol
