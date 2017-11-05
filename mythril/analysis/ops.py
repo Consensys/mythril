@@ -1,4 +1,6 @@
+from z3 import *
 from enum import Enum
+from laser.ethereum import helper
 
 
 class VarType(Enum):
@@ -18,29 +20,46 @@ class Variable:
 
 class Op:
 
-    def __init__(self, block_uid, addr):
-        self.block_uid = block_uid
+    def __init__(self, node, addr):
+        self.node = node
         self.addr = addr
 
 
 class Call(Op):
 
-    def __init__(self, block_uid, addr, call_type, to, value):
-        super(block_uid, addr)
+    def __init__(self, node, addr, call_type, to, value = 0, data = None):
+        super().__init__(node, addr)
         self.to = to
         self.call_type = call_type
         self.call_value = value
+        self.data = data
+
+class Suicide(Op):
+
+    def __init__(self, node, addr, call_type, to, value):
+        super().__init__(node, addr)
+        self.to = to
 
 class SStore(Op):
 
-    def __init__(self, block_uid, addr, index, value):
-        super(block_uid, addr)
+    def __init__(self, node, addr, index, value):
+        super().__init__(node, addr)
         self.index = index
         self.value = value
 
 class SLoad(Op):
 
-    def __init__(self, block_uid, addr, index, value):
-        super(block_uid, addr)
+    def __init__(self, node, addr, index, value):
+        super().__init__(node, addr)
         self.index = index
         self.value = value
+
+
+def get_variable(i):
+    try:
+        return Variable(helper.get_concrete_int(i), VarType.CONCRETE)
+    except AttributeError:
+        return Variable(simplify(i), VarType.SYMBOLIC)
+
+
+

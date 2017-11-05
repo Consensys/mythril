@@ -1,6 +1,6 @@
 from laser.ethereum import svm
-from .modules import unchecked_suicide, ether_send
 import logging
+from .ops import *
 
 
 class StateSpace:
@@ -18,20 +18,42 @@ class StateSpace:
         for contract in contracts:
             modules[contract.address] = contract.as_dict()
 
-        _svm = svm.SVM(modules, simplified=True, dynamic_loader=dynloader)
+        self.svm = svm.SVM(modules, simplified=True, dynamic_loader=dynloader)
 
-        _svm.sym_exec(contracts[0].address)
+        self.svm.sym_exec(contracts[0].address)
 
         self.modules = modules
-        self.nodes = _svm.nodes
-        self.edges = _svm.edges
+        self.nodes = self.svm.nodes
+        self.edges = self.svm.edges
 
         # Analysis
 
         self.calls = []
+        self.suicides = []
         self.sstores = {}
         self.sloads = {}
 
-        for node in _svm.nodes:
-            for instruction in node.instruction_list:
-                logging.info(instruction)
+        for key in self.svm.nodes:
+
+            # print(str(_svm.nodes[key].states))
+
+            for instruction in self.nodes[key].instruction_list:
+
+                op = instruction['opcode']
+
+                if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
+                    stack = self.svm.nodes[key].states[instruction['address']].stack
+
+                    if op in ('CALL', 'CALLCODE'):
+                        gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
+                            get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
+
+                        self.calls.append(Call(self.nodes[key], instruction['address'], op, to, value))
+                    else:
+                        gas, to, meminstart, meminsz, memoutstart, memoutsz = \
+                            get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
+
+                        self.calls.append(Call(self.nodes[key], instruction['address'], op, to))
+ 
+
+                    

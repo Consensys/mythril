@@ -12,85 +12,121 @@ class TransferType(Enum):
     OTHER = 3
 
 
-def execute(svm):
+def execute(statespace):
 
-    for k in svm.nodes:
-        node = svm.nodes[k]
+    for call in statespace.calls:
 
-        for instruction in node.instruction_list:
+        if str(call.node.function_name) == 'execute(address,uint256,bytes)':
 
-            if(instruction['opcode'] == "CALL"):
+            print(str(call.node.module_name) + ":" + str(call.node.function_name) + ": " + str(call.call_type) + " " + str(call.to) + " value " + str(call.call_value))
 
-                state = node.states[instruction['address']]
+            s = Solver()
 
-                gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
-                        state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
+            s.set(timeout=5000)
 
-                interesting = False
 
-                try:
-                    value = helper.get_concrete_int(value)
-                    if(value > 0):
-                        print ("Call with non-zero value: " + str(value))
-                        interesting = True
-                except AttributeError:
-                    print ("Call with symbolic value: " + str(value))
-                    interesting = True
 
-                if interesting:
+            print("--- CONSTRAINTS ---")
+            for constraint in call.node.constraints:
+                s.add(constraint)
+                print(simplify(constraint))
+
+            print("--- SOLUTION ---")
+
+            if (s.check() == sat):
+
+                m = s.model()
+
+                for d in m.decls():
+                    print("%s = 0x%x" % (d.name(), m[d].as_long()))
+
+            else:
+                print("unsat")  
+
+
+            # print("CONSTRAINTS")
+
+            # print(str(call.node.constraints))
+
+
+            '''
+            node = svm.nodes[k]
+
+            for instruction in node.instruction_list:
+
+                if(instruction['opcode'] == "CALL"):
+
+                    state = node.states[instruction['address']]
+
+                    gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
+                            state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+                    interesting = False
 
                     try:
-                        to = helper.get_concrete_int(to).hex()
+                        value = helper.get_concrete_int(value)
+                        if(value > 0):
+                            print ("Call with non-zero value: " + str(value))
+                            interesting = True
                     except AttributeError:
-                        to = str(simplify(to))
+                        print ("Call with symbolic value: " + str(value))
+                        interesting = True
 
-                    print("Function name: " + str(node.function_name))
+                    if interesting:
 
-                    m = re.search(r'calldata_(\d)', to)
+                        try:
+                            to = helper.get_concrete_int(to).hex()
+                        except AttributeError:
+                            to = str(simplify(to))
 
-                    if m:
-                        cd_index = m.group(1)
-                        print("Transfer to [calldata_" + str(cd_index) + "] " + str(node.function_name))
-                        transfer_type = TransferType.CALLDATA
-                    else:
-                        m = re.search(r'caller', to)
+                        print("Function name: " + str(node.function_name))
+
+                        m = re.search(r'calldata_(\d)', to)
 
                         if m:
-                            print("Transfer to msg.sender")
-                            transfer_type = TransferType.CALLER
+                            cd_index = m.group(1)
+                            print("Transfer to [calldata_" + str(cd_index) + "] " + str(node.function_name))
+                            transfer_type = TransferType.CALLDATA
                         else:
-                            m = re.match(r'0x[0-9a-f]+', to)
+                            m = re.search(r'caller', to)
+
                             if m:
-                                print("Transfer to address " + to)
-                                transfer_type = TransferType.HARDCODED
+                                print("Transfer to msg.sender")
+                                transfer_type = TransferType.CALLER
                             else:
-                                print("Transfer to " + to)
-                                transfer_type = TransferType.OTHER
+                                m = re.match(r'0x[0-9a-f]+', to)
+                                if m:
+                                    print("Transfer to address " + to)
+                                    transfer_type = TransferType.HARDCODED
+                                else:
+                                    print("Transfer to " + to)
+                                    transfer_type = TransferType.OTHER
 
 
-                    for constraint in node.constraints:
-                        m = re.search(r'caller', str(constraint))
-                        n = re.search(r'storage_(\d+)', str(constraint))
+                        for constraint in node.constraints:
+                            m = re.search(r'caller', str(constraint))
+                            n = re.search(r'storage_(\d+)', str(constraint))
 
-                        if (m and n):
-                            storage_index = n.group(1)
+                            if (m and n):
+                                storage_index = n.group(1)
 
-                            print("constraint on caller == storage_" + str(storage_index))
-                            break
+                                print("constraint on caller == storage_" + str(storage_index))
+                                break
 
-                    s = Solver()
+                        s = Solver()
 
-                    s.set(timeout=5000)
+                        s.set(timeout=5000)
 
-                    for constraint in node.constraints:
-                        s.add(constraint)
+                        for constraint in node.constraints:
+                            s.add(constraint)
 
-                    if (s.check() == sat):
+                        if (s.check() == sat):
 
-                        m = s.model()
+                            m = s.model()
 
-                        for d in m.decls():
-                            print("%s = 0x%x" % (d.name(), m[d].as_long()))
+                            for d in m.decls():
+                                print("%s = 0x%x" % (d.name(), m[d].as_long()))
 
-                    else:
-                        print("unsat")
+                        else:
+                            print("unsat")
+            '''
