@@ -201,7 +201,7 @@ elif (args.graph) or (args.fire_lasers):
     if (args.graph):
 
         if (args.dynld):
-            states = StateSpace(contracts, dynamic_loader=DynLoader(eth), simplified=True)
+            states = StateSpace(contracts, dynloader=DynLoader(eth), simplified=True)
         else:
             states = StateSpace(contracts, simplified=True)
 

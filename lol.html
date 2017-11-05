@@ -1,0 +1,159 @@
+<html>
+ <head>
+  <style type="text/css">
+   #mynetwork {
+    background-color: #232625;
+   }
+
+   body {
+    background-color: #232625;
+    color: #ffffff;
+   }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+    var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: false,
+      }   
+    
+  }
+
+  var nodes = [
+{id: '0', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x006d\n12 JUMPI\n'},
+{id: '1', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n'},
+{id: '2', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x1803334e\n60 EQ\n61 PUSH2 0x0072\n64 JUMPI\n'},
+{id: '3', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '114 _function_0x1803334e\n115 CALLVALUE\n116 ISZERO\n117 PUSH2 0x007d\n120 JUMPI\n'},
+{id: '4', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '125 JUMPDEST\n126 PUSH2 0x0085\n129 PUSH2 0x0116\n132 JUMP\n'},
+{id: '5', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '278 JUMPDEST\n279 CALLER\n280 PUSH1 0x01\n282 PUSH1 0x00\n284 PUSH2 0x0100\n287 EXP\n288 DUP2\n289 SLOAD\n290 DUP2\n291 PUSH20 0xffffffff(...)\n312 MUL\n313 NOT\n314 AND\n315 SWAP1\n316 DUP4\n317 PUSH20 0xffffffff(...)\n338 AND\n339 MUL\n340 OR\n341 SWAP1\n342 SSTORE\n343 POP\n344 JUMP\n'},
+{id: '6', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '133 JUMPDEST\n134 STOP\n'},
+{id: '7', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '121 PUSH1 0x00\n123 DUP1\n124 REVERT\n'},
+{id: '8', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '65 DUP1\n66 PUSH4 0x2e1a7d4d\n71 EQ\n72 PUSH2 0x0087\n75 JUMPI\n'},
+{id: '9', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '135 withdraw(uint256)\n136 CALLVALUE\n137 ISZERO\n138 PUSH2 0x0092\n141 JUMPI\n'},
+{id: '10', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '146 JUMPDEST\n147 PUSH2 0x00a8\n150 PUSH1 0x04\n152 DUP1\n153 DUP1\n154 CALLDATALOAD\n155 SWAP1\n156 PUSH1 0x20\n158 ADD\n159 SWAP1\n160 SWAP2\n161 SWAP1\n162 POP\n163 POP\n164 PUSH2 0x0159\n167 JUMP\n'},
+{id: '11', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '345 JUMPDEST\n346 PUSH1 0x00\n348 DUP1\n349 PUSH1 0x00\n351 CALLER\n352 PUSH20 0xffffffff(...)\n373 AND\n374 PUSH20 0xffffffff(...)\n395 AND\n396 DUP2\n397 MSTORE\n398 PUSH1 0x20\n400 ADD\n401 SWAP1\n402 DUP2\n403 MSTORE\n404 PUSH1 0x20\n406 ADD\n407 PUSH1 0x00\n409 SHA3\n410 SLOAD\n411 EQ\n412 ISZERO\n413 PUSH2 0x01a5\n416 JUMPI\n'},
+{id: '12', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '421 JUMPDEST\n422 DUP1\n423 PUSH1 0x00\n425 DUP1\n426 CALLER\n427 PUSH20 0xffffffff(...)\n448 AND\n449 PUSH20 0xffffffff(...)\n470 AND\n471 DUP2\n472 MSTORE\n473 PUSH1 0x20\n475 ADD\n476 SWAP1\n477 DUP2\n478 MSTORE\n479 PUSH1 0x20\n481 ADD\n482 PUSH1 0x00\n484 SHA3\n485 PUSH1 0x00\n487 DUP3\n488 DUP3\n489 SLOAD\n490 SUB\n491 SWAP3\n492 POP\n493 POP\n494 DUP2\n495 SWAP1\n496 SSTORE\n497 POP\n498 CALLER\n499 PUSH20 0xffffffff(...)\n520 AND\n521 PUSH2 0x08fc\n524 DUP3\n525 SWAP1\n526 DUP2\n527 ISZERO\n528 MUL\n529 SWAP1\n530 PUSH1 0x40\n532 MLOAD\n533 PUSH1 0x00\n535 PUSH1 0x40\n537 MLOAD\n538 DUP1\n539 DUP4\n540 SUB\n541 DUP2\n542 DUP6\n543 DUP9\n544 DUP9\n545 CALL\n546 SWAP4\n547 POP\n548 POP\n549 POP\n550 POP\n551 ISZERO\n552 ISZERO\n553 PUSH2 0x0231\n556 JUMPI\n'},
+{id: '13', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '561 JUMPDEST\n562 POP\n563 JUMP\n'},
+{id: '14', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '168 JUMPDEST\n169 STOP\n'},
+{id: '15', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '557 PUSH1 0x00\n559 DUP1\n560 REVERT\n'},
+{id: '16', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '417 PUSH1 0x00\n419 DUP1\n420 REVERT\n'},
+{id: '17', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '142 PUSH1 0x00\n144 DUP1\n145 REVERT\n'},
+{id: '18', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '76 DUP1\n77 PUSH4 0x41c0e1b5\n82 EQ\n83 PUSH2 0x00aa\n86 JUMPI\n'},
+{id: '19', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '170 kill()\n171 CALLVALUE\n172 ISZERO\n173 PUSH2 0x00b5\n176 JUMPI\n'},
+{id: '20', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '181 JUMPDEST\n182 PUSH2 0x00bd\n185 PUSH2 0x0234\n188 JUMP\n'},
+{id: '21', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '564 JUMPDEST\n565 PUSH1 0x01\n567 PUSH1 0x00\n569 SWAP1\n570 SLOAD\n571 SWAP1\n572 PUSH2 0x0100\n575 EXP\n576 SWAP1\n577 DIV\n578 PUSH20 0xffffffff(...)\n599 AND\n600 PUSH20 0xffffffff(...)\n621 AND\n622 CALLER\n623 PUSH20 0xffffffff(...)\n644 AND\n645 EQ\n646 ISZERO\n647 ISZERO\n648 PUSH2 0x028d\n651 JUMPI\n'},
+{id: '22', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '653 JUMPDEST\n654 CALLER\n655 PUSH20 0xffffffff(...)\n676 AND\n677 SUICIDE\n'},
+{id: '23', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '652 INVALID\n'},
+{id: '24', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '177 PUSH1 0x00\n179 DUP1\n180 REVERT\n'},
+{id: '25', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '87 DUP1\n88 PUSH4 0x69774c2d\n93 EQ\n94 PUSH2 0x00bf\n97 JUMPI\n'},
+{id: '26', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '191 _function_0x69774c2d\n192 PUSH2 0x00c7\n195 PUSH2 0x02a6\n198 JUMP\n'},
+{id: '27', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '678 JUMPDEST\n679 PUSH1 0x00\n681 CALLVALUE\n682 EQ\n683 ISZERO\n684 PUSH2 0x02b4\n687 JUMPI\n'},
+{id: '28', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '692 JUMPDEST\n693 CALLVALUE\n694 PUSH1 0x00\n696 DUP1\n697 CALLER\n698 PUSH20 0xffffffff(...)\n719 AND\n720 PUSH20 0xffffffff(...)\n741 AND\n742 DUP2\n743 MSTORE\n744 PUSH1 0x20\n746 ADD\n747 SWAP1\n748 DUP2\n749 MSTORE\n750 PUSH1 0x20\n752 ADD\n753 PUSH1 0x00\n755 SHA3\n756 PUSH1 0x00\n758 DUP3\n759 DUP3\n760 SLOAD\n761 ADD\n762 SWAP3\n763 POP\n764 POP\n765 DUP2\n766 SWAP1\n767 SSTORE\n768 POP\n769 JUMP\n'},
+{id: '29', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '199 JUMPDEST\n200 STOP\n'},
+{id: '30', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '688 PUSH1 0x00\n690 DUP1\n691 REVERT\n'},
+{id: '31', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '98 DUP1\n99 PUSH4 0xf8b2cb4f\n104 EQ\n105 PUSH2 0x00c9\n108 JUMPI\n'},
+{id: '32', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '201 getBalance(address)\n202 CALLVALUE\n203 ISZERO\n204 PUSH2 0x00d4\n207 JUMPI\n'},
+{id: '33', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '212 JUMPDEST\n213 PUSH2 0x0100\n216 PUSH1 0x04\n218 DUP1\n219 DUP1\n220 CALLDATALOAD\n221 PUSH20 0xffffffff(...)\n242 AND\n243 SWAP1\n244 PUSH1 0x20\n246 ADD\n247 SWAP1\n248 SWAP2\n249 SWAP1\n250 POP\n251 POP\n252 PUSH2 0x0302\n255 JUMP\n'},
+{id: '34', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '770 JUMPDEST\n771 PUSH1 0x00\n773 DUP1\n774 PUSH1 0x00\n776 DUP4\n777 PUSH20 0xffffffff(...)\n798 AND\n799 PUSH20 0xffffffff(...)\n820 AND\n821 DUP2\n822 MSTORE\n823 PUSH1 0x20\n825 ADD\n826 SWAP1\n827 DUP2\n828 MSTORE\n829 PUSH1 0x20\n831 ADD\n832 PUSH1 0x00\n834 SHA3\n835 SLOAD\n836 SWAP1\n837 POP\n838 SWAP2\n839 SWAP1\n840 POP\n841 JUMP\n'},
+{id: '35', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '256 JUMPDEST\n257 PUSH1 0x40\n259 MLOAD\n260 DUP1\n261 DUP3\n262 DUP2\n263 MSTORE\n264 PUSH1 0x20\n266 ADD\n267 SWAP2\n268 POP\n269 POP\n270 PUSH1 0x40\n272 MLOAD\n273 DUP1\n274 SWAP2\n275 SUB\n276 SWAP1\n277 RETURN\n'},
+{id: '36', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '208 PUSH1 0x00\n210 DUP1\n211 REVERT\n'},
+{id: '37', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n'}
+];
+var edges = [
+{from: '0', to: '1', 'arrows': 'to', 'label': 'Not(ULE(4,        calldatasize_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd))', 'smooth': {'type': 'cubicBezier'}},
+{from: '5', to: '6', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '4', to: '5', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '3', to: '4', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '3', to: '7', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '2', to: '3', 'arrows': 'to', 'label': 'Extract(0xff,        0xe0,        calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==0x1803334e', 'smooth': {'type': 'cubicBezier'}},
+{from: '13', to: '14', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '12', to: '13', 'arrows': 'to', 'label': 'Not(retval_546 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '12', to: '15', 'arrows': 'to', 'label': 'retval_546 == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '11', to: '12', 'arrows': 'to', 'label': 'Not(storage_90x30acd7 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '11', to: '16', 'arrows': 'to', 'label': 'storage_90x30acd7 == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '10', to: '11', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '9', to: '10', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '9', to: '17', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '8', to: '9', 'arrows': 'to', 'label': 'Extract(0xff,        0xe0,        calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==0x2e1a7d4d', 'smooth': {'type': 'cubicBezier'}},
+{from: '21', to: '22', 'arrows': 'to', 'label': 'Extract(0x9f, 0, caller) == Extract(0xa7, 8, storage_1)', 'smooth': {'type': 'cubicBezier'}},
+{from: '21', to: '23', 'arrows': 'to', 'label': 'Not(Extract(0x9f, 0, caller) == Extract(0xa7, 8, storage_1))', 'smooth': {'type': 'cubicBezier'}},
+{from: '20', to: '21', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '19', to: '20', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '19', to: '24', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '18', to: '19', 'arrows': 'to', 'label': 'Extract(0xff,        0xe0,        calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==0x41c0e1b5', 'smooth': {'type': 'cubicBezier'}},
+{from: '28', to: '29', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '27', to: '28', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '27', to: '30', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '26', to: '27', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '25', to: '26', 'arrows': 'to', 'label': 'Extract(0xff,        0xe0,        calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==0x69774c2d', 'smooth': {'type': 'cubicBezier'}},
+{from: '34', to: '35', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '33', to: '34', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '32', to: '33', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '32', to: '36', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '31', to: '32', 'arrows': 'to', 'label': 'Extract(0xff,        0xe0,        calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==0xf8b2cb4f', 'smooth': {'type': 'cubicBezier'}},
+{from: '31', to: '37', 'arrows': 'to', 'label': 'Not(Extract(0xff,            0xe0,            calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==    0xf8b2cb4f)', 'smooth': {'type': 'cubicBezier'}},
+{from: '25', to: '31', 'arrows': 'to', 'label': 'Not(Extract(0xff,            0xe0,            calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==    0x69774c2d)', 'smooth': {'type': 'cubicBezier'}},
+{from: '18', to: '25', 'arrows': 'to', 'label': 'Not(Extract(0xff,            0xe0,            calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==    0x41c0e1b5)', 'smooth': {'type': 'cubicBezier'}},
+{from: '8', to: '18', 'arrows': 'to', 'label': 'Not(Extract(0xff,            0xe0,            calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==    0x2e1a7d4d)', 'smooth': {'type': 'cubicBezier'}},
+{from: '2', to: '8', 'arrows': 'to', 'label': 'Not(Extract(0xff,            0xe0,            calldata_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd_0) ==    0x1803334e)', 'smooth': {'type': 'cubicBezier'}},
+{from: '0', to: '2', 'arrows': 'to', 'label': 'ULE(4,    calldatasize_0x5c0x1b4ff0x392c0x1a1716759b47be0f4ecbef9e6dd)', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / Ethereum LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br /></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+var data = {'nodes': nodes, 'edges': edges}
+var gph = new vis.Network(container, data, options);
+</script>
+</body>
+</html>

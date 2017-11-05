@@ -2,18 +2,7 @@
 
 <img height="60px" align="right" src="/static/mythril.png"/>
 
-Mythril is a reverse engineering and bug hunting framework for the Ethereum blockchain.
-
-  * [Installation and setup](#installation-and-setup)
-  * [Command line usage](#command-line-usage)
-    + [Input formats](#input-formats)
-      - [Working with on-chain contracts](#working-with-on-chain-contracts)
-      - [Working with Solidity files](#working-with-solidity-files)
-    + [Disassembler](#disassembler)
-    + [Control flow graph](#control-flow-graph)
-    + [Contract search](#contract-search)
-      - [Searching from the command line](#searching-from-the-command-line)
-      - [Finding cross-references](#finding-cross-references)
+Mythril is a security analysis tool for Ethereum smart contracts. It uses symbolic analysis to detect various types of issues. It can be used to analyze source code or as a "nmap-style" blockchain scanner.
 
 ## Installation and setup
 
@@ -33,15 +22,31 @@ $ python setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-## Command line usage
-
-The Mythril command line tool (aptly named `myth`) allows you to conveniently access most of Mythril's functionality.
-
-### Input formats
+## Input formats
 
 Mythril can handle various sources and input formats, including bytecode, addresses of contracts on the blockchain, and Solidity source code files.
 
-#### Working with on-chain contracts
+#### Working with Solidity files
+
+In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
+
+```bash
+$ myth -x myContract.sol
+```
+
+Alternatively, compile the code on [Remix](http://remix.ethereum.org) and pass the runtime binary code to Mythril:
+
+```bash
+$ myth -x -c "0x5060(...)"
+```
+
+If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set appropriately in the source). The contract passed in the first argument will be executed as the "main" contract.
+
+```bash
+$ myth -x myContract.sol myLibrary.sol
+```
+
+### Working with on-chain contracts
 
 To pull contracts from the blockchain you need an Ethereum node that is synced with the network. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
 
@@ -55,35 +60,13 @@ The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ether
 $ geth --rpc --rpcapi eth,debug --syncmode fast
 ```
 
-#### Working with Solidity files
+Specify the target contract with the `-a` option:
 
-In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
-
-```bash
-$ myth -g ./graph.html myContract.sol
+```
+$ myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd -v1
+$ myth -g ~/Desktop/graph/html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
-### Disassembler
-
-Use the `-d` flag to disassemble code. The disassembler accepts a bytecode string or a contract address as its input.
-
-```bash
-$ myth -d -c "0x6060"
-0 PUSH1 0x60
-```
-
-Specifying an address via `-a ADDRESS` will download the contract code from your node. Mythril will try to resolve function names using the signatures in `database/signature.json`:
-
-```bash
-$ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
-0 PUSH1 0x60
-2 PUSH1 0x40
-4 MSTORE
-(...)
-1135 - FUNCTION safeAdd(uint256,uint256) -
-1136 CALLVALUE
-1137 ISZERO
-```
 
 ### Control flow graph
 
@@ -130,6 +113,28 @@ Matched contract with code hash 07459966443977122e639cbf7804c446
 Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
 $ myth --xrefs -a 0x76799f77587738bfeef09452df215b63d2cfb08a
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
+```
+
+### Disassembler
+
+Use the `-d` flag to disassemble code. The disassembler accepts a bytecode string or a contract address as its input.
+
+```bash
+$ myth -d -c "0x6060"
+0 PUSH1 0x60
+```
+
+Specifying an address via `-a ADDRESS` will download the contract code from your node. Mythril will try to resolve function names using the signatures in `database/signature.json`:
+
+```bash
+$ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
+0 PUSH1 0x60
+2 PUSH1 0x40
+4 MSTORE
+(...)
+1135 - FUNCTION safeAdd(uint256,uint256) -
+1136 CALLVALUE
+1137 ISZERO
 ```
 
 ## Credit
