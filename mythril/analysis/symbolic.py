@@ -35,8 +35,6 @@ class StateSpace:
 
         for key in self.svm.nodes:
 
-            # print(str(_svm.nodes[key].states))
-
             for instruction in self.nodes[key].instruction_list:
 
                 op = instruction['opcode']

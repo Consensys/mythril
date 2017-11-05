@@ -10,12 +10,12 @@ class VarType(Enum):
 
 class Variable:
 
-    def __init__(self, value, _type):
-        self.value = value
+    def __init__(self, val, _type):
+        self.val = val
         self.type = _type
 
     def __str__(self):
-        return str(self.value)
+        return str(self.val)
 
 
 class Op:
@@ -27,7 +27,7 @@ class Op:
 
 class Call(Op):
 
-    def __init__(self, node, addr, call_type, to, value = 0, data = None):
+    def __init__(self, node, addr, call_type, to, value = Variable(0, VarType.CONCRETE), data = None):
         super().__init__(node, addr)
         self.to = to
         self.call_type = call_type
