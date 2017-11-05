@@ -40,7 +40,7 @@ class StateSpace:
                 op = instruction['opcode']
 
                 if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
-                    stack = self.svm.nodes[key].states[instruction['address']].stack
+                    stack = copy.deepcopy(self.svm.nodes[key].states[instruction['address']].stack)
 
                     if op in ('CALL', 'CALLCODE'):
                         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \

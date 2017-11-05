@@ -1,9 +1,14 @@
-from .modules import ether_send
+from mythril.analysis.report import Report
+from .modules import delegatecall_forward, unchecked_suicide
 
 
 def fire_lasers(statespace):
 
-	ether_send.execute(statespace)
+	issues = []
 
-	pass
-	
+	issues += delegatecall_forward.execute(statespace)
+	issues += unchecked_suicide.execute(statespace)
+
+	report = Report(issues)
+
+	print(report.as_text())

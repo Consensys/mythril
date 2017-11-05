@@ -23,15 +23,17 @@ class Op:
     def __init__(self, node, addr):
         self.node = node
         self.addr = addr
+        self.state = node.states[addr]
 
 
 class Call(Op):
 
-    def __init__(self, node, addr, call_type, to, value = Variable(0, VarType.CONCRETE), data = None):
+    def __init__(self, node, addr, _type, to, value = Variable(0, VarType.CONCRETE), data = None):
+
         super().__init__(node, addr)
         self.to = to
-        self.call_type = call_type
-        self.call_value = value
+        self.type = _type
+        self.value = value
         self.data = data
 
 class Suicide(Op):

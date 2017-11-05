@@ -1,37 +1,47 @@
 from z3 import *
-from laser.ethereum import helper
 import re
 import logging
 from enum import Enum
 from mythril.analysis.ops import *
 
 
-class TransferType(Enum):
-    HARDCODED = 1
-    CALLDATA = 2
-    CALLER = 3
-    OTHER = 3
+class InputSource(Enum):
+    CALLDATA = 1
+    STORAGE = 2
 
 
 def execute(statespace):
 
     for call in statespace.calls:
 
-        # print(str(call.node.module_name) + ":" + str(call.node.function_name) + ": " + str(call.call_type) + " " + str(call.to) + " value " + str(call.call_value))
-
-        # Checks on value
+        logging.info("CALL: " + str(call.node.module_name) + ":" + str(call.node.function_name) + ": " + str(call.type) + " " + str(call.to) + " value " + str(call.value))
 
         interesting = False
 
-        if (call.call_value.type == VarType.CONCRETE and call.call_value.val > 0):
+        if (call.value.type == VarType.CONCRETE and call.value.val > 0) or (call.value.type == VarType.SYMBOLIC):
+
+            logging.info("CALL with non-zero value: " + str(call.node.module_name) + ":" + str(call.node.function_name) + ": " + str(call.type) + " " + str(call.to) + " value " + str(call.value))
+
             interesting = True
 
-        if (call.call_value.type == VarType.SYMBOLIC):
-            interesting = True            
+            if call.to.type == VarType.CONCRETE:
+                logging.info("Concrete 'to' address: " + call.to.hex())
+            else:
+                m = re.search(r"calldata", str(call.to))
+
+                if (m):
+                    logging.info("To-address from calldata: " + str(call.to))
+
+            if call.value.type == VarType.CONCRETE:
+                logging.info("Sending concrete amount: " + call.value)
+            else:
+                m = re.search(r"calldata", str(call.to))
+
+                if (m):
+                    logging.info("To-address from calldata: " + str(call.to))
+
 
         if (interesting):
-
-            print(str(call.node.module_name) + ":" + str(call.node.function_name) + ": " + str(call.call_type) + " " + str(call.to) + " value " + str(call.call_value))
 
             s = Solver()
             s.set(timeout=10000)
@@ -39,14 +49,14 @@ def execute(statespace):
             for constraint in call.node.constraints:
                 s.add(constraint)
 
-            print("SOLUTION:")
+            logging.info("SOLUTION:")
 
             if (s.check() == sat):
 
                 m = s.model()
 
                 for d in m.decls():
-                    print("%s = 0x%x" % (d.name(), m[d].as_long()))
+                    logging.info("%s = 0x%x" % (d.name(), m[d].as_long()))
 
             else:
-                print("unsat")  
+                logging.info("unsat")
