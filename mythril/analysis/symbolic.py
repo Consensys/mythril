@@ -62,7 +62,7 @@ class StateSpace:
                         constrained_by_caller = False
 
                         for constraint in self.svm.nodes[key].constraints:
-                            if "caller" in str(constraint) and ("storage_" + index) in str(constraint):
+                            if "caller" in str(constraint) and ("storage_" + str(index)) in str(constraint):
                                 constrained_by_caller = True
                                 break
 
