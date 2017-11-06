@@ -44,16 +44,8 @@ class Suicide(Op):
 
 class SStore(Op):
 
-    def __init__(self, node, addr, index, value):
+    def __init__(self, node, addr, value):
         super().__init__(node, addr)
-        self.index = index
-        self.value = value
-
-class SLoad(Op):
-
-    def __init__(self, node, addr, index, value):
-        super().__init__(node, addr)
-        self.index = index
         self.value = value
 
 

@@ -1,6 +1,6 @@
 from laser.ethereum import svm
-import logging
 from .ops import *
+
 
 
 class StateSpace:
@@ -30,8 +30,7 @@ class StateSpace:
 
         self.calls = []
         self.suicides = []
-        self.sstores = {}
-        self.sloads = {}
+        self.tainted_sstors = {}
 
         for key in self.svm.nodes:
 
@@ -52,6 +51,25 @@ class StateSpace:
                             get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
 
                         self.calls.append(Call(self.nodes[key], instruction['address'], op, to))
- 
 
-                    
+                elif op == 'SSTORE':
+                    stack = copy.deepcopy(self.svm.nodes[key].states[instruction['address']].stack)
+
+                    index, value = stack.pop(), stack.pop()
+
+                    if 'calldata' in str(value) or 'caller' in str(value):
+
+                        constrained_by_caller = False
+
+                        for constraint in self.svm.nodes[key].constraints:
+                            if "caller" in str(constraint) and ("storage_" + index) in str(constraint):
+                                constrained_by_caller = True
+                                break
+
+                        if not constrained_by_caller:
+
+                            try:
+                                self.tainted_sstors[str(index)].append(SStore(self.nodes[key], instruction['address'], value))
+                            except KeyError:
+                                self.tainted_sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
+             

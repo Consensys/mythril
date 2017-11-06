@@ -1,6 +1,8 @@
 from z3 import *
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+import re
+import logging
 
 
 '''
@@ -22,26 +24,58 @@ def execute(statespace):
 
             if(instruction['opcode'] == "SUICIDE"):
 
+                issue = Issue("Unchecked SUICIDE", "VULNERABILITY")
+                issue.description = "The function " + node.function_name + " calls the SUICIDE instruction. "
+
                 state = node.states[instruction['address']]
                 to = state.stack.pop()
 
-                constraint_on_caller = False
+                constraint_on_caller = None
 
                 for constraint in node.constraints:
                     if "caller" in str(constraint):
-                        constraint_on_caller = True
+                        m = re.search(r'storage_([0-9a-f])+', str(constraint))
+                        cc_storage_index = m.group(1)
+                        constraint_on_caller = constraint
                         break
 
-                if not constraint_on_caller:
-                    s = Solver()
+                can_solve = False
+
+                if constraint_on_caller is not None:
+
+                    logging.info("caller constraint storage index " + cc_storage_index)
+
+                    # Is there any way to write to that storage slot?
+
+                    try:
+                        sstors = statespace.tainted_sstors[cc_storage_index]
+
+                        for sstor in sstors:
+
+                            s = Solver()
+
+                            for constraint in sstor.node.constraints:
+                                s.add(constraint)
+
+                            if (s.check() == sat):
+                                m = s.model()
+                                can_solve = True
+                                break
+                    except KeyError:
+                        logging.info("No viable storage writes to index " + cc_storage_index)
+                        can_solve = False
+
+                else:
+                    can_solve = True
+
+                if can_solve:
 
                     for constraint in node.constraints:
                         s.add(constraint)
 
-
                     if (s.check() == sat):
                         issue = Issue("Unchecked SUICIDE", "VULNERABILITY")
-                        issue.description = "The function " + node.function_name + " calls the SUICIDE instruction. It appears as if the function does not verify the caller address.\n"
+                        issue.description = "The function " + node.function_name + " calls the SUICIDE instruction. It appears as if the function does not check the caller address.\n"
 
                         if ("caller" in str(to)):
                             issue.description += "The remaining Ether is sent to the caller's address.\n"
@@ -57,7 +91,9 @@ def execute(statespace):
                         for d in m.decls():
                             issue.description += "%s = 0x%x\n" % (d.name(), m[d].as_long())
 
-                        issues.append(issue)    
+                    issues.append(issue)
+
+
 
     return issues
 
