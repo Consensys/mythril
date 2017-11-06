@@ -9,6 +9,6 @@ def fire_lasers(statespace):
 	issues += delegatecall_forward.execute(statespace)
 	issues += unchecked_suicide.execute(statespace)
 
-	report = Report(issues)
-
-	print(report.as_text())
+	if (len(issues)):
+		report = Report(issues)
+		print(report.as_text())

@@ -35,6 +35,10 @@ def execute(statespace):
                 if not constraint_on_caller:
                     s = Solver()
 
+                    for constraint in node.constraints:
+                        s.add(constraint)
+
+
                     if (s.check() == sat):
                         issue = Issue("Unchecked SUICIDE", "VULNERABILITY")
                         issue.description = "The function " + node.function_name + " calls the SUICIDE instruction. It appears as if the function does not verify the caller address.\n"
