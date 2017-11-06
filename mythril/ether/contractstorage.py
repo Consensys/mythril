@@ -81,7 +81,7 @@ class ContractStorage(persistent.Persistent):
                         contract_code = eth.eth_getCode(contract_address)
                         contract_balance = eth.eth_getBalance(contract_address)
 
-                        if not contract_balance or sync_all:
+                        if not contract_balance and not sync_all:
                             # skip contracts with zero balance (disable with --sync-all)
                             continue
 

@@ -45,7 +45,7 @@ Run `myth -x` with one of the input options described below to run the analysis.
 The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
 ```bash
-$ myth -g -a ./graph.html -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l
+$ myth -g ./graph.html -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l
 ```
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
@@ -94,7 +94,7 @@ Specify the target contract with the `-a` option:
 
 ```bash
 $ myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd -v1
-$ myth -g -a ./graph.html 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+$ myth -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
 Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as library contracts, from the blockchain:
