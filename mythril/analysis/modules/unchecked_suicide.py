@@ -8,7 +8,7 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for SUICIDE instructions that are not constrained by caller.
+Check for SUICIDE instructions that are not constrained by caller
 '''
 
 def execute(statespace):
@@ -96,6 +96,3 @@ def execute(statespace):
 
 
     return issues
-
-
-
