@@ -8,7 +8,7 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for SUICIDE instructions that are not constrained by caller
+Check for SUICIDE instructions that can be triggered by anyone
 '''
 
 def execute(statespace):
@@ -25,7 +25,7 @@ def execute(statespace):
             if(instruction['opcode'] == "SUICIDE"):
 
                 issue = Issue("Unchecked SUICIDE", "VULNERABILITY")
-                issue.description = "The function " + node.function_name + " calls the SUICIDE instruction. "
+                issue.description = "The function " + node.function_name + " executes the SUICIDE instruction."
 
                 state = node.states[instruction['address']]
                 to = state.stack.pop()
@@ -59,40 +59,44 @@ def execute(statespace):
 
                             if (s.check() == sat):
                                 m = s.model()
+
+                                issue.description += "The transaction sender is checked against a value in storage index " + str(cc_storage_index) + ". However, it may be possible to overwrite this value by calling the function '" + sstor.node.function_name + "'."
+
                                 can_solve = True
                                 break
                     except KeyError:
-                        logging.info("No viable storage writes to index " + cc_storage_index)
+                        logging.debug("No viable storage writes to index " + cc_storage_index)
                         can_solve = False
 
                 else:
+                    issue.description = "There are no restrictions on msg.sender."
                     can_solve = True
 
                 if can_solve:
+
+                    s = Solver()
 
                     for constraint in node.constraints:
                         s.add(constraint)
 
                     if (s.check() == sat):
-                        issue = Issue("Unchecked SUICIDE", "VULNERABILITY")
-                        issue.description = "The function " + node.function_name + " calls the SUICIDE instruction. It appears as if the function does not check the caller address.\n"
 
                         if ("caller" in str(to)):
-                            issue.description += "The remaining Ether is sent to the caller's address.\n"
+                            issue.description += "\nThe remaining Ether is sent to the caller's address.\n"
                         elif ("storage" in str(to)):
-                            issue.description += "The remaining Ether is sent to a stored address\n"
+                            issue.description += "\nThe remaining Ether is sent to a stored address\n"
                         else:
-                            issue.description += "The remaining Ether is sent to: " + str(to) + "\n"
+                            issue.description += "\nThe remaining Ether is sent to: " + str(to) + "\n"
 
                         issue.description += "Solver output:\n"
 
                         m = s.model()
 
+                        logging.debug("Model for node " + str(k) + ", function " +  svm.nodes[k].function_name + ": ")
+
                         for d in m.decls():
-                            issue.description += "%s = 0x%x\n" % (d.name(), m[d].as_long())
+                            logging.debug("%s = 0x%x" % (d.name(), m[d].as_long()))
 
-                    issues.append(issue)
-
-
+                        issues.append(issue)
 
     return issues
