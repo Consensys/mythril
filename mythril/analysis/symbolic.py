@@ -10,7 +10,7 @@ class StateSpace:
     Symbolic EVM wrapper
     '''
     
-    def __init__(self, contracts, dynloader = None, simplified=True):
+    def __init__(self, contracts, dynloader = None, simplified=False):
 
         # Convert ETHContract objects to LASER SVM "modules"
 
@@ -19,7 +19,7 @@ class StateSpace:
         for contract in contracts:
             modules[contract.address] = contract.as_dict()
 
-        self.svm = svm.SVM(modules, simplified=True, dynamic_loader=dynloader)
+        self.svm = svm.SVM(modules, simplified = simplified, dynamic_loader=dynloader)
 
         self.svm.sym_exec(contracts[0].address)
 
@@ -69,10 +69,6 @@ class StateSpace:
 
         self.sstor_analysis()
 
-        for index in self.sstors:
-            for s in self.sstors[index]:
-                logging.info("SSTOR: " + s.node.function_name + " tainted = " + str(s.tainted))
-
 
     def propagate_taint(self, sstor, index):
 
@@ -80,6 +76,8 @@ class StateSpace:
             return
 
         sstor.tainted = True
+
+        # TODO: Taint should propagate to other storage indices
 
         '''
         for index in self.sstors:
@@ -105,3 +103,17 @@ class StateSpace:
 
                 if taint:
                     self.propagate_taint(s, index)
+
+
+    def find_storage_write(self, index):
+
+        # Find a tainted (unconstrained) SSTOR that writes to 'index'
+
+        try:
+            for s in self.sstors[index]:
+                if s.tainted:
+                    return s.node.function_name
+            return None
+        except KeyError:
+            return None
+
