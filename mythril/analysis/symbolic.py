@@ -58,14 +58,10 @@ class StateSpace:
 
                     index, value = stack.pop(), stack.pop()
 
-                    logging.info("SSTORE: " + str(index) + " " + str(value))
-
                     try:
                         self.sstors[str(index)].append(SStore(self.nodes[key], instruction['address'], value))
                     except KeyError:
                         self.sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
-
-        logging.info(self.sstors)
 
         self.sstor_analysis()
 
