@@ -1,6 +1,6 @@
 class Issue:
 
-    def __init__(self, title, _type = "INFORMATIONAL", description = ""):
+    def __init__(self, title, _type = "Informational", description = ""):
 
         self.title = title
         self.description = description
@@ -23,7 +23,7 @@ class Report:
 
         for issue in self.issues:
             text += "=== " + issue.title + " ===\n"
-            text += "STATUS: " + issue.type + "\n"
+            text += "Type: " + issue.type + "\n"
             text += issue.description + "\n"
 
         return text

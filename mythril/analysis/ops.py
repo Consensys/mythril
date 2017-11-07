@@ -28,10 +28,11 @@ class Op:
 
 class Call(Op):
 
-    def __init__(self, node, addr, _type, to, value = Variable(0, VarType.CONCRETE), data = None):
+    def __init__(self, node, addr, _type, to, gas, value = Variable(0, VarType.CONCRETE), data = None):
 
         super().__init__(node, addr)
         self.to = to
+        self.gas = gas
         self.type = _type
         self.value = value
         self.data = data
@@ -47,6 +48,7 @@ class SStore(Op):
     def __init__(self, node, addr, value):
         super().__init__(node, addr)
         self.value = value
+        self.tainted = False
 
 
 def get_variable(i):

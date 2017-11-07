@@ -8,7 +8,7 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for SUICIDE instructions that can be triggered by anyone
+Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a writable storage index.
 '''
 
 def execute(statespace):
@@ -24,7 +24,7 @@ def execute(statespace):
 
             if(instruction['opcode'] == "SUICIDE"):
 
-                issue = Issue("Unchecked SUICIDE", "VULNERABILITY")
+                issue = Issue("Unchecked SUICIDE", "Warning")
                 issue.description = "The function " + node.function_name + " executes the SUICIDE instruction."
 
                 state = node.states[instruction['address']]
