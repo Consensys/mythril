@@ -2,7 +2,7 @@
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
-Mythril is a security analysis tool for Ethereum smart contracts. It uses symbolic analysis to detect various types of issues. Use it to analyze source code or as a "nmap-style" blockchain scanner.
+Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis to detect various types of issues. Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
 
   * [Installation and setup](#installation-and-setup)
   * [Security analysis (EXPERIMENTAL)](#security-analysis-experimental)
