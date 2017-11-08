@@ -66,24 +66,6 @@ class StateSpace:
         self.sstor_analysis()
 
 
-    def propagate_taint(self, sstor, index):
-
-        if sstor.tainted:
-            return
-
-        sstor.tainted = True
-
-        # TODO: Taint should propagate to other storage indices
-
-        '''
-        for index in self.sstors:
-            for s in self.sstors[index]:
-                for constraint in s.node.constraints:
-                    if 'storage_' + index in str(constraint):
-                        self.propagate_taint(s, index)
-        '''
-
-
     def sstor_analysis(self):
 
         for index in self.sstors:
@@ -91,14 +73,15 @@ class StateSpace:
 
                 taint = True
 
+                # For now we simply 'taint' every storage location that can be written to without any constraint on msg.sender
+
                 for constraint in s.node.constraints:
-                    # logging.info("LOL " + str(constraint))
-                    if (re.search(r'storage_[0-9a-f]+', str(constraint))):
+                    if ("caller" in str(constraint)):
                         taint = False
                         break
 
                 if taint:
-                    self.propagate_taint(s, index)
+                    s.tainted = True
 
 
     def find_storage_write(self, index):

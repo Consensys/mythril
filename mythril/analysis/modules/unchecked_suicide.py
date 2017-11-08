@@ -24,6 +24,8 @@ def execute(statespace):
 
             if(instruction['opcode'] == "SUICIDE"):
 
+                logging.info("[UNCHECKED SUICIDE] suicide in function " + node.function_name)
+
                 issue = Issue("Unchecked SUICIDE", "Warning")
                 issue.description = "The function " + node.function_name + " executes the SUICIDE instruction."
 
@@ -34,16 +36,27 @@ def execute(statespace):
                     issue.description += "\nThe remaining Ether is sent to the caller's address.\n"
                 elif ("storage" in str(to)):
                     issue.description += "\nThe remaining Ether is sent to a stored address\n"
+                elif ("calldata" in str(to)):
+                    issue.description += "\nThe remaining Ether is sent to an address provided as a function argument."
                 else:
                     issue.description += "\nThe remaining Ether is sent to: " + str(to) + "\n"
 
                 for constraint in node.constraints:
-                    m = re.search(r'storage_([0-9a-f])+', str(constraint))
+
+                    logging.info(str(constraint))
+
+
+                for constraint in node.constraints:
+
+                    m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
                     can_solve = True
 
                     if (m):
                         index = m.group(1)
+
+                        logging.info("Storage constraint: " + str(constraint))
+                        logging.info("Storage constraint index: " + str(index))
 
                         try:
                             can_write = False
@@ -52,7 +65,7 @@ def execute(statespace):
                                 if s.tainted:
                                     can_write = True
 
-                                    issue.description += "There is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
+                                    issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                     break
 
                             if not can_write:
@@ -70,7 +83,7 @@ def execute(statespace):
                     s = Solver()
 
                     for constraint in node.constraints:
-                        # print(str(constraint))
+                        logging.info(str(simplify(constraint)))
                         s.add(constraint)
 
                     if (s.check() == sat):
@@ -83,6 +96,9 @@ def execute(statespace):
                             logging.debug("%s = 0x%x" % (d.name(), m[d].as_long()))
 
                         issues.append(issue)
+
+                    else:
+                        logging.debug("unsat")
 
 
     return issues
