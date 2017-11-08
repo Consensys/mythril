@@ -15,7 +15,6 @@ def execute(statespace):
 
     issues = []
 
-
     for k in statespace.nodes:
         node = statespace.nodes[k]
 
@@ -23,7 +22,7 @@ def execute(statespace):
 
             if(instruction['opcode'] == "SUICIDE"):
 
-                logging.info("[UNCHECKED SUICIDE] suicide in function " + node.function_name)
+                logging.debug("[UNCHECKED SUICIDE] suicide in function " + node.function_name)
 
                 issue = Issue("Unchecked SUICIDE", "Warning")
                 issue.description = "The function " + node.function_name + " executes the SUICIDE instruction."
@@ -42,20 +41,12 @@ def execute(statespace):
 
                 for constraint in node.constraints:
 
-                    logging.info(str(constraint))
-
-
-                for constraint in node.constraints:
-
                     m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
                     can_solve = True
 
                     if (m):
                         index = m.group(1)
-
-                        logging.info("Storage constraint: " + str(constraint))
-                        logging.info("Storage constraint index: " + str(index))
 
                         try:
                             can_write = False
@@ -82,7 +73,6 @@ def execute(statespace):
                     s = Solver()
 
                     for constraint in node.constraints:
-                        logging.info(str(simplify(constraint)))
                         s.add(constraint)
 
                     if (s.check() == sat):
