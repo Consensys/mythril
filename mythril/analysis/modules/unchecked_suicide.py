@@ -15,10 +15,9 @@ def execute(statespace):
 
     issues = []
 
-    svm = statespace.svm
 
-    for k in svm.nodes:
-        node = svm.nodes[k]
+    for k in statespace.nodes:
+        node = statespace.nodes[k]
 
         for instruction in node.instruction_list:
 

@@ -1,7 +1,5 @@
 from laser.ethereum import svm
 from .ops import *
-import re
-import logging
 
 
 class StateSpace:
@@ -71,17 +69,14 @@ class StateSpace:
         for index in self.sstors:
             for s in self.sstors[index]:
 
-                taint = True
+                s.tainted = True
 
                 # For now we simply 'taint' every storage location that can be written to without any constraint on msg.sender
 
                 for constraint in s.node.constraints:
                     if ("caller" in str(constraint)):
-                        taint = False
+                        s.tainted = False
                         break
-
-                if taint:
-                    s.tainted = True
 
 
     def find_storage_write(self, index):
