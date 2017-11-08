@@ -1,6 +1,17 @@
+//sol Wallet
+// Multi-sig, daily-limited account proxy/wallet.
+// @authors:
+// Gav Wood <g@ethdev.com>
+// inheritable "property" contract that enables methods to be protected by requiring the acquiescence of either a
+// single, or, crucially, each of a number of, designated owners.
+// usage:
+// use modifiers onlyowner (just own owned) or onlymanyowners(hash), whereby the same hash must be provided by
+// some number (specified in constructor) of the set of owners (specified in the constructor, modifiable) before the
+// interior is executed.
+
 pragma solidity ^0.4.9;
 
-contract WalletLibrary {
+contract WalletEvents {
   // EVENTS
 
   // this contract only has six types of events: it can accept a confirmation, in which case
@@ -24,8 +35,33 @@ contract WalletLibrary {
   event MultiTransact(address owner, bytes32 operation, uint value, address to, bytes data, address created);
   // Confirmation still needed for a transaction.
   event ConfirmationNeeded(bytes32 operation, address initiator, uint value, address to, bytes data);
+}
 
+contract WalletAbi {
+  // Revokes a prior confirmation of the given operation
+  function revoke(bytes32 _operation) external;
 
+  // Replaces an owner `_from` with another `_to`.
+  function changeOwner(address _from, address _to) external;
+
+  function addOwner(address _owner) external;
+
+  function removeOwner(address _owner) external;
+
+  function changeRequirement(uint _newRequired) external;
+
+  function isOwner(address _addr) constant returns (bool);
+
+  function hasConfirmed(bytes32 _operation, address _owner) external constant returns (bool);
+
+  // (re)sets the daily limit. needs many of the owners to confirm. doesn't alter the amount already spent today.
+  function setDailyLimit(uint _newLimit) external;
+
+  function execute(address _to, uint _value, bytes _data) external returns (bytes32 o_hash);
+  function confirm(bytes32 _h) returns (bool o_success);
+}
+
+contract WalletLibrary is WalletEvents {
   // TYPES
 
   // struct for the status of a pending operation.
@@ -68,7 +104,7 @@ contract WalletLibrary {
 
   // constructor is given number of sigs required to do protected "onlymanyowners" transactions
   // as well as the selection of addresses capable of confirming them.
-  function initMultiowned(address[] _owners, uint _required) {
+  function initMultiowned(address[] _owners, uint _required) only_uninitialized {
     m_numOwners = _owners.length + 1;
     m_owners[1] = uint(msg.sender);
     m_ownerIndex[uint(msg.sender)] = 1;
@@ -162,7 +198,7 @@ contract WalletLibrary {
   }
 
   // constructor - stores initial daily limit and records the present day's index.
-  function initDaylimit(uint _limit) {
+  function initDaylimit(uint _limit) only_uninitialized {
     m_dailyLimit = _limit;
     m_lastDay = today();
   }
@@ -175,9 +211,12 @@ contract WalletLibrary {
     m_spentToday = 0;
   }
 
+  // throw unless the contract is not yet initialized.
+  modifier only_uninitialized { if (m_numOwners > 0) throw; _; }
+
   // constructor - just pass on the owner array to the multiowned and
   // the limit to daylimit
-  function initWallet(address[] _owners, uint _required, uint _daylimit) {
+  function initWallet(address[] _owners, uint _required, uint _daylimit) only_uninitialized {
     initDaylimit(_daylimit);
     initMultiowned(_owners, _required);
   }
@@ -221,7 +260,7 @@ contract WalletLibrary {
   function create(uint _value, bytes _code) internal returns (address o_addr) {
     assembly {
       o_addr := create(_value, add(_code, 0x20), mload(_code))
-      // jumpi(invalidJumpLabel, iszero(extcodesize(o_addr)))
+      jumpi(invalidJumpLabel, iszero(extcodesize(o_addr)))
     }
   }
 
@@ -354,4 +393,72 @@ contract WalletLibrary {
 
   // pending transactions we have at present.
   mapping (bytes32 => Transaction) m_txs;
+}
+
+contract Wallet is WalletEvents {
+
+  // WALLET CONSTRUCTOR
+  //   calls the `initWallet` method of the Library in this context
+  function Wallet(address[] _owners, uint _required, uint _daylimit) {
+    // Signature of the Wallet Library's init function
+    bytes4 sig = bytes4(sha3("initWallet(address[],uint256,uint256)"));
+    address target = _walletLibrary;
+
+    // Compute the size of the call data : arrays has 2
+    // 32bytes for offset and length, plus 32bytes per element ;
+    // plus 2 32bytes for each uint
+    uint argarraysize = (2 + _owners.length);
+    uint argsize = (2 + argarraysize) * 32;
+
+    assembly {
+      // Add the signature first to memory
+      mstore(0x0, sig)
+      // Add the call data, which is at the end of the
+      // code
+      codecopy(0x4,  sub(codesize, argsize), argsize)
+      // Delegate call to the library
+      delegatecall(sub(gas, 10000), target, 0x0, add(argsize, 0x4), 0x0, 0x0)
+    }
+  }
+
+  // METHODS
+
+  // gets called when no other function matches
+  function() payable {
+    // just being sent some cash?
+    if (msg.value > 0)
+      Deposit(msg.sender, msg.value);
+    else if (msg.data.length > 0)
+      _walletLibrary.delegatecall(msg.data);
+  }
+
+  // Gets an owner by 0-indexed position (using numOwners as the count)
+  function getOwner(uint ownerIndex) constant returns (address) {
+    return address(m_owners[ownerIndex + 1]);
+  }
+
+  // As return statement unavailable in fallback, explicit the method here
+
+  function hasConfirmed(bytes32 _operation, address _owner) external constant returns (bool) {
+    return _walletLibrary.delegatecall(msg.data);
+  }
+
+  function isOwner(address _addr) constant returns (bool) {
+    return _walletLibrary.delegatecall(msg.data);
+  }
+
+  // FIELDS
+  address constant _walletLibrary = 0xcafecafecafecafecafecafecafecafecafecafe;
+
+  // the number of owners that must confirm the same operation before it is run.
+  uint public m_required;
+  // pointer used to find a free slot in m_owners
+  uint public m_numOwners;
+
+  uint public m_dailyLimit;
+  uint public m_spentToday;
+  uint public m_lastDay;
+
+  // list of owners
+  uint[256] m_owners;
 }
