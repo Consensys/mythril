@@ -5,7 +5,7 @@
 Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis to detect various types of issues. Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
 
   * [Installation and setup](#installation-and-setup)
-  * [Security analysis (EXPERIMENTAL)](#security-analysis--experimental-)
+  * [Security analysis (EXPERIMENTAL)](#security-analysis-experimental)
   * [Control flow graph](#control-flow-graph)
   * [Input formats](#input-formats)
     + [Working with Solidity files](#working-with-solidity-files)
