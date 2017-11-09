@@ -1,8 +1,11 @@
 from z3 import *
+from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+from mythril.exceptions import UnsatError
 import re
 import logging
+
 
 
 '''
@@ -52,8 +55,9 @@ def execute(statespace):
                             can_write = False
 
                             for s in statespace.sstors[index]:
+
                                 if s.tainted:
-                                    can_write = True
+                                    can_write = Trues
 
                                     issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                     break
@@ -70,24 +74,13 @@ def execute(statespace):
 
                 if can_solve:
 
-                    s = Solver()
-
-                    for constraint in node.constraints:
-                        s.add(constraint)
-
-                    if (s.check() == sat):
-
-                        m = s.model()
-
-                        logging.debug("Model for node " + str(node.uid) + ", function " +  node.function_name + ": ")
-
-                        for d in m.decls():
-                            logging.debug("%s = 0x%x" % (d.name(), m[d].as_long()))
-
+                    try:
+                        model = solver.get_model(node.constraints)
                         issues.append(issue)
 
-                    else:
-                        logging.debug("unsat")
-
+                        for d in model.decls():
+                            logging.debug("[UNCHECKED_SUICIDE] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                    except UnsatError:
+                            logging.debug("[UNCHECKED_SUICIDE] no model found")         
 
     return issues

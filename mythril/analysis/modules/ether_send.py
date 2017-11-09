@@ -1,6 +1,8 @@
 from z3 import *
 from mythril.analysis.ops import *
+from mythril.analysis import solver
 from mythril.analysis.report import Issue
+from mythril.exceptions import UnsatError
 import re
 import logging
 
@@ -41,6 +43,8 @@ def execute(statespace):
             issue.description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
             interesting = True
 
+        issue.description += "Call value is " + str(call.value) + "\n"
+
         if interesting:
 
             node = call.node
@@ -48,33 +52,44 @@ def execute(statespace):
             can_solve = True
 
             for constraint in node.constraints:
-                m = re.search(r'storage_([0-9a-f])+', str(constraint))
+
+                m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
+
+                can_solve = True
 
                 if (m):
                     index = m.group(1)
 
-                    write_func = statespace.find_storage_write(index)
+                    try:
+                        can_write = False
 
-                    if write_func is None:
+                        for s in statespace.sstors[index]:
+
+                            if s.tainted:
+                                can_write = True
+
+                                issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
+                                break
+
+                        if not can_write:
+                            logging.info("No storage writes to index " + str(index))
+                            can_solve = False
+                            break
+
+                    except KeyError:
+                        logging.info("No storage writes to index " + str(index))
                         can_solve = False
                         break
 
             if can_solve:
 
-                s = Solver()
-
-                for constraint in node.constraints:
-                    s.add(constraint)
-
-                if (s.check() == sat):
-
-                    m = s.model()
-
-                    logging.debug("Model for node " + str(node.uid) + ", function " +  node.function_name + ": ")
-
-                    for d in m.decls():
-                        logging.debug("%s = 0x%x" % (d.name(), m[d].as_long()))
-
+                try:
+                    model = solver.get_model(node.constraints)
                     issues.append(issue)
+
+                    for d in model.decls():
+                        logging.debug("[UNCHECKED_SEND] %s = 0x%x" % (d.name(), model[d].as_long()))
+                except UnsatError:
+                        logging.debug("[UNCHECKED_SEND] no model found")  
 
     return issues

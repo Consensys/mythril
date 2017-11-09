@@ -1,5 +1,8 @@
+from mythril.analysis import solver
+from mythril.exceptions import UnsatError
 from laser.ethereum import svm
 from .ops import *
+import logging
 
 
 class StateSpace:
@@ -66,17 +69,25 @@ class StateSpace:
 
     def sstor_analysis(self):
 
+        logging.debug("Analyzing storage operations...")
+
         for index in self.sstors:
             for s in self.sstors[index]:
 
-                s.tainted = True
-
-                # For now we simply 'taint' every storage location that can be written to without any constraint on msg.sender
+                # For now we simply 'taint' every storage location that is reachable without any constraint on msg.sender
 
                 for constraint in s.node.constraints:
+                    logging.debug("Constraint: " + str(constraint))
                     if ("caller" in str(constraint)):
                         s.tainted = False
                         break
+
+                    try:
+                        solver.get_model(s.node.constraints)
+                        s.tainted = True
+                    except UnsatError:
+                        s.tainted = False
+
 
 
     def find_storage_write(self, index):
