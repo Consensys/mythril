@@ -21,7 +21,11 @@ def execute(statespace):
 
     for call in statespace.calls:
 
-        logging.debug("CALL with value " + str(call.value.val))
+        if ("callvalue" in str(call.value)):
+            logging.debug("[ETHER_SEND] Skipping refund function")
+            continue
+
+        logging.debug("[ETHER_SEND] CALL with value " + str(call.value.val))
         issue = Issue("Ether send", "Warning")
 
         # We're only interested in calls that send Ether
@@ -50,37 +54,49 @@ def execute(statespace):
 
             node = call.node
 
+            constrained = False
             can_solve = True
 
-            for constraint in node.constraints:
+            while (can_solve and len(node.constraints)):
+
+                constraint = node.constraints.pop()
 
                 m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
-                can_solve = True
+                overwrite = False
 
                 if (m):
+                    constrained = True
                     index = m.group(1)
 
                     try:
-                        can_write = False
 
                         for s in statespace.sstors[index]:
 
                             if s.tainted:
-                                can_write = True
-
                                 issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                 break
 
-                        if not can_write:
-                            logging.info("No storage writes to index " + str(index))
+                        if not overwrite:
+                            logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
                             can_solve = False
                             break
 
                     except KeyError:
-                        logging.info("No storage writes to index " + str(index))
+                        logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
                         can_solve = False
                         break
+
+
+                # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
+
+                elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
+                   can_solve = False
+                   break
+
+
+            if not constrained:
+                issue.description += "\nIt seems that this function can be called without restrictions."
 
             if can_solve:
 
@@ -89,8 +105,8 @@ def execute(statespace):
                     issues.append(issue)
 
                     for d in model.decls():
-                        logging.debug("[UNCHECKED_SEND] %s = 0x%x" % (d.name(), model[d].as_long()))
+                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
                 except UnsatError:
-                        logging.debug("[UNCHECKED_SEND] no model found")  
+                        logging.debug("[ETHER_SEND] no model found")  
 
     return issues

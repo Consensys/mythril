@@ -26,7 +26,7 @@ def execute(statespace):
 
             if(instruction['opcode'] == "SUICIDE"):
 
-                logging.debug("[UNCHECKED SUICIDE] suicide in function " + node.function_name)
+                logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
 
                 issue = Issue("Unchecked SUICIDE", "Warning")
                 issue.description = "The function " + node.function_name + " executes the SUICIDE instruction."
@@ -40,38 +40,54 @@ def execute(statespace):
                     issue.description += "\nThe remaining Ether is sent to a stored address\n"
                 elif ("calldata" in str(to)):
                     issue.description += "\nThe remaining Ether is sent to an address provided as a function argument."
+                elif (type(to) == BitVecNumRef):
+                    issue.description += "\nThe remaining Ether is sent to: " + hex(to.as_long())
                 else:
                     issue.description += "\nThe remaining Ether is sent to: " + str(to) + "\n"
 
-                for constraint in node.constraints:
+                constrained = False
+                can_solve = True
+
+                while (can_solve and len(node.constraints)):
+
+                    constraint = node.constraints.pop()
 
                     m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
-                    can_solve = True
+                    overwrite = False
 
                     if (m):
+                        constrained = True
                         index = m.group(1)
 
                         try:
-                            can_write = False
 
                             for s in statespace.sstors[index]:
 
                                 if s.tainted:
-                                    can_write = True
-
                                     issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                     break
 
-                            if not can_write:
-                                logging.info("No storage writes to index " + str(index))
+                            if not overwrite:
+                                logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(index))
                                 can_solve = False
                                 break
 
                         except KeyError:
-                            logging.info("No storage writes to index " + str(index))
+                            logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(index))
                             can_solve = False
                             break
+
+
+                    # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
+
+                    elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
+                       can_solve = False
+                       break
+
+
+                if not constrained:
+                    issue.description += "\nIt seems that this function can be called without restrictions."
 
                 if can_solve:
 
