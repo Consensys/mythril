@@ -2,7 +2,7 @@
 
 | Issue | Description | Detection | Mythril Module(s) |
 |------:|-------------|-----------|-----------|
-|Unprotected functions|             |           | [unchecked_suicide](mythril/analysis/modules/unchecked_suicide.py); [ether_send](mythril/analysis/modules/ether_send.py)          |
+|Unprotected functions|             |           | [unchecked_suicide](mythril/analysis/modules/unchecked_suicide.py), [ether_send](mythril/analysis/modules/ether_send.py)          |
 |Re-entrancy|             |           |           |
 |Multiple transfers in a single transaction|             |           |           |
 |Integer overflow/underflow|             |           |           |

@@ -38,7 +38,7 @@ Note that Mythril requires Python 3.5 to work.
 
 ## Security analysis (EXPERIMENTAL)
 
-Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory.
+Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. See also the [list of security checks](security_checks.md).
 
 ## Control flow graph
 

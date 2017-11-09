@@ -10,8 +10,9 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for CALLs that send >0 Ether to a chosen address.
-Return locations that can be reached by anyone, or that have constraints on storage indices that can be written to.
+Check for CALLs that send >0 Ether to either the transaction sender, or to an address provided as a function argument.
+If msg.sender is checked against a value in storage, check whether that storage index is tainted (i.e. there's an unconstrained write
+to that index).
 '''
 
 def execute(statespace):
