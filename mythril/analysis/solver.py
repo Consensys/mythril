@@ -3,6 +3,7 @@ from mythril.exceptions import UnsatError
 
 def get_model(constraints):
     s = Solver()
+    s.set("timeout", 2000)
 
     for constraint in constraints:
         s.add(constraint)
@@ -12,5 +13,5 @@ def get_model(constraints):
         return s.model()
 
     else:
-            raise UnsatError
+        raise UnsatError
 

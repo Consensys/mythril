@@ -57,7 +57,7 @@ def execute(statespace):
                             for s in statespace.sstors[index]:
 
                                 if s.tainted:
-                                    can_write = Trues
+                                    can_write = True
 
                                     issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                     break

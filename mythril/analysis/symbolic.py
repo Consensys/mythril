@@ -69,19 +69,22 @@ class StateSpace:
 
     def sstor_analysis(self):
 
-        logging.debug("Analyzing storage operations...")
+        logging.info("Analyzing storage operations...")
 
         for index in self.sstors:
             for s in self.sstors[index]:
 
                 # For now we simply 'taint' every storage location that is reachable without any constraint on msg.sender
 
+                taint = True
+
                 for constraint in s.node.constraints:
-                    logging.debug("Constraint: " + str(constraint))
+                    # logging.debug("Constraint: " + str(constraint))
                     if ("caller" in str(constraint)):
-                        s.tainted = False
+                        taint = False
                         break
 
+                if taint:
                     try:
                         solver.get_model(s.node.constraints)
                         s.tainted = True
