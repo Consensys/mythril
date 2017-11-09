@@ -11,7 +11,8 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a writable storage index.
+Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a tainted storage index 
+(i.e. there's a write to that index is unconstrained by msg.sender).
 '''
 
 def execute(statespace):
