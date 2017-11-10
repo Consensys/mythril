@@ -25,7 +25,6 @@ def execute(statespace):
             logging.debug("[ETHER_SEND] Skipping refund function")
             continue
 
-        logging.debug("[ETHER_SEND] CALL with value " + str(call.value.val))
         issue = Issue("Ether send", "Warning")
 
         # We're only interested in calls that send Ether
@@ -57,9 +56,13 @@ def execute(statespace):
             constrained = False
             can_solve = True
 
-            while (can_solve and len(node.constraints)):
+            index = 0
 
-                constraint = node.constraints.pop()
+            while(can_solve and index < len(node.constraints)):
+
+                constraint = node.constraints[index]
+                index += 1
+                logging.debug("[ETHER_SEND] Constraint: " + str(constraint))
 
                 m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
@@ -102,6 +105,7 @@ def execute(statespace):
 
                 try:
                     model = solver.get_model(node.constraints)
+                    logging.debug("[ETHER_SEND] MODEL: " + str(model))
                     issues.append(issue)
 
                     for d in model.decls():
