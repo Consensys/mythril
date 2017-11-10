@@ -8,8 +8,10 @@ def fire_lasers(statespace):
 
 	issues += delegatecall_forward.execute(statespace)
 	issues += unchecked_suicide.execute(statespace)
-	issues += unchecked_retval.execute(statespace)
 	issues += ether_send.execute(statespace)
+
+	# still needs some work
+	# issues += unchecked_retval.execute(statespace)
 
 	if (len(issues)):
 		report = Report(issues)
