@@ -12,5 +12,4 @@
 |Transaction order dependence|             |           |           |
 |Timestamp dependence|                        |           |
 |Information exposure|                        |           |
-
 |Call depth attack|                        |           |
