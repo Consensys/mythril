@@ -86,7 +86,7 @@ except KeyError:
 
 args = parser.parse_args()
 
-if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.trace):
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.trace or args.storage):
     parser.print_help()
     sys.exit()
 
@@ -178,9 +178,14 @@ if args.storage:
     if not args.address:
         exitWithError("To read storage, provide the address of a deployed contract with the -a option.")  
     else:
-        print(eth.eth_getStorageAt(args.address, position=index, block='latest'))
+        try:
+            position = int(args.storage)
+        except ValueError:
+            exitWithError("Invalid storage index. Please provide a numeric value.")  
 
-if (args.disassemble):
+        print(eth.eth_getStorageAt(args.address, position=position, block='latest'))
+
+elif (args.disassemble):
 
     easm_text = contracts[0].get_easm()
     sys.stdout.write(easm_text)
