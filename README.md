@@ -12,7 +12,7 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses concol
     + [Working with on-chain contracts](#working-with-on-chain-contracts)
   * [Blockchain exploration](#blockchain-exploration)
     + [Searching from the command line](#searching-from-the-command-line)
-    + [Reading contract storge(#reading-contract-storage)
+    + [Reading contract storge](#reading-contract-storage)
   * [Utilities](#utilities)
     + [Disassembler](#disassembler)
     + [Finding cross-references](#finding-cross-references)
