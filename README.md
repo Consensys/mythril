@@ -162,6 +162,15 @@ $ myth --xrefs -a 0x76799f77587738bfeef09452df215b63d2cfb08a
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
+### Reading contract storage
+
+You can read the contents of storage slots from a deployed contract as follows.
+
+```bash
+./myth --storage 0 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
+0x0000000000000000000000000000000000000000000000000000000000000003
+```
+
 ### Calculating function hashes
 
 To print the Keccak hash for a given function signature:
