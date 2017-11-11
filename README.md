@@ -12,6 +12,7 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses concol
     + [Working with on-chain contracts](#working-with-on-chain-contracts)
   * [Blockchain exploration](#blockchain-exploration)
     + [Searching from the command line](#searching-from-the-command-line)
+    + [Reading contract storge(#reading-contract-storage)
   * [Utilities](#utilities)
     + [Disassembler](#disassembler)
     + [Finding cross-references](#finding-cross-references)
@@ -126,6 +127,15 @@ $ myth --search "code#PUSH1 0x50,POP#"
 $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 ```
 
+### Reading contract storage
+
+You can read the contents of storage slots from a deployed contract as follows.
+
+```bash
+./myth --storage 0 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
+0x0000000000000000000000000000000000000000000000000000000000000003
+```
+
 ## Utilities
 
 ### Disassembler
@@ -160,15 +170,6 @@ Matched contract with code hash 07459966443977122e639cbf7804c446
 Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
 $ myth --xrefs -a 0x76799f77587738bfeef09452df215b63d2cfb08a
 5b9e8728e316bbeb692d22daaab74f6cbf2c4691
-```
-
-### Reading contract storage
-
-You can read the contents of storage slots from a deployed contract as follows.
-
-```bash
-./myth --storage 0 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
-0x0000000000000000000000000000000000000000000000000000000000000003
 ```
 
 ### Calculating function hashes
