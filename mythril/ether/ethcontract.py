@@ -70,8 +70,8 @@ class ETHContract(persistent.Persistent):
 
         for token in tokens:
 
-            if token == " and " or token == " or ":
-                str_eval += token + " "
+            if token in ("and", "or", "not"):
+                str_eval += " " + token + " "
                 continue
 
             m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
@@ -87,6 +87,8 @@ class ETHContract(persistent.Persistent):
                 str_eval += "\"" + m.group(1) + "\" in easm_code" + " "
 
                 continue
+
+        print(str_eval)
 
         return eval(str_eval.strip())
 
