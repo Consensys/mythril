@@ -66,29 +66,29 @@ class ETHContract(persistent.Persistent):
 
             expression = expression.replace(m, sign_hash)
 
-        tokens = re.split("( and | or )", expression, re.IGNORECASE)
+        tokens = filter(None, re.split("(and|or|not)", expression.replace(" ", ""), re.IGNORECASE))
 
         for token in tokens:
 
             if token == " and " or token == " or ":
-                str_eval += token
+                str_eval += token + " "
                 continue
 
             m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
 
             if (m):
                 code = m.group(1).replace(",", "\\n")
-                str_eval += "\"" + code + "\" in easm_code"
+                str_eval += "\"" + code + "\" in easm_code" + " "
                 continue
 
             m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in easm_code" 
+                str_eval += "\"" + m.group(1) + "\" in easm_code" + " "
 
                 continue
 
-        return eval(str_eval)
+        return eval(str_eval.strip())
 
 
 class InstanceList(persistent.Persistent):
