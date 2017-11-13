@@ -29,7 +29,7 @@ def execute(statespace):
                     issue = Issue("CALLDATA forwarded with delegatecall()", "Informational")
                     issue.description = \
                         "The contract '" +  str(call.node.module_name)  + "' forwards its calldata via DELEGATECALL in its fallback function. " \
-                        "This means that any function in the called contract can be executed. Note that the callee contract will have access to the storage of the calling.\n"   
+                        "This means that any function in the called contract can be executed. Note that the callee contract will have access to the storage of the calling contract.\n"   
                     
                     if (call.to.type == VarType.CONCRETE):
                         issue.description += ("DELEGATECALL target: " + hex(call.to.val))
