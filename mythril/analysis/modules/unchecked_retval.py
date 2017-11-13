@@ -35,6 +35,8 @@ def execute(statespace):
 
         instr = call.node.instruction_list[next_i]
  
+        logging.info("CALL. Next instruction: " + instr['opcode'])
+
         # The stack contents at a particular point of execution are found in node.states[address].stack
 
         if (instr['opcode'] != 'ISZERO' or not re.search(r'retval', str(call.node.states[call.addr + 1].stack[-1]))):
