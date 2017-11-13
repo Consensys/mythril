@@ -58,7 +58,7 @@ def execute(statespace):
             elif (re.search(r"storage", str(call.to))):
                 receiver = "an address obtained from storage"
             else:
-                receiver = str(call_to)
+                receiver = str(call.to)
 
 
             issue.description = \
