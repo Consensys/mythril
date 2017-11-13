@@ -10,6 +10,7 @@ from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import compile_solidity
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
+from mythril.rpc.exceptions import *
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
@@ -120,26 +121,19 @@ if args.search or args.init_db:
 
 if (args.address or len(args.solidity_file)):
         if args.ipc:
-            try:
-                eth = EthIpc()
-
-            except Exception as e:
-                exitWithError("Error establishing IPC connection: " + str(e))
+            eth = EthIpc()
         else:
-            try:
-                if args.infura_mainnet:
-                    eth = EthJsonRpc('mainnet.infura.io', 443, True)
-                elif args.infura_rinkeby:
-                    eth = EthJsonRpc('rinkeby.infura.io', 443, True)
-                elif args.infura_kovan:
-                    eth = EthJsonRpc('kovan.infura.io', 443, True)
-                elif args.infura_ropsten:
-                    eth = EthJsonRpc('ropsten.infura.io', 443, True)
-                else:
-                    eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+            if args.infura_mainnet:
+                eth = EthJsonRpc('mainnet.infura.io', 443, True)
+            elif args.infura_rinkeby:
+                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+            elif args.infura_kovan:
+                eth = EthJsonRpc('kovan.infura.io', 443, True)
+            elif args.infura_ropsten:
+                eth = EthJsonRpc('ropsten.infura.io', 443, True)
+            else:
+                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
-            except Exception as e:
-                exitWithError("Error establishing RPC connection: " + str(e))
 
 # Load / compile input contracts
 
@@ -148,7 +142,13 @@ contracts = []
 if (args.code):
     contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
 elif (args.address):
-    contracts.append(ETHContract(eth.eth_getCode(args.address), name=args.address, address = args.address))
+
+    try:
+        code = eth.eth_getCode(args.address)
+    except ConnectionError:
+        exitWithError("Error connecting to Ethereum node. Make sure that your node is up and that the provided RPC/IPC parameters are correct.")
+
+    contracts.append(ETHContract(code), name=args.address, address = args.address)
 elif (len(args.solidity_file)):
     index = 0
 
