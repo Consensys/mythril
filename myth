@@ -148,7 +148,7 @@ elif (args.address):
     except ConnectionError:
         exitWithError("Error connecting to Ethereum node. Make sure that your node is up and that the provided RPC/IPC parameters are correct.")
 
-    contracts.append(ETHContract(code), name=args.address, address = args.address)
+    contracts.append(ETHContract(code, name=args.address, address = args.address))
 elif (len(args.solidity_file)):
     index = 0
 
