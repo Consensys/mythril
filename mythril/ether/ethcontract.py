@@ -78,17 +78,15 @@ class ETHContract(persistent.Persistent):
 
             if (m):
                 code = m.group(1).replace(",", "\\n")
-                str_eval += "\"" + code + "\" in easm_code" + " "
+                str_eval += "\"" + code + "\" in easm_code"
                 continue
 
             m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in easm_code" + " "
+                str_eval += "\"" + m.group(1) + "\" in easm_code"
 
                 continue
-
-        print(str_eval)
 
         return eval(str_eval.strip())
 
