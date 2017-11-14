@@ -6,7 +6,7 @@
 |Missing check on CALL return value|          | [unchecked_retval](mythril/analysis/modules/unchecked_retval.py)
 |Re-entrancy|                        |           |
 |Multiple transfers in a single transaction|             |           |           |
-|Integer overflow/underflow|                        |           |
+|Integer overflow/underflow|                        | [integer_underflow(mythril/analysis/modules/integer_underflow.py)          |
 |Type confusion|                        |           |
 |Predictable RNG|                        |           |
 |Transaction order dependence|             |           |           |
