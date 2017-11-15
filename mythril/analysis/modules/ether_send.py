@@ -33,7 +33,8 @@ def execute(statespace):
 
         interesting = False
 
-        # Check the CALL target
+        issue = Issue("Ether send", "Warning")
+        issue.description = "In the function '" + call.node.function_name +"' "
 
         if re.search(r'caller', str(call.to)):
             issue.description += "a non-zero amount of Ether is sent to msg.sender.\n"
@@ -43,11 +44,9 @@ def execute(statespace):
             issue.description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
             interesting = True
 
-        if interesting:
+        issue.description += "Call value is " + str(call.value) + "\n"
 
-            issue = Issue("Ether send", "Warning")
-            issue.description = "In the function '" + call.node.function_name +"' "
-            issue.description += "Call value is " + str(call.value) + "\n"
+        if interesting:
 
             node = call.node
 
