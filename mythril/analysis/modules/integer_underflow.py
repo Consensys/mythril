@@ -36,7 +36,7 @@ def execute(statespace):
                 if (type(op0) == int and type(op1) == int):
                     continue
 
-                logging.debug("[INTEGER_UNDERFLOW] Checking SUB " + str(op0) + ", " + str(op1))
+                logging.debug("[INTEGER_UNDERFLOW] Checking SUB " + str(op0) + ", " + str(op1) + " at address " + str(instruction['address']))
 
                 constraints.append(UGT(op1,op0))
 
@@ -46,15 +46,9 @@ def execute(statespace):
 
                     issue = Issue("Integer Underflow", "Warning")
 
-                    m = re.search(r'(storage_\d+)', str(op0))
-
-                    if (m):
-                        storage_index = m.group(1)
-                    else:
-                        storage_index = "unknown"
-
                     issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
-                        "There SUB instruction at address " + str(instruction['address']) + " may underflow the state variable stored at position " + storage_index + "."
+                        "There SUB instruction at address " + str(instruction['address']) + " performs the operation " + str(op0) + " - " + str(op1) + ". " \
+                        "However, it is not verified that " + str(op0) + " >= " + str(op1) + "."
 
                     issues.append(issue)
 

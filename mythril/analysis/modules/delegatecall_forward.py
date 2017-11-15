@@ -13,8 +13,16 @@ Check for invocations of delegatecall(msg.data) in the fallback function.
 def execute(statespace):
 
     issues = []
+    visited = []
 
     for call in statespace.calls:
+
+        # Only needs to be checked once per call instructions (essentially just static analysis)
+
+        if call.addr in visited:
+            continue
+        else:
+            visited.append(call.addr)
 
         if (call.type == "DELEGATECALL") and (call.node.function_name == "main"):
 

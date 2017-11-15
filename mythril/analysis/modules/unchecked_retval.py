@@ -16,7 +16,7 @@ For direct calls, the Solidity compiler auto-generates this check. E.g.:
 
 Here the CALL will be followed by IZSERO(retval).
 
-For low-level-calls this check is ommited. E.g.:
+For low-level-calls this check is omitted. E.g.:
 
     c.call.value(0)(bytes4(sha3("ping(uint256)")),1);
 
@@ -25,8 +25,16 @@ For low-level-calls this check is ommited. E.g.:
 def execute(statespace):
 
     issues = []
+    visited = []
 
     for call in statespace.calls:
+
+        # Only needs to be checked once per call instructions (essentially just static analysis)
+
+        if call.addr in visited:
+            continue
+        else:
+            visited.append(call.addr)
 
         # The instructions executed in each node (basic block) are saved in node.instruction_list, e.g.:
         # [{address: "132", opcode: "CALL"}, {address: "133", opcode: "ISZERO"}]

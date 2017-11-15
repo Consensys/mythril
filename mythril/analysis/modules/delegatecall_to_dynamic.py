@@ -12,8 +12,16 @@ Check for invocations of delegatecall to a dynamic contract address (e.g. taken 
 def execute(statespace):
 
     issues = []
+    visited = []
 
     for call in statespace.calls:
+
+        # Only needs to be checked once per call instructions (essentially just static analysis)
+
+        if call.addr in visited:
+            continue
+        else:
+            visited.append(call.addr)
 
         if (call.type == "DELEGATECALL"):
 
