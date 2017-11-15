@@ -31,7 +31,7 @@ def execute(statespace):
             if call.value.val == 0:
                 continue
 
-        interesting = False
+        logging.debug("[SEND_WITH_GAS]: ")
 
         # Check the CALL target
 
