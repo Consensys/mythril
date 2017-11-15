@@ -46,6 +46,9 @@ def execute(statespace):
 
                     issue = Issue("Integer Underflow", "Warning")
 
+                    op0 = str(op0).replace("\n","")
+                    op1 = str(op1).replace("\n","")
+
                     issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
                         "There SUB instruction at address " + str(instruction['address']) + " performs the operation " + str(op0) + " - " + str(op1) + ". " \
                         "However, it is not verified that " + str(op0) + " >= " + str(op1) + "."
