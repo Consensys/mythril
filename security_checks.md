@@ -2,7 +2,7 @@
 
 | Issue | Description | Mythril Detection Module(s) |
 |------:|-------------|------------|
-|Unprotected functions|         | [unchecked_suicide](mythril/analysis/modules/unchecked_suicide.py), [ether_send](mythril/analysis/modules/ether_send.py)          |
+|Unprotected functions| Critical functions such as sends with non-zero value or suicide() calls are callable by anyone, or msg.sender is compared against an address in storage that can be written to. E.g. Parity wallet bugs. | [unchecked_suicide](mythril/analysis/modules/unchecked_suicide.py), [ether_send](mythril/analysis/modules/ether_send.py)          |
 |Missing check on CALL return value|          | [unchecked_retval](mythril/analysis/modules/unchecked_retval.py)
 |Re-entrancy|                        |           |
 |Multiple transfers in a single transaction|             |           |           |
