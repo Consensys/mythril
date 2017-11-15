@@ -14,4 +14,5 @@
 |Transaction order dependence|             |           |           |
 |Timestamp dependence|                        |           |
 |Information exposure|                        |           |
+|Payable transaction does not revert in case of failure | | |
 |Call depth attack|                        |           |
