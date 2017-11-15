@@ -1,5 +1,6 @@
 from z3 import *
 import re
+from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 import logging
 from laser.ethereum import helper
@@ -61,7 +62,11 @@ def execute(statespace):
 
             issue = Issue("Unchecked CALL return value")
 
-            if (re.search(r"caller", str(call.to))):
+            logging.info("TYPE: " + str(type(call.to)))
+
+            if (call.to.type == VarType.CONCRETE):
+                receiver = hex(call.to.val)
+            elif (re.search(r"caller", str(call.to))):
                 receiver = "msg.sender"
             elif (re.search(r"storage", str(call.to))):
                 receiver = "an address obtained from storage"
