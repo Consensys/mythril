@@ -33,6 +33,6 @@ def execute(statespace):
                     "The function " + call.node.function_name + " in contract '" + call.node.module_name + " delegates execution to a contract with a dynamic address." \
                     "To address:" + str(call.to)
 
-            issues.append(issue)
+                issues.append(issue)
 
     return issues
