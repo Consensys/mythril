@@ -7,7 +7,7 @@
 |Re-entrancy|                        |           |
 |Multiple transfers in a single transaction|             |           |           |
 |Function call to untrusted contract|             |           |           |
-|Delegatecall or callcode to untrusted contract|             |           |           |
+|Delegatecall or callcode to untrusted contract|                   | [delegatecall_forward](mythril/analysis/modules/delegatecall_forward.py), [delegatecall_to_dynamic.py](mythril/analysis/modules/delegatecall_to_dynamic.py) |
 |Integer overflow/underflow|                        | [integer_underflow](mythril/analysis/modules/integer_underflow.py)          |
 |Type confusion|                        |           |
 |Predictable RNG|                        |           |
