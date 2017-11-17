@@ -1,5 +1,5 @@
 from mythril.analysis.report import Report
-from .modules import delegatecall_forward, unchecked_suicide, ether_send, unchecked_retval, delegatecall_to_dynamic, integer_underflow
+from .modules import delegatecall_forward, unchecked_suicide, ether_send, unchecked_retval, delegatecall_to_dynamic, integer_underflow, call_to_dynamic_with_gas
 
 
 def fire_lasers(statespace):
@@ -8,6 +8,7 @@ def fire_lasers(statespace):
 
 	issues += delegatecall_forward.execute(statespace)
 	issues += delegatecall_to_dynamic.execute(statespace)
+	issues += call_to_dynamic_with_gas.execute(statespace)
 	issues += unchecked_suicide.execute(statespace)
 	issues += unchecked_retval.execute(statespace)
 	issues += ether_send.execute(statespace)
