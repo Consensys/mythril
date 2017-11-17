@@ -24,14 +24,12 @@ def execute(statespace):
             if (call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas))):
 
                 issue = Issue("CALL with gas to dynamic address", "Warning")
+                issue.description = "The function " + call.node.function_name + " contains a call.value() to "
 
                 target = str(call.to)
                 is_valid = False
 
                 if ("calldata" in target or "caller" in target):
-
-                    issue.description = \
-                        "The function " + call.node.function_name + " contains a call.value() to "
 
                     if ("calldata" in target):
                         issue.description += "an address provided as a function argument. "
@@ -52,9 +50,9 @@ def execute(statespace):
                                 if s.tainted:
 
                                     issue.description += \
-                                        "The target address of the call is found at storage position " + str(index) + \
+                                        "an address found at storage position " + str(index) + ".\n" + \
                                         "This storage position can be written to by calling the function '" + s.node.function_name + "'.\n" \
-                                        "Make sure that the contract address cannot be set by untrusted users. "
+                                        "Verify that the contract address cannot be set by untrusted users.\n"
 
                                     is_valid = True
                                     break
