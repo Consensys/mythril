@@ -1,19 +1,19 @@
 from mythril.analysis.report import Report
-from .modules import delegatecall_forward, unchecked_suicide, ether_send, unchecked_retval, delegatecall_to_dynamic, integer_underflow, call_to_dynamic_with_gas
+from mythril.analysis import modules
+import pkgutil
 
 
 def fire_lasers(statespace):
 
-	issues = []
+    issues = []
+    _modules = []
+    
+    for loader, name, is_pkg in pkgutil.walk_packages(modules.__path__):
+        _modules.append(loader.find_module(name).load_module(name))
 
-	issues += delegatecall_forward.execute(statespace)
-	issues += delegatecall_to_dynamic.execute(statespace)
-	issues += call_to_dynamic_with_gas.execute(statespace)
-	issues += unchecked_suicide.execute(statespace)
-	issues += unchecked_retval.execute(statespace)
-	issues += ether_send.execute(statespace)
-	issues += integer_underflow.execute(statespace)
+    for module in _modules:
+        issues += module.execute(statespace)
 
-	if (len(issues)):
-		report = Report(issues)
-		print(report.as_text())
+    if (len(issues)):
+        report = Report(issues)
+        print(report.as_text())
