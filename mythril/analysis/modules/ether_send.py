@@ -50,13 +50,14 @@ def execute(statespace):
             node = call.node
 
             can_solve = True
+            constrained = False
 
             index = 0
 
             while(can_solve and index < len(node.constraints)):
 
-                index += 1
                 constraint = node.constraints[index]
+                index += 1
                 logging.debug("[ETHER_SEND] Constraint: " + str(constraint))
 
                 m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
@@ -64,6 +65,8 @@ def execute(statespace):
                 overwrite = False
 
                 if (m):
+
+                    constrained = True
                     idx = m.group(1)
 
                     try:
@@ -73,7 +76,7 @@ def execute(statespace):
                             if s.tainted:
                                 description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                 overwrite = True
-                                break
+                                continue
 
                         if not overwrite:
                             logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
@@ -89,10 +92,14 @@ def execute(statespace):
                 # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
 
                 elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
-                   can_solve = False
-                   break
-                else:
-                    description += "\nIt seems that this function can be called without restrictions."
+                    constrained = True
+                    can_solve = False
+                    break
+        
+
+
+            if not constrained:
+                description += "It seems that this function can be called without restrictions."
 
             if can_solve:
 
