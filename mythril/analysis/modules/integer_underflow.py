@@ -36,10 +36,14 @@ def execute(statespace):
                 if (type(op0) == int and type(op1) == int):
                     continue
 
-                if re.search(r'\d* \+ calldata', str(op0)) and re.search(r'\d+', str(op1)):
-                    # Filter for a common pattern that contains an possible (but Ion-exploitable) Integer overflow and subsequent underflow.
-                    # The pattern looks as follows: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would overflow if calldatasize is very large.
-                    # There's a few other things that sometimes pop up which still need to be investigated.
+                if re.search(r'\d* \+ calldata', str(op0)) and re.search(r'\d+', str(op1)) or re.search(r'256\*If\(1', str(op0)):
+                    # Filter for patterns that contain possible (but apparently non-exploitable) Integer overflows.
+
+                    # Pattern 1: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would overflow if calldatasize is very large.
+                    # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
+
+                    # Both seem to be standard compiler outputs that pop up in many contracts.
+                    # They are probably intentional but more research is needed.
 
                     continue
 
