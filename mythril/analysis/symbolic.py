@@ -79,7 +79,6 @@ class StateSpace:
                 taint = True
 
                 for constraint in s.node.constraints:
-                    # logging.debug("Constraint: " + str(constraint))
                     if ("caller" in str(constraint)):
                         taint = False
                         break

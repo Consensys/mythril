@@ -1,3 +1,5 @@
+import hashlib
+
 class Issue:
 
     def __init__(self, contract, function, pc, title, _type="Informational", description="", debug=""):
@@ -18,14 +20,20 @@ class Issue:
 
 class Report:
 
-    def __init__(self, issues = []):
-        self.issues = issues
+    def __init__(self):
+        self.issues = {}
+        pass
 
+    def append_issue(self, issue):
+        m = hashlib.md5()
+        m.update((issue.contract + str(issue.pc) + issue.title).encode('utf-8'))
+        self.issues[m.digest()] = issue
 
     def as_text(self):
         text = ""
 
-        for issue in self.issues:
+        for key, issue in self.issues.items():
+
             text += "==== " + issue.title + " ====\n"
             text += "Type: " + issue.type + "\n"
 
@@ -37,9 +45,12 @@ class Report:
             text += "Function name: " + issue.function + "\n"
             text += "PC address: " + str(issue.pc) + "\n"
 
-            text += "--------------------\n" + issue.description + "\n"
-            text += "++++ Debugging info ++++\n" + issue.debug + "\n"
+            text += issue.description + "\n--------------------\n"
 
+            if len(issue.debug):
+                text += "++++ Debugging info ++++\n" + issue.debug + "\n"
+
+            text+="\n"
 
         return text
 

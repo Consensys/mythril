@@ -23,7 +23,7 @@ def execute(statespace):
 
             if (call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas))):
 
-                description = "The function " + call.node.function_name + " contains a call.value() to "
+                description = "The function " + call.node.function_name + " contains a function call to "
 
                 target = str(call.to)
                 is_valid = False
@@ -62,7 +62,7 @@ def execute(statespace):
 
                 if is_valid:
 
-                    description += "The available gas is forwarded to the called contract.\nMake sure that the logic of the calling contract is not adversely affected if the called contract misbehaves (e.g. reentrancy)." 
+                    description += "The available gas is forwarded to the called contract. Make sure that the logic of the calling contract is not adversely affected if the called contract misbehaves (e.g. reentrancy)." 
 
                     issue = Issue(call.node.module_name, call.node.function_name, call.addr, "CALL with gas to dynamic address", "Warning", description)
 

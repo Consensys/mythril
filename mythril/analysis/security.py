@@ -14,6 +14,11 @@ def fire_lasers(statespace):
     for module in _modules:
         issues += module.execute(statespace)
 
+    report = Report()
+
     if (len(issues)):
-        report = Report(issues)
+
+        for i in range(0, len(issues)):
+            report.append_issue(issues[i])
+
         print(report.as_text())

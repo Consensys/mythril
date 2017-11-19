@@ -59,7 +59,7 @@ def execute(statespace):
                     issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
                         "The SUB instruction at address " + str(instruction['address']) + " may result in a value < 0." 
 
-                    issue.debug = "(" + str(op0) + ") - (" + str(op1) + ").]n" \
+                    issue.debug = "(" + str(op0) + ") - (" + str(op1) + ").]"
 
                     issues.append(issue)
 
