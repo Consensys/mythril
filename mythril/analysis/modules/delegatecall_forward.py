@@ -34,7 +34,8 @@ def execute(statespace):
 
                 if (re.search(r'calldata.*_0', str(call.state.memory[meminstart.val]))):
 
-                    issue = Issue("CALLDATA forwarded with delegatecall()", "Informational")
+                    issue = Issue(call.node.module_name, call.node.function_name, call.addr, "CALLDATA forwarded with delegatecall()", "Informational")
+
                     issue.description = \
                         "The contract '" +  str(call.node.module_name)  + "' forwards its calldata via DELEGATECALL in its fallback function. " \
                         "This means that any function in the called contract can be executed. Note that the callee contract will have access to the storage of the calling contract.\n"   

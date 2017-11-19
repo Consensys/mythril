@@ -30,7 +30,7 @@ def execute(statespace):
 
     for call in statespace.calls:
 
-        # Only needs to be checked once per call instructions (essentially just static analysis)
+        # Only needs to be checked once per call instructions (it's essentially just static analysis)
 
         if call.addr in visited:
             continue
@@ -44,8 +44,7 @@ def execute(statespace):
  
         retval_checked = False
 
-        # ISZERO retval should be found within the next 10 instructions.
-        # The stack contents at a particular point of execution are found in node.states[address].stack
+        # ISZERO retval should be found within the next few instructions.
 
         for i in range(0, 10):
 
@@ -60,9 +59,7 @@ def execute(statespace):
 
         if not retval_checked:
 
-            issue = Issue("Unchecked CALL return value")
-
-            logging.info("TYPE: " + str(type(call.to)))
+            issue = Issue(call.node.module_name, call.node.function_name, call.addr, "Unchecked CALL return value")
 
             if (call.to.type == VarType.CONCRETE):
                 receiver = hex(call.to.val)
@@ -75,7 +72,7 @@ def execute(statespace):
 
 
             issue.description = \
-                "The function " + call.node.function_name + " in contract '" + call.node.module_name + "' contains a call to " + receiver + ".\n" \
+                "The function " + call.node.function_name + " contains a call to " + receiver + ".\n" \
                 "The return value of this call is not checked. Note that the function will continue to execute with a return value of '0' if the called contract throws."
 
             issues.append(issue)

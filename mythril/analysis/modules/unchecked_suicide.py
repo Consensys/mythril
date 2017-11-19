@@ -28,22 +28,21 @@ def execute(statespace):
 
                 logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
 
-                issue = Issue("Unchecked SUICIDE", "Warning")
-                issue.description = "The function " + node.function_name + " executes the SUICIDE instruction."
+                description = "The function " + node.function_name + " executes the SUICIDE instruction."
 
                 state = node.states[instruction['address']]
                 to = state.stack.pop()
 
                 if ("caller" in str(to)):
-                    issue.description += "\nThe remaining Ether is sent to the caller's address.\n"
+                    description += "\nThe remaining Ether is sent to the caller's address.\n"
                 elif ("storage" in str(to)):
-                    issue.description += "\nThe remaining Ether is sent to a stored address\n"
+                    description += "\nThe remaining Ether is sent to a stored address\n"
                 elif ("calldata" in str(to)):
-                    issue.description += "\nThe remaining Ether is sent to an address provided as a function argument."
+                    description += "\nThe remaining Ether is sent to an address provided as a function argument."
                 elif (type(to) == BitVecNumRef):
-                    issue.description += "\nThe remaining Ether is sent to: " + hex(to.as_long())
+                    description += "\nThe remaining Ether is sent to: " + hex(to.as_long())
                 else:
-                    issue.description += "\nThe remaining Ether is sent to: " + str(to) + "\n"
+                    description += "\nThe remaining Ether is sent to: " + str(to) + "\n"
 
                 constrained = False
                 can_solve = True
@@ -68,7 +67,7 @@ def execute(statespace):
                             for s in statespace.sstors[index]:
 
                                 if s.tainted:
-                                    issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
+                                    description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
                                     break
 
                             if not overwrite:
@@ -90,17 +89,21 @@ def execute(statespace):
 
 
                 if not constrained:
-                    issue.description += "\nIt seems that this function can be called without restrictions."
+                    description += "\nIt seems that this function can be called without restrictions."
 
                 if can_solve:
 
                     try:
                         model = solver.get_model(node.constraints)
                         logging.debug("[UNCHECKED_SUICIDE] MODEL: " + str(model))
-                        issues.append(issue)
+
 
                         for d in model.decls():
                             logging.debug("[UNCHECKED_SUICIDE] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+
+                        issue = Issue(node.module_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description)
+                        issues.append(issue)
+
                     except UnsatError:
                             logging.debug("[UNCHECKED_SUICIDE] no model found")         
 

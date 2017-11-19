@@ -21,14 +21,12 @@ def execute(statespace):
 
             if (call.to.type == VarType.SYMBOLIC):
 
-                logging.debug("[DELEGATECALL_TO_DYNAMIC] checking...")
-
                 if ("calldata" in str(call.to)):
-                    issue = Issue(call.type + " to dynamic address", "Vulnerability")
+                    issue = Issue(call.node.module_name, call.node.function_name, call.addr, call.type + " to dynamic address")
 
                     issue.description = \
-                        "The function " + call.node.function_name + " in contract '" + call.node.module_name + "' delegates execution to a contract address obtained from calldata.\n" \
-                        "To address: " + str(call.to)
+                        "The function " + call.node.function_name + " delegates execution to a contract address obtained from calldata.\n" \
+                        "Recipient address: " + str(call.to)
 
                     issues.append(issue)
                 else:
@@ -56,7 +54,7 @@ def execute(statespace):
 
                     else:
 
-                        issue = Issue("DELEGATECALL to dynamic address", "Informational")
+                        issue = Issue(call.node.module_name, call.node.function_name, call.addr, "DELEGATECALL to dynamic address", "Informational")
 
                         issue.description = \
                             "The function " + call.node.function_name + " in contract '" + call.node.module_name + " delegates execution to a contract with a dynamic address." \

@@ -39,6 +39,7 @@ def execute(statespace):
                 if re.search(r'\d* \+ calldata', str(op0)) and re.search(r'\d+', str(op1)):
                     # Filter for a common pattern that contains an possible (but Ion-exploitable) Integer overflow and subsequent underflow.
                     # The pattern looks as follows: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would overflow if calldatasize is very large.
+                    # There's a few other things that sometimes pop up which still need to be investigated.
 
                     continue
 
@@ -50,14 +51,15 @@ def execute(statespace):
                     
                     model = solver.get_model(node.constraints)
 
-                    issue = Issue("Integer Underflow", "Warning")
-
                     op0 = str(op0).replace("\n","")
                     op1 = str(op1).replace("\n","")
 
+                    issue = Issue(node.module_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
+
                     issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
-                        "There SUB instruction at address " + str(instruction['address']) + " performs the operation (" + str(op0) + ") - (" + str(op1) + "). " \
-                        "However, it is not verified that (" + str(op0) + ") >= (" + str(op1) + ")."
+                        "The SUB instruction at address " + str(instruction['address']) + " may result in a value < 0." 
+
+                    issue.debug = "(" + str(op0) + ") - (" + str(op1) + ").]n" \
 
                     issues.append(issue)
 

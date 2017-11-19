@@ -33,32 +33,30 @@ def execute(statespace):
 
         interesting = False
 
-        issue = Issue("Ether send", "Warning")
-        issue.description = "In the function '" + call.node.function_name +"' "
+        description = "In the function '" + call.node.function_name +"' "
 
         if re.search(r'caller', str(call.to)):
-            issue.description += "a non-zero amount of Ether is sent to msg.sender.\n"
+            description += "a non-zero amount of Ether is sent to msg.sender.\n"
             interesting = True
 
         if re.search(r'calldata', str(call.to)):
-            issue.description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
+            description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
             interesting = True
-
-        issue.description += "Call value is " + str(call.value) + "\n"
 
         if interesting:
 
+            description += "Call value is " + str(call.value) + ".\n"
+
             node = call.node
 
-            constrained = False
             can_solve = True
 
             index = 0
 
             while(can_solve and index < len(node.constraints)):
 
-                constraint = node.constraints[index]
                 index += 1
+                constraint = node.constraints[index]
                 logging.debug("[ETHER_SEND] Constraint: " + str(constraint))
 
                 m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
@@ -66,15 +64,15 @@ def execute(statespace):
                 overwrite = False
 
                 if (m):
-                    constrained = True
-                    index = m.group(1)
+                    idx = m.group(1)
 
                     try:
 
-                        for s in statespace.sstors[index]:
+                        for s in statespace.sstors[idx]:
 
                             if s.tainted:
-                                issue.description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
+                                description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
+                                overwrite = True
                                 break
 
                         if not overwrite:
@@ -93,21 +91,22 @@ def execute(statespace):
                 elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
                    can_solve = False
                    break
-
-
-            if not constrained:
-                issue.description += "\nIt seems that this function can be called without restrictions."
+                else:
+                    description += "\nIt seems that this function can be called without restrictions."
 
             if can_solve:
 
                 try:
                     model = solver.get_model(node.constraints)
                     logging.debug("[ETHER_SEND] MODEL: " + str(model))
-                    issues.append(issue)
 
                     for d in model.decls():
                         logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+
+                    issue = Issue(call.node.module_name, call.node.function_name, call.addr, "Ether send", "Warning", description)
+                    issues.append(issue)
+ 
                 except UnsatError:
-                        logging.debug("[ETHER_SEND] no model found")  
+                    logging.debug("[ETHER_SEND] no model found")  
 
     return issues
