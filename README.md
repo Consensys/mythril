@@ -27,7 +27,7 @@ Note that Mythril requires Python 3.5 to work.
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
 
-See also the [list of security checks](security_checks.md).
+Mythril detects a range of [security issues](security_checks.md), including integer underflows, owner-overwrite-to-Ether-withdrawal, and others. However, the analysis will not detect business logic issues and is not equivalent toformal verification.
 
 ### Analyzing Solidity code
 
