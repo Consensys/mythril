@@ -5,6 +5,7 @@ from mythril.analysis.report import Issue
 import logging
 from laser.ethereum import helper
 
+
 '''
 MODULE DESCRIPTION:
 
@@ -15,7 +16,7 @@ For direct calls, the Solidity compiler auto-generates this check. E.g.:
     Alice c = Alice(address);  
     c.ping(42);
 
-Here the CALL will be followed by IZSERO(retval).
+Here the CALL will be followed by IZSERO(retval), if retval = ZERO then state is reverted.
 
 For low-level-calls this check is omitted. E.g.:
 

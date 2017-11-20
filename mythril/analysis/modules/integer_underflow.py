@@ -33,17 +33,19 @@ def execute(statespace):
 
                 constraints = node.constraints
 
-                if (type(op0) == int and type(op1) == int):
+                if type(op0) == int and type(op1) == int:
                     continue
 
-                if re.search(r'\d* \+ calldata', str(op0)) and re.search(r'\d+', str(op1)) or re.search(r'256\*If\(1', str(op0)):
+                if (re.search(r'\d* \+ calldata', str(op0)) and re.search(r'\d+', str(op1))) \
+                    or (re.search(r'256\*If\(1', str(op0)) or re.search(r'256\*If\(1', str(op1))):
+
                     # Filter for patterns that contain possible (but apparently non-exploitable) Integer overflows.
 
                     # Pattern 1: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would overflow if calldatasize is very large.
                     # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
 
-                    # Both seem to be standard compiler outputs that pop up in many contracts.
-                    # They are probably intentional but more research is needed.
+                    # Both seem to be standard compiler outputs that exist in many contracts.
+                    # They are probably intentional but may be worth looking into.
 
                     continue
 
@@ -54,9 +56,6 @@ def execute(statespace):
                 try:
                     
                     model = solver.get_model(node.constraints)
-
-                    op0 = str(op0).replace("\n","")
-                    op1 = str(op1).replace("\n","")
 
                     issue = Issue(node.module_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
 
