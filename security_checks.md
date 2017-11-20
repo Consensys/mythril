@@ -9,10 +9,11 @@
 |Function call to untrusted contract|             |           [call to untrusted contract with gas](mythril/analysis/modules/call_to_dynamic_with_gas.py) | |
 |Delegatecall or callcode to untrusted contract|                   | [delegatecall_forward](mythril/analysis/modules/delegatecall_forward.py), [delegatecall_to_dynamic.py](mythril/analysis/modules/delegatecall_to_dynamic.py) |  |
 |Integer overflow/underflow|                        | [integer_underflow](mythril/analysis/modules/integer_underflow.py)          |  |
+|Timestamp dependence|                        |           |  |
+|Payable transaction does not revert in case of failure | | |   |
+|Call depth attack|                        |           |   |
+|Use of `tx.origin`|                        | [tx_origin](mythril/analysis/modules/tx_origin.py)       | [Solidity documentation](https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin), [Avoid using tx.origin](https://consensys.github.io/smart-contract-best-practices/recommendations/#avoid-using-txorigin) |
 |Type confusion|                        |           |  |
 |Predictable RNG|                        |           |  |
 |Transaction order dependence|             |           |           |  |
-|Timestamp dependence|                        |           |  |
 |Information exposure|                        |           |   |
-|Payable transaction does not revert in case of failure | | |   |
-|Call depth attack|                        |           |   |
