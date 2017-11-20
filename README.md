@@ -4,20 +4,6 @@
 
 Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis to detect various types of issues. Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
 
-  * [Installation and setup](#installation-and-setup)
-  * [Security analysis (EXPERIMENTAL)](#security-analysis-experimental)
-  * [Control flow graph](#control-flow-graph)
-  * [Input formats](#input-formats)
-    + [Working with Solidity files](#working-with-solidity-files)
-    + [Working with on-chain contracts](#working-with-on-chain-contracts)
-  * [Blockchain exploration](#blockchain-exploration)
-    + [Searching from the command line](#searching-from-the-command-line)
-    + [Reading contract storge](#reading-contract-storage)
-  * [Utilities](#utilities)
-    + [Disassembler](#disassembler)
-    + [Finding cross-references](#finding-cross-references)
-    + [Calculating function hashes](#calculating-function-hashes)
-  * [Credit](#credit)
 
 ## Installation and setup
 
@@ -39,25 +25,11 @@ Note that Mythril requires Python 3.5 to work.
 
 ## Security analysis (EXPERIMENTAL)
 
-Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. See also the [list of security checks](security_checks.md).
+Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
 
-## Control flow graph
+See also the [list of security checks](security_checks.md).
 
-The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
-
-```bash
-$ myth -g ./graph.html -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l
-```
-
-![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
-
-~~The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout.~~ Try adding the `--enable-physics` flag for a very entertaining "bounce" effect that unfortunately completely destroys usability.
-
-## Input formats
-
-Mythril can handle various sources and input formats, including bytecode, addresses of contracts on the blockchain, and Solidity source code files.
-
-### Working with Solidity files
+### Analyzing Solidity code
 
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
@@ -79,7 +51,7 @@ $ myth -x myContract.sol myLibrary.sol
 
 ### Working with on-chain contracts
 
-To pull contracts from the blockchain you need an Ethereum node that is synced with the network. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
+To analyze contracts on the blockchain you need an Ethereum node. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
 
 ```
 $ myth --rpchost=mainnet.infura.io/{API-KEY} --rpcport=443  --rpctls=True (... etc ...)
@@ -95,14 +67,24 @@ Specify the target contract with the `-a` option:
 
 ```bash
 $ myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd -v1
-$ myth -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
-```
 
-Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as library contracts, from the blockchain:
+Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as library contracts:
 
 ```bash
 $  myth -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
+
+## Control flow graph
+
+The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
+
+```bash
+$ myth -g ./graph.html -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l
+```
+
+![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
+
+~~The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout.~~ Try adding the `--enable-physics` flag for a very entertaining "bounce" effect that unfortunately completely destroys usability.
 
 ## Blockchain exploration
 

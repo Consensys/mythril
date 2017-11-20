@@ -1,7 +1,5 @@
-from z3 import *
 from mythril.analysis.report import Issue
 import re
-
 
 
 '''
