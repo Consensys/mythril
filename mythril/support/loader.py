@@ -25,7 +25,14 @@ class DynLoader:
                 idx = int(m.group(1))
                 logging.info("Dynamic contract address at storage index " + str(idx))
 
-                dependency_address = "0x" + self.eth.eth_getStorageAt(contract_address, position=idx, block='latest')[26:]
+                # testrpc simply returns the address, geth response is more elaborate.
+
+                dependency_address = self.eth.eth_getStorageAt(contract_address, position=idx, block='latest')
+
+                if not re.match(r"0x[0-9a-f]{40}", dependency_address):
+
+                    dependency_address = "0x" + self.eth.eth_getStorageAt(contract_address, position=idx, block='latest')[26:]
+                
 
             else:
                 logging.info("Unable to resolve address.")
