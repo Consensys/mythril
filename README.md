@@ -67,6 +67,7 @@ Specify the target contract with the `-a` option:
 
 ```bash
 $ myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd -v1
+```
 
 Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as library contracts:
 
