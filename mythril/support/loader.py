@@ -27,8 +27,6 @@ class DynLoader:
 
                 dependency_address = self.eth.eth_getStorageAt(contract_address, position=idx, block='latest')
 
-                logging.info("eth_getStorageAt: " + dependency_address)
-
                 if not re.match(r"^0x[0-9a-f]{40}$", dependency_address):
 
                     dependency_address = "0x" + dependency_address[26:]
