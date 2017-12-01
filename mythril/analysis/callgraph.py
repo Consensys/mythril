@@ -78,8 +78,30 @@ graph_html = '''<html>
 <p><div id="mynetwork"></div><br /></p>
 <script type="text/javascript">
 var container = document.getElementById('mynetwork');
-var data = {'nodes': nodes, 'edges': edges}
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
 var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
 </script>
 </body>
 </html>
@@ -109,9 +131,13 @@ def serialize(statespace, color_map):
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
+        code_split = code.split("\\n")
+
+        truncated_code = code if (len(code_split) < 7) else "\\n".join(code_split[:6]) + "\\n(click to expand +)"
+
         color = color_map[statespace.nodes[node_key].as_dict()['module_name']]
 
-        nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
+        nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + truncated_code + "', 'fullLabel': '" + code + "', 'truncLabel': '" + truncated_code + "', 'isExpanded': false}")
 
     for edge in statespace.edges:
 
