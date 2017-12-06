@@ -14,24 +14,29 @@ def add_signatures_from_file(file, sigs={}):
                 funcs.append(m.group(1))
 
     for f in funcs:
+        print(f)
+
         m = re.search(r'^([A-Za-z0-9_]+)', f)
 
-        signature = m.group(1)
+        if (m):
 
-        m = re.search(r'\((.*)\)', f)
-        _args = m.group(1).split(",")
+            signature = m.group(1)
 
-        types = []
+            m = re.search(r'\((.*)\)', f)
 
-        for arg in _args:
+            _args = m.group(1).split(",")
 
-            _type = arg.lstrip().split(" ")[0]
-            if _type == "uint":
-                _type = "uint256"
+            types = []
 
-            types.append(_type)
+            for arg in _args:
 
-        typelist = ",".join(types)
-        signature += "(" + typelist + ")"
+                _type = arg.lstrip().split(" ")[0]
+                if _type == "uint":
+                    _type = "uint256"
 
-        sigs["0x" + utils.sha3(signature)[:4].hex()] = signature
+                types.append(_type)
+
+            typelist = ",".join(types)
+            signature += "(" + typelist + ")"
+
+            sigs["0x" + utils.sha3(signature)[:4].hex()] = signature

@@ -35,7 +35,7 @@ def execute(statespace):
                 if type(op0) == int and type(op1) == int:
                     continue
 
-                if (re.search(r'\d* \+ calldata', str(op0)) and re.search(r'\d+', str(op1))) \
+                if (re.search(r'calldatasize_', str(op0))) \
                     or (re.search(r'256\*If\(1', str(op0)) or re.search(r'256\*If\(1', str(op1))):
 
                     # Filter for patterns that contain possible (but apparently non-exploitable) Integer overflows.
