@@ -64,7 +64,7 @@ $ myth -x myContract.sol myLibrary.sol
 To analyze contracts on the blockchain you need an Ethereum node. By default, Mythril will query a local node via RPC. Alternatively, you can use [INFURA](https://infura.io):
 
 ```
-$ myth --infura-mainnet -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+$ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
 If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
