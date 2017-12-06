@@ -4,7 +4,6 @@
 
 Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis to detect various types of issues. Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
 
-
 ## Installation and setup
 
 Install from Pypi:
@@ -62,13 +61,13 @@ $ myth -x myContract.sol myLibrary.sol
 
 ### Working with on-chain contracts
 
-To analyze contracts on the blockchain you need an Ethereum node. By default, Mythril will query a local node via RPC. Alternatively, you can connect to a remote service such as [INFURA](https://infura.io):
+To analyze contracts on the blockchain you need an Ethereum node. By default, Mythril will query a local node via RPC. Alternatively, you can use [INFURA](https://infura.io):
 
 ```
-$ myth --rpchost=mainnet.infura.io/{API-KEY} --rpcport=443  --rpctls=True (... etc ...)
+$ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
-The recommended way is to use [go-ethereum](https://github.com/ethereum/go-ethereum). Start your local node as follows:
+If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
 
 ```bash
 $ geth --rpc --rpcapi eth,debug --syncmode fast
