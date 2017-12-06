@@ -11,6 +11,7 @@ from mythril.ether.util import compile_solidity
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from mythril.rpc.exceptions import ConnectionError
+from mythril.support import signatures
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
@@ -18,7 +19,9 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
 from ethereum import utils
 from pathlib import Path
+from json.decoder import JSONDecodeError
 import logging
+import json
 import sys
 import argparse
 import os
@@ -74,14 +77,15 @@ options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL'
 # Get config values
 
 try:
-    db_dir = os.environ['DB_DIR']
+    mythril_dir = os.environ['MYTHRIL_DIR']
 except KeyError:
-    db_dir = None
+    mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
 
 try:
     solc_binary = os.environ['SOLC']
 except KeyError:
     solc_binary = 'solc'
+
 
 # Parse cmdline args
 
@@ -103,7 +107,7 @@ elif (args.hash):
 
 if args.search or args.init_db:
 
-    contract_storage = get_persistent_storage(db_dir)
+    contract_storage = get_persistent_storage(mythril_dir)
 
     if (args.search):
 
@@ -135,6 +139,21 @@ if (args.address or len(args.solidity_file)):
                 eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
 
+
+# If no function signature file exists, create it. Function signatures from Solidity source code are added automatically.
+
+signatures_file = os.path.join(mythril_dir, 'signatures.json')
+
+if not os.path.exists(signatures_file):
+    sigs = {}
+else:
+    with open(signatures_file) as f:
+        try:
+            sigs = json.load(f)
+        except JSONDecodeError as e:
+            exitWithError("Invalid JSON in signatures file " + signatures_file + "\n" + str(e))
+
+
 # Load / compile input contracts
 
 contracts = []
@@ -156,6 +175,10 @@ elif (len(args.solidity_file)):
 
         file = file.replace("~", str(Path.home())) # Expand user path
 
+        signatures.add_signatures_from_file(file, sigs)
+
+        logging.debug("Adding function signatures from source code:\n" + str(sigs))
+
         try:
             name, bytecode = compile_solidity(solc_binary, file)
         except CompilerError as e:
@@ -168,6 +191,11 @@ elif (len(args.solidity_file)):
 
         contracts.append(contract)
         logging.info(contract.name + " at " + contract.address)
+
+    # Save updated signature
+
+    with open(signatures_file, 'w') as f:
+        json.dump(sigs, f)
 
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")

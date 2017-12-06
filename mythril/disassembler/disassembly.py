@@ -1,6 +1,7 @@
 from mythril.ether import asm,util
 import os
 import json
+import logging
 
 
 class Disassembly:
@@ -11,13 +12,23 @@ class Disassembly:
         self.func_to_addr = {}
         self.addr_to_func = {}
 
+        try:
+            mythril_dir = os.environ['MYTHRIL_DIR']
+        except KeyError:
+            mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
+
+        # Load function signatures
+
+        signatures_file = os.path.join(mythril_dir, 'signatures.json')
+
+        if not os.path.exists(signatures_file):
+            logging.info("Missing function signature file. Resolving of function names disabled.")
+            signatures = {}
+        else:
+            with open(signatures_file) as f:
+                signatures = json.load(f)
+
         # Parse jump table & resolve function names
-
-        script_dir = os.path.dirname(os.path.realpath(__file__))
-        signature_file = os.path.join(script_dir, 'signatures.json')
-
-        with open(signature_file) as f:
-            signatures = json.load(f)
 
         jmptable_indices = asm.find_opcode_sequence(["PUSH4", "EQ"], self.instruction_list)
 
