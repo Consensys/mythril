@@ -75,6 +75,17 @@ Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, 
 $  myth -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
 
+### Function signatures
+
+Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database is located in `~/.mythril/signatures.json`. A default signature file is available in the Mythril repo. You can obtain it as follows:
+
+```
+$ cd ~/.mythril
+$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
+```
+
+Note that when you scan Solidity code, new function signatures are added to the database automatically.
+
 ## Control flow graph
 
 The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
@@ -130,7 +141,7 @@ $ myth -d -c "0x6060"
 0 PUSH1 0x60
 ```
 
-Specifying an address via `-a ADDRESS` will download the contract code from your node. Mythril will try to resolve function names using the signatures in `database/signature.json`:
+Specifying an address via `-a ADDRESS` will download the contract code from your node.
 
 ```bash
 $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
@@ -168,4 +179,4 @@ $ myth --hash "setOwner(address)"
 
 - JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
 
-- The signature data in `signatures.json` has been obtained from the [Ethereum Function Signature Database](https://www.4byte.directory).
+- The signature data in `signatures.json` was initially obtained from the [Ethereum Function Signature Database](https://www.4byte.directory).
