@@ -47,11 +47,7 @@ class ContractStorage(persistent.Persistent):
         return self.contracts[contract_hash]
 
 
-    def initialize(self, rpchost, rpcport, rpctls, sync_all, ipc):
-        if ipc:
-            eth = EthIpc()
-        else:
-            eth = EthJsonRpc(rpchost, rpcport, rpctls)
+    def initialize(self, eth, sync_all):
 
         if self.last_block:
             blockNum = self.last_block

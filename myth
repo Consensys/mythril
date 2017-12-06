@@ -103,6 +103,24 @@ elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())
     sys.exit()
 
+# Establish RPC/IPC connection if necessary
+
+if (args.address or len(args.solidity_file) or args.init_db):
+        if args.ipc:
+            eth = EthIpc()
+        else:
+            if args.infura_mainnet:
+                eth = EthJsonRpc('mainnet.infura.io', 443, True)
+            elif args.infura_rinkeby:
+                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+            elif args.infura_kovan:
+                eth = EthJsonRpc('kovan.infura.io', 443, True)
+            elif args.infura_ropsten:
+                eth = EthJsonRpc('ropsten.infura.io', 443, True)
+            else:
+                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+
+
 # Database search ops
 
 if args.search or args.init_db:
@@ -117,26 +135,9 @@ if args.search or args.init_db:
             exitWithError("Syntax error in search expression.")
 
     elif (args.init_db):
-            contract_storage.initialize(args.rpchost, args.rpcport, args.rpctls, args.sync_all, args.ipc)
+            contract_storage.initialize(eth, args.sync_all)
 
     sys.exit()
-
-# Establish RPC/IPC connection if necessary
-
-if (args.address or len(args.solidity_file)):
-        if args.ipc:
-            eth = EthIpc()
-        else:
-            if args.infura_mainnet:
-                eth = EthJsonRpc('mainnet.infura.io', 443, True)
-            elif args.infura_rinkeby:
-                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
-            elif args.infura_kovan:
-                eth = EthJsonRpc('kovan.infura.io', 443, True)
-            elif args.infura_ropsten:
-                eth = EthJsonRpc('ropsten.infura.io', 443, True)
-            else:
-                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
 
 
