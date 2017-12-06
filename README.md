@@ -23,6 +23,17 @@ $ python setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
+### Function signatures
+
+Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. It is located in `~/.mythril/signatures.json`. You can obtain the default database as follows:
+
+```
+$ cd ~/.mythril
+$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
+```
+
+If you analyze Solidity code, new function signatures are added to the database automatically.
+
 ## Security analysis (EXPERIMENTAL)
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
@@ -74,17 +85,6 @@ Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, 
 ```bash
 $  myth -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
-
-### Function signatures
-
-Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database is located in `~/.mythril/signatures.json`. A default signature file is available in the Mythril repo. You can obtain it as follows:
-
-```
-$ cd ~/.mythril
-$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
-```
-
-Note that when you scan Solidity code, new function signatures are added to the database automatically.
 
 ## Control flow graph
 
