@@ -22,3 +22,7 @@ def fire_lasers(statespace):
             report.append_issue(issues[i])
 
         print(report.as_text())
+
+    else:
+
+        print("The scan was completed successfully. No issues were detected.")
