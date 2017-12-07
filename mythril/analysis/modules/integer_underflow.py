@@ -36,7 +36,7 @@ def execute(statespace):
                     continue
 
                 if (re.search(r'calldatasize_', str(op0))) \
-                    or (re.search(r'256\*If\(1', str(op0)) or re.search(r'256\*If\(1', str(op1))):
+                    or (re.search(r'256\*.*If\(1', str(op0), re.DOTALL) or re.search(r'256\*.*If\(1', str(op1), re.DOTALL)):
 
                     # Filter for patterns that contain possible (but apparently non-exploitable) Integer overflows.
 
