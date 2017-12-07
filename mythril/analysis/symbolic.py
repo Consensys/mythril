@@ -47,6 +47,11 @@ class StateSpace:
                         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
                             get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
 
+                        if (to.type == VarType.CONCRETE):
+                            if (to.val < 5):
+                                # ignore prebuilts
+                                continue
+
                         self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value))
                     else:
                         gas, to, meminstart, meminsz, memoutstart, memoutsz = \
