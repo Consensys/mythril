@@ -14,7 +14,6 @@ def add_signatures_from_file(file, sigs={}):
                 funcs.append(m.group(1))
 
     for f in funcs:
-        print(f)
 
         m = re.search(r'^([A-Za-z0-9_]+)', f)
 
