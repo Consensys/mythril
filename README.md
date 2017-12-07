@@ -24,7 +24,7 @@ Note that Mythril requires Python 3.5 to work.
 
 ### Function signatures
 
-Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. It is located in `~/.mythril/signatures.json`. You can obtain the default database as follows:
+Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
 
 ```
 $ cd ~/.mythril
