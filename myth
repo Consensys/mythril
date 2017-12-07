@@ -165,6 +165,9 @@ elif (args.address):
 
     try:
         code = eth.eth_getCode(args.address)
+
+        if (code == "0x"):
+            exitWithError("Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.") 
     except ConnectionError:
         exitWithError("Error connecting to Ethereum node. Make sure that your node is up and that the provided RPC/IPC parameters are correct.")
 
