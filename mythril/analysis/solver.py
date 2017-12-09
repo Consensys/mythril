@@ -1,5 +1,6 @@
 from z3 import *
 from mythril.exceptions import UnsatError
+import logging
 
 def get_model(constraints):
     s = Solver()
@@ -14,4 +15,3 @@ def get_model(constraints):
 
     else:
         raise UnsatError
-
