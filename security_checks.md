@@ -8,7 +8,7 @@
 |Multiple sends in a single transaction| External calls can fail accidentally or deliberately. Avoid combining multiple send() calls in a single transaction. |           |   [Favor pull over push for external calls](https://consensys.github.io/smart-contract-best-practices/recommendations/#favor-pull-over-push-for-external-calls) |
 |Function call to untrusted contract|             |           [call to untrusted contract with gas](mythril/analysis/modules/call_to_dynamic_with_gas.py) | |
 |Delegatecall or callcode to untrusted contract|                   | [delegatecall_forward](mythril/analysis/modules/delegatecall_forward.py), [delegatecall_to_dynamic.py](mythril/analysis/modules/delegatecall_to_dynamic.py) |  |
-|Integer overflow/underflow|                        | [integer_underflow](mythril/analysis/modules/integer_underflow.py)          |  |
+|Integer overflow/underflow|                        | [integer_underflow](mythril/analysis/modules/integer_underflow.py), [Integer overflow](/mythril/analysis/modules/integer_overflow.py)   |  |
 |Timestamp dependence|                        |           |  |
 |Payable transaction does not revert in case of failure | | |   |
 |Call depth attack|                        |           |   |
