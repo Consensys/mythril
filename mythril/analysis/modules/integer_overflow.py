@@ -3,7 +3,6 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
-import re
 import copy
 import logging
 
@@ -11,12 +10,11 @@ import logging
 UINT_MAX = BitVecVal(2 ** 256 - 1, 256)
 
 
-
 '''
 MODULE DESCRIPTION:
 
 Check for integer overflows.
-For every SUB instruction, check if there's a possible state where op1 > op0.
+Checks ADD instruction, MUL still todo
 '''
 
 def execute(statespace):
