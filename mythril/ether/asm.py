@@ -86,9 +86,6 @@ def find_opcode_sequence(pattern, instruction_list):
     return match_indexes
 
 
-
-
-
 def disassemble(bytecode):
 
     instruction_list = []
