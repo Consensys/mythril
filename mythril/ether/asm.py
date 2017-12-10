@@ -86,12 +86,21 @@ def find_opcode_sequence(pattern, instruction_list):
     return match_indexes
 
 
+
+
+
 def disassemble(bytecode):
 
     instruction_list = []
     addr = 0
 
-    while addr < len(bytecode):
+    length = len(bytecode)
+
+    if "bzzr" in str(bytecode[-43:]):
+        # ignore swarm hash
+        length -= 43
+
+    while addr < length:
 
         instruction = {}
 
@@ -117,7 +126,9 @@ def disassemble(bytecode):
         if m:
             argument = bytecode[addr+1:addr+1+int(m.group(1))]
             instruction['argument'] = "0x" + argument.hex()
+
             addr += int(m.group(1))
+
 
         instruction_list.append(instruction)
 
