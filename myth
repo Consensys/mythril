@@ -163,6 +163,9 @@ if (args.code):
     contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
 elif (args.address):
 
+    if not re.match(r'0x[a-fA-F0-9]{40}', args.address):
+        exitWithError("Invalid contract address. Expected format is '0x...'.")
+
     try:
         code = eth.eth_getCode(args.address)
 
