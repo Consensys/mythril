@@ -27,6 +27,8 @@ def execute(statespace):
 
         for instruction in node.instruction_list:
 
+            ''' This generates a lot of noise.
+
             if(instruction['opcode'] == "ADD"):
 
                 stack = node.states[instruction['address']].stack
@@ -62,14 +64,16 @@ def execute(statespace):
                 except UnsatError:
                     logging.debug("[INTEGER_OVERFLOW] no model found")   
 
-            elif(instruction['opcode'] == "MUL"):
+            '''
+
+            if(instruction['opcode'] == "MUL"):
 
                 stack = node.states[instruction['address']].stack
 
                 op0 = stack[-1]
                 op1 = stack[-2]
 
-                if (type(op0) == int and type(op1) == int) or type(op0) == BoolRef:
+                if (type(op0) == int and type(op1) == int) or type(op0) == BoolRef or type(op1) == BoolRef:
                     continue
 
                 logging.debug("[INTEGER_OVERFLOW] Checking MUL " + str(op0) + ", " + str(op1) + " at address " + str(instruction['address']))
@@ -79,6 +83,10 @@ def execute(statespace):
                     continue
 
                 constraints = copy.deepcopy(node.constraints)
+
+                print("OP0" + str(type(op0)))
+                print(type(op1))
+                print(type(UINT_MAX / op1))
 
                 constraints.append(UGT(op0, UINT_MAX / op1))
 
