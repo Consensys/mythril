@@ -4,6 +4,7 @@ from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
 import copy
+import re
 import logging
 
 
@@ -73,12 +74,12 @@ def execute(statespace):
 
                 logging.debug("[INTEGER_OVERFLOW] Checking MUL " + str(op0) + ", " + str(op1) + " at address " + str(instruction['address']))
 
+                if (re.search(r'146150163733', str(op0), re.DOTALL) or re.search(r'146150163733', str(op1), re.DOTALL)):
+
+
+                    continue
+
                 constraints = copy.deepcopy(node.constraints)
-
-                print("OP0 " + str(type(op0)))
-                print(type(op1))
-                print(type(op0/op1))
-
 
                 constraints.append(UGT(op0, UINT_MAX / op1))
 
