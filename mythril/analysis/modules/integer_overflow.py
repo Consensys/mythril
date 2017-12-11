@@ -76,7 +76,6 @@ def execute(statespace):
 
                 if (re.search(r'146150163733', str(op0), re.DOTALL) or re.search(r'146150163733', str(op1), re.DOTALL)):
 
-
                     continue
 
                 constraints = copy.deepcopy(node.constraints)

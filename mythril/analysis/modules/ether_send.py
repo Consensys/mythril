@@ -39,9 +39,31 @@ def execute(statespace):
             description += "a non-zero amount of Ether is sent to msg.sender.\n"
             interesting = True
 
-        if re.search(r'calldata', str(call.to)):
+        elif re.search(r'calldata', str(call.to)):
             description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
             interesting = True
+
+        else:
+            m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
+
+            if (m):
+
+                idx = m.group(1)
+
+                try:
+
+                    for s in statespace.sstors[idx]:
+
+                        if s.tainted:
+                            description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx) + "." \
+                                " This storage slot can be written  to by calling the function '" + s.node.function_name + "'.\n"
+                            interesting = True
+                            continue
+
+                except KeyError:
+                    logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
+                    break
+
 
         if interesting:
 
@@ -74,7 +96,7 @@ def execute(statespace):
                         for s in statespace.sstors[idx]:
 
                             if s.tainted:
-                                description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
+                                description += "\nThere is a check on storage index " + str(index) + ". This storage slot can be written to by calling the function '" + s.node.function_name + "'."
                                 overwrite = True
                                 continue
 
