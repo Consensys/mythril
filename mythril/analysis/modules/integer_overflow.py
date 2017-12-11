@@ -84,10 +84,7 @@ def execute(statespace):
                 constraints = copy.deepcopy(node.constraints)
 
                 constraints.append(UGT(op0, UDiv(UINT_MAX, op1)))
-
-                logging.debug("[INTEGER_OVERFLOW] op0 = " + str(op0))
-                logging.debug("[INTEGER_OVERFLOW] op1 = " + str(op1))
-
+                
                 try:
                     
                     model = solver.get_model(constraints)
