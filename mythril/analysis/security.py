@@ -25,4 +25,4 @@ def fire_lasers(statespace):
 
     else:
 
-        print("The scan was completed successfully. No issues were detected.")
+        print("The analysis was completed successfully. No issues were detected.")

@@ -61,7 +61,7 @@ def execute(statespace):
                             continue
 
                 except KeyError:
-                    logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
+                    logging.debug("[ETHER_SEND] No storage writes to index " + str(idx))
                     break
 
 
