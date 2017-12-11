@@ -33,7 +33,7 @@ $ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.jso
 
 If you analyze Solidity code, new function signatures are added to the database automatically.
 
-## Security analysis (EXPERIMENTAL)
+## Security analysis
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
 
