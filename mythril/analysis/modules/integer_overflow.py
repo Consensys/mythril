@@ -78,17 +78,21 @@ def execute(statespace):
 
                 logging.debug("[INTEGER_OVERFLOW] Checking MUL " + str(op0) + ", " + str(op1) + " at address " + str(instruction['address']))
 
-                if (re.search(r'146150163733', str(op0), re.DOTALL) or re.search(r'146150163733', str(op1), re.DOTALL)):
-
+                if re.search(r'146150163733', str(op0), re.DOTALL) or re.search(r'146150163733', str(op1), re.DOTALL) or "(2 << 160 - 1)" in str(op0) or "(2 << 160 - 1)" in str(op1):
                     continue
 
                 constraints = copy.deepcopy(node.constraints)
 
+                '''
                 print("OP0" + str(type(op0)))
                 print(type(op1))
                 print(type(UINT_MAX / op1))
+                '''
 
-                constraints.append(UGT(op0, UINT_MAX / op1))
+                constraints.append(UGT(op0, UDiv(UINT_MAX, op1)))
+
+                logging.debug("[INTEGER_OVERFLOW] op0 = " + str(op0))
+                logging.debug("[INTEGER_OVERFLOW] op1 = " + str(op1))
 
                 try:
                     
@@ -102,6 +106,8 @@ def execute(statespace):
                     issue.debug = "(" + str(op0) + ") * (" + str(op1) + ") > (" + hex(UINT_MAX.as_long()) + ")"
 
                     issues.append(issue)
+
+                    logging.debug("Constraints: " + str(constraints))   
 
                     for d in model.decls():
                         logging.debug("[INTEGER_OVERFLOW] model: %s = 0x%x" % (d.name(), model[d].as_long()))
