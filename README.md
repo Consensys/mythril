@@ -31,7 +31,7 @@ $ cd ~/.mythril
 $ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
 ```
 
-If you analyze Solidity code, new function signatures are added to the database automatically.
+When you analyze Solidity code, new function signatures are added to the database automatically.
 
 ## Security analysis
 
