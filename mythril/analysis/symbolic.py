@@ -52,7 +52,10 @@ class StateSpace:
                                 # ignore prebuilts
                                 continue
 
-                        self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value))
+                        if (meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE):
+                            self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value, self.svm.nodes[key].states[instruction['address']].memory[meminstart.val:meminsz.val*4]))
+                        else:
+                            self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value))                     
                     else:
                         gas, to, meminstart, meminsz, memoutstart, memoutsz = \
                             get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
