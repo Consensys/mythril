@@ -14,6 +14,6 @@
 |Call depth attack|                        |           |   |
 |Use of `tx.origin`|                        | [tx_origin](mythril/analysis/modules/tx_origin.py)       | [Solidity documentation](https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin), [Avoid using tx.origin](https://consensys.github.io/smart-contract-best-practices/recommendations/#avoid-using-txorigin) |
 |Type confusion|                        |           |  |
-|Predictable RNG|                        |           |  |
+|Predictable RNG|                        |           | [weak_random](mythril/analysis/modules/weak_random.py) |
 |Transaction order dependence|             |           |           |  |
 |Information exposure|                        |           |   |
