@@ -179,3 +179,5 @@ $ myth --hash "setOwner(address)"
 - JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
 
 - The signature data in `signatures.json` was initially obtained from the [Ethereum Function Signature Database](https://www.4byte.directory).
+
+- Many features, bugfixes and analysis modules have been added by [contributors](https://github.com/b-mueller/mythril/graphs/contributors).
