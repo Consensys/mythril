@@ -90,7 +90,7 @@ $  myth -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 The maximum recursion depth for the symbolic execution engine can be controlled with the `--max-depth` argument. The default value is 12. Lowering this value reduces the analysis time as well as the coverage / number of explored states.
 
 ```
-$ myth --infura-mainnet -l -x -a 0xd780ae2bf04cd96e577d3d014762f831d97129d0 --max-depth 8
+$ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
 ```
 
 ## Control flow graph
