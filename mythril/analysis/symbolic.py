@@ -11,7 +11,7 @@ class StateSpace:
     Symbolic EVM wrapper
     '''
     
-    def __init__(self, contracts, dynloader = None, simplified=False):
+    def __init__(self, contracts, dynloader = None, max_depth = 12):
 
         # Convert ETHContract objects to LASER SVM "modules"
 
@@ -20,7 +20,7 @@ class StateSpace:
         for contract in contracts:
             modules[contract.address] = contract.as_dict()
 
-        self.svm = svm.SVM(modules, simplified = simplified, dynamic_loader=dynloader)
+        self.svm = svm.SVM(modules, dynamic_loader=dynloader, max_depth=max_depth)
 
         self.svm.sym_exec(contracts[0].address)
 
