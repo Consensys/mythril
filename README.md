@@ -9,7 +9,7 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses concol
 Install from Pypi:
 
 ```bash
-$ pip install mythril
+$ pip3 install mythril
 ```
 
 Or, clone the GitHub repo to install the newest master branch:
@@ -17,7 +17,7 @@ Or, clone the GitHub repo to install the newest master branch:
 ```bash
 $ git clone https://github.com/b-mueller/mythril/
 $ cd mythril
-$ python setup.py install
+$ python3 setup.py install
 ```
 
 Note that Mythril requires Python 3.5 to work.
@@ -27,6 +27,7 @@ Note that Mythril requires Python 3.5 to work.
 Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
 
 ```
+$ mkdir ~/.mythril
 $ cd ~/.mythril
 $ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
 ```
