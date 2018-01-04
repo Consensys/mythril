@@ -9,7 +9,7 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses concol
 Install from Pypi:
 
 ```bash
-$ pip install mythril
+$ pip3 install mythril
 ```
 
 Or, clone the GitHub repo to install the newest master branch:
@@ -17,7 +17,7 @@ Or, clone the GitHub repo to install the newest master branch:
 ```bash
 $ git clone https://github.com/b-mueller/mythril/
 $ cd mythril
-$ python setup.py install
+$ python3 setup.py install
 ```
 
 Note that Mythril requires Python 3.5 to work.
@@ -27,6 +27,7 @@ Note that Mythril requires Python 3.5 to work.
 Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
 
 ```
+$ mkdir ~/.mythril
 $ cd ~/.mythril
 $ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
 ```
@@ -85,12 +86,20 @@ Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, 
 $  myth -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
 
+### Speed vs. Coverage
+
+The maximum recursion depth for the symbolic execution engine can be controlled with the `--max-depth` argument. The default value is 12. Lowering this value reduces the analysis time as well as the coverage / number of explored states.
+
+```
+$ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
+```
+
 ## Control flow graph
 
 The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
 ```bash
-$ myth -g ./graph.html -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l
+$ myth --infura-mainnet -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
 ```
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
