@@ -1,5 +1,6 @@
 from mythril.analysis.report import Issue
 import re
+import logging
 
 
 '''
@@ -9,6 +10,8 @@ Check for constraints on tx.origin (i.e., access to some functionality is restri
 '''
 
 def execute(statespace):
+
+    logging.debug("Executing module: TX_ORIGIN")
 
     issues = []
 

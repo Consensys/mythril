@@ -17,6 +17,8 @@ Check for SUICIDE instructions that either can be reached by anyone, or where ms
 
 def execute(statespace):
 
+    logging.debug("Executing module: UNCHECKED_SUICIDE")
+
     issues = []
 
     for k in statespace.nodes:

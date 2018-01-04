@@ -13,6 +13,8 @@ Check for call.value()() to an untrusted address
 
 def execute(statespace):
 
+    logging.debug("Executing module: CALL_TO_DYNAMIC_WITH_GAS")
+
     issues = []
 
     for call in statespace.calls:

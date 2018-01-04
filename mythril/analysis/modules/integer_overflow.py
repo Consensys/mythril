@@ -15,10 +15,11 @@ UINT_MAX = BitVecVal(2 ** 256 - 1, 256)
 MODULE DESCRIPTION:
 
 Check for integer overflows.
-Checks ADD instruction, MUL still todo
 '''
 
 def execute(statespace):
+
+    logging.debug("Executing module: INTEGER_OVERFLOW")
 
     issues = []
 

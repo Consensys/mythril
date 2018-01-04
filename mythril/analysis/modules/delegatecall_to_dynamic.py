@@ -13,6 +13,8 @@ Check for invocations of delegatecall/callcode to a user-supplied address
 
 def execute(statespace):
 
+    logging.debug("Executing module: DELEGATECALL_TO_DYNAMIC")
+
     issues = []
 
     for call in statespace.calls:

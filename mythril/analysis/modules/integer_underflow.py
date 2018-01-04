@@ -16,6 +16,8 @@ For every SUB instruction, check if there's a possible state where op1 > op0.
 
 def execute(statespace):
 
+    logging.debug("Executing module: INTEGER_UNDERFLOW")
+
     issues = []
 
     for k in statespace.nodes:

@@ -20,6 +20,9 @@ TODO:
 
 
 def execute(statespace):
+
+    logging.debug("Executing module: WEAK_RANDOM")
+
     issues = []
 
     for call in statespace.calls:

@@ -17,6 +17,8 @@ to that index).
 
 def execute(statespace):
 
+    logging.debug("Executing module: ETHER_SEND")
+
     issues = []
 
     for call in statespace.calls:

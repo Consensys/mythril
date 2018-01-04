@@ -26,6 +26,8 @@ For low-level-calls this check is omitted. E.g.:
 
 def execute(statespace):
 
+    logging.debug("Executing module: UNCHECKED_RETVAL")
+
     issues = []
     visited = []
 

@@ -2,6 +2,7 @@ from z3 import *
 import re
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+import logging
 
 
 '''
@@ -11,6 +12,8 @@ Check for invocations of delegatecall(msg.data) in the fallback function.
 '''
 
 def execute(statespace):
+
+    logging.debug("Executing module: DELEGATECALL_FORWARD")
 
     issues = []
     visited = []

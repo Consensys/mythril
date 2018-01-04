@@ -92,6 +92,8 @@ class StateSpace:
                         break
 
                 if taint:
+                    s.tainted = True
+
                     try:
                         solver.get_model(s.node.constraints)
                         s.tainted = True
