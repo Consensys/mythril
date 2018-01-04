@@ -99,7 +99,7 @@ $ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-d
 The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
 ```bash
-$ myth -g ./graph.html -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l
+$ myth --infura-mainnet -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
 ```
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph7.png "Call graph")
