@@ -88,6 +88,35 @@ except KeyError:
     solc_binary = 'solc'
 
 
+# Initialize data directry and singature database
+
+if not os.path.exists(mythril_dir):
+    logging.info("Creating mythril data directory")
+
+    os.mkdir(mythril_dir)
+    
+
+# If no function signature file exists, create it. Function signatures from Solidity source code are added automatically.
+
+signatures_file = os.path.join(mythril_dir, 'signatures.json')
+
+if not os.path.exists(signatures_file):
+    print("No signature database found. Creating empty database: " + signatures_file  + "\n" \
+        "Consider replacing it with the pre-initialized database at " \
+        "https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
+
+    sigs = {}
+
+    with open(signatures_file, 'a') as f:
+        json.dump({},f)
+
+else:
+    with open(signatures_file) as f:
+        try:
+            sigs = json.load(f)
+        except JSONDecodeError as e:
+            exitWithError("Invalid JSON in signatures file " + signatures_file + "\n" + str(e))
+
 # Parse cmdline args
 
 args = parser.parse_args()
@@ -139,21 +168,6 @@ if args.search or args.init_db:
             contract_storage.initialize(eth, args.sync_all)
 
     sys.exit()
-
-
-
-# If no function signature file exists, create it. Function signatures from Solidity source code are added automatically.
-
-signatures_file = os.path.join(mythril_dir, 'signatures.json')
-
-if not os.path.exists(signatures_file):
-    sigs = {}
-else:
-    with open(signatures_file) as f:
-        try:
-            sigs = json.load(f)
-        except JSONDecodeError as e:
-            exitWithError("Invalid JSON in signatures file " + signatures_file + "\n" + str(e))
 
 
 # Load / compile input contracts
