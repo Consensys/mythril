@@ -93,25 +93,15 @@ def execute(statespace):
                     constrained = True
                     idx = m.group(1)
 
-                    try:
+                    func = statespace.find_storage_write(idx)
 
-                        for s in statespace.sstors[idx]:
-
-                            if s.tainted:
-                                description += "\nThere is a check on storage index " + str(index) + ". This storage slot can be written to by calling the function '" + s.node.function_name + "'."
-                                overwrite = True
-                                continue
-
-                        if not overwrite:
-                            logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
-                            can_solve = False
-                            break
-
-                    except KeyError:
+                    if (func):
+                        description += "\nThere is a check on storage index " + str(index) + ". This storage slot can be written to by calling the function '" + func + "'."
+                        overwrite = True
+                    else:
                         logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
                         can_solve = False
                         break
-
 
                 # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
 
