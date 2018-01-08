@@ -5,6 +5,11 @@ from .ops import *
 import logging
 
 
+class SStorTaintStatus(Enum):
+    TAINTED = 1
+    UNTAINTED = 2 
+
+
 class StateSpace:
 
     '''
@@ -33,6 +38,9 @@ class StateSpace:
         self.calls = []
         self.suicides = []
         self.sstors = {}
+
+        self.sstor_taint_cache = []
+
 
         for key in self.svm.nodes:
 
@@ -72,9 +80,10 @@ class StateSpace:
                     except KeyError:
                         self.sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
 
-        self.sstor_analysis()
+        # self.sstor_analysis()
 
 
+    '''
     def sstor_analysis(self):
 
         logging.info("Analyzing storage operations...")
@@ -82,7 +91,7 @@ class StateSpace:
         for index in self.sstors:
             for s in self.sstors[index]:
 
-                # For now we simply 'taint' every storage location that is reachable without any constraint on msg.sender
+                # 'Taint' every 'store' instruction that is reachable without any constraint on msg.sender
 
                 taint = True
 
@@ -99,17 +108,25 @@ class StateSpace:
                         s.tainted = True
                     except UnsatError:
                         s.tainted = False
+    '''
 
 
 
     def find_storage_write(self, index):
 
-        # Find a tainted (unconstrained) SSTOR that writes to 'index'
+        # Find a an unconstrained SSTOR that writes to storage index "index"
 
         try:
             for s in self.sstors[index]:
-                if s.tainted:
+                taint = True
+
+                for constraint in s.node.constraints:
+                    if ("caller" in str(constraint)):
+                        taint = False
+                        break
+
                     return s.node.function_name
+
             return None
         except KeyError:
             return None
