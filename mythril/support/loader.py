@@ -6,6 +6,31 @@ class DynLoader:
 
     def __init__(self, eth):
         self.eth = eth
+        self.storage_cache = {}
+
+
+    def read_storage(self, contract_address, index):
+
+        try:
+            contract_ref = self.storage_cache[contract_address]
+            data = contract_ref[index]
+
+        except KeyError:
+
+            self.storage_cache[contract_address] = {}
+
+            data = self.eth.eth_getStorageAt(contract_address, position=index, block='latest')
+
+            self.storage_cache[contract_address][index] = data
+
+        except IndexError:
+
+            data = self.eth.eth_getStorageAt(contract_address, position=index, block='latest')
+
+            self.storage_cache[contract_address][index] = data
+
+        return data
+
 
     def dynld(self, contract_address, dependency_address):
 
@@ -17,25 +42,7 @@ class DynLoader:
             dependency_address = m.group(1)
 
         else:
-            m = re.search(r'storage_(\d+)', dependency_address)
-
-            if (m):
-                idx = int(m.group(1))
-                logging.info("Dynamic contract address at storage index " + str(idx))
-
-                # testrpc simply returns the address, geth response is more elaborate.
-
-                dependency_address = self.eth.eth_getStorageAt(contract_address, position=idx, block='latest')
-
-                if not re.match(r"^0x[0-9a-f]{40}$", dependency_address):
-
-                    dependency_address = "0x" + dependency_address[26:]
-                
-
-            else:
-                logging.info("Unable to resolve address.")
-                return None
-
+            return None
 
         logging.info("Dependency address: " +  dependency_address)
 
