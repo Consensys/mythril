@@ -16,8 +16,9 @@ def safe_decode(hex_encoded_string):
 
 
 def compile_solidity(solc_binary, file):
+    
     try:
-        p = Popen([solc_binary, "--bin-runtime", file], stdout=PIPE, stderr=PIPE)
+        p = Popen([solc_binary, "--bin-runtime", '--allow-paths', ".", file], stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         ret = p.returncode
         if ret < 0:
