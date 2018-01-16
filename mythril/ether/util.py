@@ -32,8 +32,21 @@ def compile_solidity(solc_binary, file):
         err = "Error compiling input file. Solc returned:\n" + stderr.decode("UTF-8")
         raise CompilerError(err)
 
-    m = re.search(r":(.*?) =======\nBinary of the runtime part: \n([0-9a-f]+)\n", out)
-    return [m.group(1), m.group(2)]
+    m = re.search(r":(.*?) =======\nBinary of the runtime part:", out)
+    contract_name = m.group(1)
+
+    if m:
+
+        m = re.search(r"runtime part: \n([0-9a-f]+)\n", out)
+
+        if (m):
+            return [contract_name, m.group(1)]
+        else:
+            return [contract_name, "0x00"]
+
+    else:
+        err = "Could not retrieve bytecode from solc output. Solc returned:\n" + stdout.decode("UTF-8")
+        raise CompilerError(err)       
 
 
 def encode_calldata(func_name, arg_types, args):
