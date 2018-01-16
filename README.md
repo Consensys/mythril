@@ -62,11 +62,15 @@ $ myth -x myContract.sol myLibrary.sol
 
 ### Working with on-chain contracts
 
-To analyze contracts on the blockchain you need an Ethereum node. By default, Mythril will query a local node via RPC. Alternatively, you can use [INFURA](https://infura.io):
+When analyzing contracts on the blockchain, Mythril will by default query a local node via RPC. You can override the RPC settings with the `--rpchost`, `--rpcport` and `--rpctls` arguments. There are also several built-in presets (run the `myth` command line tool to get the full list). 
+
+If you don't have a node available, use the [INFURA](https://infura.io) preset:
+
 
 ```
 $ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
+
 
 If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
 
