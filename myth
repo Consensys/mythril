@@ -61,16 +61,21 @@ inputs.add_argument('-a', '--address', help='pull contract from the blockchain',
 inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies (experimental)')
 inputs.add_argument('--data', help='message call input data for tracing')
 
+rpc = parser.add_argument_group('RPC options')
+rpc.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
+rpc.add_argument('--rpcport', type=int, default=8545, help='RPC port')
+rpc.add_argument('--rpctls', type=bool, default=False, help='RPC port')
+
+presets = parser.add_argument_group('RPC presets')
+presets.add_argument('--ganache', action='store_true', help='Use local Ganache')
+presets.add_argument('--infura-mainnet', action='store_true', help='Use Infura Node service (Mainnet)')
+presets.add_argument('--infura-rinkeby', action='store_true', help='Use Infura Node service (Rinkeby)')
+presets.add_argument('--infura-kovan', action='store_true', help='Use Infura Node service (Kovan)')
+presets.add_argument('--infura-ropsten', action='store_true', help='Use Infura Node service (Ropsten)')
+
 options = parser.add_argument_group('options')
-options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
-options.add_argument('--infura-mainnet', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=mainnet.infura.io --rpcport=443 --rpctls="True"')
-options.add_argument('--infura-rinkeby', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=rinkeby.infura.io --rpcport=443 --rpctls="True"')
-options.add_argument('--infura-kovan', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=kovan.infura.io --rpcport=443 --rpctls="True"')
-options.add_argument('--infura-ropsten', action='store_true', help='Use Infura Node service, equivalent to: --rpchost=ropsten.infura.io --rpcport=443 --rpctls="True"')
-options.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
-options.add_argument('--rpcport', type=int, default=8545, help='RPC port')
-options.add_argument('--rpctls', type=bool, default=False, help='RPC port')
 options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
+options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
@@ -147,6 +152,8 @@ if (args.address or len(args.solidity_file) or args.init_db):
                 eth = EthJsonRpc('kovan.infura.io', 443, True)
             elif args.infura_ropsten:
                 eth = EthJsonRpc('ropsten.infura.io', 443, True)
+            elif args.ganache:
+                eth = EthJsonRpc('localhost', 7545, False)
             else:
                 eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
 
