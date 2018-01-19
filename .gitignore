@@ -12,3 +12,4 @@ dist
 *.svg
 laser*
 lol*
+.idea*

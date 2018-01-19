@@ -17,6 +17,7 @@ from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
+from web3 import Web3
 from ethereum import utils
 from pathlib import Path
 from json.decoder import JSONDecodeError
@@ -52,7 +53,7 @@ commands.add_argument('-t', '--trace', action='store_true', help='trace contract
 commands.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
 commands.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
 commands.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
-commands.add_argument('--storage', help='read data from storage index, use with -a', metavar='INDEX')
+commands.add_argument('--storage', help='read state variables from storage index (index,length,array(in case of arrays)), use with -a', metavar='INDEX')
 commands.add_argument('--init-db', action='store_true', help='initialize the contract database')
 
 inputs = parser.add_argument_group('input arguments')
@@ -235,12 +236,33 @@ if args.storage:
     if not args.address:
         exitWithError("To read storage, provide the address of a deployed contract with the -a option.")  
     else:
-        try:
-            position = int(args.storage)
-        except ValueError:
-            exitWithError("Invalid storage index. Please provide a numeric value.")  
+        position = 0
+        length = 1
+        array = 0
 
-        print(eth.eth_getStorageAt(args.address, position=position, block='latest'))
+        try:
+            params = (args.storage).split(",")
+            if len(params) >= 1 and len(params) <= 3:
+                position = int(params[0])
+            if len(params) >= 2 and len(params) <= 3:
+                print(len(params))
+            if len(params) == 3:
+                if re.match("array",params[2]):
+                    array = 1
+            if len(params) >= 4:
+                exitWithError("Invalid amount of parameters.")
+        except ValueError:
+            exitWithError("Invalid storage index. Please provide a numeric value.")
+
+        if array:
+            position_formated = str(position).zfill(64)
+            position = int(Web3.sha3(position_formated),16)
+
+        if length == 1:
+            print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position));
+        else:
+            for i in range(position, position + length):
+                print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
 
 elif (args.disassemble):
 
