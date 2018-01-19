@@ -25,8 +25,6 @@ def fire_lasers(statespace):
         for i in range(0, len(issues)):
             report.append_issue(issues[i])
 
-        print(report.as_text())
+        
+    return report
 
-    else:
-
-        print("The analysis was completed successfully. No issues were detected.")

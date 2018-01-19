@@ -12,6 +12,7 @@ from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from mythril.rpc.exceptions import ConnectionError
 from mythril.support import signatures
+from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
@@ -286,7 +287,14 @@ elif (args.graph) or (args.fire_lasers):
         else:
             states = StateSpace(contracts, max_depth=args.max_depth)
 
-        fire_lasers(states)
+        report = fire_lasers(states)
+
+        if (len(report.issues)):
+            print(report.as_text())
+
+        else:
+
+            print("The analysis was completed successfully. No issues were detected.")
 
 else:
     parser.print_help()
