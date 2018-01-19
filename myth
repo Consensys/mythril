@@ -126,7 +126,7 @@ else:
 
 args = parser.parse_args()
 
-if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.storage):
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.storage or args.truffle):
     parser.print_help()
     sys.exit()
 
@@ -137,6 +137,14 @@ if (args.v):
 elif (args.hash):
     print("0x" + utils.sha3(args.hash)[:4].hex())
     sys.exit()
+
+
+if args.truffle:
+
+    analyze_truffle_project()
+
+    sys.exit()
+
 
 # Establish RPC/IPC connection if necessary
 
