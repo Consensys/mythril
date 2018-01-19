@@ -48,8 +48,9 @@ commands = parser.add_argument_group('commands')
 commands.add_argument('-d', '--disassemble',  action='store_true', help='disassemble')
 commands.add_argument('-g', '--graph', help='generate a control flow graph', metavar='OUTPUT_FILE')
 commands.add_argument('-x', '--fire-lasers', action='store_true', help='detect vulnerabilities')
-commands.add_argument('-t', '--trace', action='store_true', help='trace contract, use with --data (optional)')
+commands.add_argument('-t', '--truffle', action='store_true', help='detect vulnerabilities')
 commands.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
+commands.add_argument('--extract-sigs', action='store_true', help='collect function signature from Solidity file(s) & add to database')
 commands.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
 commands.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
 commands.add_argument('--storage', help='read data from storage index, use with -a', metavar='INDEX')
@@ -59,7 +60,6 @@ inputs = parser.add_argument_group('input arguments')
 inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 inputs.add_argument('-a', '--address', help='pull contract from the blockchain', metavar='CONTRACT_ADDRESS')
 inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies (experimental)')
-inputs.add_argument('--data', help='message call input data for tracing')
 
 rpc = parser.add_argument_group('RPC options')
 rpc.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
@@ -246,20 +246,6 @@ elif (args.disassemble):
 
     easm_text = contracts[0].get_easm()
     sys.stdout.write(easm_text)
-
-elif (args.trace):
-
-    if (args.data):
-        trace = evm.trace(contracts[0].code, args.data)
-
-    else:
-        trace = evm.trace(contracts[0].code)
-
-    for i in trace:
-        if (re.match(r'^PUSH.*', i['op'])):
-            print(str(i['pc']) + " " + i['op'] + " " + i['pushvalue'] + ";\tSTACK: " + i['stack'])
-        else:
-            print(str(i['pc']) + " " + i['op'] + ";\tSTACK: " + i['stack'])
 
 elif (args.xrefs):
 
