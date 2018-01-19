@@ -78,6 +78,11 @@ def analyze_truffle_project():
                     issue.code_length = mappings[index][1]
                     issue.code = source[mappings[index][0]: mappings[index][0] + mappings[index][1]]
 
-            print(report.as_text())
+            
+
+            if len(report.issues):
+                print("Analysis result for " + name + ":\n" + report.as_text())
+            else:
+                print("Analysis result for " + name + ": No issues found.") 
 
 
