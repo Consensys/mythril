@@ -245,7 +245,7 @@ if args.storage:
             if len(params) >= 1 and len(params) <= 3:
                 position = int(params[0])
             if len(params) >= 2 and len(params) <= 3:
-                print(len(params))
+                length = int(params[1])
             if len(params) == 3:
                 if re.match("array",params[2]):
                     array = 1
