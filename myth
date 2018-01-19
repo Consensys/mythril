@@ -40,38 +40,28 @@ def exitWithError(message):
     sys.exit()
 
 
-parser = argparse.ArgumentParser(description='Bug hunting on the Ethereum blockchain')
+parser = argparse.ArgumentParser(description='Security analysis of Ethereum smart contracts')
 parser.add_argument("solidity_file", nargs='*')
 
-
 commands = parser.add_argument_group('commands')
-commands.add_argument('-d', '--disassemble',  action='store_true', help='disassemble')
 commands.add_argument('-g', '--graph', help='generate a control flow graph', metavar='OUTPUT_FILE')
-commands.add_argument('-x', '--fire-lasers', action='store_true', help='detect vulnerabilities')
-commands.add_argument('-t', '--truffle', action='store_true', help='detect vulnerabilities')
-commands.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
-commands.add_argument('--extract-sigs', action='store_true', help='collect function signature from Solidity file(s) & add to database')
-commands.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
-commands.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
-commands.add_argument('--storage', help='read data from storage index, use with -a', metavar='INDEX')
-commands.add_argument('--init-db', action='store_true', help='initialize the contract database')
+commands.add_argument('-x', '--fire-lasers', action='store_true', help='detect vulnerabilities, use with -c, -a or solidity file(s)')
+commands.add_argument('-t', '--truffle', action='store_true', help='analyze a truffle project (run from project dir)')
 
 inputs = parser.add_argument_group('input arguments')
 inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
 inputs.add_argument('-a', '--address', help='pull contract from the blockchain', metavar='CONTRACT_ADDRESS')
-inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies (experimental)')
+inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies from the blockchain')
 
-rpc = parser.add_argument_group('RPC options')
-rpc.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
-rpc.add_argument('--rpcport', type=int, default=8545, help='RPC port')
-rpc.add_argument('--rpctls', type=bool, default=False, help='RPC port')
+database = parser.add_argument_group('local contracts database')
+database.add_argument('--init-db', action='store_true', help='initialize the contract database')
+database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
 
-presets = parser.add_argument_group('RPC presets')
-presets.add_argument('--ganache', action='store_true', help='Use local Ganache')
-presets.add_argument('--infura-mainnet', action='store_true', help='Use Infura Node service (Mainnet)')
-presets.add_argument('--infura-rinkeby', action='store_true', help='Use Infura Node service (Rinkeby)')
-presets.add_argument('--infura-kovan', action='store_true', help='Use Infura Node service (Kovan)')
-presets.add_argument('--infura-ropsten', action='store_true', help='Use Infura Node service (Ropsten)')
+utils = parser.add_argument_group('utilities')
+utils.add_argument('-d', '--disassemble',  action='store_true', help='print disassembly')
+utils.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
+utils.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
+utils.add_argument('--storage', help='read data from storage index, use with -a', metavar='INDEX')
 
 options = parser.add_argument_group('options')
 options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
@@ -79,6 +69,16 @@ options.add_argument('--sync-all', action='store_true', help='Also sync contract
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
+
+rpc = parser.add_argument_group('RPC options')
+rpc.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
+rpc.add_argument('--rpcport', type=int, default=8545, help='RPC port')
+rpc.add_argument('--rpctls', type=bool, default=False, help='RPC port')
+rpc.add_argument('--ganache', action='store_true', help='Preset: local Ganache')
+rpc.add_argument('--infura-mainnet', action='store_true', help='Preset: Infura Node service (Mainnet)')
+rpc.add_argument('--infura-rinkeby', action='store_true', help='Preset: Infura Node service (Rinkeby)')
+rpc.add_argument('--infura-kovan', action='store_true', help='Preset: Infura Node service (Kovan)')
+rpc.add_argument('--infura-ropsten', action='store_true', help='Preset: Infura Node service (Ropsten)')
 
 # Get config values
 
@@ -126,7 +126,7 @@ else:
 
 args = parser.parse_args()
 
-if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.trace or args.storage):
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.storage):
     parser.print_help()
     sys.exit()
 
@@ -233,7 +233,7 @@ else:
 
 if args.storage:
     if not args.address:
-        exitWithError("To read storage, provide the address of a deployed contract with the -a option.")  
+        exitWithError("To read storage, provide the address of a deployed contract with the -a option.")
     else:
         try:
             position = int(args.storage)
