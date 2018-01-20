@@ -135,7 +135,7 @@ $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 You can read the contents of storage slots from a deployed contract as follows.
 
 ```bash
-$ myth  --infura-mainnet --storage 0,1 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
+$ myth --storage 0,1 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
 0x0000000000000000000000000000000000000000000000000000000000000003
 ```
 
