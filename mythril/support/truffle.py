@@ -19,7 +19,7 @@ def analyze_truffle_project():
 
     for filename in files:
 
-        if re.match(r'.*\.json$', filename):
+        if re.match(r'.*\.json$', filename) and filename != "Migrations.json":
 
             with open(os.path.join(build_dir, filename)) as cf:
                 contractdata = json.load(cf)
