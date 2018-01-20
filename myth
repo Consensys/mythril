@@ -66,16 +66,14 @@ utils.add_argument('--hash', help='calculate function signature hash', metavar='
 utils.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array]')
 
 options = parser.add_argument_group('options')
-options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
 rpc = parser.add_argument_group('RPC options')
-rpc.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
-rpc.add_argument('--rpcport', type=int, default=8545, help='RPC port')
-rpc.add_argument('--rpctls', type=bool, default=False, help='RPC port')
+rpc.add_argument('--rpc', help='connect via RPC', metavar='HOST:PORT')
+rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
 rpc.add_argument('--ganache', action='store_true', help='Preset: local Ganache')
 rpc.add_argument('--infura-mainnet', action='store_true', help='Preset: Infura Node service (Mainnet)')
 rpc.add_argument('--infura-rinkeby', action='store_true', help='Preset: Infura Node service (Rinkeby)')
@@ -154,21 +152,29 @@ if args.truffle:
 # Establish RPC/IPC connection if necessary
 
 if (args.address or len(args.solidity_file) or args.init_db):
-        if args.ipc:
-            eth = EthIpc()
+
+        if args.infura_mainnet:
+            eth = EthJsonRpc('mainnet.infura.io', 443, True)
+        elif args.infura_rinkeby:
+            eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+        elif args.infura_kovan:
+            eth = EthJsonRpc('kovan.infura.io', 443, True)
+        elif args.infura_ropsten:
+            eth = EthJsonRpc('ropsten.infura.io', 443, True)
+        elif args.ganache:
+            eth = EthJsonRpc('localhost', 7545, False)
+        elif args.rpc:
+
+                try:
+                    host, port = args.rpc.split(":")
+                except ValueError:
+                    exitWithError("Invalid RPC argument, use HOST:PORT")
+
+                tls = args.rpctls
+
+                eth = EthJsonRpc(host, int(port), tls)
         else:
-            if args.infura_mainnet:
-                eth = EthJsonRpc('mainnet.infura.io', 443, True)
-            elif args.infura_rinkeby:
-                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
-            elif args.infura_kovan:
-                eth = EthJsonRpc('kovan.infura.io', 443, True)
-            elif args.infura_ropsten:
-                eth = EthJsonRpc('ropsten.infura.io', 443, True)
-            elif args.ganache:
-                eth = EthJsonRpc('localhost', 7545, False)
-            else:
-                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+            eth = EthIpc()
 
 
 # Database search ops
