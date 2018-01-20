@@ -185,7 +185,13 @@ if args.search or args.init_db:
             exitWithError("Syntax error in search expression.")
 
     elif (args.init_db):
-            contract_storage.initialize(eth, args.sync_all)
+            try:
+                contract_storage.initialize(eth, args.sync_all)
+            except FileNotFoundError as e:
+                print("Error syncing database over IPC: " + str(e))
+            except ConnectionError as e:
+                print("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
+
 
     sys.exit()
 
