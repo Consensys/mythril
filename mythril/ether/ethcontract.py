@@ -8,10 +8,17 @@ class ETHContract(persistent.Persistent):
 
     def __init__(self, code, creation_code="", name="", address=""):
 
-        self.code = code
         self.creation_code = creation_code
         self.name = name
         self.address = address
+
+        # Workaround: We currently do not support compile-time linking.
+        # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
+
+        code = re.sub(r'(_+[A-Za-z0-9]+_+)', 'aa' * 20, code)
+
+        self.code = code
+
 
     def as_dict(self):
 
