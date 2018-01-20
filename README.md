@@ -64,34 +64,21 @@ If you have multiple interdependent contracts, pass them to Mythril as separate 
 $ myth -x myContract.sol myLibrary.sol
 ```
 
-### Working with on-chain contracts
+### Working with contracts on the mainnet and testnets
 
-When analyzing contracts on the blockchain, Mythril will by default query a local node via RPC. You can override the RPC settings with the `--rpchost`, `--rpcport` and `--rpctls` arguments. There are also several built-in presets (run the `myth` command line tool to get the full list). 
+When analyzing contracts on the blockchain, Mythril will by default query a local node via IPC. If you want to analyze contracts on the live Ethereum network, you can also use the built-in [INFURA](https://infura.io) support. Alternatively, you can override the RPC settings with the `--rpc` argument.
 
-If you don't have a node available, use the [INFURA](https://infura.io) preset:
+To analyze a contract on the mainnet, run:
 
 
 ```
 $ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
-
-If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
-
-```bash
-$ geth --rpc --rpcapi eth,debug --syncmode fast
-```
-
-Specify the target contract with the `-a` option:
+Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as dynamically linked library contracts:
 
 ```bash
-$ myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd -v1
-```
-
-Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as library contracts:
-
-```bash
-$  myth -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
+$  myth --infura-mainnet -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
 
 ### Speed vs. Coverage
@@ -115,6 +102,12 @@ $ myth --infura-mainnet -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef
 ~~The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout.~~ Try adding the `--enable-physics` flag for a very entertaining "bounce" effect that unfortunately completely destroys usability.
 
 ## Blockchain exploration
+
+If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
+
+```bash
+$ geth --syncmode fast
+```
 
 Mythril builds its own contract database to enable fast search operations. This enables operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in ~~seconds~~ minutes instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
 
@@ -142,7 +135,7 @@ $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 You can read the contents of storage slots from a deployed contract as follows.
 
 ```bash
-./myth --storage 0 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
+$ ./myth --storage 0,1 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
 0x0000000000000000000000000000000000000000000000000000000000000003
 ```
 
