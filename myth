@@ -218,8 +218,11 @@ elif (args.address):
 
         if (code == "0x"):
             exitWithError("Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.") 
-    except ConnectionError:
-        exitWithError("Error connecting to Ethereum node. Make sure that your node is up and that the provided RPC/IPC parameters are correct.")
+
+    except FileNotFoundError as e:
+        exitWithError("IPC error: " + str(e))
+    except ConnectionError as e:
+        exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
     contracts.append(ETHContract(code, name=args.address, address = args.address))
 elif (len(args.solidity_file)):
@@ -282,11 +285,18 @@ if args.storage:
             position_formated = str(position).zfill(64)
             position = int(Web3.sha3(position_formated),16)
 
-        if length == 1:
-            print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position));
-        else:
-            for i in range(position, position + length):
-                print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
+
+        try:
+            if length == 1:
+                print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position));
+            else:
+                for i in range(position, position + length):
+                    print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
+        except FileNotFoundError as e:
+            exitWithError("IPC error: " + str(e))
+        except ConnectionError as e:
+            exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
+
 
 elif (args.disassemble):
 
