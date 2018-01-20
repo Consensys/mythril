@@ -40,6 +40,10 @@ Run `myth -x` with one of the input options described below to run the analysis.
 
 Mythril detects a range of [security issues](security_checks.md), including integer underflows, owner-overwrite-to-Ether-withdrawal, and others. However, the analysis will not detect business logic issues and is not equivalent to formal verification.
 
+### Analyzing a Truffle project
+
+[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
+
 ### Analyzing Solidity code
 
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
@@ -54,7 +58,7 @@ Alternatively, compile the code on [Remix](http://remix.ethereum.org) and pass t
 $ myth -x -c "0x5060(...)"
 ```
 
-If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set accordingly in the source). The contract passed in the first argument will be executed as the "main" contract.
+If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set accordingly in the source). The contract passed as the first argument will be used as analysis entrypoint.
 
 ```bash
 $ myth -x myContract.sol myLibrary.sol

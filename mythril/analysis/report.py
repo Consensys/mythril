@@ -11,6 +11,7 @@ class Issue:
         self.description = description
         self.type = _type
         self.debug = debug
+        self.code = None
 
 
     def as_dict(self):
@@ -47,10 +48,12 @@ class Report:
 
             text += issue.description + "\n--------------------\n"
 
+            if issue.code:
+                text += "Affected code:\n\n" + issue.code + "\n--------------------\n"
+
             if len(issue.debug):
                 text += "++++ Debugging info ++++\n" + issue.debug + "\n"
 
             text+="\n"
 
         return text
-

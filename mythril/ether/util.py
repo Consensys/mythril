@@ -9,6 +9,7 @@ import re
 
 
 def safe_decode(hex_encoded_string):
+
     if (hex_encoded_string.startswith("0x")):
         return bytes.fromhex(hex_encoded_string[2:])
     else:
