@@ -78,7 +78,7 @@ $ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as dynamically linked library contracts:
 
 ```bash
-$  myth --infura-mainnet -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
+$ myth --infura-mainnet -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
 
 ### Speed vs. Coverage
@@ -135,7 +135,7 @@ $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
 You can read the contents of storage slots from a deployed contract as follows.
 
 ```bash
-$ ./myth --storage 0,1 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
+$ myth  --infura-mainnet --storage 0,1 -a "0x76799f77587738bfeef09452df215b63d2cfb08a"
 0x0000000000000000000000000000000000000000000000000000000000000003
 ```
 
