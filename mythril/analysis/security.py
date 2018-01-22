@@ -27,4 +27,3 @@ def fire_lasers(statespace):
 
         
     return report
-
