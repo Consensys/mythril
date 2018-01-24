@@ -78,8 +78,30 @@ graph_html = '''<html>
 <p><div id="mynetwork"></div><br /></p>
 <script type="text/javascript">
 var container = document.getElementById('mynetwork');
-var data = {'nodes': nodes, 'edges': edges}
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
 var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
 </script>
 </body>
 </html>
@@ -91,25 +113,33 @@ colors = [
   "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
   "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
   "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
+  "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
+  "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
+  "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
+  "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
 ]  
 
 
-def serialize(_svm, color_map):
+def serialize(statespace, color_map):
 
     nodes = []
     edges = []
 
-    for node_key in _svm.nodes:
+    for node_key in statespace.nodes:
 
-        code =  _svm.nodes[node_key].as_dict()['code']
+        code =  statespace.nodes[node_key].as_dict()['code']
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
-        color = color_map[_svm.nodes[node_key].as_dict()['module_name']]
+        code_split = code.split("\\n")
 
-        nodes.append("{id: '" + node_key + "', color: " + color + ", size: 150, 'label': '" + code + "'}")
+        truncated_code = code if (len(code_split) < 7) else "\\n".join(code_split[:6]) + "\\n(click to expand +)"
 
-    for edge in _svm.edges:
+        color = color_map[statespace.nodes[node_key].as_dict()['module_name']]
+
+        nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + truncated_code + "', 'fullLabel': '" + code + "', 'truncLabel': '" + truncated_code + "', 'isExpanded': false}")
+
+    for edge in statespace.edges:
 
       if (edge.condition is None):
           label = ""
@@ -129,19 +159,17 @@ def serialize(_svm, color_map):
 
 
 
-def generate_callgraph(svm, main_address, physics):
-
-    svm.sym_exec(main_address)
+def generate_graph(statespace, physics = False):
 
     i = 0
 
     color_map = {}
 
-    for k in svm.modules:
-      color_map[svm.modules[k]['name']] = colors[i]
+    for k in statespace.modules:
+      color_map[statespace.modules[k]['name']] = colors[i]
       i += 1
 
-    html = graph_html.replace("[JS]", serialize(svm, color_map))
+    html = graph_html.replace("[JS]", serialize(statespace, color_map))
     html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html

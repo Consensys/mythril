@@ -3,6 +3,7 @@ from mythril.ipc.client import EthIpc
 from mythril.ether.ethcontract import ETHContract, InstanceList
 import hashlib
 import os
+import time
 import persistent
 import persistent.list
 import transaction
@@ -47,11 +48,7 @@ class ContractStorage(persistent.Persistent):
         return self.contracts[contract_hash]
 
 
-    def initialize(self, rpchost, rpcport, rpctls, sync_all, ipc):
-        if ipc:
-            eth = EthIpc()
-        else:
-            eth = EthJsonRpc(rpchost, rpcport, rpctls)
+    def initialize(self, eth, sync_all):
 
         if self.last_block:
             blockNum = self.last_block
@@ -60,6 +57,16 @@ class ContractStorage(persistent.Persistent):
 
             blockNum = eth.eth_blockNumber()
             print("Starting synchronization from latest block: " + str(blockNum))
+
+        ''' 
+        On INFURA, the latest block is not immediately available. Here is a workaround to allow for database sync over INFURA.
+        Note however that this is extremely slow, contracts should always be loaded from a local node.
+        '''
+
+        block = eth.eth_getBlockByNumber(blockNum)
+
+        if not block:
+            blockNum -= 2
 
         while(blockNum > 0):
 
@@ -81,7 +88,7 @@ class ContractStorage(persistent.Persistent):
                         contract_code = eth.eth_getCode(contract_address)
                         contract_balance = eth.eth_getBalance(contract_address)
 
-                        if not contract_balance or sync_all:
+                        if not contract_balance and not sync_all:
                             # skip contracts with zero balance (disable with --sync-all)
                             continue
 
