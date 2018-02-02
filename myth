@@ -22,6 +22,9 @@ from web3 import Web3
 from ethereum import utils
 from pathlib import Path
 from json.decoder import JSONDecodeError
+from solc.exceptions import SolcError
+import semantic_version
+import solc
 import logging
 import json
 import sys
@@ -64,6 +67,7 @@ utils.add_argument('-d', '--disassemble',  action='store_true', help='print disa
 utils.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
 utils.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
 utils.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array]')
+utils.add_argument('--solv', help='specify solidity compiler version. If not present, will try to install it (Experimental)', metavar='SOLV')
 
 options = parser.add_argument_group('options')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
@@ -86,12 +90,6 @@ try:
     mythril_dir = os.environ['MYTHRIL_DIR']
 except KeyError:
     mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
-
-try:
-    solc_binary = os.environ['SOLC']
-except KeyError:
-    solc_binary = 'solc'
-
 
 # Initialize data directry and singature database
 
@@ -148,6 +146,29 @@ if args.truffle:
 
     sys.exit()
 
+# Figure out solc binary and version
+# Only proper versions are supported. No nightlies, commits etc (such as available in remix)
+
+if args.solv:
+    version = args.solv
+    #tried converting input to semver, seemed not necessary so just slicing for now
+    if version == str(solc.main.get_solc_version())[:6]:
+        print('Given version matches installed version')
+        try:
+            solc_binary = os.environ['SOLC']
+        except KeyError:
+            solc_binary = 'solc'
+    else:
+        if util.solc_exists(version):
+            solc_binary = os.environ['HOME'] + "/.py-solc/solc-v" + version + "/bin/solc"
+            print("Setting the compiler to " + str(solc_binary))
+        else:
+            try:
+                solc.install_solc('v' + version)
+                solc_binary = os.environ['HOME'] + "/.py-solc/solc-v" + version + "/bin/solc"
+                print("Setting the compiler to " + str(solc_binary))
+            except SolcError:
+                print("There was an error when trying to install the specified solc version")
 
 # Establish RPC/IPC connection if necessary
 

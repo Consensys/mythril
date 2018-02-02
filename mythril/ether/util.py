@@ -64,3 +64,10 @@ def get_random_address():
 def get_indexed_address(index):
     return "0x" + (hex(index)[2:] * 40)
 
+def solc_exists(version):
+    solc_binary = os.environ['HOME'] + "/.py-solc/solc-v" + version + "/bin/solc"
+    if os.path.exists(solc_binary):
+        return True
+    else:
+        return False
+        
