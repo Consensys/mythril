@@ -5,3 +5,4 @@ web3
 laser-ethereum==0.4.0
 requests
 BTrees
+py-solc

@@ -293,7 +293,8 @@ setup(
         'z3-solver>=4.5',
         'laser-ethereum==0.4.0',
         'requests',
-        'BTrees'
+        'BTrees',
+        'py-solc'
     ],
 
     python_requires='>=3.5',
