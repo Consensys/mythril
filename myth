@@ -23,7 +23,6 @@ from ethereum import utils
 from pathlib import Path
 from json.decoder import JSONDecodeError
 from solc.exceptions import SolcError
-import semantic_version
 import solc
 import logging
 import json
@@ -160,15 +159,23 @@ if args.solv:
             solc_binary = 'solc'
     else:
         if util.solc_exists(version):
-            solc_binary = os.environ['HOME'] + "/.py-solc/solc-v" + version + "/bin/solc"
+            solc_binary = os.join(os.environ['HOME'], "/.py-solc/solc-v", version, "/bin/solc")
             print("Setting the compiler to " + str(solc_binary))
         else:
             try:
                 solc.install_solc('v' + version)
-                solc_binary = os.environ['HOME'] + "/.py-solc/solc-v" + version + "/bin/solc"
+                solc_binary = os.join(os.environ['HOME'], "/.py-solc/solc-v", version, "/bin/solc")
                 print("Setting the compiler to " + str(solc_binary))
             except SolcError:
-                print("There was an error when trying to install the specified solc version")
+                exitWithError("There was an error when trying to install the specified solc version")
+else:
+    try:
+        solc_binary = os.environ['SOLC']
+    except KeyError:
+        try:
+            solc_binary = 'solc'
+        except:
+            exitWithError('No solidity compiler found, please make sure it is installed or specify it manually.')
 
 # Establish RPC/IPC connection if necessary
 
