@@ -62,22 +62,14 @@ def execute(statespace):
 
                     if (m):
                         constrained = True
-                        index = m.group(1)
+                        idx = m.group(1)
 
-                        try:
+                        func = statespace.find_storage_write(idx)
 
-                            for s in statespace.sstors[index]:
-
-                                if s.tainted:
-                                    description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'."
-                                    break
-
-                            if not overwrite:
-                                logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(index))
-                                can_solve = False
-                                break
-
-                        except KeyError:
+                        if func:
+                            description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + func + "'."
+                            break
+                        else:
                             logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(index))
                             can_solve = False
                             break
