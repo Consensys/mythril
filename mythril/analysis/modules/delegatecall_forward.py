@@ -27,7 +27,7 @@ def execute(statespace):
         else:
             visited.append(call.addr)
 
-        if (call.type == "DELEGATECALL") and (call.node.function_name == "main"):
+        if (call.type == "DELEGATECALL") and (call.node.function_name == "fallback"):
 
             stack = call.state.stack
 
