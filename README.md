@@ -64,6 +64,10 @@ If you have multiple interdependent contracts, pass them to Mythril as separate 
 $ myth -x myContract.sol myLibrary.sol
 ```
 
+#### Specifying Solc versions
+
+You can specify a version of the solidity compiler to be used with `--solv <version number>`. Please be aware that this uses [py-solc](https://github.com/ethereum/py-solc) and will only work on Linux and OS X versions of Mavericks, Yosemite and El Capitan as of the time of this writing. It will check you locally installed compiler, if this is not what is specified, it will download binaries on Linux or try to compile from source on OS X.
+
 ### Working with contracts on the mainnet and testnets
 
 When analyzing contracts on the blockchain, Mythril will by default query a local node via IPC. If you want to analyze contracts on the live Ethereum network, you can also use the built-in [INFURA](https://infura.io) support. Alternatively, you can override the RPC settings with the `--rpc` argument.
