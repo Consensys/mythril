@@ -103,7 +103,7 @@ if not os.path.exists(mythril_dir):
 signatures_file = os.path.join(mythril_dir, 'signatures.json')
 
 if not os.path.exists(signatures_file):
-    print("No signature database found. Creating empty database: " + signatures_file  + "\n" \
+    logging.info("No signature database found. Creating empty database: " + signatures_file  + "\n" \
         "Consider replacing it with the pre-initialized database at " \
         "https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
 
