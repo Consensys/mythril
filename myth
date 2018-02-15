@@ -57,6 +57,9 @@ inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("60606040
 inputs.add_argument('-a', '--address', help='pull contract from the blockchain', metavar='CONTRACT_ADDRESS')
 inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies from the blockchain')
 
+inputs = parser.add_argument_group('output formats')
+inputs.add_argument('-o', '--outform', choices=['text', 'json'], default='text', help='report output format', metavar='<text/json>')
+
 database = parser.add_argument_group('local contracts database')
 database.add_argument('--init-db', action='store_true', help='initialize the contract database')
 database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
@@ -366,12 +369,13 @@ elif (args.graph) or (args.fire_lasers):
 
         report = fire_lasers(states)
 
-        if (len(report.issues)):
-            print(report.as_text())
-
+        if (args.outform == 'text'):
+            if (len(report.issues)):
+                print(report.as_text())
+            else:
+                print("The analysis was completed successfully. No issues were detected.")
         else:
-
-            print("The analysis was completed successfully. No issues were detected.")
+            print(report.as_json())
 
 else:
     parser.print_help()

@@ -1,4 +1,5 @@
 import hashlib
+import json
 
 class Issue:
 
@@ -16,7 +17,7 @@ class Issue:
 
     def as_dict(self):
 
-        return {'title': self.title, 'description':self.description, 'type': self.type}
+        return {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.pc, 'debug': self.debug}
 
 
 class Report:
@@ -57,3 +58,12 @@ class Report:
             text+="\n"
 
         return text
+
+    def as_json(self):
+        issues = []
+
+        for key, issue in self.issues.items():
+
+            issues.append(issue.as_dict())
+
+        return json.dumps(issues)
