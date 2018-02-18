@@ -18,12 +18,4 @@ def fire_lasers(statespace):
         logging.info("Executing " + str(module))
         issues += module.execute(statespace)
 
-    report = Report()
-
-    if (len(issues)):
-
-        for i in range(0, len(issues)):
-            report.append_issue(issues[i])
-
-        
-    return report
+    return issues

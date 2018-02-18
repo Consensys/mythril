@@ -18,6 +18,7 @@ from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
+from mythril.analysis.report import Report
 from web3 import Web3
 from ethereum import utils
 from pathlib import Path
@@ -259,13 +260,15 @@ elif (args.address):
 
     contracts.append(ETHContract(code, name=args.address, address = args.address))
 elif (len(args.solidity_file)):
-    index = 0
+
+    if(args.graph and len(args.solidity_file) > 1):
+        exitWithError("Cannot generate call graphs for multiple input files. Please do it one at a time.")     
 
     for file in args.solidity_file:
 
         file = file.replace("~", str(Path.home())) # Expand user path
 
-        signatures.add_signatures_from_file(file, sigs)
+        signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
 
         try:
             name, bytecode = compile_solidity(file, solc_binary)
@@ -274,16 +277,19 @@ elif (len(args.solidity_file)):
 
         # Max. 16 input files supported!
 
-        contract = ETHContract(bytecode, name = name, address = util.get_indexed_address(index))
-        index += 1
-
+        contract = ETHContract(bytecode, name = name)
         contracts.append(contract)
-        logging.info(contract.name + " at " + contract.address)
 
-    # Save updated signature
+    # Save updated function signatures
 
     with open(signatures_file, 'w') as f:
         json.dump(sigs, f)
+
+    # Analyse contracts one-by-one
+
+
+
+
 
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
@@ -360,20 +366,31 @@ elif (args.graph) or (args.fire_lasers):
 
     else:
 
-        if (args.dynld):
-            states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
-        else:
-            states = StateSpace(contracts, max_depth=args.max_depth)
+        issues = []
 
-        report = fire_lasers(states)
+        for contract in contracts:
 
-        if (args.outform == 'text'):
-            if (len(report.issues)):
+            if (args.dynld):
+                states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+            else:
+                states = StateSpace([contract], max_depth=args.max_depth)
+
+            issues += fire_lasers(states)
+
+        if (len(issues)):
+
+            report = Report()
+
+            for i in range(0, len(issues)):
+                report.append_issue(issues[i])
+
+            if (args.outform == 'text'):
                 print(report.as_text())
             else:
-                print("The analysis was completed successfully. No issues were detected.")
+                print(report.as_json())
+
         else:
-            print(report.as_json())
+            print("The analysis was completed successfully. No issues were detected.")
 
 else:
     parser.print_help()
