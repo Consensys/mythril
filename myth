@@ -267,8 +267,6 @@ elif (len(args.solidity_file)):
 
         signatures.add_signatures_from_file(file, sigs)
 
-        logging.debug("Adding function signatures from source code:\n" + str(sigs))
-
         try:
             name, bytecode = compile_solidity(file, solc_binary)
         except CompilerError as e:
