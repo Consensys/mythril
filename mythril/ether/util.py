@@ -16,7 +16,7 @@ def safe_decode(hex_encoded_string):
         return bytes.fromhex(hex_encoded_string)
 
 
-def compile_solidity(solc_binary, file):
+def compile_solidity(file, solc_binary="solc"):
     
     try:
         p = Popen([solc_binary, "--bin-runtime", '--allow-paths', ".", file], stdout=PIPE, stderr=PIPE)
@@ -64,3 +64,10 @@ def get_random_address():
 def get_indexed_address(index):
     return "0x" + (hex(index)[2:] * 40)
 
+def solc_exists(version):
+    solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
+    if os.path.exists(solc_binary):
+        return True
+    else:
+        return False
+        

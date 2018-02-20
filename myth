@@ -18,10 +18,13 @@ from mythril.exceptions import CompilerError
 from mythril.analysis.symbolic import StateSpace
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
+from mythril.analysis.report import Report
 from web3 import Web3
 from ethereum import utils
 from pathlib import Path
 from json.decoder import JSONDecodeError
+from solc.exceptions import SolcError
+import solc
 import logging
 import json
 import sys
@@ -55,27 +58,29 @@ inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("60606040
 inputs.add_argument('-a', '--address', help='pull contract from the blockchain', metavar='CONTRACT_ADDRESS')
 inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies from the blockchain')
 
+inputs = parser.add_argument_group('output formats')
+inputs.add_argument('-o', '--outform', choices=['text', 'json'], default='text', help='report output format', metavar='<text/json>')
+
 database = parser.add_argument_group('local contracts database')
 database.add_argument('--init-db', action='store_true', help='initialize the contract database')
 database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
 
-utils = parser.add_argument_group('utilities')
-utils.add_argument('-d', '--disassemble',  action='store_true', help='print disassembly')
-utils.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
-utils.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
-utils.add_argument('--storage', help='read state variables from storage index (index,length,array(in case of arrays)), use with -a', metavar='INDEX')
+utilities = parser.add_argument_group('utilities')
+utilities.add_argument('-d', '--disassemble',  action='store_true', help='print disassembly')
+utilities.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
+utilities.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
+utilities.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array]')
+utilities.add_argument('--solv', help='specify solidity compiler version. If not present, will try to install it (Experimental)', metavar='SOLV')
 
 options = parser.add_argument_group('options')
-options.add_argument('--ipc', help='use IPC interface instead of RPC', action='store_true')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
 rpc = parser.add_argument_group('RPC options')
-rpc.add_argument('--rpchost', default='127.0.0.1', help='RPC host')
-rpc.add_argument('--rpcport', type=int, default=8545, help='RPC port')
-rpc.add_argument('--rpctls', type=bool, default=False, help='RPC port')
+rpc.add_argument('--rpc', help='connect via RPC', metavar='HOST:PORT')
+rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
 rpc.add_argument('--ganache', action='store_true', help='Preset: local Ganache')
 rpc.add_argument('--infura-mainnet', action='store_true', help='Preset: Infura Node service (Mainnet)')
 rpc.add_argument('--infura-rinkeby', action='store_true', help='Preset: Infura Node service (Rinkeby)')
@@ -88,12 +93,6 @@ try:
     mythril_dir = os.environ['MYTHRIL_DIR']
 except KeyError:
     mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
-
-try:
-    solc_binary = os.environ['SOLC']
-except KeyError:
-    solc_binary = 'solc'
-
 
 # Initialize data directry and singature database
 
@@ -108,7 +107,7 @@ if not os.path.exists(mythril_dir):
 signatures_file = os.path.join(mythril_dir, 'signatures.json')
 
 if not os.path.exists(signatures_file):
-    print("No signature database found. Creating empty database: " + signatures_file  + "\n" \
+    logging.info("No signature database found. Creating empty database: " + signatures_file  + "\n" \
         "Consider replacing it with the pre-initialized database at " \
         "https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
 
@@ -150,25 +149,66 @@ if args.truffle:
 
     sys.exit()
 
+# Figure out solc binary and version
+# Only proper versions are supported. No nightlies, commits etc (such as available in remix)
+
+if args.solv:
+    version = args.solv
+    #tried converting input to semver, seemed not necessary so just slicing for now
+    if version == str(solc.main.get_solc_version())[:6]:
+        print('Given version matches installed version')
+        try:
+            solc_binary = os.environ['SOLC']
+        except KeyError:
+            solc_binary = 'solc'
+    else:
+        if util.solc_exists(version):
+            print('Given version is already installed')
+            solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
+            print("Setting the compiler to " + str(solc_binary))
+        else:
+            try:
+                solc.install_solc('v' + version)
+                solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
+                print("Setting the compiler to " + str(solc_binary))
+            except SolcError:
+                exitWithError("There was an error when trying to install the specified solc version")
+else:
+    if not args.solv:
+        try:
+            solc_binary = os.environ['SOLC']
+        except KeyError:
+            try:
+                solc_binary = 'solc'
+            except:
+                exitWithError('No solidity compiler found, please make sure it is installed or specify it manually.')
 
 # Establish RPC/IPC connection if necessary
 
 if (args.address or len(args.solidity_file) or args.init_db):
-        if args.ipc:
-            eth = EthIpc()
+
+        if args.infura_mainnet:
+            eth = EthJsonRpc('mainnet.infura.io', 443, True)
+        elif args.infura_rinkeby:
+            eth = EthJsonRpc('rinkeby.infura.io', 443, True)
+        elif args.infura_kovan:
+            eth = EthJsonRpc('kovan.infura.io', 443, True)
+        elif args.infura_ropsten:
+            eth = EthJsonRpc('ropsten.infura.io', 443, True)
+        elif args.ganache:
+            eth = EthJsonRpc('localhost', 7545, False)
+        elif args.rpc:
+
+                try:
+                    host, port = args.rpc.split(":")
+                except ValueError:
+                    exitWithError("Invalid RPC argument, use HOST:PORT")
+
+                tls = args.rpctls
+
+                eth = EthJsonRpc(host, int(port), tls)
         else:
-            if args.infura_mainnet:
-                eth = EthJsonRpc('mainnet.infura.io', 443, True)
-            elif args.infura_rinkeby:
-                eth = EthJsonRpc('rinkeby.infura.io', 443, True)
-            elif args.infura_kovan:
-                eth = EthJsonRpc('kovan.infura.io', 443, True)
-            elif args.infura_ropsten:
-                eth = EthJsonRpc('ropsten.infura.io', 443, True)
-            elif args.ganache:
-                eth = EthJsonRpc('localhost', 7545, False)
-            else:
-                eth = EthJsonRpc(args.rpchost, args.rpcport, args.rpctls)
+            eth = EthIpc()
 
 
 # Database search ops
@@ -185,7 +225,13 @@ if args.search or args.init_db:
             exitWithError("Syntax error in search expression.")
 
     elif (args.init_db):
-            contract_storage.initialize(eth, args.sync_all)
+            try:
+                contract_storage.initialize(eth, args.sync_all)
+            except FileNotFoundError as e:
+                print("Error syncing database over IPC: " + str(e))
+            except ConnectionError as e:
+                print("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
+
 
     sys.exit()
 
@@ -206,38 +252,44 @@ elif (args.address):
 
         if (code == "0x"):
             exitWithError("Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.") 
-    except ConnectionError:
-        exitWithError("Error connecting to Ethereum node. Make sure that your node is up and that the provided RPC/IPC parameters are correct.")
+
+    except FileNotFoundError as e:
+        exitWithError("IPC error: " + str(e))
+    except ConnectionError as e:
+        exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
     contracts.append(ETHContract(code, name=args.address, address = args.address))
 elif (len(args.solidity_file)):
-    index = 0
+
+    if(args.graph and len(args.solidity_file) > 1):
+        exitWithError("Cannot generate call graphs for multiple input files. Please do it one at a time.")     
 
     for file in args.solidity_file:
 
         file = file.replace("~", str(Path.home())) # Expand user path
 
-        signatures.add_signatures_from_file(file, sigs)
-
-        logging.debug("Adding function signatures from source code:\n" + str(sigs))
+        signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
 
         try:
-            name, bytecode = compile_solidity(solc_binary, file)
+            name, bytecode = compile_solidity(file, solc_binary)
         except CompilerError as e:
             exitWithError(e)
 
         # Max. 16 input files supported!
 
-        contract = ETHContract(bytecode, name = name, address = util.get_indexed_address(index))
-        index += 1
-
+        contract = ETHContract(bytecode, name = name)
         contracts.append(contract)
-        logging.info(contract.name + " at " + contract.address)
 
-    # Save updated signature
+    # Save updated function signatures
 
     with open(signatures_file, 'w') as f:
         json.dump(sigs, f)
+
+    # Analyse contracts one-by-one
+
+
+
+
 
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
@@ -262,7 +314,7 @@ if args.storage:
                 if re.match("array",params[2]):
                     array = 1
             if len(params) >= 4:
-                exitWithError("Invalid amount of parameters.")
+                exitWithError("Invalid number of parameters.")
         except ValueError:
             exitWithError("Invalid storage index. Please provide a numeric value.")
 
@@ -270,11 +322,18 @@ if args.storage:
             position_formated = str(position).zfill(64)
             position = int(Web3.sha3(position_formated),16)
 
-        if length == 1:
-            print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position));
-        else:
-            for i in range(position, position + length):
-                print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
+
+        try:
+            if length == 1:
+                print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position));
+            else:
+                for i in range(position, position + length):
+                    print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
+        except FileNotFoundError as e:
+            exitWithError("IPC error: " + str(e))
+        except ConnectionError as e:
+            exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
+
 
 elif (args.disassemble):
 
@@ -307,18 +366,30 @@ elif (args.graph) or (args.fire_lasers):
 
     else:
 
-        if (args.dynld):
-            states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
+        issues = []
+
+        for contract in contracts:
+
+            if (args.dynld):
+                states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+            else:
+                states = StateSpace([contract], max_depth=args.max_depth)
+
+            issues += fire_lasers(states)
+
+        if (len(issues)):
+
+            report = Report()
+
+            for i in range(0, len(issues)):
+                report.append_issue(issues[i])
+
+            if (args.outform == 'text'):
+                print(report.as_text())
+            else:
+                print(report.as_json())
+
         else:
-            states = StateSpace(contracts, max_depth=args.max_depth)
-
-        report = fire_lasers(states)
-
-        if (len(report.issues)):
-            print(report.as_text())
-
-        else:
-
             print("The analysis was completed successfully. No issues were detected.")
 
 else:

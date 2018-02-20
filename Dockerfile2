@@ -1,0 +1,37 @@
+<<<<<<< HEAD
+
+FROM ubuntu:16.04
+
+RUN apt-get update 
+RUN apt-get install -y wget pandoc python3 git gcc python3-dev build-essential libssl-dev python3-pip python3-setuptools
+
+
+RUN git clone https://github.com/b-mueller/mythril/
+RUN pip3 install laser-ethereum
+RUN (cd mythril &&  python3 setup.py install)
+RUN (mkdir ~/.mythril && cd ~/.mythril && wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json)
+
+WORKDIR /mythril
+
+ENTRYPOINT [“myth”]
+=======
+FROM ubuntu:rolling
+
+COPY . .
+
+RUN apt-get update \
+  && apt-get install -y software-properties-common python-software-properties \
+  && add-apt-repository ppa:ethereum/ethereum \
+  && apt-get update \
+  && apt-get install -y solc \
+  && apt-get install -y libssl-dev \
+  && apt-get install -y python3-pip python3-dev \
+  && ln -s /usr/bin/python3 /usr/local/bin/python \
+  && pip3 install --upgrade pip \
+  && apt-get install -y pandoc \
+  && apt-get install -y git \
+  && pip3 install laser-ethereum \
+  && python setup.py install
+
+CMD []
+>>>>>>> b06722b7d79bbeba40cba1f60c831ec11cefd3da
