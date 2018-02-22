@@ -7,6 +7,7 @@
 from mythril.ether import evm, util
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.ether.ethcontract import ETHContract
+from mythril.ether.soliditycontract import SolidityContract
 from mythril.ether.util import compile_solidity
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
@@ -14,11 +15,12 @@ from mythril.rpc.exceptions import ConnectionError
 from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
-from mythril.exceptions import CompilerError
+from mythril.exceptions import CompilerError, NoContractFoundError
 from mythril.analysis.symbolic import StateSpace
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
+from laser.ethereum import helper
 from web3 import Web3
 from ethereum import utils
 from pathlib import Path
@@ -242,6 +244,9 @@ contracts = []
 
 if (args.code):
     contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
+
+# Get bytecode from a contract address
+
 elif (args.address):
 
     if not re.match(r'0x[a-fA-F0-9]{40}', args.address):
@@ -259,10 +264,13 @@ elif (args.address):
         exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
     contracts.append(ETHContract(code, name=args.address, address = args.address))
+
+# Compile Solidity source file(s)
+
 elif (len(args.solidity_file)):
 
     if(args.graph and len(args.solidity_file) > 1):
-        exitWithError("Cannot generate call graphs for multiple input files. Please do it one at a time.")     
+        exitWithError("Cannot generate call graphs from multiple input files. Please do it one at a time.")     
 
     for file in args.solidity_file:
 
@@ -271,25 +279,17 @@ elif (len(args.solidity_file)):
         signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
 
         try:
-            name, bytecode = compile_solidity(file, solc_binary)
+            contract = SolidityContract(file)
+            contracts.append(contract)
         except CompilerError as e:
             exitWithError(e)
-
-        # Max. 16 input files supported!
-
-        contract = ETHContract(bytecode, name = name)
-        contracts.append(contract)
-
+        except NoContractFoundError:
+            print("The file " + file + " does not contain a compilable contract.")
+     
     # Save updated function signatures
 
     with open(signatures_file, 'w') as f:
         json.dump(sigs, f)
-
-    # Analyse contracts one-by-one
-
-
-
-
 
 else:
     exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
@@ -380,6 +380,22 @@ elif (args.graph) or (args.fire_lasers):
         if (len(issues)):
 
             report = Report()
+            disassembly = contract.get_disassembly()
+
+            if (type(contract) == SolidityContract):
+                for issue in issues:
+
+                    if (issue.pc):
+
+                        index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
+                        solidity_file = contract.solidity_files[contract.mappings[index].solidity_file_idx]
+
+                        issue.filename = solidity_file.filename
+
+                        offset = contract.mappings[index].offset
+                        length = contract.mappings[index].length
+
+                        issue.code = solidity_file.data[offset:offset+length]
 
             for i in range(0, len(issues)):
                 report.append_issue(issues[i])

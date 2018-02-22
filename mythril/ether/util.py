@@ -6,6 +6,7 @@ from subprocess import Popen, PIPE
 import binascii
 import os
 import re
+import json
 
 
 def safe_decode(hex_encoded_string):

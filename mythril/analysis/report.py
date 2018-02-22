@@ -12,6 +12,7 @@ class Issue:
         self.description = description
         self.type = _type
         self.debug = debug
+        self.filename = None
         self.code = None
 
 
@@ -49,8 +50,11 @@ class Report:
 
             text += issue.description + "\n--------------------\n"
 
+            if issue.filename:
+                 text += "In file: " + issue.filename + "\n"    
+
             if issue.code:
-                text += "Affected code:\n\n" + issue.code + "\n--------------------\n"
+                text += "\n\n" + issue.code + "\n\n--------------------\n"
 
             if len(issue.debug):
                 text += "++++ Debugging info ++++\n" + issue.debug + "\n"

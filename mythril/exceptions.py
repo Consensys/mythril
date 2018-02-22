@@ -3,3 +3,6 @@ class CompilerError(Exception):
 
 class UnsatError(Exception):
     pass
+
+class NoContractFoundError(Exception):
+    pass
