@@ -28,10 +28,6 @@ Run `myth -x` with one of the input options described below to run the analysis.
 
 Mythril detects a range of [security issues](security_checks.md), including integer underflows, owner-overwrite-to-Ether-withdrawal, and others. However, the analysis will not detect business logic issues and is not equivalent to formal verification.
 
-### Analyzing a Truffle project
-
-[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
-
 ### Analyzing Solidity code
 
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
@@ -57,6 +53,10 @@ balances[msg.sender] -= _value
 #### Specifying Solc versions
 
 You can specify a version of the solidity compiler to be used with `--solv <version number>`. Please be aware that this uses [py-solc](https://github.com/ethereum/py-solc) and will only work on Linux and OS X versions of Mavericks, Yosemite and El Capitan as of the time of this writing. It will check you locally installed compiler, if this is not what is specified, it will download binaries on Linux or try to compile from source on OS X.
+
+### Analyzing a Truffle project
+
+[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
 
 ### Working with contracts on the mainnet and testnets
 
