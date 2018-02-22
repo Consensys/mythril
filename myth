@@ -8,7 +8,6 @@ from mythril.ether import evm, util
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract
-from mythril.ether.util import compile_solidity
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from mythril.rpc.exceptions import ConnectionError
