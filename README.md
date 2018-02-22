@@ -49,19 +49,21 @@ Mythril detects a range of [security issues](security_checks.md), including inte
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
 ```bash
-$ myth -x myContract.sol
-```
+$ myth -x underflow.sol 
+==== Integer Underflow ====
+Type: Warning
+Contract: Under
+Function name: sendeth(address,uint256)
+PC address: 649
+A possible integer underflow exists in the function sendeth(address,uint256).
+The SUB instruction at address 649 may result in a value < 0.
+--------------------
+In file: underflow.sol
 
-Alternatively, compile the code on [Remix](http://remix.ethereum.org) and pass the runtime binary code to Mythril:
 
-```bash
-$ myth -x -c "0x5060(...)"
-```
+balances[msg.sender] -= _value
 
-If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set accordingly in the source). The contract passed as the first argument will be used as analysis entrypoint.
 
-```bash
-$ myth -x myContract.sol myLibrary.sol
 ```
 
 #### Specifying Solc versions
