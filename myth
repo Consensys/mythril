@@ -366,38 +366,42 @@ elif (args.graph) or (args.fire_lasers):
     else:
 
         issues = []
+        report = Report()
 
         for contract in contracts:
+
+
 
             if (args.dynld):
                 states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
             else:
                 states = StateSpace([contract], max_depth=args.max_depth)
 
-            issues += fire_lasers(states)
+            issues = fire_lasers(states)
 
-        if (len(issues)):
+            if len(issues):
+                if (type(contract) == SolidityContract):
 
-            report = Report()
-            disassembly = contract.get_disassembly()
+                    disassembly = contract.get_disassembly()
+                    
+                    for issue in issues:
 
-            if (type(contract) == SolidityContract):
-                for issue in issues:
+                        if (issue.pc):
 
-                    if (issue.pc):
+                            index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
+                            solidity_file = contract.solidity_files[contract.mappings[index].solidity_file_idx]
 
-                        index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
-                        solidity_file = contract.solidity_files[contract.mappings[index].solidity_file_idx]
+                            issue.filename = solidity_file.filename
 
-                        issue.filename = solidity_file.filename
+                            offset = contract.mappings[index].offset
+                            length = contract.mappings[index].length
 
-                        offset = contract.mappings[index].offset
-                        length = contract.mappings[index].length
+                            issue.code = solidity_file.data[offset:offset+length]
 
-                        issue.code = solidity_file.data[offset:offset+length]
+                for i in range(0, len(issues)):
+                    report.append_issue(issues[i])
 
-            for i in range(0, len(issues)):
-                report.append_issue(issues[i])
+        if len(report.issues):
 
             if (args.outform == 'text'):
                 print(report.as_text())
