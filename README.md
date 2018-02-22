@@ -22,18 +22,6 @@ $ python3 setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-### Function signatures
-
-Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
-
-```
-$ mkdir ~/.mythril
-$ cd ~/.mythril
-$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
-```
-
-When you analyze Solidity code, new function signatures are added to the database automatically.
-
 ## Security analysis
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
@@ -189,6 +177,18 @@ To print the Keccak hash for a given function signature:
 $ myth --hash "setOwner(address)"
 0x13af4035
 ```
+
+### Function signatures
+
+Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
+
+```
+$ mkdir ~/.mythril
+$ cd ~/.mythril
+$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
+```
+
+When you analyze Solidity code, new function signatures are added to the database automatically.
 
 ## Credit
 
