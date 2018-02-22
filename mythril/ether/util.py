@@ -16,6 +16,22 @@ def safe_decode(hex_encoded_string):
         return bytes.fromhex(hex_encoded_string)
 
 
+def get_solc_json(file, solc_binary="solc"):
+
+    try:
+        p = Popen([solc_binary, "--combined-json", "bin,bin-runtime,srcmap-runtime", '--allow-paths', ".", file], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        ret = p.returncode
+        if ret < 0:
+            raise CompilerError("The Solidity compiler experienced a fatal error (code %d). Please check the Solidity compiler." % ret)
+    except FileNotFoundError:
+        raise CompilerError("Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")        
+
+    out = stdout.decode("UTF-8")
+
+    return json.loads(out)
+
+
 def compile_solidity(file, solc_binary="solc"):
     
     try:
