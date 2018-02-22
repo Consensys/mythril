@@ -48,7 +48,7 @@ Mythril detects a range of [security issues](security_checks.md), including inte
 
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
-```bash
+```
 $ myth -x underflow.sol 
 ==== Integer Underflow ====
 Type: Warning
