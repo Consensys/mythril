@@ -28,10 +28,10 @@ class SolidityContract(ETHContract):
                 code = file.read()
                 self.solidity_files.append(SolidityFile(filename, code))
 
+        has_contract = False
+
         for key, contract in data['contracts'].items():
             filename, name = key.split(":")
-
-            has_contract = False
 
             if filename == input_file and len(contract['bin-runtime']):
                 self.name = name
