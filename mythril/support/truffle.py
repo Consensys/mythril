@@ -57,22 +57,17 @@ def analyze_truffle_project():
                 mappings = []
                 i = 0
 
-                while(i < len(deployedSourceMap)):
+                for item in deployedSourceMap:
 
-                    m = re.search(r"^(\d+):*(\d+)", deployedSourceMap[i])
+                    mapping = item.split(":")
 
-                    if (m):
-                        offset = m.group(1)
-                        length = m.group(2)
-                    else:
-                        m = re.search(r"^:(\d+)", deployedSourceMap[i])
+                    if len(mapping) > 0 and len(mapping[0]) > 0:
+                        offset = int(mapping[0])
 
-                        if m:
-                            length = m.group(1)
+                    if len(mapping) > 1 and len(mapping[1]) > 0:
+                        length = int(mapping[1])
 
                     mappings.append((int(offset), int(length)))
-
-                    i += 1
 
                 for issue in issues:
 

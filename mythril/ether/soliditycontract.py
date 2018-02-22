@@ -49,16 +49,16 @@ class SolidityContract(ETHContract):
 
         for item in srcmap:
 
-            m = re.search(r"^(\d+):(\d+)", item)
+            mapping = item.split(":")
 
-            if (m):
-                offset = int(m.group(1))
-                length = int(m.group(2))  
+            if len(mapping) > 0 and len(mapping[0]) > 0:
+                offset = int(mapping[0])
 
-            m = re.search(r"^\d+:\d+:(\d+)", item)
-
-            if (m):
-                idx = int(m.group(1))
+            if len(mapping) > 1 and len(mapping[1]) > 0:
+                length = int(mapping[1])
+            
+            if len(mapping) > 2 and len(mapping[2]) > 0:
+                idx = int(mapping[2])
 
             self.mappings.append(SourceMapping(idx, offset, length))
 
