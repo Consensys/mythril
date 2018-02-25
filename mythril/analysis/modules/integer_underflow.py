@@ -52,25 +52,28 @@ def execute(statespace):
 
                 logging.debug("[INTEGER_UNDERFLOW] Checking SUB " + str(op0) + ", " + str(op1) + " at address " + str(instruction['address']))
 
-                constraints.append(UGT(op1,op0))
+                allowed_types = [int, BitVecRef, BitVecNumRef]
 
-                try:
-                    
-                    model = solver.get_model(constraints)
+                if type(op0) in allowed_types and type(op1) in allowed_types:
+                    constraints.append(UGT(op1,op0))
 
-                    issue = Issue(node.module_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
+                    try:
+                        
+                        model = solver.get_model(constraints)
 
-                    issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
-                        "The SUB instruction at address " + str(instruction['address']) + " may result in a value < 0." 
+                        issue = Issue(node.module_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
 
-                    issue.debug = "(" + str(op0) + ") - (" + str(op1) + ").]"
+                        issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
+                            "The SUB instruction at address " + str(instruction['address']) + " may result in a value < 0." 
 
-                    issues.append(issue)
+                        issue.debug = "(" + str(op0) + ") - (" + str(op1) + ").]"
 
-                    for d in model.decls():
-                        logging.debug("[INTEGER_UNDERFLOW] model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                        issues.append(issue)
 
-                except UnsatError:
-                    logging.debug("[INTEGER_UNDERFLOW] no model found")         
+                        for d in model.decls():
+                            logging.debug("[INTEGER_UNDERFLOW] model: %s = 0x%x" % (d.name(), model[d].as_long()))
+
+                    except UnsatError:
+                        logging.debug("[INTEGER_UNDERFLOW] no model found")         
 
     return issues
