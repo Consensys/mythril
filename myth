@@ -60,7 +60,7 @@ inputs.add_argument('-a', '--address', help='pull contract from the blockchain',
 inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies from the blockchain')
 
 inputs = parser.add_argument_group('output formats')
-inputs.add_argument('-o', '--outform', choices=['text', 'json'], default='text', help='report output format', metavar='<text/json>')
+inputs.add_argument('-o', '--outform', choices=['text', 'markdown', 'json'], default='text', help='report output format', metavar='<text/json>')
 
 database = parser.add_argument_group('local contracts database')
 database.add_argument('--init-db', action='store_true', help='initialize the contract database')
@@ -370,8 +370,6 @@ elif (args.graph) or (args.fire_lasers):
 
         for contract in contracts:
 
-
-
             if (args.dynld):
                 states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
             else:
@@ -405,8 +403,10 @@ elif (args.graph) or (args.fire_lasers):
 
             if (args.outform == 'text'):
                 print(report.as_text())
-            else:
+            elif (args.outform == 'json'):
                 print(report.as_json())
+            elif (args.outform == 'markdown'):
+                print(report.as_markdown())
 
         else:
             print("The analysis was completed successfully. No issues were detected.")

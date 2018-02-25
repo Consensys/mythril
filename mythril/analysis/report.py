@@ -63,6 +63,7 @@ class Report:
 
         return text
 
+
     def as_json(self):
         issues = []
 
@@ -71,3 +72,28 @@ class Report:
             issues.append(issue.as_dict())
 
         return json.dumps(issues)
+
+
+    def as_markdown(self):
+        text = "# Analysis Results\n"
+
+        for key, issue in self.issues.items():
+
+            text += "## " + issue.title + "\n"
+            text += "- Type: " + issue.type + "\n"
+
+            if len(issue.contract):
+                text += "- Contract: " + issue.contract + "\n" 
+            else:
+                text += "- Contract: Unknown\n"              
+
+            text += "- Function name: " + issue.function + "\n"
+            text += "- PC address: " + str(issue.pc) + "\n\n"
+
+            text += "### Description\n" + issue.description + "\n"
+
+            if issue.filename and issue.code:
+                text += "*In " + issue.filename + ":*\n"    
+                text += "\n```\n" + issue.code + "\n```\n"
+
+        return text
