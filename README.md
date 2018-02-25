@@ -54,6 +54,16 @@ balances[msg.sender] -= _value
 
 You can specify a version of the solidity compiler to be used with `--solv <version number>`. Please be aware that this uses [py-solc](https://github.com/ethereum/py-solc) and will only work on Linux and OS X versions of Mavericks, Yosemite and El Capitan as of the time of this writing. It will check you locally installed compiler, if this is not what is specified, it will download binaries on Linux or try to compile from source on OS X.
 
+#### Output formats
+
+By default, analysis results are printed to the terminal in text format. You can change the output format with the `-o` argument:
+
+```
+$ myth -xo json underflow.sol
+```
+
+The `json` format is useful for integration into other tools, while `-o markdown` creates a [human-readable report](static/sample_report.md).
+
 ### Analyzing a Truffle project
 
 [Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
