@@ -22,51 +22,41 @@ $ python3 setup.py install
 
 Note that Mythril requires Python 3.5 to work.
 
-### Function signatures
-
-Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
-
-```
-$ mkdir ~/.mythril
-$ cd ~/.mythril
-$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
-```
-
-When you analyze Solidity code, new function signatures are added to the database automatically.
-
 ## Security analysis
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
 
 Mythril detects a range of [security issues](security_checks.md), including integer underflows, owner-overwrite-to-Ether-withdrawal, and others. However, the analysis will not detect business logic issues and is not equivalent to formal verification.
 
-### Analyzing a Truffle project
-
-[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
-
 ### Analyzing Solidity code
 
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
-```bash
-$ myth -x myContract.sol
 ```
+$ myth -x underflow.sol 
+==== Integer Underflow ====
+Type: Warning
+Contract: Under
+Function name: sendeth(address,uint256)
+PC address: 649
+A possible integer underflow exists in the function sendeth(address,uint256).
+The SUB instruction at address 649 may result in a value < 0.
+--------------------
+In file: underflow.sol
 
-Alternatively, compile the code on [Remix](http://remix.ethereum.org) and pass the runtime binary code to Mythril:
 
-```bash
-$ myth -x -c "0x5060(...)"
-```
+balances[msg.sender] -= _value
 
-If you have multiple interdependent contracts, pass them to Mythril as separate input files. Mythril will map the first contract to address "0x0000(..)", the second one to "0x1111(...)", and so forth (make sure that contract addresses are set accordingly in the source). The contract passed as the first argument will be used as analysis entrypoint.
 
-```bash
-$ myth -x myContract.sol myLibrary.sol
 ```
 
 #### Specifying Solc versions
 
 You can specify a version of the solidity compiler to be used with `--solv <version number>`. Please be aware that this uses [py-solc](https://github.com/ethereum/py-solc) and will only work on Linux and OS X versions of Mavericks, Yosemite and El Capitan as of the time of this writing. It will check you locally installed compiler, if this is not what is specified, it will download binaries on Linux or try to compile from source on OS X.
+
+### Analyzing a Truffle project
+
+[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
 
 ### Working with contracts on the mainnet and testnets
 
@@ -187,6 +177,18 @@ To print the Keccak hash for a given function signature:
 $ myth --hash "setOwner(address)"
 0x13af4035
 ```
+
+### Function signatures
+
+Whenever you disassemble or analyze binary code, Mythril will try to resolve function names using its local signature database. The database must be provided at `~/.mythril/signatures.json`. You can start out with the [default file](signatures.json) as follows:
+
+```
+$ mkdir ~/.mythril
+$ cd ~/.mythril
+$ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.json
+```
+
+When you analyze Solidity code, new function signatures are added to the database automatically.
 
 ## Credit
 

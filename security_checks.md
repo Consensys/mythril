@@ -16,4 +16,6 @@
 |Predictable RNG|                           | [weak_random](mythril/analysis/modules/weak_random.py) | |
 |Transaction order dependence|              |           | [Front Running](https://consensys.github.io/smart-contract-best-practices/known_attacks/#transaction-ordering-dependence-tod-front-running) |
 |Information exposure|                      |           |   |
+|Complex fallback function (uses more than 2,300 gas) | A too complex fallback function will cause send() and transfer() from other contracts to fail. To implement this we first need to fully implement gas simulation. | | 
 |Call depth attack| Deprecated!             |           | [EIP 150 Hard Fork](https://consensys.github.io/smart-contract-best-practices/known_attacks/#call-depth-attack-deprecated)|
+
