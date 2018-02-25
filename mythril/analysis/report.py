@@ -93,7 +93,7 @@ class Report:
             text += "### Description\n" + issue.description + "\n"
 
             if issue.filename and issue.code:
-                text += "*In " + issue.filename + ":*\n"    
+                text += "\nIn *" + issue.filename + ":*\n"    
                 text += "\n```\n" + issue.code + "\n```\n"
 
         return text
