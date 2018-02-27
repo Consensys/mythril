@@ -47,7 +47,6 @@ In file: solidity_examples/ether_send.sol:18
 
 msg.sender.transfer(this.balance)
 
-
 ```
 
 If an input file contains multiple contract definitions, Mythril analyzes the *last* bytecode output produced by solc. You can override this by specifying the contract name explicitly:
