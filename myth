@@ -247,10 +247,6 @@ if args.search or args.init_db:
 contracts = []
 
 if (args.code):
-    contract = ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0))
-
-    print(str(contract.get_disassembly().instruction_list))
-
     contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
 
 # Get bytecode from a contract address
@@ -356,10 +352,13 @@ elif (args.graph) or (args.fire_lasers):
 
     if (args.graph):
 
-        if (args.dynld):
-            states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
-        else:
-            states = StateSpace(contracts, max_depth=args.max_depth)
+        try:
+            if (args.dynld):
+                states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
+            else:
+                states = StateSpace(contracts, max_depth=args.max_depth)
+        except:
+            exitWithError(args.outform, "Symbolic exection error: " + str(e))
 
         if args.enable_physics is not None:
             physics = True
@@ -379,10 +378,14 @@ elif (args.graph) or (args.fire_lasers):
 
         for contract in contracts:
 
-            if (args.dynld):
-                states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
-            else:
-                states = StateSpace([contract], max_depth=args.max_depth)
+            try:
+                if (args.dynld):
+                    states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+                else:
+                    states = StateSpace([contract], max_depth=args.max_depth)
+            except Exception as e:
+                exitWithError(args.outform, "Symbolic exection error: " + str(e))               
+
 
             issues = fire_lasers(states)
 
