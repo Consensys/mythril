@@ -4,16 +4,19 @@ from mythril.exceptions import NoContractFoundError
 
 class SourceMapping:
 
-    def __init__(self, solidity_file_idx, offset, length):
+    def __init__(self, solidity_file_idx, offset, length, lineno):
         self.solidity_file_idx = solidity_file_idx
         self.offset = offset
         self.length = length
+        self.lineno = lineno
+
 
 class SolidityFile:
 
     def __init__(self, filename, data):
         self.filename = filename
         self.data = data
+
 
 class SolidityContract(ETHContract):
 
@@ -60,6 +63,8 @@ class SolidityContract(ETHContract):
             if len(mapping) > 2 and len(mapping[2]) > 0:
                 idx = int(mapping[2])
 
-            self.mappings.append(SourceMapping(idx, offset, length))
+            lineno = self.solidity_files[idx].data[0:offset].count('\n') + 1
+
+            self.mappings.append(SourceMapping(idx, offset, length, lineno))
 
         super().__init__(self.code, self.creation_code, name)

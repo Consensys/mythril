@@ -395,6 +395,7 @@ elif (args.graph) or (args.fire_lasers):
                             length = contract.mappings[index].length
 
                             issue.code = solidity_file.data[offset:offset+length]
+                            issue.lineno = contract.mappings[index].lineno
 
                 for i in range(0, len(issues)):
                     report.append_issue(issues[i])

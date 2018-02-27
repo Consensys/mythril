@@ -14,6 +14,7 @@ class Issue:
         self.debug = debug
         self.filename = None
         self.code = None
+        self.lineno = None
 
 
     def as_dict(self):
@@ -51,7 +52,7 @@ class Report:
             text += issue.description + "\n--------------------\n"
 
             if issue.filename:
-                 text += "In file: " + issue.filename + "\n"    
+                 text += "In file: " + issue.filename + ":" + str(issue.lineno)    
 
             if issue.code:
                 text += "\n\n" + issue.code + "\n\n--------------------\n"
