@@ -56,6 +56,7 @@ class SolidityContract(ETHContract):
                     self.name = name
                     self.code = contract['bin-runtime']
                     self.creation_code = contract['bin']
+                    srcmap = contract['srcmap-runtime'].split(";")
                     has_contract = True
 
         if not has_contract:
@@ -63,10 +64,7 @@ class SolidityContract(ETHContract):
 
         self.mappings = []
 
-        srcmap = contract['srcmap-runtime'].split(";")
-
         for item in srcmap:
-
             mapping = item.split(":")
 
             if len(mapping) > 0 and len(mapping[0]) > 0:
