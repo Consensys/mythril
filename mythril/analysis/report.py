@@ -66,9 +66,6 @@ class Report:
             if issue.code:
                 text += "\n\n" + issue.code + "\n\n--------------------\n"
 
-            if len(issue.debug):
-                text += "++++ Debugging info ++++\n" + issue.debug + "\n"
-
             text+="\n"
 
         return text
