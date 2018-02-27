@@ -351,6 +351,9 @@ elif (args.xrefs):
 
 elif (args.graph) or (args.fire_lasers):
 
+    if not len(contracts):
+        exitWithError(args.outform, "input files do not contain any valid contracts")
+
     if (args.graph):
 
         try:
