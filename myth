@@ -41,8 +41,13 @@ def searchCallback(code_hash, code, addresses, balances):
         print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
 
 
-def exitWithError(message):
-    print(message)
+def exitWithError(format, message):
+    if (format == 'text' or format == 'markdown'):
+        print(message)
+    else:
+        result = {success: True, error: message, issues: []}
+        json.dumps(result)
+
     sys.exit()
 
 
