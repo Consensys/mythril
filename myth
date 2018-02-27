@@ -45,8 +45,8 @@ def exitWithError(format, message):
     if (format == 'text' or format == 'markdown'):
         print(message)
     else:
-        result = {success: True, error: message, issues: []}
-        json.dumps(result)
+        result = {'success': False, 'error': str(message), 'issues': []}
+        print(json.dumps(result))
 
     sys.exit()
 
@@ -162,21 +162,21 @@ if args.solv:
     version = args.solv
     #tried converting input to semver, seemed not necessary so just slicing for now
     if version == str(solc.main.get_solc_version())[:6]:
-        print('Given version matches installed version')
+        logging.info('Given version matches installed version')
         try:
             solc_binary = os.environ['SOLC']
         except KeyError:
             solc_binary = 'solc'
     else:
         if util.solc_exists(version):
-            print('Given version is already installed')
+            logging.info('Given version is already installed')
             solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
-            print("Setting the compiler to " + str(solc_binary))
+            logging.info("Setting the compiler to " + str(solc_binary))
         else:
             try:
                 solc.install_solc('v' + version)
                 solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
-                print("Setting the compiler to " + str(solc_binary))
+                logging.info("Setting the compiler to " + str(solc_binary))
             except SolcError:
                 exitWithError("There was an error when trying to install the specified solc version")
 else:
@@ -234,9 +234,9 @@ if args.search or args.init_db:
             try:
                 contract_storage.initialize(eth, args.sync_all)
             except FileNotFoundError as e:
-                print("Error syncing database over IPC: " + str(e))
+                exitWithError("Error syncing database over IPC: " + str(e))
             except ConnectionError as e:
-                print("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
+                exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
 
 
     sys.exit()
@@ -286,9 +286,9 @@ elif (len(args.solidity_file)):
             contract = SolidityContract(file)
             contracts.append(contract)
         except CompilerError as e:
-            exitWithError(e)
+            exitWithError(args.outform, e)
         except NoContractFoundError:
-            print("The file " + file + " does not contain a compilable contract.")
+            logging.info("The file " + file + " does not contain a compilable contract.")
      
     # Save updated function signatures
 
@@ -370,7 +370,7 @@ elif (args.graph) or (args.fire_lasers):
 
     else:
 
-        issues = []
+        _issues = []
         report = Report()
 
         for contract in contracts:
@@ -383,6 +383,9 @@ elif (args.graph) or (args.fire_lasers):
             issues = fire_lasers(states)
 
             if len(issues):
+
+                # Append source code info for SolidityContract
+
                 if (type(contract) == SolidityContract):
 
                     disassembly = contract.get_disassembly()
@@ -402,20 +405,32 @@ elif (args.graph) or (args.fire_lasers):
                             issue.code = solidity_file.data[offset:offset+length]
                             issue.lineno = contract.mappings[index].lineno
 
-                for i in range(0, len(issues)):
-                    report.append_issue(issues[i])
+                for issue in issues:
+                    report.append_issue(issue) # For text and markdown output
+                    _issues.append(issue.as_dict()) # List of dicts for JSON output
 
-        if len(report.issues):
+        # Finally, output the results
 
-            if (args.outform == 'text'):
-                print(report.as_text())
-            elif (args.outform == 'json'):
-                print(report.as_json())
-            elif (args.outform == 'markdown'):
-                print(report.as_markdown())
+        if (len(issues)):
+
+            if (args.outform == 'json'):
+
+                result = {'success': True, 'error': None, 'issues': _issues}
+                print(json.dumps(result))
+
+            else:
+
+                if (args.outform == 'text'):
+                    print(report.as_text())
+                elif (args.outform == 'markdown'):
+                    print(report.as_markdown())
 
         else:
-            print("The analysis was completed successfully. No issues were detected.")
+            if (args.outform == 'text' or args.outform == 'markdown'):
+                print("The analysis was completed successfully. No issues were detected.")
+            else:
+                result = {'success': True, 'error': None, 'issues': []}
+                print(json.dumps(result))
 
 else:
     parser.print_help()
