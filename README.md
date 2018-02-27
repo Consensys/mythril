@@ -33,21 +33,27 @@ Mythril detects a range of [security issues](security_checks.md), including inte
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
 ```
-$ myth -x underflow.sol 
-==== Integer Underflow ====
+$ ./myth -x solidity_examples/ether_send.sol 
+==== Ether send ====
 Type: Warning
-Contract: Under
-Function name: sendeth(address,uint256)
-PC address: 649
-A possible integer underflow exists in the function sendeth(address,uint256).
-The SUB instruction at address 649 may result in a value < 0.
+Contract: Crowdfunding
+Function name: withdrawfunds()
+PC address: 816
+In the function 'withdrawfunds()' a non-zero amount of Ether is sent to msg.sender.
+
+There is a check on storage index 7. This storage slot can be written to by calling the function 'crowdfunding()'.
 --------------------
-In file: underflow.sol
+In file: solidity_examples/ether_send.sol:18
+
+msg.sender.transfer(this.balance)
 
 
-balances[msg.sender] -= _value
+```
 
+If an input file contains multiple contract definitions, Mythril analyzes the *last* bytecode output produced by solc. You can override this by specifying the contract name explicitly:
 
+```
+$ /myth -x OmiseGo.sol:OMGToken
 ```
 
 #### Specifying Solc versions
