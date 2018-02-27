@@ -280,15 +280,16 @@ elif (len(args.solidity_file)):
 
         file = file.replace("~", str(Path.home())) # Expand user path
 
-        signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
-
         try:
+            signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
             contract = SolidityContract(file)
             contracts.append(contract)
         except CompilerError as e:
             exitWithError(args.outform, e)
         except NoContractFoundError:
             logging.info("The file " + file + " does not contain a compilable contract.")
+        except FileNotFoundError:
+            exitWithError(args.outform, "Input file not found: " + file)
      
     # Save updated function signatures
 
