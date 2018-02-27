@@ -247,6 +247,10 @@ if args.search or args.init_db:
 contracts = []
 
 if (args.code):
+    contract = ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0))
+
+    print(str(contract.get_disassembly().instruction_list))
+
     contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
 
 # Get bytecode from a contract address
@@ -254,18 +258,18 @@ if (args.code):
 elif (args.address):
 
     if not re.match(r'0x[a-fA-F0-9]{40}', args.address):
-        exitWithError("Invalid contract address. Expected format is '0x...'.")
+        exitWithError(args.outform, "Invalid contract address. Expected format is '0x...'.")
 
     try:
         code = eth.eth_getCode(args.address)
 
         if (code == "0x"):
-            exitWithError("Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.") 
+            exitWithError(args.outform, "Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.") 
 
     except FileNotFoundError as e:
-        exitWithError("IPC error: " + str(e))
+        exitWithError(args.outform, "IPC error: " + str(e))
     except ConnectionError as e:
-        exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
+        exitWithError(args.outform, "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
     contracts.append(ETHContract(code, name=args.address, address = args.address))
 
@@ -274,7 +278,7 @@ elif (args.address):
 elif (len(args.solidity_file)):
 
     if(args.graph and len(args.solidity_file) > 1):
-        exitWithError("Cannot generate call graphs from multiple input files. Please do it one at a time.")     
+        exitWithError(args.outform,"Cannot generate call graphs from multiple input files. Please do it one at a time.")     
 
     for file in args.solidity_file:
 
@@ -296,13 +300,13 @@ elif (len(args.solidity_file)):
         json.dump(sigs, f)
 
 else:
-    exitWithError("No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
+    exitWithError(args.outform,"No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
 
 # Commands
 
 if args.storage:
     if not args.address:
-        exitWithError("To read storage, provide the address of a deployed contract with the -a option.")
+        exitWithError(args.outform, "To read storage, provide the address of a deployed contract with the -a option.")
     else:
         position = 0
         length = 1
@@ -318,9 +322,9 @@ if args.storage:
                 if re.match("array",params[2]):
                     array = 1
             if len(params) >= 4:
-                exitWithError("Invalid number of parameters.")
+                exitWithError(args.outform, "Invalid number of parameters.")
         except ValueError:
-            exitWithError("Invalid storage index. Please provide a numeric value.")
+            exitWithError(args.outform, "Invalid storage index. Please provide a numeric value.")
 
         if array:
             position_formated = str(position).zfill(64)
@@ -334,9 +338,9 @@ if args.storage:
                 for i in range(position, position + length):
                     print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
         except FileNotFoundError as e:
-            exitWithError("IPC error: " + str(e))
+            exitWithError(args.outform, "IPC error: " + str(e))
         except ConnectionError as e:
-            exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
+            exitWithError(args.outform, "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
 
 elif (args.disassemble):
@@ -366,7 +370,7 @@ elif (args.graph) or (args.fire_lasers):
             with open(args.graph, "w") as f:
                 f.write(html)
         except Exception as e:
-            print("Error saving graph: " + str(e))
+            exitWithError(args.outform, "Error saving graph: " + str(e))
 
     else:
 
