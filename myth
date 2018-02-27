@@ -430,7 +430,7 @@ elif (args.graph) or (args.fire_lasers):
 
         # Finally, output the results
 
-        if (len(issues)):
+        if (len(_issues)):
 
             if (args.outform == 'json'):
 
