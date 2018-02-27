@@ -278,11 +278,19 @@ elif (len(args.solidity_file)):
 
     for file in args.solidity_file:
 
+        if ":" in file:
+            file, contract_name = file.split(":")
+        else:
+            contract_name = None
+
         file = file.replace("~", str(Path.home())) # Expand user path
 
         try:
             signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
-            contract = SolidityContract(file)
+            contract = SolidityContract(file, contract_name)
+
+            logging.info("Analyzing contract %s:%s" % (file, contract.name))
+
             contracts.append(contract)
         except CompilerError as e:
             exitWithError(args.outform, e)

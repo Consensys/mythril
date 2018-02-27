@@ -33,15 +33,30 @@ class SolidityContract(ETHContract):
 
         has_contract = False
 
-        for key, contract in data['contracts'].items():
-            filename, name = key.split(":")
+        # If a contract name has been specified, find the bytecode of that specific contract
 
-            if filename == input_file and len(contract['bin-runtime']):
-                self.name = name
-                self.code = contract['bin-runtime']
-                self.creation_code = contract['bin']
-                has_contract = True
-                break
+        if contract_name:
+            for key, contract in data['contracts'].items():
+                filename, name = key.split(":")
+
+                if filename == input_file and name == contract_name:
+                    self.name = name
+                    self.code = contract['bin-runtime']
+                    self.creation_code = contract['bin']
+                    has_contract = True
+                    break
+
+        # If no contract name is specified, get the last bytecode entry for the input file
+
+        else:
+            for key, contract in data['contracts'].items():
+                filename, name = key.split(":")
+
+                if filename == input_file and len(contract['bin-runtime']):
+                    self.name = name
+                    self.code = contract['bin-runtime']
+                    self.creation_code = contract['bin']
+                    has_contract = True
 
         if not has_contract:
             raise NoContractFoundError
