@@ -19,7 +19,16 @@ class Issue:
 
     def as_dict(self):
 
-        return {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.pc, 'debug': self.debug}
+        issue = {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.pc, 'debug': self.debug}
+
+        if self.filename and self.lineno:
+            issue['filename'] = self.filename 
+            issue['lineno'] = self.lineno
+
+        if self.code:
+            issue['code'] = self.code
+
+        return issue
 
 
 class Report:
@@ -51,7 +60,7 @@ class Report:
 
             text += issue.description + "\n--------------------\n"
 
-            if issue.filename:
+            if issue.filename and issue.lineno:
                  text += "In file: " + issue.filename + ":" + str(issue.lineno)    
 
             if issue.code:
