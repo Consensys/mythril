@@ -43,6 +43,7 @@ class SolidityContract(ETHContract):
                     self.name = name
                     self.code = contract['bin-runtime']
                     self.creation_code = contract['bin']
+                    srcmap = contract['srcmap-runtime'].split(";")
                     has_contract = True
                     break
 
