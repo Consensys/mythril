@@ -33,7 +33,7 @@ Mythril detects a range of [security issues](security_checks.md), including inte
 In order to work with Solidity source code files, the [solc command line compiler](http://solidity.readthedocs.io/en/develop/using-the-compiler.html) needs to be installed and in path. You can then provide the source file(s) as positional arguments, e.g.:
 
 ```
-$ ./myth -x solidity_examples/ether_send.sol 
+$ myth -x solidity_examples/ether_send.sol 
 ==== Ether send ====
 Type: Warning
 Contract: Crowdfunding
