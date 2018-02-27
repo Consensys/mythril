@@ -254,7 +254,7 @@ Credit
 setup(
     name='mythril',
 
-    version='0.12.3',
+    version='0.12.4',
 
     description='Security analysis tool for Ethereum smart contracts',
     long_description=long_description,
