@@ -25,7 +25,7 @@ def get_solc_json(file, solc_binary="solc"):
         ret = p.returncode
 
         if ret != 0:
-            raise CompilerError("The Solidity compiler experienced a fatal error (code %d). Please check the Solidity compiler." % ret)
+            raise CompilerError("Solc experienced a fatal error (code %d).\n\n%s" % (ret, stderr.decode('UTF-8')))
     except FileNotFoundError:
         raise CompilerError("Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")        
 
