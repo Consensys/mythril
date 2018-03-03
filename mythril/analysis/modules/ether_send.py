@@ -49,27 +49,17 @@ def execute(statespace):
             m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
 
             if (m):
-
                 idx = m.group(1)
 
-                try:
+                func = statespace.find_storage_write(idx)
 
-                    for s in statespace.sstors[idx]:
-
-                        if s.tainted:
-                            description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx) + "." \
-                                " This storage slot can be written  to by calling the function '" + s.node.function_name + "'.\n"
-                            interesting = True
-                            continue
-
-                except KeyError:
+                if (func):
+                    description += "\nThere is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'.\n"
+                    interesting = True
+                else:
                     logging.debug("[ETHER_SEND] No storage writes to index " + str(idx))
-                    break
-
 
         if interesting:
-
-            description += "Call value is " + str(call.value) + ".\n"
 
             node = call.node
 
@@ -86,8 +76,6 @@ def execute(statespace):
 
                 m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
-                overwrite = False
-
                 if (m):
 
                     constrained = True
@@ -97,7 +85,6 @@ def execute(statespace):
 
                     if (func):
                         description += "\nThere is a check on storage index " + str(index) + ". This storage slot can be written to by calling the function '" + func + "'."
-                        overwrite = True
                     else:
                         logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
                         can_solve = False
