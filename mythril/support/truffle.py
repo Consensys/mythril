@@ -10,7 +10,7 @@ from mythril.analysis.report import Report
 from laser.ethereum import helper
 
 
-def analyze_truffle_project():
+def analyze_truffle_project(args):
 
     project_root = os.getcwd()
     
@@ -42,8 +42,11 @@ def analyze_truffle_project():
             issues = fire_lasers(states)
 
             if not len(issues):
-                print("Analysis result for " + name + ": No issues found.")
-                
+                if (args.outform == 'text' or args.outform == 'markdown'):
+                    print("Analysis result for " + name + ": No issues found.")
+                else:
+                    result = { 'contract': name, 'result': {'success': True, 'error': None, 'issues': []} }
+                    print(json.dumps(result))
             else:      
 
                 report = Report()
@@ -80,4 +83,14 @@ def analyze_truffle_project():
 
                     report.append_issue(issue)
 
-                print("Analysis result for " + name + ":\n" + report.as_text())
+                if (args.outform == 'json'):
+
+                    result = {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict(), issues))}
+                    print(json.dumps(result))
+
+                else:
+
+                    if (args.outform == 'text'):
+                        print("Analysis result for " + name + ":\n" + report.as_text())
+                    elif (args.outform == 'markdown'):
+                        print("Analysis result for " + name + ":\n" + report.as_markdown())
