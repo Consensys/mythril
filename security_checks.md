@@ -18,4 +18,5 @@
 |Information exposure|                      |           |   |
 |Complex fallback function (uses more than 2,300 gas) | A too complex fallback function will cause send() and transfer() from other contracts to fail. To implement this we first need to fully implement gas simulation. | | 
 |Call depth attack| Deprecated!             |           | [EIP 150 Hard Fork](https://consensys.github.io/smart-contract-best-practices/known_attacks/#call-depth-attack-deprecated)|
+|User require() instead of assert() | Use `assert()` only to check against states which should be completely unreachable. This facilitates static analysis using solidity's built-in SMTChecker. For more information, refer to the documentation.        |           | [Solidity docs](https://solidity.readthedocs.io/en/develop/control-structures.html#error-handling-assert-require-revert-and-exceptions)|
 
