@@ -43,16 +43,20 @@ def execute(statespace):
         # The instructions executed in each node (basic block) are saved in node.instruction_list, e.g.:
         # [{address: "132", opcode: "CALL"}, {address: "133", opcode: "ISZERO"}]
 
+
+        '''
         start_index = helper.get_instruction_index(call.node.instruction_list, call.addr) + 1
  
         retval_checked = False
 
         # ISZERO retval should be found within the next few instructions.
 
+
+
         for i in range(0, 10):
 
             try:
-                instr = call.node.instruction_list[start_index + i]
+                instr = call.node.states[start_index + i].
             except IndexError:
                 break
 
@@ -79,5 +83,7 @@ def execute(statespace):
                 "The return value of this call is not checked. Note that the function will continue to execute with a return value of '0' if the called contract throws."
 
             issues.append(issue)
+
+        '''
 
     return issues

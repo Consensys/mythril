@@ -23,8 +23,6 @@ class Op:
     def __init__(self, node, addr):
         self.node = node
         self.addr = addr
-        self.state = node.states[addr]
-
 
 class Call(Op):
 

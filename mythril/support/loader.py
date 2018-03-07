@@ -51,5 +51,4 @@ class DynLoader:
         if (code == "0x"):
             return None
         else:
-            contract = ETHContract(self.eth.eth_getCode(dependency_address), name=dependency_address, address=dependency_address)
-            return contract.as_dict()
+            return ETHContract(self.eth.eth_getCode(dependency_address)).get_disassembly()

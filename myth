@@ -364,13 +364,13 @@ elif (args.graph) or (args.fire_lasers):
 
     if (args.graph):
 
-        try:
-            if (args.dynld):
-                states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
-            else:
-                states = StateSpace(contracts, max_depth=args.max_depth)
-        except:
-            exitWithError(args.outform, "Symbolic exection error: " + str(e))
+        # try:
+        if (args.dynld):
+            states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
+        else:
+            states = StateSpace(contracts, max_depth=args.max_depth)
+        # except:
+        #    exitWithError(args.outform, "Symbolic exection error: " + str(e))
 
         if args.enable_physics is not None:
             physics = True
@@ -390,13 +390,13 @@ elif (args.graph) or (args.fire_lasers):
 
         for contract in contracts:
 
-            try:
-                if (args.dynld):
-                    states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
-                else:
-                    states = StateSpace([contract], max_depth=args.max_depth)
-            except Exception as e:
-                exitWithError(args.outform, "Symbolic exection error: " + str(e))               
+            # try:
+            if (args.dynld):
+                states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+            else:
+                states = StateSpace([contract], max_depth=args.max_depth)
+            # except Exception as e:
+            #   exitWithError(args.outform, "Symbolic exection error: " + str(e))               
 
 
             issues = fire_lasers(states)

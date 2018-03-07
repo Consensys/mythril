@@ -1,13 +1,9 @@
 from mythril.analysis import solver
 from mythril.exceptions import UnsatError
 from laser.ethereum import svm
+import copy
 from .ops import *
 import logging
-
-
-class SStorTaintStatus(Enum):
-    TAINTED = 1
-    UNTAINTED = 2 
 
 
 class StateSpace:
@@ -21,9 +17,9 @@ class StateSpace:
         self.accounts = {}
 
         for contract in contracts:
-            self.accounts[contract.address] = svm.Account(contract.get_disassembly())
+            self.accounts[contract.address] = svm.Account(contract.address, contract.get_disassembly())
 
-        self.laser = svm.Laser(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
+        self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
         self.laser.sym_exec(contracts[0].address)
 
         # self.modules = modules
@@ -43,7 +39,7 @@ class StateSpace:
                 op = instruction['opcode']
 
                 if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
-                    stack = copy.deepcopy(self.svm.nodes[key].states[instruction['address']].stack)
+                    stack = copy.deepcopy(state.mstate.stack)
 
                     if op in ('CALL', 'CALLCODE'):
                         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
@@ -55,7 +51,7 @@ class StateSpace:
                                 continue
 
                         if (meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE):
-                            self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value, self.svm.nodes[key].states[instruction['address']].memory[meminstart.val:meminsz.val*4]))
+                            self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val*4]))
                         else:
                             self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value))                     
                     else:
@@ -64,8 +60,9 @@ class StateSpace:
 
                         self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas))
 
+                '''
                 elif op == 'SSTORE':
-                    stack = copy.deepcopy(self.svm.nodes[key].states[instruction['address']].stack)
+                    stack = copy.deepcopy(state.mstate.stack)
 
                     index, value = stack.pop(), stack.pop()
 
@@ -73,6 +70,7 @@ class StateSpace:
                         self.sstors[str(index)].append(SStore(self.nodes[key], instruction['address'], value))
                     except KeyError:
                         self.sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
+                '''
 
 
 
