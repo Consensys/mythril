@@ -127,7 +127,7 @@ def serialize(statespace, color_map):
 
     for node_key in statespace.nodes:
 
-        code =  statespace.nodes[node_key].as_dict()['code']
+        code =  statespace.nodes[node_key].get_cfg_dict()['code']
 
         code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
 
@@ -135,7 +135,7 @@ def serialize(statespace, color_map):
 
         truncated_code = code if (len(code_split) < 7) else "\\n".join(code_split[:6]) + "\\n(click to expand +)"
 
-        color = color_map[statespace.nodes[node_key].as_dict()['module_name']]
+        color = color_map[statespace.nodes[node_key].get_cfg_dict()['module_name']]
 
         nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + truncated_code + "', 'fullLabel': '" + code + "', 'truncLabel': '" + truncated_code + "', 'isExpanded': false}")
 
@@ -165,8 +165,8 @@ def generate_graph(statespace, physics = False):
 
     color_map = {}
 
-    for k in statespace.modules:
-      color_map[statespace.modules[k]['name']] = colors[i]
+    for k in statespace.accounts:
+      color_map[statespace.accounts[k].contract_name] = colors[i]
       i += 1
 
     html = graph_html.replace("[JS]", serialize(statespace, color_map))

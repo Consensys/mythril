@@ -23,11 +23,13 @@ def execute(statespace):
     for k in statespace.nodes:
         node = statespace.nodes[k]
 
-        for instruction in node.instruction_list:
+        for state in node.states:
+
+            instruction = state.get_current_instruction()
 
             if(instruction['opcode'] == "SUB"):
 
-                stack = node.states[instruction['address']].stack
+                stack = state.mstate.stack
 
                 op0 = stack[-1]
                 op1 = stack[-2]

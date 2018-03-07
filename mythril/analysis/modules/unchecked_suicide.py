@@ -24,7 +24,9 @@ def execute(statespace):
     for k in statespace.nodes:
         node = statespace.nodes[k]
 
-        for instruction in node.instruction_list:
+        for state in node.states:
+
+            instruction = state.get_current_instruction()
 
             if(instruction['opcode'] == "SUICIDE"):
 

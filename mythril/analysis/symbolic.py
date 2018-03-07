@@ -18,34 +18,28 @@ class StateSpace:
     
     def __init__(self, contracts, dynloader = None, max_depth = 12):
 
-        # Convert ETHContract objects to LASER SVM "modules"
-
-        modules = {}
+        self.accounts = {}
 
         for contract in contracts:
-            modules[contract.address] = contract.as_dict()
+            self.accounts[contract.address] = svm.Account(contract.get_disassembly())
 
-        self.svm = svm.SVM(modules, dynamic_loader=dynloader, max_depth=max_depth)
+        self.laser = svm.Laser(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
+        self.laser.sym_exec(contracts[0].address)
 
-        self.svm.sym_exec(contracts[0].address)
+        # self.modules = modules
+        self.nodes = self.laser.nodes
+        self.edges = self.laser.edges
 
-        self.modules = modules
-        self.nodes = self.svm.nodes
-        self.edges = self.svm.edges
-
-        # Analysis
+        # Some pre-analysis
 
         self.calls = []
-        self.suicides = []
         self.sstors = {}
 
-        self.sstor_taint_cache = []
+        for key in self.nodes:
 
+            for state in self.nodes[key].states:
 
-        for key in self.svm.nodes:
-
-            for instruction in self.nodes[key].instruction_list:
-
+                instruction = state.get_current_instruction()
                 op = instruction['opcode']
 
                 if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
@@ -79,36 +73,6 @@ class StateSpace:
                         self.sstors[str(index)].append(SStore(self.nodes[key], instruction['address'], value))
                     except KeyError:
                         self.sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
-
-        # self.sstor_analysis()
-
-
-    '''
-    def sstor_analysis(self):
-
-        logging.info("Analyzing storage operations...")
-
-        for index in self.sstors:
-            for s in self.sstors[index]:
-
-                # 'Taint' every 'store' instruction that is reachable without any constraint on msg.sender
-
-                taint = True
-
-                for constraint in s.node.constraints:
-                    if ("caller" in str(constraint)):
-                        taint = False
-                        break
-
-                if taint:
-                    s.tainted = True
-
-                    try:
-                        solver.get_model(s.node.constraints)
-                        s.tainted = True
-                    except UnsatError:
-                        s.tainted = False
-    '''
 
 
 
