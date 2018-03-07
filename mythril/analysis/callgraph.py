@@ -135,7 +135,7 @@ def serialize(statespace, color_map):
 
         truncated_code = code if (len(code_split) < 7) else "\\n".join(code_split[:6]) + "\\n(click to expand +)"
 
-        color = color_map[statespace.nodes[node_key].get_cfg_dict()['module_name']]
+        color = color_map[statespace.nodes[node_key].get_cfg_dict()['contract_name']]
 
         nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + truncated_code + "', 'fullLabel': '" + code + "', 'truncLabel': '" + truncated_code + "', 'isExpanded': false}")
 

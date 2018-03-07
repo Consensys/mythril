@@ -24,7 +24,7 @@ def execute(statespace):
 
             if(instruction['opcode'] == "ORIGIN"):
 
-                issue = Issue(node.module_name, node.function_name, instruction['address'],  "Use of tx.origin", "Warning", \
+                issue = Issue(node.contract_name, node.function_name, instruction['address'],  "Use of tx.origin", "Warning", \
                     "Function " + node.function_name + " retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use tx.sender instead.\nSee also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin"
                 )
                 

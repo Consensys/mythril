@@ -111,7 +111,7 @@ def execute(statespace):
                     for d in model.decls():
                         logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
 
-                    issue = Issue(call.node.module_name, call.node.function_name, call.addr, "Ether send", "Warning", description)
+                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Ether send", "Warning", description)
                     issues.append(issue)
  
                 except UnsatError:

@@ -97,7 +97,7 @@ def execute(statespace):
                         for d in model.decls():
                             logging.debug("[UNCHECKED_SUICIDE] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
 
-                        issue = Issue(node.module_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description)
+                        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description)
                         issues.append(issue)
 
                     except UnsatError:

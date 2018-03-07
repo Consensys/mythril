@@ -54,7 +54,7 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
-                issue = Issue(call.node.module_name, call.node.function_name, call.addr, "Weak random", "Warning",
+                issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Weak random", "Warning",
                               description)
                 issues.append(issue)
 
@@ -82,7 +82,7 @@ def execute(statespace):
                                            " is used to determine Ether recipient"
                             description += ", this expression will always be equal to zero."
 
-                        issue = Issue(call.node.module_name, call.node.function_name, call.addr, "Weak random",
+                        issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Weak random",
                                       "Warning", description)
                         issues.append(issue)
                         break
@@ -102,7 +102,7 @@ def execute(statespace):
                         if index and solve(call):
                             description += 'block.blockhash() is calculated using a value from storage ' \
                                            'at index {}'.format(index)
-                            issue = Issue(call.node.module_name, call.node.function_name, call.addr, "Weak random",
+                            issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Weak random",
                                           "Informational", description)
                             issues.append(issue)
                             break

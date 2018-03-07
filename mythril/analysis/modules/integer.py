@@ -16,7 +16,7 @@ For every SUB instruction, check if there's a possible state where op1 > op0.
 
 def execute(statespace):
 
-    logging.debug("Executing module: INTEGER_UNDERFLOW")
+    logging.debug("Executing module: INTEGER")
 
     issues = []
 
@@ -63,7 +63,7 @@ def execute(statespace):
                         
                         model = solver.get_model(constraints)
 
-                        issue = Issue(node.module_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
+                        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
 
                         issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
                             "The SUB instruction at address " + str(instruction['address']) + " may result in a value < 0." 

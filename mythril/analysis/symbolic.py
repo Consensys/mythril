@@ -17,7 +17,7 @@ class StateSpace:
         self.accounts = {}
 
         for contract in contracts:
-            self.accounts[contract.address] = svm.Account(contract.address, contract.get_disassembly())
+            self.accounts[contract.address] = svm.Account(contract.address, contract.get_disassembly(), contract.name)
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
         self.laser.sym_exec(contracts[0].address)

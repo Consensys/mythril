@@ -24,7 +24,7 @@ def execute(statespace):
             if (call.to.type == VarType.SYMBOLIC):
 
                 if ("calldata" in str(call.to)):
-                    issue = Issue(call.node.module_name, call.node.function_name, call.addr, call.type + " to dynamic address")
+                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, call.type + " to dynamic address")
 
                     issue.description = \
                         "The function " + call.node.function_name + " delegates execution to a contract address obtained from calldata.\n" \
