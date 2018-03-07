@@ -149,7 +149,7 @@ elif (args.hash):
 if args.truffle:
 
     try:
-        analyze_truffle_project()
+        analyze_truffle_project(args)
     except FileNotFoundError:
         print("Build directory not found. Make sure that you start the analysis from the project root, and that 'truffle compile' has executed successfully.")
 
