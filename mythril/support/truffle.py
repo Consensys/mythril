@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import json
-from mythril.ether import util
 from mythril.ether.ethcontract import ETHContract
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import StateSpace
@@ -13,7 +12,7 @@ from laser.ethereum import helper
 def analyze_truffle_project(args):
 
     project_root = os.getcwd()
-    
+
     build_dir = os.path.join(project_root, "build", "contracts")
 
     files = os.listdir(build_dir)
@@ -32,22 +31,21 @@ def analyze_truffle_project(args):
                 print("Unable to parse contract data. Please use Truffle 4 to compile your project.")
                 sys.exit()
 
-
             if (len(bytecode) < 4):
                 continue
 
-            ethcontract= ETHContract(bytecode, name=name, address = util.get_indexed_address(0))
+            ethcontract = ETHContract(bytecode, name=name)
 
-            states = StateSpace([ethcontract], max_depth = 10)
+            states = StateSpace([ethcontract], max_depth=10)
             issues = fire_lasers(states)
 
             if not len(issues):
                 if (args.outform == 'text' or args.outform == 'markdown'):
                     print("Analysis result for " + name + ": No issues found.")
                 else:
-                    result = { 'contract': name, 'result': {'success': True, 'error': None, 'issues': []} }
+                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': []}}
                     print(json.dumps(result))
-            else:      
+            else:
 
                 report = Report()
                 # augment with source code
@@ -85,7 +83,7 @@ def analyze_truffle_project(args):
 
                 if (args.outform == 'json'):
 
-                    result = { 'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict(), issues))}}
+                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict(), issues))}}
                     print(json.dumps(result))
 
                 else:
