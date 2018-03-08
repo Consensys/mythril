@@ -6,6 +6,7 @@ from mythril.ether.ethcontract import ETHContract
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
+from mythril.ether import util
 from laser.ethereum import helper
 
 
@@ -36,7 +37,8 @@ def analyze_truffle_project(args):
 
             ethcontract = ETHContract(bytecode, name=name)
 
-            sym = SymExecWrapper([ethcontract], max_depth=10)
+            address = util.get_indexed_address(0)
+            sym = SymExecWrapper(ethcontract, address, max_depth=10)
             issues = fire_lasers(sym)
 
             if not len(issues):
