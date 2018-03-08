@@ -72,7 +72,7 @@ database.add_argument('--init-db', action='store_true', help='initialize the con
 database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
 
 utilities = parser.add_argument_group('utilities')
-utilities.add_argument('-d', '--disassemble',  action='store_true', help='print disassembly')
+utilities.add_argument('-d', '--disassemble', action='store_true', help='print disassembly')
 utilities.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
 utilities.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
 utilities.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array]')
@@ -106,21 +106,20 @@ if not os.path.exists(mythril_dir):
     logging.info("Creating mythril data directory")
 
     os.mkdir(mythril_dir)
-    
 
 # If no function signature file exists, create it. Function signatures from Solidity source code are added automatically.
 
 signatures_file = os.path.join(mythril_dir, 'signatures.json')
 
 if not os.path.exists(signatures_file):
-    logging.info("No signature database found. Creating empty database: " + signatures_file  + "\n" \
-        "Consider replacing it with the pre-initialized database at " \
+    logging.info("No signature database found. Creating empty database: " + signatures_file + "\n"
+        "Consider replacing it with the pre-initialized database at "
         "https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
 
     sigs = {}
 
     with open(signatures_file, 'a') as f:
-        json.dump({},f)
+        json.dump({}, f)
 
 else:
     with open(signatures_file) as f:
