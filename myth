@@ -275,6 +275,8 @@ elif (len(args.solidity_file)):
     if(args.graph and len(args.solidity_file) > 1):
         exitWithError(args.outform, "Cannot generate call graphs from multiple input files. Please do it one at a time.")
 
+    idx = 0
+
     for file in args.solidity_file:
 
         if ":" in file:
@@ -286,7 +288,10 @@ elif (len(args.solidity_file)):
 
         try:
             signatures.add_signatures_from_file(file, sigs)  # Parse file for new function signatures
-            contract = SolidityContract(file, contract_name)
+            print(util.get_indexed_address(idx))
+
+            contract = SolidityContract(file, contract_name, util.get_indexed_address(idx))
+            idx += 1
 
             logging.info("Analyzing contract %s:%s" % (file, contract.name))
 
