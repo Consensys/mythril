@@ -264,6 +264,8 @@ elif (args.address):
         exitWithError(args.outform, "IPC error: " + str(e))
     except ConnectionError as e:
         exitWithError(args.outform, "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
+    except Exception as e:
+        exitWithError(args.outform, "IPC / RPC error: " + str(e))
 
     contracts.append(ETHContract(code, name=args.address))
 
