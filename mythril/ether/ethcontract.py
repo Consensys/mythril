@@ -6,7 +6,7 @@ import re
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code="", name=""):
+    def __init__(self, code, creation_code="", name="Unknown"):
 
         self.creation_code = creation_code
         self.name = name

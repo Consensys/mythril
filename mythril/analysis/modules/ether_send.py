@@ -15,6 +15,7 @@ If msg.sender is checked against a value in storage, check whether that storage 
 to that index).
 '''
 
+
 def execute(statespace):
 
     logging.debug("Executing module: ETHER_SEND")
@@ -100,7 +101,6 @@ def execute(statespace):
                     can_solve = False
                     break
 
-
             if not constrained:
                 description += "It seems that this function can be called without restrictions."
 
@@ -117,6 +117,6 @@ def execute(statespace):
                     issues.append(issue)
 
                 except UnsatError:
-                    logging.debug("[ETHER_SEND] no model found")  
+                    logging.debug("[ETHER_SEND] no model found")
 
     return issues

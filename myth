@@ -215,7 +215,6 @@ if (args.address or len(args.solidity_file) or args.init_db):
         else:
             eth = EthIpc()
 
-
 # Database search ops
 
 if args.search or args.init_db:
@@ -245,11 +244,15 @@ if args.search or args.init_db:
 contracts = []
 
 if (args.code):
+    address = util.get_indexed_address(0)
+
     contracts.append(ETHContract(args.code, name="MAIN"))
 
 # Get bytecode from a contract address
 
 elif (args.address):
+
+    address = args.address
 
     if not re.match(r'0x[a-fA-F0-9]{40}', args.address):
         exitWithError(args.outform, "Invalid contract address. Expected format is '0x...'.")
@@ -272,6 +275,8 @@ elif (args.address):
 # Compile Solidity source file(s)
 
 elif (len(args.solidity_file)):
+
+    address = util.get_indexed_address(0)
 
     if(args.graph and len(args.solidity_file) > 1):
         exitWithError(args.outform, "Cannot generate call graphs from multiple input files. Please do it one at a time.")
@@ -366,9 +371,9 @@ elif (args.graph) or (args.fire_lasers):
 
         # try:
         if (args.dynld):
-            sym = SymExecWrapper(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
+            sym = SymExecWrapper(contracts[0], address, dynloader=DynLoader(eth), max_depth=args.max_depth)
         else:
-            sym = SymExecWrapper(contracts, max_depth=args.max_depth)
+            sym = SymExecWrapper(contracts[0], address, max_depth=args.max_depth)
         # except:
         #    exitWithError(args.outform, "Symbolic execution error: " + str(e))
 
@@ -392,9 +397,9 @@ elif (args.graph) or (args.fire_lasers):
 
             # try:
             if (args.dynld):
-                sym = SymExecWrapper([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+                sym = SymExecWrapper(contract, address, dynloader=DynLoader(eth), max_depth=args.max_depth)
             else:
-                sym = SymExecWrapper([contract], max_depth=args.max_depth)
+                sym = SymExecWrapper(contract, address, max_depth=args.max_depth)
             # except Exception as e:
             #    exitWithError(args.outform, "Symbolic exection error: " + str(e))
 

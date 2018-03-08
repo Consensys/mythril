@@ -50,5 +50,3 @@ class SStore(Op):
     def __init__(self, node, state, state_index, value):
         super().__init__(node, state, state_index)
         self.value = value
-
-

@@ -20,7 +20,7 @@ class SolidityFile:
 
 class SolidityContract(ETHContract):
 
-    def __init__(self, input_file, contract_name=None):
+    def __init__(self, input_file, name=None):
 
         data = get_solc_json(input_file)
 
@@ -35,14 +35,14 @@ class SolidityContract(ETHContract):
 
         # If a contract name has been specified, find the bytecode of that specific contract
 
-        if contract_name:
+        if name:
             for key, contract in data['contracts'].items():
-                filename, name = key.split(":")
+                filename, _name = key.split(":")
 
-                if filename == input_file and name == contract_name:
-                    self.name = name
-                    self.code = contract['bin-runtime']
-                    self.creation_code = contract['bin']
+                if filename == input_file and name == _name:
+                    name = name
+                    code = contract['bin-runtime']
+                    creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
                     has_contract = True
                     break
@@ -54,9 +54,9 @@ class SolidityContract(ETHContract):
                 filename, name = key.split(":")
 
                 if filename == input_file and len(contract['bin-runtime']):
-                    self.name = name
-                    self.code = contract['bin-runtime']
-                    self.creation_code = contract['bin']
+                    name = name
+                    code = contract['bin-runtime']
+                    creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
                     has_contract = True
 
@@ -81,4 +81,4 @@ class SolidityContract(ETHContract):
 
             self.mappings.append(SourceMapping(idx, offset, length, lineno))
 
-        super().__init__(self.code, self.creation_code, name)
+        super().__init__(code, creation_code, name=name)
