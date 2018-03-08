@@ -4,7 +4,7 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from mythril.ether import evm, util
+from mythril.ether import util
 from mythril.ether.contractstorage import get_persistent_storage
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract
@@ -246,7 +246,7 @@ if args.search or args.init_db:
 contracts = []
 
 if (args.code):
-    contracts.append(ETHContract(args.code, name="MAIN", address=util.get_indexed_address(0)))
+    contracts.append(ETHContract(args.code, name="MAIN"))
 
 # Get bytecode from a contract address
 
@@ -266,7 +266,7 @@ elif (args.address):
     except ConnectionError as e:
         exitWithError(args.outform, "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
-    contracts.append(ETHContract(code, name=args.address, address=args.address))
+    contracts.append(ETHContract(code, name=args.address))
 
 # Compile Solidity source file(s)
 
@@ -274,8 +274,6 @@ elif (len(args.solidity_file)):
 
     if(args.graph and len(args.solidity_file) > 1):
         exitWithError(args.outform, "Cannot generate call graphs from multiple input files. Please do it one at a time.")
-
-    idx = 0
 
     for file in args.solidity_file:
 
@@ -288,10 +286,8 @@ elif (len(args.solidity_file)):
 
         try:
             signatures.add_signatures_from_file(file, sigs)  # Parse file for new function signatures
-            print(util.get_indexed_address(idx))
 
-            contract = SolidityContract(file, contract_name, util.get_indexed_address(idx))
-            idx += 1
+            contract = SolidityContract(file, contract_name)
 
             logging.info("Analyzing contract %s:%s" % (file, contract.name))
 

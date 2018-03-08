@@ -5,7 +5,6 @@ from mythril.exceptions import CompilerError
 from subprocess import Popen, PIPE
 import binascii
 import os
-import re
 import json
 
 
@@ -27,12 +26,12 @@ def get_solc_json(file, solc_binary="solc"):
         if ret != 0:
             raise CompilerError("Solc experienced a fatal error (code %d).\n\n%s" % (ret, stderr.decode('UTF-8')))
     except FileNotFoundError:
-        raise CompilerError("Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")        
+        raise CompilerError("Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")
 
     out = stdout.decode("UTF-8")
 
     if not len(out):
-        raise CompilerError("Compilation failed.")        
+        raise CompilerError("Compilation failed.")
 
     return json.loads(out)
 
@@ -51,10 +50,10 @@ def get_random_address():
 def get_indexed_address(index):
     return "0x" + (hex(index)[2:] * 40)
 
+
 def solc_exists(version):
     solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
     if os.path.exists(solc_binary):
         return True
     else:
         return False
-        

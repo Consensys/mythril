@@ -1,9 +1,7 @@
-from mythril.analysis import solver
-from mythril.exceptions import UnsatError
+from mythril import ether
 from laser.ethereum import svm
 import copy
 from .ops import *
-import logging
 
 
 class StateSpace:
@@ -16,13 +14,18 @@ class StateSpace:
 
         self.accounts = {}
 
+        idx = 0
+
         for contract in contracts:
-            self.accounts[contract.address] = svm.Account(contract.address, contract.get_disassembly(), contract.name)
+            address = ether.util.get_indexed_address(idx)
+            self.accounts[address] = svm.Account(address, contract.get_disassembly(), contract.name)
+            idx += 1
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
-        self.laser.sym_exec(contracts[0].address)
+        self.laser.sym_exec(ether.util.get_indexed_address(0))
 
         # self.modules = modules
+
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
 
@@ -71,8 +74,6 @@ class StateSpace:
                     except KeyError:
                         self.sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
                 '''
-
-
 
     def find_storage_write(self, index):
 

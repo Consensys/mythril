@@ -20,7 +20,7 @@ class SolidityFile:
 
 class SolidityContract(ETHContract):
 
-    def __init__(self, input_file, contract_name=None, address=""):
+    def __init__(self, input_file, contract_name=None):
 
         data = get_solc_json(input_file)
 
@@ -81,4 +81,4 @@ class SolidityContract(ETHContract):
 
             self.mappings.append(SourceMapping(idx, offset, length, lineno))
 
-        super().__init__(self.code, self.creation_code, name, address)
+        super().__init__(self.code, self.creation_code, name)

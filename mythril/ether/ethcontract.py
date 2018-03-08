@@ -6,11 +6,10 @@ import re
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code="", name="", address=""):
+    def __init__(self, code, creation_code="", name=""):
 
         self.creation_code = creation_code
         self.name = name
-        self.address = address
 
         # Workaround: We currently do not support compile-time linking.
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
@@ -18,7 +17,6 @@ class ETHContract(persistent.Persistent):
         code = re.sub(r'(_+[A-Za-z0-9]+_+)', 'aa' * 20, code)
 
         self.code = code
-
 
     def as_dict(self):
 
@@ -29,7 +27,6 @@ class ETHContract(persistent.Persistent):
             'creation_code': self.creation_code,
             'disassembly': self.get_disassembly()
         }
-
 
     def get_xrefs(self):
 
@@ -48,16 +45,13 @@ class ETHContract(persistent.Persistent):
 
         return xrefs
 
-
     def get_disassembly(self):
 
         return Disassembly(self.code)
 
-
     def get_easm(self):
 
         return Disassembly(self.code).get_easm()
-
 
     def matches_expression(self, expression):
 
@@ -105,7 +99,7 @@ class InstanceList(persistent.Persistent):
         self.balances = []
         pass
 
-    def add(self, address, balance = 0):
+    def add(self, address, balance=0):
         self.addresses.append(address)
         self.balances.append(balance)
         self._p_changed = True
