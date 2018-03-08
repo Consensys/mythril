@@ -1,7 +1,7 @@
 from mythril import ether
 from laser.ethereum import svm
 import copy
-from .ops import *
+from .ops import get_variable, SStore, Call, VarType
 
 
 class SymExecWrapper:
@@ -27,7 +27,7 @@ class SymExecWrapper:
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
 
-        # Some pre-analysis
+        # Generate lists of interesting operations
 
         self.calls = []
         self.sstors = {}
@@ -48,7 +48,8 @@ class SymExecWrapper:
 
                     if op in ('CALL', 'CALLCODE'):
                         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
-                            get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
+                            get_variable(stack[-1]), get_variable(stack[-2]), get_variable(stack[-3]), get_variable(stack[-4]), get_variable(stack[-5]), get_variable(stack[-6]), get_variable(stack[-7])
+                            # get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
 
                         if (to.type == VarType.CONCRETE):
                             if (to.val < 5):

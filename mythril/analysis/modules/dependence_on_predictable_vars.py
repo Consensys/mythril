@@ -1,6 +1,6 @@
 import re
 from z3 import *
-from mythril.analysis.ops import *
+from mythril.analysis.ops import VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
@@ -9,7 +9,7 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for CALLs that send >0 Ether as a result of computation based on predictable state variables such as 
+Check for CALLs that send >0 Ether as a result of computation based on predictable state variables such as
 block.coinbase, block.gaslimit, block.timestamp, block.number
 
 TODO:
@@ -21,14 +21,14 @@ TODO:
 
 def execute(statespace):
 
-    logging.debug("Executing module: WEAK_RANDOM")
+    logging.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
 
     issues = []
 
     for call in statespace.calls:
 
         if ("callvalue" in str(call.value)):
-            logging.debug("[WEAK_RANDOM] Skipping refund function")
+            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function")
             continue
 
         # We're only interested in calls that send Ether
@@ -36,6 +36,8 @@ def execute(statespace):
         if call.value.type == VarType.CONCRETE:
             if call.value.val == 0:
                 continue
+
+        address = call.state.get_current_instruction()['address']
 
         description = "In the function '" + call.node.function_name + "' "
         description += "the following predictable state variables are used to determine Ether recipient:\n"
@@ -54,7 +56,7 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
-                issue = Issue(call.node.contract_name, call.node.function_name, call.state.mstate.pc, "Weak random", "Warning",
+                issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable variable", "Warning",
                               description)
                 issues.append(issue)
 
@@ -69,7 +71,7 @@ def execute(statespace):
 
                         found = m.group(1)
 
-                        if found: # block.blockhash(block.number - N)
+                        if found:  # block.blockhash(block.number - N)
                             description += "predictable expression 'block.blockhash(block.number - " + m.group(2) + \
                                 ")' is used to determine Ether recipient"
                             if int(m.group(2)) > 255:
@@ -77,12 +79,12 @@ def execute(statespace):
                         elif "storage" in str(constraint):  # block.blockhash(block.number - storage_0)
                             description += "predictable expression 'block.blockhash(block.number - " + \
                                            "some_storage_var)' is used to determine Ether recipient"
-                        else: # block.blockhash(block.number)
+                        else:  # block.blockhash(block.number)
                             description += "predictable expression 'block.blockhash(block.number)'" + \
                                            " is used to determine Ether recipient"
                             description += ", this expression will always be equal to zero."
 
-                        issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Weak random",
+                        issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable variable",
                                       "Warning", description)
                         issues.append(issue)
                         break
@@ -92,7 +94,7 @@ def execute(statespace):
 
                         '''
                         We actually can do better here by adding a constraint blockhash_block_storage_0 == 0
-                        and checking model satisfiability. When this is done, severity can be raised 
+                        and checking model satisfiability. When this is done, severity can be raised
                         from 'Informational' to 'Warning'.
                         Checking that storage at given index can be tainted is not necessary, since it usually contains
                         block.number of the 'commit' transaction in commit-reveal workflow.
@@ -102,7 +104,7 @@ def execute(statespace):
                         if index and solve(call):
                             description += 'block.blockhash() is calculated using a value from storage ' \
                                            'at index {}'.format(index)
-                            issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Weak random",
+                            issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable variable",
                                           "Informational", description)
                             issues.append(issue)
                             break
@@ -112,12 +114,12 @@ def execute(statespace):
 def solve(call):
     try:
         model = solver.get_model(call.node.constraints)
-        logging.debug("[WEAK_RANDOM] MODEL: " + str(model))
+        logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
 
         for d in model.decls():
-            logging.debug("[WEAK_RANDOM] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
         return True
 
     except UnsatError:
-        logging.debug("[WEAK_RANDOM] no model found")
+        logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] no model found")
         return False
