@@ -15,7 +15,7 @@ from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError, NoContractFoundError
-from mythril.analysis.symbolic import StateSpace
+from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
@@ -366,16 +366,16 @@ elif (args.graph) or (args.fire_lasers):
 
         # try:
         if (args.dynld):
-            states = StateSpace(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
+            sym = SymExecWrapper(contracts, dynloader=DynLoader(eth), max_depth=args.max_depth)
         else:
-            states = StateSpace(contracts, max_depth=args.max_depth)
+            sym = SymExecWrapper(contracts, max_depth=args.max_depth)
         # except:
         #    exitWithError(args.outform, "Symbolic execution error: " + str(e))
 
         if args.enable_physics is not None:
             physics = True
 
-        html = generate_graph(states, args.enable_physics)
+        html = generate_graph(sym, args.enable_physics)
 
         try:
             with open(args.graph, "w") as f:
@@ -392,13 +392,13 @@ elif (args.graph) or (args.fire_lasers):
 
             # try:
             if (args.dynld):
-                states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+                sym = SymExecWrapper([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
             else:
-                states = StateSpace([contract], max_depth=args.max_depth)
+                sym = SymExecWrapper([contract], max_depth=args.max_depth)
             # except Exception as e:
             #    exitWithError(args.outform, "Symbolic exection error: " + str(e))
 
-            issues = fire_lasers(states)
+            issues = fire_lasers(sym)
 
             if len(issues):
 

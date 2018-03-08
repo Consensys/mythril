@@ -11,6 +11,7 @@ MODULE DESCRIPTION:
 Check for call.value()() to an untrusted address
 '''
 
+
 def execute(statespace):
 
     logging.debug("Executing module: CALL_TO_DYNAMIC_WITH_GAS")
@@ -36,7 +37,7 @@ def execute(statespace):
                 if ("calldata" in target or "caller" in target):
 
                     if ("calldata" in target):
-                        description += "an address provided as a function argument. "
+                        description += "an address provided as a function argument."
                     else:
                         description += "the address of the transaction sender. "
 

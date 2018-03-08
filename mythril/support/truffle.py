@@ -4,7 +4,7 @@ import sys
 import json
 from mythril.ether.ethcontract import ETHContract
 from mythril.analysis.security import fire_lasers
-from mythril.analysis.symbolic import StateSpace
+from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
 from laser.ethereum import helper
 
@@ -36,8 +36,8 @@ def analyze_truffle_project(args):
 
             ethcontract = ETHContract(bytecode, name=name)
 
-            states = StateSpace([ethcontract], max_depth=10)
-            issues = fire_lasers(states)
+            sym = SymExecWrapper([ethcontract], max_depth=10)
+            issues = fire_lasers(sym)
 
             if not len(issues):
                 if (args.outform == 'text' or args.outform == 'markdown'):
@@ -56,7 +56,6 @@ def analyze_truffle_project(args):
                 deployedSourceMap = contractdata['deployedSourceMap'].split(";")
 
                 mappings = []
-                i = 0
 
                 for item in deployedSourceMap:
 

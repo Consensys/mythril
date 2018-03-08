@@ -4,10 +4,10 @@ import copy
 from .ops import *
 
 
-class StateSpace:
+class SymExecWrapper:
 
     '''
-    Symbolic EVM wrapper
+    Wrapper class for the LASER Symbolic virtual machine. Symbolically executes the code and does a bit of pre-analysis for convenience.
     '''
 
     def __init__(self, contracts, dynloader=None, max_depth=12):
@@ -23,8 +23,6 @@ class StateSpace:
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
         self.laser.sym_exec(ether.util.get_indexed_address(0))
-
-        # self.modules = modules
 
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
