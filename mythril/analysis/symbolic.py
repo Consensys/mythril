@@ -54,14 +54,14 @@ class StateSpace:
                                 continue
 
                         if (meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE):
-                            self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val*4]))
+                            self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val*4]))
                         else:
-                            self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas, value))                     
+                            self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas, value))                     
                     else:
                         gas, to, meminstart, meminsz, memoutstart, memoutsz = \
                             get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
 
-                        self.calls.append(Call(self.nodes[key], instruction['address'], op, to, gas))
+                        self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas))
 
                 '''
                 elif op == 'SSTORE':

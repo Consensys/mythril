@@ -45,7 +45,7 @@ def execute(statespace):
                                 if s.tainted:
                                     issue = Issue(call.type + " to dynamic address in storage", "Warning")
                                     issue.description = \
-                                        "The function " + call.node.function_name + " in contract '" + call.node.module_name + " delegates execution to a contract address stored in a state variable. " \
+                                        "The function " + call.node.function_name + " in contract '" + call.node.contract_name + " delegates execution to a contract address stored in a state variable. " \
                                         "There is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + s.node.function_name + "'.\n" \
                                         "Make sure that the contract address cannot be set by untrusted users."
                                     issues.append(issue)
@@ -56,10 +56,10 @@ def execute(statespace):
 
                     else:
 
-                        issue = Issue(call.node.module_name, call.node.function_name, call.addr, "DELEGATECALL to dynamic address", "Informational")
+                        issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "DELEGATECALL to dynamic address", "Informational")
 
                         issue.description = \
-                            "The function " + call.node.function_name + " in contract '" + call.node.module_name + " delegates execution to a contract with a dynamic address." \
+                            "The function " + call.node.function_name + " in contract '" + call.node.contract_name + " delegates execution to a contract with a dynamic address." \
                             "To address:" + str(call.to)
 
                         issues.append(issue)

@@ -20,33 +20,29 @@ class Variable:
 
 class Op:
 
-    def __init__(self, node, addr):
+    def __init__(self, node, state, addr):
         self.node = node
+        self.state = state
         self.addr = addr
+
 
 class Call(Op):
 
-    def __init__(self, node, addr, _type, to, gas, value = Variable(0, VarType.CONCRETE), data = None):
+    def __init__(self, node, state, addr, _type, to, gas, value=Variable(0, VarType.CONCRETE), data=None):
 
-        super().__init__(node, addr)
+        super().__init__(node, state, addr)
         self.to = to
         self.gas = gas
         self.type = _type
         self.value = value
         self.data = data
 
-class Suicide(Op):
-
-    def __init__(self, node, addr, call_type, to, value):
-        super().__init__(node, addr)
-        self.to = to
 
 class SStore(Op):
 
-    def __init__(self, node, addr, value):
-        super().__init__(node, addr)
+    def __init__(self, node, state, addr, value):
+        super().__init__(node, state, addr)
         self.value = value
-        self.tainted = False
 
 
 def get_variable(i):
@@ -54,6 +50,3 @@ def get_variable(i):
         return Variable(helper.get_concrete_int(i), VarType.CONCRETE)
     except AttributeError:
         return Variable(simplify(i), VarType.SYMBOLIC)
-
-
-

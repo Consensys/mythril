@@ -7,13 +7,13 @@ import re
 import logging
 
 
-
 '''
 MODULE DESCRIPTION:
 
 Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a tainted storage index 
 (i.e. there's a write to that index is unconstrained by msg.sender).
 '''
+
 
 def execute(statespace):
 
@@ -34,8 +34,8 @@ def execute(statespace):
 
                 description = "The function " + node.function_name + " executes the SUICIDE instruction."
 
-                state = node.states[instruction['address']]
-                to = state.stack.pop()
+                stack = copy.deepcopy(state.mstate.stack)
+                to = stack.pop()
 
                 if ("caller" in str(to)):
                     description += "\nThe remaining Ether is sent to the caller's address.\n"

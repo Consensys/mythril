@@ -11,6 +11,7 @@ MODULE DESCRIPTION:
 Check for invocations of delegatecall(msg.data) in the fallback function.
 '''
 
+
 def execute(statespace):
 
     logging.debug("Executing module: DELEGATECALL_FORWARD")
@@ -29,20 +30,20 @@ def execute(statespace):
 
         if (call.type == "DELEGATECALL") and (call.node.function_name == "fallback"):
 
-            stack = call.state.stack
+            stack = call.state.mstate.stack
 
             meminstart = get_variable(stack[-3])
 
             if meminstart.type == VarType.CONCRETE:
 
-                if (re.search(r'calldata.*_0', str(call.state.memory[meminstart.val]))):
+                if (re.search(r'calldata.*_0', str(call.state.mstate.memory[meminstart.val]))):
 
-                    issue = Issue(call.node.module_name, call.node.function_name, call.addr, "CALLDATA forwarded with delegatecall()", "Informational")
+                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "CALLDATA forwarded with delegatecall()", "Informational")
 
                     issue.description = \
                         "This contract forwards its calldata via DELEGATECALL in its fallback function. " \
                         "This means that any function in the called contract can be executed. Note that the callee contract will have access to the storage of the calling contract.\n"   
-                    
+
                     if (call.to.type == VarType.CONCRETE):
                         issue.description += ("DELEGATECALL target: " + hex(call.to.val))
                     else:
