@@ -73,7 +73,6 @@ class StateSpace:
                     except KeyError:
                         self.sstors[str(index)] = [SStore(self.nodes[key], state, instruction['address'], value)]
 
-
     def find_storage_write(self, index):
 
         # Find a an unconstrained SSTOR that writes to storage index "index"
