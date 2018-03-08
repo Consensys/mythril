@@ -96,7 +96,6 @@ def execute(statespace):
                     constrained = True
                     can_solve = False
                     break
-        
 
 
             if not constrained:
@@ -113,7 +112,7 @@ def execute(statespace):
 
                     issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Ether send", "Warning", description)
                     issues.append(issue)
- 
+
                 except UnsatError:
                     logging.debug("[ETHER_SEND] no model found")  
 

@@ -63,17 +63,16 @@ class StateSpace:
 
                         self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas))
 
-                '''
                 elif op == 'SSTORE':
                     stack = copy.deepcopy(state.mstate.stack)
 
                     index, value = stack.pop(), stack.pop()
 
                     try:
-                        self.sstors[str(index)].append(SStore(self.nodes[key], instruction['address'], value))
+                        self.sstors[str(index)].append(SStore(self.nodes[key], state, instruction['address'], value))
                     except KeyError:
-                        self.sstors[str(index)] = [SStore(self.nodes[key], instruction['address'], value)]
-                '''
+                        self.sstors[str(index)] = [SStore(self.nodes[key], state, instruction['address'], value)]
+
 
     def find_storage_write(self, index):
 
