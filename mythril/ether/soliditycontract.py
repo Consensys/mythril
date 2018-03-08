@@ -20,7 +20,7 @@ class SolidityFile:
 
 class SolidityContract(ETHContract):
 
-    def __init__(self, input_file, contract_name = None):
+    def __init__(self, input_file, contract_name=None):
 
         data = get_solc_json(input_file)
 
@@ -73,7 +73,7 @@ class SolidityContract(ETHContract):
 
             if len(mapping) > 1 and len(mapping[1]) > 0:
                 length = int(mapping[1])
-            
+
             if len(mapping) > 2 and len(mapping[2]) > 0:
                 idx = int(mapping[2])
 

@@ -11,8 +11,8 @@ class StateSpace:
     '''
     Symbolic EVM wrapper
     '''
-    
-    def __init__(self, contracts, dynloader = None, max_depth = 12):
+
+    def __init__(self, contracts, dynloader=None, max_depth=12):
 
         self.accounts = {}
 
@@ -92,4 +92,3 @@ class StateSpace:
             return None
         except KeyError:
             return None
-

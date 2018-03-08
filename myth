@@ -160,7 +160,7 @@ if args.truffle:
 
 if args.solv:
     version = args.solv
-    #tried converting input to semver, seemed not necessary so just slicing for now
+    # tried converting input to semver, seemed not necessary so just slicing for now
     if version == str(solc.main.get_solc_version())[:6]:
         logging.info('Given version matches installed version')
         try:
@@ -267,14 +267,14 @@ elif (args.address):
     except ConnectionError as e:
         exitWithError(args.outform, "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
-    contracts.append(ETHContract(code, name=args.address, address = args.address))
+    contracts.append(ETHContract(code, name=args.address, address=args.address))
 
 # Compile Solidity source file(s)
 
 elif (len(args.solidity_file)):
 
     if(args.graph and len(args.solidity_file) > 1):
-        exitWithError(args.outform,"Cannot generate call graphs from multiple input files. Please do it one at a time.")     
+        exitWithError(args.outform, "Cannot generate call graphs from multiple input files. Please do it one at a time.") 
 
     for file in args.solidity_file:
 
@@ -283,10 +283,10 @@ elif (len(args.solidity_file)):
         else:
             contract_name = None
 
-        file = file.replace("~", str(Path.home())) # Expand user path
+        file = file.replace("~", str(Path.home()))  # Expand user path
 
         try:
-            signatures.add_signatures_from_file(file, sigs) # Parse file for new function signatures
+            signatures.add_signatures_from_file(file, sigs)  # Parse file for new function signatures
             contract = SolidityContract(file, contract_name)
 
             logging.info("Analyzing contract %s:%s" % (file, contract.name))
@@ -298,7 +298,7 @@ elif (len(args.solidity_file)):
             logging.info("The file " + file + " does not contain a compilable contract.")
         except FileNotFoundError:
             exitWithError(args.outform, "Input file not found: " + file)
-     
+
     # Save updated function signatures
 
     with open(signatures_file, 'w') as f:
@@ -324,7 +324,7 @@ if args.storage:
             if len(params) >= 2 and len(params) <= 3:
                 length = int(params[1])
             if len(params) == 3:
-                if re.match("array",params[2]):
+                if re.match("array", params[2]):
                     array = 1
             if len(params) >= 4:
                 exitWithError(args.outform, "Invalid number of parameters.")
@@ -334,7 +334,6 @@ if args.storage:
         if array:
             position_formated = str(position).zfill(64)
             position = int(Web3.sha3(position_formated),16)
-
 
         try:
             if length == 1:
@@ -390,14 +389,13 @@ elif (args.graph) or (args.fire_lasers):
 
         for contract in contracts:
 
-            # try:
-            if (args.dynld):
-                states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
-            else:
-                states = StateSpace([contract], max_depth=args.max_depth)
-            # except Exception as e:
-            #   exitWithError(args.outform, "Symbolic exection error: " + str(e))               
-
+            try:
+                if (args.dynld):
+                    states = StateSpace([contract], dynloader=DynLoader(eth), max_depth=args.max_depth)
+                else:
+                    states = StateSpace([contract], max_depth=args.max_depth)
+            except Exception as e:
+                exitWithError(args.outform, "Symbolic exection error: " + str(e))               
 
             issues = fire_lasers(states)
 
@@ -408,7 +406,7 @@ elif (args.graph) or (args.fire_lasers):
                 if (type(contract) == SolidityContract):
 
                     disassembly = contract.get_disassembly()
-                    
+
                     for issue in issues:
 
                         if (issue.pc):
