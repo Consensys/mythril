@@ -1,4 +1,6 @@
-# Smart Contract Security Issues
+# Mythril Detection Capabilities
+
+Detection modules, ideas collection and wish list. 
 
 | Issue | Description | Mythril Detection Module(s) | References |
 |------:|-------------|------------|----------|
@@ -20,4 +22,5 @@
 |Call depth attack| Deprecated!             |           | [EIP 150 Hard Fork](https://consensys.github.io/smart-contract-best-practices/known_attacks/#call-depth-attack-deprecated)|
 |Use require() instead of assert() | Use `assert()` only to check against states which should be completely unreachable. This facilitates static analysis using solidity's built-in SMTChecker. For more information, refer to the documentation.        |           | [Solidity docs](https://solidity.readthedocs.io/en/develop/control-structures.html#error-handling-assert-require-revert-and-exceptions)|
 |Use of depreciated functions | Use `revert()` instead of `throw()`, `selfdestruct()` instead of `suicide()`, `keccak256()` instead of `sha3()` |           | |
+|Detect tautologies| Detect comparisons that always evaluate to 'true', see also [#54](https://github.com/ConsenSys/mythril/issues/54) |  |
 
