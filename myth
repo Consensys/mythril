@@ -238,7 +238,6 @@ if args.search or args.init_db:
             except ConnectionError as e:
                 exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
 
-
     sys.exit()
 
 
@@ -247,7 +246,7 @@ if args.search or args.init_db:
 contracts = []
 
 if (args.code):
-    contracts.append(ETHContract(args.code, name="MAIN", address = util.get_indexed_address(0)))
+    contracts.append(ETHContract(args.code, name="MAIN", address=util.get_indexed_address(0)))
 
 # Get bytecode from a contract address
 
@@ -274,7 +273,7 @@ elif (args.address):
 elif (len(args.solidity_file)):
 
     if(args.graph and len(args.solidity_file) > 1):
-        exitWithError(args.outform, "Cannot generate call graphs from multiple input files. Please do it one at a time.") 
+        exitWithError(args.outform, "Cannot generate call graphs from multiple input files. Please do it one at a time.")
 
     for file in args.solidity_file:
 
@@ -305,7 +304,7 @@ elif (len(args.solidity_file)):
         json.dump(sigs, f)
 
 else:
-    exitWithError(args.outform,"No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
+    exitWithError(args.outform, "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
 
 # Commands
 
@@ -333,14 +332,14 @@ if args.storage:
 
         if array:
             position_formated = str(position).zfill(64)
-            position = int(Web3.sha3(position_formated),16)
+            position = int(Web3.sha3(position_formated), 16)
 
         try:
             if length == 1:
-                print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position));
+                print("{}: ".format(position) + eth.eth_getStorageAt(args.address, position))
             else:
                 for i in range(position, position + length):
-                    print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i));
+                    print("{}: ".format(hex(i)) + eth.eth_getStorageAt(args.address, i))
         except FileNotFoundError as e:
             exitWithError(args.outform, "IPC error: " + str(e))
         except ConnectionError as e:
@@ -395,7 +394,7 @@ elif (args.graph) or (args.fire_lasers):
                 else:
                     states = StateSpace([contract], max_depth=args.max_depth)
             except Exception as e:
-                exitWithError(args.outform, "Symbolic exection error: " + str(e))               
+                exitWithError(args.outform, "Symbolic exection error: " + str(e))        
 
             issues = fire_lasers(states)
 
@@ -419,12 +418,12 @@ elif (args.graph) or (args.fire_lasers):
                             offset = contract.mappings[index].offset
                             length = contract.mappings[index].length
 
-                            issue.code = solidity_file.data[offset:offset+length]
+                            issue.code = solidity_file.data[offset:offset + length]
                             issue.lineno = contract.mappings[index].lineno
 
                 for issue in issues:
-                    report.append_issue(issue) # For text and markdown output
-                    _issues.append(issue.as_dict()) # List of dicts for JSON output
+                    report.append_issue(issue)  # For text and markdown output
+                    _issues.append(issue.as_dict())  # List of dicts for JSON output
 
         # Finally, output the results
 
