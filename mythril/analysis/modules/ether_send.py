@@ -23,6 +23,9 @@ def execute(statespace):
 
     for call in statespace.calls:
 
+        state = call.state
+        address = state.get_current_instruction()['address']
+
         if ("callvalue" in str(call.value)):
             logging.debug("[ETHER_SEND] Skipping refund function")
             continue
@@ -110,7 +113,7 @@ def execute(statespace):
                     for d in model.decls():
                         logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Ether send", "Warning", description)
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Ether send", "Warning", description)
                     issues.append(issue)
 
                 except UnsatError:

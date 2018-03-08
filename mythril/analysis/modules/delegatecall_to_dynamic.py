@@ -19,12 +19,15 @@ def execute(statespace):
 
     for call in statespace.calls:
 
+        state = call.state
+        address = state.get_current_instruction()['address']
+
         if (call.type == "DELEGATECALL" or call.type == "CALLCODE"):
 
             if (call.to.type == VarType.SYMBOLIC):
 
                 if ("calldata" in str(call.to)):
-                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, call.type + " to dynamic address")
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, call.type + " to dynamic address")
 
                     issue.description = \
                         "The function " + call.node.function_name + " delegates execution to a contract address obtained from calldata.\n" \
@@ -56,7 +59,7 @@ def execute(statespace):
 
                     else:
 
-                        issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "DELEGATECALL to dynamic address", "Informational")
+                        issue = Issue(call.node.contract_name, call.node.function_name, address, "DELEGATECALL to dynamic address", "Informational")
 
                         issue.description = \
                             "The function " + call.node.function_name + " in contract '" + call.node.contract_name + " delegates execution to a contract with a dynamic address." \

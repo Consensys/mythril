@@ -18,19 +18,26 @@ class Variable:
         return str(self.val)
 
 
+def get_variable(i):
+    try:
+        return Variable(helper.get_concrete_int(i), VarType.CONCRETE)
+    except AttributeError:
+        return Variable(simplify(i), VarType.SYMBOLIC)
+
+
 class Op:
 
-    def __init__(self, node, state, addr):
+    def __init__(self, node, state, state_index):
         self.node = node
         self.state = state
-        self.addr = addr
+        self.state_index = state_index
 
 
 class Call(Op):
 
-    def __init__(self, node, state, addr, _type, to, gas, value=Variable(0, VarType.CONCRETE), data=None):
+    def __init__(self, node, state, state_index, _type, to, gas, value=Variable(0, VarType.CONCRETE), data=None):
 
-        super().__init__(node, state, addr)
+        super().__init__(node, state, state_index)
         self.to = to
         self.gas = gas
         self.type = _type
@@ -40,13 +47,8 @@ class Call(Op):
 
 class SStore(Op):
 
-    def __init__(self, node, state, addr, value):
-        super().__init__(node, state, addr)
+    def __init__(self, node, state, state_index, value):
+        super().__init__(node, state, state_index)
         self.value = value
 
 
-def get_variable(i):
-    try:
-        return Variable(helper.get_concrete_int(i), VarType.CONCRETE)
-    except AttributeError:
-        return Variable(simplify(i), VarType.SYMBOLIC)

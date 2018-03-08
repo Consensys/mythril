@@ -13,7 +13,7 @@ Test whether CALL return value is checked.
 
 For direct calls, the Solidity compiler auto-generates this check. E.g.:
 
-    Alice c = Alice(address);  
+    Alice c = Alice(address);
     c.ping(42);
 
 Here the CALL will be followed by IZSERO(retval), if retval = ZERO then state is reverted.
@@ -24,6 +24,7 @@ For low-level-calls this check is omitted. E.g.:
 
 '''
 
+
 def execute(statespace):
 
     logging.debug("Executing module: UNCHECKED_RETVAL")
@@ -33,15 +34,15 @@ def execute(statespace):
 
     for call in statespace.calls:
 
+        state = call.state
+        address = state.get_current_instruction()['address']
+
         # Only needs to be checked once per call instructions (it's essentially just static analysis)
 
-        if call.addr in visited:
+        if call.state.mstate.pc in visited:
             continue
         else:
-            visited.append(call.addr)
-
-        # The instructions executed in each node (basic block) are saved in node.instruction_list, e.g.:
-        # [{address: "132", opcode: "CALL"}, {address: "133", opcode: "ISZERO"}]
+            visited.append(call.state.mstate.pc)
 
         retval_checked = False
 
@@ -49,18 +50,20 @@ def execute(statespace):
 
         for i in range(0, 10):
 
+            _state = call.node.states[call.state_index + i]
+
             try:
-                instr = call.node.states[call.addr + i]
+                instr = _state.get_current_instruction()
             except IndexError:
                 break
 
-            if (instr['opcode'] == 'ISZERO' and re.search(r'retval', str(call.node.states[instr['address']].stack[-1]))):
+            if (instr['opcode'] == 'ISZERO' and re.search(r'retval', str(_state.mstate.stack[-1]))):
                 retval_checked = True
                 break
 
         if not retval_checked:
 
-            issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Unchecked CALL return value")
+            issue = Issue(call.node.contract_name, call.node.function_name, address, "Unchecked CALL return value")
 
             if (call.to.type == VarType.CONCRETE):
                 receiver = hex(call.to.val)

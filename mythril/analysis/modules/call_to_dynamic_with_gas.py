@@ -19,6 +19,9 @@ def execute(statespace):
 
     for call in statespace.calls:
 
+        state = call.state
+        address = state.get_current_instruction()['address']
+
         if (call.type == "CALL"):
 
             logging.debug("[CALL_TO_DYNAMIC_WITH_GAS] Call to: " + str(call.to) + ", value " + str(call.value) + ", gas = " + str(call.gas))
@@ -44,29 +47,23 @@ def execute(statespace):
                     if (m):
                         index = m.group(1)
 
-                        try:
+                        func = statespace.find_storage_write(index)
 
-                            for s in statespace.sstors[index]:
+                        if func:
 
-                                if s.tainted:
+                            description += \
+                                "an address found at storage position " + str(index) + ".\n" + \
+                                "This storage position can be written to by calling the function '" + func + "'.\n" \
+                                "Verify that the contract address cannot be set by untrusted users.\n"
 
-                                    description += \
-                                        "an address found at storage position " + str(index) + ".\n" + \
-                                        "This storage position can be written to by calling the function '" + s.node.function_name + "'.\n" \
-                                        "Verify that the contract address cannot be set by untrusted users.\n"
-
-                                    is_valid = True
-                                    break
-
-                        except KeyError:
-                            logging.debug("[CALL_TO_DYNAMIC_WITH_GAS] No storage writes to index " + str(index))
-                            continue
+                            is_valid = True
+                            break
 
                 if is_valid:
 
                     description += "The available gas is forwarded to the called contract. Make sure that the logic of the calling contract is not adversely affected if the called contract misbehaves (e.g. reentrancy)." 
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "CALL with gas to dynamic address", "Warning", description)
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "CALL with gas to dynamic address", "Warning", description)
 
                     issues.append(issue)
 

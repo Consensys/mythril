@@ -36,12 +36,16 @@ class StateSpace:
 
         for key in self.nodes:
 
+            state_index = 0
+
             for state in self.nodes[key].states:
 
                 instruction = state.get_current_instruction()
+
                 op = instruction['opcode']
 
                 if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
+
                     stack = copy.deepcopy(state.mstate.stack)
 
                     if op in ('CALL', 'CALLCODE'):
@@ -54,14 +58,14 @@ class StateSpace:
                                 continue
 
                         if (meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE):
-                            self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val*4]))
+                            self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val * 4]))
                         else:
-                            self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas, value))                     
+                            self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value))
                     else:
                         gas, to, meminstart, meminsz, memoutstart, memoutsz = \
                             get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
 
-                        self.calls.append(Call(self.nodes[key], state, instruction['address'], op, to, gas))
+                        self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas))
 
                 elif op == 'SSTORE':
                     stack = copy.deepcopy(state.mstate.stack)
@@ -69,13 +73,15 @@ class StateSpace:
                     index, value = stack.pop(), stack.pop()
 
                     try:
-                        self.sstors[str(index)].append(SStore(self.nodes[key], state, instruction['address'], value))
+                        self.sstors[str(index)].append(SStore(self.nodes[key], state, state_index, value))
                     except KeyError:
-                        self.sstors[str(index)] = [SStore(self.nodes[key], state, instruction['address'], value)]
+                        self.sstors[str(index)] = [SStore(self.nodes[key], state, state_index, value)]
+
+                state_index += 1
 
     def find_storage_write(self, index):
 
-        # Find a an unconstrained SSTOR that writes to storage index "index"
+        # Find an SSTOR not constrained by caller that writes to storage index "index"
 
         try:
             for s in self.sstors[index]:
@@ -86,6 +92,7 @@ class StateSpace:
                         taint = False
                         break
 
+                if taint:
                     return s.node.function_name
 
             return None

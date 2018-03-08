@@ -21,12 +21,15 @@ def execute(statespace):
 
     for call in statespace.calls:
 
+        state = call.state
+        address = state.get_current_instruction()['address']
+
         # Only needs to be checked once per call instructions (essentially just static analysis)
 
-        if call.addr in visited:
+        if address in visited:
             continue
         else:
-            visited.append(call.addr)
+            visited.append(address)
 
         if (call.type == "DELEGATECALL") and (call.node.function_name == "fallback"):
 
@@ -36,9 +39,9 @@ def execute(statespace):
 
             if meminstart.type == VarType.CONCRETE:
 
-                if (re.search(r'calldata.*_0', str(call.state.mstate.memory[meminstart.val]))):
+                if (re.search(r'calldata.*_0', str(state.mstate.memory[meminstart.val]))):
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "CALLDATA forwarded with delegatecall()", "Informational")
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "CALLDATA forwarded with delegatecall()", "Informational")
 
                     issue.description = \
                         "This contract forwards its calldata via DELEGATECALL in its fallback function. " \

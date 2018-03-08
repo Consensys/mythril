@@ -37,7 +37,7 @@ def execute(statespace):
             if call.value.val == 0:
                 continue
 
-        description  = "In the function '" + call.node.function_name + "' "
+        description = "In the function '" + call.node.function_name + "' "
         description += "the following predictable state variables are used to determine Ether recipient:\n"
 
         # First check: look for predictable state variables in node & call recipient constraints
@@ -54,7 +54,7 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
-                issue = Issue(call.node.contract_name, call.node.function_name, call.addr, "Weak random", "Warning",
+                issue = Issue(call.node.contract_name, call.node.function_name, call.state.mstate.pc, "Weak random", "Warning",
                               description)
                 issues.append(issue)
 
@@ -74,7 +74,7 @@ def execute(statespace):
                                 ")' is used to determine Ether recipient"
                             if int(m.group(2)) > 255:
                                 description += ", this expression will always be equal to zero."
-                        elif "storage" in str(constraint): # block.blockhash(block.number - storage_0)
+                        elif "storage" in str(constraint):  # block.blockhash(block.number - storage_0)
                             description += "predictable expression 'block.blockhash(block.number - " + \
                                            "some_storage_var)' is used to determine Ether recipient"
                         else: # block.blockhash(block.number)
@@ -88,7 +88,7 @@ def execute(statespace):
                         break
                 else:
                     r = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
-                    if r: # block.blockhash(storage_0)
+                    if r:  # block.blockhash(storage_0)
 
                         '''
                         We actually can do better here by adding a constraint blockhash_block_storage_0 == 0
