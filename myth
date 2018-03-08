@@ -126,7 +126,7 @@ else:
         try:
             sigs = json.load(f)
         except JSONDecodeError as e:
-            exitWithError("Invalid JSON in signatures file " + signatures_file + "\n" + str(e))
+            exitWithError(args.outform, "Invalid JSON in signatures file " + signatures_file + "\n" + str(e))
 
 # Parse cmdline args
 
@@ -177,7 +177,7 @@ if args.solv:
                 solc_binary = os.path.join(os.environ['HOME'], ".py-solc/solc-v" + version, "bin/solc")
                 logging.info("Setting the compiler to " + str(solc_binary))
             except SolcError:
-                exitWithError("There was an error when trying to install the specified solc version")
+                exitWithError(args.outform, "There was an error when trying to install the specified solc version")
 else:
     if not args.solv:
         try:
@@ -207,7 +207,7 @@ if (args.address or len(args.solidity_file) or args.init_db):
                 try:
                     host, port = args.rpc.split(":")
                 except ValueError:
-                    exitWithError("Invalid RPC argument, use HOST:PORT")
+                    exitWithError(args.outform, "Invalid RPC argument, use HOST:PORT")
 
                 tls = args.rpctls
 
@@ -227,15 +227,15 @@ if args.search or args.init_db:
         try:
             contract_storage.search(args.search, searchCallback)
         except SyntaxError:
-            exitWithError("Syntax error in search expression.")
+            exitWithError(args.outform, "Syntax error in search expression.")
 
     elif (args.init_db):
             try:
                 contract_storage.initialize(eth, args.sync_all)
             except FileNotFoundError as e:
-                exitWithError("Error syncing database over IPC: " + str(e))
+                exitWithError(args.outform, "Error syncing database over IPC: " + str(e))
             except ConnectionError as e:
-                exitWithError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
+                exitWithError(args.outform, "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")               
 
     sys.exit()
 
