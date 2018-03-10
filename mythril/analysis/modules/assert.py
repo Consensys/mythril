@@ -14,7 +14,7 @@ Check for constraints on tx.origin (i.e., access to some functionality is restri
 
 def execute(statespace):
 
-    logging.debug("Executing module: FAILED ASSERT")
+    logging.debug("Executing module: ASSERT_VIOLATION")
 
     issues = []
 
@@ -25,18 +25,17 @@ def execute(statespace):
 
             instruction = state.get_current_instruction()
 
-            if(instruction['opcode'] == "ASSERT_FAIL"):
+            if(instruction['opcode'] == "ASSERT_VIOLATION"):
 
                 try:
                     model = solver.get_model(node.constraints)
-                    logging.debug("[FAILED ASSERT] MODEL: " + str(model))
-
-                    for d in model.decls():
-                        logging.debug("[FAILED ASSERT] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                    logging.debug("[ASSERT_VIOLATION ASSERT] MODEL: " + str(model))
 
                     address = state.get_current_instruction()['address']
 
-                    description = "It appears to be possible to violate the condition specified in a Solidity assert() statement. The violation is triggered with the following values:\n\n"
+                    description = "Invalid opcode reached (0xfe). can be caused by a possible type error, out-of-bounds array access, or assert violation.\n\n"
+
+                    description = "Variable values:\n\n"
 
                     for d in model.decls():
 
@@ -47,7 +46,7 @@ def execute(statespace):
 
                         description += ("%s: %s\n" % (d.name(), condition))
 
-                    description += "\nNote that assert() should only be used to check invariants. Use require() for regular input checking."
+                    description += "\n\nNote that assert() should only be used to check invariants. Use require() for regular input checking."
 
                     issues.append(Issue(node.contract_name, node.function_name, address, "Assertion violation", description))
 
