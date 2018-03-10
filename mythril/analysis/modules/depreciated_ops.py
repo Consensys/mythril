@@ -1,5 +1,4 @@
 from mythril.analysis.report import Issue
-import re
 import logging
 
 

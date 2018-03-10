@@ -1,10 +1,14 @@
 import sys
 import re
-from ethereum import opcodes
+from ethereum.opcodes import opcodes
 from mythril.ether import util
 
 
 regex_PUSH = re.compile('^PUSH(\d*)$')
+
+# Additional mnemonic to catch failed assertions
+
+opcodes[254] = ['ASSERT_FAIL', 0, 0, 0]
 
 
 def instruction_list_to_easm(instruction_list):
@@ -54,7 +58,7 @@ def easm_to_instruction_list(easm):
 
 def get_opcode_from_name(name):
 
-    for opcode, value in opcodes.opcodes.items():
+    for opcode, value in opcodes.items():
 
         if name == value[0]:
 
@@ -105,9 +109,9 @@ def disassemble(bytecode):
 
         try:
             if (sys.version_info > (3, 0)):
-                opcode = opcodes.opcodes[bytecode[addr]]
+                opcode = opcodes[bytecode[addr]]
             else:
-                opcode = opcodes.opcodes[ord(bytecode[addr])]
+                opcode = opcodes[ord(bytecode[addr])]
 
         except KeyError:
 

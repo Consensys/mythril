@@ -62,9 +62,9 @@ def execute(statespace):
 
                 if is_valid:
 
-                    description += "The available gas is forwarded to the called contract. Make sure that the logic of the calling contract is not adversely affected if the called contract misbehaves (e.g. reentrancy)." 
+                    description += "The available gas is forwarded to the called contract. Make sure that the logic of the calling contract is not adversely affected if the called contract misbehaves (e.g. reentrancy)."
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, address, "CALL with gas to dynamic address", "Warning", description)
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Message call to external contract", "Warning", description)
 
                     issues.append(issue)
 
