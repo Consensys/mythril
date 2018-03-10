@@ -3,9 +3,11 @@ import re
 import sys
 import json
 from mythril.ether.ethcontract import ETHContract
+from mythril.ether.soliditycontract import SourceMapping
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
+
 from mythril.ether import util
 from laser.ethereum import helper
 
@@ -60,7 +62,6 @@ def analyze_truffle_project(args):
                 mappings = []
 
                 for item in deployedSourceMap:
-
                     mapping = item.split(":")
 
                     if len(mapping) > 0 and len(mapping[0]) > 0:
@@ -69,16 +70,24 @@ def analyze_truffle_project(args):
                     if len(mapping) > 1 and len(mapping[1]) > 0:
                         length = int(mapping[1])
 
-                    mappings.append((int(offset), int(length)))
+                    if len(mapping) > 2 and len(mapping[2]) > 0:
+                        idx = int(mapping[2])
+
+                    lineno = source[0:offset].count('\n') + 1
+
+                    mappings.append(SourceMapping(idx, offset, length, lineno))
 
                 for issue in issues:
 
                     index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
 
                     if index:
-                        issue.code_start = mappings[index][0]
-                        issue.code_length = mappings[index][1]
-                        issue.code = source[mappings[index][0]: mappings[index][0] + mappings[index][1]]
+                            offset = mappings[index].offset
+                            length = mappings[index].length
+
+                            issue.filename = filename
+                            issue.code = source[offset:offset + length]
+                            issue.lineno = mappings[index].lineno
 
                     report.append_issue(issue)
 
