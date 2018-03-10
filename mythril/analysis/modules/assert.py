@@ -31,13 +31,12 @@ def execute(statespace):
 
                 try:
                     model = solver.get_model(node.constraints)
-                    logging.debug("[ASSERT_VIOLATION ASSERT] MODEL: " + str(model))
+                    logging.debug("[ASSERT_VIOLATION] MODEL: " + str(model))
 
                     address = state.get_current_instruction()['address']
 
-                    description = "Invalid opcode reached (0xfe). This can be caused by a type error, out-of-bounds array access, or assert violation.\n\n"
-
-                    description += "The following input and state variables trigger the invalid instruction:\n\n"
+                    description = "A reachable exception has been detected (opcode 0xfe). This can be caused by a type error, division by zero, out-of-bounds array access, or assert violation.\n\n"
+                    description += "The exception is triggered under the following conditions:\n\n"
 
                     for d in model.decls():
 
@@ -50,9 +49,9 @@ def execute(statespace):
 
                     description += "\nNote that assert() should only be used to check invariants. Use require() for regular input checking.\n"
 
-                    issues.append(Issue(node.contract_name, node.function_name, address, "Assertion violation", description))
+                    issues.append(Issue(node.contract_name, node.function_name, address, "Assertion violation", "Informational", description))
 
                 except UnsatError:
-                    logging.debug("[FAILED ASSERT] no model found")
+                    logging.debug("[ASSERT_VIOLATION] no model found")
 
     return issues
