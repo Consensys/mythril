@@ -25,7 +25,9 @@ def execute(statespace):
 
             instruction = state.get_current_instruction()
 
-            if(instruction['opcode'] == "ASSERT_VIOLATION"):
+            if(instruction['opcode'] == "ASSERT_FAIL"):
+
+                logging.debug("Opcode 0xfe detected.")
 
                 try:
                     model = solver.get_model(node.constraints)
@@ -33,9 +35,9 @@ def execute(statespace):
 
                     address = state.get_current_instruction()['address']
 
-                    description = "Invalid opcode reached (0xfe). can be caused by a possible type error, out-of-bounds array access, or assert violation.\n\n"
+                    description = "Invalid opcode reached (0xfe). This can be caused by a type error, out-of-bounds array access, or assert violation.\n\n"
 
-                    description = "Variable values:\n\n"
+                    description += "The following input and state variables trigger the invalid instruction:\n\n"
 
                     for d in model.decls():
 
@@ -46,7 +48,7 @@ def execute(statespace):
 
                         description += ("%s: %s\n" % (d.name(), condition))
 
-                    description += "\n\nNote that assert() should only be used to check invariants. Use require() for regular input checking."
+                    description += "\nNote that assert() should only be used to check invariants. Use require() for regular input checking.\n"
 
                     issues.append(Issue(node.contract_name, node.function_name, address, "Assertion violation", description))
 
