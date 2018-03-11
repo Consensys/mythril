@@ -9,7 +9,7 @@ import logging
 '''
 MODULE DESCRIPTION:
 
-Check for CALLs that send >0 Ether as a result of computation based on predictable state variables such as
+Check for CALLs that send >0 Ether as a result of computation based on predictable variables such as
 block.coinbase, block.gaslimit, block.timestamp, block.number
 
 TODO:
@@ -56,7 +56,7 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
-                issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable variable", "Warning",
+                issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable environment variable", "Warning",
                               description)
                 issues.append(issue)
 
