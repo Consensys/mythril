@@ -50,9 +50,9 @@ def execute(statespace):
 
                     description += "\n"
 
-                    issues.append(Issue(node.contract_name, node.function_name, address, "Assertion violation", "Informational", description))
+                    issues.append(Issue(node.contract_name, node.function_name, address, "Exception state", "Informational", description))
 
                 except UnsatError:
-                    logging.debug("[ASSERT_VIOLATION] no model found")
+                    logging.debug("[EXCEPTIONS] no model found")
 
     return issues
