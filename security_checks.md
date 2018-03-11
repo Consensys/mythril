@@ -15,12 +15,12 @@ Detection modules, ideas collection and wish list.
 |Payable transaction does not revert in case of failure | | |   |
 |Use of `tx.origin`|                        | [tx_origin](mythril/analysis/modules/tx_origin.py)       | [Solidity documentation](https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin), [Avoid using tx.origin](https://consensys.github.io/smart-contract-best-practices/recommendations/#avoid-using-txorigin) |
 |Type confusion|                            |           |  |
-|Predictable RNG|                           | [weak_random](mythril/analysis/modules/weak_random.py) | |
+|Predictable RNG|                           | [Dependence on predictable variables](mythril/analysis/modules/dependence_on_predictable_vars.py) | |
 |Transaction order dependence|              |           | [Front Running](https://consensys.github.io/smart-contract-best-practices/known_attacks/#transaction-ordering-dependence-tod-front-running) |
 |Information exposure|                      |           |   |
 |Complex fallback function (uses more than 2,300 gas) | A too complex fallback function will cause send() and transfer() from other contracts to fail. To implement this we first need to fully implement gas simulation. | | 
 |Call depth attack| Deprecated!             |           | [EIP 150 Hard Fork](https://consensys.github.io/smart-contract-best-practices/known_attacks/#call-depth-attack-deprecated)|
-|Use require() instead of assert() | Use `assert()` only to check against states which should be completely unreachable. This facilitates static analysis using solidity's built-in SMTChecker. For more information, refer to the documentation.        |           | [Solidity docs](https://solidity.readthedocs.io/en/develop/control-structures.html#error-handling-assert-require-revert-and-exceptions)|
+|Use require() instead of assert() | Use `assert()` only to check against states which should be completely unreachable.  | [Exceptions](mythril/analysis/modules/exceptions.py)          | [Solidity docs](https://solidity.readthedocs.io/en/develop/control-structures.html#error-handling-assert-require-revert-and-exceptions)|
 |Use of depreciated functions | Use `revert()` instead of `throw()`, `selfdestruct()` instead of `suicide()`, `keccak256()` instead of `sha3()` |           | |
 |Detect tautologies| Detect comparisons that always evaluate to 'true', see also [#54](https://github.com/ConsenSys/mythril/issues/54) |  |
 
