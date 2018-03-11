@@ -1,6 +1,7 @@
 from mythril import ether
 from laser.ethereum import svm
 import copy
+import logging
 from .ops import get_variable, SStore, Call, VarType
 
 
@@ -66,6 +67,8 @@ class SymExecWrapper:
                     stack = copy.deepcopy(state.mstate.stack)
 
                     index, value = stack.pop(), stack.pop()
+
+                    logging.debug("FOUND SSTORE TO INDEX: " + str(index))
 
                     try:
                         self.sstors[str(index)].append(SStore(self.nodes[key], state, state_index, value))

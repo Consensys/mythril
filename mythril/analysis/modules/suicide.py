@@ -32,21 +32,21 @@ def execute(statespace):
 
                 logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
 
-                description = "The function " + node.function_name + " executes the SUICIDE instruction."
+                description = "The function " + node.function_name + " executes the SUICIDE instruction. "
 
                 stack = copy.deepcopy(state.mstate.stack)
                 to = stack.pop()
 
                 if ("caller" in str(to)):
-                    description += "\nThe remaining Ether is sent to the caller's address.\n"
+                    description += "The remaining Ether is sent to the caller's address."
                 elif ("storage" in str(to)):
-                    description += "\nThe remaining Ether is sent to a stored address\n"
+                    description += "The remaining Ether is sent to a stored address."
                 elif ("calldata" in str(to)):
-                    description += "\nThe remaining Ether is sent to an address provided as a function argument."
+                    description += "The remaining Ether is sent to an address provided as a function argument."
                 elif (type(to) == BitVecNumRef):
-                    description += "\nThe remaining Ether is sent to: " + hex(to.as_long())
+                    description += "The remaining Ether is sent to: " + hex(to.as_long())
                 else:
-                    description += "\nThe remaining Ether is sent to: " + str(to) + "\n"
+                    description += "The remaining Ether is sent to: " + str(to) + "\n"
 
                 constrained = False
                 can_solve = True
@@ -65,6 +65,8 @@ def execute(statespace):
                     if (m):
                         constrained = True
                         idx = m.group(1)
+
+                        logging.debug("STORAGE CONSTRAINT FOUND: " + idx)
 
                         func = statespace.find_storage_write(idx)
 
@@ -101,6 +103,6 @@ def execute(statespace):
                         issues.append(issue)
 
                     except UnsatError:
-                            logging.debug("[UNCHECKED_SUICIDE] no model found")         
+                            logging.debug("[UNCHECKED_SUICIDE] no model found")    
 
     return issues
