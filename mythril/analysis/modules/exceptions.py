@@ -36,8 +36,8 @@ def execute(statespace):
                     address = state.get_current_instruction()['address']
 
                     description = "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. "
-                    description += "Note that assert() should only be used to check invariants. Use require() for regular input checking\n"
-                    description += "This code path is executed under the following conditions:\n\n"
+                    description += "This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. "
+                    description += "The exception is triggered under the following conditions:\n\n"
 
                     for d in model.decls():
 
