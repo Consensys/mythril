@@ -1,6 +1,6 @@
 # Mythril Detection Capabilities
 
-Detection modules, ideas collection and wish list. 
+Detection modules, ideas collection and wish list. Contributions are welcome!
 
 | Issue | Description | Mythril Detection Module(s) | References |
 |------:|-------------|------------|----------|
