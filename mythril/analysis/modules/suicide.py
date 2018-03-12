@@ -74,7 +74,7 @@ def execute(statespace):
                             description += "\nThere is a check on storage index " + str(index) + ". This storage index can be written to by calling the function '" + func + "'."
                             break
                         else:
-                            logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(index))
+                            logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(idx))
                             can_solve = False
                             break
 
