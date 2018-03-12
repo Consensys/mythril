@@ -20,9 +20,9 @@ class SolidityFile:
 
 class SolidityContract(ETHContract):
 
-    def __init__(self, input_file, name=None):
+    def __init__(self, input_file, name=None, solc_args=None):
 
-        data = get_solc_json(input_file)
+        data = get_solc_json(input_file, solc_args=solc_args)
 
         self.solidity_files = []
 

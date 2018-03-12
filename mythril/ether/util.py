@@ -16,10 +16,18 @@ def safe_decode(hex_encoded_string):
         return bytes.fromhex(hex_encoded_string)
 
 
-def get_solc_json(file, solc_binary="solc"):
+def get_solc_json(file, solc_binary="solc", solc_args=None):
+
+    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap-runtime", '--allow-paths', "."]
+
+    if solc_args:
+        cmd.extend(solc_args.split(" "))
+
+    cmd.append(file)
 
     try:
-        p = Popen([solc_binary, "--combined-json", "bin,bin-runtime,srcmap-runtime", '--allow-paths', ".", file], stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+
         stdout, stderr = p.communicate()
         ret = p.returncode
 
