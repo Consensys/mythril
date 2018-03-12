@@ -79,7 +79,7 @@ def execute(statespace):
                             break
 
 
-                    # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
+                    #  CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
 
                     elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
                        can_solve = False
