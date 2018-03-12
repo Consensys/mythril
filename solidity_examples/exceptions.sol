@@ -16,6 +16,10 @@ contract Exceptions {
         assert(input != 23);
     }
 
+    function requireisfine(uint256 input) {
+        require(input != 23);
+    }
+
     function divisionby0(uint256 input) {
         uint256 i = 1/input;
     }
