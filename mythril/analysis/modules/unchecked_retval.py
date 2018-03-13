@@ -59,7 +59,7 @@ def execute(statespace):
 
             nStates = len(node.states)
 
-            for idx in range(0, nStates):
+            for idx in range(0, nStates - 1):  # Ignore CALLs at last position in a node
 
                 state = node.states[idx]
                 instr = state.get_current_instruction()
