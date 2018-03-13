@@ -51,7 +51,7 @@ def execute(statespace):
                 issue = Issue(node.contract_name, node.function_name, address, "Unchecked CALL return value")
 
                 issue.description = \
-                    "The return value of an external call is not checked. Note that the contract will continue if the call fails."
+                    "The return value of an external call is not checked. Note that execution continue even if the called contract throws."
 
                 issues.append(issue)
 
