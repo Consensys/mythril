@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """mythril.py: Bug hunting on the Ethereum blockchain
 
    http://www.github.com/b-mueller/mythril
