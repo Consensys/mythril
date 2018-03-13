@@ -1,6 +1,6 @@
 # Mythril
 
-[![PyPI](https://img.shields.io/pypi/v/mythril.svg)](https://pypi.python.org/pypi/mythril)
+[![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
