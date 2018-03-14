@@ -1,6 +1,7 @@
 import hashlib
 import json
 
+
 class Issue:
 
     def __init__(self, contract, function, pc, title, _type="Informational", description="", debug=""):
@@ -16,13 +17,12 @@ class Issue:
         self.code = None
         self.lineno = None
 
-
     def as_dict(self):
 
         issue = {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.pc, 'debug': self.debug}
 
         if self.filename and self.lineno:
-            issue['filename'] = self.filename 
+            issue['filename'] = self.filename
             issue['lineno'] = self.lineno
 
         if self.code:
@@ -51,9 +51,9 @@ class Report:
             text += "Type: " + issue.type + "\n"
 
             if len(issue.contract):
-                text += "Contract: " + issue.contract + "\n" 
+                text += "Contract: " + issue.contract + "\n"
             else:
-                text += "Contract: Unknown\n"              
+                text += "Contract: Unknown\n"
 
             text += "Function name: " + issue.function + "\n"
             text += "PC address: " + str(issue.pc) + "\n"
@@ -61,15 +61,14 @@ class Report:
             text += issue.description + "\n--------------------\n"
 
             if issue.filename and issue.lineno:
-                 text += "In file: " + issue.filename + ":" + str(issue.lineno)    
+                 text += "In file: " + issue.filename + ":" + str(issue.lineno)
 
             if issue.code:
                 text += "\n\n" + issue.code + "\n\n--------------------\n"
 
-            text+="\n"
+            text += "\n"
 
         return text
-
 
     def as_json(self):
         issues = []
@@ -80,7 +79,6 @@ class Report:
 
         return json.dumps(issues)
 
-
     def as_markdown(self):
         text = "# Analysis Results\n"
 
@@ -90,11 +88,11 @@ class Report:
             text += "- Type: " + issue.type + "\n"
 
             if len(issue.contract):
-                text += "- Contract: " + issue.contract + "\n" 
+                text += "- Contract: " + issue.contract + "\n"
             else:
-                text += "- Contract: Unknown\n"              
+                text += "- Contract: Unknown\n"
 
-            text += "- Function name: " + issue.function + "\n"
+            text += "- Function name: `" + issue.function + "`\n"
             text += "- PC address: " + str(issue.pc) + "\n\n"
 
             text += "### Description\n" + issue.description + "\n"
