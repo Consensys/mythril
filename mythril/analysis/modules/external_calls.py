@@ -56,7 +56,6 @@ def execute(statespace):
                                 "an address found at storage slot " + str(index) + ". " + \
                                 "This storage slot can be written to by calling the function '" + func + "'. "
                             user_supplied = True
-                            break
 
                 if user_supplied:
 

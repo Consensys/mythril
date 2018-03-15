@@ -41,15 +41,17 @@ class SymExecWrapper:
 
                 if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
 
-                    stack = copy.deepcopy(state.mstate.stack)
+                    logging.debug("CALL ANALYSIS: CALL AT %d" % (instruction['address']))
+
+                    stack = state.mstate.stack
 
                     if op in ('CALL', 'CALLCODE'):
                         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
                             get_variable(stack[-1]), get_variable(stack[-2]), get_variable(stack[-3]), get_variable(stack[-4]), get_variable(stack[-5]), get_variable(stack[-6]), get_variable(stack[-7])
-                            # get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
 
-                        if (to.type == VarType.CONCRETE):
-                            if (to.val < 5):
+                        logging.debug("TO: " + str(to))
+
+                        if to.type == VarType.CONCRETE and to.val < 5:
                                 # ignore prebuilts
                                 continue
 
