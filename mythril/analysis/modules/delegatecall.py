@@ -1,6 +1,5 @@
-from z3 import *
 import re
-from mythril.analysis.ops import *
+from mythril.analysis.ops import get_variable, VarType
 from mythril.analysis.report import Issue
 import logging
 
@@ -14,21 +13,18 @@ Check for invocations of delegatecall(msg.data) in the fallback function.
 
 def execute(statespace):
 
-    logging.debug("Executing module: DELEGATECALL")
-
     issues = []
-    visited = []
 
     for call in statespace.calls:
 
-        state = call.state
-        address = state.get_current_instruction()['address']
-
         if (call.type == "DELEGATECALL"):
+
+            state = call.state
+            address = state.get_current_instruction()['address']
 
             if (call.node.function_name == "fallback"):
 
-                stack = call.state.mstate.stack
+                stack = state.mstate.stack
 
                 meminstart = get_variable(stack[-3])
 
@@ -36,10 +32,10 @@ def execute(statespace):
 
                     if (re.search(r'calldata.*_0', str(state.mstate.memory[meminstart.val]))):
 
-                        issue = Issue(call.node.contract_name, call.node.function_name, address, "CALLDATA forwarded with delegatecall()", "Informational")
+                        issue = Issue(call.node.contract_name, call.node.function_name, address, "Call data forwarded with delegatecall()", "Informational")
 
                         issue.description = \
-                            "This contract forwards its calldata via DELEGATECALL in its fallback function. " \
+                            "This contract forwards its call data via DELEGATECALL in its fallback function. " \
                             "This means that any function in the called contract can be executed. Note that the callee contract will have access to the storage of the calling contract.\n"   
 
                         if (call.to.type == VarType.CONCRETE):
@@ -62,15 +58,15 @@ def execute(statespace):
                         m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
 
                         if (m):
-                            index = m.group(1)
+                            idx = m.group(1)
 
                         func = statespace.find_storage_write(idx)
 
                         if (func):
-                            issue.description = "This contract delegates execution to a contract address in storage slot " + str(index) + ". This storage slot can be written to by calling the function '" + func + "'. "
+                            issue.description = "This contract delegates execution to a contract address in storage slot " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'. "
 
                         else:
-                            logging.debug("[DELEGATECALL] No storage writes to index " + str(index))
+                            logging.debug("[DELEGATECALL] No storage writes to index " + str(idx))
 
                         issue.description += "Be aware that the called contract gets unrestricted access to this contract's state."
                         issues.append(issue)

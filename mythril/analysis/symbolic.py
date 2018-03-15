@@ -43,6 +43,10 @@ class SymExecWrapper:
 
                     logging.debug("CALL ANALYSIS: CALL AT %d" % (instruction['address']))
 
+                    logging.debug(str(state.mstate))
+
+                    logging.debug(state.get_current_instruction()['address'])
+
                     stack = state.mstate.stack
 
                     if op in ('CALL', 'CALLCODE'):
@@ -61,7 +65,7 @@ class SymExecWrapper:
                             self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value))
                     else:
                         gas, to, meminstart, meminsz, memoutstart, memoutsz = \
-                            get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop()), get_variable(stack.pop())
+                            get_variable(stack[-1]), get_variable(stack[-2]), get_variable(stack[-3]), get_variable(stack[-4]), get_variable(stack[-5]), get_variable(stack[-6])
 
                         self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas))
 
