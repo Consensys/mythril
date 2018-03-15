@@ -14,7 +14,7 @@ Check for call.value()() to an untrusted address
 
 def execute(statespace):
 
-    logging.debug("Executing module: CALL_TO_DYNAMIC_WITH_GAS")
+    logging.debug("Executing module: EXTERNAL_CALLS")
 
     issues = []
 
@@ -25,7 +25,7 @@ def execute(statespace):
 
         if (call.type == "CALL"):
 
-            logging.debug("[CALL_TO_DYNAMIC_WITH_GAS] Call to: " + str(call.to) + ", value " + str(call.value) + ", gas = " + str(call.gas))
+            logging.debug("[EXTERNAL_CALLS] Call to: " + str(call.to) + ", value " + str(call.value) + ", gas = " + str(call.gas))
 
             if (call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas))):
 
