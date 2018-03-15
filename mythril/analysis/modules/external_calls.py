@@ -66,7 +66,7 @@ def execute(statespace):
 
                 else:
 
-                    description += "to a fixed address. Make sure that the called contract is trusted and does not execute user-supplied code."
+                    description += "to another contract. Make sure that the called contract is trusted and does not execute user-supplied code."
 
                     issue = Issue(call.node.contract_name, call.node.function_name, address, "Message call to external contract", "Informational", description)
 
