@@ -135,7 +135,7 @@ def serialize(statespace, color_map):
         code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
 
         if NodeFlags.FUNC_ENTRY in node.flags:
-            code = re.sub("JUMPDEST", "%d %s" % (node.start_addr, node.function_name), code)
+            code = re.sub("JUMPDEST", node.function_name, code)
 
         code_split = code.split("\\n")
 
