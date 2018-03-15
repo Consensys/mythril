@@ -1,4 +1,5 @@
 from z3 import Z3Exception, simplify
+from laser.ethereum.svm import NodeFlags
 import re
 
 
@@ -117,7 +118,7 @@ colors = [
   "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
   "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
   "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
-]  
+]
 
 
 def serialize(statespace, color_map):
@@ -127,47 +128,51 @@ def serialize(statespace, color_map):
 
     for node_key in statespace.nodes:
 
-        code =  statespace.nodes[node_key].get_cfg_dict()['code']
+        node = statespace.nodes[node_key]
 
-        code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
+        code = node.get_cfg_dict()['code']
+
+        code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
+
+        if NodeFlags.FUNC_ENTRY in node.flags:
+            code = re.sub("JUMPDEST", "%d %s" % (node.start_addr, node.function_name), code)
 
         code_split = code.split("\\n")
 
         truncated_code = code if (len(code_split) < 7) else "\\n".join(code_split[:6]) + "\\n(click to expand +)"
 
-        color = color_map[statespace.nodes[node_key].get_cfg_dict()['contract_name']]
+        color = color_map[node.get_cfg_dict()['contract_name']]
 
         nodes.append("{id: '" + str(node_key) + "', color: " + color + ", size: 150, 'label': '" + truncated_code + "', 'fullLabel': '" + code + "', 'truncLabel': '" + truncated_code + "', 'isExpanded': false}")
 
     for edge in statespace.edges:
 
-      if (edge.condition is None):
-          label = ""
-      else:
+        if (edge.condition is None):
+            label = ""
+        else:
 
-          try:
-            label = str(simplify(edge.condition)).replace("\n", "")
-          except Z3Exception:
-            label = str(edge.condition).replace("\n", "")
-    
-      label = re.sub("([^_])([\d]{2}\d+)",  lambda m: m.group(1) + hex(int(m.group(2))), label)
-      code = re.sub("([0-9a-f]{8})[0-9a-f]+",  lambda m: m.group(1) + "(...)", code)
+            try:
+                label = str(simplify(edge.condition)).replace("\n", "")
+            except Z3Exception:
+                label = str(edge.condition).replace("\n", "")
 
-      edges.append("{from: '" + str(edge.as_dict()['from']) + "', to: '" + str(edge.as_dict()['to']) + "', 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
+        label = re.sub("([^_])([\d]{2}\d+)", lambda m: m.group(1) + hex(int(m.group(2))), label)
+        code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
+
+        edges.append("{from: '" + str(edge.as_dict()['from']) + "', to: '" + str(edge.as_dict()['to']) + "', 'arrows': 'to', 'label': '" + label + "', 'smooth': {'type': 'cubicBezier'}}")
 
     return "var nodes = [\n" + ",\n".join(nodes) + "\n];\nvar edges = [\n" + ",\n".join(edges) + "\n];"
 
 
-
-def generate_graph(statespace, physics = False):
+def generate_graph(statespace, physics=False):
 
     i = 0
 
     color_map = {}
 
     for k in statespace.accounts:
-      color_map[statespace.accounts[k].contract_name] = colors[i]
-      i += 1
+        color_map[statespace.accounts[k].contract_name] = colors[i]
+        i += 1
 
     html = graph_html.replace("[JS]", serialize(statespace, color_map))
     html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
