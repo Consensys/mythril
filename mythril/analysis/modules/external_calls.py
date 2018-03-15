@@ -29,19 +29,19 @@ def execute(statespace):
 
             if (call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas))):
 
-                description = "The function " + call.node.function_name + " contains a function call to "
+                description = "This contract executes a message call to "
 
                 target = str(call.to)
-                is_valid = False
+                user_supplied = False
 
                 if ("calldata" in target or "caller" in target):
 
                     if ("calldata" in target):
-                        description += "an address provided as a function argument."
+                        description += "an address provided as a function argument. "
                     else:
-                        description += "the address of the transaction sender."
+                        description += "the address of the transaction sender. "
 
-                    is_valid = True
+                    user_supplied = True
                 else:
                     m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
 
@@ -53,19 +53,23 @@ def execute(statespace):
                         if func:
 
                             description += \
-                                "an address found at storage position " + str(index) + ".\n" + \
-                                "This storage position can be written to by calling the function '" + func + "'.\n" \
-                                "Verify that the contract address cannot be set by untrusted users.\n"
-
-                            is_valid = True
+                                "an address found at storage slot " + str(index) + ". " + \
+                                "This storage slot can be written to by calling the function '" + func + "'. "
+                            user_supplied = True
                             break
 
-                if is_valid:
+                if user_supplied:
 
-                    description += "The available gas is forwarded to the called contract. Make sure that the logic of the calling contract is not adversely affected if the called contract misbehaves (e.g. reentrancy)."
+                    description += "Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state."
 
                     issue = Issue(call.node.contract_name, call.node.function_name, address, "Message call to external contract", "Warning", description)
 
-                    issues.append(issue)
+                else:
+
+                    description += "to a fixed address. Make sure that the called contract is trusted and does not execute user-supplied code."
+
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Message call to external contract", "Informational", description)
+
+                issues.append(issue)
 
     return issues
