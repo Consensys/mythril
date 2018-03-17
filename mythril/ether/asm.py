@@ -14,8 +14,6 @@ opcodes[254] = ['ASSERT_FAIL', 0, 0, 0]
 def instruction_list_to_easm(instruction_list):
     easm = ""
 
-    # print(instruction_list)
-
     for instruction in instruction_list:
 
         easm += str(instruction['address']) + " " + instruction['opcode']
