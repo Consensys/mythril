@@ -53,6 +53,8 @@ def execute(statespace):
 
                 index = 0
 
+                logging.debug(node.constraints)
+
                 while(can_solve and index < len(node.constraints)):
 
                     constraint = node.constraints[index]
@@ -78,13 +80,11 @@ def execute(statespace):
                             can_solve = False
                             break
 
-
-                    #  CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
+                    # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
 
                     elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
                        can_solve = False
                        break
-
 
                 if not constrained:
                     description += "\nIt seems that this function can be called without restrictions."
@@ -92,6 +92,8 @@ def execute(statespace):
                 if can_solve:
 
                     try:
+
+
                         model = solver.get_model(node.constraints)
                         logging.debug("[UNCHECKED_SUICIDE] MODEL: " + str(model))
 
