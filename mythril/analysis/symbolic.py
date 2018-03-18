@@ -41,19 +41,11 @@ class SymExecWrapper:
 
                 if op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
 
-                    logging.debug("CALL ANALYSIS: CALL AT %d" % (instruction['address']))
-
-                    logging.debug(str(state.mstate))
-
-                    logging.debug(state.get_current_instruction()['address'])
-
                     stack = state.mstate.stack
 
                     if op in ('CALL', 'CALLCODE'):
                         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
                             get_variable(stack[-1]), get_variable(stack[-2]), get_variable(stack[-3]), get_variable(stack[-4]), get_variable(stack[-5]), get_variable(stack[-6]), get_variable(stack[-7])
-
-                        logging.debug("TO: " + str(to))
 
                         if to.type == VarType.CONCRETE and to.val < 5:
                                 # ignore prebuilts
@@ -73,8 +65,6 @@ class SymExecWrapper:
                     stack = copy.deepcopy(state.mstate.stack)
 
                     index, value = stack.pop(), stack.pop()
-
-                    logging.debug("FOUND SSTORE TO INDEX: " + str(index))
 
                     try:
                         self.sstors[str(index)].append(SStore(self.nodes[key], state, state_index, value))
