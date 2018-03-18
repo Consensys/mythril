@@ -288,7 +288,6 @@ setup(
 
     install_requires=[
         'ethereum>=2.0.4',
-        'web3',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
         'laser-ethereum==0.5.9',
