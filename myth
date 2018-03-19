@@ -102,7 +102,12 @@ try:
 except KeyError:
     mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
 
-# Initialize data directry and singature database
+# Detect unsupported combinations of command line args
+
+if (args.dynld) and not (args.address):
+    exitWithError(args.outform, "Dynamic loader can be used in on-chain analysis mode only (-a).")
+
+# Initialize data directry and signature database
 
 if not os.path.exists(mythril_dir):
     logging.info("Creating mythril data directory")
@@ -213,7 +218,10 @@ if (args.address or args.init_db):
 
                 eth = EthJsonRpc(host, int(port), tls)
         else:
-            eth = EthIpc()
+            try:
+                eth = EthIpc()
+            except:
+                exitWithError(args.outform, "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA.")
 
 # Database search ops
 
