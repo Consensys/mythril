@@ -190,7 +190,7 @@ else:
 
 # Establish RPC/IPC connection if necessary
 
-if (args.address or len(args.solidity_file) or args.init_db):
+if (args.address or args.init_db):
 
         if args.infura_mainnet:
             eth = EthJsonRpc('mainnet.infura.io', 443, True)
