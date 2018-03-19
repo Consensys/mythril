@@ -21,6 +21,8 @@ Install from Pypi:
 $ pip3 install mythril
 ```
 
+If you plan to analyze Solidity code you'll also need the [native version of solc](http://solidity.readthedocs.io/en/v0.4.21/installing-solidity.html#binary-packages). Solcjs is not supported.
+
 ## Security analysis
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 
