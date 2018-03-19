@@ -8,21 +8,18 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses the [L
 
 ## Installation and setup
 
+Build the [Docker](https://www.docker.com) image:
+
+```bash
+$ git clone https://github.com/b-mueller/mythril/
+$ docker build mythril
+```
+
 Install from Pypi:
 
 ```bash
 $ pip3 install mythril
 ```
-
-Or, clone the GitHub repo to install the newest master branch:
-
-```bash
-$ git clone https://github.com/b-mueller/mythril/
-$ cd mythril
-$ python3 setup.py install
-```
-
-Note that Mythril requires Python 3.5 to work.
 
 ## Security analysis
 
