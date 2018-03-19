@@ -4,7 +4,7 @@ COPY . .
 
 RUN apt-get update \
   && apt-get install -y software-properties-common python-software-properties \
-  && add-apt-repository ppa:ethereum/ethereum \
+  && add-apt-repository -y ppa:ethereum/ethereum \
   && apt-get update \
   && apt-get install -y solc \
   && apt-get install -y libssl-dev \
@@ -13,7 +13,7 @@ RUN apt-get update \
   && pip3 install --upgrade pip \
   && apt-get install -y pandoc \
   && apt-get install -y git \
-  && pip3 install laser-ethereum \
+  && pip3 install -r requirements.txt \
   && python setup.py install
 
 CMD []

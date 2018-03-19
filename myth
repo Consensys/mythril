@@ -20,7 +20,6 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 from laser.ethereum import helper
-from web3 import Web3
 from ethereum import utils
 from pathlib import Path
 from json.decoder import JSONDecodeError
@@ -340,7 +339,7 @@ if args.storage:
 
         if array:
             position_formated = str(position).zfill(64)
-            position = int(Web3.sha3(position_formated), 16)
+            position = int(utils.sha3(position_formated), 16)
 
         try:
             if length == 1:
