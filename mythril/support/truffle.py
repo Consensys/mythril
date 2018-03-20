@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import json
+import logging
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SourceMapping
 from mythril.analysis.security import fire_lasers
@@ -82,12 +83,15 @@ def analyze_truffle_project(args):
                     index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
 
                     if index:
-                            offset = mappings[index].offset
-                            length = mappings[index].length
+                            try:
+                                offset = mappings[index].offset
+                                length = mappings[index].length
 
-                            issue.filename = filename
-                            issue.code = source[offset:offset + length]
-                            issue.lineno = mappings[index].lineno
+                                issue.filename = filename
+                                issue.code = source[offset:offset + length]
+                                issue.lineno = mappings[index].lineno
+                            except IndexError:
+                                logging.debug("No code mapping at index %d", index)
 
                     report.append_issue(issue)
 
