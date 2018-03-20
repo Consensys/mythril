@@ -2,9 +2,9 @@ from z3 import Z3Exception, simplify
 from laser.ethereum.svm import NodeFlags
 import re
 
+default_title = '<p>Mythril / Ethereum LASER Symbolic VM</p>'
 
-graph_html = '''<html>
- <head>
+default_style = '''
   <style type="text/css">
    #mynetwork {
     background-color: #232625;
@@ -13,13 +13,13 @@ graph_html = '''<html>
    body {
     background-color: #232625;
     color: #ffffff;
+    font-size: 10px;
    }
   </style>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-  <script>
+'''
 
-    var options = {
+default_opts = '''
+   var options = {
       autoResize: true,
       height: '100%',
       width: '100%',
@@ -66,17 +66,104 @@ graph_html = '''<html>
 
       physics:{
         enabled: [ENABLE_PHYSICS],
-      }   
-    
+      }
+
   }
+'''
+
+
+phrack_style = '''
+  <style type="text/css">
+   #mynetwork {
+    background-color: #ffffff;
+   }
+
+   body {
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 10px;
+    font-family: "courier new";
+   }
+
+
+  </style>
+'''
+
+phrack_opts = '''
+    var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        color: '#000000',
+        borderWidth: 1,
+        borderWidthSelected: 1,
+        shapeProperties: {
+          borderDashes: false, // only for borders
+          borderRadius: 0,     // only for box shape
+        },
+        chosen: true,
+        shape: 'box',
+        font: {
+          face: 'courier new',
+          align: 'left',
+          color: '#000000',
+        },
+      },
+      edges:{
+        font: {
+          color: '#000000',
+          face: 'courier new',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: [ENABLE_PHYSICS],
+      }
+  }
+'''
+
+graph_html = '''<html>
+ <head>
+
+  [STYLE]
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+  [OPTS]
 
   [JS]
 
   </script>
  </head>
 <body>
-<p>Mythril / Ethereum LASER Symbolic VM</p>
-<p><div id="mynetwork"></div><br /></p>
+<p>Mythril / LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
 <script type="text/javascript">
 var container = document.getElementById('mynetwork');
 
@@ -108,16 +195,15 @@ gph.on("click", function (params) {
 </html>
 '''
 
-
 colors = [
-  "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
-  "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
-  "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
-  "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
-  "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
-  "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
-  "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
-  "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
+    "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
+    "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
+    "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
+    "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
+    "{border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}",
+    "{border: '#9e42b3', background: '#842899', highlight: {border: '#9e42b3', background: '#933da6'}}",
+    "{border: '#b82323', background: '#991d1d', highlight: {border: '#b82323', background: '#a61f1f'}}",
+    "{border: '#4753bf', background: '#3b46a1', highlight: {border: '#4753bf', background: '#424db3'}}",
 ]
 
 
@@ -131,7 +217,6 @@ def serialize(statespace, color_map):
         node = statespace.nodes[node_key]
 
         code = node.get_cfg_dict()['code']
-
         code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
 
         if NodeFlags.FUNC_ENTRY in node.flags:
@@ -164,17 +249,31 @@ def serialize(statespace, color_map):
     return "var nodes = [\n" + ",\n".join(nodes) + "\n];\nvar edges = [\n" + ",\n".join(edges) + "\n];"
 
 
-def generate_graph(statespace, physics=False):
-
-    i = 0
+def generate_graph(statespace, physics=False, phrackify=False):
+    '''
+    This is some of the the ugliest code in the whole project.
+    At some point someone needs to write a templating system.
+    '''
 
     color_map = {}
 
-    for k in statespace.accounts:
-        color_map[statespace.accounts[k].contract_name] = colors[i]
-        i += 1
+    if phrackify:
 
-    html = graph_html.replace("[JS]", serialize(statespace, color_map))
-    html = html.replace("[ENABLE_PHYSICS]", str(physics).lower())
+        for k in statespace.accounts:
+            color_map[statespace.accounts[k].contract_name] = "{border: '#000000', background: '#ffffff', highlight: {border: '#000000', background: '#ffffff'}}"
+
+        html = graph_html.replace("[STYLE]", phrack_style).replace("[OPTS]", phrack_opts)
+
+    else:
+
+        i = 0
+
+        for k in statespace.accounts:
+            color_map[statespace.accounts[k].contract_name] = colors[i]
+            i += 1
+
+        html = graph_html.replace("[STYLE]", default_style).replace("[OPTS]", default_opts)
+
+    html = html.replace("[JS]", serialize(statespace, color_map)).replace("[ENABLE_PHYSICS]", str(physics).lower())
 
     return html

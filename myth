@@ -81,6 +81,7 @@ options = parser.add_argument_group('options')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--solc-args', help='Extra arguments for solc')
+options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
 options.add_argument('--enable-physics', type=bool, default=False, help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
@@ -388,7 +389,7 @@ elif (args.graph) or (args.fire_lasers):
         if args.enable_physics is not None:
             physics = True
 
-        html = generate_graph(sym, args.enable_physics)
+        html = generate_graph(sym, args.enable_physics, args.phrack)
 
         try:
             with open(args.graph, "w") as f:
