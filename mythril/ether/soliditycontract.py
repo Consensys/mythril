@@ -1,6 +1,7 @@
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import *
 from mythril.exceptions import NoContractFoundError
+from laser.ethereum import helper
 
 class SourceMapping:
 
@@ -16,6 +17,14 @@ class SolidityFile:
     def __init__(self, filename, data):
         self.filename = filename
         self.data = data
+
+
+class SourceCodeInfo:
+
+    def __init__(self, filename, lineno, code):
+        self.filename = filename
+        self.lineno = lineno
+        self.code = code
 
 
 class SolidityContract(ETHContract):
@@ -82,3 +91,19 @@ class SolidityContract(ETHContract):
             self.mappings.append(SourceMapping(idx, offset, length, lineno))
 
         super().__init__(code, creation_code, name=name)
+
+    def get_source_info(self, address):
+
+        index = helper.get_instruction_index(self.get_disassembly().instruction_list, address)
+
+        solidity_file = self.solidity_files[self.mappings[index].solidity_file_idx]
+
+        filename = solidity_file.filename
+
+        offset = self.mappings[index].offset
+        length = self.mappings[index].length
+
+        code = solidity_file.data[offset:offset + length]
+        lineno = self.mappings[index].lineno
+
+        return SourceCodeInfo(filename, lineno, code)

@@ -420,23 +420,14 @@ elif (args.graph) or (args.fire_lasers):
 
                 if (type(contract) == SolidityContract):
 
-                    disassembly = contract.get_disassembly()
-
                     for issue in issues:
 
                         if (issue.pc):
 
-                            index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
+                            codeinfo = contract.get_source_info(issue.pc)
 
-                            solidity_file = contract.solidity_files[contract.mappings[index].solidity_file_idx]
-
-                            issue.filename = solidity_file.filename
-
-                            offset = contract.mappings[index].offset
-                            length = contract.mappings[index].length
-
-                            issue.code = solidity_file.data[offset:offset + length]
-                            issue.lineno = contract.mappings[index].lineno
+                            issue.code = codeinfo.code
+                            issue.lineno = codeinfo.lineno
 
                 for issue in issues:
                     report.append_issue(issue)  # For text and markdown output
