@@ -61,7 +61,7 @@ class Report:
             text += issue.description + "\n--------------------\n"
 
             if issue.filename and issue.lineno:
-                 text += "In file: " + issue.filename + ":" + str(issue.lineno)
+                text += "In file: " + issue.filename + ":" + str(issue.lineno)
 
             if issue.code:
                 text += "\n\n" + issue.code + "\n\n--------------------\n"

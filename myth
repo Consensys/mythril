@@ -426,6 +426,7 @@ elif (args.graph) or (args.fire_lasers):
 
                             codeinfo = contract.get_source_info(issue.pc)
 
+                            issue.filename = codeinfo.filename
                             issue.code = codeinfo.code
                             issue.lineno = codeinfo.lineno
 
