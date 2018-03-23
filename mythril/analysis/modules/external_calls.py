@@ -1,6 +1,7 @@
 from z3 import *
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+from mythril.analysis import solver
 import re
 import logging
 

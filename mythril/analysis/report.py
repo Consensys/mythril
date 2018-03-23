@@ -68,7 +68,7 @@ class Report:
                 text += "\n\n" + issue.code + "\n\n--------------------\n"
 
             if self.verbose and issue.debug:
-                text += "\nDEBUGGING INFORMATION:\n\n" + issue.debug + "\n\n--------------------\n"
+                text += "\nDEBUGGING INFORMATION:\n\n" + issue.debug + "\n--------------------\n"
 
             text += "\n"
 

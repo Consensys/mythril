@@ -38,13 +38,13 @@ def execute(statespace):
                 to = stack.pop()
 
                 if ("caller" in str(to)):
-                    description += "The remaining Ether is sent to the caller's address."
+                    description += "The remaining Ether is sent to the caller's address.\n"
                 elif ("storage" in str(to)):
-                    description += "The remaining Ether is sent to a stored address."
+                    description += "The remaining Ether is sent to a stored address.\n"
                 elif ("calldata" in str(to)):
-                    description += "The remaining Ether is sent to an address provided as a function argument."
+                    description += "The remaining Ether is sent to an address provided as a function argument.\n"
                 elif (type(to) == BitVecNumRef):
-                    description += "The remaining Ether is sent to: " + hex(to.as_long())
+                    description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
                 else:
                     description += "The remaining Ether is sent to: " + str(to) + "\n"
 
@@ -62,8 +62,6 @@ def execute(statespace):
 
                     m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
-                    overwrite = False
-
                     if (m):
                         constrained = True
                         idx = m.group(1)
@@ -80,11 +78,9 @@ def execute(statespace):
                             can_solve = False
                             break
 
-                    # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
-
                     elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
-                       can_solve = False
-                       break
+                        can_solve = False
+                        break
 
                 if not constrained:
                     description += "\nIt seems that this function can be called without restrictions."
@@ -93,18 +89,14 @@ def execute(statespace):
 
                     try:
 
-
                         model = solver.get_model(node.constraints)
-                        logging.debug("[UNCHECKED_SUICIDE] MODEL: " + str(model))
 
+                        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 
-                        for d in model.decls():
-                            logging.debug("[UNCHECKED_SUICIDE] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
-
-                        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description)
+                        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description, debug)
                         issues.append(issue)
 
                     except UnsatError:
-                            logging.debug("[UNCHECKED_SUICIDE] no model found")    
+                            logging.debug("[UNCHECKED_SUICIDE] no model found")
 
     return issues

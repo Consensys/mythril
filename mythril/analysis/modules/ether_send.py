@@ -39,7 +39,7 @@ def execute(statespace):
 
         interesting = False
 
-        description = "In the function '" + call.node.function_name +"' "
+        description = "In the function '" + call.node.function_name + "' "
 
         if re.search(r'caller', str(call.to)):
             description += "a non-zero amount of Ether is sent to msg.sender.\n"
@@ -55,10 +55,12 @@ def execute(statespace):
             if (m):
                 idx = m.group(1)
 
+                description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx)
+
                 func = statespace.find_storage_write(idx)
 
                 if (func):
-                    description += "\nThere is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'.\n"
+                    description += "There is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'.\n"
                     interesting = True
                 else:
                     logging.debug("[ETHER_SEND] No storage writes to index " + str(idx))
@@ -108,12 +110,13 @@ def execute(statespace):
 
                 try:
                     model = solver.get_model(node.constraints)
-                    logging.debug("[ETHER_SEND] MODEL: " + str(model))
 
                     for d in model.decls():
                         logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Ether send", "Warning", description)
+                    debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
+
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Ether send", "Warning", description, debug)
                     issues.append(issue)
 
                 except UnsatError:

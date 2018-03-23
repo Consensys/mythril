@@ -25,7 +25,6 @@ def execute(statespace):
             if (call.node.function_name == "fallback"):
 
                 stack = state.mstate.stack
-
                 meminstart = get_variable(stack[-3])
 
                 if meminstart.type == VarType.CONCRETE:
