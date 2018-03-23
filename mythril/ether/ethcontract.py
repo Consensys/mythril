@@ -17,6 +17,7 @@ class ETHContract(persistent.Persistent):
         code = re.sub(r'(_+[A-Za-z0-9]+_+)', 'aa' * 20, code)
 
         self.code = code
+        self.disassembly = Disassembly(self.code)
 
     def as_dict(self):
 
@@ -25,7 +26,7 @@ class ETHContract(persistent.Persistent):
             'name': self.name,
             'code': self.code,
             'creation_code': self.creation_code,
-            'disassembly': self.get_disassembly()
+            'disassembly': self.disassembly
         }
 
     def get_xrefs(self):
@@ -44,10 +45,6 @@ class ETHContract(persistent.Persistent):
                             xrefs.append(addr)
 
         return xrefs
-
-    def get_disassembly(self):
-
-        return Disassembly(self.code)
 
     def get_easm(self):
 

@@ -13,7 +13,7 @@ class SymExecWrapper:
 
     def __init__(self, contract, address, dynloader=None, max_depth=12):
 
-        account = svm.Account(address, contract.get_disassembly(), contract_name=contract.name)
+        account = svm.Account(address, contract.disassembly, contract_name=contract.name)
 
         self.accounts = {address: account}
 

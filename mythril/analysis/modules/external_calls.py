@@ -51,7 +51,7 @@ def execute(statespace):
 
         if (call.type == "CALL"):
 
-            logging.debug("[EXTERNAL_CALLS] Call to: " + str(call.to) + ", value " + str(call.value) + ", gas = " + str(call.gas))
+            logging.info("[EXTERNAL_CALLS] Call to: " + str(call.to) + ", value " + str(call.value) + ", gas = " + str(call.gas))
 
             if (call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas))):
 
@@ -102,6 +102,8 @@ def execute(statespace):
                 # Check remaining instructions in current node & nodes down the call tree
 
                 state_change_addresses = search_children(statespace, call.node, call.state_index + 1)
+
+                logging.info("Detected state changes at: " + str(state_change_addresses))                
 
                 if (len(state_change_addresses)):
                     for address in state_change_addresses:

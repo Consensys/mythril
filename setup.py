@@ -254,7 +254,7 @@ Credit
 setup(
     name='mythril',
 
-    version='0.14.4',
+    version='0.14.5',
 
     description='Security analysis tool for Ethereum smart contracts',
     long_description=long_description,
@@ -290,7 +290,7 @@ setup(
         'ethereum>=2.0.4',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum==0.5.15',
+        'laser-ethereum==0.5.16',
         'requests',
         'BTrees',
         'py-solc'

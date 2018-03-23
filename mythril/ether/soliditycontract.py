@@ -94,7 +94,7 @@ class SolidityContract(ETHContract):
 
     def get_source_info(self, address):
 
-        index = helper.get_instruction_index(self.get_disassembly().instruction_list, address)
+        index = helper.get_instruction_index(self.disassembly.instruction_list, address)
 
         solidity_file = self.solidity_files[self.mappings[index].solidity_file_idx]
 
