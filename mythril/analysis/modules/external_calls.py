@@ -11,13 +11,12 @@ MODULE DESCRIPTION:
 Check for call.value()() to external addresses
 '''
 
-MAX_SEARCH_DEPTH = 16
+MAX_SEARCH_DEPTH = 32
 
 
 def search_children(statespace, node, start_index=0, depth=0, results=[]):
 
     if(depth < MAX_SEARCH_DEPTH):
-        depth += 1
 
         nStates = len(node.states)
 
@@ -35,9 +34,12 @@ def search_children(statespace, node, start_index=0, depth=0, results=[]):
 
         if (len(children)):
             for node in children:
-                return search_children(statespace, node, depth=depth, results=results)
+                return search_children(statespace, node, depth=depth + 1, results=results)
 
     return results
+
+
+calls_visited = []
 
 
 def execute(statespace):
@@ -51,7 +53,7 @@ def execute(statespace):
 
         if (call.type == "CALL"):
 
-            logging.info("[EXTERNAL_CALLS] Call to: " + str(call.to) + ", value " + str(call.value) + ", gas = " + str(call.gas))
+            logging.info("[EXTERNAL_CALLS] Call to: %s, value = %s, gas = %s" % (str(call.to), str(call.value), str(call.gas)))
 
             if (call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas))):
 
@@ -97,18 +99,21 @@ def execute(statespace):
 
                 issues.append(issue)
 
-                logging.debug("[EXTERNAL_CALLS] Commence super-advanced reentrancy detection")
+                if address not in calls_visited:
+                    calls_visited.append(address)
 
-                # Check remaining instructions in current node & nodes down the call tree
+                    logging.debug("[EXTERNAL_CALLS] Checking for state changes starting from " + call.node.function_name)
 
-                state_change_addresses = search_children(statespace, call.node, call.state_index + 1, depth=0, results=[])
+                    # Check for SSTORE in remaining instructions in current node & nodes down the CFG
 
-                logging.debug("Detected state changes at: " + str(state_change_addresses))
+                    state_change_addresses = search_children(statespace, call.node, call.state_index + 1, depth=0, results=[])
 
-                if (len(state_change_addresses)):
-                    for address in state_change_addresses:
-                        description = "The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities."
-                        issue = Issue(call.node.contract_name, call.node.function_name, address, "State change after external call", "Warning", description)
-                        issues.append(issue)
+                    logging.debug("[EXTERNAL_CALLS] Detected state changes at addresses: " + str(state_change_addresses))
+
+                    if (len(state_change_addresses)):
+                        for address in state_change_addresses:
+                            description = "The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities."
+                            issue = Issue(call.node.contract_name, call.node.function_name, address, "State change after external call", "Warning", description)
+                            issues.append(issue)
 
     return issues
