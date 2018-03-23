@@ -1,21 +1,24 @@
 pragma solidity ^0.4.17;
 
-contract Callee {
-    function theFunction() payable {
-    }
-}
 
 contract Caller {
 
 	address public fixed_address;
 	address public stored_address;
 
+	uint256 statevar;
+
 	function Caller(address addr) {
 		fixed_address = addr;
 	}
 
 	function thisisfine() public {
-	    Callee(fixed_address).theFunction();
+	    fixed_address.call();
+	}
+
+	function reentrancy() public {
+	    fixed_address.call();
+	    statevar = 0;
 	}
 	
 	function calluseraddress(address addr) {

@@ -11,36 +11,33 @@ MODULE DESCRIPTION:
 Check for call.value()() to external addresses
 '''
 
-nodes_searched = []
+MAX_SEARCH_DEPTH = 16
 
 
-def search_children(statespace, node, start_index=0):
+def search_children(statespace, node, start_index=0, depth=0, results=[]):
 
-    if node in nodes_searched:  # Catch circular references
-        return -1
+    if(depth < MAX_SEARCH_DEPTH):
+        depth += 1
 
-    nodes_searched.append(node)
-    nStates = len(node.states)
+        nStates = len(node.states)
 
-    if nStates > start_index:
+        if nStates > start_index:
 
-        for j in range(start_index, nStates):
-            if node.states[j].get_current_instruction()['opcode'] == 'SSTORE':
-                return node.states[j].get_current_instruction()['address']
+            for j in range(start_index, nStates):
+                if node.states[j].get_current_instruction()['opcode'] == 'SSTORE':
+                    results.append(node.states[j].get_current_instruction()['address'])
 
-    children = []
+        children = []
 
-    for edge in statespace.edges:
-        if edge.node_from == node.uid:
-            children.append(statespace.nodes[edge.node_to])
+        for edge in statespace.edges:
+            if edge.node_from == node.uid:
+                children.append(statespace.nodes[edge.node_to])
 
-    if (len(children)):
-        for node in children:
-            ret = search_children(statespace, node)
-            if ret > -1:
-                return ret
+        if (len(children)):
+            for node in children:
+                return search_children(statespace, node, depth=depth)
 
-    return -1
+    return results
 
 
 def execute(statespace):
@@ -104,11 +101,12 @@ def execute(statespace):
 
                 # Check remaining instructions in current node & nodes down the call tree
 
-                state_change_addr = search_children(statespace, call.node, call.state_index + 1)
+                state_change_addresses = search_children(statespace, call.node, call.state_index + 1)
 
-                if (state_change_addr != -1):
-                    description = "The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities."
-                    issue = Issue(call.node.contract_name, call.node.function_name, state_change_addr, "State change after external call", "Warning", description)
-                    issues.append(issue)
+                if (len(state_change_addresses)):
+                    for address in state_change_addresses:
+                        description = "The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities."
+                        issue = Issue(call.node.contract_name, call.node.function_name, address, "State change after external call", "Warning", description)
+                        issues.append(issue)
 
     return issues
