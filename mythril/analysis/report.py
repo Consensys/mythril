@@ -76,12 +76,10 @@ class Report:
 
     def as_json(self):
         issues = []
-
         for key, issue in self.issues.items():
-
             issues.append(issue.as_dict())
-
-        return json.dumps(issues)
+        result = {'success': True, 'error': None, 'issues': issues}
+        return json.dumps(result)
 
     def as_markdown(self):
         text = "# Analysis Results\n"
