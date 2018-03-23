@@ -33,8 +33,9 @@ class Issue:
 
 class Report:
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         self.issues = {}
+        self.verbose = verbose
         pass
 
     def append_issue(self, issue):
@@ -65,6 +66,9 @@ class Report:
 
             if issue.code:
                 text += "\n\n" + issue.code + "\n\n--------------------\n"
+
+            if self.verbose and issue.debug:
+                text += "\nDEBUGGING INFORMATION:\n\n" + issue.debug + "\n\n--------------------\n"
 
             text += "\n"
 
@@ -102,5 +106,8 @@ class Report:
 
             if issue.code:
                 text += "\n```\n" + issue.code + "\n```\n"
+
+            if self.verbose and issue.debug:
+                text += "### Debugging Information\n" + issue.debug + "\n"
 
         return text
