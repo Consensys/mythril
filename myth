@@ -78,6 +78,7 @@ utilities.add_argument('--storage', help='read state variables from storage inde
 utilities.add_argument('--solv', help='specify solidity compiler version. If not present, will try to install it (Experimental)', metavar='SOLV')
 
 options = parser.add_argument_group('options')
+options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
 options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--solc-args', help='Extra arguments for solc')
@@ -412,7 +413,10 @@ elif (args.graph) or (args.fire_lasers):
             # except Exception as e:
             #    exitWithError(args.outform, "Symbolic exection error: " + str(e))
 
-            issues = fire_lasers(sym)
+            if args.modules:
+                issues = fire_lasers(sym, args.modules.split(","))
+            else:
+                issues = fire_lasers(sym)
 
             if len(issues):
 
