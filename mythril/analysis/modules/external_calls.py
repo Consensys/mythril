@@ -35,7 +35,7 @@ def search_children(statespace, node, start_index=0, depth=0, results=[]):
 
         if (len(children)):
             for node in children:
-                return search_children(statespace, node, depth=depth)
+                return search_children(statespace, node, depth=depth, results=results)
 
     return results
 
@@ -101,9 +101,9 @@ def execute(statespace):
 
                 # Check remaining instructions in current node & nodes down the call tree
 
-                state_change_addresses = search_children(statespace, call.node, call.state_index + 1)
+                state_change_addresses = search_children(statespace, call.node, call.state_index + 1, depth=0, results=[])
 
-                logging.info("Detected state changes at: " + str(state_change_addresses))                
+                logging.debug("Detected state changes at: " + str(state_change_addresses))
 
                 if (len(state_change_addresses)):
                     for address in state_change_addresses:
