@@ -4,7 +4,7 @@ from pathlib import Path
 from mythril.disassembler.disassembly import Disassembly
 from mythril.ether import util
 
-TEST_FILES = Path.cwd() / "testdata"
+TEST_FILES = Path(__file__).parent / "testdata"
 
 def _compile_to_code(input_file):
     compiled = util.get_solc_json(str(input_file))

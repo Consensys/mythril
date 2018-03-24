@@ -383,11 +383,7 @@ elif args.graph or args.fire_lasers:
 
             if type(contract) == SolidityContract:
                 for issue in issues:
-                    if issue.pc:
-                        codeinfo = contract.get_source_info(issue.pc)
-                        issue.filename = codeinfo.filename
-                        issue.code = codeinfo.code
-                        issue.lineno = codeinfo.lineno
+                    issue.add_code_info(contract)
 
             all_issues += issues
 

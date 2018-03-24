@@ -1,0 +1,120 @@
+# Analysis Results
+## Ether send
+- Type: Warning
+- Contract: Rubixi
+- Function name: `collectPercentOfFees(uint256)`
+- PC address: 1599
+
+### Description
+In the function 'collectPercentOfFees(uint256)' a non-zero amount of Ether is sent to an address taken from storage slot 5There is a check on storage index 5. This storage slot can be written to by calling the function 'DynamicPyramid()'.
+
+There is a check on storage index 6. This storage slot can be written to by calling the function 'DynamicPyramid()'.
+There is a check on storage index 7. This storage slot can be written to by calling the function 'fallback'.
+
+In *<TEST_FILES>/rubixi.sol:93*
+
+```
+creator.send(feesToCollect)
+```
+## Ether send
+- Type: Warning
+- Contract: Rubixi
+- Function name: `collectAllFees()`
+- PC address: 1940
+
+### Description
+In the function 'collectAllFees()' a non-zero amount of Ether is sent to an address taken from storage slot 5There is a check on storage index 5. This storage slot can be written to by calling the function 'DynamicPyramid()'.
+
+There is a check on storage index 9. This storage slot can be written to by calling the function 'DynamicPyramid()'.
+There is a check on storage index 10. This storage slot can be written to by calling the function 'fallback'.
+
+In *<TEST_FILES>/rubixi.sol:75*
+
+```
+creator.send(collectedFees)
+```
+## Exception state
+- Type: Informational
+- Contract: Rubixi
+- Function name: `nextPayoutWhenPyramidBalanceTotalsApproximately()`
+- PC address: 1653
+
+### Description
+A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
+
+In *<TEST_FILES>/rubixi.sol:131*
+
+```
+participants[payoutOrder]
+```
+## Exception state
+- Type: Informational
+- Contract: Rubixi
+- Function name: `participantDetails(uint256)`
+- PC address: 2085
+
+### Description
+A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
+
+In *<TEST_FILES>/rubixi.sol:148*
+
+```
+participants[orderInPyramid]
+```
+## Integer Underflow
+- Type: Warning
+- Contract: Rubixi
+- Function name: `numberOfParticipantsWaitingForPayout()`
+- PC address: 2743
+
+### Description
+A possible integer underflow exists in the function numberOfParticipantsWaitingForPayout().
+The substraction may result in a value < 0.
+
+In *<TEST_FILES>/rubixi.sol:143*
+
+```
+participants.length - payoutOrder
+```
+## Unchecked CALL return value
+- Type: Informational
+- Contract: Rubixi
+- Function name: `collectPercentOfFees(uint256)`
+- PC address: 1599
+
+### Description
+The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+
+In *<TEST_FILES>/rubixi.sol:93*
+
+```
+creator.send(feesToCollect)
+```
+## Unchecked CALL return value
+- Type: Informational
+- Contract: Rubixi
+- Function name: `collectFeesInEther(uint256)`
+- PC address: 1940
+
+### Description
+The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+
+In *<TEST_FILES>/rubixi.sol:75*
+
+```
+creator.send(collectedFees)
+```
+## Unchecked CALL return value
+- Type: Informational
+- Contract: Rubixi
+- Function name: `collectFeesInEther(uint256)`
+- PC address: 2582
+
+### Description
+The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+
+In *<TEST_FILES>/rubixi.sol:85*
+
+```
+creator.send(_amt)
+```
