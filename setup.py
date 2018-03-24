@@ -287,13 +287,21 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
-        'ethereum>=2.0.4',
+        'ethereum>=2.3.0',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
         'laser-ethereum==0.5.18',
         'requests',
         'BTrees',
-        'py-solc'
+        'py-solc',
+        'eth_abi>=1.0.0',
+        'eth-utils>=1.0.1',
+        'eth-account>=0.1.0a2',
+        'eth-hash>=0.1.0',
+        'eth-keyfile>=0.5.1',
+        'eth-keys>=0.2.0b3',
+        'eth-rlp>=0.1.0',
+        'eth-tester>=0.1.0b21'
     ],
 
     python_requires='>=3.5',
