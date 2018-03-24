@@ -301,7 +301,8 @@ setup(
         'eth-keyfile>=0.5.1',
         'eth-keys>=0.2.0b3',
         'eth-rlp>=0.1.0',
-        'eth-tester>=0.1.0b21'
+        'eth-tester>=0.1.0b21',
+        'coverage'
     ],
 
     python_requires='>=3.5',

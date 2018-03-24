@@ -41,6 +41,23 @@ $ pip3 install mythril
 
 If you plan to analyze Solidity code you'll also need the [native version of solc](http://solidity.readthedocs.io/en/v0.4.21/installing-solidity.html#binary-packages). Solcjs is not supported.
 
+## Running tests
+
+```bash
+pip3 install -r requirements.txt
+./all_tests.sh
+```
+
+It will run all the tests.
+
+### Generating test coverage report 
+
+```bash
+./coverage_report.sh
+```
+
+It will generate a coverage testing report `htmlcov/index.html` in html format, which will be automatically opened in browser.
+
 ## Security analysis
 
 Run `myth -x` with one of the input options described below to run the analysis. This will run the Python modules in the [/analysis/modules](https://github.com/b-mueller/mythril/tree/master/mythril/analysis/modules) directory. 

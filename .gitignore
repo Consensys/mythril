@@ -13,3 +13,5 @@ dist
 laser*
 lol*
 .idea*
+htmlcov/
+.coverage
