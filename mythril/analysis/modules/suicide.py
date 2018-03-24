@@ -53,8 +53,6 @@ def execute(statespace):
 
                 index = 0
 
-                logging.debug(node.constraints)
-
                 while(can_solve and index < len(node.constraints)):
 
                     constraint = node.constraints[index]
