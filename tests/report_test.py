@@ -7,7 +7,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ether import util
 from mythril.ether.soliditycontract import SolidityContract
 
-TEST_FILES = Path(__file__).parents[1] / "testdata"
+TEST_FILES = Path(__file__).parent / "testdata"
 
 def _fix_path(text):
     return text.replace(str(TEST_FILES), "<TEST_FILES>")
