@@ -11,7 +11,7 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses the [L
 Build the [Docker](https://www.docker.com) image:
 
 ```bash
-$ git clone https://github.com/b-mueller/mythril/
+$ git clone https://github.com/ConsenSys/mythril/
 $ docker build mythril
 ```
 
