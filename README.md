@@ -6,6 +6,25 @@
 
 Mythril is a security analysis tool for Ethereum smart contracts. It uses the [LASER-ethereum symbolic virtual machine](https://github.com/b-mueller/laser-ethereum) to detect [various types of issues](security_checks.md). Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
 
+- [Mythril](#mythril)
+  * [Installation and setup](#installation-and-setup)
+  * [Security analysis](#security-analysis)
+    + [Analyzing Solidity code](#analyzing-solidity-code)
+      - [Specifying Solc versions](#specifying-solc-versions)
+      - [Output formats](#output-formats)
+      - [Analyzing a Truffle project](#analyzing-a-truffle-project)
+    + [Analyzing on-chain contracts](#analyzing-on-chain-contracts)
+    + [Speed vs. Coverage](#speed-vs-coverage)
+  * [Control flow graph](#control-flow-graph)
+  * [Blockchain exploration](#blockchain-exploration)
+    + [Searching from the command line](#searching-from-the-command-line)
+    + [Reading contract storage](#reading-contract-storage)
+  * [Utilities](#utilities)
+    + [Disassembler](#disassembler)
+    + [Calculating function hashes](#calculating-function-hashes)
+    + [Function signatures](#function-signatures)
+  * [Credit](#credit)
+
 ## Installation and setup
 
 Build the [Docker](https://www.docker.com) image:
@@ -70,15 +89,13 @@ $ myth -xo json underflow.sol
 
 The `json` format is useful for integration into other tools, while `-o markdown` creates a [human-readable report](static/sample_report.md).
 
-### Analyzing a Truffle project
+#### Analyzing a Truffle project
 
 [Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
 
-### Working with contracts on the mainnet and testnets
+### Analyzing on-chain contracts
 
-When analyzing contracts on the blockchain, Mythril will by default query a local node via IPC. If you want to analyze contracts on the live Ethereum network, you can also use the built-in [INFURA](https://infura.io) support. Alternatively, you can override the RPC settings with the `--rpc` argument.
-
-The RPC/IPC options are as follows:
+When analyzing contracts on the blockchain, Mythril will by default query a local node via RPC. You can also use the built-in [INFURA](https://infura.io) support. Alternatively, you can override the RPC settings with the `--rpc` argument.
 
 | Argument        | Description     |  RPC URL  |
 | ------------- |:-------------:| ---- |
@@ -89,7 +106,7 @@ The RPC/IPC options are as follows:
 | `-rpc HOST:PORT` | Connect to local Ganache  | http(s)://[HOST]:[PORT] |
 | `--ipc` | Connect to local Ethereum node via IPC | - |
 
-To analyze a mainnet contract from a local node, run:
+To analyze a mainnet contract via local RPC:
 
 ```
 $ myth -xa 0x5c436ff914c458983414019195e0f4ecbef9e6dd
@@ -193,18 +210,6 @@ $ myth -d -a "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208"
 1135 - FUNCTION safeAdd(uint256,uint256) -
 1136 CALLVALUE
 1137 ISZERO
-```
-
-### Finding cross-references
-
-It is often useful to find other contracts referenced by a particular contract. E.g.:
-
-```bash
-$ myth --search "code#DELEGATECALL#"
-Matched contract with code hash 07459966443977122e639cbf7804c446
-Address: 0x76799f77587738bfeef09452df215b63d2cfb08a, balance: 1000000000000000
-$ myth --xrefs -a 0x76799f77587738bfeef09452df215b63d2cfb08a
-5b9e8728e316bbeb692d22daaab74f6cbf2c4691
 ```
 
 ### Calculating function hashes
