@@ -606,7 +606,7 @@ class BaseClient(object):
         NEEDS TESTING
         '''
         _filter = {
-            'to':     to,
+            'to': to,
             'topics': topics,
         }
         return self._call('shh_newFilter', [_filter])

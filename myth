@@ -79,7 +79,6 @@ utilities.add_argument('--solv', help='specify solidity compiler version. If not
 
 options = parser.add_argument_group('options')
 options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
-options.add_argument('--sync-all', action='store_true', help='Also sync contracts with zero balance')
 options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
 options.add_argument('--solc-args', help='Extra arguments for solc')
 options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
@@ -87,13 +86,10 @@ options.add_argument('--enable-physics', action='store_true', help='enable graph
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
 rpc = parser.add_argument_group('RPC options')
-rpc.add_argument('--rpc', help='connect via RPC', metavar='HOST:PORT')
+rpc.add_argument('-i', action='store_true', help='Preset: Infura Node service (Mainnet)')
+rpc.add_argument('--rpc', help='custom RPC settings', metavar='HOST:PORT / ganache / infura-[network_name]')
 rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
-rpc.add_argument('--ganache', action='store_true', help='Preset: local Ganache')
-rpc.add_argument('-i', '--infura-mainnet', action='store_true', help='Preset: Infura Node service (Mainnet)')
-rpc.add_argument('--infura-rinkeby', action='store_true', help='Preset: Infura Node service (Rinkeby)')
-rpc.add_argument('--infura-kovan', action='store_true', help='Preset: Infura Node service (Kovan)')
-rpc.add_argument('--infura-ropsten', action='store_true', help='Preset: Infura Node service (Ropsten)')
+rpc.add_argument('--ipc', action='store_true', help='Connect via local IPC')
 
 # Get config values
 
@@ -186,31 +182,52 @@ else:
 
 # Establish RPC/IPC connection if necessary
 
-eth = None
 if args.address or args.init_db:
-    if args.infura_mainnet:
+
+    if args.i:
         eth = EthJsonRpc('mainnet.infura.io', 443, True)
-    elif args.infura_rinkeby:
-        eth = EthJsonRpc('rinkeby.infura.io', 443, True)
-    elif args.infura_kovan:
-        eth = EthJsonRpc('kovan.infura.io', 443, True)
-    elif args.infura_ropsten:
-        eth = EthJsonRpc('ropsten.infura.io', 443, True)
-    elif args.ganache:
-        eth = EthJsonRpc('localhost', 7545, False)
+        logging.info("Using INFURA for RPC queries")
     elif args.rpc:
-        try:
-            host, port = args.rpc.split(":")
-        except ValueError:
-            exitWithError(args.outform, "Invalid RPC argument, use HOST:PORT")
+
+        if args.rpc == 'ganache':
+            rpcconfig = ('localhost', 7545, False)
+
         else:
-            tls = args.rpctls
-            eth = EthJsonRpc(host, int(port), tls)
-    else:
+
+            m = re.match(r'infura-(.*)', args.rpc)
+
+            if m and m.group(1) in ['mainnet', 'rinkeby', 'kovan', 'ropsten']:
+                rpcconfig = (m.group(1) + '.infura.io', 443, True)
+
+            else:
+                try:
+                    host, port = args.rpc.split(":")
+                    rpcconfig = (host, port, args.rpctls)
+
+                except ValueError:
+                    exitWithError(args.outform, "Invalid RPC argument, use HOST:PORT")
+
+                rpcconfig = (host, int(port), args.tls)
+
+        if (rpcconfig):
+
+            eth = EthJsonRpc(rpcconfig[0], int(rpcconfig[1]), rpcconfig[2])
+            logging.info("Using RPC settings: %s" % str(rpcconfig))
+
+        else:
+            exitWithError(args.outform, "Invalid RPC settings, check help for details.")
+
+    elif args.ipc:
         try:
             eth = EthIpc()
         except Exception as e:
-            exitWithError(args.outform, "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA. \n" + str(e))
+            exitWithError(args.outform, "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA. \n" + str(e)) 
+
+    else:  # Default configuration if neither RPC or IPC are set
+
+        eth = EthJsonRpc('localhost', 8545)
+        logging.info("Using default RPC settings: http://localhost:8545")
+
 
 # Database search ops
 
@@ -223,7 +240,7 @@ if args.search or args.init_db:
             exitWithError(args.outform, "Syntax error in search expression.")
     elif args.init_db:
         try:
-            contract_storage.initialize(eth, args.sync_all)
+            contract_storage.initialize(eth)
         except FileNotFoundError as e:
             exitWithError(args.outform, "Error syncing database over IPC: " + str(e))
         except ConnectionError as e:
@@ -256,7 +273,7 @@ elif args.address:
     except Exception as e:
         exitWithError(args.outform, "IPC / RPC error: " + str(e))
     else:
-        if code == "0x":
+        if code == "0x" or code == "0x0":
             exitWithError(args.outform, "Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.")
         else:
             contracts.append(ETHContract(code, name=args.address))

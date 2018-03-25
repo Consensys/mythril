@@ -16,6 +16,8 @@ JSON_MEDIA_TYPE = 'application/json'
 '''
 This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
 '''
+
+
 class EthJsonRpc(BaseClient):
     '''
     Ethereum JSON-RPC client class
@@ -33,9 +35,9 @@ class EthJsonRpc(BaseClient):
         params = params or []
         data = {
             'jsonrpc': '2.0',
-            'method':  method,
-            'params':  params,
-            'id':      _id,
+            'method': method,
+            'params': params,
+            'id': _id,
         }
         scheme = 'http'
         if self.tls:

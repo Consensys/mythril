@@ -55,7 +55,7 @@ def execute(statespace):
             if (m):
                 idx = m.group(1)
 
-                description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx)
+                description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx) + ".\n"
 
                 func = statespace.find_storage_write(idx)
 

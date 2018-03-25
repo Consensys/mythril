@@ -25,13 +25,12 @@ class EthIpc(BaseClient):
         if ipc_path is None:
             ipc_path = get_default_ipc_path(testnet)
         self.ipc_path = ipc_path
-        self._socket = self.get_socket()
 
     def get_socket(self):
         _socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         _socket.connect(self.ipc_path)
         # Tell the socket not to block on reads.
-        _socket.settimeout(2)
+        _socket.settimeout(0.2)
         return _socket
 
     def _call(self, method, params=None, _id=1):
@@ -43,21 +42,24 @@ class EthIpc(BaseClient):
             'id': _id,
         }
         request = to_bytes(json.dumps(data))
+        _socket = self.get_socket()
 
         for _ in range(3):
-            self._socket.sendall(request)
+            _socket.sendall(request)
             response_raw = ""
 
             while True:
                 try:
-                    response_raw += to_text(self._socket.recv(4096))
+                    response_raw += to_text(_socket.recv(4096))
                 except socket.timeout:
                     break
 
             if response_raw == "":
-                self._socket.close()
-                self._socket = self.get_socket()
+                _socket.close()
+                _socket = self.get_socket()
                 continue
+
+            _socket.close()
 
             break
         else:
