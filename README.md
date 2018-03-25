@@ -6,7 +6,6 @@
 
 Mythril is a security analysis tool for Ethereum smart contracts. It uses the [LASER-ethereum symbolic virtual machine](https://github.com/b-mueller/laser-ethereum) to detect [various types of issues](security_checks.md). Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
 
-- [Mythril](#mythril)
   * [Installation and setup](#installation-and-setup)
   * [Security analysis](#security-analysis)
     + [Analyzing Solidity code](#analyzing-solidity-code)
