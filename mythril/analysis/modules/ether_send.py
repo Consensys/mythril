@@ -57,7 +57,7 @@ def execute(statespace):
 
                 description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx) + ".\n"
 
-                func = statespace.find_storage_write(idx)
+                func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
                 if (func):
                     description += "There is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'.\n"
@@ -87,7 +87,7 @@ def execute(statespace):
                     constrained = True
                     idx = m.group(1)
 
-                    func = statespace.find_storage_write(idx)
+                    func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
                     if (func):
                         description += "\nThere is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'."

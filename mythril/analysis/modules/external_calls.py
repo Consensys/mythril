@@ -75,14 +75,14 @@ def execute(statespace):
                     m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
 
                     if (m):
-                        index = m.group(1)
+                        idx = m.group(1)
 
-                        func = statespace.find_storage_write(index)
+                        func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
                         if func:
 
                             description += \
-                                "an address found at storage slot " + str(index) + ". " + \
+                                "an address found at storage slot " + str(idx) + ". " + \
                                 "This storage slot can be written to by calling the function '" + func + "'. "
                             user_supplied = True
 

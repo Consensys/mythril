@@ -66,7 +66,7 @@ def execute(statespace):
 
                         logging.debug("STORAGE CONSTRAINT FOUND: " + idx)
 
-                        func = statespace.find_storage_write(idx)
+                        func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
                         if func:
                             description += "\nThere is a check on storage index " + str(idx) + ". This storage index can be written to by calling the function '" + func + "'."
