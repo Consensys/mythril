@@ -90,9 +90,9 @@ def execute(statespace):
                     func = statespace.find_storage_write(idx)
 
                     if (func):
-                        description += "\nThere is a check on storage index " + str(index) + ". This storage slot can be written to by calling the function '" + func + "'."
+                        description += "\nThere is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'."
                     else:
-                        logging.debug("[ETHER_SEND] No storage writes to index " + str(index))
+                        logging.debug("[ETHER_SEND] No storage writes to index " + str(idx))
                         can_solve = False
                         break
 
