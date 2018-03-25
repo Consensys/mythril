@@ -78,17 +78,33 @@ The `json` format is useful for integration into other tools, while `-o markdown
 
 When analyzing contracts on the blockchain, Mythril will by default query a local node via IPC. If you want to analyze contracts on the live Ethereum network, you can also use the built-in [INFURA](https://infura.io) support. Alternatively, you can override the RPC settings with the `--rpc` argument.
 
-To analyze a contract on the mainnet, run:
+The RPC/IPC options are as follows:
 
+| Argument        | Description     |  RPC URL  |
+| ------------- |:-------------:| ---- |
+| None    | Connect to local Ethereum node | http://localhost:8545 |
+| `-i`      | Connect to INFURA Mainnet via HTTPS | https://mainnet.infura.io:8545  |
+| `-rpc ganache` | Connect to local Ganache  | http://localhost:7545  |
+| `-rpc infura-[netname]` | Connect to infura-mainnet, rinkey, kovan or ropsten  | https://[netname].infura.io:8545  |
+| `-rpc HOST:PORT` | Connect to local Ganache  | http(s)://[HOST]:[PORT] |
+| `--ipc` | Connect to local Ethereum node via IPC | - |
+
+To analyze a mainnet contract from a local node, run:
 
 ```
-$ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+$ myth -xa 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+```
+
+Or, using INFURA instead:
+
+```
+$ myth -xia 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 ```
 
 Adding the `-l` flag will cause Mythril to automatically retrieve dependencies, such as dynamically linked library contracts:
 
 ```bash
-$ myth --infura-mainnet -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
+$ myth -xia 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 ```
 
 ### Speed vs. Coverage
@@ -96,7 +112,7 @@ $ myth --infura-mainnet -x -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -l -v1
 The maximum recursion depth for the symbolic execution engine can be controlled with the `--max-depth` argument. The default value is 12. Lowering this value reduces the analysis time as well as the coverage / number of explored states.
 
 ```
-$ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
+$ myth -xia 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
 ```
 
 ## Control flow graph
@@ -104,7 +120,7 @@ $ myth --infura-mainnet -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-d
 The `-g FILENAME` option generates an [interactive jsViz graph](http://htmlpreview.github.io/?https://github.com/b-mueller/mythril/blob/master/static/mythril.html):
 
 ```bash
-$ myth --infura-mainnet -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
+$ myth -ig ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
 ```
 
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph8.png "Call graph")
@@ -116,7 +132,7 @@ $ myth --infura-mainnet -g ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef
 If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
 
 ```bash
-$ geth --syncmode fast
+$ geth --syncmode fast --rpc
 ```
 
 Mythril builds its own contract database to enable fast search operations. This enables operations like those described in the [legendary "Mitch Brenner" blog post](https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b) in ~~seconds~~ minutes instead of days. Unfortunately, the initial sync process is slow. You don't need to sync the whole blockchain right away though: If you abort the syncing process with `ctrl+c`, it will be auto-resumed the next time you run the `--init-db` command.
@@ -128,7 +144,13 @@ Processing block 4323000, 3 individual contracts in database
 (...)
 ```
 
-The default behavior is to only sync contracts with a non-zero balance. You can disable this behavior with the `--sync-all` flag, but be aware that this will result in a huge (as in: dozens of GB) database.
+Note that only contracts with non-zero balance are added to the database.
+
+If you experience syncing errors on Mac OS High Sierra, run the following command before starting the sync:
+
+```
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+```
 
 ### Searching from the command line
 
