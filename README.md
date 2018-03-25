@@ -98,11 +98,11 @@ When analyzing contracts on the blockchain, Mythril will by default query a loca
 
 | Argument        | Description     |  RPC URL  |
 | ------------- |:-------------:| ---- |
-| None    | Connect to local Ethereum node | http://localhost:8545 |
-| `-i`      | Connect to INFURA Mainnet via HTTPS | https://mainnet.infura.io:8545  |
-| `-rpc ganache` | Connect to local Ganache  | http://localhost:7545  |
-| `-rpc infura-[netname]` | Connect to infura-mainnet, rinkey, kovan or ropsten  | https://[netname].infura.io:8545  |
-| `-rpc HOST:PORT` | Connect to local Ganache  | http(s)://[HOST]:[PORT] |
+| None    | Connect to local Ethereum node | `http://localhost:854` |
+| `-i`      | Connect to INFURA Mainnet via HTTPS | `https://mainnet.infura.io:8545`  |
+| `-rpc ganache` | Connect to local Ganache  | `http://localhost:7545`  |
+| `-rpc infura-[netname]` | Connect to infura-mainnet, rinkey, kovan or ropsten  | `https://[netname].infura.io:8545`  |
+| `-rpc HOST:PORT` | Connect to local Ganache  | `http(s)://[HOST]:[PORT]` |
 | `--ipc` | Connect to local Ethereum node via IPC | - |
 
 To analyze a mainnet contract via local RPC:
