@@ -96,14 +96,15 @@ The `json` format is useful for integration into other tools, while `-o markdown
 
 When analyzing contracts on the blockchain, Mythril will by default query a local node via RPC. You can also use the built-in [INFURA](https://infura.io) support. Alternatively, you can override the RPC settings with the `--rpc` argument.
 
-| Argument        | Description     |  RPC URL  |
-| ------------- |:-------------:| ---- |
-| None    | Connect to local Ethereum node | `http://localhost:854` |
-| `-i`      | Connect to INFURA Mainnet via HTTPS | `https://mainnet.infura.io:8545`  |
-| `-rpc ganache` | Connect to local Ganache  | `http://localhost:7545`  |
-| `-rpc infura-[netname]` | Connect to infura-mainnet, rinkey, kovan or ropsten  | `https://[netname].infura.io:8545`  |
-| `-rpc HOST:PORT` | Connect to local Ganache  | `http(s)://[HOST]:[PORT]` |
-| `--ipc` | Connect to local Ethereum node via IPC | - |
+| Argument        | Description     |  
+| ------------- |:-------------:| 
+| None    | Connect to local Ethereum node |
+| `-i`      | Connect to INFURA Mainnet via HTTPS |
+| `--rpc ganache` | Connect to local Ganache  | 
+| `--rpc infura-[netname]` | Connect to infura-mainnet, rinkey, kovan or ropsten  | 
+| `--rpc HOST:PORT` | Custom RPC connection   Custom |
+| `--rpctls <True/False>` | RPC connection over TLS (default: False) | 
+| `--ipc` | Connect to local Ethereum node via IPC | 
 
 To analyze a mainnet contract via local RPC:
 
