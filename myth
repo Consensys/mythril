@@ -72,7 +72,6 @@ database.add_argument('--init-db', action='store_true', help='initialize the con
 database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
 
 utilities = parser.add_argument_group('utilities')
-utilities.add_argument('--xrefs', action='store_true', help='get xrefs from a contract')
 utilities.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
 utilities.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array]')
 utilities.add_argument('--solv', help='specify solidity compiler version. If not present, will try to install it (Experimental)', metavar='SOLV')
@@ -130,7 +129,7 @@ with open(signatures_file) as f:
 
 # Parse cmdline args
 
-if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.xrefs or args.fire_lasers or args.storage or args.truffle):
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.fire_lasers or args.storage or args.truffle):
     parser.print_help()
     sys.exit()
 
@@ -202,12 +201,10 @@ if args.address or args.init_db:
             else:
                 try:
                     host, port = args.rpc.split(":")
-                    rpcconfig = (host, port, args.rpctls)
+                    rpcconfig = (host, int(port), args.rpctls)
 
                 except ValueError:
-                    exitWithError(args.outform, "Invalid RPC argument, use HOST:PORT")
-
-                rpcconfig = (host, int(port), args.tls)
+                    exitWithError(args.outform, "Invalid RPC argument, use 'ganache', 'infura-[network]' or 'HOST:PORT'")
 
         if (rpcconfig):
 
@@ -352,8 +349,6 @@ elif args.disassemble:
     easm_text = contracts[0].get_easm()
     sys.stdout.write(easm_text)
 
-elif args.xrefs:
-    print("\n".join(contracts[0].get_xrefs()))
 
 elif args.graph or args.fire_lasers:
     if not contracts:

@@ -36,13 +36,3 @@ class MatchesExpressionTestCase(ETHContractTestCase):
 
         self.assertTrue(contract.matches_expression("code#PUSH1# or code#PUSH1#"),'Unexpected result in expression matching')
         self.assertFalse(contract.matches_expression("func#abcdef#"),'Unexpected result in expression matching')
-
-class GetXrefsTestCase(ETHContractTestCase):
-
-    def runTest(self):
-
-        contract = ETHContract(self.code)
-
-        xrefs = contract.get_xrefs()
-
-        self.assertEqual(xrefs[0], "0xc3b2ae46792547a96b9f84405e36d0e07edcd05c", 'Error getting xrefs from contract')

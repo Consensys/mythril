@@ -29,23 +29,6 @@ class ETHContract(persistent.Persistent):
             'disassembly': self.disassembly
         }
 
-    def get_xrefs(self):
-
-        instruction_list = Disassembly(self.code).instruction_list
-
-        xrefs = []
-
-        for instruction in instruction_list:
-            if instruction['opcode'] == "PUSH20":
-                if instruction['argument']:
-                    addr = instruction['argument']
-
-                    if (re.match(r'^0x[a-zA-Z0-9]{40}$', addr) and addr != "0xffffffffffffffffffffffffffffffffffffffff"):
-                        if addr not in xrefs:
-                            xrefs.append(addr)
-
-        return xrefs
-
     def get_easm(self):
 
         return Disassembly(self.code).get_easm()
