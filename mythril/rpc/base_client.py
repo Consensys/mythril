@@ -519,22 +519,6 @@ class BaseClient(object):
         '''
         return self._call('shh_version')
 
-    def shh_post(self, topics, payload, priority, ttl, from_=None, to=None):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#shh_post
-
-        NEEDS TESTING
-        '''
-        whisper_object = {
-            'from':     from_,
-            'to':       to,
-            'topics':   topics,
-            'payload':  payload,
-            'priority': hex(priority),
-            'ttl':      hex(ttl),
-        }
-        return self._call('shh_post', [whisper_object])
-
     def getBlockRlp(self, number=0):
 
         return self._call('debug_getBlockRlp', [number])
