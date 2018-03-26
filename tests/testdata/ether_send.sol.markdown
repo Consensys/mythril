@@ -8,7 +8,7 @@
 ### Description
 In the function 'withdrawfunds()' a non-zero amount of Ether is sent to msg.sender.
 
-There is a check on storage index 7. This storage slot can be written to by calling the function 'crowdfunding()'.
+There is a check on storage index 1. This storage slot can be written to by calling the function 'crowdfunding()'.
 
 In *<TEST_FILES>/ether_send.sol:18*
 

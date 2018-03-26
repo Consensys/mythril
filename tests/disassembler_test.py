@@ -11,10 +11,6 @@ def _compile_to_code(input_file):
     code = list(compiled['contracts'].values())[0]['bin-runtime']
     return code
 
-def _expected_easm(input_file):
-    return (TEST_FILES / (input_file.name + ".easm")).read_text()
-
-
 class DisassemblerTestCase(unittest.TestCase):
 
     def test_instruction_list(self):
@@ -26,6 +22,10 @@ class DisassemblerTestCase(unittest.TestCase):
         for input_file in TEST_FILES.iterdir():
             if input_file.is_file and input_file.suffix == '.sol':
                 code = _compile_to_code(input_file)
+
                 disassembly = Disassembly(code)
-                expected_easm = _expected_easm(input_file)
-                self.assertEqual(disassembly.get_easm(), expected_easm, "%s returns invalid easm" % str(input_file))
+
+                # (TEST_FILES / (input_file.name + ".easm")).write_text(disassembly.get_easm())
+
+                expected_easm = (TEST_FILES / (input_file.name + ".easm")).read_text()
+                self.assertEqual(disassembly.get_easm(), expected_easm, "{} returns invalid easm".format(str(input_file)))

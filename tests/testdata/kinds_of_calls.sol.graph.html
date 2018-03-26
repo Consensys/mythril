@@ -1,0 +1,178 @@
+<html>
+ <head>
+
+  
+  <style type="text/css">
+   #mynetwork {
+    background-color: #232625;
+   }
+
+   body {
+    background-color: #232625;
+    color: #ffffff;
+    font-size: 10px;
+   }
+  </style>
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+  
+   var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: false,
+      }
+
+  }
+
+
+  var nodes = [
+{id: '182', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n', 'fullLabel': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n', 'truncLabel': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n', 'isExpanded': false},
+{id: '187', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '178 JUMPDEST\n179 STOP\n', 'fullLabel': '178 JUMPDEST\n179 STOP\n', 'truncLabel': '178 JUMPDEST\n179 STOP\n', 'isExpanded': false},
+{id: '186', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '438 JUMPDEST\n439 DUP2\n440 PUSH20 0xffffffff(...)\n461 AND\n462 PUSH1 0x40\n464 MLOAD\n(click to expand +)', 'fullLabel': '438 JUMPDEST\n439 DUP2\n440 PUSH20 0xffffffff(...)\n461 AND\n462 PUSH1 0x40\n464 MLOAD\n465 DUP1\n466 DUP1\n467 PUSH32 0x7365744e(...)\n500 DUP2\n501 MSTORE\n502 POP\n503 PUSH1 0x0d\n505 ADD\n506 SWAP1\n507 POP\n508 PUSH1 0x40\n510 MLOAD\n511 DUP1\n512 SWAP2\n513 SUB\n514 SWAP1\n515 SHA3\n516 PUSH29 0x01000000(...)\n546 SWAP1\n547 DIV\n548 DUP3\n549 PUSH1 0x40\n551 MLOAD\n552 DUP3\n553 PUSH4 0xffffffff\n558 AND\n559 PUSH29 0x01000000(...)\n589 MUL\n590 DUP2\n591 MSTORE\n592 PUSH1 0x04\n594 ADD\n595 DUP1\n596 DUP3\n597 DUP2\n598 MSTORE\n599 PUSH1 0x20\n601 ADD\n602 SWAP2\n603 POP\n604 POP\n605 PUSH1 0x00\n607 PUSH1 0x40\n609 MLOAD\n610 DUP1\n611 DUP4\n612 SUB\n613 DUP2\n614 PUSH1 0x00\n616 DUP8\n617 GAS\n618 CALLCODE\n619 SWAP3\n620 POP\n621 POP\n622 POP\n623 POP\n624 POP\n625 POP\n626 JUMP\n', 'truncLabel': '438 JUMPDEST\n439 DUP2\n440 PUSH20 0xffffffff(...)\n461 AND\n462 PUSH1 0x40\n464 MLOAD\n(click to expand +)', 'isExpanded': false},
+{id: '185', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '125 JUMPDEST\n126 PUSH2 0x00b2\n129 PUSH1 0x04\n131 DUP1\n132 DUP1\n133 CALLDATALOAD\n(click to expand +)', 'fullLabel': '125 JUMPDEST\n126 PUSH2 0x00b2\n129 PUSH1 0x04\n131 DUP1\n132 DUP1\n133 CALLDATALOAD\n134 PUSH20 0xffffffff(...)\n155 AND\n156 SWAP1\n157 PUSH1 0x20\n159 ADD\n160 SWAP1\n161 SWAP2\n162 SWAP1\n163 DUP1\n164 CALLDATALOAD\n165 SWAP1\n166 PUSH1 0x20\n168 ADD\n169 SWAP1\n170 SWAP2\n171 SWAP1\n172 POP\n173 POP\n174 PUSH2 0x01b6\n177 JUMP\n', 'truncLabel': '125 JUMPDEST\n126 PUSH2 0x00b2\n129 PUSH1 0x04\n131 DUP1\n132 DUP1\n133 CALLDATALOAD\n(click to expand +)', 'isExpanded': false},
+{id: '188', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '121 PUSH1 0x00\n123 DUP1\n124 REVERT\n', 'fullLabel': '121 PUSH1 0x00\n123 DUP1\n124 REVERT\n', 'truncLabel': '121 PUSH1 0x00\n123 DUP1\n124 REVERT\n', 'isExpanded': false},
+{id: '184', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '114 _function_0x141f32ff\n115 CALLVALUE\n116 ISZERO\n117 PUSH2 0x007d\n120 JUMPI\n', 'fullLabel': '114 _function_0x141f32ff\n115 CALLVALUE\n116 ISZERO\n117 PUSH2 0x007d\n120 JUMPI\n', 'truncLabel': '114 _function_0x141f32ff\n115 CALLVALUE\n116 ISZERO\n117 PUSH2 0x007d\n120 JUMPI\n', 'isExpanded': false},
+{id: '193', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '199 JUMPDEST\n200 PUSH1 0x40\n202 MLOAD\n203 DUP1\n204 DUP3\n205 DUP2\n(click to expand +)', 'fullLabel': '199 JUMPDEST\n200 PUSH1 0x40\n202 MLOAD\n203 DUP1\n204 DUP3\n205 DUP2\n206 MSTORE\n207 PUSH1 0x20\n209 ADD\n210 SWAP2\n211 POP\n212 POP\n213 PUSH1 0x40\n215 MLOAD\n216 DUP1\n217 SWAP2\n218 SUB\n219 SWAP1\n220 RETURN\n', 'truncLabel': '199 JUMPDEST\n200 PUSH1 0x40\n202 MLOAD\n203 DUP1\n204 DUP3\n205 DUP2\n(click to expand +)', 'isExpanded': false},
+{id: '192', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '627 JUMPDEST\n628 PUSH1 0x00\n630 SLOAD\n631 DUP2\n632 JUMP\n', 'fullLabel': '627 JUMPDEST\n628 PUSH1 0x00\n630 SLOAD\n631 DUP2\n632 JUMP\n', 'truncLabel': '627 JUMPDEST\n628 PUSH1 0x00\n630 SLOAD\n631 DUP2\n632 JUMP\n', 'isExpanded': false},
+{id: '191', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '191 JUMPDEST\n192 PUSH2 0x00c7\n195 PUSH2 0x0273\n198 JUMP\n', 'fullLabel': '191 JUMPDEST\n192 PUSH2 0x00c7\n195 PUSH2 0x0273\n198 JUMP\n', 'truncLabel': '191 JUMPDEST\n192 PUSH2 0x00c7\n195 PUSH2 0x0273\n198 JUMP\n', 'isExpanded': false},
+{id: '194', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '187 PUSH1 0x00\n189 DUP1\n190 REVERT\n', 'fullLabel': '187 PUSH1 0x00\n189 DUP1\n190 REVERT\n', 'truncLabel': '187 PUSH1 0x00\n189 DUP1\n190 REVERT\n', 'isExpanded': false},
+{id: '190', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '180 _function_0x2e52d606\n181 CALLVALUE\n182 ISZERO\n183 PUSH2 0x00bf\n186 JUMPI\n', 'fullLabel': '180 _function_0x2e52d606\n181 CALLVALUE\n182 ISZERO\n183 PUSH2 0x00bf\n186 JUMPI\n', 'truncLabel': '180 _function_0x2e52d606\n181 CALLVALUE\n182 ISZERO\n183 PUSH2 0x00bf\n186 JUMPI\n', 'isExpanded': false},
+{id: '199', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '240 JUMPDEST\n241 PUSH1 0x40\n243 MLOAD\n244 DUP1\n245 DUP3\n246 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '240 JUMPDEST\n241 PUSH1 0x40\n243 MLOAD\n244 DUP1\n245 DUP3\n246 PUSH20 0xffffffff(...)\n267 AND\n268 PUSH20 0xffffffff(...)\n289 AND\n290 DUP2\n291 MSTORE\n292 PUSH1 0x20\n294 ADD\n295 SWAP2\n296 POP\n297 POP\n298 PUSH1 0x40\n300 MLOAD\n301 DUP1\n302 SWAP2\n303 SUB\n304 SWAP1\n305 RETURN\n', 'truncLabel': '240 JUMPDEST\n241 PUSH1 0x40\n243 MLOAD\n244 DUP1\n245 DUP3\n246 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '198', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '633 JUMPDEST\n634 PUSH1 0x01\n636 PUSH1 0x00\n638 SWAP1\n639 SLOAD\n640 SWAP1\n(click to expand +)', 'fullLabel': '633 JUMPDEST\n634 PUSH1 0x01\n636 PUSH1 0x00\n638 SWAP1\n639 SLOAD\n640 SWAP1\n641 PUSH2 0x0100\n644 EXP\n645 SWAP1\n646 DIV\n647 PUSH20 0xffffffff(...)\n668 AND\n669 DUP2\n670 JUMP\n', 'truncLabel': '633 JUMPDEST\n634 PUSH1 0x01\n636 PUSH1 0x00\n638 SWAP1\n639 SLOAD\n640 SWAP1\n(click to expand +)', 'isExpanded': false},
+{id: '197', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '232 JUMPDEST\n233 PUSH2 0x00f0\n236 PUSH2 0x0279\n239 JUMP\n', 'fullLabel': '232 JUMPDEST\n233 PUSH2 0x00f0\n236 PUSH2 0x0279\n239 JUMP\n', 'truncLabel': '232 JUMPDEST\n233 PUSH2 0x00f0\n236 PUSH2 0x0279\n239 JUMP\n', 'isExpanded': false},
+{id: '200', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '228 PUSH1 0x00\n230 DUP1\n231 REVERT\n', 'fullLabel': '228 PUSH1 0x00\n230 DUP1\n231 REVERT\n', 'truncLabel': '228 PUSH1 0x00\n230 DUP1\n231 REVERT\n', 'isExpanded': false},
+{id: '196', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '221 _function_0x67e404ce\n222 CALLVALUE\n223 ISZERO\n224 PUSH2 0x00e8\n227 JUMPI\n', 'fullLabel': '221 _function_0x67e404ce\n222 CALLVALUE\n223 ISZERO\n224 PUSH2 0x00e8\n227 JUMPI\n', 'truncLabel': '221 _function_0x67e404ce\n222 CALLVALUE\n223 ISZERO\n224 PUSH2 0x00e8\n227 JUMPI\n', 'isExpanded': false},
+{id: '205', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '370 JUMPDEST\n371 STOP\n', 'fullLabel': '370 JUMPDEST\n371 STOP\n', 'truncLabel': '370 JUMPDEST\n371 STOP\n', 'isExpanded': false},
+{id: '204', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '671 JUMPDEST\n672 DUP2\n673 PUSH20 0xffffffff(...)\n694 AND\n695 PUSH1 0x40\n697 MLOAD\n(click to expand +)', 'fullLabel': '671 JUMPDEST\n672 DUP2\n673 PUSH20 0xffffffff(...)\n694 AND\n695 PUSH1 0x40\n697 MLOAD\n698 DUP1\n699 DUP1\n700 PUSH32 0x7365744e(...)\n733 DUP2\n734 MSTORE\n735 POP\n736 PUSH1 0x0d\n738 ADD\n739 SWAP1\n740 POP\n741 PUSH1 0x40\n743 MLOAD\n744 DUP1\n745 SWAP2\n746 SUB\n747 SWAP1\n748 SHA3\n749 PUSH29 0x01000000(...)\n779 SWAP1\n780 DIV\n781 DUP3\n782 PUSH1 0x40\n784 MLOAD\n785 DUP3\n786 PUSH4 0xffffffff\n791 AND\n792 PUSH29 0x01000000(...)\n822 MUL\n823 DUP2\n824 MSTORE\n825 PUSH1 0x04\n827 ADD\n828 DUP1\n829 DUP3\n830 DUP2\n831 MSTORE\n832 PUSH1 0x20\n834 ADD\n835 SWAP2\n836 POP\n837 POP\n838 PUSH1 0x00\n840 PUSH1 0x40\n842 MLOAD\n843 DUP1\n844 DUP4\n845 SUB\n846 DUP2\n847 DUP7\n848 GAS\n849 DELEGATECALL\n850 SWAP3\n851 POP\n852 POP\n853 POP\n854 POP\n855 POP\n856 POP\n857 JUMP\n', 'truncLabel': '671 JUMPDEST\n672 DUP2\n673 PUSH20 0xffffffff(...)\n694 AND\n695 PUSH1 0x40\n697 MLOAD\n(click to expand +)', 'isExpanded': false},
+{id: '203', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '317 JUMPDEST\n318 PUSH2 0x0172\n321 PUSH1 0x04\n323 DUP1\n324 DUP1\n325 CALLDATALOAD\n(click to expand +)', 'fullLabel': '317 JUMPDEST\n318 PUSH2 0x0172\n321 PUSH1 0x04\n323 DUP1\n324 DUP1\n325 CALLDATALOAD\n326 PUSH20 0xffffffff(...)\n347 AND\n348 SWAP1\n349 PUSH1 0x20\n351 ADD\n352 SWAP1\n353 SWAP2\n354 SWAP1\n355 DUP1\n356 CALLDATALOAD\n357 SWAP1\n358 PUSH1 0x20\n360 ADD\n361 SWAP1\n362 SWAP2\n363 SWAP1\n364 POP\n365 POP\n366 PUSH2 0x029f\n369 JUMP\n', 'truncLabel': '317 JUMPDEST\n318 PUSH2 0x0172\n321 PUSH1 0x04\n323 DUP1\n324 DUP1\n325 CALLDATALOAD\n(click to expand +)', 'isExpanded': false},
+{id: '206', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '313 PUSH1 0x00\n315 DUP1\n316 REVERT\n', 'fullLabel': '313 PUSH1 0x00\n315 DUP1\n316 REVERT\n', 'truncLabel': '313 PUSH1 0x00\n315 DUP1\n316 REVERT\n', 'isExpanded': false},
+{id: '202', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '306 _function_0x9b58bc26\n307 CALLVALUE\n308 ISZERO\n309 PUSH2 0x013d\n312 JUMPI\n', 'fullLabel': '306 _function_0x9b58bc26\n307 CALLVALUE\n308 ISZERO\n309 PUSH2 0x013d\n312 JUMPI\n', 'truncLabel': '306 _function_0x9b58bc26\n307 CALLVALUE\n308 ISZERO\n309 PUSH2 0x013d\n312 JUMPI\n', 'isExpanded': false},
+{id: '211', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '436 JUMPDEST\n437 STOP\n', 'fullLabel': '436 JUMPDEST\n437 STOP\n', 'truncLabel': '436 JUMPDEST\n437 STOP\n', 'isExpanded': false},
+{id: '210', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '858 JUMPDEST\n859 DUP2\n860 PUSH20 0xffffffff(...)\n881 AND\n882 PUSH1 0x40\n884 MLOAD\n(click to expand +)', 'fullLabel': '858 JUMPDEST\n859 DUP2\n860 PUSH20 0xffffffff(...)\n881 AND\n882 PUSH1 0x40\n884 MLOAD\n885 DUP1\n886 DUP1\n887 PUSH32 0x7365744e(...)\n920 DUP2\n921 MSTORE\n922 POP\n923 PUSH1 0x0d\n925 ADD\n926 SWAP1\n927 POP\n928 PUSH1 0x40\n930 MLOAD\n931 DUP1\n932 SWAP2\n933 SUB\n934 SWAP1\n935 SHA3\n936 PUSH29 0x01000000(...)\n966 SWAP1\n967 DIV\n968 DUP3\n969 PUSH1 0x40\n971 MLOAD\n972 DUP3\n973 PUSH4 0xffffffff\n978 AND\n979 PUSH29 0x01000000(...)\n1009 MUL\n1010 DUP2\n1011 MSTORE\n1012 PUSH1 0x04\n1014 ADD\n1015 DUP1\n1016 DUP3\n1017 DUP2\n1018 MSTORE\n1019 PUSH1 0x20\n1021 ADD\n1022 SWAP2\n1023 POP\n1024 POP\n1025 PUSH1 0x00\n1027 PUSH1 0x40\n1029 MLOAD\n1030 DUP1\n1031 DUP4\n1032 SUB\n1033 DUP2\n1034 PUSH1 0x00\n1036 DUP8\n1037 GAS\n1038 CALL\n1039 SWAP3\n1040 POP\n1041 POP\n1042 POP\n1043 POP\n1044 POP\n1045 POP\n1046 JUMP\n', 'truncLabel': '858 JUMPDEST\n859 DUP2\n860 PUSH20 0xffffffff(...)\n881 AND\n882 PUSH1 0x40\n884 MLOAD\n(click to expand +)', 'isExpanded': false},
+{id: '209', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '383 JUMPDEST\n384 PUSH2 0x01b4\n387 PUSH1 0x04\n389 DUP1\n390 DUP1\n391 CALLDATALOAD\n(click to expand +)', 'fullLabel': '383 JUMPDEST\n384 PUSH2 0x01b4\n387 PUSH1 0x04\n389 DUP1\n390 DUP1\n391 CALLDATALOAD\n392 PUSH20 0xffffffff(...)\n413 AND\n414 SWAP1\n415 PUSH1 0x20\n417 ADD\n418 SWAP1\n419 SWAP2\n420 SWAP1\n421 DUP1\n422 CALLDATALOAD\n423 SWAP1\n424 PUSH1 0x20\n426 ADD\n427 SWAP1\n428 SWAP2\n429 SWAP1\n430 POP\n431 POP\n432 PUSH2 0x035a\n435 JUMP\n', 'truncLabel': '383 JUMPDEST\n384 PUSH2 0x01b4\n387 PUSH1 0x04\n389 DUP1\n390 DUP1\n391 CALLDATALOAD\n(click to expand +)', 'isExpanded': false},
+{id: '212', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '379 PUSH1 0x00\n381 DUP1\n382 REVERT\n', 'fullLabel': '379 PUSH1 0x00\n381 DUP1\n382 REVERT\n', 'truncLabel': '379 PUSH1 0x00\n381 DUP1\n382 REVERT\n', 'isExpanded': false},
+{id: '208', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '372 _function_0xeea4c864\n373 CALLVALUE\n374 ISZERO\n375 PUSH2 0x017f\n378 JUMPI\n', 'fullLabel': '372 _function_0xeea4c864\n373 CALLVALUE\n374 ISZERO\n375 PUSH2 0x017f\n378 JUMPI\n', 'truncLabel': '372 _function_0xeea4c864\n373 CALLVALUE\n374 ISZERO\n375 PUSH2 0x017f\n378 JUMPI\n', 'isExpanded': false},
+{id: '213', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n', 'fullLabel': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n', 'truncLabel': '109 JUMPDEST\n110 PUSH1 0x00\n112 DUP1\n113 REVERT\n', 'isExpanded': false},
+{id: '207', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '98 DUP1\n99 PUSH4 0xeea4c864\n104 EQ\n105 PUSH2 0x0174\n108 JUMPI\n', 'fullLabel': '98 DUP1\n99 PUSH4 0xeea4c864\n104 EQ\n105 PUSH2 0x0174\n108 JUMPI\n', 'truncLabel': '98 DUP1\n99 PUSH4 0xeea4c864\n104 EQ\n105 PUSH2 0x0174\n108 JUMPI\n', 'isExpanded': false},
+{id: '201', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '87 DUP1\n88 PUSH4 0x9b58bc26\n93 EQ\n94 PUSH2 0x0132\n97 JUMPI\n', 'fullLabel': '87 DUP1\n88 PUSH4 0x9b58bc26\n93 EQ\n94 PUSH2 0x0132\n97 JUMPI\n', 'truncLabel': '87 DUP1\n88 PUSH4 0x9b58bc26\n93 EQ\n94 PUSH2 0x0132\n97 JUMPI\n', 'isExpanded': false},
+{id: '195', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '76 DUP1\n77 PUSH4 0x67e404ce\n82 EQ\n83 PUSH2 0x00dd\n86 JUMPI\n', 'fullLabel': '76 DUP1\n77 PUSH4 0x67e404ce\n82 EQ\n83 PUSH2 0x00dd\n86 JUMPI\n', 'truncLabel': '76 DUP1\n77 PUSH4 0x67e404ce\n82 EQ\n83 PUSH2 0x00dd\n86 JUMPI\n', 'isExpanded': false},
+{id: '189', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '65 DUP1\n66 PUSH4 0x2e52d606\n71 EQ\n72 PUSH2 0x00b4\n75 JUMPI\n', 'fullLabel': '65 DUP1\n66 PUSH4 0x2e52d606\n71 EQ\n72 PUSH2 0x00b4\n75 JUMPI\n', 'truncLabel': '65 DUP1\n66 PUSH4 0x2e52d606\n71 EQ\n72 PUSH2 0x00b4\n75 JUMPI\n', 'isExpanded': false},
+{id: '183', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)', 'fullLabel': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x141f32ff\n60 EQ\n61 PUSH2 0x0072\n64 JUMPI\n', 'truncLabel': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)', 'isExpanded': false},
+{id: '181', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'fullLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x006d\n12 JUMPI\n', 'truncLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'isExpanded': false}
+];
+var edges = [
+{from: '181', to: '182', 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize_D))', 'smooth': {'type': 'cubicBezier'}},
+{from: '186', to: '187', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '185', to: '186', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '184', to: '185', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '184', to: '188', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '183', to: '184', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_D_0) == 0x141f32ff', 'smooth': {'type': 'cubicBezier'}},
+{from: '192', to: '193', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '191', to: '192', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '190', to: '191', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '190', to: '194', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '189', to: '190', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_D_0) == 0x2e52d606', 'smooth': {'type': 'cubicBezier'}},
+{from: '198', to: '199', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '197', to: '198', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '196', to: '197', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '196', to: '200', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '195', to: '196', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_D_0) == 0x67e404ce', 'smooth': {'type': 'cubicBezier'}},
+{from: '204', to: '205', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '203', to: '204', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '202', to: '203', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '202', to: '206', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '201', to: '202', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_D_0) == 0x9b58bc26', 'smooth': {'type': 'cubicBezier'}},
+{from: '210', to: '211', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '209', to: '210', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '208', to: '209', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '208', to: '212', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '207', to: '208', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_D_0) == 0xeea4c864', 'smooth': {'type': 'cubicBezier'}},
+{from: '207', to: '213', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_D_0) == 0xeea4c864)', 'smooth': {'type': 'cubicBezier'}},
+{from: '201', to: '207', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_D_0) == 0x9b58bc26)', 'smooth': {'type': 'cubicBezier'}},
+{from: '195', to: '201', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_D_0) == 0x67e404ce)', 'smooth': {'type': 'cubicBezier'}},
+{from: '189', to: '195', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_D_0) == 0x2e52d606)', 'smooth': {'type': 'cubicBezier'}},
+{from: '183', to: '189', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_D_0) == 0x141f32ff)', 'smooth': {'type': 'cubicBezier'}},
+{from: '181', to: '183', 'arrows': 'to', 'label': 'ULE(4, calldatasize_D)', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
+</script>
+</body>
+</html>

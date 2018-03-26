@@ -28,5 +28,7 @@ class GraphTest(TestCase):
 
                 html = generate_graph(sym)
 
+                # (TEST_FILES / (input_file.name + ".graph.html")).write_text(html)
+
                 expected = (TEST_FILES / (input_file.name + ".graph.html")).read_text()
-                self.assertEqual(html, expected)
+                self.assertEqual(html, expected, "{}: graph html is changed".format(str(input_file)))

@@ -1,6 +1,6 @@
 import json
 import socket
-
+import logging
 from mythril.rpc.base_client import BaseClient
 from .utils import (get_default_ipc_path, to_text, to_bytes)
 
@@ -21,30 +21,23 @@ This code is mostly adapted from:
 
 class EthIpc(BaseClient):
 
-    def __init__(self, ipc_path=IPC_PATH, testnet=False):
+    def __init__(self, ipc_path=IPC_PATH, testnet=False, socket_timeout=0.2):
         if ipc_path is None:
             ipc_path = get_default_ipc_path(testnet)
         self.ipc_path = ipc_path
+        self.socket_timeout = socket_timeout
 
     def get_socket(self):
         _socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         _socket.connect(self.ipc_path)
         # Tell the socket not to block on reads.
-        _socket.settimeout(0.2)
+        _socket.settimeout(self.socket_timeout)
         return _socket
 
-    def _call(self, method, params=None, _id=1):
-        params = params or []
-        data = {
-            'jsonrpc': '2.0',
-            'method': method,
-            'params': params,
-            'id': _id,
-        }
-        request = to_bytes(json.dumps(data))
-        _socket = self.get_socket()
-
-        for _ in range(3):
+    def send(self, request):
+        _socket = None
+        try:
+            _socket = self.get_socket()
             _socket.sendall(request)
             response_raw = ""
 
@@ -55,16 +48,32 @@ class EthIpc(BaseClient):
                     break
 
             if response_raw == "":
+                return None
+            else:
+                return response_raw
+        finally:
+            if _socket:
                 _socket.close()
-                _socket = self.get_socket()
-                continue
 
-            _socket.close()
+    def _call(self, method, params=None, _id=1):
+        params = params or []
+        data = {
+            'jsonrpc': '2.0',
+            'method': method,
+            'params': params,
+            'id': _id,
+        }
+        logging.debug("ipc send: %s" % json.dumps(data))
+        request = to_bytes(json.dumps(data))
 
-            break
+        for _ in range(3):
+            response_raw = self.send(request)
+            if response_raw is not None:
+                break
         else:
             raise ValueError("No JSON returned by socket")
 
+        logging.debug("ipc response: %s" % response_raw)
         response = json.loads(response_raw)
 
         if "error" in response:

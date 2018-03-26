@@ -5,6 +5,7 @@ from ethereum import utils
 
 from .constants import BLOCK_TAGS, BLOCK_TAG_LATEST
 from .utils import hex_to_dec, clean_hex, validate_block
+from eth_utils import to_hex
 
 GETH_DEFAULT_RPC_PORT = 8545
 ETH_DEFAULT_RPC_PORT = 8545
@@ -106,7 +107,8 @@ class BaseClient(object):
 
         TESTED
         '''
-        data = str(data).encode('hex')
+
+        data = to_hex(str(data))
         return self._call('web3_sha3', [data])
 
     def net_version(self):
@@ -131,7 +133,8 @@ class BaseClient(object):
 
         TESTED
         '''
-        return hex_to_dec(self._call('net_peerCount'))
+        count = self._call('net_peerCount')
+        return hex_to_dec(count)
 
     def eth_protocolVersion(self):
         '''
@@ -292,9 +295,9 @@ class BaseClient(object):
         if gas is not None:
             params['gas'] = hex(gas)
         if gas_price is not None:
-            params['gasPrice'] = clean_hex(gas_price)
+            params['gasPrice'] = hex(gas_price)
         if value is not None:
-            params['value'] = clean_hex(value)
+            params['value'] = hex(value)
         if data is not None:
             params['data'] = data
         if nonce is not None:
@@ -453,7 +456,7 @@ class BaseClient(object):
 
         TESTED
         '''
-        return hex_to_dec(self._call('eth_newPendingTransactionFilter'))
+        return self._call('eth_newPendingTransactionFilter')
 
     def eth_uninstallFilter(self, filter_id):
         '''
@@ -523,6 +526,6 @@ class BaseClient(object):
 
         return self._call('debug_getBlockRlp', [number])
 
-    def traceTransaction(self, txHash):
+    def traceTransaction(self, tx_hash):
 
-        return self._call('debug_traceTransaction', [txHash])
+        return self._call('debug_traceTransaction', [tx_hash])

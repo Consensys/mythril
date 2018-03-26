@@ -22,10 +22,11 @@ winningAddress.transfer(prize)
 - PC address: 1285
 
 ### Description
-In the function '_function_0xe9874106' a non-zero amount of Ether is sent to an address taken from storage slot 0There is a check on storage index 0. This storage slot can be written to by calling the function 'fallback'.
+In the function '_function_0xe9874106' a non-zero amount of Ether is sent to an address taken from storage slot 0.
+There is a check on storage index 0. This storage slot can be written to by calling the function 'fallback'.
 
-There is a check on storage index 10. This storage slot can be written to by calling the function 'fallback'.
-There is a check on storage index 11. This storage slot can be written to by calling the function 'fallback'.
+There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
+There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
 
 In *<TEST_FILES>/weak_random.sol:47*
 
