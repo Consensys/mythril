@@ -1,0 +1,50 @@
+{
+    "success": true,
+    "error": null,
+    "issues": [
+        {
+            "title": "Exception state",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "function": "_function_0x546455b5",
+            "type": "Informational",
+            "address": 446,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "lineno": 16,
+            "code": "assert(input != 23)"
+        },
+        {
+            "title": "Exception state",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "function": "_function_0x92dd38ea",
+            "type": "Informational",
+            "address": 484,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "lineno": 34,
+            "code": "myarray[index]"
+        },
+        {
+            "title": "Exception state",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "function": "_function_0xa08299f1",
+            "type": "Informational",
+            "address": 506,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "lineno": 24,
+            "code": "1/input"
+        },
+        {
+            "title": "Exception state",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "function": "_function_0xb34c3610",
+            "type": "Informational",
+            "address": 531,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "lineno": 7,
+            "code": "assert(i == 0)"
+        }
+    ]
+}

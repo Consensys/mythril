@@ -174,7 +174,6 @@ class IpcTest(TestCase):
 
     def test_eth_getWork(self):
         work = self.client.eth_getWork()
-        print(work)
         self.assertEqual(len(work), 3)
         self.assertTrue(work[0].startswith("0x"), "should be a hex")
         self.assertTrue(work[1].startswith("0x"), "should be a hex")

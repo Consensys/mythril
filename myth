@@ -218,7 +218,7 @@ if args.address or args.init_db:
         try:
             eth = EthIpc()
         except Exception as e:
-            exitWithError(args.outform, "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA. \n" + str(e)) 
+            exitWithError(args.outform, "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA. \n" + str(e))
 
     else:  # Default configuration if neither RPC or IPC are set
 
@@ -229,7 +229,7 @@ if args.address or args.init_db:
 # Database search ops
 
 if args.search or args.init_db:
-    contract_storage = get_persistent_storage(mythril_dir)
+    contract_storage, _ = get_persistent_storage(mythril_dir)
     if args.search:
         try:
             contract_storage.search(args.search, searchCallback)

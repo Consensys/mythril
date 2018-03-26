@@ -3,7 +3,7 @@ from pathlib import Path
 
 from mythril.ether.soliditycontract import SolidityContract
 
-TEST_FILES = Path(__file__).parent / "testdata"
+TEST_FILES = Path(__file__).parent / "testdata/inputs"
 
 class SolidityContractTest(TestCase):
 

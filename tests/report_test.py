@@ -17,32 +17,31 @@ def _fix_debug_data(json_str):
     read_json = json.loads(json_str)
     for issue in read_json["issues"]:
         issue["debug"] = "<DEBUG-DATA>"
-    return json.dumps(read_json)
+    return json.dumps(read_json, indent=4)
 
 class AnalysisReportTest(TestCase):
 
     def test_reports(self):
-        for input_file in TEST_FILES.iterdir():
-            if input_file.is_file and input_file.suffix == '.sol':
-                contract = SolidityContract(str(input_file), name=None, solc_args=None)
-                sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
-                issues = fire_lasers(sym)
+        for input_file in (TEST_FILES / "inputs").iterdir():
+            contract = SolidityContract(str(input_file), name=None, solc_args=None)
+            sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
+            issues = fire_lasers(sym)
 
-                for issue in issues:
-                    issue.add_code_info(contract)
+            for issue in issues:
+                issue.add_code_info(contract)
 
-                report = Report()
-                for issue in issues:
-                    report.append_issue(issue)
+            report = Report()
+            for issue in issues:
+                report.append_issue(issue)
 
-                # (TEST_FILES / (input_file.name + ".text")).write_text(_fix_path(report.as_text()))
-                # (TEST_FILES / (input_file.name + ".json")).write_text(_fix_path(_fix_debug_data(report.as_json())))
-                # (TEST_FILES / (input_file.name + ".markdown")).write_text(_fix_path(report.as_markdown()))
+            # (TEST_FILES / "outputs" / (input_file.name + ".text")).write_text(_fix_path(report.as_text()))
+            # (TEST_FILES / "outputs" / (input_file.name + ".json")).write_text(_fix_path(_fix_debug_data(report.as_json())))
+            # (TEST_FILES / "outputs" / (input_file.name + ".markdown")).write_text(_fix_path(report.as_markdown()))
 
-                text = (TEST_FILES / (input_file.name + ".text")).read_text()
-                json_report = (TEST_FILES / (input_file.name + ".json")).read_text()
-                markdown = (TEST_FILES / (input_file.name + ".markdown")).read_text()
+            text = (TEST_FILES / "outputs" / (input_file.name + ".text")).read_text()
+            json_report = (TEST_FILES / "outputs" / (input_file.name + ".json")).read_text()
+            markdown = (TEST_FILES / "outputs" / (input_file.name + ".markdown")).read_text()
 
-                self.assertEqual(_fix_path(report.as_text()), text, "{}: text report is changed".format(str(input_file)))
-                self.assertEqual(_fix_path(report.as_markdown()), markdown, "{}: markdown report is changed".format(str(input_file)))
-                self.assertEqual(_fix_path(_fix_debug_data(report.as_json())), json_report, "{}: json report is changed".format(str(input_file)))
+            self.assertEqual(_fix_path(report.as_text()), text, "{}: text report is changed".format(str(input_file)))
+            self.assertEqual(_fix_path(report.as_markdown()), markdown, "{}: markdown report is changed".format(str(input_file)))
+            self.assertEqual(_fix_path(_fix_debug_data(report.as_json())), json_report, "{}: json report is changed".format(str(input_file)))

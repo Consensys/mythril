@@ -19,13 +19,12 @@ class DisassemblerTestCase(unittest.TestCase):
         self.assertEqual(len(disassembly.instruction_list), 3523)
 
     def test_easm_from_solidity_files(self):
-        for input_file in TEST_FILES.iterdir():
-            if input_file.is_file and input_file.suffix == '.sol':
-                code = _compile_to_code(input_file)
+        for input_file in (TEST_FILES / "inputs").iterdir():
+            code = _compile_to_code(input_file)
 
-                disassembly = Disassembly(code)
+            disassembly = Disassembly(code)
 
-                # (TEST_FILES / (input_file.name + ".easm")).write_text(disassembly.get_easm())
+            # (TEST_FILES / "outputs" / (input_file.name + ".easm")).write_text(disassembly.get_easm())
 
-                expected_easm = (TEST_FILES / (input_file.name + ".easm")).read_text()
-                self.assertEqual(disassembly.get_easm(), expected_easm, "{} returns invalid easm".format(str(input_file)))
+            expected_easm = (TEST_FILES / "outputs" / (input_file.name + ".easm")).read_text()
+            self.assertEqual(disassembly.get_easm(), expected_easm, "{} returns invalid easm".format(str(input_file)))

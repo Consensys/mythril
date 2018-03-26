@@ -13,22 +13,21 @@ TEST_FILES = Path(__file__).parent / "testdata"
 class GraphTest(TestCase):
 
     def test_generate_graph(self):
-        for input_file in TEST_FILES.iterdir():
-            if input_file.is_file and input_file.suffix == '.sol':
-                contract = SolidityContract(str(input_file), name=None, solc_args=None)
-                sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
-                issues = fire_lasers(sym)
+        for input_file in (TEST_FILES / "inputs").iterdir():
+            contract = SolidityContract(str(input_file), name=None, solc_args=None)
+            sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
+            issues = fire_lasers(sym)
 
-                for issue in issues:
-                    issue.add_code_info(contract)
+            for issue in issues:
+                issue.add_code_info(contract)
 
-                report = Report()
-                for issue in issues:
-                    report.append_issue(issue)
+            report = Report()
+            for issue in issues:
+                report.append_issue(issue)
 
-                html = generate_graph(sym)
+            html = generate_graph(sym)
 
-                # (TEST_FILES / (input_file.name + ".graph.html")).write_text(html)
+            # (TEST_FILES / "outputs" / (input_file.name + ".graph.html")).write_text(html)
 
-                expected = (TEST_FILES / (input_file.name + ".graph.html")).read_text()
-                self.assertEqual(html, expected, "{}: graph html is changed".format(str(input_file)))
+            expected = (TEST_FILES / "outputs" / (input_file.name + ".graph.html")).read_text()
+            self.assertEqual(html, expected, "{}: graph html is changed".format(str(input_file)))
