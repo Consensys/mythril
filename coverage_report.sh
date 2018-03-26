@@ -1,5 +1,6 @@
 #!/bin/sh
 
-coverage run --source=mythril -m unittest discover -p "*_test.py"
+rm -rf htmlcov
+coverage run -m unittest discover -p "*_test.py"
 coverage html
-open htmlcov/index.html
+open coverage_html_report/index.html

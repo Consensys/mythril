@@ -1,0 +1,13 @@
+[run]
+source =
+    .
+
+[report]
+omit =
+    *__init__.py
+    /usr/*
+    *_test.py
+    setup.py
+
+[html]
+directory = coverage_html_report

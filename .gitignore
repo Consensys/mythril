@@ -12,5 +12,5 @@ dist
 laser*
 lol*
 .idea*
-htmlcov/
+coverage_html_report/
 .coverage
