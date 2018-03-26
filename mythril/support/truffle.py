@@ -55,7 +55,7 @@ def analyze_truffle_project(args):
                 report = Report()
                 # augment with source code
 
-                disassembly = ethcontract.get_disassembly()
+                disassembly = ethcontract.disassembly
                 source = contractdata['source']
 
                 deployedSourceMap = contractdata['deployedSourceMap'].split(";")
