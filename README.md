@@ -101,7 +101,7 @@ When analyzing contracts on the blockchain, Mythril will by default query a loca
 | None    | Connect to local Ethereum node |
 | `-i`      | Connect to INFURA Mainnet via HTTPS |
 | `--rpc ganache` | Connect to local Ganache  | 
-| `--rpc infura-[netname]` | Connect to infura-mainnet, rinkey, kovan or ropsten  | 
+| `--rpc infura-[netname]` | Connect to infura-mainnet, rinkeby, kovan or ropsten  | 
 | `--rpc HOST:PORT` | Custom RPC connection   Custom |
 | `--rpctls <True/False>` | RPC connection over TLS (default: False) | 
 | `--ipc` | Connect to local Ethereum node via IPC | 
