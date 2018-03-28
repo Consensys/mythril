@@ -10,7 +10,7 @@ import transaction
 from BTrees.OOBTree import BTree
 import ZODB
 from ZODB import FileStorage
-
+from mythril import ether
 
 def get_persistent_storage(db_dir = None):
 
@@ -69,6 +69,12 @@ class ContractStorage(persistent.Persistent):
             blockNum -= 2
 
         while(blockNum > 0):
+            # print("blockNum: " + str(blockNum))
+            ether.sync_count += 1
+            if ether.sync_count == 10000:
+                end_time = time.time()
+                print("10000 blocks cost {} seconds".format(end_time - ether.start_time))
+
 
             if not blockNum % 1000:
                 print("Processing block " + str(blockNum) + ", " + str(len(self.contracts.keys())) + " unique contracts in database")

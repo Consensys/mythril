@@ -25,7 +25,19 @@ class EthIpc(BaseClient):
         if ipc_path is None:
             ipc_path = get_default_ipc_path(testnet)
         self.ipc_path = ipc_path
-        self._socket = self.get_socket()
+        self.socket = None
+        self.connect()
+
+    def connect(self):
+        self.close()
+        self.socket = self.get_socket()
+
+    def close(self):
+        if self.socket is not None:
+            try:
+                self.socket.close()
+            except socket.error:
+                pass
 
     def get_socket(self):
         _socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -33,6 +45,18 @@ class EthIpc(BaseClient):
         # Tell the socket not to block on reads.
         _socket.settimeout(2)
         return _socket
+
+    def read_response(self):
+        response_raw = ""
+        while True:
+            response_raw += to_text(self.socket.recv(4096))
+            # print("response_raw: " + response_raw)
+            trimmed = response_raw.strip()
+            if trimmed and trimmed[-1] == '}':
+                try:
+                    return json.loads(trimmed)
+                except JSONDecodeError:
+                    continue
 
     def _call(self, method, params=None, _id=1):
         params = params or []
@@ -45,25 +69,14 @@ class EthIpc(BaseClient):
         request = to_bytes(json.dumps(data))
 
         for _ in range(3):
-            self._socket.sendall(request)
-            response_raw = ""
-
-            while True:
-                try:
-                    response_raw += to_text(self._socket.recv(4096))
-                except socket.timeout:
-                    break
-
-            if response_raw == "":
-                self._socket.close()
-                self._socket = self.get_socket()
-                continue
-
-            break
+            self.socket.sendall(request)
+            try:
+                response = self.read_response()
+                break
+            except socket.timeout:
+                self.connect()
         else:
             raise ValueError("No JSON returned by socket")
-
-        response = json.loads(response_raw)
 
         if "error" in response:
             raise ValueError(response["error"]["message"])
