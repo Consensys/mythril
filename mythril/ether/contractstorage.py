@@ -1,6 +1,5 @@
 import os
 import hashlib
-import persistent
 import persistent.list
 import transaction
 from BTrees.OOBTree import BTree
@@ -9,7 +8,8 @@ from ZODB import FileStorage
 from multiprocessing import Pool
 import logging
 from mythril.ether.ethcontract import ETHContract, InstanceList
-
+from mythril import ether
+import time
 
 BLOCKS_PER_THREAD = 256
 NUM_THREADS = 8
@@ -128,7 +128,9 @@ class ContractStorage(persistent.Persistent):
             processed += NUM_THREADS * BLOCKS_PER_THREAD
             self.last_block = blockNum
             transaction.commit()
-            print("%d blocks processed, %d unique contracts in database, next block: %d" % (processed, len(self.contracts), blockNum))
+
+            cost_time = time.time() - ether.start_time
+            print("%d blocks processed (in %d seconds), %d unique contracts in database, next block: %d" % (processed, cost_time, len(self.contracts), blockNum))
 
         # If we've finished initializing the database, start over from the end of the chain if we want to initialize again
         self.last_block = 0
