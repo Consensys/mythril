@@ -144,6 +144,14 @@ $ myth -ig ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-dept
 
 ~~The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout.~~ Try adding the `--enable-physics` flag for a very entertaining "bounce" effect that unfortunately completely destroys usability.
 
+## Statespace JSON for Traceview Explorer
+
+The `-j FILENAME` option dumps the statespace to json in the format that is required by the [Symbolic Trace Explorer GUI](https://github.com/ConsenSys/mythril-trace-explorer).
+
+```bash
+$ ./myth -ij ./statespace.json -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
+```
+
 ## Blockchain exploration
 
 If you are planning to do batch operations or use the contract search features, running a [go-ethereum](https://github.com/ethereum/go-ethereum) node is recommended. Start your local node as follows:
