@@ -241,6 +241,10 @@ $ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.jso
 
 When you analyze Solidity code, new function signatures are added to the database automatically.
 
+## For developers
+
+You can find how to run tests and generate coverage reports in [README_DEV.md](./README_DEV.md)
+
 ## Credit
 
 - JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).

@@ -1,0 +1,128 @@
+<html>
+ <head>
+
+  
+  <style type="text/css">
+   #mynetwork {
+    background-color: #232625;
+   }
+
+   body {
+    background-color: #232625;
+    color: #ffffff;
+    font-size: 10px;
+   }
+  </style>
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+  
+   var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: false,
+      }
+
+  }
+
+
+  var nodes = [
+{id: '650', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'fullLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'truncLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'isExpanded': false},
+{id: '654', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '122 JUMPDEST\n123 DUP1\n124 PUSH20 0xffffffff(...)\n145 AND\n146 SUICIDE\n', 'fullLabel': '122 JUMPDEST\n123 DUP1\n124 PUSH20 0xffffffff(...)\n145 AND\n146 SUICIDE\n', 'truncLabel': '122 JUMPDEST\n123 DUP1\n124 PUSH20 0xffffffff(...)\n145 AND\n146 SUICIDE\n', 'isExpanded': false},
+{id: '653', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '78 JUMPDEST\n79 PUSH1 0x78\n81 PUSH1 0x04\n83 DUP1\n84 DUP1\n85 CALLDATALOAD\n(click to expand +)', 'fullLabel': '78 JUMPDEST\n79 PUSH1 0x78\n81 PUSH1 0x04\n83 DUP1\n84 DUP1\n85 CALLDATALOAD\n86 PUSH20 0xffffffff(...)\n107 AND\n108 SWAP1\n109 PUSH1 0x20\n111 ADD\n112 SWAP1\n113 SWAP2\n114 SWAP1\n115 POP\n116 POP\n117 PUSH1 0x7a\n119 JUMP\n', 'truncLabel': '78 JUMPDEST\n79 PUSH1 0x78\n81 PUSH1 0x04\n83 DUP1\n84 DUP1\n85 CALLDATALOAD\n(click to expand +)', 'isExpanded': false},
+{id: '655', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '74 PUSH1 0x00\n76 DUP1\n77 REVERT\n', 'fullLabel': '74 PUSH1 0x00\n76 DUP1\n77 REVERT\n', 'truncLabel': '74 PUSH1 0x00\n76 DUP1\n77 REVERT\n', 'isExpanded': false},
+{id: '652', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '68 _function_0xcbf0b0c0\n69 CALLVALUE\n70 ISZERO\n71 PUSH1 0x4e\n73 JUMPI\n', 'fullLabel': '68 _function_0xcbf0b0c0\n69 CALLVALUE\n70 ISZERO\n71 PUSH1 0x4e\n73 JUMPI\n', 'truncLabel': '68 _function_0xcbf0b0c0\n69 CALLVALUE\n70 ISZERO\n71 PUSH1 0x4e\n73 JUMPI\n', 'isExpanded': false},
+{id: '656', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'fullLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'truncLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'isExpanded': false},
+{id: '651', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '12 PUSH1 0x00\n14 CALLDATALOAD\n15 PUSH29 0x01000000(...)\n45 SWAP1\n46 DIV\n47 PUSH4 0xffffffff\n(click to expand +)', 'fullLabel': '12 PUSH1 0x00\n14 CALLDATALOAD\n15 PUSH29 0x01000000(...)\n45 SWAP1\n46 DIV\n47 PUSH4 0xffffffff\n52 AND\n53 DUP1\n54 PUSH4 0xcbf0b0c0\n59 EQ\n60 PUSH1 0x44\n62 JUMPI\n', 'truncLabel': '12 PUSH1 0x00\n14 CALLDATALOAD\n15 PUSH29 0x01000000(...)\n45 SWAP1\n46 DIV\n47 PUSH4 0xffffffff\n(click to expand +)', 'isExpanded': false},
+{id: '649', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'fullLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH1 0x3f\n11 JUMPI\n', 'truncLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'isExpanded': false}
+];
+var edges = [
+{from: '649', to: '650', 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize_Suicide))', 'smooth': {'type': 'cubicBezier'}},
+{from: '653', to: '654', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '652', to: '653', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '652', to: '655', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '651', to: '652', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Suicide_0) == 0xcbf0b0c0', 'smooth': {'type': 'cubicBezier'}},
+{from: '651', to: '656', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Suicide_0) == 0xcbf0b0c0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '649', to: '651', 'arrows': 'to', 'label': 'ULE(4, calldatasize_Suicide)', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
+</script>
+</body>
+</html>

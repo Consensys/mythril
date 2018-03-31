@@ -11,7 +11,6 @@ class ETHContractTestCase(unittest.TestCase):
 class Getinstruction_listTestCase(ETHContractTestCase):
 
     def runTest(self):
-
         contract = ETHContract(self.code, self.creation_code)
 
         disassembly = contract.disassembly
@@ -21,18 +20,16 @@ class Getinstruction_listTestCase(ETHContractTestCase):
 class GetEASMTestCase(ETHContractTestCase):
 
     def runTest(self):
-
         contract = ETHContract(self.code)
 
         instruction_list = contract.get_easm()
 
-        self.assertTrue("PUSH1 0x60" in instruction_list,'Error obtaining EASM code through ETHContract.get_easm()')
+        self.assertTrue("PUSH1 0x60" in instruction_list, 'Error obtaining EASM code through ETHContract.get_easm()')
 
 class MatchesExpressionTestCase(ETHContractTestCase):
 
     def runTest(self):
-
         contract = ETHContract(self.code)
 
-        self.assertTrue(contract.matches_expression("code#PUSH1# or code#PUSH1#"),'Unexpected result in expression matching')
-        self.assertFalse(contract.matches_expression("func#abcdef#"),'Unexpected result in expression matching')
+        self.assertTrue(contract.matches_expression("code#PUSH1# or code#PUSH1#"), 'Unexpected result in expression matching')
+        self.assertFalse(contract.matches_expression("func#abcdef#"), 'Unexpected result in expression matching')

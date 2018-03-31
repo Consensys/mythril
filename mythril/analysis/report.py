@@ -30,6 +30,12 @@ class Issue:
 
         return issue
 
+    def add_code_info(self, contract):
+        if self.pc:
+            codeinfo = contract.get_source_info(self.pc)
+            self.filename = codeinfo.filename
+            self.code = codeinfo.code
+            self.lineno = codeinfo.lineno
 
 class Report:
 

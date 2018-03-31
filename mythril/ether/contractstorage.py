@@ -16,7 +16,6 @@ NUM_THREADS = 8
 
 
 def get_persistent_storage(db_dir=None):
-
     if not db_dir:
         db_dir = os.path.join(os.path.expanduser('~'), ".mythril")
 
@@ -36,7 +35,7 @@ def get_persistent_storage(db_dir=None):
         contract_storage = ContractStorage()
         storage_root['contractStorage'] = contract_storage
 
-    return contract_storage
+    return contract_storage, db
 
 
 class ContractStorage(persistent.Persistent):
@@ -142,7 +141,6 @@ class ContractStorage(persistent.Persistent):
         for k in all_keys:
 
             if self.contracts[k].matches_expression(expression):
-
                 m = self.instance_lists[k]
 
                 callback_func(k.hex(), self.contracts[k], m.addresses, m.balances)

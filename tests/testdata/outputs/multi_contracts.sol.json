@@ -1,0 +1,17 @@
+{
+    "success": true,
+    "error": null,
+    "issues": [
+        {
+            "title": "Ether send",
+            "description": "In the function '_function_0x8a4068dd' a non-zero amount of Ether is sent to msg.sender.\nIt seems that this function can be called without restrictions.",
+            "function": "_function_0x8a4068dd",
+            "type": "Warning",
+            "address": 142,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/multi_contracts.sol",
+            "lineno": 14,
+            "code": "msg.sender.transfer(2 ether)"
+        }
+    ]
+}

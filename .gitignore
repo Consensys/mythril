@@ -2,7 +2,6 @@
 .python-version
 __pycache__
 *.pyc
-*.easm
 *.asm
 mythril.egg-info
 build
@@ -13,3 +12,5 @@ dist
 laser*
 lol*
 .idea*
+coverage_html_report/
+.coverage

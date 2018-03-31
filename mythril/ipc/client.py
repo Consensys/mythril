@@ -1,6 +1,6 @@
 import json
 import socket
-
+import logging
 from mythril.rpc.base_client import BaseClient
 from .utils import (get_default_ipc_path, to_text, to_bytes)
 import threading
@@ -61,9 +61,9 @@ class EthIpc(BaseClient):
         response_raw = ""
         while True:
             response_raw += to_text(THREAD_LOCAL.socket.recv(4096))
-            # print("response_raw: " + response_raw)
             trimmed = response_raw.strip()
             if trimmed and trimmed[-1] == '}':
+                logging.debug("ipc response: %s" % response_raw)
                 try:
                     return json.loads(trimmed)
                 except JSONDecodeError:
@@ -77,6 +77,7 @@ class EthIpc(BaseClient):
             'params': params,
             'id': _id,
         }
+        logging.debug("ipc send: %s" % json.dumps(data))
         request = to_bytes(json.dumps(data))
 
         self.connect_if_not_yet()
