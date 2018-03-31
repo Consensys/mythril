@@ -1,6 +1,6 @@
 # Mythril
 
-[![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
+[![Join the chat at https://gitter.im/ConsenSys/mythril](https://badges.gitter.im/ConsenSys/mythril.svg)](https://gitter.im/ConsenSys/mythril?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)  [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
@@ -182,6 +182,14 @@ $ myth -ig ./graph.html -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-dept
 ![callgraph](https://raw.githubusercontent.com/b-mueller/mythril/master/static/callgraph8.png "Call graph")
 
 ~~The "bounce" effect, while awesome (and thus enabled by default), sometimes messes up the graph layout.~~ Try adding the `--enable-physics` flag for a very entertaining "bounce" effect that unfortunately completely destroys usability.
+
+## Statespace JSON for Traceview Explorer
+
+The `-j FILENAME` option dumps the statespace to json in the format that is required by the [Symbolic Trace Explorer GUI](https://github.com/ConsenSys/mythril-trace-explorer).
+
+```bash
+$ ./myth -ij ./statespace.json -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --max-depth 8
+```
 
 ## Blockchain exploration
 

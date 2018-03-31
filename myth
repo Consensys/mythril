@@ -4,7 +4,7 @@
    http://www.github.com/b-mueller/mythril
 """
 
-from json.decoder import JSONDecodeError
+
 import logging
 import json
 import sys
@@ -29,6 +29,7 @@ from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError, NoContractFoundError
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 
@@ -57,6 +58,7 @@ commands.add_argument('-g', '--graph', help='generate a control flow graph', met
 commands.add_argument('-x', '--fire-lasers', action='store_true', help='detect vulnerabilities, use with -c, -a or solidity file(s)')
 commands.add_argument('-t', '--truffle', action='store_true', help='analyze a truffle project (run from project dir)')
 commands.add_argument('-d', '--disassemble', action='store_true', help='print disassembly')
+commands.add_argument('-j', '--statespace-json', help='dumps the statespace json', metavar='OUTPUT_FILE')
 
 inputs = parser.add_argument_group('input arguments')
 inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
@@ -129,7 +131,7 @@ with open(signatures_file) as f:
 
 # Parse cmdline args
 
-if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.fire_lasers or args.storage or args.truffle):
+if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.fire_lasers or args.storage or args.truffle or args.statespace_json):
     parser.print_help()
     sys.exit()
 
@@ -398,6 +400,21 @@ elif args.graph or args.fire_lasers:
             'markdown': report.as_markdown() or "The analysis was completed successfully. No issues were detected."
         }
         print(outputs[args.outform])
+        
+elif args.statespace_json: 
+    if not contracts:
+        exitWithError(args.outform, "input files do not contain any valid contracts")
+    
+    if args.dynld:
+        sym = SymExecWrapper(contracts[0], address, dynloader=DynLoader(eth), max_depth=args.max_depth)
+    else:
+        sym = SymExecWrapper(contracts[0], address, max_depth=args.max_depth)
+
+    try:
+        with open(args.statespace_json, "w") as f:
+            json.dump(get_serializable_statespace(sym), f)
+    except Exception as e:
+        exitWithError(args.outform, "Error saving json: " + str(e))
 
 else:
     parser.print_help()
