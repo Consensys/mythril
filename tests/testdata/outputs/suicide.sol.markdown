@@ -10,7 +10,7 @@ The function _function_0xcbf0b0c0 executes the SUICIDE instruction. The remainin
 
 It seems that this function can be called without restrictions.
 
-In *<TEST_FILES>/inputs/suicide.sol:4*
+In *<TESTDATA>/inputs/suicide.sol:4*
 
 ```
 selfdestruct(addr)

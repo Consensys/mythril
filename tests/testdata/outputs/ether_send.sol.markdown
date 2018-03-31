@@ -10,7 +10,7 @@ In the function 'withdrawfunds()' a non-zero amount of Ether is sent to msg.send
 
 There is a check on storage index 1. This storage slot can be written to by calling the function 'crowdfunding()'.
 
-In *<TEST_FILES>/inputs/ether_send.sol:18*
+In *<TESTDATA>/inputs/ether_send.sol:18*
 
 ```
 msg.sender.transfer(this.balance)

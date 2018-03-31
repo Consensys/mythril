@@ -9,7 +9,7 @@
 In the function '_function_0x8a4068dd' a non-zero amount of Ether is sent to msg.sender.
 It seems that this function can be called without restrictions.
 
-In *<TEST_FILES>/inputs/multi_contracts.sol:14*
+In *<TESTDATA>/inputs/multi_contracts.sol:14*
 
 ```
 msg.sender.transfer(2 ether)

@@ -6,7 +6,7 @@ PC address: 649
 A possible integer underflow exists in the function sendeth(address,uint256).
 The substraction may result in a value < 0.
 --------------------
-In file: <TEST_FILES>/inputs/underflow.sol:12
+In file: <TESTDATA>/inputs/underflow.sol:12
 
 balances[msg.sender] -= _value
 
@@ -20,7 +20,7 @@ PC address: 567
 A possible integer underflow exists in the function sendeth(address,uint256).
 The substraction may result in a value < 0.
 --------------------
-In file: <TEST_FILES>/inputs/underflow.sol:11
+In file: <TESTDATA>/inputs/underflow.sol:11
 
 balances[msg.sender] - _value
 

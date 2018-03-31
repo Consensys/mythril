@@ -12,7 +12,7 @@ There is a check on storage index 5. This storage slot can be written to by call
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
 There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
 
-In *<TEST_FILES>/inputs/rubixi.sol:93*
+In *<TESTDATA>/inputs/rubixi.sol:93*
 
 ```
 creator.send(feesToCollect)
@@ -30,7 +30,7 @@ There is a check on storage index 5. This storage slot can be written to by call
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
 There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
 
-In *<TEST_FILES>/inputs/rubixi.sol:75*
+In *<TESTDATA>/inputs/rubixi.sol:75*
 
 ```
 creator.send(collectedFees)
@@ -44,7 +44,7 @@ creator.send(collectedFees)
 ### Description
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
 
-In *<TEST_FILES>/inputs/rubixi.sol:131*
+In *<TESTDATA>/inputs/rubixi.sol:131*
 
 ```
 participants[payoutOrder]
@@ -58,7 +58,7 @@ participants[payoutOrder]
 ### Description
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
 
-In *<TEST_FILES>/inputs/rubixi.sol:148*
+In *<TESTDATA>/inputs/rubixi.sol:148*
 
 ```
 participants[orderInPyramid]
@@ -73,7 +73,7 @@ participants[orderInPyramid]
 A possible integer underflow exists in the function _function_0xd11f13df.
 The substraction may result in a value < 0.
 
-In *<TEST_FILES>/inputs/rubixi.sol:143*
+In *<TESTDATA>/inputs/rubixi.sol:143*
 
 ```
 participants.length - payoutOrder
@@ -87,7 +87,7 @@ participants.length - payoutOrder
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/rubixi.sol:93*
+In *<TESTDATA>/inputs/rubixi.sol:93*
 
 ```
 creator.send(feesToCollect)
@@ -101,7 +101,7 @@ creator.send(feesToCollect)
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/rubixi.sol:75*
+In *<TESTDATA>/inputs/rubixi.sol:75*
 
 ```
 creator.send(collectedFees)
@@ -115,7 +115,7 @@ creator.send(collectedFees)
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/rubixi.sol:85*
+In *<TESTDATA>/inputs/rubixi.sol:85*
 
 ```
 creator.send(_amt)

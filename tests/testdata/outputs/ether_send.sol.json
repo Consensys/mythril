@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 816,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/ether_send.sol",
+            "filename": "<TESTDATA>/inputs/ether_send.sol",
             "lineno": 18,
             "code": "msg.sender.transfer(this.balance)"
         }

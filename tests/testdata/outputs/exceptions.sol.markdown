@@ -8,7 +8,7 @@
 ### Description
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
 
-In *<TEST_FILES>/inputs/exceptions.sol:16*
+In *<TESTDATA>/inputs/exceptions.sol:16*
 
 ```
 assert(input != 23)
@@ -22,7 +22,7 @@ assert(input != 23)
 ### Description
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
 
-In *<TEST_FILES>/inputs/exceptions.sol:34*
+In *<TESTDATA>/inputs/exceptions.sol:34*
 
 ```
 myarray[index]
@@ -36,7 +36,7 @@ myarray[index]
 ### Description
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
 
-In *<TEST_FILES>/inputs/exceptions.sol:24*
+In *<TESTDATA>/inputs/exceptions.sol:24*
 
 ```
 1/input
@@ -50,7 +50,7 @@ In *<TEST_FILES>/inputs/exceptions.sol:24*
 ### Description
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
 
-In *<TEST_FILES>/inputs/exceptions.sol:7*
+In *<TESTDATA>/inputs/exceptions.sol:7*
 
 ```
 assert(i == 0)

@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 1285,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/weak_random.sol",
+            "filename": "<TESTDATA>/inputs/weak_random.sol",
             "lineno": 47,
             "code": "winningAddress.transfer(prize)"
         },
@@ -20,7 +20,7 @@
             "type": "Warning",
             "address": 1285,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/weak_random.sol",
+            "filename": "<TESTDATA>/inputs/weak_random.sol",
             "lineno": 47,
             "code": "winningAddress.transfer(prize)"
         },
@@ -31,7 +31,7 @@
             "type": "Informational",
             "address": 356,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/weak_random.sol",
+            "filename": "<TESTDATA>/inputs/weak_random.sol",
             "lineno": 11,
             "code": "prize / totalTickets"
         },
@@ -42,7 +42,7 @@
             "type": "Informational",
             "address": 146,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/weak_random.sol",
+            "filename": "<TESTDATA>/inputs/weak_random.sol",
             "lineno": 11,
             "code": "prize / totalTickets"
         }

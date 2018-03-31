@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 1038,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/kinds_of_calls.sol",
+            "filename": "<TESTDATA>/inputs/kinds_of_calls.sol",
             "lineno": 6,
             "code": "_e.call(bytes4(sha3(\"setN(uint256)\")), _n)"
         },
@@ -20,7 +20,7 @@
             "type": "Informational",
             "address": 1038,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/kinds_of_calls.sol",
+            "filename": "<TESTDATA>/inputs/kinds_of_calls.sol",
             "lineno": 6,
             "code": "_e.call(bytes4(sha3(\"setN(uint256)\")), _n)"
         }

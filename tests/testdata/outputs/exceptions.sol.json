@@ -9,7 +9,7 @@
             "type": "Informational",
             "address": 446,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "filename": "<TESTDATA>/inputs/exceptions.sol",
             "lineno": 16,
             "code": "assert(input != 23)"
         },
@@ -20,7 +20,7 @@
             "type": "Informational",
             "address": 484,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "filename": "<TESTDATA>/inputs/exceptions.sol",
             "lineno": 34,
             "code": "myarray[index]"
         },
@@ -31,7 +31,7 @@
             "type": "Informational",
             "address": 506,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "filename": "<TESTDATA>/inputs/exceptions.sol",
             "lineno": 24,
             "code": "1/input"
         },
@@ -42,7 +42,7 @@
             "type": "Informational",
             "address": 531,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/exceptions.sol",
+            "filename": "<TESTDATA>/inputs/exceptions.sol",
             "lineno": 7,
             "code": "assert(i == 0)"
         }

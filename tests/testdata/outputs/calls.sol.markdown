@@ -8,7 +8,7 @@
 ### Description
 This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
 
-In *<TEST_FILES>/inputs/calls.sol:16*
+In *<TESTDATA>/inputs/calls.sol:16*
 
 ```
 fixed_address.call()
@@ -22,7 +22,7 @@ fixed_address.call()
 ### Description
 This contract executes a message call to an address found at storage slot 1. This storage slot can be written to by calling the function '_function_0x2776b163'. Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
 
-In *<TEST_FILES>/inputs/calls.sol:29*
+In *<TESTDATA>/inputs/calls.sol:29*
 
 ```
 stored_address.call()
@@ -36,7 +36,7 @@ stored_address.call()
 ### Description
 This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
 
-In *<TEST_FILES>/inputs/calls.sol:20*
+In *<TESTDATA>/inputs/calls.sol:20*
 
 ```
 fixed_address.call()
@@ -50,7 +50,7 @@ fixed_address.call()
 ### Description
 The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.
 
-In *<TEST_FILES>/inputs/calls.sol:21*
+In *<TESTDATA>/inputs/calls.sol:21*
 
 ```
 statevar = 0
@@ -64,7 +64,7 @@ statevar = 0
 ### Description
 This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
 
-In *<TEST_FILES>/inputs/calls.sol:25*
+In *<TESTDATA>/inputs/calls.sol:25*
 
 ```
 addr.call()
@@ -78,7 +78,7 @@ addr.call()
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/calls.sol:16*
+In *<TESTDATA>/inputs/calls.sol:16*
 
 ```
 fixed_address.call()
@@ -92,7 +92,7 @@ fixed_address.call()
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/calls.sol:29*
+In *<TESTDATA>/inputs/calls.sol:29*
 
 ```
 stored_address.call()
@@ -106,7 +106,7 @@ stored_address.call()
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/calls.sol:20*
+In *<TESTDATA>/inputs/calls.sol:20*
 
 ```
 fixed_address.call()
@@ -120,7 +120,7 @@ fixed_address.call()
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/calls.sol:25*
+In *<TESTDATA>/inputs/calls.sol:25*
 
 ```
 addr.call()

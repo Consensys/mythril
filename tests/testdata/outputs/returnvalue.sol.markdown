@@ -8,7 +8,7 @@
 ### Description
 This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
 
-In *<TEST_FILES>/inputs/returnvalue.sol:10*
+In *<TESTDATA>/inputs/returnvalue.sol:10*
 
 ```
 callee.call()
@@ -22,7 +22,7 @@ callee.call()
 ### Description
 This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
 
-In *<TEST_FILES>/inputs/returnvalue.sol:6*
+In *<TESTDATA>/inputs/returnvalue.sol:6*
 
 ```
 callee.call()
@@ -36,7 +36,7 @@ callee.call()
 ### Description
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-In *<TEST_FILES>/inputs/returnvalue.sol:6*
+In *<TESTDATA>/inputs/returnvalue.sol:6*
 
 ```
 callee.call()

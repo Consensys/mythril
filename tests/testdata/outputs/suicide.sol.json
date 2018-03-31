@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 146,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/suicide.sol",
+            "filename": "<TESTDATA>/inputs/suicide.sol",
             "lineno": 4,
             "code": "selfdestruct(addr)"
         }

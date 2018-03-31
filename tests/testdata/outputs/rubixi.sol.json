@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 1599,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 93,
             "code": "creator.send(feesToCollect)"
         },
@@ -20,7 +20,7 @@
             "type": "Warning",
             "address": 1940,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 75,
             "code": "creator.send(collectedFees)"
         },
@@ -31,7 +31,7 @@
             "type": "Informational",
             "address": 1653,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 131,
             "code": "participants[payoutOrder]"
         },
@@ -42,7 +42,7 @@
             "type": "Informational",
             "address": 2085,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 148,
             "code": "participants[orderInPyramid]"
         },
@@ -53,7 +53,7 @@
             "type": "Warning",
             "address": 2743,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 143,
             "code": "participants.length - payoutOrder"
         },
@@ -64,7 +64,7 @@
             "type": "Informational",
             "address": 1599,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 93,
             "code": "creator.send(feesToCollect)"
         },
@@ -75,7 +75,7 @@
             "type": "Informational",
             "address": 1940,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 75,
             "code": "creator.send(collectedFees)"
         },
@@ -86,7 +86,7 @@
             "type": "Informational",
             "address": 2582,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/rubixi.sol",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
             "lineno": 85,
             "code": "creator.send(_amt)"
         }

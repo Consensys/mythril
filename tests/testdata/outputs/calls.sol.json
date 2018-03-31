@@ -9,7 +9,7 @@
             "type": "Informational",
             "address": 661,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 16,
             "code": "fixed_address.call()"
         },
@@ -20,7 +20,7 @@
             "type": "Warning",
             "address": 779,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 29,
             "code": "stored_address.call()"
         },
@@ -31,7 +31,7 @@
             "type": "Informational",
             "address": 858,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 20,
             "code": "fixed_address.call()"
         },
@@ -42,7 +42,7 @@
             "type": "Warning",
             "address": 869,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 21,
             "code": "statevar = 0"
         },
@@ -53,7 +53,7 @@
             "type": "Warning",
             "address": 912,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 25,
             "code": "addr.call()"
         },
@@ -64,7 +64,7 @@
             "type": "Informational",
             "address": 661,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 16,
             "code": "fixed_address.call()"
         },
@@ -75,7 +75,7 @@
             "type": "Informational",
             "address": 779,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 29,
             "code": "stored_address.call()"
         },
@@ -86,7 +86,7 @@
             "type": "Informational",
             "address": 858,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 20,
             "code": "fixed_address.call()"
         },
@@ -97,7 +97,7 @@
             "type": "Informational",
             "address": 912,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/calls.sol",
+            "filename": "<TESTDATA>/inputs/calls.sol",
             "lineno": 25,
             "code": "addr.call()"
         }

@@ -9,7 +9,7 @@
 A possible integer underflow exists in the function sendeth(address,uint256).
 The substraction may result in a value < 0.
 
-In *<TEST_FILES>/inputs/underflow.sol:12*
+In *<TESTDATA>/inputs/underflow.sol:12*
 
 ```
 balances[msg.sender] -= _value
@@ -24,7 +24,7 @@ balances[msg.sender] -= _value
 A possible integer underflow exists in the function sendeth(address,uint256).
 The substraction may result in a value < 0.
 
-In *<TEST_FILES>/inputs/underflow.sol:11*
+In *<TESTDATA>/inputs/underflow.sol:11*
 
 ```
 balances[msg.sender] - _value

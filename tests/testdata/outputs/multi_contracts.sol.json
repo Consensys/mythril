@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 142,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/multi_contracts.sol",
+            "filename": "<TESTDATA>/inputs/multi_contracts.sol",
             "lineno": 14,
             "code": "msg.sender.transfer(2 ether)"
         }

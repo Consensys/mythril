@@ -9,7 +9,7 @@
             "type": "Informational",
             "address": 196,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/returnvalue.sol",
+            "filename": "<TESTDATA>/inputs/returnvalue.sol",
             "lineno": 10,
             "code": "callee.call()"
         },
@@ -20,7 +20,7 @@
             "type": "Informational",
             "address": 285,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/returnvalue.sol",
+            "filename": "<TESTDATA>/inputs/returnvalue.sol",
             "lineno": 6,
             "code": "callee.call()"
         },
@@ -31,7 +31,7 @@
             "type": "Informational",
             "address": 285,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/returnvalue.sol",
+            "filename": "<TESTDATA>/inputs/returnvalue.sol",
             "lineno": 6,
             "code": "callee.call()"
         }

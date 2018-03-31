@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 317,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/origin.sol",
+            "filename": "<TESTDATA>/inputs/origin.sol",
             "lineno": 18,
             "code": "tx.origin"
         }

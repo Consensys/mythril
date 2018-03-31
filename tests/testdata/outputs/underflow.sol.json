@@ -9,7 +9,7 @@
             "type": "Warning",
             "address": 649,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/underflow.sol",
+            "filename": "<TESTDATA>/inputs/underflow.sol",
             "lineno": 12,
             "code": "balances[msg.sender] -= _value"
         },
@@ -20,7 +20,7 @@
             "type": "Warning",
             "address": 567,
             "debug": "<DEBUG-DATA>",
-            "filename": "<TEST_FILES>/inputs/underflow.sol",
+            "filename": "<TESTDATA>/inputs/underflow.sol",
             "lineno": 11,
             "code": "balances[msg.sender] - _value"
         }
