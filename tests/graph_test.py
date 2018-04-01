@@ -1,12 +1,10 @@
-from unittest import TestCase
-
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ether import util
 from mythril.ether.soliditycontract import SolidityContract
 from tests import *
 
-class GraphTest(TestCase):
+class GraphTest(BaseTestCase):
 
     def test_generate_graph(self):
         for input_file in TESTDATA_INPUTS.iterdir():
@@ -19,4 +17,7 @@ class GraphTest(TestCase):
             html = generate_graph(sym)
             output_current.write_text(html)
 
-            self.assertEqual(output_expected.read_text(), output_current.read_text(), compare_files_error_message(output_expected, output_current))
+            if not (output_expected.read_text() == output_expected.read_text()):
+                self.found_changed_files(input_file, output_expected, output_current)
+
+        self.assert_and_show_changed_files()

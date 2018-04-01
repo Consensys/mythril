@@ -1,4 +1,3 @@
-from unittest import TestCase
 from subprocess import check_output
 from tests import *
 
@@ -7,7 +6,7 @@ MYTH = str(PROJECT_DIR / "myth")
 def output_of(command):
     return check_output(command, shell=True).decode("UTF-8")
 
-class CommandLineToolTestCase(TestCase):
+class CommandLineToolTestCase(BaseTestCase):
 
     def test_disassemble_code_correctly(self):
         command = "python3 {} MYTH -d -c 0x5050".format(MYTH)
@@ -22,14 +21,14 @@ class CommandLineToolTestCase(TestCase):
         command = "python3 {} --hash 'setOwner(address)'".format(MYTH)
         self.assertEqual('0x13af4035\n', output_of(command))
 
-class TruffleTestCase(TestCase):
+class TruffleTestCase(BaseTestCase):
 
     def test_analysis_truffle_project(self):
         truffle_project_root = str(TESTS_DIR / "truffle_project")
         command = "cd {}; truffle compile; python3 {} --truffle".format(truffle_project_root, MYTH)
         self.assertIn("In the function 'withdrawfunds()' a non-zero amount of Ether is sent to msg.sender.", output_of(command))
 
-class InfuraTestCase(TestCase):
+class InfuraTestCase(BaseTestCase):
 
     def test_infura_mainnet(self):
         command = "python3 {} --rpc infura-mainnet -d -a 0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208".format(MYTH)

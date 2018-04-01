@@ -1,17 +1,18 @@
-import unittest
 from mythril.ether.contractstorage import get_persistent_storage
 import os
+from tests import BaseTestCase
 
-class GetAndSearchContractTestCase(unittest.TestCase):
+class GetAndSearchContractTestCase(BaseTestCase):
 
     def setUp(self):
+        super(GetAndSearchContractTestCase, self).setUp()
         script_path = os.path.dirname(os.path.realpath(__file__))
         storage_dir = os.path.join(script_path, 'teststorage')
         self.storage, self.db = get_persistent_storage(storage_dir)
-        pass
 
     def tearDown(self):
         self.db.close()
+        super(GetAndSearchContractTestCase, self).tearDown()
 
     def mockCallback(self, code_hash, code, addresses, balances):
         self.code_hash = code_hash

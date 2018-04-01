@@ -1,5 +1,3 @@
-from unittest import TestCase
-
 from mythril.analysis.report import Report
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
@@ -30,7 +28,7 @@ def _generate_report(input_file):
 
     return report
 
-class AnalysisReportTest(TestCase):
+class AnalysisReportTest(BaseTestCase):
 
     def test_json_reports(self):
         for input_file in TESTDATA_INPUTS.iterdir():
@@ -38,10 +36,12 @@ class AnalysisReportTest(TestCase):
             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
 
             report = _generate_report(input_file)
-
             output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
 
-            self.assertEqual(output_expected.read_text(), output_expected.read_text(), compare_files_error_message(output_expected, output_current))
+            if not (output_expected.read_text() == output_expected.read_text()):
+                self.found_changed_files(input_file, output_expected, output_current)
+
+        self.assert_and_show_changed_files()
 
     def test_markdown_reports(self):
         for input_file in TESTDATA_INPUTS.iterdir():
@@ -49,10 +49,12 @@ class AnalysisReportTest(TestCase):
             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
 
             report = _generate_report(input_file)
-
             output_current.write_text(_fix_path(report.as_markdown()))
 
-            self.assertEqual(output_expected.read_text(), output_current.read_text(), compare_files_error_message(output_expected, output_current))
+            if not (output_expected.read_text() == output_expected.read_text()):
+                self.found_changed_files(input_file, output_expected, output_current)
+
+        self.assert_and_show_changed_files()
 
     def test_text_reports(self):
         for input_file in TESTDATA_INPUTS.iterdir():
@@ -60,7 +62,9 @@ class AnalysisReportTest(TestCase):
             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
 
             report = _generate_report(input_file)
-
             output_current.write_text(_fix_path(report.as_text()))
 
-            self.assertEqual(output_expected.read_text(), output_current.read_text(), compare_files_error_message(output_expected, output_current))
+            if not (output_expected.read_text() == output_expected.read_text()):
+                self.found_changed_files(input_file, output_expected, output_current)
+
+        self.assert_and_show_changed_files()
