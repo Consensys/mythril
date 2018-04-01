@@ -43,4 +43,4 @@ class AnalysisReportTest(TestCase):
 
             self.assertEqual(_fix_path(report.as_text()), text, "{}: text report is changed".format(str(input_file)))
             self.assertEqual(_fix_path(report.as_markdown()), markdown, "{}: markdown report is changed".format(str(input_file)))
-            self.assertEqual(_fix_path(_fix_debug_data(report.as_json())), json_report, "{}: json report is changed".format(str(input_file)))
+            self.assertEqual(_fix_path(_fix_debug_data(report.as_json())).strip(), json_report.strip(), "{}: json report is changed".format(str(input_file)))
