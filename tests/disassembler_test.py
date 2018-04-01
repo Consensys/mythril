@@ -18,12 +18,12 @@ class DisassemblerTestCase(TestCase):
 
     def test_easm_from_solidity_files(self):
         for input_file in TESTDATA_INPUTS.iterdir():
-            code = _compile_to_code(input_file)
+            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".easm")
+            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".easm")
 
+            code = _compile_to_code(input_file)
             disassembly = Disassembly(code)
 
-            # Useful for generating output file
-            # (TESTDATA_OUTPUTS / (input_file.name + ".easm")).write_text(disassembly.get_easm())
+            output_current.write_text(disassembly.get_easm())
 
-            expected_easm = (TESTDATA_OUTPUTS / (input_file.name + ".easm")).read_text()
-            self.assertEqual(disassembly.get_easm(), expected_easm, "{} returns invalid easm".format(str(input_file)))
+            self.assertEqual(output_expected.read_text(), output_current.read_text(), compare_files_error_message(output_expected, output_current))

@@ -14,3 +14,4 @@ lol*
 .idea*
 coverage_html_report/
 .coverage
+tests/testdata/outputs_current/

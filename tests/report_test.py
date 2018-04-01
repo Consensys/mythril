@@ -5,6 +5,7 @@ from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ether import util
 from mythril.ether.soliditycontract import SolidityContract
+
 import json
 from tests import *
 
@@ -17,30 +18,49 @@ def _fix_debug_data(json_str):
         issue["debug"] = "<DEBUG-DATA>"
     return json.dumps(read_json, indent=4)
 
+def _generate_report(input_file):
+    contract = SolidityContract(str(input_file), name=None, solc_args=None)
+    sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
+    issues = fire_lasers(sym)
+
+    report = Report()
+    for issue in issues:
+        issue.add_code_info(contract)
+        report.append_issue(issue)
+
+    return report
+
 class AnalysisReportTest(TestCase):
 
-    def test_reports(self):
-        for input_file in (TESTDATA / "inputs").iterdir():
-            contract = SolidityContract(str(input_file), name=None, solc_args=None)
-            sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
-            issues = fire_lasers(sym)
+    def test_json_reports(self):
+        for input_file in TESTDATA_INPUTS.iterdir():
+            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
+            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
 
-            for issue in issues:
-                issue.add_code_info(contract)
+            report = _generate_report(input_file)
 
-            report = Report()
-            for issue in issues:
-                report.append_issue(issue)
+            output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
 
-            # Useful for generating output file
-            # (TESTDATA_OUTPUTS / (input_file.name + ".text")).write_text(_fix_path(report.as_text()))
-            # (TESTDATA_OUTPUTS / (input_file.name + ".json")).write_text(_fix_path(_fix_debug_data(report.as_json())))
-            # (TESTDATA_OUTPUTS / (input_file.name + ".markdown")).write_text(_fix_path(report.as_markdown()))
+            self.assertEqual(output_expected.read_text(), output_expected.read_text(), compare_files_error_message(output_expected, output_current))
 
-            text = (TESTDATA / "outputs" / (input_file.name + ".text")).read_text()
-            json_report = (TESTDATA / "outputs" / (input_file.name + ".json")).read_text()
-            markdown = (TESTDATA / "outputs" / (input_file.name + ".markdown")).read_text()
+    def test_markdown_reports(self):
+        for input_file in TESTDATA_INPUTS.iterdir():
+            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
+            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
 
-            self.assertEqual(_fix_path(report.as_text()), text, "{}: text report is changed".format(str(input_file)))
-            self.assertEqual(_fix_path(report.as_markdown()), markdown, "{}: markdown report is changed".format(str(input_file)))
-            self.assertEqual(_fix_path(_fix_debug_data(report.as_json())).strip(), json_report.strip(), "{}: json report is changed".format(str(input_file)))
+            report = _generate_report(input_file)
+
+            output_current.write_text(_fix_path(report.as_markdown()))
+
+            self.assertEqual(output_expected.read_text(), output_current.read_text(), compare_files_error_message(output_expected, output_current))
+
+    def test_text_reports(self):
+        for input_file in TESTDATA_INPUTS.iterdir():
+            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
+            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
+
+            report = _generate_report(input_file)
+
+            output_current.write_text(_fix_path(report.as_text()))
+
+            self.assertEqual(output_expected.read_text(), output_current.read_text(), compare_files_error_message(output_expected, output_current))
