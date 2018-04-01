@@ -1,11 +1,11 @@
-from unittest import TestCase
 from pathlib import Path
 
 from mythril.ether.soliditycontract import SolidityContract
+from tests import BaseTestCase
 
 TEST_FILES = Path(__file__).parent / "testdata/inputs"
 
-class SolidityContractTest(TestCase):
+class SolidityContractTest(BaseTestCase):
 
     def test_get_source_info_without_name_gets_latest_contract_info(self):
         input_file = TEST_FILES / "multi_contracts.sol"
