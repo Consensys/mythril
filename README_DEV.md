@@ -52,6 +52,12 @@ pip3 install -r requirements.txt
 
 It may cost you about 3 minutes to run all the tests.
 
+The tests may save their outputs content to `./tests/testdata/outputs_current/`, you can compare the files between it and `./tests/testdata/outputs_expected/` to see the difference if there is any changes.
+
+If you think the changes are expected, you can just copy them to `outputs_expected` and commit them as new expected outputs.
+
+The `./tests/testdata/outputs_current/` directory is deleted and recreated in `all_tests.sh` and `coverage_report.sh` each time.
+
 ### Generating test coverage report 
 
 ```bash
