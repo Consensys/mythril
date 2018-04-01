@@ -35,6 +35,14 @@ We use `--syncmode full` here because the `eth.blockNumber` will get increased s
 
 If there is no error thrown, you can wait 1 or 2 minutes before running tests.
 
+And you need to check `eth.coinbase` has no error thrown and `eth.blockNumber` should greater than `0`:
+
+```
+$ geth attach
+> eth.coinbase
+> eth.blockNumber
+```
+
 ### Run the tests
 
 ```bash
