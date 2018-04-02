@@ -12,10 +12,12 @@ MODULE DESCRIPTION:
 Check for call.value()() to external addresses
 '''
 
-MAX_SEARCH_DEPTH = 32
+MAX_SEARCH_DEPTH = 64
 
 
 def search_children(statespace, node, start_index=0, depth=0, results=[]):
+
+    logging.debug("SEARCHING NODE %d", node.uid)
 
     if(depth < MAX_SEARCH_DEPTH):
 
