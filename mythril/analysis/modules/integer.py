@@ -66,7 +66,7 @@ def execute(statespace):
                         issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow", "Warning")
 
                         issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
-                            "The substraction may result in a value < 0."
+                            "The subtraction may result in a value < 0."
 
                         issue.debug = solver.pretty_print_model(model)
                         issues.append(issue)
