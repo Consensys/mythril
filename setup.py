@@ -290,10 +290,11 @@ setup(
         'ethereum>=2.0.4',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum==0.5.19',
+        'laser-ethereum>=0.5.19',
         'requests',
         'BTrees',
-        'py-solc'
+        'py-solc',
+        'plyvel'
     ],
 
     python_requires='>=3.5',
