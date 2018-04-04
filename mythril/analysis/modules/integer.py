@@ -49,7 +49,7 @@ def _check_integer_overflow(state, node):
     # Check the instruction
     instruction = state.get_current_instruction()
     if instruction['opcode'] != "ADD":
-        return
+        return []
 
     constraints = copy.deepcopy(node.constraints)
 
@@ -63,7 +63,7 @@ def _check_integer_overflow(state, node):
     try:
         model = solver.get_model(constraints)
 
-        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
+        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ",
                       "Warning")
 
         issue.description = "A possible integer overflow exists in the function {}.\n " \
@@ -74,7 +74,7 @@ def _check_integer_overflow(state, node):
     except UnsatError:
         logging.debug("[INTEGER_UNDERFLOW] no model found")
 
-    return []
+    return issues
 
 
 def _check_integer_underflow(state, node):
@@ -95,13 +95,13 @@ def _check_integer_underflow(state, node):
         # Pattern 1: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would underflow if calldatasize is very large.
         # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
         if type(op0) == int and type(op1) == int:
-            return
+            return []
         if re.search(r'calldatasize_', str(op0)):
-            return
+            return []
         if re.search(r'256\*.*If\(1', str(op0), re.DOTALL) or re.search(r'256\*.*If\(1', str(op1), re.DOTALL):
-            return
+            return []
         if re.search(r'32 \+.*calldata', str(op0), re.DOTALL) or re.search(r'32 \+.*calldata', str(op1), re.DOTALL):
-            return
+            return []
 
         logging.debug("[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(str(op0), str(op1),
                                                                                         str(instruction['address'])))
@@ -126,3 +126,4 @@ def _check_integer_underflow(state, node):
 
             except UnsatError:
                 logging.debug("[INTEGER_UNDERFLOW] no model found")
+    return issues
