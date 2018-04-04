@@ -38,6 +38,34 @@ def execute(statespace):
 
 
 def _check_integer_overflow(state, node):
+    """Checks if an overflow occurs"""
+    issues = []
+
+    # Check the instruction
+    instruction = state.get_current_instruction()
+    if instruction['opcode'] != "ADD":
+        return
+
+    constraints = copy.deepcopy(node.constraints)
+
+    stack = state.mstate.stack
+    op0, op1 = stack[-1], stack[-2]
+    constraints.append(UGT(op0 + op1, (2 ** 32) - 1))
+
+    try:
+        model = solver.get_model(constraints)
+
+        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
+                      "Warning")
+
+        issue.description = "A possible integer overflow exists in the function {}.\n " \
+                            "Addition will result in a lower value".format(node.function_name)
+        issue.debug = solver.pretty_print_model(model)
+        issues.append(issue)
+
+    except UnsatError:
+        logging.debug("[INTEGER_UNDERFLOW] no model found")
+
     return []
 
 
