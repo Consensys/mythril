@@ -38,7 +38,12 @@ def execute(statespace):
 
 
 def _check_integer_overflow(state, node):
-    """Checks if an overflow occurs"""
+    """
+    Checks for integer overflow
+    :param state: state from node to examine
+    :param node: node to examine
+    :return: found issue
+    """
     issues = []
 
     # Check the instruction
@@ -48,8 +53,11 @@ def _check_integer_overflow(state, node):
 
     constraints = copy.deepcopy(node.constraints)
 
+    # Formulate overflow constraints
     stack = state.mstate.stack
     op0, op1 = stack[-1], stack[-2]
+
+    # An integer overflow is possible if op0 + op1,
     constraints.append(UGT(op0 + op1, (2 ** 32) - 1))
 
     try:
