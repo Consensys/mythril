@@ -78,6 +78,12 @@ def _check_integer_overflow(state, node):
 
 
 def _check_integer_underflow(state, node):
+    """
+    Checks for integer underflow
+    :param state: state from node to examine
+    :param node: node to examine
+    :return: found issue
+    """
     issues = []
     instruction = state.get_current_instruction()
 
