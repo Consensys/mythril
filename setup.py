@@ -290,11 +290,11 @@ setup(
         'ethereum>=2.3.0',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-<<<<<<< HEAD
         'laser-ethereum==0.5.20',
         'requests',
         'BTrees',
         'py-solc',
+        'plyvel'
         'eth_abi>=1.0.0',
         'eth-utils>=1.0.1',
         'eth-account>=0.1.0a2',
@@ -304,13 +304,11 @@ setup(
         'eth-rlp>=0.1.0',
         'eth-tester>=0.1.0b21',
         'coverage'
-=======
         'laser-ethereum>=0.5.19',
         'requests',
         'BTrees',
         'py-solc',
         'plyvel'
->>>>>>> 4f234e7ef36f8a9c53c19716f6a0bef7f6c7e892
     ],
 
     python_requires='>=3.5',
