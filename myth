@@ -33,6 +33,8 @@ from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 
+# logging.basicConfig(level=logging.DEBUG)
+
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash)
