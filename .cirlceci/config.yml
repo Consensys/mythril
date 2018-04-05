@@ -1,0 +1,18 @@
+version: 2
+
+jobs:
+  # Basic testing of a new commit to any branch.
+  test:
+    docker:
+      - image: birdofpreyru/mythril:0.0.1
+    steps:
+      - checkout
+      - run:
+          name: Unit-testing
+          command: python3 ./all_tests.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
