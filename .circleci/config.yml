@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run:
           name: Unit-testing
-          command: python3 ./all_tests.sh
+          command: ./all_tests.sh
 
 workflows:
   version: 2
