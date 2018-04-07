@@ -15,7 +15,7 @@ bodyPrefix = b'b'       # bodyPrefix + num (uint64 big endian) + hash -> block b
 numSuffix = b'n'        # headerPrefix + num (uint64 big endian) + numSuffix -> hash
 blockHashPrefix = b'H'  # blockHashPrefix + hash -> num (uint64 big endian)
 # known geth keys
-headHeaderKey = b'LastHeader' # head (latest) header hash
+headHeaderKey = b'LastBlock' # head (latest) header hash
 
 def _formatBlockNumber(number):
     '''
@@ -162,6 +162,12 @@ class EthLevelDB(object):
             hash = self.db.get(headHeaderKey)
             num = self._get_block_number(hash)
             self.headBlockHeader = self._get_block_header(hash, num)
+            # find header with valid state
+            while not self.db.get(self.headBlockHeader.state_root) and self.headBlockHeader.prevhash is not None:
+                hash = self.headBlockHeader.prevhash
+                num = self._get_block_number(hash)
+                self.headBlockHeader = self._get_block_header(hash, num)
+            
         return self.headBlockHeader
 
     def _get_block_number(self, hash):
