@@ -5,11 +5,23 @@ jobs:
   test:
     docker:
       - image: birdofpreyru/mythril:0.0.1
+
     steps:
-      - checkout
+      - checkout:
+          path: /home/mythril
+
+      - run:
+          name: Installing mythril tools
+          command: cd /home && ./install-mythril-tools.sh laser-ethereum
+
+      - run:
+          background: true
+          name: Launch of background geth instance
+          command: geth --syncmode full --rpc --shh
+
       - run:
           name: Unit-testing
-          command: ./all_tests.sh
+          command: cd /home/mythril && ./all_tests.sh
 
 workflows:
   version: 2
