@@ -4,6 +4,7 @@ z3-solver>=4.5
 laser-ethereum>=0.5.20
 requests
 BTrees
+plyvel
 py-solc
 eth_abi>=1.0.0
 eth-utils>=1.0.1

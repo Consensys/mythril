@@ -10,9 +10,17 @@ jobs:
       - checkout:
           path: /home/mythril
 
+      # Uncomment, for local testing with circleci command, as it ignores
+      # path param in checkout command, and this symlink compenstates for that.
+      # - run: ln -s /root/project /home/mythril
+
       - run:
           name: Installing mythril tools
           command: cd /home && ./install-mythril-tools.sh laser-ethereum
+
+      - run:
+          name: Install dependencies, in case any are missing in Docker image
+          command: pip3 install -r /home/mythril/requirements.txt
 
       - run:
           background: true
