@@ -1,5 +1,5 @@
 # Mythril
-
+![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
 [![Join the chat at https://gitter.im/ConsenSys/mythril](https://badges.gitter.im/ConsenSys/mythril.svg)](https://gitter.im/ConsenSys/mythril?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)  [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
 
 <img height="120px" align="right" src="/static/mythril.png"/>
