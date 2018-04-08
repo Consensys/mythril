@@ -31,6 +31,10 @@ jobs:
           name: Unit-testing
           command: cd /home/mythril && ./all_tests.sh
 
+      - run:
+          name: Ensuring that setup script is functional
+          command: cd /home/mythril && python3 setup.py install
+
 workflows:
   version: 2
   build:
