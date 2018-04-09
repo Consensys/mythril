@@ -11,6 +11,7 @@ contract Over {
     require(balances[msg.sender] - _value >= 0);
     balances[msg.sender] -= _value;
     balances[_to] += _value;
+    balances[_to] = 2;
     return true;
   }
 

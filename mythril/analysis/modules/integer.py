@@ -12,6 +12,7 @@ MODULE DESCRIPTION:
 
 Check for integer underflows.
 For every SUB instruction, check if there's a possible state where op1 > op0.
+For every ADD instruction, check if there's a possible state where op1 + op0 > 2^32 - 1 
 '''
 
 
@@ -65,7 +66,10 @@ def _check_integer_overflow(statespace, state, node):
         model = solver.get_model(constraints)
 
         # If we get to this point then there has been an integer overflow
+        # Find out if the overflowed value is actually used
         interesting_usages = _search_children(statespace, node, (op0 + op1), index=node.states.index(state))
+
+        # Stop if it isn't
         if len(interesting_usages) == 0:
             return issues
 
@@ -141,9 +145,6 @@ def _check_integer_underflow(state, node):
     return issues
 
 
-MAX_SEARCH_DEPTH = 64
-
-
 def _check_usage(state, expression):
     """Delegates checks to _check_{instruction_name}()"""
     opcode = state.get_current_instruction()['opcode']
@@ -171,35 +172,36 @@ def _check_sstore(state, expression):
     return str(expression) in str(value)
 
 
-def _search_children(statespace, node, expression, index=0, depth=0, analyze=_check_usage, opcodes=('JUMPI', 'SSTORE')):
+def _search_children(statespace, node, expression, index=0, depth=0, max_depth=64):
     """
-    Checks the statespace for child states with instructions that match the opcodes and see if their elements are
-    dependent on expression.
+    Checks the statespace for children states, with JUMPI or SSTORE instuctions,
+    for dependency on expression
     :param statespace: The statespace to explore
     :param node: Current node to explore from
-    :param expression: expression to look for
+    :param expression: Expression to look for
     :param index: Current state index node.states[index] == current_state
     :param depth: Current depth level
-    :param analyze: Analysis method, returns array of positive children
-    :param opcodes: opcodes to look for
+    :param max_depth: Max depth to explore
     :return: List of states that match the opcodes and are dependent on expression
     """
     logging.debug("SEARCHING NODE %d", node.uid)
 
     results = []
 
-    if depth >= MAX_SEARCH_DEPTH:
+    if depth >= max_depth:
         return []
 
+    # Explore current node from index
     for j in range(index, len(node.states)):
         current_state = node.states[j]
         current_instruction = current_state.get_current_instruction()
-        if current_instruction['opcode'] in opcodes:
-            results += analyze(current_state, expression)
+        if current_instruction['opcode'] in ('JUMPI', 'SSTORE'):
+            results += _check_usage(current_state, expression)
 
-    children = [edge.node_to for edge in statespace.edges if edge.node_from is node]
+    # Recursively search children
+    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
     for child in children:
-        results += _search_children(statespace, child, depth=depth+1, analyze=analyze, opcodes=opcodes)
+        results += _search_children(statespace, child, depth=depth+1, max_depth=max_depth)
 
     return results
 
