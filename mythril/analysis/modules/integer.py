@@ -32,14 +32,15 @@ def execute(statespace):
             logging.debug("Checking for integer underflow")
             issues += _check_integer_underflow(state, node)
             logging.debug("Checking for integer overflow")
-            issues += _check_integer_overflow(state, node)
+            issues += _check_integer_overflow(statespace, state, node)
 
     return issues
 
 
-def _check_integer_overflow(state, node):
+def _check_integer_overflow(statespace, state, node):
     """
     Checks for integer overflow
+    :param statespace: statespace that is being examined
     :param state: state from node to examine
     :param node: node to examine
     :return: found issue
@@ -63,11 +64,16 @@ def _check_integer_overflow(state, node):
     try:
         model = solver.get_model(constraints)
 
+        # If we get to this point then there has been an integer overflow
+        interesting_usages = _search_children(statespace, node, (op0 + op1), index=node.states.index(state))
+        if len(interesting_usages) == 0:
+            return issues
+
         issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ",
                       "Warning")
 
         issue.description = "A possible integer overflow exists in the function {}.\n " \
-                            "Addition will result in a lower value".format(node.function_name)
+                            "Addition will result in a lower value.".format(node.function_name)
         issue.debug = solver.pretty_print_model(model)
         issues.append(issue)
 
@@ -133,3 +139,67 @@ def _check_integer_underflow(state, node):
             except UnsatError:
                 logging.debug("[INTEGER_UNDERFLOW] no model found")
     return issues
+
+
+MAX_SEARCH_DEPTH = 64
+
+
+def _check_usage(state, expression):
+    """Delegates checks to _check_{instruction_name}()"""
+    opcode = state.get_current_instruction()['opcode']
+
+    if opcode == 'JUMPI':
+        if _check_jumpi(state, expression):
+            return [state]
+    elif opcode == 'SSTORE':
+        if _check_sstore(state, expression):
+            return [state]
+    return []
+
+
+def _check_jumpi(state, expression):
+    """ Check if conditional jump is dependent on the result of expression"""
+    assert state.get_current_instruction()['opcode'] is 'JUMPI'
+    condition = state.mstate.stack[-2]
+    return str(expression) in str(condition)
+
+
+def _check_sstore(state, expression):
+    """ Check if store operation is dependent on the result of expression"""
+    assert state.get_current_instruction()['opcode'] is 'SSTORE'
+    value = state.mstate.stack[-2]
+    return str(expression) in str(value)
+
+
+def _search_children(statespace, node, expression, index=0, depth=0, analyze=_check_usage, opcodes=('JUMPI', 'SSTORE')):
+    """
+    Checks the statespace for child states with instructions that match the opcodes and see if their elements are
+    dependent on expression.
+    :param statespace: The statespace to explore
+    :param node: Current node to explore from
+    :param expression: expression to look for
+    :param index: Current state index node.states[index] == current_state
+    :param depth: Current depth level
+    :param analyze: Analysis method, returns array of positive children
+    :param opcodes: opcodes to look for
+    :return: List of states that match the opcodes and are dependent on expression
+    """
+    logging.debug("SEARCHING NODE %d", node.uid)
+
+    results = []
+
+    if depth >= MAX_SEARCH_DEPTH:
+        return []
+
+    for j in range(index, len(node.states)):
+        current_state = node.states[j]
+        current_instruction = current_state.get_current_instruction()
+        if current_instruction['opcode'] in opcodes:
+            results += analyze(current_state, expression)
+
+    children = [edge.node_to for edge in statespace.edges if edge.node_from is node]
+    for child in children:
+        results += _search_children(statespace, child, depth=depth+1, analyze=analyze, opcodes=opcodes)
+
+    return results
+
