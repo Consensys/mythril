@@ -254,7 +254,7 @@ Credit
 setup(
     name='mythril',
 
-    version=os.getenv('CIRCLE_TAG', 'v0.0.0')[1:],
+    version=os.getenv('CIRCLE_TAG', 'v0.15.8')[1:],
 
     description='Security analysis tool for Ethereum smart contracts',
     long_description=long_description,
