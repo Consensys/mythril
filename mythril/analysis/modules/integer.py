@@ -184,7 +184,7 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
     :param max_depth: Max depth to explore
     :return: List of states that match the opcodes and are dependent on expression
     """
-    logging.debug("SEARCHING NODE %d", node.uid)
+    logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
 
     results = []
 
