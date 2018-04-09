@@ -82,7 +82,7 @@ def _check_integer_overflow(statespace, state, node):
         issues.append(issue)
 
     except UnsatError:
-        logging.debug("[INTEGER_UNDERFLOW] no model found")
+        logging.debug("[INTEGER_OVERFLOW] no model found")
 
     return issues
 
