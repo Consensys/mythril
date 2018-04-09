@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-
+import os
 
 long_description = '''
 Mythril is a security analysis tool for Ethereum smart contracts. It
@@ -254,7 +254,7 @@ Credit
 setup(
     name='mythril',
 
-    version='0.15.8',
+    version=os.getenv('CIRCLE_TAG', 'v0.0.0')[1:],
 
     description='Security analysis tool for Ethereum smart contracts',
     long_description=long_description,

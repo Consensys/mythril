@@ -35,8 +35,27 @@ jobs:
           name: Ensuring that setup script is functional
           command: cd /home/mythril && python3 setup.py install
 
+  deploy:
+    docker:
+      - image: birdofpreyru/mythril:0.0.1
+    steps:
+      - checkout:
+          path: /home/mythril
+      - run:
+          name: Build
+          command: cd /home/mythril && python3 setup.py sdist
+      - run:
+          name: Deploy
+          command: cd /home/mythril && twine upload dist/*
+
 workflows:
   version: 2
   build:
     jobs:
       - test
+      - deploy:
+          filters:
+            only:
+              tags: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
