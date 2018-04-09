@@ -241,9 +241,28 @@ $ wget https://raw.githubusercontent.com/b-mueller/mythril/master/signatures.jso
 
 When you analyze Solidity code, new function signatures are added to the database automatically.
 
+
+### Use LevelDB directly
+
+If you want to directly use the LevelDB database of your local geth instance you can do so by specifying it's path with *--leveldb* option:
+
+```bash
+$ myth --leveldb ./geth/chaindata -s "code#PUSH#"
+$ myth --leveldb ./geth/chaindata -a 0xA692B965434F804BF7C39217E881F2c229befc2e --storage 0,10
+```
+
+Default geth data directories are:
+
+* Mac: `~/Library/Ethereum`
+* Linux: `~/.ethereum`
+* Windows: `%APPDATA%\Ethereum`
+
+The chaindata LevelDB is located at `<datadir>/geth/chaindata`
+
 ## For developers
 
 You can find how to run tests and generate coverage reports in [README_DEV.md](./README_DEV.md)
+
 
 ## Credit
 

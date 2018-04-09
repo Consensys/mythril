@@ -32,6 +32,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
+from mythril.leveldb.client import EthLevelDB
 
 
 def searchCallback(code_hash, code, addresses, balances):
@@ -85,6 +86,7 @@ options.add_argument('--solc-args', help='Extra arguments for solc')
 options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
 options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
 options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
+options.add_argument('--leveldb', help='enable direct leveldb access operations', metavar='LEVELDB_PATH')
 
 rpc = parser.add_argument_group('RPC options')
 rpc.add_argument('-i', action='store_true', help='Preset: Infura Node service (Mainnet)')
@@ -181,9 +183,15 @@ else:
     except KeyError:
         solc_binary = 'solc'
 
+# Open LevelDB if specified
+
+if args.leveldb:
+    ethDB = EthLevelDB(args.leveldb)
+    eth = ethDB
+
 # Establish RPC/IPC connection if necessary
 
-if args.address or args.init_db:
+if (args.address or args.init_db) and not args.leveldb:
 
     if args.i:
         eth = EthJsonRpc('mainnet.infura.io', 443, True)
@@ -234,7 +242,10 @@ if args.search or args.init_db:
     contract_storage, _ = get_persistent_storage(mythril_dir)
     if args.search:
         try:
-            contract_storage.search(args.search, searchCallback)
+            if not args.leveldb:
+                contract_storage.search(args.search, searchCallback)
+            else:
+                ethDB.search(args.search, searchCallback)
         except SyntaxError:
             exitWithError(args.outform, "Syntax error in search expression.")
     elif args.init_db:

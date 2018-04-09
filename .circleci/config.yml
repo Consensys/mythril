@@ -10,9 +10,17 @@ jobs:
       - checkout:
           path: /home/mythril
 
+      # Uncomment, for local testing with circleci command, as it ignores
+      # path param in checkout command, and this symlink compenstates for that.
+      # - run: ln -s /root/project /home/mythril
+
       - run:
           name: Installing mythril tools
           command: cd /home && ./install-mythril-tools.sh laser-ethereum
+
+      - run:
+          name: Install dependencies, in case any are missing in Docker image
+          command: pip3 install -r /home/mythril/requirements.txt
 
       - run:
           background: true
@@ -23,8 +31,31 @@ jobs:
           name: Unit-testing
           command: cd /home/mythril && ./all_tests.sh
 
+      - run:
+          name: Ensuring that setup script is functional
+          command: cd /home/mythril && python3 setup.py install
+
+  deploy:
+    docker:
+      - image: birdofpreyru/mythril:0.0.1
+    steps:
+      - checkout:
+          path: /home/mythril
+      - run:
+          name: Build
+          command: cd /home/mythril && python3 setup.py sdist
+      - run:
+          name: Deploy
+          command: cd /home/mythril && twine upload dist/*
+
 workflows:
   version: 2
   build:
     jobs:
       - test
+      - deploy:
+          filters:
+            only:
+              tags: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
