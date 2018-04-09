@@ -52,10 +52,15 @@ workflows:
   version: 2
   build:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /.*/
       - deploy:
           filters:
-            only:
-              tags: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
           requires:
             - test
