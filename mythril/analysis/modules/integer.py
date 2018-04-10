@@ -201,7 +201,7 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
     # Recursively search children
     children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
     for child in children:
-        results += _search_children(statespace, child, depth=depth+1, max_depth=max_depth)
+        results += _search_children(statespace, child, expression, depth=depth+1, max_depth=max_depth)
 
     return results
 
