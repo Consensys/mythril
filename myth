@@ -34,6 +34,8 @@ from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 from mythril.leveldb.client import EthLevelDB
 
+# logging.basicConfig(level=logging.DEBUG)
+
 
 def searchCallback(code_hash, code, addresses, balances):
     print("Matched contract with code hash " + code_hash)
