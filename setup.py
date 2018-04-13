@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-
+import os
 
 long_description = '''
 Mythril is a security analysis tool for Ethereum smart contracts. It
@@ -254,7 +254,7 @@ Credit
 setup(
     name='mythril',
 
-    version='0.15.8',
+    version=os.getenv('CIRCLE_TAG', 'v0.15.8')[1:],
 
     description='Security analysis tool for Ethereum smart contracts',
     long_description=long_description,
@@ -290,11 +290,11 @@ setup(
         'ethereum>=2.3.0',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum==0.5.20',
+        'laser-ethereum>=0.5.20',
         'requests',
         'BTrees',
         'py-solc',
-        'plyvel'
+        'plyvel',
         'eth_abi>=1.0.0',
         'eth-utils>=1.0.1',
         'eth-account>=0.1.0a2',
@@ -304,11 +304,6 @@ setup(
         'eth-rlp>=0.1.0',
         'eth-tester>=0.1.0b21',
         'coverage'
-        'laser-ethereum>=0.5.19',
-        'requests',
-        'BTrees',
-        'py-solc',
-        'plyvel'
     ],
 
     python_requires='>=3.5',
