@@ -4,7 +4,7 @@
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
-Mythril is a security analysis tool for Ethereum smart contracts. It uses the [LASER-ethereum symbolic virtual machine](https://github.com/b-mueller/laser-ethereum) to detect [various types of issues](security_checks.md). Use it to analyze source code or as a nmap-style black-box blockchain scanner (an "ethermap" if you will).
+Mythril is a security analysis tool for Ethereum smart contracts. Check out ["Smashing Ethereum smart contracts for fun and real profit"](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf) for a detailed introduction.
 
   * [Installation and setup](#installation-and-setup)
   * [Security analysis](#security-analysis)
