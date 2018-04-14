@@ -22,7 +22,7 @@ balances[msg.sender] -= _value
 
 ### Description
 A possible integer overflow exists in the function sendeth(address,uint256).
- Addition will result in a lower value
+ Addition will result in a lower value.
 
 In *<TESTDATA>/inputs/overflow.sol:13*
 

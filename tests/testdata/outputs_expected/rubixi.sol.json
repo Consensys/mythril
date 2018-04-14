@@ -47,8 +47,19 @@
             "code": "participants[orderInPyramid]"
         },
         {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function _function_0xfae14192.\n Addition will result in a lower value.",
+            "function": "_function_0xfae14192",
+            "type": "Warning",
+            "address": 1223,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
+            "lineno": 37,
+            "code": "collectedFees += msg.value"
+        },
+        {
             "title": "Integer Underflow",
-            "description": "A possible integer underflow exists in the function _function_0xd11f13df.\nThe substraction may result in a value < 0.",
+            "description": "A possible integer underflow exists in the function _function_0xd11f13df.\nThe subtraction may result in a value < 0.",
             "function": "_function_0xd11f13df",
             "type": "Warning",
             "address": 2743,

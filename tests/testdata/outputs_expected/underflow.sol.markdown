@@ -7,12 +7,27 @@
 
 ### Description
 A possible integer underflow exists in the function sendeth(address,uint256).
-The substraction may result in a value < 0.
+The subtraction may result in a value < 0.
 
 In *<TESTDATA>/inputs/underflow.sol:12*
 
 ```
 balances[msg.sender] -= _value
+```
+## Integer Overflow 
+- Type: Warning
+- Contract: Under
+- Function name: `sendeth(address,uint256)`
+- PC address: 725
+
+### Description
+A possible integer overflow exists in the function sendeth(address,uint256).
+ Addition will result in a lower value.
+
+In *<TESTDATA>/inputs/underflow.sol:13*
+
+```
+balances[_to] += _value
 ```
 ## Integer Underflow
 - Type: Warning
@@ -22,7 +37,7 @@ balances[msg.sender] -= _value
 
 ### Description
 A possible integer underflow exists in the function sendeth(address,uint256).
-The substraction may result in a value < 0.
+The subtraction may result in a value < 0.
 
 In *<TESTDATA>/inputs/underflow.sol:11*
 

@@ -15,3 +15,18 @@ In *<TESTDATA>/inputs/ether_send.sol:18*
 ```
 msg.sender.transfer(this.balance)
 ```
+## Integer Overflow 
+- Type: Warning
+- Contract: Crowdfunding
+- Function name: `invest()`
+- PC address: 483
+
+### Description
+A possible integer overflow exists in the function invest().
+ Addition will result in a lower value.
+
+In *<TESTDATA>/inputs/ether_send.sol:24*
+
+```
+balances[msg.sender] += msg.value
+```

@@ -12,6 +12,17 @@
             "filename": "<TESTDATA>/inputs/ether_send.sol",
             "lineno": 18,
             "code": "msg.sender.transfer(this.balance)"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function invest().\n Addition will result in a lower value.",
+            "function": "invest()",
+            "type": "Warning",
+            "address": 483,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/ether_send.sol",
+            "lineno": 24,
+            "code": "balances[msg.sender] += msg.value"
         }
     ]
 }

@@ -4,7 +4,7 @@
     "issues": [
         {
             "title": "Integer Underflow",
-            "description": "A possible integer underflow exists in the function sendeth(address,uint256).\nThe substraction may result in a value < 0.",
+            "description": "A possible integer underflow exists in the function sendeth(address,uint256).\nThe subtraction may result in a value < 0.",
             "function": "sendeth(address,uint256)",
             "type": "Warning",
             "address": 649,
@@ -14,8 +14,19 @@
             "code": "balances[msg.sender] -= _value"
         },
         {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function sendeth(address,uint256).\n Addition will result in a lower value.",
+            "function": "sendeth(address,uint256)",
+            "type": "Warning",
+            "address": 725,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/underflow.sol",
+            "lineno": 13,
+            "code": "balances[_to] += _value"
+        },
+        {
             "title": "Integer Underflow",
-            "description": "A possible integer underflow exists in the function sendeth(address,uint256).\nThe substraction may result in a value < 0.",
+            "description": "A possible integer underflow exists in the function sendeth(address,uint256).\nThe subtraction may result in a value < 0.",
             "function": "sendeth(address,uint256)",
             "type": "Warning",
             "address": 567,

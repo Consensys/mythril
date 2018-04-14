@@ -45,6 +45,28 @@
             "filename": "<TESTDATA>/inputs/weak_random.sol",
             "lineno": 11,
             "code": "prize / totalTickets"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function _function_0xe9874106.\n Addition will result in a lower value.",
+            "function": "_function_0xe9874106",
+            "type": "Warning",
+            "address": 1216,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/weak_random.sol",
+            "lineno": 45,
+            "code": "gameId++"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function _function_0xe9874106.\n Addition will result in a lower value.",
+            "function": "_function_0xe9874106",
+            "type": "Warning",
+            "address": 262,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/weak_random.sol",
+            "lineno": 22,
+            "code": "contestants[currTicket] = Contestant(msg.sender, gameId)"
         }
     ]
 }

@@ -63,6 +63,21 @@ In *<TESTDATA>/inputs/rubixi.sol:148*
 ```
 participants[orderInPyramid]
 ```
+## Integer Overflow 
+- Type: Warning
+- Contract: Rubixi
+- Function name: `_function_0xfae14192`
+- PC address: 1223
+
+### Description
+A possible integer overflow exists in the function _function_0xfae14192.
+ Addition will result in a lower value.
+
+In *<TESTDATA>/inputs/rubixi.sol:37*
+
+```
+collectedFees += msg.value
+```
 ## Integer Underflow
 - Type: Warning
 - Contract: Rubixi
@@ -71,7 +86,7 @@ participants[orderInPyramid]
 
 ### Description
 A possible integer underflow exists in the function _function_0xd11f13df.
-The substraction may result in a value < 0.
+The subtraction may result in a value < 0.
 
 In *<TESTDATA>/inputs/rubixi.sol:143*
 
