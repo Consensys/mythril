@@ -23,7 +23,7 @@ class DisassemblerTestCase(BaseTestCase):
             disassembly = Disassembly(code)
             output_current.write_text(disassembly.get_easm())
 
-            if not (output_expected.read_text() == output_expected.read_text()):
+            if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
 
         self.assert_and_show_changed_files()
