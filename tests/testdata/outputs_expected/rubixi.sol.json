@@ -48,7 +48,7 @@
         },
         {
             "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function _function_0xfae14192.\n Addition will result in a lower value.",
+            "description": "A possible integer overflow exists in the function _function_0xfae14192.\n Addition may result in a lower value.",
             "function": "_function_0xfae14192",
             "type": "Warning",
             "address": 1223,

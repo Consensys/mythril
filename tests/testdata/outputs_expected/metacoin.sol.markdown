@@ -7,7 +7,7 @@
 
 ### Description
 A possible integer overflow exists in the function sendToken(address,uint256).
- Addition will result in a lower value.
+ Addition may result in a lower value.
 
 In *<TESTDATA>/inputs/metacoin.sol:12*
 

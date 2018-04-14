@@ -15,7 +15,7 @@
         },
         {
             "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function sendeth(address,uint256).\n Addition will result in a lower value.",
+            "description": "A possible integer overflow exists in the function sendeth(address,uint256).\n Addition may result in a lower value.",
             "function": "sendeth(address,uint256)",
             "type": "Warning",
             "address": 725,

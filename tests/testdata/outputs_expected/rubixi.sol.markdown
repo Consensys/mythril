@@ -71,7 +71,7 @@ participants[orderInPyramid]
 
 ### Description
 A possible integer overflow exists in the function _function_0xfae14192.
- Addition will result in a lower value.
+ Addition may result in a lower value.
 
 In *<TESTDATA>/inputs/rubixi.sol:37*
 

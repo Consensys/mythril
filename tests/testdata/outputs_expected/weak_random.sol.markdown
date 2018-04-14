@@ -69,7 +69,7 @@ prize / totalTickets
 
 ### Description
 A possible integer overflow exists in the function _function_0xe9874106.
- Addition will result in a lower value.
+ Addition may result in a lower value.
 
 In *<TESTDATA>/inputs/weak_random.sol:45*
 
@@ -84,7 +84,7 @@ gameId++
 
 ### Description
 A possible integer overflow exists in the function _function_0xe9874106.
- Addition will result in a lower value.
+ Addition may result in a lower value.
 
 In *<TESTDATA>/inputs/weak_random.sol:22*
 
