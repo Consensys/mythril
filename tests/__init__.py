@@ -25,14 +25,17 @@ class BaseTestCase(TestCase):
         os.remove(str(MYTHRIL_DIR / "signatures.json"))
 
     def compare_files_error_message(self):
-        message = "Following output files are changed, compare them manually to see differences:"
+        message = "Following output files are changed, compare them manually to see differences: \n"
+
         for (input_file, expected, current) in self.changed_files:
             message += "{}:\n".format(input_file.name)
             message += "- {}\n".format(str(expected))
             message += "- {}\n".format(str(current))
 
+        return message
+
     def found_changed_files(self, input_file, output_expected, output_current):
         self.changed_files.append((input_file, output_expected, output_current))
 
     def assert_and_show_changed_files(self):
-        self.assertEqual(self.changed_files, [], self.compare_files_error_message())
+        self.assertEqual(0, len(self.changed_files), msg=self.compare_files_error_message())
