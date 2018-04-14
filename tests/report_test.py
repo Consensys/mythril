@@ -38,7 +38,7 @@ class AnalysisReportTest(BaseTestCase):
             report = _generate_report(input_file)
             output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
 
-            if not (output_expected.read_text() == output_expected.read_text()):
+            if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
 
         self.assert_and_show_changed_files()
@@ -51,7 +51,7 @@ class AnalysisReportTest(BaseTestCase):
             report = _generate_report(input_file)
             output_current.write_text(_fix_path(report.as_markdown()))
 
-            if not (output_expected.read_text() == output_expected.read_text()):
+            if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
 
         self.assert_and_show_changed_files()
@@ -64,7 +64,7 @@ class AnalysisReportTest(BaseTestCase):
             report = _generate_report(input_file)
             output_current.write_text(_fix_path(report.as_text()))
 
-            if not (output_expected.read_text() == output_expected.read_text()):
+            if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
 
         self.assert_and_show_changed_files()
