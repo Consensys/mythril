@@ -17,7 +17,7 @@ class GraphTest(BaseTestCase):
             html = generate_graph(sym)
             output_current.write_text(html)
 
-            if not (output_expected.read_text() == output_expected.read_text()):
+            if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
 
         self.assert_and_show_changed_files()

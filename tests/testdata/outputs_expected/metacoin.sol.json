@@ -1,5 +1,17 @@
 {
     "success": true,
     "error": null,
-    "issues": []
+    "issues": [
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function sendToken(address,uint256).\n Addition may result in a lower value.",
+            "function": "sendToken(address,uint256)",
+            "type": "Warning",
+            "address": 498,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/metacoin.sol",
+            "lineno": 12,
+            "code": "balances[receiver] += amount"
+        }
+    ]
 }

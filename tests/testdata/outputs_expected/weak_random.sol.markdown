@@ -61,3 +61,33 @@ In *<TESTDATA>/inputs/weak_random.sol:11*
 ```
 prize / totalTickets
 ```
+## Integer Overflow 
+- Type: Warning
+- Contract: WeakRandom
+- Function name: `_function_0xe9874106`
+- PC address: 1216
+
+### Description
+A possible integer overflow exists in the function _function_0xe9874106.
+ Addition may result in a lower value.
+
+In *<TESTDATA>/inputs/weak_random.sol:45*
+
+```
+gameId++
+```
+## Integer Overflow 
+- Type: Warning
+- Contract: WeakRandom
+- Function name: `_function_0xe9874106`
+- PC address: 262
+
+### Description
+A possible integer overflow exists in the function _function_0xe9874106.
+ Addition may result in a lower value.
+
+In *<TESTDATA>/inputs/weak_random.sol:22*
+
+```
+contestants[currTicket] = Contestant(msg.sender, gameId)
+```

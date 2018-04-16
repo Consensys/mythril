@@ -18,7 +18,7 @@ For every ADD instruction, check if there's a possible state where op1 + op0 > 2
 
 def execute(statespace):
     """
-    Executes analysis module for integer underflow
+    Executes analysis module for integer underflow and integer overflow
     :param statespace: Statespace to analyse
     :return: Found issues
     """
@@ -77,7 +77,7 @@ def _check_integer_overflow(statespace, state, node):
                       "Warning")
 
         issue.description = "A possible integer overflow exists in the function {}.\n " \
-                            "Addition will result in a lower value.".format(node.function_name)
+                            "Addition may result in a lower value.".format(node.function_name)
         issue.debug = solver.pretty_print_model(model)
         issues.append(issue)
 
