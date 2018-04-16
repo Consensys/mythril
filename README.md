@@ -90,7 +90,7 @@ The `json` format is useful for integration into other tools, while `-o markdown
 
 #### Analyzing a Truffle project
 
-[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and make run `truffle compile` followed by `myth --truffle`.
+[Truffle Suite](http://truffleframework.com) is a popular development framework for Ethereum. To analyze the smart contracts in a Truffle project, change in the project root directory and run `truffle compile` followed by `myth --truffle`.
 
 ### Analyzing on-chain contracts
 
