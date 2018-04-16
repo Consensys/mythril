@@ -23,7 +23,7 @@ msg.sender.transfer(this.balance)
 
 ### Description
 A possible integer overflow exists in the function invest().
- Addition may result in a lower value.
+The addition may result in a value higher than the maximum representable integer.
 
 In *<TESTDATA>/inputs/ether_send.sol:24*
 

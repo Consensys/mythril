@@ -15,7 +15,7 @@
         },
         {
             "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function invest().\n Addition may result in a lower value.",
+            "description": "A possible integer overflow exists in the function invest().\nThe addition may result in a value higher than the maximum representable integer.",
             "function": "invest()",
             "type": "Warning",
             "address": 483,

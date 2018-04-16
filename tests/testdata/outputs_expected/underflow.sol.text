@@ -18,7 +18,7 @@ Contract: Under
 Function name: sendeth(address,uint256)
 PC address: 725
 A possible integer overflow exists in the function sendeth(address,uint256).
- Addition may result in a lower value.
+The addition may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/underflow.sol:13
 

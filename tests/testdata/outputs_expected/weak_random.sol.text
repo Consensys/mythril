@@ -62,7 +62,7 @@ Contract: WeakRandom
 Function name: _function_0xe9874106
 PC address: 1216
 A possible integer overflow exists in the function _function_0xe9874106.
- Addition may result in a lower value.
+The addition may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/weak_random.sol:45
 
@@ -76,7 +76,7 @@ Contract: WeakRandom
 Function name: _function_0xe9874106
 PC address: 262
 A possible integer overflow exists in the function _function_0xe9874106.
- Addition may result in a lower value.
+The addition may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/weak_random.sol:22
 

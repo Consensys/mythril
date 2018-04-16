@@ -64,7 +64,7 @@ Contract: Rubixi
 Function name: _function_0xfae14192
 PC address: 1223
 A possible integer overflow exists in the function _function_0xfae14192.
- Addition may result in a lower value.
+The addition may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/rubixi.sol:37
 
