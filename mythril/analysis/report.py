@@ -88,11 +88,11 @@ class Report:
         return json.dumps(result)
 
     def as_markdown(self):
-        text = "# Analysis Results\n"
+        text = ""
 
         for key, issue in self.issues.items():
 
-            text += "## " + issue.title + "\n"
+            text += "\n\n## " + issue.title + "\n\n"
             text += "- Type: " + issue.type + "\n"
 
             if len(issue.contract):
@@ -103,7 +103,7 @@ class Report:
             text += "- Function name: `" + issue.function + "`\n"
             text += "- PC address: " + str(issue.pc) + "\n\n"
 
-            text += "### Description\n" + issue.description + "\n"
+            text += "\n\n### Description\n\n" + issue.description + "\n"
 
             if issue.filename and issue.lineno:
                 text += "\nIn *%s:%d*\n" % (issue.filename, issue.lineno)
