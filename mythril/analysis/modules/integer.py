@@ -76,7 +76,7 @@ def _check_integer_overflow(statespace, state, node):
         issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ",
                       "Warning")
 
-        issue.description = "A possible integer overflow exists in the function {}.\n" \
+        issue.description = "A possible integer overflow exists in the function `{}`.\n" \
                             "The addition may result in a value higher than the maximum representable integer.".format(node.function_name)
         issue.debug = solver.pretty_print_model(model)
         issues.append(issue)
@@ -134,7 +134,7 @@ def _check_integer_underflow(state, node):
                 issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
                               "Warning")
 
-                issue.description = "A possible integer underflow exists in the function " + node.function_name + ".\n" \
+                issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
                                                                                                                   "The subtraction may result in a value < 0."
 
                 issue.debug = solver.pretty_print_model(model)
