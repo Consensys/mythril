@@ -8,9 +8,9 @@ RUN apt-get update \
   && apt-get update \
   && apt-get install -y solc \
   && apt-get install -y libssl-dev \
-  && apt-get install -y python3-pip python3-dev \
+  && apt-get install -y python3-pip=9.0.1-2 python3-dev \
   && ln -s /usr/bin/python3 /usr/local/bin/python \
-  && pip3 install --upgrade pip \
+  # && pip3 install --upgrade pip \
   && apt-get install -y pandoc \
   && apt-get install -y git \
   && pip3 install -r requirements.txt \
