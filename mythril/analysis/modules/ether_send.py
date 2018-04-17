@@ -39,7 +39,7 @@ def execute(statespace):
 
         interesting = False
 
-        description = "In the function '" + call.node.function_name + "' "
+        description = "In the function `'" + call.node.function_name + "'` "
 
         if re.search(r'caller', str(call.to)):
             description += "a non-zero amount of Ether is sent to msg.sender.\n"

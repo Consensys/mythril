@@ -32,7 +32,7 @@ def execute(statespace):
 
                 logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
 
-                description = "The function " + node.function_name + " executes the SUICIDE instruction. "
+                description = "The function `" + node.function_name + "` executes the SUICIDE instruction. "
 
                 stack = copy.deepcopy(state.mstate.stack)
                 to = stack.pop()
