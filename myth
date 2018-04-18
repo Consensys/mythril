@@ -375,7 +375,7 @@ elif args.graph or args.fire_lasers:
         else:
             sym = SymExecWrapper(contracts[0], address, max_depth=args.max_depth)
 
-        html = generate_graph(sym, args.enable_physics, args.phrack)
+        html = generate_graph(sym, physics=args.enable_physics, phrackify=args.phrack)
 
         try:
             with open(args.graph, "w") as f:

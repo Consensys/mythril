@@ -1,15 +1,13 @@
 import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape
-from laser.ethereum.svm import NodeFlags
-from z3 import Z3Exception, simplify
+import z3
 
 default_opts = {
     'autoResize': True,
     'height': '100%',
     'width': '100%',
     'manipulation': False,
-    'height': '90%',
     'layout': {
         'improvedLayout': True,
         'hierarchical': {
@@ -92,50 +90,44 @@ phrack_color = {'border': '#000000', 'background': '#ffffff',
 def extract_nodes(statespace, color_map):
     nodes = []
     for node_key in statespace.nodes:
-
         node = statespace.nodes[node_key]
+        instructions = [state.get_current_instruction() for state in node.states]
+        code_split = []
+        for instruction in instructions:
+            if instruction['opcode'].startswith("PUSH"):
+                code_split.append(f"{instruction['address']} {instruction['opcode']} {instruction['argument']}")
+            elif instruction['opcode'].startswith("JUMPDEST"):
+                code_split.append(f"{instruction['address']} {instruction['opcode']} {node.function_name}")
+            else:
+                code_split.append(f"{instruction['address']} {instruction['opcode']}")
 
-        code = node.get_cfg_dict()['code']
-        code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
-
-        if NodeFlags.FUNC_ENTRY in node.flags:
-            code = re.sub("JUMPDEST", node.function_name, code)
-
-        code_split = code.split("\\n")
-        code_split = [x for x in code_split if x]
-        full_code = '\n'.join(code_split)
-
-        truncated_code = '\n'.join(code_split) if (len(code_split) < 7) else '\n'.join(code_split[:6]) + "\n(click to expand +)"
-
-        color = color_map[node.get_cfg_dict()['contract_name']]
+        truncated_code = '\n'.join(code_split) if (len(code_split) < 7) else '\n'.join(
+            code_split[:6]) + "\n(click to expand +)"
 
         nodes.append({
             'id': str(node_key),
-            'color': color,
+            'color': color_map[node.get_cfg_dict()['contract_name']],
             'size': 150,
+            'fullLabel': '\n'.join(code_split),
             'label': truncated_code,
-            'fullLabel': full_code,
             'truncLabel': truncated_code,
             'isExpanded': False
         })
-
     return nodes
 
 
 def extract_edges(statespace):
     edges = []
     for edge in statespace.edges:
-
         if edge.condition is None:
             label = ""
         else:
-
             try:
-                label = str(simplify(edge.condition)).replace("\n", "")
-            except Z3Exception:
+                label = str(z3.simplify(edge.condition)).replace("\n", "")
+            except z3.Z3Exception:
                 label = str(edge.condition).replace("\n", "")
 
-        label = re.sub("([^_])([\d]{2}\d+)", lambda m: m.group(1) + hex(int(m.group(2))), label)
+        label = re.sub(r'([^_])([\d]{2}\d+)', lambda m: m.group(1) + hex(int(m.group(2))), label)
 
         edges.append({
             'from': str(edge.as_dict()['from']),
@@ -147,39 +139,22 @@ def extract_edges(statespace):
     return edges
 
 
-def generate_graph(statespace, physics=False, phrackify=False, opts=None):
-    '''
-    This is some of the the ugliest code in the whole project.
-    At some point someone needs to write a templating system.
-    '''
-
-    if opts is None:
-        opts = {}
-    env = Environment(
-        loader=PackageLoader('mythril.analysis'),
-        autoescape=select_autoescape(['html', 'xml'])
-    )
+def generate_graph(statespace, title="Mythril / Ethereum LASER Symbolic VM", physics=False, phrackify=False):
+    env = Environment(loader=PackageLoader('mythril.analysis'), autoescape=select_autoescape(['html', 'xml']))
     template = env.get_template('graph.html')
 
-    color_map = {}
     graph_opts = default_opts
+    accounts = statespace.accounts
 
     if phrackify:
+        color_map = {accounts[k].contract_name: phrack_color for k in accounts}
         graph_opts.update(phrack_opts)
-        for k in statespace.accounts:
-            color_map[statespace.accounts[k].contract_name] = phrack_color
     else:
-        i = 0
-        for k in statespace.accounts:
-            color_map[statespace.accounts[k].contract_name] = default_colors[i]
-            i += 1
+        color_map = {accounts[k].contract_name: default_colors[i % len(default_colors)] for i, k in enumerate(accounts)}
 
-    graph_opts.update(opts)
     graph_opts['physics']['enabled'] = physics
 
-    nodes = extract_nodes(statespace, color_map)
-
-    return template.render(title="Mythril / Ethereum LASER Symbolic VM",
+    return template.render(title=title,
                            nodes=extract_nodes(statespace, color_map),
                            edges=extract_edges(statespace),
                            phrackify=phrackify,
