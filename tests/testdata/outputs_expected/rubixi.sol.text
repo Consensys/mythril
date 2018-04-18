@@ -3,7 +3,7 @@ Type: Warning
 Contract: Rubixi
 Function name: _function_0x4229616d
 PC address: 1599
-In the function '_function_0x4229616d' a non-zero amount of Ether is sent to an address taken from storage slot 5.
+In the function `'_function_0x4229616d'` a non-zero amount of Ether is sent to an address taken from storage slot 5.
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
 
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
@@ -20,7 +20,7 @@ Type: Warning
 Contract: Rubixi
 Function name: _function_0x686f2c90
 PC address: 1940
-In the function '_function_0x686f2c90' a non-zero amount of Ether is sent to an address taken from storage slot 5.
+In the function `'_function_0x686f2c90'` a non-zero amount of Ether is sent to an address taken from storage slot 5.
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
 
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
@@ -63,7 +63,7 @@ Type: Warning
 Contract: Rubixi
 Function name: _function_0xfae14192
 PC address: 1223
-A possible integer overflow exists in the function _function_0xfae14192.
+A possible integer overflow exists in the function `_function_0xfae14192`.
 The addition may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/rubixi.sol:37
@@ -77,7 +77,7 @@ Type: Warning
 Contract: Rubixi
 Function name: _function_0xd11f13df
 PC address: 2743
-A possible integer underflow exists in the function _function_0xd11f13df.
+A possible integer underflow exists in the function `_function_0xd11f13df`.
 The subtraction may result in a value < 0.
 --------------------
 In file: <TESTDATA>/inputs/rubixi.sol:143

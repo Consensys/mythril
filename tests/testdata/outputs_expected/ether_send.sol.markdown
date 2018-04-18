@@ -22,7 +22,7 @@ msg.sender.transfer(this.balance)
 - PC address: 483
 
 ### Description
-A possible integer overflow exists in the function invest().
+A possible integer overflow exists in the function `invest()`.
 The addition may result in a value higher than the maximum representable integer.
 
 In *<TESTDATA>/inputs/ether_send.sol:24*

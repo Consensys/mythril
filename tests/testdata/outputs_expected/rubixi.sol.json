@@ -4,7 +4,7 @@
     "issues": [
         {
             "title": "Ether send",
-            "description": "In the function '_function_0x4229616d' a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\nThere is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.",
+            "description": "In the function `'_function_0x4229616d'` a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\nThere is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.",
             "function": "_function_0x4229616d",
             "type": "Warning",
             "address": 1599,
@@ -15,7 +15,7 @@
         },
         {
             "title": "Ether send",
-            "description": "In the function '_function_0x686f2c90' a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\nThere is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.",
+            "description": "In the function `'_function_0x686f2c90'` a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.\nThere is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.",
             "function": "_function_0x686f2c90",
             "type": "Warning",
             "address": 1940,
@@ -48,7 +48,7 @@
         },
         {
             "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function _function_0xfae14192.\nThe addition may result in a value higher than the maximum representable integer.",
+            "description": "A possible integer overflow exists in the function `_function_0xfae14192`.\nThe addition may result in a value higher than the maximum representable integer.",
             "function": "_function_0xfae14192",
             "type": "Warning",
             "address": 1223,
@@ -59,7 +59,7 @@
         },
         {
             "title": "Integer Underflow",
-            "description": "A possible integer underflow exists in the function _function_0xd11f13df.\nThe subtraction may result in a value < 0.",
+            "description": "A possible integer underflow exists in the function `_function_0xd11f13df`.\nThe subtraction may result in a value < 0.",
             "function": "_function_0xd11f13df",
             "type": "Warning",
             "address": 2743,
