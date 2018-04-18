@@ -103,6 +103,6 @@ def analyze_truffle_project(args):
                 else:
 
                     if (args.outform == 'text'):
-                        print("Analysis result for " + name + ":\n" + report.as_text())
+                        print("\n\n# Analysis result for " + name + ":\n\n" + report.as_text())
                     elif (args.outform == 'markdown'):
                         print("\n\n# Analysis result for " + name + "\n\n" + report.as_markdown())

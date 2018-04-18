@@ -6,7 +6,7 @@
 - PC address: 1599
 
 ### Description
-In the function '_function_0x4229616d' a non-zero amount of Ether is sent to an address taken from storage slot 5.
+In the function `'_function_0x4229616d'` a non-zero amount of Ether is sent to an address taken from storage slot 5.
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
 
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
@@ -24,7 +24,7 @@ creator.send(feesToCollect)
 - PC address: 1940
 
 ### Description
-In the function '_function_0x686f2c90' a non-zero amount of Ether is sent to an address taken from storage slot 5.
+In the function `'_function_0x686f2c90'` a non-zero amount of Ether is sent to an address taken from storage slot 5.
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
 
 There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
@@ -70,7 +70,7 @@ participants[orderInPyramid]
 - PC address: 1223
 
 ### Description
-A possible integer overflow exists in the function _function_0xfae14192.
+A possible integer overflow exists in the function `_function_0xfae14192`.
 The addition may result in a value higher than the maximum representable integer.
 
 In *<TESTDATA>/inputs/rubixi.sol:37*
@@ -85,7 +85,7 @@ collectedFees += msg.value
 - PC address: 2743
 
 ### Description
-A possible integer underflow exists in the function _function_0xd11f13df.
+A possible integer underflow exists in the function `_function_0xd11f13df`.
 The subtraction may result in a value < 0.
 
 In *<TESTDATA>/inputs/rubixi.sol:143*
