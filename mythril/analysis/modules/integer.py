@@ -60,7 +60,6 @@ def _check_integer_overflow(statespace, state, node):
     op0, op1 = stack[-1], stack[-2]
 
     # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
-
     # Do a type check
     allowed_types = [int, BitVecRef, BitVecNumRef]
     if not (type(op0) in allowed_types and type(op1) in allowed_types):
@@ -83,6 +82,7 @@ def _check_integer_overflow(statespace, state, node):
     if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
         return issues
 
+    # Build issue
     issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
 
     issue.description = "A possible integer overflow exists in the function `{}`.\n" \
