@@ -12,8 +12,10 @@ MODULE DESCRIPTION:
 
 Check for integer underflows.
 For every SUB instruction, check if there's a possible state where op1 > op0.
-For every ADD instruction, check if there's a possible state where op1 + op0 > 2^32 - 1 
+For every ADD instruction, check if there's a possible state where op1 + op0 > 2^32 - 1
 '''
+
+MAX_UINT = 2 ** 32 - 1
 
 
 def execute(statespace):
@@ -31,7 +33,7 @@ def execute(statespace):
 
         for state in node.states:
             logging.debug("Checking for integer underflow")
-            issues += _check_integer_underflow(state, node)
+            issues += _check_integer_underflow(statespace, state, node)
             logging.debug("Checking for integer overflow")
             issues += _check_integer_overflow(statespace, state, node)
 
@@ -50,44 +52,48 @@ def _check_integer_overflow(statespace, state, node):
 
     # Check the instruction
     instruction = state.get_current_instruction()
-    if instruction['opcode'] != "ADD":
-        return []
+    if instruction['opcode'] in("ADD", "MUL"):
 
-    constraints = copy.deepcopy(node.constraints)
+        constraints = copy.deepcopy(node.constraints)
 
-    # Formulate overflow constraints
-    stack = state.mstate.stack
-    op0, op1 = stack[-1], stack[-2]
+        # Formulate overflow constraints
+        stack = state.mstate.stack
+        op0, op1 = stack[-1], stack[-2]
 
-    # An integer overflow is possible if op0 + op1,
-    constraints.append(UGT(op0 + op1, (2 ** 32) - 1))
+        # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
 
-    try:
-        model = solver.get_model(constraints)
+        if instruction['opcode'] == "ADD":
+            expr = op0 + op1
+        else:
+            expr = op0 * op1
 
-        # If we get to this point then there has been an integer overflow
-        # Find out if the overflowed value is actually used
-        interesting_usages = _search_children(statespace, node, (op0 + op1), index=node.states.index(state))
+        constraints.append(UGT(expr, MAX_UINT))
 
-        # Stop if it isn't
-        if len(interesting_usages) == 0:
-            return issues
+        try:
+            model = solver.get_model(constraints)
 
-        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ",
-                      "Warning")
+            # If we get to this point then there has been an integer overflow
+            # Find out if the overflowed value is actually used
+            interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
 
-        issue.description = "A possible integer overflow exists in the function `{}`.\n" \
-                            "The addition may result in a value higher than the maximum representable integer.".format(node.function_name)
-        issue.debug = solver.pretty_print_model(model)
-        issues.append(issue)
+            # Stop if it isn't
+            if len(interesting_usages) == 0:
+                return issues
 
-    except UnsatError:
-        logging.debug("[INTEGER_OVERFLOW] no model found")
+            issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
+
+            issue.description = "A possible integer overflow exists in the function `{}`.\n" \
+                                "The addition or multiplication may result in a value higher than the maximum representable integer.".format(node.function_name)
+            issue.debug = solver.pretty_print_model(model)
+            issues.append(issue)
+
+        except UnsatError:
+            logging.debug("[INTEGER_OVERFLOW] no model found")
 
     return issues
 
 
-def _check_integer_underflow(state, node):
+def _check_integer_underflow(statespace, state, node):
     """
     Checks for integer underflow
     :param state: state from node to examine
@@ -106,7 +112,7 @@ def _check_integer_underflow(state, node):
 
         constraints = copy.deepcopy(node.constraints)
 
-        # Filter for patterns that contain bening nteger underflows.
+        # Filter for patterns that indicate benign underflows
 
         # Pattern 1: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would underflow if calldatasize is very large.
         # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
@@ -130,6 +136,15 @@ def _check_integer_underflow(state, node):
             try:
 
                 model = solver.get_model(constraints)
+
+                # If we get to this point then there has been an integer overflow
+                # Find out if the overflowed value is actually used
+                interesting_usages = _search_children(statespace, node, (op0 - op1), index=node.states.index(state))
+                logging.info(interesting_usages)
+
+                # Stop if it isn't
+                if len(interesting_usages) == 0:
+                    return issues
 
                 issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
                               "Warning")
@@ -204,4 +219,3 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
         results += _search_children(statespace, child, expression, depth=depth+1, max_depth=max_depth)
 
     return results
-
