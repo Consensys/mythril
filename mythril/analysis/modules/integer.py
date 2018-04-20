@@ -62,33 +62,37 @@ def _check_integer_overflow(statespace, state, node):
 
         # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
 
-        if instruction['opcode'] == "ADD":
-            expr = op0 + op1
-        else:
-            expr = op0 * op1
+        allowed_types = [int, BitVecRef, BitVecNumRef]
 
-        constraints.append(UGT(expr, MAX_UINT))
+        if type(op0) in allowed_types and type(op1) in allowed_types:
 
-        try:
-            model = solver.get_model(constraints)
+            if instruction['opcode'] == "ADD":
+                expr = op0 + op1
+            else:
+                expr = op0 * op1
 
-            # If we get to this point then there has been an integer overflow
-            # Find out if the overflowed value is actually used
-            interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
+            constraints.append(UGT(expr, MAX_UINT))
 
-            # Stop if it isn't
-            if len(interesting_usages) == 0:
-                return issues
+            try:
+                model = solver.get_model(constraints)
 
-            issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
+                # If we get to this point then there has been an integer overflow
+                # Find out if the overflowed value is actually used
+                interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
 
-            issue.description = "A possible integer overflow exists in the function `{}`.\n" \
-                                "The addition or multiplication may result in a value higher than the maximum representable integer.".format(node.function_name)
-            issue.debug = solver.pretty_print_model(model)
-            issues.append(issue)
+                # Stop if it isn't
+                if len(interesting_usages) == 0:
+                    return issues
 
-        except UnsatError:
-            logging.debug("[INTEGER_OVERFLOW] no model found")
+                issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
+
+                issue.description = "A possible integer overflow exists in the function `{}`.\n" \
+                                    "The addition or multiplication may result in a value higher than the maximum representable integer.".format(node.function_name)
+                issue.debug = solver.pretty_print_model(model)
+                issues.append(issue)
+
+            except UnsatError:
+                logging.debug("[INTEGER_OVERFLOW] no model found")
 
     return issues
 
@@ -127,7 +131,6 @@ def _check_integer_underflow(statespace, state, node):
 
         logging.debug("[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(str(op0), str(op1),
                                                                                         str(instruction['address'])))
-
         allowed_types = [int, BitVecRef, BitVecNumRef]
 
         if type(op0) in allowed_types and type(op1) in allowed_types:
@@ -175,14 +178,16 @@ def _check_usage(state, expression):
 
 def _check_jumpi(state, expression):
     """ Check if conditional jump is dependent on the result of expression"""
-    assert state.get_current_instruction()['opcode'] is 'JUMPI'
+    logging.info(state.get_current_instruction()['opcode'])
+    assert state.get_current_instruction()['opcode'] == 'JUMPI'
     condition = state.mstate.stack[-2]
     return str(expression) in str(condition)
 
 
 def _check_sstore(state, expression):
     """ Check if store operation is dependent on the result of expression"""
-    assert state.get_current_instruction()['opcode'] is 'SSTORE'
+    logging.info(state.get_current_instruction()['opcode'])
+    assert state.get_current_instruction()['opcode'] == 'SSTORE'
     value = state.mstate.stack[-2]
     return str(expression) in str(value)
 

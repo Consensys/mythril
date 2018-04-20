@@ -413,11 +413,11 @@ elif args.graph or args.fire_lasers:
             'markdown': report.as_markdown() or "The analysis was completed successfully. No issues were detected."
         }
         print(outputs[args.outform])
-        
-elif args.statespace_json: 
+
+elif args.statespace_json:
     if not contracts:
         exitWithError(args.outform, "input files do not contain any valid contracts")
-    
+
     if args.dynld:
         sym = SymExecWrapper(contracts[0], address, dynloader=DynLoader(eth), max_depth=args.max_depth)
     else:
