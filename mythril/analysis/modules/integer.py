@@ -12,7 +12,7 @@ MODULE DESCRIPTION:
 
 Check for integer underflows.
 For every SUB instruction, check if there's a possible state where op1 > op0.
-For every ADD instruction, check if there's a possible state where op1 + op0 > 2^32 - 1
+For every ADD, MUL instruction, check if there's a possible state where op1 + op0 > 2^32 - 1
 '''
 
 MAX_UINT = 2 ** 32 - 1
@@ -95,6 +95,7 @@ def _check_integer_overflow(statespace, state, node):
 
 
 def _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
+    """ Verifies existence of integer overflow """
     # If we get to this point then there has been an integer overflow
     # Find out if the overflowed value is actually used
     interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
