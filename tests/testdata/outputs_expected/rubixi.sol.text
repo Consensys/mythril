@@ -72,34 +72,6 @@ collectedFees += msg.value
 
 --------------------
 
-==== Integer Overflow  ====
-Type: Warning
-Contract: Rubixi
-Function name: _function_0x67f809e9
-PC address: 1721
-A possible integer overflow exists in the function `_function_0x67f809e9`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
---------------------
-In file: <TESTDATA>/inputs/rubixi.sol:14
-
-creator = msg.sender
-
---------------------
-
-==== Integer Overflow  ====
-Type: Warning
-Contract: Rubixi
-Function name: _function_0xa6f9dae1
-PC address: 2331
-A possible integer overflow exists in the function `_function_0xa6f9dae1`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
---------------------
-In file: <TESTDATA>/inputs/rubixi.sol:99
-
-creator = _owner
-
---------------------
-
 ==== Unchecked CALL return value ====
 Type: Informational
 Contract: Rubixi

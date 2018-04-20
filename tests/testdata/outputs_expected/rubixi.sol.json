@@ -58,28 +58,6 @@
             "code": "collectedFees += msg.value"
         },
         {
-            "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function `_function_0x67f809e9`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
-            "function": "_function_0x67f809e9",
-            "type": "Warning",
-            "address": 1721,
-            "debug": "<DEBUG-DATA>",
-            "filename": "<TESTDATA>/inputs/rubixi.sol",
-            "lineno": 14,
-            "code": "creator = msg.sender"
-        },
-        {
-            "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function `_function_0xa6f9dae1`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
-            "function": "_function_0xa6f9dae1",
-            "type": "Warning",
-            "address": 2331,
-            "debug": "<DEBUG-DATA>",
-            "filename": "<TESTDATA>/inputs/rubixi.sol",
-            "lineno": 99,
-            "code": "creator = _owner"
-        },
-        {
             "title": "Unchecked CALL return value",
             "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
             "function": "_function_0x4229616d",

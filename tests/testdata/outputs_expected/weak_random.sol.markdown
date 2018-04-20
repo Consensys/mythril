@@ -126,24 +126,3 @@ In *<TESTDATA>/inputs/weak_random.sol:22*
 ```
 contestants[currTicket] = Contestant(msg.sender, gameId)
 ```
-
-
-## Integer Overflow 
-
-- Type: Warning
-- Contract: WeakRandom
-- Function name: `_function_0xe9874106`
-- PC address: 293
-
-
-
-### Description
-
-A possible integer overflow exists in the function `_function_0xe9874106`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
-
-In *<TESTDATA>/inputs/weak_random.sol:22*
-
-```
-contestants[currTicket] = Contestant(msg.sender, gameId)
-```

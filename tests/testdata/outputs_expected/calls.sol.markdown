@@ -100,27 +100,6 @@ addr.call()
 ```
 
 
-## Integer Overflow 
-
-- Type: Warning
-- Contract: Caller
-- Function name: `_function_0x2776b163`
-- PC address: 517
-
-
-
-### Description
-
-A possible integer overflow exists in the function `_function_0x2776b163`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
-
-In *<TESTDATA>/inputs/calls.sol:33*
-
-```
-stored_address = addr
-```
-
-
 ## Unchecked CALL return value
 
 - Type: Informational

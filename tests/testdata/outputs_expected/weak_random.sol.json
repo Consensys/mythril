@@ -67,17 +67,6 @@
             "filename": "<TESTDATA>/inputs/weak_random.sol",
             "lineno": 22,
             "code": "contestants[currTicket] = Contestant(msg.sender, gameId)"
-        },
-        {
-            "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function `_function_0xe9874106`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
-            "function": "_function_0xe9874106",
-            "type": "Warning",
-            "address": 293,
-            "debug": "<DEBUG-DATA>",
-            "filename": "<TESTDATA>/inputs/weak_random.sol",
-            "lineno": 22,
-            "code": "contestants[currTicket] = Contestant(msg.sender, gameId)"
         }
     ]
 }

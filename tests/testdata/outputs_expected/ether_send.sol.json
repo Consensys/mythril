@@ -23,17 +23,6 @@
             "filename": "<TESTDATA>/inputs/ether_send.sol",
             "lineno": 24,
             "code": "balances[msg.sender] += msg.value"
-        },
-        {
-            "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function `crowdfunding()`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
-            "function": "crowdfunding()",
-            "type": "Warning",
-            "address": 620,
-            "debug": "<DEBUG-DATA>",
-            "filename": "<TESTDATA>/inputs/ether_send.sol",
-            "lineno": 14,
-            "code": "owner = msg.sender"
         }
     ]
 }

@@ -19,24 +19,3 @@ In *<TESTDATA>/inputs/origin.sol:18*
 ```
 tx.origin
 ```
-
-
-## Integer Overflow 
-
-- Type: Warning
-- Contract: Origin
-- Function name: `transferOwnership(address)`
-- PC address: 438
-
-
-
-### Description
-
-A possible integer overflow exists in the function `transferOwnership(address)`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
-
-In *<TESTDATA>/inputs/origin.sol:31*
-
-```
-owner = newOwner
-```
