@@ -52,49 +52,82 @@ def _check_integer_overflow(statespace, state, node):
 
     # Check the instruction
     instruction = state.get_current_instruction()
-    if instruction['opcode'] in("ADD", "MUL"):
+    if instruction['opcode'] not in ("ADD", "MUL"):
+        return issues
 
-        constraints = copy.deepcopy(node.constraints)
+    # Formulate overflow constraints
+    stack = state.mstate.stack
+    op0, op1 = stack[-1], stack[-2]
 
-        # Formulate overflow constraints
-        stack = state.mstate.stack
-        op0, op1 = stack[-1], stack[-2]
+    # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
 
-        # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
+    # Do a type check
+    allowed_types = [int, BitVecRef, BitVecNumRef]
+    if not (type(op0) in allowed_types and type(op1) in allowed_types):
+        return issues
 
-        allowed_types = [int, BitVecRef, BitVecNumRef]
+    # Formulate expression
+    if instruction['opcode'] == "ADD":
+        expr = op0 + op1
+    else:
+        expr = op0 * op1
 
-        if type(op0) in allowed_types and type(op1) in allowed_types:
+    # Check satisfiable
+    constraint = UGT(expr, MAX_UINT)
+    model = _try_constraints(node.constraints, [constraint])
 
-            if instruction['opcode'] == "ADD":
-                expr = op0 + op1
-            else:
-                expr = op0 * op1
+    if model is None:
+        logging.debug("[INTEGER_OVERFLOW] no model found")
+        return issues
 
-            constraints.append(UGT(expr, MAX_UINT))
+    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
+        return issues
 
-            try:
-                model = solver.get_model(constraints)
+    issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
 
-                # If we get to this point then there has been an integer overflow
-                # Find out if the overflowed value is actually used
-                interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
-
-                # Stop if it isn't
-                if len(interesting_usages) == 0:
-                    return issues
-
-                issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
-
-                issue.description = "A possible integer overflow exists in the function `{}`.\n" \
-                                    "The addition or multiplication may result in a value higher than the maximum representable integer.".format(node.function_name)
-                issue.debug = solver.pretty_print_model(model)
-                issues.append(issue)
-
-            except UnsatError:
-                logging.debug("[INTEGER_OVERFLOW] no model found")
+    issue.description = "A possible integer overflow exists in the function `{}`.\n" \
+                        "The addition or multiplication may result in a value higher than the maximum representable integer.".format(
+        node.function_name)
+    issue.debug = solver.pretty_print_model(model)
+    issues.append(issue)
 
     return issues
+
+
+def _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
+    # If we get to this point then there has been an integer overflow
+    # Find out if the overflowed value is actually used
+    interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
+
+    # Stop if it isn't
+    if len(interesting_usages) == 0:
+        return False
+
+    op0_value = int(str(model.eval(op0, model_completion=True)))
+    model0 = _try_constraints(node.constraints, [constraint, op0 != op0_value])
+
+    op1_value = int(str(model.eval(op1, model_completion=True)))
+    model1 = _try_constraints(node.constraints, [constraint, op1 != op1_value])
+
+    if model0 is None and model1 is None:
+        return False
+
+    return True
+
+
+def _try_constraints(constraints, new_constraints):
+    """
+    Tries new constraints
+    :return Model if satisfiable otherwise None
+    """
+    _constraints = copy.deepcopy(constraints)
+    for constraint in new_constraints:
+        _constraints.append(copy.deepcopy(constraint))
+    try:
+        model = solver.get_model(_constraints)
+        return model
+    except UnsatError:
+        return None
 
 
 def _check_integer_underflow(statespace, state, node):
@@ -153,7 +186,7 @@ def _check_integer_underflow(statespace, state, node):
                               "Warning")
 
                 issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
-                                                                                                                  "The subtraction may result in a value < 0."
+                                                                                                                   "The subtraction may result in a value < 0."
 
                 issue.debug = solver.pretty_print_model(model)
                 issues.append(issue)
@@ -221,6 +254,6 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
     # Recursively search children
     children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
     for child in children:
-        results += _search_children(statespace, child, expression, depth=depth+1, max_depth=max_depth)
+        results += _search_children(statespace, child, expression, depth=depth + 1, max_depth=max_depth)
 
     return results
