@@ -34,10 +34,31 @@ msg.sender.transfer(this.balance)
 ### Description
 
 A possible integer overflow exists in the function `invest()`.
-The addition may result in a value higher than the maximum representable integer.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 
 In *<TESTDATA>/inputs/ether_send.sol:24*
 
 ```
 balances[msg.sender] += msg.value
+```
+
+
+## Integer Overflow 
+
+- Type: Warning
+- Contract: Crowdfunding
+- Function name: `crowdfunding()`
+- PC address: 620
+
+
+
+### Description
+
+A possible integer overflow exists in the function `crowdfunding()`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
+
+In *<TESTDATA>/inputs/ether_send.sol:14*
+
+```
+owner = msg.sender
 ```

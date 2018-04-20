@@ -12,6 +12,17 @@
             "filename": "<TESTDATA>/inputs/origin.sol",
             "lineno": 18,
             "code": "tx.origin"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `transferOwnership(address)`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "transferOwnership(address)",
+            "type": "Warning",
+            "address": 438,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/origin.sol",
+            "lineno": 31,
+            "code": "owner = newOwner"
         }
     ]
 }

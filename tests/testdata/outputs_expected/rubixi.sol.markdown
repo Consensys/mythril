@@ -100,7 +100,7 @@ participants[orderInPyramid]
 ### Description
 
 A possible integer overflow exists in the function `_function_0xfae14192`.
-The addition may result in a value higher than the maximum representable integer.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 
 In *<TESTDATA>/inputs/rubixi.sol:37*
 
@@ -109,24 +109,45 @@ collectedFees += msg.value
 ```
 
 
-## Integer Underflow
+## Integer Overflow 
 
 - Type: Warning
 - Contract: Rubixi
-- Function name: `_function_0xd11f13df`
-- PC address: 2743
+- Function name: `_function_0x67f809e9`
+- PC address: 1721
 
 
 
 ### Description
 
-A possible integer underflow exists in the function `_function_0xd11f13df`.
-The subtraction may result in a value < 0.
+A possible integer overflow exists in the function `_function_0x67f809e9`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 
-In *<TESTDATA>/inputs/rubixi.sol:143*
+In *<TESTDATA>/inputs/rubixi.sol:14*
 
 ```
-participants.length - payoutOrder
+creator = msg.sender
+```
+
+
+## Integer Overflow 
+
+- Type: Warning
+- Contract: Rubixi
+- Function name: `_function_0xa6f9dae1`
+- PC address: 2331
+
+
+
+### Description
+
+A possible integer overflow exists in the function `_function_0xa6f9dae1`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
+
+In *<TESTDATA>/inputs/rubixi.sol:99*
+
+```
+creator = _owner
 ```
 
 

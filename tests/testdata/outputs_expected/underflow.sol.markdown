@@ -33,7 +33,7 @@ balances[msg.sender] -= _value
 ### Description
 
 A possible integer overflow exists in the function `sendeth(address,uint256)`.
-The addition may result in a value higher than the maximum representable integer.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 
 In *<TESTDATA>/inputs/underflow.sol:13*
 

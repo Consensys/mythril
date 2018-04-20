@@ -58,6 +58,17 @@
             "code": "addr.call()"
         },
         {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `_function_0x2776b163`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "_function_0x2776b163",
+            "type": "Warning",
+            "address": 517,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/calls.sol",
+            "lineno": 33,
+            "code": "stored_address = addr"
+        },
+        {
             "title": "Unchecked CALL return value",
             "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
             "function": "_function_0x5a6814ec",

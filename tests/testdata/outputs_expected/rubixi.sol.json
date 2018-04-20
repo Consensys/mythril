@@ -48,7 +48,7 @@
         },
         {
             "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function `_function_0xfae14192`.\nThe addition may result in a value higher than the maximum representable integer.",
+            "description": "A possible integer overflow exists in the function `_function_0xfae14192`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
             "function": "_function_0xfae14192",
             "type": "Warning",
             "address": 1223,
@@ -58,15 +58,26 @@
             "code": "collectedFees += msg.value"
         },
         {
-            "title": "Integer Underflow",
-            "description": "A possible integer underflow exists in the function `_function_0xd11f13df`.\nThe subtraction may result in a value < 0.",
-            "function": "_function_0xd11f13df",
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `_function_0x67f809e9`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "_function_0x67f809e9",
             "type": "Warning",
-            "address": 2743,
+            "address": 1721,
             "debug": "<DEBUG-DATA>",
             "filename": "<TESTDATA>/inputs/rubixi.sol",
-            "lineno": 143,
-            "code": "participants.length - payoutOrder"
+            "lineno": 14,
+            "code": "creator = msg.sender"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `_function_0xa6f9dae1`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "_function_0xa6f9dae1",
+            "type": "Warning",
+            "address": 2331,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/rubixi.sol",
+            "lineno": 99,
+            "code": "creator = _owner"
         },
         {
             "title": "Unchecked CALL return value",

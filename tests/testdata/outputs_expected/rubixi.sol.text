@@ -64,7 +64,7 @@ Contract: Rubixi
 Function name: _function_0xfae14192
 PC address: 1223
 A possible integer overflow exists in the function `_function_0xfae14192`.
-The addition may result in a value higher than the maximum representable integer.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/rubixi.sol:37
 
@@ -72,17 +72,31 @@ collectedFees += msg.value
 
 --------------------
 
-==== Integer Underflow ====
+==== Integer Overflow  ====
 Type: Warning
 Contract: Rubixi
-Function name: _function_0xd11f13df
-PC address: 2743
-A possible integer underflow exists in the function `_function_0xd11f13df`.
-The subtraction may result in a value < 0.
+Function name: _function_0x67f809e9
+PC address: 1721
+A possible integer overflow exists in the function `_function_0x67f809e9`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 --------------------
-In file: <TESTDATA>/inputs/rubixi.sol:143
+In file: <TESTDATA>/inputs/rubixi.sol:14
 
-participants.length - payoutOrder
+creator = msg.sender
+
+--------------------
+
+==== Integer Overflow  ====
+Type: Warning
+Contract: Rubixi
+Function name: _function_0xa6f9dae1
+PC address: 2331
+A possible integer overflow exists in the function `_function_0xa6f9dae1`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
+--------------------
+In file: <TESTDATA>/inputs/rubixi.sol:99
+
+creator = _owner
 
 --------------------
 
