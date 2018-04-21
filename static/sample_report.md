@@ -9,7 +9,7 @@
 In the function `withdrawfunds()` a non-zero amount of Ether is sent to msg.sender.
 Call value is balance_at_1461501637330902918203684832716283019655932542975 & address.
 
-There is a check on storage index 7. This storage slot can be written to by calling the function 'crowdfunding()'.
+There is a check on storage index 7. This storage slot can be written to by calling the function `crowdfunding()`.
 
 In *ether_send.sol:*
 
@@ -97,7 +97,7 @@ balances[msg.sender] - _value
 - PC address: 1285
 
 ### Description
-In the function `'_function_0xe9874106'` the following predictable state variables are used to determine Ether recipient:
+In the function `_function_0xe9874106` the following predictable state variables are used to determine Ether recipient:
 - block.coinbase
 
 

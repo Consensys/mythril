@@ -10,8 +10,7 @@
 
 
 ### Description
-
-In the function `'_function_0xe9874106'` the following predictable state variables are used to determine Ether recipient:
+In the function `_function_0xe9874106` the following predictable state variables are used to determine Ether recipient:
 - block.coinbase
 
 
@@ -32,12 +31,11 @@ winningAddress.transfer(prize)
 
 
 ### Description
+In the function `_function_0xe9874106` a non-zero amount of Ether is sent to an address taken from storage slot 0.
+There is a check on storage index 0. This storage slot can be written to by calling the function `fallback`.
 
-In the function `'_function_0xe9874106'` a non-zero amount of Ether is sent to an address taken from storage slot 0.
-There is a check on storage index 0. This storage slot can be written to by calling the function 'fallback'.
-
-There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
-There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
 
 In *<TESTDATA>/inputs/weak_random.sol:47*
 
@@ -56,8 +54,7 @@ winningAddress.transfer(prize)
 
 
 ### Description
-
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
+A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
 
 In *<TESTDATA>/inputs/weak_random.sol:11*
 
@@ -76,8 +73,7 @@ prize / totalTickets
 
 
 ### Description
-
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
+A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
 
 In *<TESTDATA>/inputs/weak_random.sol:11*
 
