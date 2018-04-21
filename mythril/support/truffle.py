@@ -21,6 +21,8 @@ def analyze_truffle_project(args):
 
     files = os.listdir(build_dir)
 
+    isFirstTime: bool = True
+
     for filename in files:
 
         if re.match(r'.*\.json$', filename) and filename != "Migrations.json":
@@ -46,7 +48,7 @@ def analyze_truffle_project(args):
 
             if not len(issues):
                 if (args.outform == 'text' or args.outform == 'markdown'):
-                    print("\n\n# Analysis result for " + name + "\n\nNo issues found.")
+                    print("# Analysis result for " + name + "\n\nNo issues found.")
                 else:
                     result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': []}}
                     print(json.dumps(result))
@@ -101,8 +103,7 @@ def analyze_truffle_project(args):
                     print(json.dumps(result))
 
                 else:
-
                     if (args.outform == 'text'):
-                        print("\n\n# Analysis result for " + name + ":\n\n" + report.as_text())
+                        print("# Analysis result for " + name + ":\n\n" + report.as_text())
                     elif (args.outform == 'markdown'):
-                        print("\n\n# Analysis result for " + name + "\n\n" + report.as_markdown())
+                        print(report.as_markdown())
