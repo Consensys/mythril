@@ -19,7 +19,7 @@ class DisassemblerTestCase(BaseTestCase):
             output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".easm")
             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".easm")
 
-            code = _compile_to_code(input_file)
+            code = input_file.read_text()
             disassembly = Disassembly(code)
             output_current.write_text(disassembly.get_easm())
 

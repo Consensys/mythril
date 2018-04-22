@@ -2,7 +2,7 @@ from mythril.analysis.report import Report
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ether import util
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.ether.soliditycontract import ETHContract
 
 import json
 from tests import *
@@ -17,13 +17,12 @@ def _fix_debug_data(json_str):
     return json.dumps(read_json, indent=4)
 
 def _generate_report(input_file):
-    contract = SolidityContract(str(input_file), name=None, solc_args=None)
+    contract = ETHContract(input_file.read_text())
     sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
     issues = fire_lasers(sym)
 
     report = Report()
     for issue in issues:
-        issue.add_code_info(contract)
         report.append_issue(issue)
 
     return report
@@ -64,7 +63,7 @@ class AnalysisReportTest(BaseTestCase):
             report = _generate_report(input_file)
             output_current.write_text(_fix_path(report.as_text()))
 
-            # if not (output_expected.read_text() == output_current.read_text()):
-            #     self.found_changed_files(input_file, output_expected, output_current)
+            if not (output_expected.read_text() == output_current.read_text()):
+                self.found_changed_files(input_file, output_expected, output_current)
 
         self.assert_and_show_changed_files()
