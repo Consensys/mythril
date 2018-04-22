@@ -1,4 +1,4 @@
-
+# Analysis results for <TESTDATA>/inputs/rubixi.sol
 
 ## Ether send
 
@@ -11,30 +11,34 @@
 
 ### Description
 
-In the function `'_function_0x4229616d'` a non-zero amount of Ether is sent to an address taken from storage slot 5.
-There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
+In the function `_function_0x4229616d` a non-zero amount of Ether is sent to an address taken from storage slot 5.
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
 
-There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
-There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
-
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
+In *<TESTDATA>/inputs/rubixi.sol:93*
+```
 
 ## Ether send
 
 - Type: Warning
 - Contract: Unknown
 - Function name: `_function_0x686f2c90`
-- PC address: 1940
 
 
 
 ### Description
 
-In the function `'_function_0x686f2c90'` a non-zero amount of Ether is sent to an address taken from storage slot 5.
-There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
+In the function `_function_0x686f2c90` a non-zero amount of Ether is sent to an address taken from storage slot 5.
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
 
-There is a check on storage index 5. This storage slot can be written to by calling the function '_function_0x67f809e9'.
-There is a check on storage index 1. This storage slot can be written to by calling the function 'fallback'.
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
+In *<TESTDATA>/inputs/rubixi.sol:75*
 
+```
+creator.send(collectedFees)
+```
 
 ## Exception state
 
@@ -47,8 +51,12 @@ There is a check on storage index 1. This storage slot can be written to by call
 
 ### Description
 
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
+A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
+In *<TESTDATA>/inputs/rubixi.sol:131*
 
+```
+participants[payoutOrder]
+```
 
 ## Exception state
 
@@ -61,8 +69,12 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 
 ### Description
 
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. 
+A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
+In *<TESTDATA>/inputs/rubixi.sol:148*
 
+```
+participants[orderInPyramid]
+```
 
 ## Integer Overflow 
 
@@ -76,23 +88,12 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 ### Description
 
 A possible integer overflow exists in the function `_function_0xfae14192`.
-The addition may result in a value higher than the maximum representable integer.
+The addition or multiplication may result in a value higher than the maximum representable integer.
+In *<TESTDATA>/inputs/rubixi.sol:37*
 
-
-## Integer Underflow
-
-- Type: Warning
-- Contract: Unknown
-- Function name: `_function_0xd11f13df`
-- PC address: 2743
-
-
-
-### Description
-
-A possible integer underflow exists in the function `_function_0xd11f13df`.
-The subtraction may result in a value < 0.
-
+```
+collectedFees += msg.value
+```
 
 ## Unchecked CALL return value
 
@@ -106,7 +107,11 @@ The subtraction may result in a value < 0.
 ### Description
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+In *<TESTDATA>/inputs/rubixi.sol:93*
 
+```
+creator.send(feesToCollect)
+```
 
 ## Unchecked CALL return value
 
@@ -120,7 +125,11 @@ The return value of an external call is not checked. Note that execution continu
 ### Description
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+In *<TESTDATA>/inputs/rubixi.sol:75*
 
+```
+creator.send(collectedFees)
+```
 
 ## Unchecked CALL return value
 
@@ -129,8 +138,11 @@ The return value of an external call is not checked. Note that execution continu
 - Function name: `_function_0xb4022950`
 - PC address: 2582
 
-
-
 ### Description
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+In *<TESTDATA>/inputs/rubixi.sol:85*
+
+```
+creator.send(_amt)
+```

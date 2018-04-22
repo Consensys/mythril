@@ -1,0 +1,134 @@
+<html>
+ <head>
+
+  
+  <style type="text/css">
+   #mynetwork {
+    background-color: #232625;
+   }
+
+   body {
+    background-color: #232625;
+    color: #ffffff;
+    font-size: 10px;
+   }
+  </style>
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+  
+   var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: false,
+      }
+
+  }
+
+
+  var nodes = [
+{id: '1163', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'fullLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'truncLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'isExpanded': false},
+{id: '1169', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '84 JUMPDEST\n85 STOP\n', 'fullLabel': '84 JUMPDEST\n85 STOP\n', 'truncLabel': '84 JUMPDEST\n85 STOP\n', 'isExpanded': false},
+{id: '1168', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '157 JUMPDEST\n158 JUMP\n', 'fullLabel': '157 JUMPDEST\n158 JUMP\n', 'truncLabel': '157 JUMPDEST\n158 JUMP\n', 'isExpanded': false},
+{id: '1170', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '153 PUSH1 0x00\n155 DUP1\n156 REVERT\n', 'fullLabel': '153 PUSH1 0x00\n155 DUP1\n156 REVERT\n', 'truncLabel': '153 PUSH1 0x00\n155 DUP1\n156 REVERT\n', 'isExpanded': false},
+{id: '1167', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '86 JUMPDEST\n87 CALLER\n88 PUSH20 0xffffffff(...)\n109 AND\n110 PUSH2 0x08fc\n113 PUSH8 0x1bc16d67(...)\n(click to expand +)', 'fullLabel': '86 JUMPDEST\n87 CALLER\n88 PUSH20 0xffffffff(...)\n109 AND\n110 PUSH2 0x08fc\n113 PUSH8 0x1bc16d67(...)\n122 SWAP1\n123 DUP2\n124 ISZERO\n125 MUL\n126 SWAP1\n127 PUSH1 0x40\n129 MLOAD\n130 PUSH1 0x00\n132 PUSH1 0x40\n134 MLOAD\n135 DUP1\n136 DUP4\n137 SUB\n138 DUP2\n139 DUP6\n140 DUP9\n141 DUP9\n142 CALL\n143 SWAP4\n144 POP\n145 POP\n146 POP\n147 POP\n148 ISZERO\n149 ISZERO\n150 PUSH1 0x9d\n152 JUMPI\n', 'truncLabel': '86 JUMPDEST\n87 CALLER\n88 PUSH20 0xffffffff(...)\n109 AND\n110 PUSH2 0x08fc\n113 PUSH8 0x1bc16d67(...)\n(click to expand +)', 'isExpanded': false},
+{id: '1166', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '78 JUMPDEST\n79 PUSH1 0x54\n81 PUSH1 0x56\n83 JUMP\n', 'fullLabel': '78 JUMPDEST\n79 PUSH1 0x54\n81 PUSH1 0x56\n83 JUMP\n', 'truncLabel': '78 JUMPDEST\n79 PUSH1 0x54\n81 PUSH1 0x56\n83 JUMP\n', 'isExpanded': false},
+{id: '1171', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '74 PUSH1 0x00\n76 DUP1\n77 REVERT\n', 'fullLabel': '74 PUSH1 0x00\n76 DUP1\n77 REVERT\n', 'truncLabel': '74 PUSH1 0x00\n76 DUP1\n77 REVERT\n', 'isExpanded': false},
+{id: '1165', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '68 _function_0x8a4068dd\n69 CALLVALUE\n70 ISZERO\n71 PUSH1 0x4e\n73 JUMPI\n', 'fullLabel': '68 _function_0x8a4068dd\n69 CALLVALUE\n70 ISZERO\n71 PUSH1 0x4e\n73 JUMPI\n', 'truncLabel': '68 _function_0x8a4068dd\n69 CALLVALUE\n70 ISZERO\n71 PUSH1 0x4e\n73 JUMPI\n', 'isExpanded': false},
+{id: '1172', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'fullLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'truncLabel': '63 JUMPDEST\n64 PUSH1 0x00\n66 DUP1\n67 REVERT\n', 'isExpanded': false},
+{id: '1164', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '12 PUSH1 0x00\n14 CALLDATALOAD\n15 PUSH29 0x01000000(...)\n45 SWAP1\n46 DIV\n47 PUSH4 0xffffffff\n(click to expand +)', 'fullLabel': '12 PUSH1 0x00\n14 CALLDATALOAD\n15 PUSH29 0x01000000(...)\n45 SWAP1\n46 DIV\n47 PUSH4 0xffffffff\n52 AND\n53 DUP1\n54 PUSH4 0x8a4068dd\n59 EQ\n60 PUSH1 0x44\n62 JUMPI\n', 'truncLabel': '12 PUSH1 0x00\n14 CALLDATALOAD\n15 PUSH29 0x01000000(...)\n45 SWAP1\n46 DIV\n47 PUSH4 0xffffffff\n(click to expand +)', 'isExpanded': false},
+{id: '1162', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'fullLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH1 0x3f\n11 JUMPI\n', 'truncLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'isExpanded': false}
+];
+var edges = [
+{from: '1162', to: '1163', 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize_Transfer2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '1168', to: '1169', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '1167', to: '1168', 'arrows': 'to', 'label': 'Not(retval_142 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '1167', to: '1170', 'arrows': 'to', 'label': 'retval_142 == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '1166', to: '1167', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '1165', to: '1166', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '1165', to: '1171', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '1164', to: '1165', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Transfer2_0) == 0x8a4068dd', 'smooth': {'type': 'cubicBezier'}},
+{from: '1164', to: '1172', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Transfer2_0) == 0x8a4068dd)', 'smooth': {'type': 'cubicBezier'}},
+{from: '1162', to: '1164', 'arrows': 'to', 'label': 'ULE(4, calldatasize_Transfer2)', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
+</script>
+</body>
+</html>

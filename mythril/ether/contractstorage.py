@@ -37,6 +37,52 @@ def get_persistent_storage(db_dir=None):
 
     return contract_storage, db
 
+class SyncBlocks(object):
+  '''
+  Processes the block chunk
+  '''
+
+  def __init__(self, eth):
+    self.eth = eth
+
+  def __call__(self, startblock):
+    '''
+    Processesing method
+    '''
+    logging.info("SYNC_BLOCKS %d to %d" % (startblock, startblock + BLOCKS_PER_THREAD))
+
+    contracts = {}
+
+    for blockNum in range(startblock, startblock + BLOCKS_PER_THREAD):
+        block = self.eth.eth_getBlockByNumber(blockNum)
+
+        for tx in block['transactions']:
+
+            if not tx['to']:
+
+                receipt = self.eth.eth_getTransactionReceipt(tx['hash'])
+
+                if receipt is not None:
+
+                    contract_address = receipt['contractAddress']
+
+                    contract_code = self.eth.eth_getCode(contract_address)
+                    contract_balance = self.eth.eth_getBalance(contract_address)
+
+                    if not contract_balance:
+                        continue
+
+                    ethcontract = ETHContract(contract_code, tx['input'])
+
+                    m = hashlib.md5()
+                    m.update(contract_code.encode('UTF-8'))
+                    contract_hash = m.digest()
+
+                    contracts[contract_hash] = {'ethcontract': ethcontract, 'address': contract_address, 'balance': contract_balance}
+
+        blockNum -= 1
+
+    return contracts
 
 class ContractStorage(persistent.Persistent):
 
@@ -48,42 +94,6 @@ class ContractStorage(persistent.Persistent):
 
     def get_contract_by_hash(self, contract_hash):
         return self.contracts[contract_hash]
-
-    def sync_blocks(self, startblock):
-        logging.info("SYNC_BLOCKS %d to %d" % (startblock, startblock + BLOCKS_PER_THREAD))
-
-        contracts = {}
-
-        for blockNum in range(startblock, startblock + BLOCKS_PER_THREAD):
-            block = self.eth.eth_getBlockByNumber(blockNum)
-
-            for tx in block['transactions']:
-
-                if not tx['to']:
-
-                    receipt = self.eth.eth_getTransactionReceipt(tx['hash'])
-
-                    if receipt is not None:
-
-                        contract_address = receipt['contractAddress']
-
-                        contract_code = self.eth.eth_getCode(contract_address)
-                        contract_balance = self.eth.eth_getBalance(contract_address)
-
-                        if not contract_balance:
-                            continue
-
-                        ethcontract = ETHContract(contract_code, tx['input'])
-
-                        m = hashlib.md5()
-                        m.update(contract_code.encode('UTF-8'))
-                        contract_hash = m.digest()
-
-                        contracts[contract_hash] = {'ethcontract': ethcontract, 'address': contract_address, 'balance': contract_balance}
-
-            blockNum -= 1
-
-        return contracts
 
     def initialize(self, eth):
 
@@ -104,10 +114,10 @@ class ContractStorage(persistent.Persistent):
             numbers = []
 
             for i in range(1, NUM_THREADS + 1):
-                numbers.append(blockNum - (i * BLOCKS_PER_THREAD))
+                numbers.append(max(0, blockNum - (i * BLOCKS_PER_THREAD)))
 
-            pool = Pool(NUM_THREADS)
-            results = pool.map(self.sync_blocks, numbers)
+            pool = Pool(NUM_THREADS, initargs=(self.eth))
+            results = pool.map(SyncBlocks(self.eth), numbers)
             pool.close()
             pool.join()
 
@@ -129,10 +139,11 @@ class ContractStorage(persistent.Persistent):
             transaction.commit()
 
             cost_time = time.time() - ether.start_time
-            print("%d blocks processed (in %d seconds), %d unique contracts in database, next block: %d" % (processed, cost_time, len(self.contracts), blockNum))
+            print("%d blocks processed (in %d seconds), %d unique contracts in database, next block: %d" % (processed, cost_time, len(self.contracts), max(0, blockNum)))
 
         # If we've finished initializing the database, start over from the end of the chain if we want to initialize again
         self.last_block = 0
+        print("Finished synchronization")
 
     def search(self, expression, callback_func):
 

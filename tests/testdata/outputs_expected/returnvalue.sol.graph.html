@@ -1,0 +1,146 @@
+<html>
+ <head>
+
+  
+  <style type="text/css">
+   #mynetwork {
+    background-color: #232625;
+   }
+
+   body {
+    background-color: #232625;
+    color: #ffffff;
+    font-size: 10px;
+   }
+  </style>
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+  
+   var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: false,
+      }
+
+  }
+
+
+  var nodes = [
+{id: '655', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '76 JUMPDEST\n77 PUSH1 0x00\n79 DUP1\n80 REVERT\n', 'fullLabel': '76 JUMPDEST\n77 PUSH1 0x00\n79 DUP1\n80 REVERT\n', 'truncLabel': '76 JUMPDEST\n77 PUSH1 0x00\n79 DUP1\n80 REVERT\n', 'isExpanded': false},
+{id: '661', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '100 JUMPDEST\n101 STOP\n', 'fullLabel': '100 JUMPDEST\n101 STOP\n', 'truncLabel': '100 JUMPDEST\n101 STOP\n', 'isExpanded': false},
+{id: '660', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '210 JUMPDEST\n211 JUMP\n', 'fullLabel': '210 JUMPDEST\n211 JUMP\n', 'truncLabel': '210 JUMPDEST\n211 JUMP\n', 'isExpanded': false},
+{id: '662', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '206 PUSH1 0x00\n208 DUP1\n209 REVERT\n', 'fullLabel': '206 PUSH1 0x00\n208 DUP1\n209 REVERT\n', 'truncLabel': '206 PUSH1 0x00\n208 DUP1\n209 REVERT\n', 'isExpanded': false},
+{id: '659', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '123 JUMPDEST\n124 PUSH1 0x00\n126 DUP1\n127 SWAP1\n128 SLOAD\n129 SWAP1\n(click to expand +)', 'fullLabel': '123 JUMPDEST\n124 PUSH1 0x00\n126 DUP1\n127 SWAP1\n128 SLOAD\n129 SWAP1\n130 PUSH2 0x0100\n133 EXP\n134 SWAP1\n135 DIV\n136 PUSH20 0xffffffff(...)\n157 AND\n158 PUSH20 0xffffffff(...)\n179 AND\n180 PUSH1 0x40\n182 MLOAD\n183 PUSH1 0x00\n185 PUSH1 0x40\n187 MLOAD\n188 DUP1\n189 DUP4\n190 SUB\n191 DUP2\n192 PUSH1 0x00\n194 DUP7\n195 GAS\n196 CALL\n197 SWAP2\n198 POP\n199 POP\n200 ISZERO\n201 ISZERO\n202 PUSH2 0x00d2\n205 JUMPI\n', 'truncLabel': '123 JUMPDEST\n124 PUSH1 0x00\n126 DUP1\n127 SWAP1\n128 SLOAD\n129 SWAP1\n(click to expand +)', 'isExpanded': false},
+{id: '658', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '92 JUMPDEST\n93 PUSH2 0x0064\n96 PUSH2 0x007b\n99 JUMP\n', 'fullLabel': '92 JUMPDEST\n93 PUSH2 0x0064\n96 PUSH2 0x007b\n99 JUMP\n', 'truncLabel': '92 JUMPDEST\n93 PUSH2 0x0064\n96 PUSH2 0x007b\n99 JUMP\n', 'isExpanded': false},
+{id: '663', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '88 PUSH1 0x00\n90 DUP1\n91 REVERT\n', 'fullLabel': '88 PUSH1 0x00\n90 DUP1\n91 REVERT\n', 'truncLabel': '88 PUSH1 0x00\n90 DUP1\n91 REVERT\n', 'isExpanded': false},
+{id: '657', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '81 _function_0x633ab5e0\n82 CALLVALUE\n83 ISZERO\n84 PUSH2 0x005c\n87 JUMPI\n', 'fullLabel': '81 _function_0x633ab5e0\n82 CALLVALUE\n83 ISZERO\n84 PUSH2 0x005c\n87 JUMPI\n', 'truncLabel': '81 _function_0x633ab5e0\n82 CALLVALUE\n83 ISZERO\n84 PUSH2 0x005c\n87 JUMPI\n', 'isExpanded': false},
+{id: '668', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '121 JUMPDEST\n122 STOP\n', 'fullLabel': '121 JUMPDEST\n122 STOP\n', 'truncLabel': '121 JUMPDEST\n122 STOP\n', 'isExpanded': false},
+{id: '667', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '212 JUMPDEST\n213 PUSH1 0x00\n215 DUP1\n216 SWAP1\n217 SLOAD\n218 SWAP1\n(click to expand +)', 'fullLabel': '212 JUMPDEST\n213 PUSH1 0x00\n215 DUP1\n216 SWAP1\n217 SLOAD\n218 SWAP1\n219 PUSH2 0x0100\n222 EXP\n223 SWAP1\n224 DIV\n225 PUSH20 0xffffffff(...)\n246 AND\n247 PUSH20 0xffffffff(...)\n268 AND\n269 PUSH1 0x40\n271 MLOAD\n272 PUSH1 0x00\n274 PUSH1 0x40\n276 MLOAD\n277 DUP1\n278 DUP4\n279 SUB\n280 DUP2\n281 PUSH1 0x00\n283 DUP7\n284 GAS\n285 CALL\n286 SWAP2\n287 POP\n288 POP\n289 POP\n290 JUMP\n', 'truncLabel': '212 JUMPDEST\n213 PUSH1 0x00\n215 DUP1\n216 SWAP1\n217 SLOAD\n218 SWAP1\n(click to expand +)', 'isExpanded': false},
+{id: '666', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '113 JUMPDEST\n114 PUSH2 0x0079\n117 PUSH2 0x00d4\n120 JUMP\n', 'fullLabel': '113 JUMPDEST\n114 PUSH2 0x0079\n117 PUSH2 0x00d4\n120 JUMP\n', 'truncLabel': '113 JUMPDEST\n114 PUSH2 0x0079\n117 PUSH2 0x00d4\n120 JUMP\n', 'isExpanded': false},
+{id: '669', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '109 PUSH1 0x00\n111 DUP1\n112 REVERT\n', 'fullLabel': '109 PUSH1 0x00\n111 DUP1\n112 REVERT\n', 'truncLabel': '109 PUSH1 0x00\n111 DUP1\n112 REVERT\n', 'isExpanded': false},
+{id: '665', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '102 _function_0xe3bea282\n103 CALLVALUE\n104 ISZERO\n105 PUSH2 0x0071\n108 JUMPI\n', 'fullLabel': '102 _function_0xe3bea282\n103 CALLVALUE\n104 ISZERO\n105 PUSH2 0x0071\n108 JUMPI\n', 'truncLabel': '102 _function_0xe3bea282\n103 CALLVALUE\n104 ISZERO\n105 PUSH2 0x0071\n108 JUMPI\n', 'isExpanded': false},
+{id: '670', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '76 JUMPDEST\n77 PUSH1 0x00\n79 DUP1\n80 REVERT\n', 'fullLabel': '76 JUMPDEST\n77 PUSH1 0x00\n79 DUP1\n80 REVERT\n', 'truncLabel': '76 JUMPDEST\n77 PUSH1 0x00\n79 DUP1\n80 REVERT\n', 'isExpanded': false},
+{id: '664', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '65 DUP1\n66 PUSH4 0xe3bea282\n71 EQ\n72 PUSH2 0x0066\n75 JUMPI\n', 'fullLabel': '65 DUP1\n66 PUSH4 0xe3bea282\n71 EQ\n72 PUSH2 0x0066\n75 JUMPI\n', 'truncLabel': '65 DUP1\n66 PUSH4 0xe3bea282\n71 EQ\n72 PUSH2 0x0066\n75 JUMPI\n', 'isExpanded': false},
+{id: '656', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)', 'fullLabel': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x633ab5e0\n60 EQ\n61 PUSH2 0x0051\n64 JUMPI\n', 'truncLabel': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)', 'isExpanded': false},
+{id: '654', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'fullLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x004c\n12 JUMPI\n', 'truncLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'isExpanded': false}
+];
+var edges = [
+{from: '654', to: '655', 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize_ReturnValue))', 'smooth': {'type': 'cubicBezier'}},
+{from: '660', to: '661', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '659', to: '660', 'arrows': 'to', 'label': 'Not(retval_196 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '659', to: '662', 'arrows': 'to', 'label': 'retval_196 == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '658', to: '659', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '657', to: '658', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '657', to: '663', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '656', to: '657', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_ReturnValue_0) == 0x633ab5e0', 'smooth': {'type': 'cubicBezier'}},
+{from: '667', to: '668', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '666', to: '667', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '665', to: '666', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '665', to: '669', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '664', to: '665', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_ReturnValue_0) == 0xe3bea282', 'smooth': {'type': 'cubicBezier'}},
+{from: '664', to: '670', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_ReturnValue_0) == 0xe3bea282)', 'smooth': {'type': 'cubicBezier'}},
+{from: '656', to: '664', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_ReturnValue_0) == 0x633ab5e0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '654', to: '656', 'arrows': 'to', 'label': 'ULE(4, calldatasize_ReturnValue)', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
+</script>
+</body>
+</html>

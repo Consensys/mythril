@@ -1,0 +1,17 @@
+{
+    "success": true,
+    "error": null,
+    "issues": [
+        {
+            "title": "Unchecked SUICIDE",
+            "description": "The function `_function_0xcbf0b0c0` executes the SUICIDE instruction. The remaining Ether is sent to an address provided as a function argument.\n\nIt seems that this function can be called without restrictions.",
+            "function": "_function_0xcbf0b0c0",
+            "type": "Warning",
+            "address": 146,
+            "debug": "<DEBUG-DATA>",
+            "filename": "<TESTDATA>/inputs/suicide.sol",
+            "lineno": 4,
+            "code": "selfdestruct(addr)"
+        }
+    ]
+}

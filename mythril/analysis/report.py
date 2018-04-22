@@ -1,7 +1,6 @@
 import hashlib
 import json
 
-
 class Issue:
 
     def __init__(self, contract, function, pc, title, _type="Informational", description="", debug=""):
@@ -92,6 +91,8 @@ class Report:
 
         for key, issue in self.issues.items():
 
+            if text == "":
+                text += "# Analysis results for " + issue.filename
             text += "\n\n## " + issue.title + "\n\n"
             text += "- Type: " + issue.type + "\n"
 
@@ -103,15 +104,15 @@ class Report:
             text += "- Function name: `" + issue.function + "`\n"
             text += "- PC address: " + str(issue.pc) + "\n\n"
 
-            text += "\n\n### Description\n\n" + issue.description + "\n"
+            text += "### Description\n\n" + issue.description
 
             if issue.filename and issue.lineno:
                 text += "\nIn *%s:%d*\n" % (issue.filename, issue.lineno)
 
             if issue.code:
-                text += "\n```\n" + issue.code + "\n```\n"
+                text += "\n```\n" + issue.code + "\n```"
 
             if self.verbose and issue.debug:
-                text += "### Debugging Information\n" + issue.debug + "\n"
+                text += "\n\n### Debugging Information\n" + issue.debug
 
         return text

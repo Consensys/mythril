@@ -4,7 +4,7 @@
     "issues": [
         {
             "title": "Exception state",
-            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
             "function": "_function_0x546455b5",
             "type": "Informational",
             "address": 446,
@@ -12,7 +12,7 @@
         },
         {
             "title": "Exception state",
-            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
             "function": "_function_0x92dd38ea",
             "type": "Informational",
             "address": 484,
@@ -20,7 +20,7 @@
         },
         {
             "title": "Exception state",
-            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
             "function": "_function_0xa08299f1",
             "type": "Informational",
             "address": 506,
@@ -28,7 +28,7 @@
         },
         {
             "title": "Exception state",
-            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that assert() should only be used to check invariants. Use require() for regular input checking. ",
+            "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
             "function": "_function_0xb34c3610",
             "type": "Informational",
             "address": 531,

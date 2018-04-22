@@ -85,7 +85,7 @@ def execute(statespace):
 
                             description += \
                                 "an address found at storage slot " + str(idx) + ". " + \
-                                "This storage slot can be written to by calling the function '" + func + "'. "
+                                "This storage slot can be written to by calling the function `" + func + "`. "
                             user_supplied = True
 
                 if user_supplied:

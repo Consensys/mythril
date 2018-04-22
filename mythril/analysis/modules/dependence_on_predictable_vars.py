@@ -39,7 +39,7 @@ def execute(statespace):
 
         address = call.state.get_current_instruction()['address']
 
-        description = "In the function `'" + call.node.function_name + "'` "
+        description = "In the function `" + call.node.function_name + "` "
         description += "the following predictable state variables are used to determine Ether recipient:\n"
 
         # First check: look for predictable state variables in node & call recipient constraints
@@ -64,7 +64,7 @@ def execute(statespace):
 
         for constraint in call.node.constraints + [call.to]:
             if "blockhash" in str(constraint):
-                description = "In the function `'" + call.node.function_name + "'` "
+                description = "In the function `" + call.node.function_name + "` "
                 if "number" in str(constraint):
                     m = re.search('blockhash\w+(\s\-\s(\d+))*', str(constraint))
                     if m and solve(call):
