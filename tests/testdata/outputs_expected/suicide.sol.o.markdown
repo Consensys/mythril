@@ -1,4 +1,4 @@
-
+# Analysis results for test-filename.sol
 
 ## Unchecked SUICIDE
 
@@ -6,8 +6,6 @@
 - Contract: Unknown
 - Function name: `_function_0xcbf0b0c0`
 - PC address: 146
-
-
 
 ### Description
 

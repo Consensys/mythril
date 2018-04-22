@@ -1,4 +1,4 @@
-# Analysis results for <TESTDATA>/inputs/rubixi.sol
+# Analysis results for test-filename.sol
 
 ## Ether send
 
@@ -6,8 +6,6 @@
 - Contract: Unknown
 - Function name: `_function_0x4229616d`
 - PC address: 1599
-
-
 
 ### Description
 
@@ -16,16 +14,13 @@ There is a check on storage index 5. This storage slot can be written to by call
 
 There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
 There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
-In *<TESTDATA>/inputs/rubixi.sol:93*
-```
 
 ## Ether send
 
 - Type: Warning
 - Contract: Unknown
 - Function name: `_function_0x686f2c90`
-
-
+- PC address: 1940
 
 ### Description
 
@@ -34,11 +29,6 @@ There is a check on storage index 5. This storage slot can be written to by call
 
 There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
 There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
-In *<TESTDATA>/inputs/rubixi.sol:75*
-
-```
-creator.send(collectedFees)
-```
 
 ## Exception state
 
@@ -47,16 +37,9 @@ creator.send(collectedFees)
 - Function name: `_function_0x57d4021b`
 - PC address: 1653
 
-
-
 ### Description
 
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
-In *<TESTDATA>/inputs/rubixi.sol:131*
-
-```
-participants[payoutOrder]
-```
 
 ## Exception state
 
@@ -65,16 +48,9 @@ participants[payoutOrder]
 - Function name: `_function_0x9dbc4f9b`
 - PC address: 2085
 
-
-
 ### Description
 
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
-In *<TESTDATA>/inputs/rubixi.sol:148*
-
-```
-participants[orderInPyramid]
-```
 
 ## Integer Overflow 
 
@@ -83,17 +59,10 @@ participants[orderInPyramid]
 - Function name: `_function_0xfae14192`
 - PC address: 1223
 
-
-
 ### Description
 
 A possible integer overflow exists in the function `_function_0xfae14192`.
 The addition or multiplication may result in a value higher than the maximum representable integer.
-In *<TESTDATA>/inputs/rubixi.sol:37*
-
-```
-collectedFees += msg.value
-```
 
 ## Unchecked CALL return value
 
@@ -102,16 +71,9 @@ collectedFees += msg.value
 - Function name: `_function_0x4229616d`
 - PC address: 1599
 
-
-
 ### Description
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
-In *<TESTDATA>/inputs/rubixi.sol:93*
-
-```
-creator.send(feesToCollect)
-```
 
 ## Unchecked CALL return value
 
@@ -120,16 +82,9 @@ creator.send(feesToCollect)
 - Function name: `_function_0xb4022950`
 - PC address: 1940
 
-
-
 ### Description
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
-In *<TESTDATA>/inputs/rubixi.sol:75*
-
-```
-creator.send(collectedFees)
-```
 
 ## Unchecked CALL return value
 
@@ -141,8 +96,3 @@ creator.send(collectedFees)
 ### Description
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
-In *<TESTDATA>/inputs/rubixi.sol:85*
-
-```
-creator.send(_amt)
-```

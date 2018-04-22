@@ -23,6 +23,7 @@ def _generate_report(input_file):
 
     report = Report()
     for issue in issues:
+        issue.filename = "test-filename.sol"
         report.append_issue(issue)
 
     return report
