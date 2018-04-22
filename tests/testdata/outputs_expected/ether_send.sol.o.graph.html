@@ -1,0 +1,244 @@
+<html>
+ <head>
+
+  
+  <style type="text/css">
+   #mynetwork {
+    background-color: #232625;
+   }
+
+   body {
+    background-color: #232625;
+    color: #ffffff;
+    font-size: 10px;
+   }
+  </style>
+
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script>
+
+  
+   var options = {
+      autoResize: true,
+      height: '100%',
+      width: '100%',
+      manipulation: false,
+      height: '90%',
+      layout: {
+        randomSeed: undefined,
+        improvedLayout:true,
+        hierarchical: {
+          enabled:true,
+          levelSeparation: 450,
+          nodeSpacing: 200,
+          treeSpacing: 100,
+          blockShifting: true,
+          edgeMinimization: true,
+          parentCentralization: false,
+          direction: 'LR',        // UD, DU, LR, RL
+          sortMethod: 'directed'   // hubsize, directed
+        }
+      },
+      nodes:{
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        chosen: true,
+        shape: 'box',
+        font: {
+          align: 'left',
+          color: '#FFFFFF',
+        },
+      },
+      edges:{
+        font: {
+          color: '#ffffff',
+          size: 12, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal',
+          multi: false,
+          vadjust: 0,
+        }
+      },
+
+      physics:{
+        enabled: false,
+      }
+
+  }
+
+
+  var nodes = [
+{id: '493', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '128 JUMPDEST\n129 STOP\n', 'fullLabel': '128 JUMPDEST\n129 STOP\n', 'truncLabel': '128 JUMPDEST\n129 STOP\n', 'isExpanded': false},
+{id: '492', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n441 AND\n442 PUSH20 0xffffffff(...)\n463 AND\n464 DUP2\n465 MSTORE\n466 PUSH1 0x20\n468 ADD\n469 SWAP1\n470 DUP2\n471 MSTORE\n472 PUSH1 0x20\n474 ADD\n475 PUSH1 0x00\n477 SHA3\n478 PUSH1 0x00\n480 DUP3\n481 DUP3\n482 SLOAD\n483 ADD\n484 SWAP3\n485 POP\n486 POP\n487 DUP2\n488 SWAP1\n489 SSTORE\n490 POP\n491 JUMP\n', 'truncLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '494', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'fullLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'truncLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'isExpanded': false},
+{id: '491', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'fullLabel': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'truncLabel': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'isExpanded': false},
+{id: '497', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '128 JUMPDEST\n129 STOP\n', 'fullLabel': '128 JUMPDEST\n129 STOP\n', 'truncLabel': '128 JUMPDEST\n129 STOP\n', 'isExpanded': false},
+{id: '496', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n441 AND\n442 PUSH20 0xffffffff(...)\n463 AND\n464 DUP2\n465 MSTORE\n466 PUSH1 0x20\n468 ADD\n469 SWAP1\n470 DUP2\n471 MSTORE\n472 PUSH1 0x20\n474 ADD\n475 PUSH1 0x00\n477 SHA3\n478 PUSH1 0x00\n480 DUP3\n481 DUP3\n482 SLOAD\n483 ADD\n484 SWAP3\n485 POP\n486 POP\n487 DUP2\n488 SWAP1\n489 SSTORE\n490 POP\n491 JUMP\n', 'truncLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '498', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'fullLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'truncLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'isExpanded': false},
+{id: '495', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n(click to expand +)', 'fullLabel': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'truncLabel': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n(click to expand +)', 'isExpanded': false},
+{id: '490', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n(click to expand +)', 'fullLabel': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n392 ISZERO\n393 PUSH2 0x0193\n396 JUMPI\n', 'truncLabel': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n(click to expand +)', 'isExpanded': false},
+{id: '489', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '120 JUMPDEST\n121 PUSH2 0x0080\n124 PUSH2 0x0181\n127 JUMP\n', 'fullLabel': '120 JUMPDEST\n121 PUSH2 0x0080\n124 PUSH2 0x0181\n127 JUMP\n', 'truncLabel': '120 JUMPDEST\n121 PUSH2 0x0080\n124 PUSH2 0x0181\n127 JUMP\n', 'isExpanded': false},
+{id: '503', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '149 JUMPDEST\n150 PUSH1 0x40\n152 MLOAD\n153 DUP1\n154 DUP3\n155 DUP2\n(click to expand +)', 'fullLabel': '149 JUMPDEST\n150 PUSH1 0x40\n152 MLOAD\n153 DUP1\n154 DUP3\n155 DUP2\n156 MSTORE\n157 PUSH1 0x20\n159 ADD\n160 SWAP2\n161 POP\n162 POP\n163 PUSH1 0x40\n165 MLOAD\n166 DUP1\n167 SWAP2\n168 SUB\n169 SWAP1\n170 RETURN\n', 'truncLabel': '149 JUMPDEST\n150 PUSH1 0x40\n152 MLOAD\n153 DUP1\n154 DUP3\n155 DUP2\n(click to expand +)', 'isExpanded': false},
+{id: '502', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '492 JUMPDEST\n493 PUSH1 0x00\n495 DUP1\n496 PUSH1 0x00\n498 CALLER\n499 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '492 JUMPDEST\n493 PUSH1 0x00\n495 DUP1\n496 PUSH1 0x00\n498 CALLER\n499 PUSH20 0xffffffff(...)\n520 AND\n521 PUSH20 0xffffffff(...)\n542 AND\n543 DUP2\n544 MSTORE\n545 PUSH1 0x20\n547 ADD\n548 SWAP1\n549 DUP2\n550 MSTORE\n551 PUSH1 0x20\n553 ADD\n554 PUSH1 0x00\n556 SHA3\n557 SLOAD\n558 SWAP1\n559 POP\n560 SWAP1\n561 JUMP\n', 'truncLabel': '492 JUMPDEST\n493 PUSH1 0x00\n495 DUP1\n496 PUSH1 0x00\n498 CALLER\n499 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '501', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '141 JUMPDEST\n142 PUSH2 0x0095\n145 PUSH2 0x01ec\n148 JUMP\n', 'fullLabel': '141 JUMPDEST\n142 PUSH2 0x0095\n145 PUSH2 0x01ec\n148 JUMP\n', 'truncLabel': '141 JUMPDEST\n142 PUSH2 0x0095\n145 PUSH2 0x01ec\n148 JUMP\n', 'isExpanded': false},
+{id: '504', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '137 PUSH1 0x00\n139 DUP1\n140 REVERT\n', 'fullLabel': '137 PUSH1 0x00\n139 DUP1\n140 REVERT\n', 'truncLabel': '137 PUSH1 0x00\n139 DUP1\n140 REVERT\n', 'isExpanded': false},
+{id: '500', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '130 _function_0x12065fe0\n131 CALLVALUE\n132 ISZERO\n133 PUSH2 0x008d\n136 JUMPI\n', 'fullLabel': '130 _function_0x12065fe0\n131 CALLVALUE\n132 ISZERO\n133 PUSH2 0x008d\n136 JUMPI\n', 'truncLabel': '130 _function_0x12065fe0\n131 CALLVALUE\n132 ISZERO\n133 PUSH2 0x008d\n136 JUMPI\n', 'isExpanded': false},
+{id: '509', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '226 JUMPDEST\n227 PUSH1 0x40\n229 MLOAD\n230 DUP1\n231 DUP3\n232 DUP2\n(click to expand +)', 'fullLabel': '226 JUMPDEST\n227 PUSH1 0x40\n229 MLOAD\n230 DUP1\n231 DUP3\n232 DUP2\n233 MSTORE\n234 PUSH1 0x20\n236 ADD\n237 SWAP2\n238 POP\n239 POP\n240 PUSH1 0x40\n242 MLOAD\n243 DUP1\n244 SWAP2\n245 SUB\n246 SWAP1\n247 RETURN\n', 'truncLabel': '226 JUMPDEST\n227 PUSH1 0x40\n229 MLOAD\n230 DUP1\n231 DUP3\n232 DUP2\n(click to expand +)', 'isExpanded': false},
+{id: '508', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '562 JUMPDEST\n563 PUSH1 0x00\n565 PUSH1 0x20\n567 MSTORE\n568 DUP1\n569 PUSH1 0x00\n(click to expand +)', 'fullLabel': '562 JUMPDEST\n563 PUSH1 0x00\n565 PUSH1 0x20\n567 MSTORE\n568 DUP1\n569 PUSH1 0x00\n571 MSTORE\n572 PUSH1 0x40\n574 PUSH1 0x00\n576 SHA3\n577 PUSH1 0x00\n579 SWAP2\n580 POP\n581 SWAP1\n582 POP\n583 SLOAD\n584 DUP2\n585 JUMP\n', 'truncLabel': '562 JUMPDEST\n563 PUSH1 0x00\n565 PUSH1 0x20\n567 MSTORE\n568 DUP1\n569 PUSH1 0x00\n(click to expand +)', 'isExpanded': false},
+{id: '507', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '182 JUMPDEST\n183 PUSH2 0x00e2\n186 PUSH1 0x04\n188 DUP1\n189 DUP1\n190 CALLDATALOAD\n(click to expand +)', 'fullLabel': '182 JUMPDEST\n183 PUSH2 0x00e2\n186 PUSH1 0x04\n188 DUP1\n189 DUP1\n190 CALLDATALOAD\n191 PUSH20 0xffffffff(...)\n212 AND\n213 SWAP1\n214 PUSH1 0x20\n216 ADD\n217 SWAP1\n218 SWAP2\n219 SWAP1\n220 POP\n221 POP\n222 PUSH2 0x0232\n225 JUMP\n', 'truncLabel': '182 JUMPDEST\n183 PUSH2 0x00e2\n186 PUSH1 0x04\n188 DUP1\n189 DUP1\n190 CALLDATALOAD\n(click to expand +)', 'isExpanded': false},
+{id: '510', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '178 PUSH1 0x00\n180 DUP1\n181 REVERT\n', 'fullLabel': '178 PUSH1 0x00\n180 DUP1\n181 REVERT\n', 'truncLabel': '178 PUSH1 0x00\n180 DUP1\n181 REVERT\n', 'isExpanded': false},
+{id: '506', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '171 _function_0x27e235e3\n172 CALLVALUE\n173 ISZERO\n174 PUSH2 0x00b6\n177 JUMPI\n', 'fullLabel': '171 _function_0x27e235e3\n172 CALLVALUE\n173 ISZERO\n174 PUSH2 0x00b6\n177 JUMPI\n', 'truncLabel': '171 _function_0x27e235e3\n172 CALLVALUE\n173 ISZERO\n174 PUSH2 0x00b6\n177 JUMPI\n', 'isExpanded': false},
+{id: '515', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '267 JUMPDEST\n268 STOP\n', 'fullLabel': '267 JUMPDEST\n268 STOP\n', 'truncLabel': '267 JUMPDEST\n268 STOP\n', 'isExpanded': false},
+{id: '514', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '586 JUMPDEST\n587 CALLER\n588 PUSH1 0x01\n590 PUSH1 0x00\n592 PUSH2 0x0100\n595 EXP\n(click to expand +)', 'fullLabel': '586 JUMPDEST\n587 CALLER\n588 PUSH1 0x01\n590 PUSH1 0x00\n592 PUSH2 0x0100\n595 EXP\n596 DUP2\n597 SLOAD\n598 DUP2\n599 PUSH20 0xffffffff(...)\n620 MUL\n621 NOT\n622 AND\n623 SWAP1\n624 DUP4\n625 PUSH20 0xffffffff(...)\n646 AND\n647 MUL\n648 OR\n649 SWAP1\n650 SSTORE\n651 POP\n652 JUMP\n', 'truncLabel': '586 JUMPDEST\n587 CALLER\n588 PUSH1 0x01\n590 PUSH1 0x00\n592 PUSH2 0x0100\n595 EXP\n(click to expand +)', 'isExpanded': false},
+{id: '513', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '259 JUMPDEST\n260 PUSH2 0x010b\n263 PUSH2 0x024a\n266 JUMP\n', 'fullLabel': '259 JUMPDEST\n260 PUSH2 0x010b\n263 PUSH2 0x024a\n266 JUMP\n', 'truncLabel': '259 JUMPDEST\n260 PUSH2 0x010b\n263 PUSH2 0x024a\n266 JUMP\n', 'isExpanded': false},
+{id: '516', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '255 PUSH1 0x00\n257 DUP1\n258 REVERT\n', 'fullLabel': '255 PUSH1 0x00\n257 DUP1\n258 REVERT\n', 'truncLabel': '255 PUSH1 0x00\n257 DUP1\n258 REVERT\n', 'isExpanded': false},
+{id: '512', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '248 crowdfunding()\n249 CALLVALUE\n250 ISZERO\n251 PUSH2 0x0103\n254 JUMPI\n', 'fullLabel': '248 crowdfunding()\n249 CALLVALUE\n250 ISZERO\n251 PUSH2 0x0103\n254 JUMPI\n', 'truncLabel': '248 crowdfunding()\n249 CALLVALUE\n250 ISZERO\n251 PUSH2 0x0103\n254 JUMPI\n', 'isExpanded': false},
+{id: '523', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '288 JUMPDEST\n289 STOP\n', 'fullLabel': '288 JUMPDEST\n289 STOP\n', 'truncLabel': '288 JUMPDEST\n289 STOP\n', 'isExpanded': false},
+{id: '522', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '832 JUMPDEST\n833 JUMP\n', 'fullLabel': '832 JUMPDEST\n833 JUMP\n', 'truncLabel': '832 JUMPDEST\n833 JUMP\n', 'isExpanded': false},
+{id: '524', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '828 PUSH1 0x00\n830 DUP1\n831 REVERT\n', 'fullLabel': '828 PUSH1 0x00\n830 DUP1\n831 REVERT\n', 'truncLabel': '828 PUSH1 0x00\n830 DUP1\n831 REVERT\n', 'isExpanded': false},
+{id: '521', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '745 JUMPDEST\n746 CALLER\n747 PUSH20 0xffffffff(...)\n768 AND\n769 PUSH2 0x08fc\n772 ADDRESS\n(click to expand +)', 'fullLabel': '745 JUMPDEST\n746 CALLER\n747 PUSH20 0xffffffff(...)\n768 AND\n769 PUSH2 0x08fc\n772 ADDRESS\n773 PUSH20 0xffffffff(...)\n794 AND\n795 BALANCE\n796 SWAP1\n797 DUP2\n798 ISZERO\n799 MUL\n800 SWAP1\n801 PUSH1 0x40\n803 MLOAD\n804 PUSH1 0x00\n806 PUSH1 0x40\n808 MLOAD\n809 DUP1\n810 DUP4\n811 SUB\n812 DUP2\n813 DUP6\n814 DUP9\n815 DUP9\n816 CALL\n817 SWAP4\n818 POP\n819 POP\n820 POP\n821 POP\n822 ISZERO\n823 ISZERO\n824 PUSH2 0x0340\n827 JUMPI\n', 'truncLabel': '745 JUMPDEST\n746 CALLER\n747 PUSH20 0xffffffff(...)\n768 AND\n769 PUSH2 0x08fc\n772 ADDRESS\n(click to expand +)', 'isExpanded': false},
+{id: '525', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '741 PUSH1 0x00\n743 DUP1\n744 REVERT\n', 'fullLabel': '741 PUSH1 0x00\n743 DUP1\n744 REVERT\n', 'truncLabel': '741 PUSH1 0x00\n743 DUP1\n744 REVERT\n', 'isExpanded': false},
+{id: '520', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '653 JUMPDEST\n654 PUSH1 0x01\n656 PUSH1 0x00\n658 SWAP1\n659 SLOAD\n660 SWAP1\n(click to expand +)', 'fullLabel': '653 JUMPDEST\n654 PUSH1 0x01\n656 PUSH1 0x00\n658 SWAP1\n659 SLOAD\n660 SWAP1\n661 PUSH2 0x0100\n664 EXP\n665 SWAP1\n666 DIV\n667 PUSH20 0xffffffff(...)\n688 AND\n689 PUSH20 0xffffffff(...)\n710 AND\n711 CALLER\n712 PUSH20 0xffffffff(...)\n733 AND\n734 EQ\n735 ISZERO\n736 ISZERO\n737 PUSH2 0x02e9\n740 JUMPI\n', 'truncLabel': '653 JUMPDEST\n654 PUSH1 0x01\n656 PUSH1 0x00\n658 SWAP1\n659 SLOAD\n660 SWAP1\n(click to expand +)', 'isExpanded': false},
+{id: '519', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '280 JUMPDEST\n281 PUSH2 0x0120\n284 PUSH2 0x028d\n287 JUMP\n', 'fullLabel': '280 JUMPDEST\n281 PUSH2 0x0120\n284 PUSH2 0x028d\n287 JUMP\n', 'truncLabel': '280 JUMPDEST\n281 PUSH2 0x0120\n284 PUSH2 0x028d\n287 JUMP\n', 'isExpanded': false},
+{id: '526', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '276 PUSH1 0x00\n278 DUP1\n279 REVERT\n', 'fullLabel': '276 PUSH1 0x00\n278 DUP1\n279 REVERT\n', 'truncLabel': '276 PUSH1 0x00\n278 DUP1\n279 REVERT\n', 'isExpanded': false},
+{id: '518', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '269 withdrawfunds()\n270 CALLVALUE\n271 ISZERO\n272 PUSH2 0x0118\n275 JUMPI\n', 'fullLabel': '269 withdrawfunds()\n270 CALLVALUE\n271 ISZERO\n272 PUSH2 0x0118\n275 JUMPI\n', 'truncLabel': '269 withdrawfunds()\n270 CALLVALUE\n271 ISZERO\n272 PUSH2 0x0118\n275 JUMPI\n', 'isExpanded': false},
+{id: '531', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '309 JUMPDEST\n310 PUSH1 0x40\n312 MLOAD\n313 DUP1\n314 DUP3\n315 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '309 JUMPDEST\n310 PUSH1 0x40\n312 MLOAD\n313 DUP1\n314 DUP3\n315 PUSH20 0xffffffff(...)\n336 AND\n337 PUSH20 0xffffffff(...)\n358 AND\n359 DUP2\n360 MSTORE\n361 PUSH1 0x20\n363 ADD\n364 SWAP2\n365 POP\n366 POP\n367 PUSH1 0x40\n369 MLOAD\n370 DUP1\n371 SWAP2\n372 SUB\n373 SWAP1\n374 RETURN\n', 'truncLabel': '309 JUMPDEST\n310 PUSH1 0x40\n312 MLOAD\n313 DUP1\n314 DUP3\n315 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '530', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '834 JUMPDEST\n835 PUSH1 0x01\n837 PUSH1 0x00\n839 SWAP1\n840 SLOAD\n841 SWAP1\n(click to expand +)', 'fullLabel': '834 JUMPDEST\n835 PUSH1 0x01\n837 PUSH1 0x00\n839 SWAP1\n840 SLOAD\n841 SWAP1\n842 PUSH2 0x0100\n845 EXP\n846 SWAP1\n847 DIV\n848 PUSH20 0xffffffff(...)\n869 AND\n870 DUP2\n871 JUMP\n', 'truncLabel': '834 JUMPDEST\n835 PUSH1 0x01\n837 PUSH1 0x00\n839 SWAP1\n840 SLOAD\n841 SWAP1\n(click to expand +)', 'isExpanded': false},
+{id: '529', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '301 JUMPDEST\n302 PUSH2 0x0135\n305 PUSH2 0x0342\n308 JUMP\n', 'fullLabel': '301 JUMPDEST\n302 PUSH2 0x0135\n305 PUSH2 0x0342\n308 JUMP\n', 'truncLabel': '301 JUMPDEST\n302 PUSH2 0x0135\n305 PUSH2 0x0342\n308 JUMP\n', 'isExpanded': false},
+{id: '532', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '297 PUSH1 0x00\n299 DUP1\n300 REVERT\n', 'fullLabel': '297 PUSH1 0x00\n299 DUP1\n300 REVERT\n', 'truncLabel': '297 PUSH1 0x00\n299 DUP1\n300 REVERT\n', 'isExpanded': false},
+{id: '528', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '290 _function_0x8da5cb5b\n291 CALLVALUE\n292 ISZERO\n293 PUSH2 0x012d\n296 JUMPI\n', 'fullLabel': '290 _function_0x8da5cb5b\n291 CALLVALUE\n292 ISZERO\n293 PUSH2 0x012d\n296 JUMPI\n', 'truncLabel': '290 _function_0x8da5cb5b\n291 CALLVALUE\n292 ISZERO\n293 PUSH2 0x012d\n296 JUMPI\n', 'isExpanded': false},
+{id: '538', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '383 JUMPDEST\n384 STOP\n', 'fullLabel': '383 JUMPDEST\n384 STOP\n', 'truncLabel': '383 JUMPDEST\n384 STOP\n', 'isExpanded': false},
+{id: '537', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n441 AND\n442 PUSH20 0xffffffff(...)\n463 AND\n464 DUP2\n465 MSTORE\n466 PUSH1 0x20\n468 ADD\n469 SWAP1\n470 DUP2\n471 MSTORE\n472 PUSH1 0x20\n474 ADD\n475 PUSH1 0x00\n477 SHA3\n478 PUSH1 0x00\n480 DUP3\n481 DUP3\n482 SLOAD\n483 ADD\n484 SWAP3\n485 POP\n486 POP\n487 DUP2\n488 SWAP1\n489 SSTORE\n490 POP\n491 JUMP\n', 'truncLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '539', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'fullLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'truncLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'isExpanded': false},
+{id: '536', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'fullLabel': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'truncLabel': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'isExpanded': false},
+{id: '542', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '383 JUMPDEST\n384 STOP\n', 'fullLabel': '383 JUMPDEST\n384 STOP\n', 'truncLabel': '383 JUMPDEST\n384 STOP\n', 'isExpanded': false},
+{id: '541', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n441 AND\n442 PUSH20 0xffffffff(...)\n463 AND\n464 DUP2\n465 MSTORE\n466 PUSH1 0x20\n468 ADD\n469 SWAP1\n470 DUP2\n471 MSTORE\n472 PUSH1 0x20\n474 ADD\n475 PUSH1 0x00\n477 SHA3\n478 PUSH1 0x00\n480 DUP3\n481 DUP3\n482 SLOAD\n483 ADD\n484 SWAP3\n485 POP\n486 POP\n487 DUP2\n488 SWAP1\n489 SSTORE\n490 POP\n491 JUMP\n', 'truncLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '543', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'fullLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'truncLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'isExpanded': false},
+{id: '540', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n(click to expand +)', 'fullLabel': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'truncLabel': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n(click to expand +)', 'isExpanded': false},
+{id: '535', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n(click to expand +)', 'fullLabel': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n392 ISZERO\n393 PUSH2 0x0193\n396 JUMPI\n', 'truncLabel': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n(click to expand +)', 'isExpanded': false},
+{id: '534', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '375 invest()\n376 PUSH2 0x017f\n379 PUSH2 0x0181\n382 JUMP\n', 'fullLabel': '375 invest()\n376 PUSH2 0x017f\n379 PUSH2 0x0181\n382 JUMP\n', 'truncLabel': '375 invest()\n376 PUSH2 0x017f\n379 PUSH2 0x0181\n382 JUMP\n', 'isExpanded': false},
+{id: '548', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '128 JUMPDEST\n129 STOP\n', 'fullLabel': '128 JUMPDEST\n129 STOP\n', 'truncLabel': '128 JUMPDEST\n129 STOP\n', 'isExpanded': false},
+{id: '547', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n441 AND\n442 PUSH20 0xffffffff(...)\n463 AND\n464 DUP2\n465 MSTORE\n466 PUSH1 0x20\n468 ADD\n469 SWAP1\n470 DUP2\n471 MSTORE\n472 PUSH1 0x20\n474 ADD\n475 PUSH1 0x00\n477 SHA3\n478 PUSH1 0x00\n480 DUP3\n481 DUP3\n482 SLOAD\n483 ADD\n484 SWAP3\n485 POP\n486 POP\n487 DUP2\n488 SWAP1\n489 SSTORE\n490 POP\n491 JUMP\n', 'truncLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '549', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'fullLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'truncLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'isExpanded': false},
+{id: '546', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'fullLabel': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'truncLabel': '403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'isExpanded': false},
+{id: '552', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '128 JUMPDEST\n129 STOP\n', 'fullLabel': '128 JUMPDEST\n129 STOP\n', 'truncLabel': '128 JUMPDEST\n129 STOP\n', 'isExpanded': false},
+{id: '551', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'fullLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n441 AND\n442 PUSH20 0xffffffff(...)\n463 AND\n464 DUP2\n465 MSTORE\n466 PUSH1 0x20\n468 ADD\n469 SWAP1\n470 DUP2\n471 MSTORE\n472 PUSH1 0x20\n474 ADD\n475 PUSH1 0x00\n477 SHA3\n478 PUSH1 0x00\n480 DUP3\n481 DUP3\n482 SLOAD\n483 ADD\n484 SWAP3\n485 POP\n486 POP\n487 DUP2\n488 SWAP1\n489 SSTORE\n490 POP\n491 JUMP\n', 'truncLabel': '414 JUMPDEST\n415 CALLVALUE\n416 PUSH1 0x00\n418 DUP1\n419 CALLER\n420 PUSH20 0xffffffff(...)\n(click to expand +)', 'isExpanded': false},
+{id: '553', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'fullLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'truncLabel': '410 PUSH1 0x00\n412 DUP1\n413 REVERT\n', 'isExpanded': false},
+{id: '550', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n(click to expand +)', 'fullLabel': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n404 ISZERO\n405 ISZERO\n406 PUSH2 0x019e\n409 JUMPI\n', 'truncLabel': '397 POP\n398 PUSH1 0x03\n400 SLOAD\n401 CALLVALUE\n402 LT\n403 JUMPDEST\n(click to expand +)', 'isExpanded': false},
+{id: '545', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n(click to expand +)', 'fullLabel': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n392 ISZERO\n393 PUSH2 0x0193\n396 JUMPI\n', 'truncLabel': '385 JUMPDEST\n386 PUSH1 0x02\n388 SLOAD\n389 CALLVALUE\n390 GT\n391 DUP1\n(click to expand +)', 'isExpanded': false},
+{id: '544', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '120 JUMPDEST\n121 PUSH2 0x0080\n124 PUSH2 0x0181\n127 JUMP\n', 'fullLabel': '120 JUMPDEST\n121 PUSH2 0x0080\n124 PUSH2 0x0181\n127 JUMP\n', 'truncLabel': '120 JUMPDEST\n121 PUSH2 0x0080\n124 PUSH2 0x0181\n127 JUMP\n', 'isExpanded': false},
+{id: '533', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '109 DUP1\n110 PUSH4 0xe8b5e51f\n115 EQ\n116 PUSH2 0x0177\n119 JUMPI\n', 'fullLabel': '109 DUP1\n110 PUSH4 0xe8b5e51f\n115 EQ\n116 PUSH2 0x0177\n119 JUMPI\n', 'truncLabel': '109 DUP1\n110 PUSH4 0xe8b5e51f\n115 EQ\n116 PUSH2 0x0177\n119 JUMPI\n', 'isExpanded': false},
+{id: '527', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '98 DUP1\n99 PUSH4 0x8da5cb5b\n104 EQ\n105 PUSH2 0x0122\n108 JUMPI\n', 'fullLabel': '98 DUP1\n99 PUSH4 0x8da5cb5b\n104 EQ\n105 PUSH2 0x0122\n108 JUMPI\n', 'truncLabel': '98 DUP1\n99 PUSH4 0x8da5cb5b\n104 EQ\n105 PUSH2 0x0122\n108 JUMPI\n', 'isExpanded': false},
+{id: '517', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '87 DUP1\n88 PUSH4 0x6c343ffe\n93 EQ\n94 PUSH2 0x010d\n97 JUMPI\n', 'fullLabel': '87 DUP1\n88 PUSH4 0x6c343ffe\n93 EQ\n94 PUSH2 0x010d\n97 JUMPI\n', 'truncLabel': '87 DUP1\n88 PUSH4 0x6c343ffe\n93 EQ\n94 PUSH2 0x010d\n97 JUMPI\n', 'isExpanded': false},
+{id: '511', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '76 DUP1\n77 PUSH4 0x56885cd8\n82 EQ\n83 PUSH2 0x00f8\n86 JUMPI\n', 'fullLabel': '76 DUP1\n77 PUSH4 0x56885cd8\n82 EQ\n83 PUSH2 0x00f8\n86 JUMPI\n', 'truncLabel': '76 DUP1\n77 PUSH4 0x56885cd8\n82 EQ\n83 PUSH2 0x00f8\n86 JUMPI\n', 'isExpanded': false},
+{id: '505', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '65 DUP1\n66 PUSH4 0x27e235e3\n71 EQ\n72 PUSH2 0x00ab\n75 JUMPI\n', 'fullLabel': '65 DUP1\n66 PUSH4 0x27e235e3\n71 EQ\n72 PUSH2 0x00ab\n75 JUMPI\n', 'truncLabel': '65 DUP1\n66 PUSH4 0x27e235e3\n71 EQ\n72 PUSH2 0x00ab\n75 JUMPI\n', 'isExpanded': false},
+{id: '499', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)', 'fullLabel': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x12065fe0\n60 EQ\n61 PUSH2 0x0082\n64 JUMPI\n', 'truncLabel': '13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)', 'isExpanded': false},
+{id: '488', color: {border: '#26996f', background: '#2f7e5b', highlight: {border: '#26996f', background: '#28a16f'}}, size: 150, 'label': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'fullLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x0078\n12 JUMPI\n', 'truncLabel': '0 PUSH1 0x60\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)', 'isExpanded': false}
+];
+var edges = [
+{from: '492', to: '493', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '491', to: '492', 'arrows': 'to', 'label': 'Not(ULE(callvalue, storage_2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '491', to: '494', 'arrows': 'to', 'label': 'ULE(callvalue, storage_2)', 'smooth': {'type': 'cubicBezier'}},
+{from: '490', to: '491', 'arrows': 'to', 'label': 'ULE(callvalue, storage_2)', 'smooth': {'type': 'cubicBezier'}},
+{from: '496', to: '497', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '495', to: '496', 'arrows': 'to', 'label': 'Not(ULE(storage_3, callvalue))', 'smooth': {'type': 'cubicBezier'}},
+{from: '495', to: '498', 'arrows': 'to', 'label': 'ULE(storage_3, callvalue)', 'smooth': {'type': 'cubicBezier'}},
+{from: '490', to: '495', 'arrows': 'to', 'label': 'Not(ULE(callvalue, storage_2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '489', to: '490', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '488', to: '489', 'arrows': 'to', 'label': 'Not(ULE(4, calldatasize_Unknown))', 'smooth': {'type': 'cubicBezier'}},
+{from: '502', to: '503', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '501', to: '502', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '500', to: '501', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '500', to: '504', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '499', to: '500', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Unknown_0) == 0x12065fe0', 'smooth': {'type': 'cubicBezier'}},
+{from: '508', to: '509', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '507', to: '508', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '506', to: '507', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '506', to: '510', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '505', to: '506', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Unknown_0) == 0x27e235e3', 'smooth': {'type': 'cubicBezier'}},
+{from: '514', to: '515', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '513', to: '514', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '512', to: '513', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '512', to: '516', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '511', to: '512', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Unknown_0) == 0x56885cd8', 'smooth': {'type': 'cubicBezier'}},
+{from: '522', to: '523', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '521', to: '522', 'arrows': 'to', 'label': 'Not(retval_816 == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '521', to: '524', 'arrows': 'to', 'label': 'retval_816 == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '520', to: '521', 'arrows': 'to', 'label': 'Extract(0x9f, 0, caller) == Extract(0xa7, 8, storage_1)', 'smooth': {'type': 'cubicBezier'}},
+{from: '520', to: '525', 'arrows': 'to', 'label': 'Not(Extract(0x9f, 0, caller) == Extract(0xa7, 8, storage_1))', 'smooth': {'type': 'cubicBezier'}},
+{from: '519', to: '520', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '518', to: '519', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '518', to: '526', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '517', to: '518', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Unknown_0) == 0x6c343ffe', 'smooth': {'type': 'cubicBezier'}},
+{from: '530', to: '531', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '529', to: '530', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '528', to: '529', 'arrows': 'to', 'label': 'callvalue == 0', 'smooth': {'type': 'cubicBezier'}},
+{from: '528', to: '532', 'arrows': 'to', 'label': 'Not(callvalue == 0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '527', to: '528', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Unknown_0) == 0x8da5cb5b', 'smooth': {'type': 'cubicBezier'}},
+{from: '537', to: '538', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '536', to: '537', 'arrows': 'to', 'label': 'Not(ULE(callvalue, storage_2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '536', to: '539', 'arrows': 'to', 'label': 'ULE(callvalue, storage_2)', 'smooth': {'type': 'cubicBezier'}},
+{from: '535', to: '536', 'arrows': 'to', 'label': 'ULE(callvalue, storage_2)', 'smooth': {'type': 'cubicBezier'}},
+{from: '541', to: '542', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '540', to: '541', 'arrows': 'to', 'label': 'Not(ULE(storage_3, callvalue))', 'smooth': {'type': 'cubicBezier'}},
+{from: '540', to: '543', 'arrows': 'to', 'label': 'ULE(storage_3, callvalue)', 'smooth': {'type': 'cubicBezier'}},
+{from: '535', to: '540', 'arrows': 'to', 'label': 'Not(ULE(callvalue, storage_2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '534', to: '535', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '533', to: '534', 'arrows': 'to', 'label': 'Extract(0xff, 0xe0, calldata_Unknown_0) == 0xe8b5e51f', 'smooth': {'type': 'cubicBezier'}},
+{from: '547', to: '548', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '546', to: '547', 'arrows': 'to', 'label': 'Not(ULE(callvalue, storage_2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '546', to: '549', 'arrows': 'to', 'label': 'ULE(callvalue, storage_2)', 'smooth': {'type': 'cubicBezier'}},
+{from: '545', to: '546', 'arrows': 'to', 'label': 'ULE(callvalue, storage_2)', 'smooth': {'type': 'cubicBezier'}},
+{from: '551', to: '552', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '550', to: '551', 'arrows': 'to', 'label': 'Not(ULE(storage_3, callvalue))', 'smooth': {'type': 'cubicBezier'}},
+{from: '550', to: '553', 'arrows': 'to', 'label': 'ULE(storage_3, callvalue)', 'smooth': {'type': 'cubicBezier'}},
+{from: '545', to: '550', 'arrows': 'to', 'label': 'Not(ULE(callvalue, storage_2))', 'smooth': {'type': 'cubicBezier'}},
+{from: '544', to: '545', 'arrows': 'to', 'label': '', 'smooth': {'type': 'cubicBezier'}},
+{from: '533', to: '544', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0xe8b5e51f)', 'smooth': {'type': 'cubicBezier'}},
+{from: '527', to: '533', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0x8da5cb5b)', 'smooth': {'type': 'cubicBezier'}},
+{from: '517', to: '527', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0x6c343ffe)', 'smooth': {'type': 'cubicBezier'}},
+{from: '511', to: '517', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0x56885cd8)', 'smooth': {'type': 'cubicBezier'}},
+{from: '505', to: '511', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0x27e235e3)', 'smooth': {'type': 'cubicBezier'}},
+{from: '499', to: '505', 'arrows': 'to', 'label': 'Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0x12065fe0)', 'smooth': {'type': 'cubicBezier'}},
+{from: '488', to: '499', 'arrows': 'to', 'label': 'ULE(4, calldatasize_Unknown)', 'smooth': {'type': 'cubicBezier'}}
+];
+
+  </script>
+ </head>
+<body>
+<p>Mythril / LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+var container = document.getElementById('mynetwork');
+
+var nodesSet = new vis.DataSet(nodes);
+var edgesSet = new vis.DataSet(edges);
+var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+var gph = new vis.Network(container, data, options);
+gph.on("click", function (params) {
+  // parse node id
+  var nodeID = params['nodes']['0'];
+  if (nodeID) {
+    var clickedNode = nodesSet.get(nodeID);
+
+    if(clickedNode.isExpanded) {
+      clickedNode.label = clickedNode.truncLabel;
+    }
+    else {
+      clickedNode.label = clickedNode.fullLabel;
+    }
+
+    clickedNode.isExpanded = !clickedNode.isExpanded;
+
+    nodesSet.update(clickedNode);
+  }
+});
+</script>
+</body>
+</html>
