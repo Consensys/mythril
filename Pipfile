@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+plyvel = "*"
+py-solc = "*"
+coverage = "*"
+BTrees = "*"
+ethereum = "*"
+zodb = ">=*"
+eth-abi = "*"
+"z3-solver" = "*"
+eth-account = "*"
+eth-tester = "*"
+laser-ethereum = "*"
+"jinja2" = "*"
+
+[dev-packages]
+pylint = "*"
+yapf = "*"
+
+[requires]
+python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
