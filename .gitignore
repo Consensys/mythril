@@ -8,11 +8,13 @@ build
 dist
 *.rst
 *.lock
+!Pipfile.lock
 *.svg
 laser*
 lol*
 .idea*
 coverage_html_report/
 .coverage
+.pytest_cache
 tests/testdata/outputs_current/
 tests/mythril_dir/signatures.json
