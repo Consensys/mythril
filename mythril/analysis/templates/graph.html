@@ -1,0 +1,68 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" integrity="sha256-iq5ygGJ7021Pi7H5S+QAUXCPUfaBzfqeplbg/KlEssg=" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js" integrity="sha256-JuQeAGbk9rG/EoRMixuy5X8syzICcvB0dj3KindZkY0=" crossorigin="anonymous"></script>
+
+    {% if not phrackify %}
+    <style type="text/css">
+        #mynetwork {
+            background-color: #232625;
+        }
+        body {
+            background-color: #232625;
+            color: #ffffff;
+            font-size: 10px;
+        }
+    </style>
+    {% else %}
+    <style type="text/css">
+        #mynetwork {
+            background-color: #ffffff;
+        }
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            font-size: 10px;
+            font-family: "courier new";
+        }
+    </style>
+    {% endif %}
+
+    <script>
+        var options = {{opts | tojson}};
+        var nodes = {{nodes | tojson}};
+        var edges = {{edges | tojson}};
+    </script>
+</head>
+<body>
+<p>{{ title }}</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+    var container = document.getElementById('mynetwork');
+
+    var nodesSet = new vis.DataSet(nodes);
+    var edgesSet = new vis.DataSet(edges);
+    var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+    var gph = new vis.Network(container, data, options);
+    gph.on("click", function (params) {
+        // parse node id
+        var nodeID = params['nodes']['0'];
+        if (nodeID) {
+            var clickedNode = nodesSet.get(nodeID);
+
+            if(clickedNode.isExpanded) {
+                clickedNode.label = clickedNode.truncLabel;
+            }
+            else {
+                clickedNode.label = clickedNode.fullLabel;
+            }
+
+            clickedNode.isExpanded = !clickedNode.isExpanded;
+
+            nodesSet.update(clickedNode);
+        }
+    });
+</script>
+</body>
+</html>
