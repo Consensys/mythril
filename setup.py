@@ -303,7 +303,8 @@ setup(
         'eth-keys>=0.2.0b3',
         'eth-rlp>=0.1.0',
         'eth-tester>=0.1.0b21',
-        'coverage'
+        'coverage',
+        'jinja2'
     ],
 
     python_requires='>=3.5',
