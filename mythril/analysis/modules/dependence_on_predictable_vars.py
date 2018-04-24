@@ -66,7 +66,7 @@ def execute(statespace):
             if "blockhash" in str(constraint):
                 description = "In the function `" + call.node.function_name + "` "
                 if "number" in str(constraint):
-                    m = re.search('blockhash\w+(\s\-\s(\d+))*', str(constraint))
+                    m = re.search(r'blockhash\w+(\s-\s(\d+))*', str(constraint))
                     if m and solve(call):
 
                         found = m.group(1)
