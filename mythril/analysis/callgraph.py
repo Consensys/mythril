@@ -139,8 +139,8 @@ def extract_edges(state_space):
 
 
 def generate_graph(state_space, title="Mythril / Ethereum LASER Symbolic VM", physics=False, phrackify=False):
-    env = Environment(loader=PackageLoader('mythril.analysis'), autoescape=select_autoescape(['html', 'xml']))
-    template = env.get_template('graph.html')
+    env = Environment(loader=PackageLoader('mythril'), autoescape=select_autoescape(['html', 'xml']))
+    template = env.get_template('callgraph.html')
 
     graph_opts = default_opts
     accounts = state_space.accounts
