@@ -3,6 +3,8 @@ from mythril.disassembler.disassembly import Disassembly
 import logging
 import re
 
+
+# TODO: Move to attrs
 class DynLoader:
 
     def __init__(self, eth):

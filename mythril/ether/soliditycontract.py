@@ -1,32 +1,33 @@
+import attr
+
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import *
 from mythril.exceptions import NoContractFoundError
 from laser.ethereum import helper
 
+
+@attr.s
 class SourceMapping:
-
-    def __init__(self, solidity_file_idx, offset, length, lineno):
-        self.solidity_file_idx = solidity_file_idx
-        self.offset = offset
-        self.length = length
-        self.lineno = lineno
+    solidity_file_idx = attr.ib()
+    offset = attr.ib()
+    length = attr.ib()
+    lineno = attr.ib()
 
 
+@attr.s
 class SolidityFile:
-
-    def __init__(self, filename, data):
-        self.filename = filename
-        self.data = data
+    filename = attr.ib()
+    data = attr.ib()
 
 
+@attr.s
 class SourceCodeInfo:
-
-    def __init__(self, filename, lineno, code):
-        self.filename = filename
-        self.lineno = lineno
-        self.code = code
+    filename = attr.ib()
+    lineno = attr.ib()
+    code = attr.ib()
 
 
+# TODO: Move to attrs
 class SolidityContract(ETHContract):
 
     def __init__(self, input_file, name=None, solc_args=None):

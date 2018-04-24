@@ -5,6 +5,7 @@ import logging
 from .ops import get_variable, SStore, Call, VarType
 
 
+# TODO: Use attrs
 class SymExecWrapper:
 
     '''
