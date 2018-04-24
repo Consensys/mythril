@@ -3,7 +3,7 @@ Type: Warning
 Contract: Under
 Function name: sendeth(address,uint256)
 PC address: 649
-A possible integer underflow exists in the function sendeth(address,uint256).
+A possible integer underflow exists in the function `sendeth(address,uint256)`.
 The subtraction may result in a value < 0.
 --------------------
 In file: <TESTDATA>/inputs/underflow.sol:12
@@ -17,8 +17,8 @@ Type: Warning
 Contract: Under
 Function name: sendeth(address,uint256)
 PC address: 725
-A possible integer overflow exists in the function sendeth(address,uint256).
-The addition may result in a value higher than the maximum representable integer.
+A possible integer overflow exists in the function `sendeth(address,uint256)`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
 --------------------
 In file: <TESTDATA>/inputs/underflow.sol:13
 
@@ -31,7 +31,7 @@ Type: Warning
 Contract: Under
 Function name: sendeth(address,uint256)
 PC address: 567
-A possible integer underflow exists in the function sendeth(address,uint256).
+A possible integer underflow exists in the function `sendeth(address,uint256)`.
 The subtraction may result in a value < 0.
 --------------------
 In file: <TESTDATA>/inputs/underflow.sol:11

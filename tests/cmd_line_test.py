@@ -13,7 +13,7 @@ class CommandLineToolTestCase(BaseTestCase):
         self.assertEqual('0 POP\n1 POP\n', output_of(command))
 
     def test_disassemble_solidity_file_correctly(self):
-        solidity_file = str(TESTDATA_INPUTS / 'metacoin.sol')
+        solidity_file = str(TESTDATA / 'input_contracts'/ 'metacoin.sol')
         command = "python3 {} -d {}".format(MYTH, solidity_file)
         self.assertIn('0 PUSH1 0x60\n2 PUSH1 0x40', output_of(command))
 
@@ -26,7 +26,7 @@ class TruffleTestCase(BaseTestCase):
     def test_analysis_truffle_project(self):
         truffle_project_root = str(TESTS_DIR / "truffle_project")
         command = "cd {}; truffle compile; python3 {} --truffle".format(truffle_project_root, MYTH)
-        self.assertIn("In the function 'withdrawfunds()' a non-zero amount of Ether is sent to msg.sender.", output_of(command))
+        self.assertIn("In the function `withdrawfunds()` a non-zero amount of Ether is sent to msg.sender.", output_of(command))
 
 class InfuraTestCase(BaseTestCase):
 

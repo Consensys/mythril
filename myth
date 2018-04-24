@@ -342,8 +342,11 @@ if args.storage:
             if len(params) >= 2:
                 length = int(params[1])
             if len(params) == 3 and params[2] == "array":
-                position_formatted = str(position).zfill(64)
-                position = int(utils.sha3(position_formatted), 16)
+                position_formatted = bytes(position).ljust(32, b"\x00")
+
+                print(position_formatted)
+
+                position = int.from_bytes(utils.sha3(position_formatted), byteorder='big')
 
         except ValueError:
             exitWithError(args.outform, "Invalid storage index. Please provide a numeric value.")
@@ -413,11 +416,11 @@ elif args.graph or args.fire_lasers:
             'markdown': report.as_markdown()
         }
         print(outputs[args.outform])
-        
-elif args.statespace_json: 
+
+elif args.statespace_json:
     if not contracts:
         exitWithError(args.outform, "input files do not contain any valid contracts")
-    
+
     if args.dynld:
         sym = SymExecWrapper(contracts[0], address, dynloader=DynLoader(eth), max_depth=args.max_depth)
     else:

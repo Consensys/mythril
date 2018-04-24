@@ -4,7 +4,7 @@
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
-Mythril is a security analysis tool for Ethereum smart contracts. In case you're curious how it works, check out the exhilarating writeup titled [Smashing Ethereum smart contracts for fun and real profit](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf).
+Mythril is a security analysis tool for Ethereum smart contracts. It was introduced in [Smashing Ethereum smart contracts for fun and real profit](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf), a conference paper released at [HITBSecConf 2018](https://conference.hitb.org).
 
   * [Installation and setup](#installation-and-setup)
   * [Security analysis](#security-analysis)
@@ -58,9 +58,9 @@ Type: Warning
 Contract: Crowdfunding
 Function name: withdrawfunds()
 PC address: 816
-In the function 'withdrawfunds()' a non-zero amount of Ether is sent to msg.sender.
+In the function `withdrawfunds()` a non-zero amount of Ether is sent to msg.sender.
 
-There is a check on storage index 7. This storage slot can be written to by calling the function 'crowdfunding()'.
+There is a check on storage index 7. This storage slot can be written to by calling the function `crowdfunding()`.
 --------------------
 In file: solidity_examples/ether_send.sol:18
 

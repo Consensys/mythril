@@ -19,7 +19,7 @@ Detection modules, ideas collection and wish list. Contributions are welcome!
 |Transaction order dependence|              |           | [Front Running](https://consensys.github.io/smart-contract-best-practices/known_attacks/#transaction-ordering-dependence-tod-front-running) |
 |Information exposure|                      |           |   |
 |Complex fallback function (uses more than 2,300 gas) | A too complex fallback function will cause send() and transfer() from other contracts to fail. To implement this we first need to fully implement gas simulation. | | 
-|Use require() instead of assert() | Use `assert()` only to check against states which should be completely unreachable.  | [Exceptions](mythril/analysis/modules/exceptions.py)          | [Solidity docs](https://solidity.readthedocs.io/en/develop/control-structures.html#error-handling-assert-require-revert-and-exceptions)|
+|Use `require()` instead of `assert()` | Use `assert()` only to check against states which should be completely unreachable.  | [Exceptions](mythril/analysis/modules/exceptions.py)          | [Solidity docs](https://solidity.readthedocs.io/en/develop/control-structures.html#error-handling-assert-require-revert-and-exceptions)|
 |Use of depreciated functions | Use `revert()` instead of `throw()`, `selfdestruct()` instead of `suicide()`, `keccak256()` instead of `sha3()` |           | |
 |Detect tautologies| Detect comparisons that always evaluate to 'true', see also [#54](https://github.com/ConsenSys/mythril/issues/54) |  |
 |Call depth attack| Depreciated             |           | [EIP 150 Hard Fork](https://consensys.github.io/smart-contract-best-practices/known_attacks/#call-depth-attack-deprecated)|

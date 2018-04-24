@@ -62,7 +62,7 @@ def execute(statespace):
                         func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
                         if (func):
-                            issue.description = "This contract delegates execution to a contract address in storage slot " + str(idx) + ". This storage slot can be written to by calling the function '" + func + "'. "
+                            issue.description = "This contract delegates execution to a contract address in storage slot " + str(idx) + ". This storage slot can be written to by calling the function `" + func + "`. "
 
                         else:
                             logging.debug("[DELEGATECALL] No storage writes to index " + str(idx))

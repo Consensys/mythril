@@ -69,7 +69,7 @@ def execute(statespace):
                         func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
                         if func:
-                            description += "\nThere is a check on storage index " + str(idx) + ". This storage index can be written to by calling the function '" + func + "'."
+                            description += "\nThere is a check on storage index " + str(idx) + ". This storage index can be written to by calling the function `" + func + "`."
                             break
                         else:
                             logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(idx))

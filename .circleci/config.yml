@@ -31,6 +31,12 @@ jobs:
           name: Unit-testing
           command: cd /home/mythril && ./all_tests.sh
 
+      - store_test_results:
+          path: /tmp/test-reports
+
+      - store_artifacts:
+          path: /tmp/test-reports
+
       - run:
           name: Ensuring that setup script is functional
           command: cd /home/mythril && python3 setup.py install

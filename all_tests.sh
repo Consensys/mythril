@@ -8,4 +8,5 @@ echo "Please make sure you are using solc 0.4.21"
 
 rm -rf ./tests/testdata/outputs_current/
 mkdir -p ./tests/testdata/outputs_current/
-python3 -m unittest discover -p "*_test.py"
+mkdir -p /tmp/test-reports
+pytest --junitxml=/tmp/test-reports/junit.xml
