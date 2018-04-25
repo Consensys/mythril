@@ -12,7 +12,7 @@ jobs:
 
       # Uncomment, for local testing with circleci command, as it ignores
       # path param in checkout command, and this symlink compenstates for that.
-      - run: ln -s /root/project /home/mythril
+      # - run: ln -s /root/project /home/mythril
 
       - run:
           name: Installing mythril tools
