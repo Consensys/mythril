@@ -96,10 +96,10 @@ def extract_nodes(statespace, color_map):
         for instruction in instructions:
             if instruction['opcode'].startswith("PUSH"):
                 code_split.append(
-                    "{} {} [}".format(instruction['address'], instruction['opcode'], instruction['argument']))
+                    "{} {} {}".format(instruction['address'], instruction['opcode'], instruction['argument']))
             elif instruction['opcode'].startswith("JUMPDEST"):
                 code_split.append(
-                    "{} {} [}".format(instruction['address'], instruction['opcode'], node.function_name))
+                    "{} {} {}".format(instruction['address'], instruction['opcode'], node.function_name))
             else:
                 code_split.append("{} {}".format(instruction['address'], instruction['opcode']))
 
