@@ -33,6 +33,22 @@
             "type": "Informational",
             "address": 146,
             "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `_function_0xe9874106`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "_function_0xe9874106",
+            "type": "Warning",
+            "address": 1216,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `_function_0xe9874106`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "_function_0xe9874106",
+            "type": "Warning",
+            "address": 262,
+            "debug": "<DEBUG-DATA>"
         }
     ]
 }

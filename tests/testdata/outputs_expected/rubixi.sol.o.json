@@ -35,6 +35,14 @@
             "debug": "<DEBUG-DATA>"
         },
         {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `_function_0xfae14192`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "_function_0xfae14192",
+            "type": "Warning",
+            "address": 1223,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
             "title": "Unchecked CALL return value",
             "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
             "function": "_function_0x4229616d",

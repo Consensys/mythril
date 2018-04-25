@@ -49,3 +49,27 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 ### Description
 
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
+
+## Integer Overflow 
+
+- Type: Warning
+- Contract: Unknown
+- Function name: `_function_0xe9874106`
+- PC address: 1216
+
+### Description
+
+A possible integer overflow exists in the function `_function_0xe9874106`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
+
+## Integer Overflow 
+
+- Type: Warning
+- Contract: Unknown
+- Function name: `_function_0xe9874106`
+- PC address: 262
+
+### Description
+
+A possible integer overflow exists in the function `_function_0xe9874106`.
+The addition or multiplication may result in a value higher than the maximum representable integer.
