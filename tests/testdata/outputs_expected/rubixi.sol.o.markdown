@@ -19,15 +19,35 @@ There is a check on storage index 1. This storage slot can be written to by call
 
 - Type: Warning
 - Contract: Unknown
-- Function name: `_function_0x686f2c90`
+- Function name: `_function_0xb4022950`
 - PC address: 1940
 
 ### Description
 
-In the function `_function_0x686f2c90` a non-zero amount of Ether is sent to an address taken from storage slot 5.
+In the function `_function_0xb4022950` a non-zero amount of Ether is sent to an address taken from storage slot 5.
 There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
 
 There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
+
+## Ether send
+
+- Type: Warning
+- Contract: Unknown
+- Function name: `_function_0xb4022950`
+- PC address: 2582
+
+### Description
+
+In the function `_function_0xb4022950` a non-zero amount of Ether is sent to an address taken from storage slot 5.
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
+There is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.
+There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
 There is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.
 
 ## Exception state

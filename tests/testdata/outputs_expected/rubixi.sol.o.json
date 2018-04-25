@@ -12,10 +12,18 @@
         },
         {
             "title": "Ether send",
-            "description": "In the function `_function_0x686f2c90` a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\nThere is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.",
-            "function": "_function_0x686f2c90",
+            "description": "In the function `_function_0xb4022950` a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\nThere is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\nThere is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.",
+            "function": "_function_0xb4022950",
             "type": "Warning",
             "address": 1940,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Ether send",
+            "description": "In the function `_function_0xb4022950` a non-zero amount of Ether is sent to an address taken from storage slot 5.\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\n\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\nThere is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.\nThere is a check on storage index 5. This storage slot can be written to by calling the function `_function_0x67f809e9`.\nThere is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.\nThere is a check on storage index 1. This storage slot can be written to by calling the function `fallback`.",
+            "function": "_function_0xb4022950",
+            "type": "Warning",
+            "address": 2582,
             "debug": "<DEBUG-DATA>"
         },
         {
