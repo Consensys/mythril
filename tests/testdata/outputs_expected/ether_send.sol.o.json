@@ -9,14 +9,6 @@
             "type": "Warning",
             "address": 816,
             "debug": "<DEBUG-DATA>"
-        },
-        {
-            "title": "Integer Overflow ",
-            "description": "A possible integer overflow exists in the function `invest()`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
-            "function": "invest()",
-            "type": "Warning",
-            "address": 483,
-            "debug": "<DEBUG-DATA>"
         }
     ]
 }
