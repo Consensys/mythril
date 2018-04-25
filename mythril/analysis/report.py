@@ -40,10 +40,14 @@ class Report(object):
         self.issues[m.digest()] = issue
 
     def as_json(self):
+
+        def list_filter(prop, value):
+            return prop.name in ["title", "description", "function", "type", "address", "debug"]
+
         return json.dumps({
             'success': True,
             'error': None,
-            'issues': [issue.as_dict() for key, issue in self.issues.items()]
+            'issues': [attr.asdict(issue, filter=list_filter) for key, issue in self.issues.items()]
         })
 
     def as_text(self):

@@ -7,14 +7,17 @@ from mythril.ether.soliditycontract import ETHContract
 import json
 from tests import *
 
+
 def _fix_path(text):
     return text.replace(str(TESTDATA), "<TESTDATA>")
+
 
 def _fix_debug_data(json_str):
     read_json = json.loads(json_str)
     for issue in read_json["issues"]:
         issue["debug"] = "<DEBUG-DATA>"
     return json.dumps(read_json, indent=4)
+
 
 def _generate_report(input_file):
     contract = ETHContract(input_file.read_text())
@@ -28,6 +31,7 @@ def _generate_report(input_file):
 
     return report
 
+
 class AnalysisReportTest(BaseTestCase):
 
     def test_json_reports(self):
@@ -38,10 +42,9 @@ class AnalysisReportTest(BaseTestCase):
             report = _generate_report(input_file)
             output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
 
-            if not (output_expected.read_text() == output_current.read_text()):
-                self.found_changed_files(input_file, output_expected, output_current)
-
-        self.assert_and_show_changed_files()
+            with open(output_expected) as expected:
+                with open(output_current) as current:
+                    self.assertEqual(json.load(expected), json.load(current))
 
     def test_markdown_reports(self):
         for input_file in TESTDATA_INPUTS.iterdir():
