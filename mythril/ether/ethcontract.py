@@ -4,6 +4,7 @@ import persistent
 import re
 
 
+# TODO: Move to attrs
 class ETHContract(persistent.Persistent):
 
     def __init__(self, code, creation_code="", name="Unknown"):
@@ -72,6 +73,7 @@ class ETHContract(persistent.Persistent):
         return eval(str_eval.strip())
 
 
+# TODO: Move to attrs
 class InstanceList(persistent.Persistent):
 
     def __init__(self):

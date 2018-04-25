@@ -1,3 +1,5 @@
+import attr
+
 from z3 import *
 from enum import Enum
 from laser.ethereum import helper
@@ -8,16 +10,6 @@ class VarType(Enum):
     CONCRETE = 2
 
 
-class Variable:
-
-    def __init__(self, val, _type):
-        self.val = val
-        self.type = _type
-
-    def __str__(self):
-        return str(self.val)
-
-
 def get_variable(i):
     try:
         return Variable(helper.get_concrete_int(i), VarType.CONCRETE)
@@ -25,28 +17,28 @@ def get_variable(i):
         return Variable(simplify(i), VarType.SYMBOLIC)
 
 
+@attr.s
+class Variable:
+    val = attr.ib()
+    type = attr.ib()
+
+
+@attr.s
 class Op:
-
-    def __init__(self, node, state, state_index):
-        self.node = node
-        self.state = state
-        self.state_index = state_index
+    node = attr.ib()
+    state = attr.ib()
+    state_index= attr.ib()
 
 
+@attr.s
 class Call(Op):
-
-    def __init__(self, node, state, state_index, _type, to, gas, value=Variable(0, VarType.CONCRETE), data=None):
-
-        super().__init__(node, state, state_index)
-        self.to = to
-        self.gas = gas
-        self.type = _type
-        self.value = value
-        self.data = data
+    to = attr.ib()
+    gas = attr.ib()
+    type = attr.ib()
+    value = attr.ib(default=Variable(0, VarType.CONCRETE))
+    data = attr.ib(default=None)
 
 
+@attr.s
 class SStore(Op):
-
-    def __init__(self, node, state, state_index, value):
-        super().__init__(node, state, state_index)
-        self.value = value
+    value = attr.ib()

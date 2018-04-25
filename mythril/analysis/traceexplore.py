@@ -13,6 +13,8 @@ colors = [
     {'border': '#4753bf', 'background': '#3b46a1', 'highlight': {'border': '#fff', 'background': '#424db3'}},
 ]
 
+
+# TODO: Could this be shared with the templating in callgraph.py?
 def get_serializable_statespace(statespace):
     
     nodes = []
