@@ -71,36 +71,13 @@ def _check_integer_overflow(statespace, state, node):
     else:
         expr = op0 * op1
 
-    if str(op1) != 'calldata_Over_32 + 4':
-        return issues
-
     # Check satisfiable
-    constraint = UGT(op1, MAX_UINT - 1)
+    constraint = Or(ULT(expr, op0), ULT(expr, op1))
     model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
         logging.debug("[INTEGER_OVERFLOW] no model found")
         return issues
-
-    constraint = UGT(op0, MAX_UINT - 1)
-    model = _try_constraints(node.constraints, [constraint])
-
-    if model is None:
-        logging.debug("[INTEGER_OVERFLOW] no model found")
-        return issues
-
-    constraint = ULT(op0 + op1, op0)
-    model = _try_constraints(node.constraints, [constraint])
-
-    if model is None:
-        logging.debug("[INTEGER_OVERFLOW] no model found")
-        return issues
-
-    print(op0)
-    print("::")
-    print(op1)
-    print("::")
-    print(node.constraints)
 
     if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
         return issues
