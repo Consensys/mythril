@@ -48,6 +48,9 @@ jobs:
       - checkout:
           path: /home/mythril
       - run:
+          name: Verify Git tag vs. version
+          command: cd /home/mythril && python3 setup.py verify
+      - run:
           name: Build
           command: cd /home/mythril && python3 setup.py sdist
       - run:
