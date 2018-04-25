@@ -30,7 +30,7 @@ def _generate_report(input_file):
         report.append_issue(issue)
     end = datetime.datetime.now()
     print("Performing analysis on {} duration {}".format(input_file, end - begin))
-    return report
+    return report, input_file
 
 class AnalysisReportTest(BaseTestCase):
 
@@ -39,7 +39,7 @@ class AnalysisReportTest(BaseTestCase):
         pool = Pool(8)
 
         input_files = [f for f in TESTDATA_INPUTS.iterdir()]
-        self.results = zip(pool.map(_generate_report, input_files), input_files)
+        self.results = pool.map(_generate_report, input_files)
 
 
     def test_json_reports(self):
@@ -56,10 +56,10 @@ class AnalysisReportTest(BaseTestCase):
 
     def test_markdown_reports(self):
         for report, input_file in self.results:
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
+            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
+            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
 
-            output_current.write_text(_fix_path(_fix_debug_data(report.as_markdown())).strip())
+            output_current.write_text(_fix_path(report.as_markdown()))
 
             if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
@@ -68,10 +68,10 @@ class AnalysisReportTest(BaseTestCase):
 
     def test_text_reports(self):
         for report, input_file in self.results:
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
+            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
+            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
 
-            output_current.write_text(_fix_path(_fix_debug_data(report.as_text())).strip())
+            output_current.write_text(_fix_path(report.as_text()))
 
             if not (output_expected.read_text() == output_current.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
