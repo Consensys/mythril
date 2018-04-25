@@ -5,7 +5,7 @@ import os
 # deployment; otherwise the build will failed.
 VERSION = "v0.16.19"
 
-class VerifyVersionCommand(install):
+class VerifyVersionCommand():
   """Custom command to verify that the git tag matches our version"""
   description = 'verify that the git tag matches our version'
 
