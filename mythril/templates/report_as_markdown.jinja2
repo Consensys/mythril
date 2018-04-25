@@ -1,12 +1,13 @@
-# Report
-{% if issues %}
-{% for key, issue in issues.items() -%}
+# Analysis results for {{ filename }}
+
+{%- if issues %}
+{% for key, issue in issues.items() %}
 ## {{ issue.title }}
 
 - Type: {{ issue.type }}
 - Contract: {{ issue.contract | default("Unknown") }}
-- Function name: {{ issue.function }}
-- PC address: {{ issue.pc }}
+- Function name: `{{ issue.function }}`
+- PC address: {{ issue.address }}
 
 ### Description
 
@@ -14,8 +15,8 @@
 
 {% if issue.filename and issue.lineno -%}
 In file: {{ issue.filename }}:{{ issue.lineno }}
-{%- endif %}
-{% if issue.code %}
+{%- endif -%}
+{%- if issue.code %}
 
 ### Code
 
@@ -23,13 +24,13 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 {{ issue.code }}
 ```
 {%- endif -%}
-{% if verbose and issue.debug -%}
+{%- if verbose and issue.debug -%}
 --------------------
 ###Debugging Information:
 
 {{ issue.debug }}
-{%- endif %}
-{%- endfor %}
-{% else %}
+{%- endif -%}
+{%- endfor -%}
+{%- else -%}
 The analysis was completed successfully. No issues were detected.
-{%- endif %}
+{%- endif -%}

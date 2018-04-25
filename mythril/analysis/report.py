@@ -8,7 +8,7 @@ from jinja2 import PackageLoader, Environment
 class Issue:
     contract = attr.ib()
     function = attr.ib()
-    pc = attr.ib()
+    address = attr.ib()
     title = attr.ib()
     type = attr.ib(default="Informational")
     description = attr.ib(default="")
@@ -18,8 +18,8 @@ class Issue:
     lineno = attr.ib(default=None)
 
     def add_code_info(self, contract):
-        if self.pc:
-            codeinfo = contract.get_source_info(self.pc)
+        if self.address:
+            codeinfo = contract.get_source_info(self.address)
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
@@ -36,7 +36,7 @@ class Report(object):
 
     def append_issue(self, issue):
         m = hashlib.md5()
-        m.update((issue.contract + str(issue.pc) + issue.title).encode('utf-8'))
+        m.update((issue.contract + str(issue.address) + issue.title).encode('utf-8'))
         self.issues[m.digest()] = issue
 
     def as_json(self):
@@ -51,5 +51,6 @@ class Report(object):
         return template.render(issues=self.issues, verbose=self.verbose)
 
     def as_markdown(self):
+        filename = list(self.issues.values())[0].filename
         template = Report.environment.get_template('report_as_markdown.jinja2')
-        return template.render(issues=self.issues, verbose=self.verbose)
+        return template.render(filename=filename, issues=self.issues, verbose=self.verbose)
