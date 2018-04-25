@@ -11,6 +11,14 @@
             "debug": "<DEBUG-DATA>"
         },
         {
+            "title": "Integer Overflow ",
+            "description": "A possible integer overflow exists in the function `sendeth(address,uint256)`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
+            "function": "sendeth(address,uint256)",
+            "type": "Warning",
+            "address": 725,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
             "title": "Integer Underflow",
             "description": "A possible integer underflow exists in the function `sendeth(address,uint256)`.\nThe subtraction may result in a value < 0.",
             "function": "sendeth(address,uint256)",
