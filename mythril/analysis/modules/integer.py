@@ -15,9 +15,6 @@ For every SUB instruction, check if there's a possible state where op1 > op0.
 For every ADD, MUL instruction, check if there's a possible state where op1 + op0 > 2^32 - 1
 '''
 
-MAX_UINT = 2 ** 256 - 1
-
-
 def execute(statespace):
     """
     Executes analysis module for integer underflow and integer overflow
