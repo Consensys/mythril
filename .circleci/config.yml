@@ -10,17 +10,26 @@ jobs:
       - checkout:
           path: /home/mythril
 
-      # Uncomment, for local testing with circleci command, as it ignores
-      # path param in checkout command, and this symlink compenstates for that.
-      # - run: ln -s /root/project /home/mythril
-
       - run:
           name: Installing mythril tools
           command: cd /home && ./install-mythril-tools.sh laser-ethereum
 
+#      - run:
+#          name: Install pyenv
+#          command: >
+#            curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+#            && export PATH="/root/.pyenv/bin:$PATH"
+#            && echo "export PATH=\"/root/.pyenv/bin:$PATH\"" >> ~/.bash_profile
+#            && echo "eval \"$(pyenv init -)\"" >> ~/.bash_profile
+#            && echo "eval \"$(pyenv virtualenv-init -)\"" >> ~/.bash_profile
+#
+#      - run:
+#          name: Install pythons
+#          command: pyenv install 3.6.5 && pyenv install 3.5.5
+
       - run:
-          name: Install dependencies, in case any are missing in Docker image
-          command: pip3 install -r /home/mythril/requirements.txt
+          name: Install tox
+          command: pip3 install tox
 
       - run:
           background: true
@@ -29,17 +38,16 @@ jobs:
 
       - run:
           name: Unit-testing
-          command: cd /home/mythril && ./all_tests.sh
+          command: cd /home/mythril && tox
+          environment:
+            LC_ALL: C.UTF-8
+            LANG: C.UTF-8
 
       - store_test_results:
-          path: /tmp/test-reports
+          path: /home/mythril/.tox/output
 
       - store_artifacts:
-          path: /tmp/test-reports
-
-      - run:
-          name: Ensuring that setup script is functional
-          command: cd /home/mythril && python3 setup.py install
+          path: /home/mythril/.tox/output
 
   deploy:
     docker:
