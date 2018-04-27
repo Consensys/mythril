@@ -10,8 +10,10 @@ import json
 from tests import *
 import difflib
 
+
 def _fix_path(text):
     return text.replace(str(TESTDATA), "<TESTDATA>")
+
 
 def _fix_debug_data(json_str):
     read_json = json.loads(json_str)
@@ -19,8 +21,8 @@ def _fix_debug_data(json_str):
         issue["debug"] = "<DEBUG-DATA>"
     return json.dumps(read_json, indent=4)
 
+
 def _generate_report(input_file):
-    begin = datetime.datetime.now()
     contract = ETHContract(input_file.read_text())
     sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
     issues = fire_lasers(sym)
@@ -29,8 +31,6 @@ def _generate_report(input_file):
     for issue in issues:
         issue.filename = "test-filename.sol"
         report.append_issue(issue)
-    end = datetime.datetime.now()
-    print("Performing analysis on {} duration {}".format(input_file, end - begin))
     return report, input_file
 
 
@@ -42,6 +42,7 @@ def reports():
 
     return results
 
+
 def _assert_empty(changed_files):
     message = ""
     for input_file in changed_files:
@@ -51,44 +52,29 @@ def _assert_empty(changed_files):
         difference = ''.join(difflib.unified_diff(output_expected, output_current))
         message += "Found differing file for input: {} \n Difference: \n {} \n".format(str(input_file), str(difference))
 
-    assert len(changed_files) == 0, message
+    assert message == "", message
 
-def test_json(reports):
-    changed_files = []
+
+def _get_changed_files(postfix, report_builder, reports):
     for report, input_file in reports:
-        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
-        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
-
-        output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
+        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + postfix)
+        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)
+        output_current.write_text(report_builder(report))
 
         if not (output_expected.read_text() == output_current.read_text()):
-            changed_files.append(input_file)
-
-    _assert_empty(changed_files)
-
-def test_markdown(reports):
-    changed_files = []
-    for report, input_file in reports:
-        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
-        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
-
-        output_current.write_text(_fix_path(report.as_markdown()))
-
-        if not (output_expected.read_text() == output_current.read_text()):
-            changed_files.append(input_file)
-
-    _assert_empty(changed_files)
+            yield input_file
 
 
-def test_text(reports):
-    changed_files = []
-    for report, input_file in reports:
-        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
-        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
+def test_json_report(reports):
+    report_builder = lambda report: _fix_path(_fix_debug_data(report.as_json())).strip()
+    _assert_empty(_get_changed_files('.json', report_builder, reports))
 
-        output_current.write_text(_fix_path(report.as_text()))
 
-        if not (output_expected.read_text() == output_current.read_text()):
-            changed_files.append(input_file)
+def test_markdown_report(reports):
+    report_builder = lambda report: _fix_path(report.as_markdown())
+    _assert_empty(_get_changed_files('.json', report_builder, reports))
 
-    _assert_empty(changed_files)
+
+def test_text_report(reports):
+    report_builder = lambda report: _fix_path(report.as_text())
+    _assert_empty(_get_changed_files('.json', report_builder, reports))
