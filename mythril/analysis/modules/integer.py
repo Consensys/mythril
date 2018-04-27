@@ -62,6 +62,12 @@ def _check_integer_overflow(statespace, state, node):
     if not (type(op0) in allowed_types and type(op1) in allowed_types):
         return issues
 
+    # Change ints to BitVec
+    if type(op0) is int:
+        op0 = BitVecVal(op0, 256)
+    if type(op1) is int:
+        op1 = BitVecVal(op1, 256)
+
     # Formulate expression
     if instruction['opcode'] == "ADD":
         expr = op0 + op1
