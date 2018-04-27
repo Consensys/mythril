@@ -5,7 +5,7 @@ from mythril.ether import util
 from mythril.ether.soliditycontract import ETHContract
 from multiprocessing import Pool
 import datetime
-
+import pytest
 import json
 from tests import *
 
@@ -32,47 +32,95 @@ def _generate_report(input_file):
     print("Performing analysis on {} duration {}".format(input_file, end - begin))
     return report, input_file
 
-class AnalysisReportTest(BaseTestCase):
 
-    def setUp(self):
-        super(AnalysisReportTest, self).setUp()
-        pool = Pool(8)
+@pytest.fixture(scope='module')
+def reports():
+    pool = Pool()
+    input_files = [f for f in TESTDATA_INPUTS.iterdir()]
+    results = pool.map(_generate_report, input_files)
 
-        input_files = [f for f in TESTDATA_INPUTS.iterdir()]
-        self.results = pool.map(_generate_report, input_files)
+    return results
+
+def test_json(reports):
+    changed_files = []
+    for report, input_file in reports:
+        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
+        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
+
+        output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
+
+        if not (output_expected.read_text() == output_current.read_text()):
+            changed_files.append(str(input_file))
+
+    assert len(changed_files) == 0, "Found changed files {}".format(changed_files)
+
+def test_markdown(reports):
+    changed_files = []
+    for report, input_file in reports:
+        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
+        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
+
+        output_current.write_text(_fix_path(report.as_markdown()))
+
+        if not (output_expected.read_text() == output_current.read_text()):
+            changed_files.append(str(input_file))
+
+    assert len(changed_files) == 0, "Found changed files {}".format(changed_files)
 
 
-    def test_json_reports(self):
-        for report, input_file in self.results:
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
-
-            output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
-
-            if not (output_expected.read_text() == output_current.read_text()):
-                self.found_changed_files(input_file, output_expected, output_current)
-
-        self.assert_and_show_changed_files()
-
-    def test_markdown_reports(self):
-        for report, input_file in self.results:
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
-
-            output_current.write_text(_fix_path(report.as_markdown()))
-
-            if not (output_expected.read_text() == output_current.read_text()):
-                self.found_changed_files(input_file, output_expected, output_current)
-
-        self.assert_and_show_changed_files()
-
-    def test_text_reports(self):
-        for report, input_file in self.results:
+def test_text(reports):
+    changed_files = []
+    for report, input_file in reports:
             output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
 
             output_current.write_text(_fix_path(report.as_text()))
 
             if not (output_expected.read_text() == output_current.read_text()):
-                self.found_changed_files(input_file, output_expected, output_current)
-        self.assert_and_show_changed_files()
+                changed_files.append(str(input_file))
+
+    assert len(changed_files) == 0, "Found changed files {}".format(changed_files)
+# class AnalysisReportTest(BaseTestCase):
+#
+#     def setUp(self):
+#         super(AnalysisReportTest, self).setUp()
+# #         pool = Pool(8)
+# #
+# #         input_files = [f for f in TESTDATA_INPUTS.iterdir()]
+# #         self.results = pool.map(_generate_report, input_files)
+#
+#
+#     def test_json_reports(self):
+#         for report, input_file in self.results:
+#             output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
+#             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
+#
+#             output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
+#
+#             if not (output_expected.read_text() == output_current.read_text()):
+#                 self.found_changed_files(input_file, output_expected, output_current)
+#
+#         self.assert_and_show_changed_files()
+#
+#     def test_markdown_reports(self):
+#         for report, input_file in self.results:
+#             output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
+#             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
+#
+#             output_current.write_text(_fix_path(report.as_markdown()))
+#
+#             if not (output_expected.read_text() == output_current.read_text()):
+#                 self.found_changed_files(input_file, output_expected, output_current)
+#
+#         self.assert_and_show_changed_files()
+#
+#     def test_text_reports(self):
+#         for report, input_file in self.results:
+#             output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
+#             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
+#
+#             output_current.write_text(_fix_path(report.as_text()))
+#
+#             if not (output_expected.read_text() == output_current.read_text()):
+#                 self.found_changed_files(input_file, output_expected, output_current)
+#         self.assert_and_show_changed_files()
