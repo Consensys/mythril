@@ -8,6 +8,7 @@ import datetime
 import pytest
 import json
 from tests import *
+import difflib
 
 def _fix_path(text):
     return text.replace(str(TESTDATA), "<TESTDATA>")
@@ -36,10 +37,21 @@ def _generate_report(input_file):
 @pytest.fixture(scope='module')
 def reports():
     pool = Pool()
-    input_files = [f for f in TESTDATA_INPUTS.iterdir()]
+    input_files = [f for f in TESTDATA_INPUTS.iterdir()][:5]
     results = pool.map(_generate_report, input_files)
 
     return results
+
+def _assert_empty(changed_files):
+    message = ""
+    for input_file in changed_files:
+        output_expected = (TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")).read_text().splitlines(1)
+        output_current = (TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")).read_text().splitlines(1)
+
+        difference = ''.join(difflib.unified_diff(output_expected, output_current))
+        message += "Found differing file for input: {} \n Difference: \n {} \n".format(str(input_file), str(difference))
+
+    assert len(changed_files) == 0, message
 
 def test_json(reports):
     changed_files = []
@@ -50,9 +62,9 @@ def test_json(reports):
         output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
 
         if not (output_expected.read_text() == output_current.read_text()):
-            changed_files.append(str(input_file))
+            changed_files.append(input_file)
 
-    assert len(changed_files) == 0, "Found changed files {}".format(changed_files)
+    _assert_empty(changed_files)
 
 def test_markdown(reports):
     changed_files = []
@@ -63,20 +75,20 @@ def test_markdown(reports):
         output_current.write_text(_fix_path(report.as_markdown()))
 
         if not (output_expected.read_text() == output_current.read_text()):
-            changed_files.append(str(input_file))
+            changed_files.append(input_file)
 
-    assert len(changed_files) == 0, "Found changed files {}".format(changed_files)
+    _assert_empty(changed_files)
 
 
 def test_text(reports):
     changed_files = []
     for report, input_file in reports:
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
+        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
+        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
 
-            output_current.write_text(_fix_path(report.as_text()))
+        output_current.write_text(_fix_path(report.as_text()))
 
-            if not (output_expected.read_text() == output_current.read_text()):
-                changed_files.append(str(input_file))
+        if not (output_expected.read_text() == output_current.read_text()):
+            changed_files.append(input_file)
 
-    assert len(changed_files) == 0, "Found changed files {}".format(changed_files)
+    _assert_empty(changed_files)
