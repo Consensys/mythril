@@ -36,6 +36,7 @@ def _generate_report(input_file):
 
 @pytest.fixture(scope='module')
 def reports():
+    """ Fixture that analyses all reports"""
     pool = Pool()
     input_files = [f for f in TESTDATA_INPUTS.iterdir()][:5]
     results = pool.map(_generate_report, input_files)
@@ -44,6 +45,7 @@ def reports():
 
 
 def _assert_empty(changed_files):
+    """ Asserts there are no changed files and otherwise builds error message"""
     message = ""
     for input_file in changed_files:
         output_expected = (TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")).read_text().splitlines(1)
@@ -56,6 +58,13 @@ def _assert_empty(changed_files):
 
 
 def _get_changed_files(postfix, report_builder, reports):
+    """
+    Returns a generator for all unexpected changes in generated reports
+    :param postfix: The applicable postfix
+    :param report_builder: serialization function
+    :param reports: The reports to serialize
+    :return: Changed files
+    """
     for report, input_file in reports:
         output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + postfix)
         output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)
@@ -66,15 +75,12 @@ def _get_changed_files(postfix, report_builder, reports):
 
 
 def test_json_report(reports):
-    report_builder = lambda report: _fix_path(_fix_debug_data(report.as_json())).strip()
-    _assert_empty(_get_changed_files('.json', report_builder, reports))
+    _assert_empty(_get_changed_files('.json', lambda report: _fix_path(_fix_debug_data(report.as_json())).strip(), reports))
 
 
 def test_markdown_report(reports):
-    report_builder = lambda report: _fix_path(report.as_markdown())
-    _assert_empty(_get_changed_files('.json', report_builder, reports))
+    _assert_empty(_get_changed_files('.markdown', lambda report: _fix_path(report.as_markdown()), reports))
 
 
 def test_text_report(reports):
-    report_builder = lambda report: _fix_path(report.as_text())
-    _assert_empty(_get_changed_files('.json', report_builder, reports))
+    _assert_empty(_get_changed_files('.text', lambda report: _fix_path(report.as_text()), reports))
