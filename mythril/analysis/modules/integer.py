@@ -210,13 +210,23 @@ def _check_usage(state, expression):
             return [state]
     return []
 
+def _check_taint(statement, expression):
+    """Checks if statement is influenced by tainted expression"""
+    found = str(expression) in str(statement)
+
+    if found:
+        i = str(statement).index(str(expression))
+        char = str(statement)[i - 1]
+        if char == '_':
+            return False
+    return found
 
 def _check_jumpi(state, expression):
     """ Check if conditional jump is dependent on the result of expression"""
     logging.info(state.get_current_instruction()['opcode'])
     assert state.get_current_instruction()['opcode'] == 'JUMPI'
     condition = state.mstate.stack[-2]
-    return str(expression) in str(condition)
+    return _check_taint(condition, expression)
 
 
 def _check_sstore(state, expression):
@@ -224,8 +234,7 @@ def _check_sstore(state, expression):
     logging.info(state.get_current_instruction()['opcode'])
     assert state.get_current_instruction()['opcode'] == 'SSTORE'
     value = state.mstate.stack[-2]
-    return str(expression) in str(value)
-
+    return _check_taint(value, expression)
 
 def _search_children(statespace, node, expression, index=0, depth=0, max_depth=64):
     """
