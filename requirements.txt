@@ -1,3 +1,4 @@
+rlp<1.0.0
 ethereum>=2.3.0
 ZODB>=5.3.0
 z3-solver>=4.5
@@ -6,6 +7,7 @@ requests
 BTrees
 plyvel
 py-solc
+pytest
 eth_abi>=1.0.0
 eth-utils>=1.0.1
 eth-account>=0.1.0a2
