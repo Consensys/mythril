@@ -3,7 +3,7 @@ from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ether import util
 from mythril.ether.soliditycontract import ETHContract
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 import datetime
 import pytest
 import json
@@ -37,8 +37,8 @@ def _generate_report(input_file):
 @pytest.fixture(scope='module')
 def reports():
     """ Fixture that analyses all reports"""
-    pool = Pool()
-    input_files = [f for f in TESTDATA_INPUTS.iterdir()][:5]
+    pool = Pool(cpu_count())
+    input_files = [f for f in TESTDATA_INPUTS.iterdir()]
     results = pool.map(_generate_report, input_files)
 
     return results
