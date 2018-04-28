@@ -244,7 +244,7 @@ When you analyze Solidity code, new function signatures are added to the databas
 
 ### Use LevelDB directly
 
-If you want to directly use the LevelDB database of your local geth instance you can do so by specifying it's path with *--leveldb* option:
+If you want to directly use the LevelDB database of your local geth instance you can do so by specifying its path with *--leveldb* option:
 
 ```bash
 $ myth --leveldb ./geth/chaindata -s "code#PUSH#"
