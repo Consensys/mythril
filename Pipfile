@@ -18,7 +18,7 @@ eth-tester = "*"
 laser-ethereum = ">=0.5.20"
 "jinja2" = "*"
 attrs = ">=17.0.0"
-
+rlp = "<1.0.0"
 [dev-packages]
 pylint = "*"
 yapf = "*"
