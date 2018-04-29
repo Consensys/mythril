@@ -6,37 +6,41 @@ from mythril.exceptions import UnsatError
 import re
 import logging
 
-
 '''
 MODULE DESCRIPTION:
-
+This module finds the existance of transaction order dependence vulnerabilities.
+The following webpage contains an extensive description of the vulnerability: 
+https://consensys.github.io/smart-contract-best-practices/known_attacks/#transaction-ordering-dependence-tod-front-running
 '''
 
 
 def execute(statespace):
-
+    """ Executes the analysis module"""
     logging.debug("Executing module: TOD")
 
     issues = []
 
     for call in statespace.calls:
+        # Do analysis
         interesting_storages = list(_get_influencing_storages(call))
-        c = list(_find_changable(statespace, interesting_storages))
-        node = call.node
-        instruction = call.state.get_current_instruction()
+        changing_sstores = list(_find_changable(statespace, interesting_storages))
 
-        if len(c) > 0:
-            issue = Issue(node.contract_name, node.function_name, instruction['address'], "Transaction order dependence",
+        # Build issue if necessary
+        if len(changing_sstores) > 0:
+            node = call.node
+            instruction = call.state.get_current_instruction()
+            issue = Issue(node.contract_name, node.function_name, instruction['address'],
+                          "Transaction order dependence",
                           "Warning")
 
-            issue.description = "A possible transaction order independence vulnerability exists in function {}. The value or " \
-                                "direction of the call statement is determined from a tainted storage location".format(
-                node.function_name)
-            # issue.debug = solver.pretty_print_model(model)
+            issue.description = \
+                "A possible transaction order independence vulnerability exists in function {}. The value or " \
+                "direction of the call statement is determined from a tainted storage location"\
+                .format(node.function_name)
             issues.append(issue)
 
-
     return issues
+
 
 def _get_states_with_opcode(statespace, opcode):
     for k in statespace.nodes:
@@ -100,6 +104,7 @@ def _find_changable(statespace, interesting_storages):
             continue
 
         yield sstore_state, node
+
 
 # TODO: remove
 def _try_constraints(constraints, new_constraints):
