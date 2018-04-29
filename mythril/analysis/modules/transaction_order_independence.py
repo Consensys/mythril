@@ -23,7 +23,7 @@ def execute(statespace):
     for call in statespace.calls:
         # Do analysis
         interesting_storages = list(_get_influencing_storages(call))
-        changing_sstores = list(_find_changable(statespace, interesting_storages))
+        changing_sstores = list(_get_influencing_sstores(statespace, interesting_storages))
 
         # Build issue if necessary
         if len(changing_sstores) > 0:
@@ -41,8 +41,9 @@ def execute(statespace):
 
     return issues
 
-
+# TODO: move to __init__ or util module
 def _get_states_with_opcode(statespace, opcode):
+    """ Gets all (state, node) tuples in statespace with opcode"""
     for k in statespace.nodes:
         node = statespace.nodes[k]
         for state in node.states:
@@ -51,6 +52,7 @@ def _get_states_with_opcode(statespace, opcode):
 
 
 def _dependent_on_storage(expression):
+    """ Checks if expression is dependent on a storage symbol and returns the influencing storages"""
     pattern = re.compile(r"storage_([a-z0-9_&^]+)")
     result = pattern.search(str(simplify(expression)))
     if result is not None:
@@ -59,6 +61,12 @@ def _dependent_on_storage(expression):
 
 
 def _get_storage_variable(storage, state):
+    """
+    Get storage z3 object given storage name and the state
+    :param storage: storage name example: storage_0
+    :param state: state to retrieve the variable from
+    :return: z3 object representing storage
+    """
     index = int(re.search('[0-9]+', storage).group())
     try:
         return state.environment.active_account.storage[index]
@@ -67,6 +75,7 @@ def _get_storage_variable(storage, state):
 
 
 def _can_change(constraints, variable):
+    """ Checks if the variable can change given some constraints """
     _constraints = copy.deepcopy(constraints)
     model = solver.get_model(_constraints)
     initial_value = int(str(model.eval(variable, model_completion=True)))
@@ -74,6 +83,7 @@ def _can_change(constraints, variable):
 
 
 def _get_influencing_storages(call):
+    """ Examines a Call object and returns an iterator of all storages that influence the call value or direction"""
     state = call.state
     node = call.node
 
@@ -93,7 +103,8 @@ def _get_influencing_storages(call):
             yield storage
 
 
-def _find_changable(statespace, interesting_storages):
+def _get_influencing_sstores(statespace, interesting_storages):
+    """ Gets sstore (state, node) tuples that write to interesting_storages"""
     for sstore_state, node in _get_states_with_opcode(statespace, 'SSTORE'):
         index, value = sstore_state.mstate.stack[-1], sstore_state.mstate.stack[-2]
         try:
