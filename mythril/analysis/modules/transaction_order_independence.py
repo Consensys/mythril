@@ -1,10 +1,10 @@
-from z3 import *
-from mythril.analysis.ops import *
+import logging
+import re
+
 from mythril.analysis import solver
+from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
-import re
-import logging
 
 '''
 MODULE DESCRIPTION:
@@ -40,6 +40,7 @@ def execute(statespace):
             issues.append(issue)
 
     return issues
+
 
 # TODO: move to __init__ or util module
 def _get_states_with_opcode(statespace, opcode):
