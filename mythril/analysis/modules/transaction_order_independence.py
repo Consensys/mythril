@@ -54,11 +54,8 @@ def _get_states_with_opcode(statespace, opcode):
 
 def _dependent_on_storage(expression):
     """ Checks if expression is dependent on a storage symbol and returns the influencing storages"""
-    pattern = re.compile(r"storage_([a-z0-9_&^]+)")
-    result = pattern.search(str(simplify(expression)))
-    if result is not None:
-        return [result.group()]
-    return []
+    pattern = re.compile(r"storage_[a-z0-9_&^]+")
+    return pattern.findall(str(simplify(expression)))
 
 
 def _get_storage_variable(storage, state):
