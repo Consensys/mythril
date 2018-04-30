@@ -299,10 +299,14 @@ def _check_requires(state, node, statespace, constraint):
     children = [
             statespace.nodes[edge.node_to]
             for edge in statespace.edges
-            if edge.node_from == node.uid and _try_constraints(statespace.nodes[edge.node_to].constraints, constraint) is not None
+            if edge.node_from == node.uid
         ]
+
     for child in children:
         opcodes = [s.get_current_instruction()['opcode'] for s in child.states]
         if "REVERT" in opcodes or "ASSERT_FAIL" in opcodes:
             return True
+    # I added the following case, bc of false positives if the max depth is not high enough
+    if len(children) == 0:
+        return True
     return False
