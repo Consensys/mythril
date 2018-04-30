@@ -284,3 +284,22 @@ def _search_children(statespace, node, expression, constraint=[], index=0, depth
         results += _search_children(statespace, child, expression, depth=depth + 1, max_depth=max_depth)
 
     return results
+
+
+def _check_requires(state, node, statespace, constraint):
+    """Checks if usage of overflowed statement results in a revert statement"""
+    instruction = state.get_current_instruction()
+    if instruction['opcode'] != 'JUMPI':
+        return False
+
+    children = \
+        [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid and _try_constraints(node.constraints, [constraint])
+        ]
+    for child in children:
+        opcodes = [s.get_current_instruction()['opcode'] for s in child.states]
+        if "REVERT" in opcodes:
+            return True
+    return False
