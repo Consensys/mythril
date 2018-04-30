@@ -72,7 +72,7 @@ def _check_integer_overflow(statespace, state, node):
     if instruction['opcode'] == "ADD":
         expr = op0 + op1
     else:
-        expr = op0 * op1
+        expr = op1 * op0
 
     # Check satisfiable
     constraint = Or(ULT(expr, op0), ULT(expr, op1))
@@ -216,16 +216,19 @@ def _check_usage(state, expression):
             return [state]
     return []
 
+
 def _check_taint(statement, expression):
     """Checks if statement is influenced by tainted expression"""
-    found = str(expression) in str(statement)
+    _expression, _statement = str(expression).replace(' ', ''), str(statement).replace(' ', '')
+    found = _expression in _statement
 
     if found:
-        i = str(statement).index(str(expression))
-        char = str(statement)[i - 1]
+        i = _statement.index(_expression)
+        char = _statement[i - 1]
         if char == '_':
             return False
     return found
+
 
 def _check_jumpi(state, expression):
     """ Check if conditional jump is dependent on the result of expression"""
@@ -241,6 +244,7 @@ def _check_sstore(state, expression):
     assert state.get_current_instruction()['opcode'] == 'SSTORE'
     value = state.mstate.stack[-2]
     return _check_taint(value, expression)
+
 
 def _search_children(statespace, node, expression, index=0, depth=0, max_depth=64):
     """
