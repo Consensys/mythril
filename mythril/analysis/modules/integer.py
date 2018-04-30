@@ -101,7 +101,7 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
     """ Verifies existence of integer overflow """
     # If we get to this point then there has been an integer overflow
     # Find out if the overflowed value is actually used
-    interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
+    interesting_usages = _search_children(statespace, node, expr, constraint=[constraint], index=node.states.index(state))
 
     # Stop if it isn't
     if len(interesting_usages) == 0:
@@ -246,7 +246,7 @@ def _check_sstore(state, expression):
     return _check_taint(value, expression)
 
 
-def _search_children(statespace, node, expression, index=0, depth=0, max_depth=64):
+def _search_children(statespace, node, expression, constraint=[], index=0, depth=0, max_depth=64):
     """
     Checks the statespace for children states, with JUMPI or SSTORE instuctions,
     for dependency on expression
@@ -273,7 +273,13 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
             results += _check_usage(current_state, expression)
 
     # Recursively search children
-    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+    children = \
+        [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid and _try_constraints(node.constraints, constraint)
+        ]
+
     for child in children:
         results += _search_children(statespace, child, expression, depth=depth + 1, max_depth=max_depth)
 
