@@ -21,8 +21,6 @@ def analyze_truffle_project(args):
 
     files = os.listdir(build_dir)
 
-    isFirstTime: bool = True
-
     for filename in files:
 
         if re.match(r'.*\.json$', filename) and filename != "Migrations.json":

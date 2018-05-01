@@ -1,6 +1,16 @@
 For Developers
 ===============
 
+## Deployment to PyPI
+- Update `VERSION` constant on top of `setup.py` file to `vX.Y.Z`, where `X`,
+  `Y`, `Z` are some integers specifying the new version of the package;
+- Create Git tag with the same version name `vX.Y.Z`;
+- Push the tag to `Mythril` repo, CircleCI will take care about the rest
+  (testing, and deployment to PyPI if tests are successful).
+
+In case of mismatch between Git tag and `VERSION` in `CircleCI` deployment will
+be failed.
+
 ## Running tests
 
 ### python version
