@@ -82,7 +82,7 @@ def _check_integer_overflow(statespace, state, node):
         logging.debug("[INTEGER_OVERFLOW] no model found")
         return issues
 
-    if instruction['opcode'] != "MUL" and not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1) :
+    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1) :
         return issues
 
     # Build issue
