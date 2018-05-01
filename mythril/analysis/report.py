@@ -40,7 +40,6 @@ class Report(object):
         self.issues[m.digest()] = issue
 
     def as_json(self):
-
         def list_filter(prop, value):
             return prop.name in ["title", "description", "function", "type", "address", "debug"]
 

@@ -3,9 +3,13 @@ from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ether import util
 from mythril.ether.soliditycontract import ETHContract
-
+from multiprocessing import Pool, cpu_count
+import datetime
+import pytest
 import json
 from tests import *
+import difflib
+
 
 
 def _fix_path(text):
@@ -28,46 +32,56 @@ def _generate_report(input_file):
     for issue in issues:
         issue.filename = "test-filename.sol"
         report.append_issue(issue)
+    return report, input_file
 
-    return report
+
+@pytest.fixture(scope='module')
+def reports():
+    """ Fixture that analyses all reports"""
+    pool = Pool(cpu_count())
+    input_files = [f for f in TESTDATA_INPUTS.iterdir()]
+    results = pool.map(_generate_report, input_files)
+
+    return results
 
 
-class AnalysisReportTest(BaseTestCase):
+def _assert_empty(changed_files):
+    """ Asserts there are no changed files and otherwise builds error message"""
+    message = ""
+    for input_file in changed_files:
+        output_expected = (TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")).read_text().splitlines(1)
+        output_current = (TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")).read_text().splitlines(1)
 
-    def test_json_reports(self):
-        for input_file in TESTDATA_INPUTS.iterdir():
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".json")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".json")
+        difference = ''.join(difflib.unified_diff(output_expected, output_current))
+        message += "Found differing file for input: {} \n Difference: \n {} \n".format(str(input_file), str(difference))
 
-            report = _generate_report(input_file)
-            output_current.write_text(_fix_path(_fix_debug_data(report.as_json())).strip())
+    assert message == "", message
 
-            with open(output_expected) as expected:
-                with open(output_current) as current:
-                    self.assertEqual(json.load(expected), json.load(current))
 
-    def test_markdown_reports(self):
-        for input_file in TESTDATA_INPUTS.iterdir():
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".markdown")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".markdown")
+def _get_changed_files(postfix, report_builder, reports):
+    """
+    Returns a generator for all unexpected changes in generated reports
+    :param postfix: The applicable postfix
+    :param report_builder: serialization function
+    :param reports: The reports to serialize
+    :return: Changed files
+    """
+    for report, input_file in reports:
+        output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + postfix)
+        output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)
+        output_current.write_text(report_builder(report))
 
-            report = _generate_report(input_file)
-            output_current.write_text(_fix_path(report.as_markdown()))
+        if not (output_expected.read_text() == output_current.read_text()):
+            yield input_file
 
-            if not (output_expected.read_text() == output_current.read_text()):
-                self.found_changed_files(input_file, output_expected, output_current)
 
-        self.assert_and_show_changed_files()
+def test_json_report(reports):
+    _assert_empty(_get_changed_files('.json', lambda report: _fix_path(_fix_debug_data(report.as_json())).strip(), reports))
 
-    def test_text_reports(self):
-        for input_file in TESTDATA_INPUTS.iterdir():
-            output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".text")
-            output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".text")
 
-            report = _generate_report(input_file)
-            output_current.write_text(_fix_path(report.as_text()))
+def test_markdown_report(reports):
+    _assert_empty(_get_changed_files('.markdown', lambda report: _fix_path(report.as_markdown()), reports))
 
-            if not (output_expected.read_text() == output_current.read_text()):
-                self.found_changed_files(input_file, output_expected, output_current)
 
-        self.assert_and_show_changed_files()
+def test_text_report(reports):
+    _assert_empty(_get_changed_files('.text', lambda report: _fix_path(report.as_text()), reports))

@@ -78,7 +78,7 @@ database.add_argument('-s', '--search', help='search the contract database', met
 
 utilities = parser.add_argument_group('utilities')
 utilities.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
-utilities.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array]')
+utilities.add_argument('--storage', help='read state variables from storage index, use with -a', metavar='INDEX,NUM_SLOTS,[array] / mapping,INDEX,[KEY1, KEY2...]')
 utilities.add_argument('--solv', help='specify solidity compiler version. If not present, will try to install it (Experimental)', metavar='SOLV')
 
 options = parser.add_argument_group('options')
@@ -331,22 +331,34 @@ if args.storage:
     if not args.address:
         exitWithError(args.outform, "To read storage, provide the address of a deployed contract with the -a option.")
     else:
-        (position, length) = (0, 1)
+        (position, length, mappings) = (0, 1, [])
         try:
             params = args.storage.split(",")
-            if len(params) >= 4:
-                exitWithError(args.outform, "Invalid number of parameters.")
+            if params[0] == "mapping":
+                if len(params) < 3:
+                    exitWithError(args.outform, "Invalid number of parameters.")
+                position = int(params[1])
+                position_formatted = utils.zpad(utils.int_to_big_endian(position), 32)
+                for i in range(2, len(params)):
+                    key = bytes(params[i], 'utf8')
+                    key_formatted = utils.rzpad(key, 32)
+                    mappings.append(int.from_bytes(utils.sha3(key_formatted + position_formatted), byteorder='big'))
 
-            if len(params) >= 1:
-                position = int(params[0])
-            if len(params) >= 2:
-                length = int(params[1])
-            if len(params) == 3 and params[2] == "array":
-                position_formatted = bytes(position).ljust(32, b"\x00")
+                length = len(mappings)
+                if length == 1:
+                    position = mappings[0]
 
-                print(position_formatted)
+            else:
+                if len(params) >= 4:
+                    exitWithError(args.outform, "Invalid number of parameters.")
 
-                position = int.from_bytes(utils.sha3(position_formatted), byteorder='big')
+                if len(params) >= 1:
+                    position = int(params[0])
+                if len(params) >= 2:
+                    length = int(params[1])
+                if len(params) == 3 and params[2] == "array":
+                    position_formatted = utils.zpad(utils.int_to_big_endian(position), 32)
+                    position = int.from_bytes(utils.sha3(position_formatted), byteorder='big')
 
         except ValueError:
             exitWithError(args.outform, "Invalid storage index. Please provide a numeric value.")
@@ -355,8 +367,13 @@ if args.storage:
             if length == 1:
                 print("{}: {}".format(position, eth.eth_getStorageAt(args.address, position)))
             else:
-                for i in range(position, position + length):
-                    print("{}: {}".format(hex(i), eth.eth_getStorageAt(args.address, i)))
+                if len(mappings) > 0:
+                    for i in range(0, len(mappings)):
+                        position = mappings[i]
+                        print("{}: {}".format(hex(position), eth.eth_getStorageAt(args.address, position)))
+                else:
+                    for i in range(position, position + length):
+                        print("{}: {}".format(hex(i), eth.eth_getStorageAt(args.address, i)))
         except FileNotFoundError as e:
             exitWithError(args.outform, "IPC error: " + str(e))
         except ConnectionError as e:

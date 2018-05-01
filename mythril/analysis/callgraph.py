@@ -94,11 +94,11 @@ def extract_nodes(state_space, color_map):
         code_split = []
         for instruction in instructions:
             if instruction['opcode'].startswith("PUSH"):
-                code_split.append(f"{instruction['address']} {instruction['opcode']} {instruction['argument']}")
+                code_split.append("%d %s %s" % (instruction['address'], instruction['opcode'], instruction['argument']))
             elif instruction['opcode'].startswith("JUMPDEST"):
-                code_split.append(f"{instruction['address']} {instruction['opcode']} {node.function_name}")
+                code_split.append("%d %s %s" % (instruction['address'], instruction['opcode'], node.function_name))
             else:
-                code_split.append(f"{instruction['address']} {instruction['opcode']}")
+                code_split.append("%d %s" % (instruction['address'], instruction['opcode']))
 
         truncated_code = '\n'.join(code_split) if (len(code_split) < 7) \
             else '\n'.join(code_split[:6]) + "\n(click to expand +)"
