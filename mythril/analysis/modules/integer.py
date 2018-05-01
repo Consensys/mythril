@@ -274,7 +274,7 @@ def _search_children(statespace, node, expression, constraint=[], index=0, depth
             if len(element) < 1:
                 continue
             if _check_requires(element[0], node, statespace, constraint):
-                continue
+                pass
             results += element
 
     # Recursively search children
