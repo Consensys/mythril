@@ -82,7 +82,7 @@ def _check_integer_overflow(statespace, state, node):
         logging.debug("[INTEGER_OVERFLOW] no model found")
         return issues
 
-    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
+    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1) :
         return issues
 
     # Build issue
@@ -101,7 +101,7 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
     """ Verifies existence of integer overflow """
     # If we get to this point then there has been an integer overflow
     # Find out if the overflowed value is actually used
-    interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
+    interesting_usages = _search_children(statespace, node, expr, constraint=[constraint], index=node.states.index(state))
 
     # Stop if it isn't
     if len(interesting_usages) == 0:
@@ -246,7 +246,7 @@ def _check_sstore(state, expression):
     return _check_taint(value, expression)
 
 
-def _search_children(statespace, node, expression, index=0, depth=0, max_depth=64):
+def _search_children(statespace, node, expression, constraint=[], index=0, depth=0, max_depth=64):
     """
     Checks the statespace for children states, with JUMPI or SSTORE instuctions,
     for dependency on expression
@@ -270,11 +270,44 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
         current_state = node.states[j]
         current_instruction = current_state.get_current_instruction()
         if current_instruction['opcode'] in ('JUMPI', 'SSTORE'):
-            results += _check_usage(current_state, expression)
+            element = _check_usage(current_state, expression)
+            if len(element) < 1:
+                continue
+            if _check_requires(element[0], node, statespace, constraint):
+                continue
+            results += element
 
     # Recursively search children
-    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+    children = \
+        [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid
+            and _try_constraints(statespace.nodes[edge.node_to].constraints, constraint) is not None
+        ]
+
     for child in children:
         results += _search_children(statespace, child, expression, depth=depth + 1, max_depth=max_depth)
 
     return results
+
+
+def _check_requires(state, node, statespace, constraint):
+    """Checks if usage of overflowed statement results in a revert statement"""
+    instruction = state.get_current_instruction()
+    if instruction['opcode'] is not "JUMPI":
+        return False
+    children = [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid
+        ]
+
+    for child in children:
+        opcodes = [s.get_current_instruction()['opcode'] for s in child.states]
+        if "REVERT" in opcodes or "ASSERT_FAIL" in opcodes:
+            return True
+    # I added the following case, bc of false positives if the max depth is not high enough
+    if len(children) == 0:
+        return True
+    return False
