@@ -1,7 +1,7 @@
 import re
 
-from jinja2 import Environment, PackageLoader, select_autoescape
 import z3
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 default_opts = {
     'autoResize': True,
@@ -87,26 +87,24 @@ phrack_color = {'border': '#000000', 'background': '#ffffff',
                 'highlight': {'border': '#000000', 'background': '#ffffff'}}
 
 
-def extract_nodes(statespace, color_map):
+def extract_nodes(state_space, color_map):
     nodes = []
-    for node_key in statespace.nodes:
-        node = statespace.nodes[node_key]
+    for key, node in state_space.nodes.items():
         instructions = [state.get_current_instruction() for state in node.states]
         code_split = []
         for instruction in instructions:
             if instruction['opcode'].startswith("PUSH"):
                 code_split.append("%d %s %s" % (instruction['address'], instruction['opcode'], instruction['argument']))
-                # code_split.append("{instruction['address']} {instruction['opcode']} {instruction['argument']}")
             elif instruction['opcode'].startswith("JUMPDEST"):
                 code_split.append("%d %s %s" % (instruction['address'], instruction['opcode'], node.function_name))
             else:
                 code_split.append("%d %s" % (instruction['address'], instruction['opcode']))
 
-        truncated_code = '\n'.join(code_split) if (len(code_split) < 7) else '\n'.join(
-            code_split[:6]) + "\n(click to expand +)"
+        truncated_code = '\n'.join(code_split) if (len(code_split) < 7) \
+            else '\n'.join(code_split[:6]) + "\n(click to expand +)"
 
         nodes.append({
-            'id': str(node_key),
+            'id': str(key),
             'color': color_map[node.get_cfg_dict()['contract_name']],
             'size': 150,
             'fullLabel': '\n'.join(code_split),
@@ -117,9 +115,9 @@ def extract_nodes(statespace, color_map):
     return nodes
 
 
-def extract_edges(statespace):
+def extract_edges(state_space):
     edges = []
-    for edge in statespace.edges:
+    for edge in state_space.edges:
         if edge.condition is None:
             label = ""
         else:
@@ -140,12 +138,12 @@ def extract_edges(statespace):
     return edges
 
 
-def generate_graph(statespace, title="Mythril / Ethereum LASER Symbolic VM", physics=False, phrackify=False):
-    env = Environment(loader=PackageLoader('mythril.analysis'), autoescape=select_autoescape(['html', 'xml']))
-    template = env.get_template('graph.html')
+def generate_graph(state_space, title="Mythril / Ethereum LASER Symbolic VM", physics=False, phrackify=False):
+    env = Environment(loader=PackageLoader('mythril'), autoescape=select_autoescape(['html', 'xml']))
+    template = env.get_template('callgraph.html')
 
     graph_opts = default_opts
-    accounts = statespace.accounts
+    accounts = state_space.accounts
 
     if phrackify:
         color_map = {accounts[k].contract_name: phrack_color for k in accounts}
@@ -156,8 +154,8 @@ def generate_graph(statespace, title="Mythril / Ethereum LASER Symbolic VM", phy
     graph_opts['physics']['enabled'] = physics
 
     return template.render(title=title,
-                           nodes=extract_nodes(statespace, color_map),
-                           edges=extract_edges(statespace),
+                           nodes=extract_nodes(state_space, color_map),
+                           edges=extract_edges(state_space),
                            phrackify=phrackify,
                            opts=graph_opts
                            )

@@ -429,8 +429,8 @@ elif args.graph or args.fire_lasers:
 
         outputs = {
             'json': report.as_json(),
-            'text': report.as_text() or "The analysis was completed successfully. No issues were detected.",
-            'markdown': report.as_markdown() or "The analysis was completed successfully. No issues were detected."
+            'text': report.as_text(),
+            'markdown': report.as_markdown()
         }
         print(outputs[args.outform])
 

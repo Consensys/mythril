@@ -1,120 +1,59 @@
 import hashlib
 import json
+import attr
+from jinja2 import PackageLoader, Environment
 
+
+@attr.s
 class Issue:
-
-    def __init__(self, contract, function, pc, title, _type="Informational", description="", debug=""):
-
-        self.title = title
-        self.contract = contract
-        self.function = function
-        self.pc = pc
-        self.description = description
-        self.type = _type
-        self.debug = debug
-        self.filename = None
-        self.code = None
-        self.lineno = None
-
-    def as_dict(self):
-
-        issue = {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.pc, 'debug': self.debug}
-
-        if self.filename and self.lineno:
-            issue['filename'] = self.filename
-            issue['lineno'] = self.lineno
-
-        if self.code:
-            issue['code'] = self.code
-
-        return issue
+    contract = attr.ib()
+    function = attr.ib()
+    address = attr.ib()
+    title = attr.ib()
+    type = attr.ib(default="Informational")
+    description = attr.ib(default="")
+    debug = attr.ib(default="")
+    filename = attr.ib(default=None)
+    code = attr.ib(default=None)
+    lineno = attr.ib(default=None)
 
     def add_code_info(self, contract):
-        if self.pc:
-            codeinfo = contract.get_source_info(self.pc)
+        if self.address:
+            codeinfo = contract.get_source_info(self.address)
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
 
-class Report:
+    def as_dict(self):
+        return attr.asdict(self)
 
-    def __init__(self, verbose=False):
-        self.issues = {}
-        self.verbose = verbose
-        pass
+
+@attr.s
+class Report(object):
+    environment = Environment(loader=PackageLoader('mythril'))
+    verbose = attr.ib(default=False)
+    issues = attr.ib(init=False, default=attr.Factory(dict))
 
     def append_issue(self, issue):
         m = hashlib.md5()
-        m.update((issue.contract + str(issue.pc) + issue.title).encode('utf-8'))
+        m.update((issue.contract + str(issue.address) + issue.title).encode('utf-8'))
         self.issues[m.digest()] = issue
 
-    def as_text(self):
-        text = ""
-
-        for key, issue in self.issues.items():
-
-            text += "==== " + issue.title + " ====\n"
-            text += "Type: " + issue.type + "\n"
-
-            if len(issue.contract):
-                text += "Contract: " + issue.contract + "\n"
-            else:
-                text += "Contract: Unknown\n"
-
-            text += "Function name: " + issue.function + "\n"
-            text += "PC address: " + str(issue.pc) + "\n"
-
-            text += issue.description + "\n--------------------\n"
-
-            if issue.filename and issue.lineno:
-                text += "In file: " + issue.filename + ":" + str(issue.lineno)
-
-            if issue.code:
-                text += "\n\n" + issue.code + "\n\n--------------------\n"
-
-            if self.verbose and issue.debug:
-                text += "\nDEBUGGING INFORMATION:\n\n" + issue.debug + "\n--------------------\n"
-
-            text += "\n"
-
-        return text
-
     def as_json(self):
-        issues = []
-        for key, issue in self.issues.items():
-            issues.append(issue.as_dict())
-        result = {'success': True, 'error': None, 'issues': issues}
-        return json.dumps(result)
+        def list_filter(prop, value):
+            return prop.name in ["title", "description", "function", "type", "address", "debug"]
+
+        return json.dumps({
+            'success': True,
+            'error': None,
+            'issues': [attr.asdict(issue, filter=list_filter) for key, issue in self.issues.items()]
+        })
+
+    def as_text(self):
+        template = Report.environment.get_template('report_as_text.jinja2')
+        return template.render(issues=self.issues, verbose=self.verbose)
 
     def as_markdown(self):
-        text = ""
-
-        for key, issue in self.issues.items():
-
-            if text == "":
-                if (issue.filename):
-                    text += "# Analysis results for " + issue.filename
-               
-            text += "\n\n## " + issue.title + "\n\n"
-            text += "- Type: " + issue.type + "\n"
-
-            if len(issue.contract):
-                text += "- Contract: " + issue.contract + "\n"
-            else:
-                text += "- Contract: Unknown\n"
-
-            text += "- Function name: `" + issue.function + "`\n"
-            text += "- PC address: " + str(issue.pc) + "\n\n"
-
-            text += "### Description\n\n" + issue.description
-
-            if issue.filename and issue.lineno:
-                text += "\nIn *%s:%d*\n" % (issue.filename, issue.lineno)
-
-            if issue.code:
-                text += "\n```\n" + issue.code + "\n```"
-
-            if self.verbose and issue.debug:
-                text += "\n\n### Debugging Information\n" + issue.debug
-
-        return text
+        filename = list(self.issues.values())[0].filename
+        template = Report.environment.get_template('report_as_markdown.jinja2')
+        return template.render(filename=filename, issues=self.issues, verbose=self.verbose)

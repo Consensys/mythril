@@ -11,6 +11,7 @@ from tests import *
 import difflib
 
 
+
 def _fix_path(text):
     return text.replace(str(TESTDATA), "<TESTDATA>")
 
