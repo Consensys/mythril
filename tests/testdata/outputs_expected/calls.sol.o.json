@@ -43,6 +43,14 @@
             "debug": "<DEBUG-DATA>"
         },
         {
+            "title": "Transaction order dependence",
+            "description": "A possible transaction order independence vulnerability exists in function _function_0xd24b08cc. The value or direction of the call statement is determined from a tainted storage location",
+            "function": "_function_0xd24b08cc",
+            "type": "Warning",
+            "address": 779,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
             "title": "Unchecked CALL return value",
             "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
             "function": "_function_0x5a6814ec",

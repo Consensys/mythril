@@ -55,6 +55,17 @@ The contract account state is changed after an external call. Consider that the 
 
 This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
 
+## Transaction order dependence
+
+- Type: Warning
+- Contract: Unknown
+- Function name: `_function_0xd24b08cc`
+- PC address: 779
+
+### Description
+
+A possible transaction order independence vulnerability exists in function _function_0xd24b08cc. The value or direction of the call statement is determined from a tainted storage location
+
 ## Unchecked CALL return value
 
 - Type: Informational

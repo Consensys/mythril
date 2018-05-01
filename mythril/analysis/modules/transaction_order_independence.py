@@ -75,7 +75,10 @@ def _get_storage_variable(storage, state):
 def _can_change(constraints, variable):
     """ Checks if the variable can change given some constraints """
     _constraints = copy.deepcopy(constraints)
-    model = solver.get_model(_constraints)
+    try:
+        model = solver.get_model(_constraints)
+    except UnsatError:
+        return False
     initial_value = int(str(model.eval(variable, model_completion=True)))
     return _try_constraints(constraints, [variable != initial_value]) is not None
 
