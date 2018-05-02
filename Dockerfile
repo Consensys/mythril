@@ -3,7 +3,7 @@ FROM ubuntu:rolling
 COPY . .
 
 RUN apt-get update \
-  && apt-get install -y software-properties-common python-software-properties \
+  && apt-get install -y software-properties-common \
   && add-apt-repository -y ppa:ethereum/ethereum \
   && apt-get update \
   && apt-get install -y solc \
