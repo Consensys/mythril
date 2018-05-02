@@ -82,7 +82,7 @@ def _check_integer_overflow(statespace, state, node):
         logging.debug("[INTEGER_OVERFLOW] no model found")
         return issues
 
-    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1) :
+    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
         return issues
 
     # Build issue
@@ -273,8 +273,8 @@ def _search_children(statespace, node, expression, constraint=[], index=0, depth
             element = _check_usage(current_state, expression)
             if len(element) < 1:
                 continue
-            if _check_requires(element[0], node, statespace, constraint):
-                continue
+            # if _check_requires(element[0], node, statespace, constraint):
+            #     pass
             results += element
 
     # Recursively search children
@@ -283,7 +283,7 @@ def _search_children(statespace, node, expression, constraint=[], index=0, depth
             statespace.nodes[edge.node_to]
             for edge in statespace.edges
             if edge.node_from == node.uid
-            and _try_constraints(statespace.nodes[edge.node_to].constraints, constraint) is not None
+            # and _try_constraints(statespace.nodes[edge.node_to].constraints, constraint) is not None
         ]
 
     for child in children:
