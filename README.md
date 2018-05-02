@@ -4,7 +4,7 @@
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
-Mythril is a security analysis tool for Ethereum smart contracts. It was introduced in [Smashing Ethereum smart contracts for fun and real profit](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf), a conference paper released at [HITBSecConf 2018](https://conference.hitb.org).
+Mythril is a security analysis tool for Ethereum smart contracts. It was [introduced at HITBSecConf 2018](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf).
 
   * [Installation and setup](#installation-and-setup)
   * [Security analysis](#security-analysis)
