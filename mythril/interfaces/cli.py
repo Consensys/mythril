@@ -116,7 +116,7 @@ def main():
 
         if args.leveldb:
             # Open LevelDB if specified
-            mythril.set_leveldb(args.leveldb)
+            mythril.set_db_leveldb(args.leveldb)
 
         elif (args.address or args.init_db) and not args.leveldb:
             # Establish RPC/IPC connection if necessary
