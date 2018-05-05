@@ -79,11 +79,9 @@ class Mythril(object):
 
 
     def __init__(self, solv=None,
-                 address=None,
                  solc_args=None, dynld=False):
 
         self.solv = solv
-        self.address = address
         self.solc_args = solc_args
         self.dynld = dynld
 

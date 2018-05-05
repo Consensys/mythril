@@ -110,8 +110,7 @@ def main():
         #solc_args = None, dynld = None, max_recursion_depth = 12):
 
 
-        mythril = Mythril(address=args.address,
-                          solv=args.solv, dynld=args.dynld,
+        mythril = Mythril(solv=args.solv, dynld=args.dynld,
                           solc_args=args.solc_args)
 
         if args.leveldb:
