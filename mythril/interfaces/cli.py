@@ -151,7 +151,7 @@ def main():
 
         if args.code:
             # Load from bytecode
-            address = mythril.load_from_bytecode(args.code)
+            address, _ = mythril.load_from_bytecode(args.code)
         elif args.address:
             # Get bytecode from a contract address
             address, _ = mythril.load_from_address(args.address)
