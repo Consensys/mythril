@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
 """mythril.py: Bug hunting on the Ethereum blockchain
    http://www.github.com/b-mueller/mythril
    """
-from mythril import __main__
+import mythril.interfaces.cli
 
 if __name__ == "__main__":
-    __main__.main()
+    mythril.interfaces.cli.main()
