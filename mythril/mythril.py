@@ -9,6 +9,7 @@ import logging
 import json
 import os
 import re
+import tempfile
 
 from ethereum import utils
 from solc.exceptions import SolcError
@@ -31,7 +32,7 @@ from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 from mythril.leveldb.client import EthLevelDB
-
+import mythril.interfaces.jsonrpcapi
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -263,7 +264,19 @@ class Mythril(object):
                 self.contracts.append(ETHContract(code, name=address))
         return address, self.contracts[-1]  # return address and contract object
 
-    def load_from_solidity(self, solidity_files):
+    def load_from_solidity_sources(self, solidity_sources):
+        files = []
+        for source in solidity_sources:
+            f = tempfile.NamedTemporaryFile()
+            f.write(bytes(source,"utf8"))
+            f.flush()
+            f.seek(0)
+            files.append(f)
+        report = self.load_from_solidity_files(solidity_files=[f.name for f in files])
+        [f.close() for f in files]  # close all files (deletes them)
+        return report
+
+    def load_from_solidity_files(self, solidity_files):
         """
         UPDATES self.sigs!
         :param solidity_files:
@@ -396,3 +409,7 @@ class Mythril(object):
     @staticmethod
     def hash_for_function_signature(sig):
         return "0x%s" % utils.sha3(sig)[:4].hex()
+
+    @staticmethod
+    def serve_jsonrpc(bind="localhost", port=4000, as_thread=False):
+        return mythril.interfaces.jsonrpcapi.serve(cls=Mythril, bind=bind, port=port, as_thread=as_thread)

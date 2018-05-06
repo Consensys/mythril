@@ -20,3 +20,4 @@ coverage
 jinja2
 attrs
 pytest
+jsonrpclib
