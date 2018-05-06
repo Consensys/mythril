@@ -15,7 +15,6 @@ import argparse
 from mythril.exceptions import CriticalError
 from mythril.mythril import Mythril
 
-
 def exit_with_error(format, message):
     if format == 'text' or format == 'markdown':
         print(message)
@@ -59,7 +58,8 @@ def main():
     utilities.add_argument('--solv',
                            help='specify solidity compiler version. If not present, will try to install it (Experimental)',
                            metavar='SOLV')
-
+    utilities.add_argument('--serve-jsonrpc', help='spawn a jsonrpc server listening on <host>:<port>. e.g. 127.0.0.1:4000',)
+    
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
@@ -88,7 +88,7 @@ def main():
     # Parse cmdline args
 
     if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.fire_lasers
-            or args.storage or args.truffle or args.statespace_json):
+            or args.storage or args.truffle or args.statespace_json or args.serve_jsonrpc):
         parser.print_help()
         sys.exit()
 
@@ -105,6 +105,13 @@ def main():
 
 
     try:
+        if args.serve_jsonrpc:
+            bind,port = args.serve_jsonrpc.strip().split(":")
+            port=int(port)
+            print("serving on %s"%args.serve_jsonrpc)
+            Mythril.serve_jsonrpc(bind=bind, port=port, as_thread=False)
+            return
+        
         # the mythril object should be our main interface
         #init_db = None, infura = None, rpc = None, rpctls = None, ipc = None,
         #solc_args = None, dynld = None, max_recursion_depth = 12):
@@ -160,7 +167,7 @@ def main():
             if args.graph and len(args.solidity_file) > 1:
                 exit_with_error(args.outform,
                                 "Cannot generate call graphs from multiple input files. Please do it one at a time.")
-            address, _ = mythril.load_from_solidity(args.solidity_file)  # list of files
+            address, _ = mythril.load_from_solidity_files(args.solidity_file)  # list of files
         else:
             exit_with_error(args.outform,
                             "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES")
