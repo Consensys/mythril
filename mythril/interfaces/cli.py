@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 """mythril.py: Bug hunting on the Ethereum blockchain
 
-   http://www.github.com/b-mueller/mythril
+   http://www.github.com/ConsenSys/mythril
 """
 
 import logging
@@ -30,7 +30,7 @@ def main():
     parser.add_argument("solidity_file", nargs='*')
 
     commands = parser.add_argument_group('commands')
-    commands.add_argument('-g', '--graph', help='generate a control flow graph', metavar='OUTPUT_FILE')
+    commands.add_argument('-g', '--graph', help='generate a control flow graph')
     commands.add_argument('-x', '--fire-lasers', action='store_true',
                           help='detect vulnerabilities, use with -c, -a or solidity file(s)')
     commands.add_argument('-t', '--truffle', action='store_true',
@@ -157,9 +157,9 @@ def main():
             address, _ = mythril.load_from_address(args.address)
         elif args.solidity_file:
             # Compile Solidity source file(s)
-            if args.graph and len(args.solidity_file) > 1:
-                exit_with_error(args.outform,
-                                "Cannot generate call graphs from multiple input files. Please do it one at a time.")
+            #if args.graph and len(args.solidity_file) > 1:
+            #    exit_with_error(args.outform,
+            #                    "Cannot generate call graphs from multiple input files. Please do it one at a time.")
             address, _ = mythril.load_from_solidity(args.solidity_file)  # list of files
         else:
             exit_with_error(args.outform,
@@ -185,17 +185,15 @@ def main():
                 exit_with_error(args.outform, "input files do not contain any valid contracts")
 
             if args.graph:
-                # dot this for all contracts or just the first?
-                for nr, contract in enumerate(mythril.contracts):
-                    html = mythril.graph_html(contract, address=address,
-                                              enable_physics=args.enable_physics, phrackify=args.phrack,
-                                              max_depth=args.max_depth)
+                html = mythril.graph_html(mythril.contracts[0], address=address,
+                                          enable_physics=args.enable_physics, phrackify=args.phrack,
+                                          max_depth=args.max_depth)
 
-                    try:
-                        with open("graph_%s_%d_%s" % (args.graph, nr, contract.name), "w") as f:
-                            f.write(html)
-                    except Exception as e:
-                        exit_with_error(args.outform, "Error saving graph: " + str(e))
+                try:
+                    with open(args.graph, "w") as f:
+                        f.write(html)
+                except Exception as e:
+                    exit_with_error(args.outform, "Error saving graph: " + str(e))
 
             else:
                 report = mythril.fire_lasers(address=address,
