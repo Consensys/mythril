@@ -25,7 +25,7 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Documentation has move to the [Wiki page](https://github.com/ConsenSys/mythril/wiki).
+Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/wiki).
 
 ## Publications and Videos
 
