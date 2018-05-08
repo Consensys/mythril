@@ -15,8 +15,6 @@ class ETHContract(persistent.Persistent):
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
 
         code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
-        
-        print(code)
 
         self.code = code
         self.disassembly = Disassembly(self.code)
