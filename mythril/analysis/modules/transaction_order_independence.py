@@ -79,9 +79,11 @@ def _can_change(constraints, variable):
         model = solver.get_model(_constraints)
     except UnsatError:
         return False
-    initial_value = int(str(model.eval(variable, model_completion=True)))
-    return _try_constraints(constraints, [variable != initial_value]) is not None
-
+    try:
+        initial_value = int(str(model.eval(variable, model_completion=True)))
+        return _try_constraints(constraints, [variable != initial_value]) is not None
+    except AttributeError:
+        return False
 
 def _get_influencing_storages(call):
     """ Examines a Call object and returns an iterator of all storages that influence the call value or direction"""
