@@ -14,7 +14,9 @@ class ETHContract(persistent.Persistent):
         # Workaround: We currently do not support compile-time linking.
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
 
-        code = re.sub(r'(_+[A-Za-z0-9]+_+)', 'aa' * 20, code)
+        code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
+        
+        print(code)
 
         self.code = code
         self.disassembly = Disassembly(self.code)
