@@ -1,1 +1,2 @@
 include mythril/disassembler/signatures.json
+include mythril/analysis/templates/*.html
