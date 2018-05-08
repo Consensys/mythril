@@ -111,11 +111,11 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
 
     if type(op0) is not int:
         op0_value = int(str(model.eval(op0, model_completion=True)))
-        model0 = _try_constraints(node.constraints, [constraint, op0 != op0_value])
+        model0 = _try_constraints(node.constraints, [op0 != op0_value])
 
     if type(op1) is not int:
         op1_value = int(str(model.eval(op1, model_completion=True)))
-        model1 = _try_constraints(node.constraints, [constraint, op1 != op1_value])
+        model1 = _try_constraints(node.constraints, [op1 != op1_value])
 
     if model0 is None and model1 is None:
         return False
