@@ -148,7 +148,6 @@ def _check_integer_underflow(statespace, state, node):
     """
     issues = []
     instruction = state.get_current_instruction()
-
     if instruction['opcode'] == "SUB":
 
         stack = state.mstate.stack
@@ -265,8 +264,8 @@ def _search_children(statespace, node, expression, taint_result=None, constraint
             element = _check_usage(current_state, taint_result)
             if len(element) < 1:
                 continue
-            # if _check_requires(element[0], node, statespace, constraint):
-            #     pass
+            if _check_requires(element[0], node, statespace, constraint):
+                 continue
             results += element
 
     # Recursively search children
