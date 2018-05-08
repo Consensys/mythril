@@ -20,7 +20,7 @@ This contract executes a message call to to another contract. Make sure that the
 
 ### Description
 
-This contract executes a message call to an address found at storage slot 1. This storage slot can be written to by calling the function `_function_0x2776b163`. Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
+This contract executes a message call to an address found at storage slot 1. This storage slot can be written to by calling the function `_function_0x2776b163`. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
 
 ## Message call to external contract
 
@@ -53,7 +53,7 @@ The contract account state is changed after an external call. Consider that the 
 
 ### Description
 
-This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
+This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
 
 ## Transaction order dependence
 
