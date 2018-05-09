@@ -90,7 +90,7 @@ def execute(statespace):
 
                 if user_supplied:
 
-                    description += "Generally, it is not recommended to call user-supplied adresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state."
+                    description += "Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state."
 
                     issue = Issue(call.node.contract_name, call.node.function_name, address, "Message call to external contract", "Warning", description)
 
