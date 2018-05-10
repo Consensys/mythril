@@ -29,9 +29,7 @@ def execute(statespace):
         node = statespace.nodes[k]
 
         for state in node.states:
-            logging.debug("Checking for integer underflow")
             issues += _check_integer_underflow(statespace, state, node)
-            logging.debug("Checking for integer overflow")
             issues += _check_integer_overflow(statespace, state, node)
 
     return issues
