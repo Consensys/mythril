@@ -182,7 +182,6 @@ def _check_integer_underflow(statespace, state, node):
                 # If we get to this point then there has been an integer overflow
                 # Find out if the overflowed value is actually used
                 interesting_usages = _search_children(statespace, node, (op0 - op1), index=node.states.index(state))
-                logging.debug(interesting_usages)
 
                 # Stop if it isn't
                 if len(interesting_usages) == 0:
@@ -230,7 +229,6 @@ def _check_taint(statement, expression):
 
 def _check_jumpi(state, expression):
     """ Check if conditional jump is dependent on the result of expression"""
-    logging.debug(state.get_current_instruction()['opcode'])
     assert state.get_current_instruction()['opcode'] == 'JUMPI'
     condition = state.mstate.stack[-2]
     return _check_taint(condition, expression)
@@ -238,7 +236,6 @@ def _check_jumpi(state, expression):
 
 def _check_sstore(state, expression):
     """ Check if store operation is dependent on the result of expression"""
-    logging.debug(state.get_current_instruction()['opcode'])
     assert state.get_current_instruction()['opcode'] == 'SSTORE'
     value = state.mstate.stack[-2]
     return _check_taint(value, expression)
