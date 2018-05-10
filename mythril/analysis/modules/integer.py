@@ -245,7 +245,7 @@ def _search_children(statespace, node, expression, taint_result=None, constraint
     """
     logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
 
-    if taint_result == None:
+    if taint_result is None:
         state = node.states[index]
         taint_stack = [False for _ in state.mstate.stack]
         taint_stack[-1] = True
