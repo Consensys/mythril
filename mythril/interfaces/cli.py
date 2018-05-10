@@ -208,17 +208,17 @@ def main():
                 print(outputs[args.outform])
 
         elif args.statespace_json:
+
             if not mythril.contracts:
                 exit_with_error(args.outform, "input files do not contain any valid contracts")
 
-            for nr, contract_statespace in enumerate(mythril.dump_statespaces(address=address, max_depth=args.max_depth)):
+            statespace = mythril.dump_statespace(mythril.contracts[0], address=address, max_depth=args.max_depth)
 
-                contract, statespace = contract_statespace
-                try:
-                    with open("%s_%d_%s.json" % (args.statespace_json, nr, contract.name), "w") as f:
-                        json.dump(statespace, f)
-                except Exception as e:
-                    exit_with_error(args.outform, "Error saving json: " + str(e))
+            try:
+                with open(args.statespace_json, "w") as f:
+                    json.dump(statespace, f)
+            except Exception as e:
+                exit_with_error(args.outform, "Error saving json: " + str(e))
 
         else:
             parser.print_help()

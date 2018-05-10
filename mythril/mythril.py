@@ -296,16 +296,13 @@ class Mythril(object):
         self._update_signatures(self.sigs)
         return address, contracts
 
-    def dump_statespaces(self, contracts=None, address=None, max_depth=12):
-        statespaces = []
+    def dump_statespace(self, contract, address=None, max_depth=12):
 
-        for contract in (contracts or self.contracts):
-            sym = SymExecWrapper(contract, address,
-                                 dynloader=DynLoader(self.eth) if self.dynld else None,
-                                 max_depth=max_depth)
-            statespaces.append((contract, get_serializable_statespace(sym)))
+        sym = SymExecWrapper(contract, address,
+            dynloader=DynLoader(self.eth) if self.dynld else None,
+            max_depth=max_depth)
 
-        return statespaces
+        return get_serializable_statespace(sym)
 
     def graph_html(self, contract, address, max_depth=12, enable_physics=False, phrackify=False):
         sym = SymExecWrapper(contract, address,
