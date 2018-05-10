@@ -15,7 +15,7 @@ class CommandLineToolTestCase(BaseTestCase):
     def test_disassemble_solidity_file_correctly(self):
         solidity_file = str(TESTDATA / 'input_contracts'/ 'metacoin.sol')
         command = "python3 {} -d {}".format(MYTH, solidity_file)
-        self.assertIn('0 PUSH1 0x60\n2 PUSH1 0x40', output_of(command))
+        self.assertIn('2 PUSH1 0x40\n4 MSTORE', output_of(command))
 
     def test_hash_a_function_correctly(self):
         command = "python3 {} --hash 'setOwner(address)'".format(MYTH)
