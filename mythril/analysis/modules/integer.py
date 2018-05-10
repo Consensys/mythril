@@ -3,6 +3,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
+from laser.ethereum.taint_analysis import TaintRunner
 import re
 import copy
 import logging
@@ -145,7 +146,6 @@ def _check_integer_underflow(statespace, state, node):
     """
     issues = []
     instruction = state.get_current_instruction()
-
     if instruction['opcode'] == "SUB":
 
         stack = state.mstate.stack
@@ -201,59 +201,50 @@ def _check_integer_underflow(statespace, state, node):
     return issues
 
 
-def _check_usage(state, expression):
+def _check_usage(state, taint_result):
     """Delegates checks to _check_{instruction_name}()"""
     opcode = state.get_current_instruction()['opcode']
 
     if opcode == 'JUMPI':
-        if _check_jumpi(state, expression):
+        if _check_jumpi(state, taint_result):
             return [state]
     elif opcode == 'SSTORE':
-        if _check_sstore(state, expression):
+        if _check_sstore(state, taint_result):
             return [state]
     return []
 
-
-def _check_taint(statement, expression):
-    """Checks if statement is influenced by tainted expression"""
-    _expression, _statement = str(expression).replace(' ', ''), str(statement).replace(' ', '')
-    found = _expression in _statement
-
-    if found:
-        i = _statement.index(_expression)
-        char = _statement[i - 1]
-        if char == '_':
-            return False
-    return found
-
-
-def _check_jumpi(state, expression):
+def _check_jumpi(state, taint_result):
     """ Check if conditional jump is dependent on the result of expression"""
     assert state.get_current_instruction()['opcode'] == 'JUMPI'
-    condition = state.mstate.stack[-2]
-    return _check_taint(condition, expression)
+    return taint_result.check(state, -2)
 
 
-def _check_sstore(state, expression):
+def _check_sstore(state, taint_result):
     """ Check if store operation is dependent on the result of expression"""
     assert state.get_current_instruction()['opcode'] == 'SSTORE'
-    value = state.mstate.stack[-2]
-    return _check_taint(value, expression)
+    return taint_result.check(state, -2)
 
 
-def _search_children(statespace, node, expression, constraint=[], index=0, depth=0, max_depth=64):
+def _search_children(statespace, node, expression, taint_result=None, constraint=[], index=0, depth=0, max_depth=64):
     """
     Checks the statespace for children states, with JUMPI or SSTORE instuctions,
     for dependency on expression
     :param statespace: The statespace to explore
     :param node: Current node to explore from
     :param expression: Expression to look for
+    :param taint_result: Result of taint analysis
     :param index: Current state index node.states[index] == current_state
     :param depth: Current depth level
     :param max_depth: Max depth to explore
     :return: List of states that match the opcodes and are dependent on expression
     """
     logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
+
+    if taint_result is None:
+        state = node.states[index]
+        taint_stack = [False for _ in state.mstate.stack]
+        taint_stack[-1] = True
+        taint_result = TaintRunner.execute(statespace, node, state, initial_stack=taint_stack)
 
     results = []
 
@@ -265,11 +256,11 @@ def _search_children(statespace, node, expression, constraint=[], index=0, depth
         current_state = node.states[j]
         current_instruction = current_state.get_current_instruction()
         if current_instruction['opcode'] in ('JUMPI', 'SSTORE'):
-            element = _check_usage(current_state, expression)
+            element = _check_usage(current_state, taint_result)
             if len(element) < 1:
                 continue
-            # if _check_requires(element[0], node, statespace, constraint):
-            #     pass
+            if _check_requires(element[0], node, statespace, constraint):
+                 continue
             results += element
 
     # Recursively search children
@@ -282,7 +273,7 @@ def _search_children(statespace, node, expression, constraint=[], index=0, depth
         ]
 
     for child in children:
-        results += _search_children(statespace, child, expression, depth=depth + 1, max_depth=max_depth)
+        results += _search_children(statespace, child, expression, taint_result, depth=depth + 1, max_depth=max_depth)
 
     return results
 
