@@ -4,7 +4,7 @@
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
-Mythril is a security analysis tool for Ethereum smart contracts. I uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. The analysis is based on [laser-ethereum](https://github.com/b-mueller/laser-ethereum), a symbolic execution library for EVM bytecode.
+Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. The analysis is based on [laser-ethereum](https://github.com/b-mueller/laser-ethereum), a symbolic execution library for EVM bytecode.
 
 ## Installation and setup
 
