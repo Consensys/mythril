@@ -5,7 +5,7 @@ import os
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
 
-VERSION = "v0.17.5"
+VERSION = "v0.17.6"
 
 class VerifyVersionCommand(install):
   """Custom command to verify that the git tag matches our version"""
@@ -307,7 +307,7 @@ setup(
         'ethereum>=2.3.0',
         'ZODB>=5.3.0',
         'z3-solver>=4.5',
-        'laser-ethereum>=0.17.5',
+        'laser-ethereum>=0.17.6',
         'requests',
         'BTrees',
         'py-solc',
