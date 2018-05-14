@@ -2,7 +2,7 @@ rlp<1.0.0
 ethereum>=2.3.0
 ZODB>=5.3.0
 z3-solver>=4.5
-laser-ethereum>=0.17.7
+laser-ethereum>=0.17.8
 requests
 BTrees
 plyvel
