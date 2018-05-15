@@ -327,7 +327,7 @@ class Mythril(object):
                 for issue in issues:
                     issue.add_code_info(contract)
 
-                all_issues += issues
+            all_issues += issues
 
         # Finally, output the results
         report = Report(verbose_report)
