@@ -95,12 +95,14 @@ def extract_nodes(statespace, color_map):
         code_split = []
         for instruction in instructions:
             if instruction['opcode'].startswith("PUSH"):
-                code_split.append("%d %s %s" % (instruction['address'], instruction['opcode'], instruction['argument']))
-                # code_split.append("{instruction['address']} {instruction['opcode']} {instruction['argument']}")
+                code_line = "%d %s %s" % (instruction['address'], instruction['opcode'], instruction['argument'])
             elif instruction['opcode'].startswith("JUMPDEST"):
-                code_split.append("%d %s %s" % (instruction['address'], instruction['opcode'], node.function_name))
+                code_line = "%d %s" % (instruction['address'], node.function_name)
             else:
-                code_split.append("%d %s" % (instruction['address'], instruction['opcode']))
+                code_line = "%d %s" % (instruction['address'], instruction['opcode'])
+
+            code_line = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code_line)
+            code_split.append(code_line)
 
         truncated_code = '\n'.join(code_split) if (len(code_split) < 7) else '\n'.join(
             code_split[:6]) + "\n(click to expand +)"
