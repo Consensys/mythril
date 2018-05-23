@@ -28,7 +28,4 @@ contract Crowdfunding {
     return balances[msg.sender];
   }
 
-  function() public payable {
-    invest();
-  }
 }

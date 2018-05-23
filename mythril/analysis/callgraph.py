@@ -1,6 +1,7 @@
 import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape
+from laser.ethereum.svm import NodeFlags
 import z3
 
 default_opts = {
@@ -96,8 +97,8 @@ def extract_nodes(statespace, color_map):
         for instruction in instructions:
             if instruction['opcode'].startswith("PUSH"):
                 code_line = "%d %s %s" % (instruction['address'], instruction['opcode'], instruction['argument'])
-            elif instruction['opcode'].startswith("JUMPDEST"):
-                code_line = "%d %s" % (instruction['address'], node.function_name)
+            elif instruction['opcode'].startswith("JUMPDEST") and NodeFlags.FUNC_ENTRY in node.flags and instruction['address'] == node.start_addr:
+                code_line = node.function_name
             else:
                 code_line = "%d %s" % (instruction['address'], instruction['opcode'])
 
