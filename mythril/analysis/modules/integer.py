@@ -4,10 +4,13 @@ from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
 from laser.ethereum.taint_analysis import TaintRunner
+from multiprocessing.pool import ThreadPool
+from threading import RLock
 import re
 import copy
 import logging
 
+locker = RLock()
 '''
 MODULE DESCRIPTION:
 
@@ -22,19 +25,35 @@ def execute(statespace):
     :param statespace: Statespace to analyse
     :return: Found issues
     """
+    pool = ThreadPool(32)
     logging.debug("Executing module: INTEGER")
 
     issues = []
-
+    results = []
     for k in statespace.nodes:
         node = statespace.nodes[k]
 
         for state in node.states:
-            issues += _check_integer_underflow(statespace, state, node)
-            issues += _check_integer_overflow(statespace, state, node)
-
+            results.append(pool.apply_async(_check_integer_overflow, [statespace, state, node]))
+            # issues += _check_integer_overflow(statespace, state, node)
+    pool.close()
+    pool.join()
+    for result in results:
+        g = result.get()
+        if g is not None:
+            issues += g
     return issues
 
+# def _copy(x, ctx):
+#     locker.acquire()
+#     try:
+#         if isinstance(x, AstRef):
+#             result = copy.deepcopy(x).translate(ctx)
+#         else:
+#             result = copy.deepcopy(x)
+#     finally:
+#         locker.release()
+#     return result
 
 def _check_integer_overflow(statespace, state, node):
     """
@@ -52,8 +71,12 @@ def _check_integer_overflow(statespace, state, node):
         return issues
 
     # Formulate overflow constraints
-    stack = state.mstate.stack
-    op0, op1 = stack[-1], stack[-2]
+    ctx = Context()
+    mstate = state.mstate
+    stack = mstate.stack
+    main = main_ctx()
+
+    op0, op1 = _copy(stack[-1], ctx), _copy(stack[-2], ctx)
 
     # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
     # Do a type check
@@ -63,25 +86,29 @@ def _check_integer_overflow(statespace, state, node):
 
     # Change ints to BitVec
     if type(op0) is int:
-        op0 = BitVecVal(op0, 256)
+        op0 = BitVecVal(op0, 256, ctx)
     if type(op1) is int:
-        op1 = BitVecVal(op1, 256)
+        op1 = BitVecVal(op1, 256, ctx)
 
+    assert op0.ctx == op1.ctx
+    assert op0.ctx != main_ctx()
     # Formulate expression
     if instruction['opcode'] == "ADD":
         expr = op0 + op1
     else:
         expr = op1 * op0
 
+    assert op0.ctx == op1.ctx
+    assert expr.ctx == ctx
     # Check satisfiable
-    constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
-    model = _try_constraints(node.constraints, [constraint])
+    constraint = Or(And(ULT(expr, op0), op1 != 0, ctx), And(ULT(expr, op1), op0 != 0, ctx), ctx)
+    model = _try_constraints(node.constraints, [constraint], ctx)
 
     if model is None:
         logging.debug("[INTEGER_OVERFLOW] no model found")
         return issues
 
-    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
+    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1, ctx):
         return issues
     
     # Build issue
@@ -96,7 +123,7 @@ def _check_integer_overflow(statespace, state, node):
     return issues
 
 
-def _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
+def _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1, context):
     """ Verifies existence of integer overflow """
     # If we get to this point then there has been an integer overflow
     # Find out if the overflowed value is actually used
@@ -106,19 +133,21 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
     if len(interesting_usages) == 0:
         return False
 
-    return _try_constraints(node.constraints, [Not(constraint)]) is not None
+    return _try_constraints(node.constraints, [Not(constraint)], context) is not None
 
 
-def _try_constraints(constraints, new_constraints):
+def _try_constraints(constraints, new_constraints, context):
     """
     Tries new constraints
     :return Model if satisfiable otherwise None
     """
-    _constraints = copy.deepcopy(constraints)
+    _constraints = []
+    for constraint in constraints:
+        _constraints += [_copy(constraint, context)]
     for constraint in new_constraints:
         _constraints.append(copy.deepcopy(constraint))
     try:
-        model = solver.get_model(_constraints)
+        model = solver.get_model(_constraints, context)
         return model
     except UnsatError:
         return None
@@ -164,7 +193,7 @@ def _check_integer_underflow(statespace, state, node):
 
             try:
 
-                model = solver.get_model(constraints)
+                model = solver.get_model(constraints, None)
 
                 # If we get to this point then there has been an integer overflow
                 # Find out if the overflowed value is actually used

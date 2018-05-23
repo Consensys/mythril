@@ -2,9 +2,11 @@ from z3 import Solver, simplify, sat
 from mythril.exceptions import UnsatError
 
 
-def get_model(constraints):
-    s = Solver()
-    s.set("timeout", 10000)
+
+def get_model(constraints, context=None):
+    context = constraints[0].ctx
+    s = Solver(ctx=context)
+    s.set("timeout", 500)
 
     for constraint in constraints:
         s.add(constraint)
