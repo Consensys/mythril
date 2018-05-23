@@ -9,7 +9,7 @@ from threading import RLock
 import re
 import copy
 import logging
-
+import datetime
 locker = RLock()
 '''
 MODULE DESCRIPTION:
@@ -25,35 +25,43 @@ def execute(statespace):
     :param statespace: Statespace to analyse
     :return: Found issues
     """
-    pool = ThreadPool(32)
+    pool = ThreadPool(4)
     logging.debug("Executing module: INTEGER")
 
     issues = []
     results = []
+    durations = []
     for k in statespace.nodes:
         node = statespace.nodes[k]
 
-        for state in node.states:
-            results.append(pool.apply_async(_check_integer_overflow, [statespace, state, node]))
-            # issues += _check_integer_overflow(statespace, state, node)
+        results.append(pool.apply_async(pong, [statespace, node]))
+        # for state in node.states:
+        #     results.append(pool.apply_async(_check_integer_overflow, [statespace, state, node]))
+        #     issues += _check_integer_overflow(statespace, state, node)
+    start = datetime.datetime.now()
     pool.close()
     pool.join()
+    stop = datetime.datetime.now()
+
     for result in results:
-        g = result.get()
+        g, d = result.get()
         if g is not None:
             issues += g
+            durations.append(d)
+    t = durations[0]
+    for i in durations[1:]:
+        t += i
+    print(t)
+    print(stop-start)
     return issues
 
-# def _copy(x, ctx):
-#     locker.acquire()
-#     try:
-#         if isinstance(x, AstRef):
-#             result = copy.deepcopy(x).translate(ctx)
-#         else:
-#             result = copy.deepcopy(x)
-#     finally:
-#         locker.release()
-#     return result
+def pong(statespace, node):
+    start = datetime.datetime.now()
+    results = []
+    for state in node.states:
+        results += _check_integer_overflow(statespace, state, node)
+    end = datetime.datetime.now()
+    return results, end - start
 
 def _check_integer_overflow(statespace, state, node):
     """
@@ -64,6 +72,7 @@ def _check_integer_overflow(statespace, state, node):
     :return: found issue
     """
     issues = []
+    # try:
 
     # Check the instruction
     instruction = state.get_current_instruction()
@@ -71,12 +80,12 @@ def _check_integer_overflow(statespace, state, node):
         return issues
 
     # Formulate overflow constraints
-    ctx = Context()
+    ctx = state.context
     mstate = state.mstate
     stack = mstate.stack
     main = main_ctx()
 
-    op0, op1 = _copy(stack[-1], ctx), _copy(stack[-2], ctx)
+    op0, op1 = stack[1], stack[-2]
 
     # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
     # Do a type check
@@ -90,8 +99,6 @@ def _check_integer_overflow(statespace, state, node):
     if type(op1) is int:
         op1 = BitVecVal(op1, 256, ctx)
 
-    assert op0.ctx == op1.ctx
-    assert op0.ctx != main_ctx()
     # Formulate expression
     if instruction['opcode'] == "ADD":
         expr = op0 + op1
@@ -100,9 +107,10 @@ def _check_integer_overflow(statespace, state, node):
 
     assert op0.ctx == op1.ctx
     assert expr.ctx == ctx
+
     # Check satisfiable
     constraint = Or(And(ULT(expr, op0), op1 != 0, ctx), And(ULT(expr, op1), op0 != 0, ctx), ctx)
-    model = _try_constraints(node.constraints, [constraint], ctx)
+    model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
         logging.debug("[INTEGER_OVERFLOW] no model found")
@@ -110,7 +118,7 @@ def _check_integer_overflow(statespace, state, node):
 
     if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1, ctx):
         return issues
-    
+
     # Build issue
     issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
 
@@ -133,21 +141,19 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
     if len(interesting_usages) == 0:
         return False
 
-    return _try_constraints(node.constraints, [Not(constraint)], context) is not None
+    return _try_constraints(node.constraints, [Not(constraint)]) is not None
 
 
-def _try_constraints(constraints, new_constraints, context):
+def _try_constraints(constraints, new_constraints, c = None):
     """
     Tries new constraints
     :return Model if satisfiable otherwise None
     """
-    _constraints = []
-    for constraint in constraints:
-        _constraints += [_copy(constraint, context)]
+    _constraints = constraints[:]
     for constraint in new_constraints:
-        _constraints.append(copy.deepcopy(constraint))
+        _constraints.append(copy.deepcopy(constraint).translate(constraints[0].ctx))
     try:
-        model = solver.get_model(_constraints, context)
+        model = solver.get_model(_constraints)
         return model
     except UnsatError:
         return None
