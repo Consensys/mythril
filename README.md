@@ -35,7 +35,7 @@ Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/
 
 ## Mythril is Hiring
 
-[ConsenSys Diligence](https://consensys.net/diligence/) is building a dedicated Mythril team. If you're a coder and/or Ethereum security enthusiast who wants to do interesting and challenging work for a decentralized organization, check out the open positions below. You can apply directly on the website or ping b-mueller on [Gitter](https://gitter.im/ConsenSys/mythril).
+[ConsenSys Diligence](https://consensys.net/diligence/) is building a dedicated Mythril team. If you're a coder and/or Ethereum security enthusiast who wants to do interesting and challenging work for a decentralized organization, check out the open positions below. Feel free to apply though the form on the careers website. or ping [b-mueller](http://github.com/b-mueller/) on [Gitter](https://gitter.im/ConsenSys/mythril).
 
 - [Developer - Security Analysis Tools](https://new.consensys.net/careers/?gh_jid=1129067)
 - [Developer - Security Analysis Tools (Part Time)](https://new.consensys.net/careers/?gh_jid=1129048)
