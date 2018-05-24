@@ -81,9 +81,7 @@ def _check_integer_overflow(statespace, state, node):
 
     # Formulate overflow constraints
     ctx = state.context
-    mstate = state.mstate
-    stack = mstate.stack
-    main = main_ctx()
+    stack = state.mstate.stack
 
     op0, op1 = stack[1], stack[-2]
 
