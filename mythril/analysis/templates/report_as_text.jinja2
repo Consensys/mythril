@@ -1,0 +1,27 @@
+{%- if issues -%}
+{% for key, issue in issues.items() -%}
+==== {{ issue.title }} ====
+Type: {{ issue.type }}
+Contract: {{ issue.contract | default("Unknown") }}
+Function name: {{ issue.function }}
+PC address: {{ issue.address }}
+{{ issue.description }}
+--------------------
+{% if issue.filename and issue.lineno -%}
+In file: {{ issue.filename }}:{{ issue.lineno }}
+{%- endif %}
+{% if issue.code -%}
+--------------------
+{{ issue.code }}
+{%- endif -%}
+{% if verbose and issue.debug -%}
+--------------------
+DEBUGGING INFORMATION:
+
+{{ issue.debug }}
+{%- endif %}
+
+{% endfor -%}
+{%- else -%}
+The analysis was completed successfully. No issues were detected.
+{%- endif -%}
