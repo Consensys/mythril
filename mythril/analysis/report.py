@@ -38,7 +38,7 @@ class Issue:
             self.lineno = codeinfo.lineno
 
 class Report:
-    environment = Environment(loader=PackageLoader('mythril.analysis'))
+    environment = Environment(loader=PackageLoader('mythril.analysis'), trim_blocks=True)
 
     def __init__(self, verbose=False):
         self.issues = {}
