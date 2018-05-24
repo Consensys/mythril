@@ -12,7 +12,6 @@
 ### Description
 
 {{ issue.description }}
-
 {% if issue.filename and issue.lineno -%}
 In file: {{ issue.filename }}:{{ issue.lineno }}
 {%- endif -%}
@@ -30,7 +29,6 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 
 {{ issue.debug }}
 {%- endif %}
-
 {% endfor -%}
 {%- else -%}
 The analysis was completed successfully. No issues were detected.
