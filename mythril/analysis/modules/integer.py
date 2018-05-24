@@ -33,11 +33,8 @@ def execute(statespace):
     durations = []
     for k in statespace.nodes:
         node = statespace.nodes[k]
+        results.append(pool.apply_async(check_node, [statespace, node]))
 
-        results.append(pool.apply_async(pong, [statespace, node]))
-        # for state in node.states:
-        #     results.append(pool.apply_async(_check_integer_overflow, [statespace, state, node]))
-        #     issues += _check_integer_overflow(statespace, state, node)
     start = datetime.datetime.now()
     pool.close()
     pool.join()
@@ -55,11 +52,12 @@ def execute(statespace):
     print(stop-start)
     return issues
 
-def pong(statespace, node):
+def check_node(statespace, node):
     start = datetime.datetime.now()
     results = []
     for state in node.states:
         results += _check_integer_overflow(statespace, state, node)
+        results += _check_integer_underflow(statespace, state, node)
     end = datetime.datetime.now()
     return results, end - start
 
