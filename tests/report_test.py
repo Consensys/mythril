@@ -74,12 +74,12 @@ def _get_changed_files(postfix, report_builder, reports):
             yield input_file
 
 
-# def test_json_report(reports):
-#     _assert_empty(_get_changed_files('.json', lambda report: _fix_path(_fix_debug_data(report.as_json())).strip(), reports), '.json')
+def test_json_report(reports):
+    _assert_empty(_get_changed_files('.json', lambda report: _fix_path(_fix_debug_data(report.as_json())).strip(), reports), '.json')
 
 
-# def test_markdown_report(reports):
-#     _assert_empty(_get_changed_files('.markdown', lambda report: _fix_path(report.as_markdown()), reports), '.markdown')
+def test_markdown_report(reports):
+    _assert_empty(_get_changed_files('.markdown', lambda report: _fix_path(report.as_markdown()), reports), '.markdown')
 
 
 def test_text_report(reports):
