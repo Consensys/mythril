@@ -33,11 +33,11 @@ Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/
 - [HITBSecConf 2018 conference paper](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf)
 - [EDCon Toronto 2018 - Mythril: Find bugs and verify security properties in your contracts](https://www.youtube.com/watch?v=NJ9StJThxZY&feature=youtu.be&t=3h3m18s)
 
+# Mythril is Hiring
 
-## Acknowledgements
+[ConsenSys Diligence](https://consensys.net/diligence/) is building a dedicated Mythril team. If you're a coder and/or Ethereum security enthusiast who wants to do interesting and challenging work for a decentralized organization, check out the open positions below. You can apply directly on the website or ping b-mueller on [Gitter](https://gitter.im/ConsenSys/mythril).
 
-- JSON RPC library is adapted from [ethjsonrpc](https://github.com/ConsenSys/ethjsonrpc) (it doesn't seem to be maintained anymore, and I needed to make some changes to it).
-
-- The signature data in `signatures.json` was initially obtained from the [Ethereum Function Signature Database](https://www.4byte.directory).
-
-- Many features, bugfixes and analysis modules have been added by [contributors](https://github.com/b-mueller/mythril/graphs/contributors).
+- [Developer - Security Analysis Tools](https://new.consensys.net/careers/?gh_jid=1129067)
+- [Developer - Security Analysis Tools (Part Time)](https://new.consensys.net/careers/?gh_jid=1129048)
+- [Lead Developer - Security Analysis Engine](https://new.consensys.net/careers/?gh_jid=1127291)
+- [Lead Software Engineer - Auditor Security Tools](https://new.consensys.net/careers/?gh_jid=1127282)
