@@ -61,34 +61,6 @@ class Report:
         return json.dumps(result)
 
     def as_markdown(self):
-        text = ""
-
-        for key, issue in self.issues.items():
-
-            if text == "":
-                if (issue.filename):
-                    text += "# Analysis results for " + issue.filename
-               
-            text += "\n\n## " + issue.title + "\n\n"
-            text += "- Type: " + issue.type + "\n"
-
-            if len(issue.contract):
-                text += "- Contract: " + issue.contract + "\n"
-            else:
-                text += "- Contract: Unknown\n"
-
-            text += "- Function name: `" + issue.function + "`\n"
-            text += "- PC address: " + str(issue.address) + "\n\n"
-
-            text += "### Description\n\n" + issue.description
-
-            if issue.filename and issue.lineno:
-                text += "\nIn *%s:%d*\n" % (issue.filename, issue.lineno)
-
-            if issue.code:
-                text += "\n```\n" + issue.code + "\n```"
-
-            if self.verbose and issue.debug:
-                text += "\n\n### Debugging Information\n" + issue.debug
-
-        return text
+        filename = list(self.issues.values())[0].filename
+        template = Report.environment.get_template('report_as_markdown.jinja2')
+        return template.render(filename=filename, issues=self.issues, verbose=self.verbose)
