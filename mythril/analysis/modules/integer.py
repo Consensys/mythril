@@ -191,11 +191,11 @@ def _check_integer_underflow(statespace, state, node):
         allowed_types = [int, BitVecRef, BitVecNumRef]
 
         if type(op0) in allowed_types and type(op1) in allowed_types:
-            constraints.append(UGT(op1, op0))
+            constraints.append(UGT(op1, op0).translate(constraints[0].ctx) )
 
             try:
 
-                model = solver.get_model(constraints, None)
+                model = solver.get_model(constraints)
 
                 # If we get to this point then there has been an integer overflow
                 # Find out if the overflowed value is actually used
