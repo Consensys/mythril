@@ -330,7 +330,11 @@ setup(
 
     extras_require={
     },
-
+    
+    package_data={
+        'mythril.analysis': ['templates/*']
+    },
+    
     include_package_data=True,
 
     scripts=['myth'],
