@@ -33,7 +33,7 @@ Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/
 - [HITBSecConf 2018 conference paper](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf)
 - [EDCon Toronto 2018 - Mythril: Find bugs and verify security properties in your contracts](https://www.youtube.com/watch?v=NJ9StJThxZY&feature=youtu.be&t=3h3m18s)
 
-# Mythril is Hiring
+## Mythril is Hiring
 
 [ConsenSys Diligence](https://consensys.net/diligence/) is building a dedicated Mythril team. If you're a coder and/or Ethereum security enthusiast who wants to do interesting and challenging work for a decentralized organization, check out the open positions below. You can apply directly on the website or ping b-mueller on [Gitter](https://gitter.im/ConsenSys/mythril).
 
