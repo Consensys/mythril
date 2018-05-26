@@ -25,7 +25,7 @@ def execute(statespace):
     :param statespace: Statespace to analyse
     :return: Found issues
     """
-    pool = ThreadPool(4)
+    pool = ThreadPool(8)
     logging.debug("Executing module: INTEGER")
 
     issues = []
@@ -146,8 +146,12 @@ def _try_constraints(constraints, new_constraints, c = None):
     :return Model if satisfiable otherwise None
     """
     _constraints = constraints[:]
+    ctx = constraints[0].ctx if len(constraints) > 0 else None
     for constraint in new_constraints:
-        _constraints.append(copy.deepcopy(constraint).translate(constraints[0].ctx))
+        if ctx:
+            _constraints.append(copy.deepcopy(constraint).translate(ctx))
+        else:
+            _constraints.append(copy.deepcopy(constraint))
     try:
         model = solver.get_model(_constraints)
         return model
@@ -191,7 +195,10 @@ def _check_integer_underflow(statespace, state, node):
         allowed_types = [int, BitVecRef, BitVecNumRef]
 
         if type(op0) in allowed_types and type(op1) in allowed_types:
-            constraints.append(UGT(op1, op0).translate(constraints[0].ctx) )
+            if len(constraints) > 0:
+                constraints.append(UGT(op1, op0).translate(constraints[0].ctx))
+            else:
+                constraints.append(UGT(op1, op0))
 
             try:
 
