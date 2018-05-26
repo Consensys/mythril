@@ -80,7 +80,7 @@ def analyze_truffle_project(args):
 
                 for issue in issues:
 
-                    index = helper.get_instruction_index(disassembly.instruction_list, issue.pc)
+                    index = helper.get_instruction_index(disassembly.instruction_list, issue.address)
 
                     if index:
                             try:
