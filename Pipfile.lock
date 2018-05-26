@@ -23,20 +23,6 @@
             ],
             "version": "==0.24.0"
         },
-        "attrdict": {
-            "hashes": [
-                "sha256:86aeb6d3809e0344409f8148d7cac9eabce5f0b577c160b5e90d10df3f8d2ad3"
-            ],
-            "version": "==2.0.0"
-        },
-        "attrs": {
-            "hashes": [
-                "sha256:1c7960ccfd6a005cd9f7ba884e6316b5e430a3f1a6c37c5f87d8b43f83b54ec9",
-                "sha256:a17a9573a6f475c99b551c0e0a812707ddda1ec9653bed04c13841404ed6f450"
-            ],
-            "index": "pypi",
-            "version": "==17.4.0"
-        },
         "btrees": {
             "hashes": [
                 "sha256:46b02cb69b26a5238db771ea1955b503df73ecf254bb8063af4c61999fc75b5c",
@@ -594,14 +580,6 @@
                 "sha256:38186e481b65877fd8b1f9acc33e922109e983eb7b6e487bd4c71002134ad331"
             ],
             "version": "==1.6.3"
-        },
-        "attrs": {
-            "hashes": [
-                "sha256:1c7960ccfd6a005cd9f7ba884e6316b5e430a3f1a6c37c5f87d8b43f83b54ec9",
-                "sha256:a17a9573a6f475c99b551c0e0a812707ddda1ec9653bed04c13841404ed6f450"
-            ],
-            "index": "pypi",
-            "version": "==17.4.0"
         },
         "isort": {
             "hashes": [

@@ -2,7 +2,7 @@ rlp<1.0.0
 ethereum>=2.3.0
 ZODB>=5.3.0
 z3-solver>=4.5
-laser-ethereum>=0.17.8
+laser-ethereum>=0.17.12
 requests
 BTrees
 plyvel
@@ -18,5 +18,4 @@ eth-rlp>=0.1.0
 eth-tester>=0.1.0b21
 coverage
 jinja2
-attrs
 pytest
