@@ -167,7 +167,7 @@ def _check_integer_underflow(statespace, state, node):
     if instruction['opcode'] == "SUB":
 
         stack = state.mstate.stack
-
+        ctx = state.context
         op0 = stack[-1]
         op1 = stack[-2]
 
