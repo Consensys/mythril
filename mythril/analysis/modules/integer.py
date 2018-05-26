@@ -221,7 +221,7 @@ def _check_integer_underflow(statespace, state, node):
         issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
                                                                                                            "The subtraction may result in a value < 0."
 
-        # issue.debug = solver.pretty_print_model(model)
+        issue.debug = solver.pretty_print_model(model)
         issues.append(issue)
 
     return issues
