@@ -25,29 +25,36 @@ def execute(statespace):
     :param statespace: Statespace to analyse
     :return: Found issues
     """
-    pool = ThreadPool(8)
+    pool = ThreadPool(4)
     logging.debug("Executing module: INTEGER")
 
     issues = []
     results = []
     durations = []
+    start = datetime.datetime.now()
     for k in statespace.nodes:
         node = statespace.nodes[k]
         results.append(pool.apply_async(check_node, [statespace, node]))
 
-    start = datetime.datetime.now()
     pool.close()
     pool.join()
-    stop = datetime.datetime.now()
+
+    for k in statespace.nodes:
+        node = statespace.nodes[k]
+        for state in node.states:
+            results += _check_integer_underflow(statespace, state, node)
 
     for result in results:
         g, d = result.get()
         if g is not None:
             issues += g
             durations.append(d)
+
     t = durations[0]
     for i in durations[1:]:
         t += i
+
+    stop = datetime.datetime.now()
     print(t)
     print(stop-start)
     return issues
@@ -57,7 +64,6 @@ def check_node(statespace, node):
     results = []
     for state in node.states:
         results += _check_integer_overflow(statespace, state, node)
-        results += _check_integer_underflow(statespace, state, node)
     end = datetime.datetime.now()
     return results, end - start
 
@@ -112,7 +118,7 @@ def _check_integer_overflow(statespace, state, node):
         logging.debug("[INTEGER_OVERFLOW] no model found")
         return issues
 
-    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1, ctx):
+    if not _verify_integer_overflow(statespace, node, state, constraint):
         return issues
 
     # Build issue
@@ -127,11 +133,11 @@ def _check_integer_overflow(statespace, state, node):
     return issues
 
 
-def _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1, context):
+def _verify_integer_overflow(statespace, node, state, constraint):
     """ Verifies existence of integer overflow """
     # If we get to this point then there has been an integer overflow
     # Find out if the overflowed value is actually used
-    interesting_usages = _search_children(statespace, node, expr, constraint=[constraint], index=node.states.index(state))
+    interesting_usages = _search_children(statespace, node, constraint=[constraint], index=node.states.index(state))
 
     # Stop if it isn't
     if len(interesting_usages) == 0:
@@ -140,7 +146,7 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
     return _try_constraints(node.constraints, [Not(constraint)]) is not None
 
 
-def _try_constraints(constraints, new_constraints, c = None):
+def _try_constraints(constraints, new_constraints):
     """
     Tries new constraints
     :return Model if satisfiable otherwise None
@@ -148,7 +154,7 @@ def _try_constraints(constraints, new_constraints, c = None):
     _constraints = constraints[:]
     ctx = constraints[0].ctx if len(constraints) > 0 else None
     for constraint in new_constraints:
-        if ctx:
+        if ctx is not None:
             _constraints.append(copy.deepcopy(constraint).translate(ctx))
         else:
             _constraints.append(copy.deepcopy(constraint))
@@ -171,11 +177,8 @@ def _check_integer_underflow(statespace, state, node):
     if instruction['opcode'] == "SUB":
 
         stack = state.mstate.stack
-        ctx = state.context
         op0 = stack[-1]
         op1 = stack[-2]
-
-        constraints = copy.deepcopy(node.constraints)
 
         # Filter for patterns that indicate benign underflows
 
@@ -194,35 +197,33 @@ def _check_integer_underflow(statespace, state, node):
                                                                                         str(instruction['address'])))
         allowed_types = [int, BitVecRef, BitVecNumRef]
 
-        if type(op0) in allowed_types and type(op1) in allowed_types:
-            if len(constraints) > 0:
-                constraints.append(UGT(op1, op0).translate(constraints[0].ctx))
-            else:
-                constraints.append(UGT(op1, op0))
+        if not (type(op0) in allowed_types and type(op1) in allowed_types):
+            return []
 
-            try:
+        c = UGT(op1, op0)
 
-                model = solver.get_model(constraints)
+        model = _try_constraints(node.constraints, [c])
+        if model is None:
+            logging.debug("[INTEGER_UNDERFLOW] no model found")
+            return []
 
-                # If we get to this point then there has been an integer overflow
-                # Find out if the overflowed value is actually used
-                interesting_usages = _search_children(statespace, node, (op0 - op1), index=node.states.index(state))
+        # If we get to this point then there has been an integer underflow
+        # Find out if the overflowed value is actually used
+        interesting_usages = _search_children(statespace, node, index=node.states.index(state))
 
-                # Stop if it isn't
-                if len(interesting_usages) == 0:
-                    return issues
+        # Stop if it isn't
+        if len(interesting_usages) == 0:
+            return issues
 
-                issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
-                              "Warning")
+        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
+                      "Warning")
 
-                issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
-                                                                                                                   "The subtraction may result in a value < 0."
+        issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
+                                                                                                           "The subtraction may result in a value < 0."
 
-                issue.debug = solver.pretty_print_model(model)
-                issues.append(issue)
+        # issue.debug = solver.pretty_print_model(model)
+        issues.append(issue)
 
-            except UnsatError:
-                logging.debug("[INTEGER_UNDERFLOW] no model found")
     return issues
 
 
@@ -250,7 +251,7 @@ def _check_sstore(state, taint_result):
     return taint_result.check(state, -2)
 
 
-def _search_children(statespace, node, expression, taint_result=None, constraint=[], index=0, depth=0, max_depth=64):
+def _search_children(statespace, node, taint_result=None, constraint=[], index=0, depth=0, max_depth=64):
     """
     Checks the statespace for children states, with JUMPI or SSTORE instuctions,
     for dependency on expression
@@ -298,7 +299,7 @@ def _search_children(statespace, node, expression, taint_result=None, constraint
         ]
 
     for child in children:
-        results += _search_children(statespace, child, expression, taint_result, depth=depth + 1, max_depth=max_depth)
+        results += _search_children(statespace, child, taint_result, depth=depth + 1, max_depth=max_depth)
 
     return results
 
