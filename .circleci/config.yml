@@ -43,7 +43,7 @@ jobs:
 
       - run:
           name: Integration tests
-          command: cd /home && ./run-integration-scripts.sh
+          command: cd /home && ./run-integration-tests.sh
 
   deploy:
     docker:
