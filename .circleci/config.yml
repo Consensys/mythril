@@ -4,7 +4,7 @@ jobs:
   # Basic testing of a new commit to any branch.
   test:
     docker:
-      - image: birdofpreyru/mythril:0.0.1
+      - image: birdofpreyru/mythril:0.0.2
 
     steps:
       - checkout:
@@ -40,6 +40,10 @@ jobs:
       - run:
           name: Ensuring that setup script is functional
           command: cd /home/mythril && python3 setup.py install
+
+      - run:
+          name: Integration tests
+          command: cd /home && ./run-integration-scripts.sh
 
   deploy:
     docker:
