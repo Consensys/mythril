@@ -323,7 +323,6 @@ setup(
         'eth-tester>=0.1.0b21',
         'coverage',
         'jinja2',
-        'attrs',
         'rlp<1.0.0'
     ],
 
@@ -331,7 +330,11 @@ setup(
 
     extras_require={
     },
-
+    
+    package_data={
+        'mythril.analysis': ['templates/*']
+    },
+    
     include_package_data=True,
 
     scripts=['myth'],

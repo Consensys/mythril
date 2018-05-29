@@ -202,8 +202,8 @@ def main():
                                              max_depth=args.max_depth)
                 outputs = {
                     'json': report.as_json(),
-                    'text': report.as_text() or "The analysis was completed successfully. No issues were detected.",
-                    'markdown': report.as_markdown() or "The analysis was completed successfully. No issues were detected."
+                    'text': report.as_text(),
+                    'markdown': report.as_markdown()
                 }
                 print(outputs[args.outform])
 

@@ -105,8 +105,8 @@ def extract_nodes(statespace, color_map):
             code_line = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code_line)
             code_split.append(code_line)
 
-        truncated_code = '\n'.join(code_split) if (len(code_split) < 7) else '\n'.join(
-            code_split[:6]) + "\n(click to expand +)"
+        truncated_code = '\n'.join(code_split) if (len(code_split) < 7) \
+            else '\n'.join(code_split[:6]) + "\n(click to expand +)"
 
         nodes.append({
             'id': str(node_key),
@@ -145,7 +145,7 @@ def extract_edges(statespace):
 
 def generate_graph(statespace, title="Mythril / Ethereum LASER Symbolic VM", physics=False, phrackify=False):
     env = Environment(loader=PackageLoader('mythril.analysis'), autoescape=select_autoescape(['html', 'xml']))
-    template = env.get_template('graph.html')
+    template = env.get_template('callgraph.html')
 
     graph_opts = default_opts
     accounts = statespace.accounts
