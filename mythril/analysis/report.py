@@ -51,7 +51,7 @@ class Report:
         self.issues[m.digest()] = issue
 
     def as_text(self):
-        filename = list(self.issues.values())[0].filename
+        filename = self._file_name()
         template = Report.environment.get_template('report_as_text.jinja2')
         return template.render(filename=filename, issues=self.issues, verbose=self.verbose)
 
@@ -61,6 +61,10 @@ class Report:
         return json.dumps(result)
 
     def as_markdown(self):
-        filename = list(self.issues.values())[0].filename
+        filename = self._file_name()
         template = Report.environment.get_template('report_as_markdown.jinja2')
         return template.render(filename=filename, issues=self.issues, verbose=self.verbose)
+
+    def _file_name(self):
+        if len(self.issues.values()) > 0:
+            return list(self.issues.values())[0].filename
