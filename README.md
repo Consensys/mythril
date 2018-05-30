@@ -39,5 +39,6 @@ Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/
 
 - [Developer - Security Analysis Tools](https://new.consensys.net/careers/?gh_jid=1129067)
 - [Developer - Security Analysis Tools (Part Time)](https://new.consensys.net/careers/?gh_jid=1129048)
-- [Lead Developer - Security Analysis Engine](https://new.consensys.net/careers/?gh_jid=1127291)
+- [Lead Developer and Researcher - Smart Contract Security Analysis](https://new.consensys.net/careers/?gh_jid=1127291)
 - [Lead Software Engineer - Auditor Security Tools](https://new.consensys.net/careers/?gh_jid=1127282)
+- [Product Manager - Security Tools](https://new.consensys.net/careers/?gh_jid=1127271)
