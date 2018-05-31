@@ -47,7 +47,7 @@ jobs:
 
   deploy:
     docker:
-      - image: birdofpreyru/mythril:0.0.1
+      - image: birdofpreyru/mythril:0.0.2
     steps:
       - checkout:
           path: /home/mythril
