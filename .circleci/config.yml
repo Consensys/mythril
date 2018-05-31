@@ -1,11 +1,12 @@
-version: 2
+defaults: &defaults
+  docker:
+    - image: birdofpreyru/mythril-integration-tests:0.0.3
 
+version: 2
 jobs:
   # Basic testing of a new commit to any branch.
   test:
-    docker:
-      - image: birdofpreyru/mythril-integration-tests:0.0.3
-
+    <<: *defaults
     steps:
       - checkout:
           path: /home/mythril
@@ -46,8 +47,7 @@ jobs:
           command: if [ -z "$CIRCLE_PR_NUMBER" ]; then cd /home && ./run-integration-tests.sh; fi
 
   deploy:
-    docker:
-      - image: birdofpreyru/mythril:0.0.2
+    <<: *defaults
     steps:
       - checkout:
           path: /home/mythril
