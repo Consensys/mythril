@@ -83,7 +83,7 @@ def test_concrete_call_not_calldata():
     assert issues == []
 
 
-def test_symbolic_call(mocker):
+def test_symbolic_call_storage_to(mocker):
     # arrange
     address = "0x10"
 
@@ -120,6 +120,43 @@ def test_symbolic_call(mocker):
     assert issue.type == 'Informational'
     assert issue.description == 'This contract delegates execution to a contract address in storage slot 1.' \
                                 ' This storage slot can be written to by calling the function `Function name`. ' \
+                                'Be aware that the called contract gets unrestricted access to this contract\'s state.'
+
+
+def test_symbolic_call_calldata_to(mocker):
+    # arrange
+    address = "0x10"
+
+    state = GlobalState(None, None)
+    state.mstate.memory = ["placeholder", "calldata_bling_0"]
+
+
+    node = Node("example")
+    node.contract_name = "the contract name"
+    node.function_name = "the function name"
+
+    to = Variable("calldata", VarType.SYMBOLIC)
+    call = Call(node, state, None, "Type: ", to, None)
+
+
+    mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
+    statespace = SymExecWrapper(1)
+
+    mocker.patch.object(statespace, 'find_storage_write')
+    statespace.find_storage_write.return_value = "Function name"
+
+
+    # act
+    issues = _symbolic_call(call, state, address, statespace)
+
+    # assert
+    issue = issues[0]
+    assert issue.address == address
+    assert issue.contract == node.contract_name
+    assert issue.function == node.function_name
+    assert issue.title == 'Type:  to a user-supplied address'
+    assert issue.type == 'Informational'
+    assert issue.description == 'This contract delegates execution to a contract address obtained from calldata. ' \
                                 'Be aware that the called contract gets unrestricted access to this contract\'s state.'
 
 
