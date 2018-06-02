@@ -281,6 +281,7 @@ class Mythril(object):
 
             try:
                 signatures.add_signatures_from_file(file, self.sigs)
+                self._update_signatures(self.sigs)
                 contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
                 logging.info("Analyzing contract %s:%s" % (file, contract.name))
             except FileNotFoundError:
@@ -293,7 +294,6 @@ class Mythril(object):
                 self.contracts.append(contract)
                 contracts.append(contract)
 
-        self._update_signatures(self.sigs)
         return address, contracts
 
     def dump_statespace(self, contract, address=None, max_depth=12):
