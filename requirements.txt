@@ -19,3 +19,5 @@ eth-tester>=0.1.0b21
 coverage
 jinja2
 pytest
+mock
+pytest_mock
