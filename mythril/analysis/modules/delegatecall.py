@@ -61,11 +61,9 @@ def _symbolic_call(call, state, address, statespace):
     issue = Issue(call.node.contract_name, call.node.function_name, address, call.type + " to a user-supplied address")
 
     if "calldata" in str(call.to):
-
         issue.description = \
             "This contract delegates execution to a contract address obtained from calldata. "
-        # TODO: this issue is never returned
-        return []
+
     else:
         m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
 
@@ -81,5 +79,5 @@ def _symbolic_call(call, state, address, statespace):
         else:
             logging.debug("[DELEGATECALL] No storage writes to index " + str(idx))
 
-        issue.description += "Be aware that the called contract gets unrestricted access to this contract's state."
-        return [issue]
+    issue.description += "Be aware that the called contract gets unrestricted access to this contract's state."
+    return [issue]
