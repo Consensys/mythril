@@ -39,6 +39,37 @@ def test_concrete_call():
                                 "calling contract.\n DELEGATECALL target: 0x1"
 
 
+def test_concrete_call_symbolic_to():
+    # arrange
+    address = "0x10"
+
+    state = GlobalState(None, None)
+    state.mstate.memory = ["placeholder", "calldata_bling_0"]
+
+    node = Node("example")
+    node.contract_name = "the contract name"
+    node.function_name = "the function name"
+
+    to = Variable("calldata_3", VarType.SYMBOLIC)
+    meminstart = Variable(1, VarType.CONCRETE)
+    call = Call(node, state, None, None, to, None)
+
+    # act
+    issues = _concrete_call(call, state, address, meminstart)
+
+    # assert
+    issue = issues[0]
+    assert issue.address == address
+    assert issue.contract == node.contract_name
+    assert issue.function == node.function_name
+    assert issue.title == "Call data forwarded with delegatecall()"
+    assert issue.type == 'Informational'
+    assert issue.description == "This contract forwards its call data via DELEGATECALL in its fallback function." \
+                                " This means that any function in the called contract can be executed." \
+                                " Note that the callee contract will have access to the storage of the " \
+                                "calling contract.\n DELEGATECALL target: calldata_3"
+
+
 def test_concrete_call_not_calldata():
     # arrange
     state = GlobalState(None, None)
@@ -125,3 +156,58 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
 
     # assert
     assert concrete_mock.call_count == 1
+    assert sym_mock.call_count == 1
+
+
+@patch('mythril.analysis.modules.delegatecall._concrete_call')
+@patch('mythril.analysis.modules.delegatecall._symbolic_call')
+def test_delegate_call_not_delegate(sym_mock, concrete_mock):
+    # arrange
+    # sym_mock = mocker.patch.object(delegatecall, "_symbolic_call")
+    # concrete_mock = mocker.patch.object(delegatecall, "_concrete_call")
+    sym_mock.return_value = []
+    concrete_mock.return_value = []
+
+    node = Node("example")
+    node.function_name = "fallback"
+
+    to = Variable("storage_1", VarType.SYMBOLIC)
+    call = Call(node, None, None, "NOT_DELEGATECALL", to, None)
+
+    statespace = mock.MagicMock()
+    statespace.calls = [call]
+
+    # act
+    issues = execute(statespace)
+
+    # assert
+    assert issues == []
+    assert concrete_mock.call_count == 0
+    assert sym_mock.call_count == 0
+
+
+@patch('mythril.analysis.modules.delegatecall._concrete_call')
+@patch('mythril.analysis.modules.delegatecall._symbolic_call')
+def test_delegate_call_not_fallback(sym_mock, concrete_mock):
+    # arrange
+    # sym_mock = mocker.patch.object(delegatecall, "_symbolic_call")
+    # concrete_mock = mocker.patch.object(delegatecall, "_concrete_call")
+    sym_mock.return_value = []
+    concrete_mock.return_value = []
+
+    node = Node("example")
+    node.function_name = "not_fallback"
+
+    to = Variable("storage_1", VarType.SYMBOLIC)
+    call = Call(node, None, None, "DELEGATECALL", to, None)
+
+    statespace = mock.MagicMock()
+    statespace.calls = [call]
+
+    # act
+    issues = execute(statespace)
+
+    # assert
+    assert issues == []
+    assert concrete_mock.call_count == 0
+    assert sym_mock.call_count == 0
