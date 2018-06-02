@@ -7,20 +7,21 @@ import mock
 from mock import patch
 import pytest_mock
 
+
 def test_concrete_call():
     # arrange
     address = "0x10"
+
     state = GlobalState(None, None)
-    node = Node("example")
-    to = Variable(1, VarType.CONCRETE)
-    meminstart = Variable(1, VarType.CONCRETE)
-
-    call = Call(node, state, None, None, to, None)
-
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
+    node = Node("example")
     node.contract_name = "the contract name"
     node.function_name = "the function name"
+
+    to = Variable(1, VarType.CONCRETE)
+    meminstart = Variable(1, VarType.CONCRETE)
+    call = Call(node, state, None, None, to, None)
 
     # act
     issues = _concrete_call(call, state, address, meminstart)
@@ -36,6 +37,19 @@ def test_concrete_call():
                                 " This means that any function in the called contract can be executed." \
                                 " Note that the callee contract will have access to the storage of the " \
                                 "calling contract.\n DELEGATECALL target: 0x1"
+
+
+def test_concrete_call_not_calldata():
+    # arrange
+    state = GlobalState(None, None)
+    state.mstate.memory = ["placeholder", "not_calldata"]
+    meminstart = Variable(1, VarType.CONCRETE)
+
+    # act
+    issues = _concrete_call(None, state, None, meminstart)
+
+    # assert
+    assert issues == []
 
 
 def test_symbolic_call(mocker):
