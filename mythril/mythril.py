@@ -223,10 +223,7 @@ class Mythril(object):
 
         contract_storage, _ = get_persistent_storage(self.mythril_dir)
         try:
-            if self.dbtype=="leveldb":
-                contract_storage.search(search, search_callback)
-            else:
-                self.ethDB.search(search, search_callback)
+            contract_storage.search(search, search_callback)
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
 
