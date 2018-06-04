@@ -8,6 +8,3 @@ omit =
     /usr/*
     *_test.py
     setup.py
-
-[html]
-directory = coverage_html_report

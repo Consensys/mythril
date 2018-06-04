@@ -13,15 +13,24 @@ jobs:
 
       # Uncomment, for local testing with circleci command, as it ignores
       # path param in checkout command, and this symlink compenstates for that.
-      # - run: ln -s /root/project /home/mythril
+    #   - run: ln -s /root/project /home/mythril
+
+      - restore-cache:
+          keys:
+            - tox-env-{{ checksum "/home/mythril/tox.ini" }}-{{ checksum "/home/mythril/setup.py" }}
 
       - run:
           name: Installing mythril tools
-          command: cd /home && ./install-mythril-tools.sh laser-ethereum
+          command: ./install-mythril-tools.sh laser-ethereum
+          working_directory: /home
 
       - run:
-          name: Install dependencies, in case any are missing in Docker image
-          command: pip3 install -r /home/mythril/requirements.txt
+          name: Install tox envs
+          command: tox -vv --notest
+          working_directory: /home/mythril
+          environment:
+            LC_ALL: C.UTF-8
+            LANG: C.UTF-8
 
       - run:
           background: true
@@ -30,7 +39,8 @@ jobs:
 
       - run:
           name: Unit-testing
-          command: cd /home/mythril && tox
+          command: tox
+          working_directory: /home/mythril
           environment:
             LC_ALL: C.UTF-8
             LANG: C.UTF-8
@@ -41,9 +51,15 @@ jobs:
       - store_artifacts:
           path: /home/mythril/.tox/output
 
+      - save_cache:
+          key: tox-env-{{ checksum "/home/mythril/tox.ini" }}-{{ checksum "/home/mythril/setup.py" }}
+          paths: 
+            - .tox/py*
+
       - run:
           name: Ensuring that setup script is functional
-          command: cd /home/mythril && python3 setup.py install
+          command: python3 setup.py install
+          working_directory: /home/mythril
 
       - run:
           name: Integration tests
@@ -56,13 +72,16 @@ jobs:
           path: /home/mythril
       - run:
           name: Verify Git tag vs. version
-          command: cd /home/mythril && python3 setup.py verify
+          command: python3 setup.py verify
+          working_directory: /home/mythril
       - run:
           name: Build
-          command: cd /home/mythril && python3 setup.py sdist
+          command: python3 setup.py sdist
+          working_directory: /home/mythril
       - run:
           name: Deploy
-          command: cd /home/mythril && twine upload dist/*
+          command: twine upload dist/*
+          working_directory: /home/mythril
 
 workflows:
   version: 2

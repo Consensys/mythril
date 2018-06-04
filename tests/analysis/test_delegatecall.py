@@ -3,8 +3,7 @@ from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.symbolic import SymExecWrapper
 from laser.ethereum.svm import GlobalState, Node, Environment, Account
 import pytest
-import mock
-from mock import patch
+from unittest.mock import MagicMock, patch
 import pytest_mock
 
 
@@ -185,7 +184,7 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     to = Variable("storage_1", VarType.SYMBOLIC)
     call = Call(node, state, None, "DELEGATECALL", to, None)
 
-    statespace = mock.MagicMock()
+    statespace = MagicMock()
     statespace.calls = [call]
 
     # act
@@ -211,7 +210,7 @@ def test_delegate_call_not_delegate(sym_mock, concrete_mock):
     to = Variable("storage_1", VarType.SYMBOLIC)
     call = Call(node, None, None, "NOT_DELEGATECALL", to, None)
 
-    statespace = mock.MagicMock()
+    statespace = MagicMock()
     statespace.calls = [call]
 
     # act
@@ -238,7 +237,7 @@ def test_delegate_call_not_fallback(sym_mock, concrete_mock):
     to = Variable("storage_1", VarType.SYMBOLIC)
     call = Call(node, None, None, "DELEGATECALL", to, None)
 
-    statespace = mock.MagicMock()
+    statespace = MagicMock()
     statespace.calls = [call]
 
     # act
