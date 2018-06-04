@@ -5,6 +5,18 @@
 - Type: Warning
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
+- PC address: 567
+
+### Description
+
+A possible integer underflow exists in the function `sendeth(address,uint256)`.
+The subtraction may result in a value < 0.
+
+## Integer Underflow
+
+- Type: Warning
+- Contract: Unknown
+- Function name: `sendeth(address,uint256)`
 - PC address: 649
 
 ### Description
@@ -23,15 +35,3 @@ The subtraction may result in a value < 0.
 
 A possible integer overflow exists in the function `sendeth(address,uint256)`.
 The addition or multiplication may result in a value higher than the maximum representable integer.
-
-## Integer Underflow
-
-- Type: Warning
-- Contract: Unknown
-- Function name: `sendeth(address,uint256)`
-- PC address: 567
-
-### Description
-
-A possible integer underflow exists in the function `sendeth(address,uint256)`.
-The subtraction may result in a value < 0.

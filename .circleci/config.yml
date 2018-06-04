@@ -32,6 +32,12 @@ jobs:
             LC_ALL: C.UTF-8
             LANG: C.UTF-8
 
+      - save_cache:
+          key: tox-env-{{ checksum "/home/mythril/tox.ini" }}-{{ checksum "/home/mythril/setup.py" }}
+          paths: 
+            - .tox/py*
+            - /root/.cache/pip/wheels/
+
       - run:
           background: true
           name: Launch of background geth instance
@@ -50,11 +56,6 @@ jobs:
 
       - store_artifacts:
           path: /home/mythril/.tox/output
-
-      - save_cache:
-          key: tox-env-{{ checksum "/home/mythril/tox.ini" }}-{{ checksum "/home/mythril/setup.py" }}
-          paths: 
-            - .tox/py*
 
       - run:
           name: Ensuring that setup script is functional

@@ -11,6 +11,7 @@ pylint = "*"
 yapf = "*"
 pytest = "*"
 pytest-mock = "*"
+pytest-cov = "*"
 
 [requires]
 

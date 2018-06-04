@@ -1,5 +1,6 @@
 import hashlib
 import json
+import operator
 from jinja2 import PackageLoader, Environment
 
 class Issue:
@@ -45,25 +46,28 @@ class Report:
         self.verbose = verbose
         pass
 
+    def sorted_issues(self):
+        issue_list = [issue.as_dict() for key, issue in self.issues.items()]
+        return sorted(issue_list, key=operator.itemgetter('address', 'title'))
+
     def append_issue(self, issue):
         m = hashlib.md5()
         m.update((issue.contract + str(issue.address) + issue.title).encode('utf-8'))
         self.issues[m.digest()] = issue
 
     def as_text(self):
-        filename = self._file_name()
+        name = self._file_name()
         template = Report.environment.get_template('report_as_text.jinja2')
-        return template.render(filename=filename, issues=self.issues, verbose=self.verbose)
+        return template.render(filename=name, issues=self.sorted_issues(), verbose=self.verbose)
 
     def as_json(self):
-        issues = [issue.as_dict() for key, issue in self.issues.items()]
-        result = {'success': True, 'error': None, 'issues': issues}
-        return json.dumps(result)
+        result = {'success': True, 'error': None, 'issues': self.sorted_issues()}
+        return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):
         filename = self._file_name()
         template = Report.environment.get_template('report_as_markdown.jinja2')
-        return template.render(filename=filename, issues=self.issues, verbose=self.verbose)
+        return template.render(filename=filename, issues=self.sorted_issues(), verbose=self.verbose)
 
     def _file_name(self):
         if len(self.issues.values()) > 0:
