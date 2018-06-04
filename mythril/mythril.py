@@ -221,9 +221,13 @@ class Mythril(object):
             for i in range(0, len(addresses)):
                 print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
 
-        contract_storage, _ = get_persistent_storage(self.mythril_dir)
         try:
-            contract_storage.search(search, search_callback)
+              if self.dbtype=="leveldb":
+                  self.ethDb.search(search, search_callback)
+              else:     
+                  contract_storage, _ = get_persistent_storage(self.mythril_dir)
+                  contract_storage.search(search, search_callback)
+
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
 
