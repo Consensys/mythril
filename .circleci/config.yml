@@ -17,7 +17,7 @@ jobs:
 
       - restore-cache:
           keys:
-            - tox-env-{{ checksum "/home/mythril/tox.ini" }}-{{ checksum "/home/mythril/setup.py" }}
+            - tox-env-{{ checksum "/home/mythril/setup.py" }}
 
       - run:
           name: Installing mythril tools
@@ -33,7 +33,7 @@ jobs:
             LANG: C.UTF-8
 
       - save_cache:
-          key: tox-env-{{ checksum "/home/mythril/tox.ini" }}-{{ checksum "/home/mythril/setup.py" }}
+          key: tox-env-{{ checksum "/home/mythril/setup.py" }}
           paths: 
             - .tox/py*
             - /root/.cache/pip/wheels/
