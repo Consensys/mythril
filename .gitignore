@@ -170,7 +170,6 @@ $RECYCLE.BIN/
 *.asm
 *.rst
 *.lock
-!Pipfile.lock
 *.svg
 laser*
 lol*

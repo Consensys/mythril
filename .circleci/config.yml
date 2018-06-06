@@ -64,7 +64,8 @@ jobs:
 
       - run:
           name: Integration tests
-          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then cd /home && ./run-integration-tests.sh; fi
+          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
+          working_directory: /home
 
   deploy:
     <<: *defaults
