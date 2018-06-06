@@ -332,7 +332,7 @@ setup(
     },
     
     package_data={
-        'mythril.analysis': ['templates/*']
+        'mythril.analysis.templates': ['*']
     },
     
     include_package_data=True,
