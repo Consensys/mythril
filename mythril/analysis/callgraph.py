@@ -1,7 +1,7 @@
 import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape
-from laser.ethereum.svm import NodeFlags
+from mythril.laser.ethereum.svm import NodeFlags
 import z3
 
 default_opts = {
