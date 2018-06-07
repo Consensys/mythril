@@ -1,6 +1,6 @@
 defaults: &defaults
   docker:
-    - image: birdofpreyru/mythril-integration-tests:0.0.3
+    - image: birdofpreyru/mythril-integration-tests:0.0.4
 
 version: 2
 jobs:
@@ -15,13 +15,28 @@ jobs:
       # path param in checkout command, and this symlink compenstates for that.
       # - run: ln -s /root/project /home/mythril
 
-      - run:
-          name: Installing mythril tools
-          command: cd /home && ./install-mythril-tools.sh laser-ethereum
+      - restore-cache:
+          keys:
+            - tox-env-{{ checksum "/home/mythril/setup.py" }}
 
       - run:
-          name: Install dependencies, in case any are missing in Docker image
-          command: pip3 install -r /home/mythril/requirements.txt
+          name: Installing mythril tools
+          command: ./install-mythril-tools.sh laser-ethereum
+          working_directory: /home
+
+      - run:
+          name: Install tox envs
+          command: tox -vv --notest
+          working_directory: /home/mythril
+          environment:
+            LC_ALL: C.UTF-8
+            LANG: C.UTF-8
+
+      - save_cache:
+          key: tox-env-{{ checksum "/home/mythril/setup.py" }}
+          paths: 
+            - .tox/py*
+            - /root/.cache/pip/wheels/
 
       - run:
           background: true
@@ -30,21 +45,27 @@ jobs:
 
       - run:
           name: Unit-testing
-          command: cd /home/mythril && ./all_tests.sh
+          command: tox
+          working_directory: /home/mythril
+          environment:
+            LC_ALL: C.UTF-8
+            LANG: C.UTF-8
 
       - store_test_results:
-          path: /tmp/test-reports
+          path: /home/mythril/.tox/output
 
       - store_artifacts:
-          path: /tmp/test-reports
+          path: /home/mythril/.tox/output
 
       - run:
           name: Ensuring that setup script is functional
-          command: cd /home/mythril && python3 setup.py install
+          command: python3 setup.py install
+          working_directory: /home/mythril
 
       - run:
           name: Integration tests
-          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then cd /home && ./run-integration-tests.sh; fi
+          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
+          working_directory: /home
 
   deploy:
     <<: *defaults
@@ -53,13 +74,16 @@ jobs:
           path: /home/mythril
       - run:
           name: Verify Git tag vs. version
-          command: cd /home/mythril && python3 setup.py verify
+          command: python3 setup.py verify
+          working_directory: /home/mythril
       - run:
           name: Build
-          command: cd /home/mythril && python3 setup.py sdist
+          command: python3 setup.py sdist
+          working_directory: /home/mythril
       - run:
           name: Deploy
-          command: cd /home/mythril && twine upload dist/*
+          command: twine upload dist/*
+          working_directory: /home/mythril
 
 workflows:
   version: 2

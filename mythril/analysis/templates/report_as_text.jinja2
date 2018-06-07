@@ -1,5 +1,5 @@
 {% if issues %}
-{% for key, issue in issues.items() %}
+{% for issue in issues %}
 ==== {{ issue.title }} ====
 Type: {{ issue.type }}
 Contract: {{ issue.contract | default("Unknown") }}
