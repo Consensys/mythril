@@ -3,7 +3,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
-from laser.ethereum.taint_analysis import TaintRunner
+from mythril.laser.ethereum.taint_analysis import TaintRunner
 import re
 import copy
 import logging

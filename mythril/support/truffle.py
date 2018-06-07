@@ -10,7 +10,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
 
 from mythril.ether import util
-from laser.ethereum import helper
+from mythril.laser.ethereum import helper
 
 
 def analyze_truffle_project(args):
