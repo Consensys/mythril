@@ -1,5 +1,5 @@
 from mythril import ether
-from laser.ethereum import svm
+from mythril.laser.ethereum import svm
 import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType

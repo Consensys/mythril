@@ -20,11 +20,6 @@ jobs:
             - tox-env-{{ checksum "/home/mythril/setup.py" }}
 
       - run:
-          name: Installing mythril tools
-          command: ./install-mythril-tools.sh laser-ethereum
-          working_directory: /home
-
-      - run:
           name: Install tox envs
           command: tox -vv --notest
           working_directory: /home/mythril

@@ -1,5 +1,5 @@
 from mythril.analysis.report import Issue
-from laser.ethereum.svm import NodeFlags
+from mythril.laser.ethereum.svm import NodeFlags
 import logging
 import re
 

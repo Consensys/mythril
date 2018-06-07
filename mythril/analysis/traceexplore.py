@@ -1,5 +1,5 @@
 from z3 import Z3Exception, simplify
-from laser.ethereum.svm import NodeFlags
+from mythril.laser.ethereum.svm import NodeFlags
 import re
 
 colors = [

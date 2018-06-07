@@ -1,7 +1,7 @@
 from mythril.analysis.modules.delegatecall import execute, _concrete_call, _symbolic_call
 from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.symbolic import SymExecWrapper
-from laser.ethereum.svm import GlobalState, Node, Environment, Account
+from mythril.laser.ethereum.svm import GlobalState, Node, Environment, Account
 import pytest
 from unittest.mock import MagicMock, patch
 import pytest_mock
@@ -159,7 +159,7 @@ def test_symbolic_call_calldata_to(mocker):
                                 'Be aware that the called contract gets unrestricted access to this contract\'s state.'
 
 
-@patch('laser.ethereum.svm.GlobalState.get_current_instruction')
+@patch('mythril.laser.ethereum.svm.GlobalState.get_current_instruction')
 @patch('mythril.analysis.modules.delegatecall._concrete_call')
 @patch('mythril.analysis.modules.delegatecall._symbolic_call')
 def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
