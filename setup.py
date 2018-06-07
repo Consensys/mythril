@@ -311,7 +311,6 @@ setup(
         'BTrees',
         'py-solc',
         'plyvel',
-        'pytest>=3.6.0',
         'eth_abi>=1.0.0',
         'eth-utils>=1.0.1',
         'eth-account>=0.1.0a2',
@@ -324,9 +323,13 @@ setup(
         'jinja2',
         'rlp<1.0.0',
         'py-flags',
-        'mock',
-        'pytest_mock',
-        'pytest-cov'
+        'mock'
+    ],
+
+    tests_require=[
+      'pytest>=3.6.0',
+      'pytest_mock',
+      'pytest-cov'
     ],
 
     python_requires='>=3.5',
