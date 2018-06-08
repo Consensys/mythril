@@ -872,64 +872,47 @@ class LaserEVM:
                 except:
                     logging.debug("Skipping JUMPI to invalid destination.")
 
-                if (state.depth < self.max_depth):
-
-                    i = helper.get_instruction_index(disassembly.instruction_list, jump_addr)
-
-                    if not i:
-                        logging.debug("Invalid jump destination: " + str(jump_addr))
-
-                    else:
-                        instr = disassembly.instruction_list[i]
-
-                        if instr['opcode'] != "JUMPDEST":
-                            logging.debug("Invalid jump destination: " + str(jump_addr))
-                            halt = True
-                            continue
-
-                        elif (type(condition) == BoolRef):
-
-                            if not is_false(simplify(condition)):
-
-                                # Create new node for condition == True
-
-                                new_gblState = LaserEVM.copy_global_state(gblState)
-                                new_gblState.mstate.pc = i
-                                new_gblState.mstate.constraints.append(condition)
-                                new_gblState.mstate.depth += 1
-
-                                new_node = self._sym_exec(new_gblState)
-                                self.nodes[new_node.uid] = new_node
-                                self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, condition))
-
-                            else:
-                                logging.debug("Pruned unreachable states.")
-
-                        else:
-                            logging.debug("Invalid condition: " + str(condition) + "(type " + str(type(condition)) + ")")
-                            halt = True
-                            continue
-
-                        new_gblState = LaserEVM.copy_global_state(gblState)
-
-                        if (type(condition) == BoolRef):
-                            negated = Not(condition)
-                        else:
-                            negated = condition == 0
-
-                        if not is_false(simplify(negated)):
-
-                            new_gblState.mstate.constraints.append(negated)
-
-                            new_node = self._sym_exec(new_gblState)
-                            self.nodes[new_node.uid] = new_node
-                            self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, negated))
-
-                        halt = True
-                        # continue
-
-                else:
+                if state.depth >= self.max_depth:
                     logging.debug("Max depth reached, skipping JUMPI")
+                    halt = True
+                    continue
+
+                i = helper.get_instruction_index(disassembly.instruction_list, jump_addr)
+
+                if not i:
+                    logging.debug("Invalid jump destination: " + str(jump_addr))
+                    continue
+                instr = disassembly.instruction_list[i]
+
+                # True case
+                condi = condition if type(condition) == BoolRef else condition != 0
+                if instr['opcode'] == "JUMPDEST":
+                    if not is_false(simplify(condi)):
+                        new_gblState = LaserEVM.copy_global_state(gblState)
+                        new_gblState.mstate.pc = i
+                        new_gblState.mstate.constraints.append(condi)
+                        new_gblState.mstate.depth += 1
+
+                        new_node = self._sym_exec(new_gblState)
+                        self.nodes[new_node.uid] = new_node
+                        self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, condi))
+                    else:
+                        logging.debug("Pruned unreachable states.")
+
+                # False case
+                negated = Not(condition) if type(condition) == BoolRef else condition == 0
+
+                if not is_false(simplify(negated)):
+                    new_gblState = LaserEVM.copy_global_state(gblState)
+                    new_gblState.mstate.constraints.append(negated)
+
+                    new_node = self._sym_exec(new_gblState)
+                    self.nodes[new_node.uid] = new_node
+                    self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, negated))
+                else:
+                    logging.debug("Pruned unreachable states.")
+
+                halt = True
 
             elif op == 'PC':
                 state.stack.append(state.pc - 1)
