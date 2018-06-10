@@ -97,7 +97,7 @@ def analyze_truffle_project(args):
 
                 if (args.outform == 'json'):
 
-                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict(), issues))}}
+                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict, issues))}}
                     print(json.dumps(result))
 
                 else:

@@ -7,7 +7,7 @@ import binascii
 import copy
 import logging
 import re
-
+from mythril.laser.ethereum.state import *
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -30,127 +30,6 @@ class JumpType(Enum):
 class SVMError(Exception):
     pass
 
-
-'''
-Classes to represent the global state, machine state and execution environment as described in the Ethereum yellow paper.
-'''
-
-
-class Account():
-
-    def __init__(self, address, code=None, contract_name="unknown", balance=BitVec("balance", 256)):
-        self.nonce = 0
-        self.code = code
-        self.balance = balance
-        self.storage = {}
-
-        '''
-        Metadata
-        '''
-
-        self.address = address
-        self.contract_name = contract_name
-
-    def __str__(self):
-        return str(self.as_dict())
-
-    def get_storage(self, index):
-        try:
-            return self.storage[index]
-        except KeyError:
-            return BitVec("storage_" + str(index), 256)
-
-    def as_dict(self):
-        return {'nonce': self.nonce, 'code': self.code, 'balance': self.balance, 'storage': self.storage}
-
-
-class Environment():
-
-    def __init__(
-        self,
-        active_account,
-        sender,
-        calldata,
-        gasprice,
-        callvalue,
-        origin,
-        calldata_type=CalldataType.SYMBOLIC,
-    ):
-
-        # Metadata
-
-        self.active_account = active_account
-        self.active_function_name = ""
-
-        self.address = BitVecVal(int(active_account.address, 16), 256)
-        self.code = active_account.code
-
-        self.sender = sender
-        self.calldata = calldata
-        self.calldata_type = calldata_type
-        self.gasprice = gasprice
-        self.origin = origin
-        self.callvalue = callvalue
-
-    def __str__(self):
-        return str(self.as_dict())
-
-    def as_dict(self):
-
-        return {'active_account': self.active_account, 'sender': self.sender, 'calldata': self.calldata, 'gasprice': self.gasprice, 'callvalue': self.callvalue, 'origin': self.origin, 'calldata_type': self.calldata_type}
-
-
-class MachineState():
-
-    def __init__(self, gas):
-        self.pc = 0
-        self.stack = []
-        self.memory = []
-        self.memsize = 0
-        self.gas = gas
-        self.constraints = []
-        self.depth = 0
-
-    def mem_extend(self, start, sz):
-
-        if (start < 4096 and sz < 4096):
-
-            if sz and start + sz > len(self.memory):
-
-                n_append = start + sz - len(self.memory)
-
-                while n_append > 0:
-                    self.memory.append(0)
-                    n_append -= 1
-
-                self.memsize = sz
-
-        else:
-            raise Exception
-
-            # Deduct gas for memory extension... not yet implemented
-
-    def __str__(self):
-        return str(self.as_dict())
-
-    def as_dict(self):
-
-        return {'pc': self.pc, 'stack': self.stack, 'memory': self.memory, 'memsize': self.memsize, 'gas': self.gas}
-
-
-class GlobalState():
-
-    def __init__(self, accounts, environment, machinestate=MachineState(gas=10000000)):
-        self.accounts = accounts
-        self.environment = environment
-        self.mstate = machinestate
-
-    # Returns the instruction currently being executed.
-
-    def get_current_instruction(self):
-        instructions = self.environment.code.instruction_list
-
-        return instructions[self.mstate.pc]
 
 
 '''

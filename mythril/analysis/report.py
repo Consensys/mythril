@@ -47,7 +47,7 @@ class Report:
         pass
 
     def sorted_issues(self):
-        issue_list = [issue.as_dict() for key, issue in self.issues.items()]
+        issue_list = [issue.as_dict for key, issue in self.issues.items()]
         return sorted(issue_list, key=operator.itemgetter('address', 'title'))
 
     def append_issue(self, issue):
