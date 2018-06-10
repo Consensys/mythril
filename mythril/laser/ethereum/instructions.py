@@ -1,6 +1,6 @@
 import mythril.laser.ethereum.util as helper
 import ethereum.opcodes as opcodes
-from z3 import BitVecVal
+from z3 import BitVecVal, If, BoolRef
 from copy import copy
 
 
@@ -39,7 +39,7 @@ class Instruction:
         elif self.op_code.startswith("LOG"):
             op = "log"
 
-        instruction_mutator = getattr(self, op, None)
+        instruction_mutator = getattr(self, op + '_', None)
 
         if instruction_mutator is None:
             raise NotImplemented()
@@ -47,25 +47,25 @@ class Instruction:
         return instruction_mutator(global_state)
 
     @instruction
-    def add(self, global_state):
+    def add_(self, global_state):
         mstate = global_state.mstate
         mstate.stack.append((helper.pop_bitvec(mstate) + helper.pop_bitvec(mstate)))
         return [global_state]
 
     @instruction
-    def push(self, global_state):
+    def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
         return [global_state]
 
     @instruction
-    def dup(self, global_state):
+    def dup_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
         return [global_state]
 
     @instruction
-    def swap(self, global_state):
+    def swap_(self, global_state):
         depth = int(self.op_code[4:])
         try:
             stack = global_state.mstate.stack
@@ -74,8 +74,22 @@ class Instruction:
             raise StackUnderflowException()
 
     @instruction
-    def pop(self, global_state):
+    def pop_(self, global_state):
         try:
             global_state.mstate.stack.pop()
+        except IndexError:
+            raise StackUnderflowException()
+
+    @instruction
+    def and_(self, global_state):
+        try:
+            stack = global_state.mstate.stack
+            op1, op2 = stack.pop(), stack.pop()
+            if type(op1) == BoolRef:
+                op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+            if type(op2) == BoolRef:
+                op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+
+            stack.append(op1 & op2)
         except IndexError:
             raise StackUnderflowException()
