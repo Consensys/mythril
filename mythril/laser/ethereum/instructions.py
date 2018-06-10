@@ -38,11 +38,10 @@ class Instruction:
         instruction_mutator = getattr(self, op)
 
         if instruction_mutator is None:
+            # TODO: Exception
             pass
 
-        new_states = instruction_mutator(global_state)
-
-        return global_state, new_states
+        return instruction_mutator(global_state)
 
     @staticmethod
     @instruction
