@@ -1,6 +1,7 @@
 from flags import Flags
 from enum import Enum
 
+gbl_next_uid = 0  # node counter
 
 class JumpType(Enum):
     CONDITIONAL = 1

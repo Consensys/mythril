@@ -18,6 +18,8 @@ class Issue:
         self.code = None
         self.lineno = None
 
+
+    @property
     def as_dict(self):
 
         issue = {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.address, 'debug': self.debug}

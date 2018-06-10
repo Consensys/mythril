@@ -1,16 +1,16 @@
 from mythril.laser.ethereum import util
 from ethereum import utils
-from z3 import *
-import binascii
+from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Concat, ULT, UGT, BitVecNumRef, Not, is_false, is_true, ExprRef
 import copy
+import binascii
 import logging
 import re
-from mythril.laser.ethereum.state import *
-from mythril.laser.ethereum.cfg import *
+from mythril.laser.ethereum.state import CalldataType, GlobalState, MachineState, Environment, Account
+from mythril.laser.ethereum.cfg import Node, Edge, JumpType, NodeFlags
+
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
-gbl_next_uid = 0  # node counter
 
 
 
