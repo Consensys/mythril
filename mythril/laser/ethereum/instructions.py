@@ -7,6 +7,7 @@ from copy import copy
 class StackUnderflowException(Exception):
     pass
 
+
 def instruction(func):
     """ Wrapper that handles copy and original return """
     def wrapper(self, global_state):
@@ -38,11 +39,10 @@ class Instruction:
         elif self.op_code.startswith("LOG"):
             op = "log"
 
-        instruction_mutator = getattr(self, op)
+        instruction_mutator = getattr(self, op, None)
 
         if instruction_mutator is None:
-            # TODO: Exception
-            pass
+            raise NotImplemented()
 
         return instruction_mutator(global_state)
 

@@ -158,10 +158,10 @@ class LaserEVM:
             elif op == 'AND':
                 try:
                     op1, op2 = state.stack.pop(), state.stack.pop()
-                    if (type(op1) == BoolRef):
+                    if type(op1) == BoolRef:
                         op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-                    if (type(op2) == BoolRef):
+                    if type(op2) == BoolRef:
                         op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
                     state.stack.append(op1 & op2)
