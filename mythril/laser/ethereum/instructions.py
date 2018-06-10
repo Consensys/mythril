@@ -11,7 +11,6 @@ def instruction(func):
     return wrapper
 
 
-
 class Instruction:
     """
     Instruction class is used to mutate a state according to the current instruction
