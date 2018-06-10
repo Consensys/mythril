@@ -31,6 +31,8 @@ class Instruction:
     def add(self, global_state):
         """ Add opcode"""
         mstate = global_state.mstate
+        # TODO: move to decorator
+        mstate.pc += 1
         mstate.stack.append((helper.pop_bitvec(mstate) + helper.pop_bitvec(mstate)))
         return [global_state]
 

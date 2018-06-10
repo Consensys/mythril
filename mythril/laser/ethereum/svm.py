@@ -1,6 +1,7 @@
 from mythril.laser.ethereum import util
 from ethereum import utils
-from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Concat, ULT, UGT, BitVecNumRef, Not, is_false, is_true, ExprRef
+from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
+    is_false, is_true, ExprRef
 import copy
 import binascii
 import logging
@@ -12,9 +13,6 @@ TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
 
-
-
-
 class SVMError(Exception):
     pass
 
@@ -22,6 +20,8 @@ class SVMError(Exception):
 '''
 Main symbolic execution engine.
 '''
+
+
 class LaserEVM:
 
     def __init__(self, accounts, dynamic_loader=None, max_depth=12):
@@ -81,7 +81,8 @@ class LaserEVM:
         if start_addr == 0:
             environment.active_function_name = "fallback"
 
-        logging.debug("- Entering node " + str(node.uid) + ", index = " + str(state.pc) + ", address = " + str(start_addr) + ", depth = " + str(state.depth))
+        logging.debug("- Entering node " + str(node.uid) + ", index = " + str(state.pc) + ", address = " + str(
+            start_addr) + ", depth = " + str(state.depth))
 
         if start_addr in disassembly.addr_to_func:
             # Enter a new function
@@ -298,10 +299,10 @@ class LaserEVM:
                 op1 = state.stack.pop()
                 op2 = state.stack.pop()
 
-                if(type(op1) == BoolRef):
+                if (type(op1) == BoolRef):
                     op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-                if(type(op2) == BoolRef):
+                if (type(op2) == BoolRef):
                     op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
                 exp = op1 == op2
@@ -335,11 +336,13 @@ class LaserEVM:
 
                 except AttributeError:
                     logging.debug("CALLDATALOAD: Unsupported symbolic index")
-                    state.stack.append(BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+                    state.stack.append(
+                        BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
                     continue
                 except IndexError:
                     logging.debug("Calldata not set, using symbolic variable instead")
-                    state.stack.append(BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+                    state.stack.append(
+                        BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
                     continue
 
                 if type(b) == int:
@@ -354,10 +357,12 @@ class LaserEVM:
                         state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
 
                     except:
-                        state.stack.append(BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+                        state.stack.append(
+                            BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
                 else:
                     # symbolic variable
-                    state.stack.append(BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+                    state.stack.append(
+                        BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
 
             elif op == 'CALLDATASIZE':
 
@@ -380,7 +385,8 @@ class LaserEVM:
                 except:
                     logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
                     state.mem_extend(mstart, 1)
-                    state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_cpy", 256)
+                    state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_cpy",
+                                                  256)
                     continue
 
                 try:
@@ -388,7 +394,8 @@ class LaserEVM:
                 except:
                     logging.debug("Unsupported symbolic size in CALLDATACOPY")
                     state.mem_extend(mstart, 1)
-                    state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                    state.memory[mstart] = BitVec(
+                        "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
                     continue
 
                 if size > 0:
@@ -398,7 +405,8 @@ class LaserEVM:
                     except:
                         logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(size))
                         state.mem_extend(mstart, 1)
-                        state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                        state.memory[mstart] = BitVec(
+                            "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
                         continue
 
                     try:
@@ -410,7 +418,8 @@ class LaserEVM:
                     except:
                         logging.debug("Exception copying calldata to memory")
 
-                        state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                        state.memory[mstart] = BitVec(
+                            "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
 
             elif op == 'STOP':
                 if len(self.call_stack):
@@ -772,14 +781,13 @@ class LaserEVM:
                         # testrpc simply returns the address, geth response is more elaborate.
 
                         if not re.match(r"^0x[0-9a-f]{40}$", callee_address):
-
                             callee_address = "0x" + callee_address[26:]
 
                     else:
                         ret = BitVec("retval_" + str(instr['address']), 256)
                         state.stack.append(ret)
                         # Set output memory
-                        logging.debug("memoutstart: "+ str(memoutstart))
+                        logging.debug("memoutstart: " + str(memoutstart))
                         if not isinstance(memoutstart, ExprRef):
                             state.mem_extend(memoutstart, 1)
                             state.memory[memoutstart] = ret
@@ -788,13 +796,12 @@ class LaserEVM:
                         continue
 
                 if not re.match(r"^0x[0-9a-f]{40}", callee_address):
-                        logging.debug("Invalid address: " + str(callee_address))
-                        ret = BitVec("retval_" + str(instr['address']), 256)
-                        state.stack.append(ret)
-                        continue
+                    logging.debug("Invalid address: " + str(callee_address))
+                    ret = BitVec("retval_" + str(instr['address']), 256)
+                    state.stack.append(ret)
+                    continue
 
                 if (int(callee_address, 16) < 5):
-
                     logging.info("Native contract called: " + callee_address)
 
                     # Todo: Implement native contracts
@@ -822,7 +829,6 @@ class LaserEVM:
                             logging.info("Unable to execute dynamic loader.")
 
                         if code is None:
-
                             logging.info("No code returned, not a contract account?")
                             ret = BitVec("retval_" + str(instr['address']), 256)
                             state.stack.append(ret)
@@ -856,7 +862,8 @@ class LaserEVM:
                     # TODO: This only allows for either fully concrete or fully symbolic calldata.
                     # Improve management of memory and callata to support a mix between both types.
 
-                    calldata = state.memory[util.get_concrete_int(meminstart):util.get_concrete_int(meminstart + meminsz)]
+                    calldata = state.memory[
+                               util.get_concrete_int(meminstart):util.get_concrete_int(meminstart + meminsz)]
 
                     if (len(calldata) < 32):
                         calldata += [0] * (32 - len(calldata))
@@ -875,7 +882,10 @@ class LaserEVM:
 
                 if (op == 'CALL'):
 
-                    callee_environment = Environment(callee_account, BitVecVal(int(environment.active_account.address, 16), 256), calldata, environment.gasprice, value, environment.origin, calldata_type=calldata_type)
+                    callee_environment = Environment(callee_account,
+                                                     BitVecVal(int(environment.active_account.address, 16), 256),
+                                                     calldata, environment.gasprice, value, environment.origin,
+                                                     calldata_type=calldata_type)
                     new_gblState = GlobalState(gblState.accounts, callee_environment, MachineState(gas))
                     new_gblState.mstate.depth = state.depth + 1
                     new_gblState.mstate.constraints = copy.deepcopy(state.constraints)
@@ -954,7 +964,8 @@ class LaserEVM:
                 offset, length = state.stack.pop(), state.stack.pop()
 
                 try:
-                    self.last_returned = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
+                    self.last_returned = state.memory[
+                                         util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
                 except AttributeError:
                     logging.debug("Return with symbolic length or offset. Not supported")
 
@@ -980,3 +991,55 @@ class LaserEVM:
 
         logging.debug("Returning from node " + str(node.uid))
         return node
+
+
+class NewEvm:
+    def __init__(self, accounts, dynamic_loader=None):
+        self.accounts = accounts
+
+        self.nodes = {}
+        self.edges = []
+
+        self.total_states = 0
+        self.dynamic_loader = dynamic_loader
+
+        self.work_list = []
+
+        logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
+
+    def sym_exec(self, main_address):
+
+        logging.debug("Starting LASER execution")
+
+        # Initialize the execution environment
+        environment = Environment(
+            self.accounts[main_address],
+            BitVec("caller", 256),
+            [],
+            BitVec("gasprice", 256),
+            BitVec("callvalue", 256),
+            BitVec("origin", 256),
+            calldata_type=CalldataType.SYMBOLIC,
+        )
+
+        global_state = GlobalState(self.accounts, environment)
+
+        # Empty the work_list before starting an execution
+        self.work_list = [global_state]
+        self._sym_exec()
+
+        logging.info("Execution complete")
+        logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
+
+    def _sym_exec(self):
+        while True:
+            # TODO: Use strategy instance here
+            try:
+                global_state = self.work_list.pop(0)
+            except IndexError:
+                return
+
+            _, new_states = global_state.execute()
+            self.work_list += new_states
+            self.total_states += len(new_states)
+
