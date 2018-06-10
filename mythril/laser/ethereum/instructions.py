@@ -1,4 +1,4 @@
-import mythril.laser.ethereum.helper as helper
+import mythril.laser.ethereum.util as helper
 from copy import copy
 
 

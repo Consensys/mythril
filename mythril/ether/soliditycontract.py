@@ -1,4 +1,4 @@
-import mythril.laser.ethereum.helper as helper
+import mythril.laser.ethereum.util as helper
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import *
 from mythril.exceptions import NoContractFoundError

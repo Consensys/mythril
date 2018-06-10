@@ -1,5 +1,5 @@
 import logging, copy
-import mythril.laser.ethereum.helper as helper
+import mythril.laser.ethereum.util as helper
 
 
 class TaintRecord:

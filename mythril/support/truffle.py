@@ -10,7 +10,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
 
 from mythril.ether import util
-from mythril.laser.ethereum import helper
+from mythril.laser.ethereum import util
 
 
 def analyze_truffle_project(args):
@@ -80,7 +80,7 @@ def analyze_truffle_project(args):
 
                 for issue in issues:
 
-                    index = helper.get_instruction_index(disassembly.instruction_list, issue.address)
+                    index = util.get_instruction_index(disassembly.instruction_list, issue.address)
 
                     if index:
                             try:

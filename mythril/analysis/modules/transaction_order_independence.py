@@ -111,7 +111,7 @@ def _get_influencing_sstores(statespace, interesting_storages):
     for sstore_state, node in _get_states_with_opcode(statespace, 'SSTORE'):
         index, value = sstore_state.mstate.stack[-1], sstore_state.mstate.stack[-2]
         try:
-            index = helper.get_concrete_int(index)
+            index = util.get_concrete_int(index)
         except AttributeError:
             index = str(index)
         if "storage_{}".format(index) not in interesting_storages:

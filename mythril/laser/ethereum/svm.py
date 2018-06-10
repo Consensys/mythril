@@ -1,4 +1,4 @@
-from mythril.laser.ethereum import helper
+from mythril.laser.ethereum import util
 from ethereum import utils
 from enum import Enum
 from z3 import *
@@ -197,7 +197,7 @@ class LaserEVM:
                 s0, s1 = state.stack.pop(), state.stack.pop()
 
                 try:
-                    n = helper.get_concrete_int(s0)
+                    n = util.get_concrete_int(s0)
                     oft = (31 - n) * 8
                     result = Concat(BitVecVal(0, 248), Extract(oft + 7, oft, s1))
                 except AttributeError:
@@ -209,43 +209,43 @@ class LaserEVM:
             # Arithmetics
 
             elif op == 'ADD':
-                state.stack.append((helper.pop_bitvec(state) + helper.pop_bitvec(state)))
+                state.stack.append((util.pop_bitvec(state) + util.pop_bitvec(state)))
 
             elif op == 'SUB':
-                state.stack.append((helper.pop_bitvec(state) - helper.pop_bitvec(state)))
+                state.stack.append((util.pop_bitvec(state) - util.pop_bitvec(state)))
 
             elif op == 'MUL':
-                state.stack.append(helper.pop_bitvec(state) * helper.pop_bitvec(state))
+                state.stack.append(util.pop_bitvec(state) * util.pop_bitvec(state))
 
             elif op == 'DIV':
-                state.stack.append(UDiv(helper.pop_bitvec(state), helper.pop_bitvec(state)))
+                state.stack.append(UDiv(util.pop_bitvec(state), util.pop_bitvec(state)))
 
             elif op == 'MOD':
-                s0, s1 = helper.pop_bitvec(state), helper.pop_bitvec(state)
+                s0, s1 = util.pop_bitvec(state), util.pop_bitvec(state)
                 state.stack.append(0 if s1 == 0 else URem(s0, s1))
 
             elif op == 'SDIV':
-                s0, s1 = helper.pop_bitvec(state), helper.pop_bitvec(state)
+                s0, s1 = util.pop_bitvec(state), util.pop_bitvec(state)
                 state.stack.append(s0 / s1)
 
             elif op == 'SMOD':
-                s0, s1 = helper.pop_bitvec(state), helper.pop_bitvec(state)
+                s0, s1 = util.pop_bitvec(state), util.pop_bitvec(state)
                 state.stack.append(0 if s1 == 0 else s0 % s1)
 
             elif op == 'ADDMOD':
-                s0, s1, s2 = helper.pop_bitvec(state), helper.pop_bitvec(state), helper.pop_bitvec(state)
+                s0, s1, s2 = util.pop_bitvec(state), util.pop_bitvec(state), util.pop_bitvec(state)
 
                 logging.info(str(type))
 
                 state.stack.append((s0 + s1) % s2)
 
             elif op == 'MULMOD':
-                s0, s1, s2 = helper.pop_bitvec(state), helper.pop_bitvec(state), helper.pop_bitvec(state)
+                s0, s1, s2 = util.pop_bitvec(state), util.pop_bitvec(state), util.pop_bitvec(state)
                 state.stack.append((s0 * s1) % s2 if s2 else 0)
 
             elif op == 'EXP':
                 # we only implement 2 ** x
-                base, exponent = helper.pop_bitvec(state), helper.pop_bitvec(state)
+                base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
                 if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
                     state.stack.append(BitVec(str(base) + "_EXP_" + str(exponent), 256))
@@ -262,8 +262,8 @@ class LaserEVM:
                 s0, s1 = state.stack.pop(), state.stack.pop()
 
                 try:
-                    s0 = helper.get_concrete_int(s0)
-                    s1 = helper.get_concrete_int(s1)
+                    s0 = util.get_concrete_int(s0)
+                    s1 = util.get_concrete_int(s1)
 
                     if s0 <= 31:
                         testbit = s0 * 8 + 7
@@ -281,22 +281,22 @@ class LaserEVM:
 
             elif op == 'LT':
 
-                exp = ULT(helper.pop_bitvec(state), helper.pop_bitvec(state))
+                exp = ULT(util.pop_bitvec(state), util.pop_bitvec(state))
                 state.stack.append(exp)
 
             elif op == 'GT':
 
-                exp = UGT(helper.pop_bitvec(state), helper.pop_bitvec(state))
+                exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
                 state.stack.append(exp)
 
             elif op == 'SLT':
 
-                exp = helper.pop_bitvec(state) < helper.pop_bitvec(state)
+                exp = util.pop_bitvec(state) < util.pop_bitvec(state)
                 state.stack.append(exp)
 
             elif op == 'SGT':
 
-                exp = helper.pop_bitvec(state) > helper.pop_bitvec(state)
+                exp = util.pop_bitvec(state) > util.pop_bitvec(state)
                 state.stack.append(exp)
 
             elif op == 'EQ':
@@ -336,7 +336,7 @@ class LaserEVM:
                 op0 = state.stack.pop()
 
                 try:
-                    offset = helper.get_concrete_int(simplify(op0))
+                    offset = util.get_concrete_int(simplify(op0))
                     b = environment.calldata[offset]
 
                 except AttributeError:
@@ -376,13 +376,13 @@ class LaserEVM:
                 op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
 
                 try:
-                    mstart = helper.get_concrete_int(op0)
+                    mstart = util.get_concrete_int(op0)
                 except:
                     logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
                     continue
 
                 try:
-                    dstart = helper.get_concrete_int(op1)
+                    dstart = util.get_concrete_int(op1)
                 except:
                     logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
                     state.mem_extend(mstart, 1)
@@ -390,7 +390,7 @@ class LaserEVM:
                     continue
 
                 try:
-                    size = helper.get_concrete_int(op2)
+                    size = util.get_concrete_int(op2)
                 except:
                     logging.debug("Unsupported symbolic size in CALLDATACOPY")
                     state.mem_extend(mstart, 1)
@@ -447,7 +447,7 @@ class LaserEVM:
                 op0, op1 = state.stack.pop(), state.stack.pop()
 
                 try:
-                    index, length = helper.get_concrete_int(op0), helper.get_concrete_int(op1)
+                    index, length = util.get_concrete_int(op0), util.get_concrete_int(op1)
 
                 except:
                     # Can't access symbolic memory offsets
@@ -458,7 +458,7 @@ class LaserEVM:
                     data = b''
 
                     for i in range(index, index + length):
-                        data += helper.get_concrete_int(state.memory[i]).to_bytes(1, byteorder='big')
+                        data += util.get_concrete_int(state.memory[i]).to_bytes(1, byteorder='big')
                         i += 1
                 except:
 
@@ -472,7 +472,7 @@ class LaserEVM:
                 keccac = utils.sha3(utils.bytearray_to_bytestr(data))
                 logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccac)))
 
-                state.stack.append(BitVecVal(helper.concrete_int_from_bytes(keccac, 0), 256))
+                state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccac, 0), 256))
 
             elif op == 'GASPRICE':
                 state.stack.append(BitVec("gasprice", 256))
@@ -520,7 +520,7 @@ class LaserEVM:
                 logging.debug("MLOAD[" + str(op0) + "]")
 
                 try:
-                    offset = helper.get_concrete_int(op0)
+                    offset = util.get_concrete_int(op0)
                 except AttributeError:
                     logging.debug("Can't MLOAD from symbolic index")
                     data = BitVec("mem_" + str(op0), 256)
@@ -528,7 +528,7 @@ class LaserEVM:
                     continue
 
                 try:
-                    data = helper.concrete_int_from_bytes(state.memory, offset)
+                    data = util.concrete_int_from_bytes(state.memory, offset)
                 except IndexError:  # Memory slot not allocated
                     data = BitVec("mem_" + str(offset), 256)
                 except TypeError:  # Symbolic memory
@@ -543,7 +543,7 @@ class LaserEVM:
                 op0, value = state.stack.pop(), state.stack.pop()
 
                 try:
-                    mstart = helper.get_concrete_int(op0)
+                    mstart = util.get_concrete_int(op0)
                 except AttributeError:
                     logging.debug("MSTORE to symbolic index. Not supported")
                     continue
@@ -557,7 +557,7 @@ class LaserEVM:
 
                 try:
                     # Attempt to concretize value
-                    _bytes = helper.concrete_int_to_bytes(value)
+                    _bytes = util.concrete_int_to_bytes(value)
 
                     i = 0
 
@@ -576,7 +576,7 @@ class LaserEVM:
                 op0, value = state.stack.pop(), state.stack.pop()
 
                 try:
-                    offset = helper.get_concrete_int(op0)
+                    offset = util.get_concrete_int(op0)
                 except AttributeError:
                     logging.debug("MSTORE to symbolic index. Not supported")
                     continue
@@ -590,7 +590,7 @@ class LaserEVM:
                 logging.debug("Storage access at index " + str(index))
 
                 try:
-                    index = helper.get_concrete_int(index)
+                    index = util.get_concrete_int(index)
                 except AttributeError:
                     index = str(index)
 
@@ -608,7 +608,7 @@ class LaserEVM:
                 logging.debug("Write to storage[" + str(index) + "] at node " + str(start_addr))
 
                 try:
-                    index = helper.get_concrete_int(index)
+                    index = util.get_concrete_int(index)
                 except AttributeError:
                     index = str(index)
 
@@ -629,7 +629,7 @@ class LaserEVM:
             elif op == 'JUMP':
 
                 try:
-                    jump_addr = helper.get_concrete_int(state.stack.pop())
+                    jump_addr = util.get_concrete_int(state.stack.pop())
                 except AttributeError:
                     logging.debug("Invalid jump argument (symbolic address)")
                     halt = True
@@ -640,7 +640,7 @@ class LaserEVM:
 
                 if (state.depth < self.max_depth):
 
-                    i = helper.get_instruction_index(disassembly.instruction_list, jump_addr)
+                    i = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
                     if i is None:
                         logging.debug("JUMP to invalid address")
@@ -675,7 +675,7 @@ class LaserEVM:
                 op0, condition = state.stack.pop(), state.stack.pop()
 
                 try:
-                    jump_addr = helper.get_concrete_int(op0)
+                    jump_addr = util.get_concrete_int(op0)
                 except:
                     logging.debug("Skipping JUMPI to invalid destination.")
 
@@ -684,7 +684,7 @@ class LaserEVM:
                     halt = True
                     continue
 
-                i = helper.get_instruction_index(disassembly.instruction_list, jump_addr)
+                i = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
                 if not i:
                     logging.debug("Invalid jump destination: " + str(jump_addr))
@@ -752,7 +752,7 @@ class LaserEVM:
                         state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
 
                 try:
-                    callee_address = hex(helper.get_concrete_int(to))
+                    callee_address = hex(util.get_concrete_int(to))
 
                 except AttributeError:
                     # Not a concrete call address. Call target may be an address in storage.
@@ -862,7 +862,7 @@ class LaserEVM:
                     # TODO: This only allows for either fully concrete or fully symbolic calldata.
                     # Improve management of memory and callata to support a mix between both types.
 
-                    calldata = state.memory[helper.get_concrete_int(meminstart):helper.get_concrete_int(meminstart + meminsz)]
+                    calldata = state.memory[util.get_concrete_int(meminstart):util.get_concrete_int(meminstart + meminsz)]
 
                     if (len(calldata) < 32):
                         calldata += [0] * (32 - len(calldata))
@@ -960,7 +960,7 @@ class LaserEVM:
                 offset, length = state.stack.pop(), state.stack.pop()
 
                 try:
-                    self.last_returned = state.memory[helper.get_concrete_int(offset):helper.get_concrete_int(offset + length)]
+                    self.last_returned = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
                 except AttributeError:
                     logging.debug("Return with symbolic length or offset. Not supported")
 
