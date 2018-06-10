@@ -9,10 +9,10 @@ class StackUnderflowException(Exception):
 
 def instruction(func):
     """ Wrapper that handles copy and original return """
-    def wrapper(global_state):
+    def wrapper(self, global_state):
         new_global_state = copy(global_state)
         new_global_state.mstate.pc += 1
-        return global_state, func(new_global_state)
+        return global_state, func(self, new_global_state)
     return wrapper
 
 
