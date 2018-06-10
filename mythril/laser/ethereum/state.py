@@ -1,6 +1,7 @@
 from z3 import BitVec, BitVecVal
 from mythril.laser.ethereum.svm import CalldataType
-
+from mythril.laser.ethereum.instructions import Instruction
+from copy import copy
 
 class Account:
     """
@@ -128,7 +129,22 @@ class GlobalState:
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
 
+    def __copy__(self):
+        accounts = copy(self.accounts)
+        environment = copy(self.environment)
+        mstate = copy(self.mstate)
+        return GlobalState(accounts, environment, mstate)
+
+    @property
+    def instruction(self):
+        instructions = self.environment.code.instruction_list
+        op_code = instructions[self.mstate.pc]['opcode']
+        return Instruction(op_code)
+
     def get_current_instruction(self):
         """ Gets the current instruction for this GlobalState"""
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
+
+    def execute(self):
+        return self.instruction.evaluate(self)
