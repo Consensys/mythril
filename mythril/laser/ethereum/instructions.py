@@ -71,4 +71,11 @@ class Instruction:
             stack = global_state.mstate.stack
             stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         except IndexError:
-            raise StackUnderflowException
+            raise StackUnderflowException()
+
+    @instruction
+    def pop(self, global_state):
+        try:
+            global_state.mstate.stack.pop()
+        except IndexError:
+            raise StackUnderflowException()
