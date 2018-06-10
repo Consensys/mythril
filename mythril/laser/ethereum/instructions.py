@@ -5,8 +5,11 @@ from copy import copy
 def instruction(func):
     """ Wrapper that handles copy and original return """
     def wrapper(self, global_state):
-        return global_state, func(self, copy(global_state))
+        new_global_state = copy(global_state)
+        new_global_state.mstate.pc += 1
+        return global_state, func(self, new_global_state)
     return wrapper
+
 
 
 class Instruction:
@@ -31,8 +34,6 @@ class Instruction:
     def add(self, global_state):
         """ Add opcode"""
         mstate = global_state.mstate
-        # TODO: move to decorator
-        mstate.pc += 1
         mstate.stack.append((helper.pop_bitvec(mstate) + helper.pop_bitvec(mstate)))
         return [global_state]
 
