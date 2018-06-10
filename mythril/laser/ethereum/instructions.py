@@ -1,4 +1,6 @@
 import mythril.laser.ethereum.util as helper
+import ethereum.opcodes as opcodes
+
 from copy import copy
 
 
@@ -16,11 +18,25 @@ class Instruction:
     Instruction class is used to mutate a state according to the current instruction
     """
     def __init__(self, op_code):
+        assert any(lambda opcodes_element: op_code == opcodes_element[0], opcodes)
         self.op_code = op_code
+
 
     def evaluate(self, global_state):
         """ Performs the mutation for this instruction """
-        instruction_mutator = getattr(self, self.op_code.lower())
+
+        # Generalize some ops
+        op = self.op_code.lower()
+        if self.op_code.startswith("PUSH"):
+            op = "push"
+        elif self.op_code.startswith("DUP"):
+            op = "dup"
+        elif self.op_code.startswith("SWAP"):
+            op = "swap"
+        elif self.op_code.startswith("LOG"):
+            op = "log"
+
+        instruction_mutator = getattr(self, op)
 
         if instruction_mutator is None:
             pass
