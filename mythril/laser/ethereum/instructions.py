@@ -4,6 +4,9 @@ from z3 import BitVecVal
 from copy import copy
 
 
+class StackUnderflowException(Exception):
+    pass
+
 def instruction(func):
     """ Wrapper that handles copy and original return """
     def wrapper(global_state):
@@ -43,24 +46,29 @@ class Instruction:
 
         return instruction_mutator(global_state)
 
-    @staticmethod
     @instruction
-    def add(global_state):
-        """ Add opcode"""
+    def add(self, global_state):
         mstate = global_state.mstate
         mstate.stack.append((helper.pop_bitvec(mstate) + helper.pop_bitvec(mstate)))
         return [global_state]
 
-    @staticmethod
     @instruction
-    def push(global_state):
+    def push(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
         return [global_state]
 
-    @staticmethod
     @instruction
-    def dup(global_state):
+    def dup(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
         return [global_state]
+
+    @instruction
+    def swap(self, global_state):
+        depth = int(self.op_code[4:])
+        try:
+            stack = global_state.mstate.stack
+            stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
+        except IndexError:
+            raise StackUnderflowException
