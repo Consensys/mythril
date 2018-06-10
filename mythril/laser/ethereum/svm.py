@@ -1,6 +1,5 @@
 from mythril.laser.ethereum import util
 from ethereum import utils
-from enum import Enum
 from z3 import *
 import binascii
 import copy
@@ -14,9 +13,6 @@ TT256M1 = 2 ** 256 - 1
 gbl_next_uid = 0  # node counter
 
 
-class CalldataType(Enum):
-    CONCRETE = 1
-    SYMBOLIC = 2
 
 
 class SVMError(Exception):
@@ -26,8 +22,6 @@ class SVMError(Exception):
 '''
 Main symbolic execution engine.
 '''
-
-
 class LaserEVM:
 
     def __init__(self, accounts, dynamic_loader=None, max_depth=12):

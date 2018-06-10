@@ -1,7 +1,13 @@
 from z3 import BitVec, BitVecVal
-from mythril.laser.ethereum.svm import CalldataType
+from enum import Enum
 from mythril.laser.ethereum.instructions import Instruction
 from copy import copy
+
+
+class CalldataType(Enum):
+    CONCRETE = 1
+    SYMBOLIC = 2
+
 
 class Account:
     """
