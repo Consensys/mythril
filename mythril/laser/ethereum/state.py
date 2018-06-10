@@ -147,6 +147,7 @@ class GlobalState:
         op_code = instructions[self.mstate.pc]['opcode']
         return Instruction(op_code)
 
+    #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
         """ Gets the current instruction for this GlobalState"""
         instructions = self.environment.code.instruction_list
