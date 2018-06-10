@@ -1,4 +1,5 @@
 from flags import Flags
+from enum import Enum
 
 
 class JumpType(Enum):
@@ -14,7 +15,6 @@ class NodeFlags(Flags):
 
 
 class Node:
-
     def __init__(self, contract_name, start_addr=0, constraints=None):
         constraints = constraints if constraints else []
         self.contract_name = contract_name
@@ -45,7 +45,8 @@ class Node:
 
             code += "\\n"
 
-        return {'contract_name': self.contract_name, 'start_addr': self.start_addr, 'function_name': self.function_name, 'code': code}
+        return dict(contract_name=self.contract_name, start_addr=self.start_addr, function_name=self.function_name,
+                    code=code)
 
 
 class Edge:
