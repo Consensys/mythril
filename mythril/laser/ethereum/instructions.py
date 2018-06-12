@@ -193,3 +193,17 @@ class Instruction:
 
     @instruction
     def exp_(self, global_state):
+        state = global_state.mstate
+        # we only implement 2 ** x
+        base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
+
+        if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
+            state.stack.append(BitVec(str(base) + "_EXP_" + str(exponent), 256))
+        elif base.as_long() == 2:
+            if exponent.as_long() == 0:
+                state.stack.append(BitVecVal(1, 256))
+            else:
+                state.stack.append(base << (exponent - 1))
+        else:
+            state.stack.append(base)
+        return [global_state]
