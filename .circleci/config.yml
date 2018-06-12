@@ -80,7 +80,7 @@ jobs:
           command: twine upload dist/*
           working_directory: /home/mythril
 
-  dockerhub_deploy:
+  dockerhub_release:
     docker:
       - image: docker:stable
     steps:
