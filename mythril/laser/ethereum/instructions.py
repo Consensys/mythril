@@ -882,7 +882,7 @@ class Instruction:
         return [new_global_state]
 
     @instruction
-    def delegate_call(self, global_state):
+    def delegate_call_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
@@ -911,7 +911,7 @@ class Instruction:
 
 
     @instruction
-    def staticcall(self, global_state):
+    def staticcall_(self, global_state):
         # TODO: implement me
         instr = global_state.get_current_instruction()
         global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
