@@ -717,3 +717,56 @@ class Instruction:
 
         return [new_state]
 
+    def jumpi_(self, global_state):
+        state = global_state.mstate
+        disassembly = global_state.environment.disassembly
+        states = []
+
+        op0, condition = state.stack.pop(), state.stack.pop()
+
+        try:
+            jump_addr = util.get_concrete_int(op0)
+        # FIXME: to broad exception handler
+        except:
+            logging.debug("Skipping JUMPI to invalid destination.")
+            return [global_state]
+
+        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
+
+        if not index:
+            logging.debug("Invalid jump destination: " + str(jump_addr))
+            return [global_state]
+        instr = disassembly.instruction_list[index]
+
+        # True case
+        condi = condition if type(condition) == BoolRef else condition != 0
+        if instr['opcode'] == "JUMPDEST":
+            if not is_false(simplify(condi)):
+                new_state = copy(global_state)
+                new_state.mstate.pc = index
+                new_state.mstate.depth += 1
+                new_state.mstate.constraints.append(condi)
+
+                # TODO: create new node
+                # self.nodes[new_node.uid] = new_node
+                # self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, condi))
+                states.append(new_state)
+            else:
+                logging.debug("Pruned unreachable states.")
+
+        # False case
+        negated = Not(condition) if type(condition) == BoolRef else condition == 0
+
+        if not is_false(simplify(negated)):
+            new_state = copy(global_state)
+            new_state.mstate.pc = index
+            new_state.mstate.depth += 1
+            new_state.mstate.constraints.append(negated)
+            states.append(new_state)
+            # TODO: create new node
+            # self.nodes[new_node.uid] = new_node
+            # self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, negated))
+        else:
+            logging.debug("Pruned unreachable states.")
+
+        return states
