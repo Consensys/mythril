@@ -1,8 +1,15 @@
+from mythril.laser.ethereum import util
+from ethereum import utils
+from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
+    is_false, is_true, ExprRef
+from mythril.laser.ethereum.svm import GlobalState
 import mythril.laser.ethereum.util as helper
 import ethereum.opcodes as opcodes
 from z3 import BitVecVal, If, BoolRef
 from copy import copy
+import logging
 
+TT256M1 = 2 ** 256 - 1
 
 class StackUnderflowException(Exception):
     pass
@@ -93,3 +100,46 @@ class Instruction:
             stack.append(op1 & op2)
         except IndexError:
             raise StackUnderflowException()
+
+    @instruction
+    def or_(self, global_state):
+        stack = global_state.mstate.stack
+        try:
+            op1, op2 = stack.pop(), stack.pop()
+
+            if type(op1) == BoolRef:
+                op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+
+            if type(op2) == BoolRef:
+                op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+
+            stack.append(op1 | op2)
+        except IndexError:  # Stack underflow
+            raise StackUnderflowException()
+
+    @instruction
+    def xor_(self, global_state):
+        mstate = global_state.mstate
+        mstate.stack.append(mstate.stack.pop() ^ mstate.stack.pop())
+
+    @instruction
+    def not_(self, global_state: GlobalState):
+        mstate = global_state.mstate
+        mstate.stack.append(TT256M1 - mstate.stack.pop())
+
+
+    @instruction
+    def byte_(self, global_state):
+        mstate = global_state.mstate
+        s0, s1 = mstate.stack.pop(), mstate.stack.pop()
+
+        try:
+            n = util.get_concrete_int(s0)
+            oft = (31 - n) * 8
+            result = Concat(BitVecVal(0, 248), Extract(oft + 7, oft, s1))
+        except AttributeError:
+            logging.debug("BYTE: Unsupported symbolic byte offset")
+            result = BitVec(str(simplify(s1)) + "_" + str(simplify(s0)), 256)
+
+        mstate.stack.append(simplify(result))
+
