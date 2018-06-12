@@ -5,7 +5,7 @@ from mythril.laser.ethereum.state import Account
 from mythril.laser.ethereum.svm import CalldataType
 import re
 
-def get_call_parameters(global_state, with_value=False):
+def get_call_parameters(global_state, dynamic_loader, with_value=False):
     state = global_state.mstate
     instr = global_state.get_current_instruction()
 
@@ -17,7 +17,7 @@ def get_call_parameters(global_state, with_value=False):
             state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
         value = None
 
-    callee_address = get_callee_address(global_state, None)
+    callee_address = get_callee_address(global_state, dynamic_loader)
 
     if int(callee_address, 16) < 5:
         logging.info("Native contract called: " + callee_address)
@@ -25,7 +25,7 @@ def get_call_parameters(global_state, with_value=False):
         global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
         return [global_state]
 
-    callee_account = get_callee_account(global_state, callee_address, None, None)
+    callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
     call_data, call_data_type = get_call_data(global_state, meminstart, meminsz)
 
     return callee_account, call_data, value, call_data_type, gas
@@ -64,12 +64,12 @@ def get_callee_address(global_state, dynamic_loader):
     return callee_address
 
 
-def get_callee_account(global_state, callee_address, accounts, dynamic_loader):
-    state = global_state.mstate
+def get_callee_account(global_state, callee_address, dynamic_loader):
     environment = global_state.environment
+    accounts = global_state.accounts
 
     try:
-        return accounts[callee_address]
+        return global_state.accounts[callee_address]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
         logging.info("Module with address " + callee_address + " not loaded.")
@@ -109,4 +109,3 @@ def get_call_data(global_state, meminstart, meminsz):
         call_data = []
 
     return call_data, call_data_type
-    #TODO: implement staticcall

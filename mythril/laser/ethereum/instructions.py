@@ -40,13 +40,13 @@ class Instruction:
     Instruction class is used to mutate a state according to the current instruction
     """
 
-    def __init__(self, op_code):
-        assert any(lambda opcodes_element: op_code == opcodes_element[0], opcodes.opcodes)
+    def __init__(self, op_code, dynamic_loader):
+        assert any(lambda opcodes_element: op_code == opcodes_element[0], opcodes)
+        self.dynamic_loader = dynamic_loader
         self.op_code = op_code
 
     def evaluate(self, global_state):
         """ Performs the mutation for this instruction """
-
         # Generalize some ops
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
@@ -65,7 +65,6 @@ class Instruction:
 
         return instruction_mutator(global_state)
 
-    # TODO: STOP
     @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
