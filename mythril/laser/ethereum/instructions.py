@@ -9,6 +9,7 @@ from z3 import BitVecVal, If, BoolRef
 from copy import copy
 import logging
 
+TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
 
@@ -150,22 +151,26 @@ class Instruction:
     # Arithmetic
     @instruction
     def add_(self, global_state):
-        global_state.mstate.stack.append((helper.pop_bitvec(global_state.mstate) + helper.pop_bitvec(global_state.mstate)))
+        global_state.mstate.stack.append(
+            (helper.pop_bitvec(global_state.mstate) + helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @instruction
     def sub_(self, global_state):
-        global_state.mstate.stack.append((helper.pop_bitvec(global_state.mstate) - helper.pop_bitvec(global_state.mstate)))
+        global_state.mstate.stack.append(
+            (helper.pop_bitvec(global_state.mstate) - helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @instruction
     def mul_(self, global_state):
-        global_state.mstate.stack.append((helper.pop_bitvec(global_state.mstate) * helper.pop_bitvec(global_state.mstate)))
+        global_state.mstate.stack.append(
+            (helper.pop_bitvec(global_state.mstate) * helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @instruction
     def div_(self, global_state):
-        global_state.mstate.stack.append(UDiv(util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)))
+        global_state.mstate.stack.append(
+            UDiv(util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @instruction
@@ -182,13 +187,15 @@ class Instruction:
 
     @instruction
     def addmod_(self, global_state):
-        s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
+            global_state.mstate)
         global_state.mstate.stack.append((s0 + s1) % s2)
         return [global_state]
 
     @instruction
     def mulmod_(self, global_state):
-        s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
+            global_state.mstate)
         global_state.mstate.stack.append((s0 * s1) % s2 if s2 else 0)
 
     @instruction
@@ -206,4 +213,85 @@ class Instruction:
                 state.stack.append(base << (exponent - 1))
         else:
             state.stack.append(base)
+        return [global_state]
+
+    @instruction
+    def signextend_(self, global_state):
+        state = global_state.mstate
+        s0, s1 = state.stack.pop(), state.stack.pop()
+
+        try:
+            s0 = util.get_concrete_int(s0)
+            s1 = util.get_concrete_int(s1)
+
+            if s0 <= 31:
+                testbit = s0 * 8 + 7
+                if s1 & (1 << testbit):
+                    state.stack.append(s1 | (TT256 - (1 << testbit)))
+                else:
+                    state.stack.append(s1 & ((1 << testbit) - 1))
+            else:
+                state.stack.append(s1)
+            # TODO: broad exception handler
+        except:
+            return []
+
+        return [global_state]
+
+    # Comparisons
+    @instruction
+    def lt_(self, global_state):
+        state = global_state.mstate
+        exp = ULT(util.pop_bitvec(state), util.pop_bitvec(state))
+        state.stack.append(exp)
+        return [global_state]
+
+    @instruction
+    def gt_(self, global_state):
+        state = global_state.mstate
+        exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
+        state.stack.append(exp)
+        return [global_state]
+
+    @instruction
+    def slt_(self, global_state):
+        state = global_state.mstate
+        exp = util.pop_bitvec(state) < util.pop_bitvec(state)
+        state.stack.append(exp)
+        return [global_state]
+
+    @instruction
+    def sgt_(self, global_state):
+        state = global_state.mstate
+
+        exp = util.pop_bitvec(state) > util.pop_bitvec(state)
+        state.stack.append(exp)
+        return [global_state]
+
+    @instruction
+    def eq_(self, global_state):
+        state = global_state.mstate
+
+        op1 = state.stack.pop()
+        op2 = state.stack.pop()
+
+        if type(op1) == BoolRef:
+            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+
+        if type(op2) == BoolRef:
+            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+
+        exp = op1 == op2
+
+        state.stack.append(exp)
+        return [global_state]
+
+    @instruction
+    def iszero_(self, global_state):
+        state = global_state.mstate
+
+        val = state.stack.pop()
+        exp = val is False if type(val) == BoolRef else val == 0
+        state.stack.append(exp)
+
         return [global_state]
