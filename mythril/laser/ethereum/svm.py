@@ -952,7 +952,6 @@ class LaserEVM:
                 new_node.flags |= NodeFlags.CALL_RETURN
 
                 self.nodes[new_node.uid] = new_node
-
                 for ret_uid in self.pending_returns[return_address]:
                     self.edges.append(Edge(ret_uid, new_node.uid, JumpType.RETURN))
 

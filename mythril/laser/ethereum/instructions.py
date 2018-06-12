@@ -9,6 +9,7 @@ import ethereum.opcodes as opcodes
 from z3 import BitVecVal, If, BoolRef
 from copy import copy
 import logging
+import binascii
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -419,4 +420,141 @@ class Instruction:
                 state.memory[mstart] = BitVec(
                     "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
         return [global_state]
+
+    # Environment
+    @instruction
+    def address_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        state.stack.append(environment.address)
+        return [global_state]
+
+    @instruction
+    def balance_(self, global_state):
+        state = global_state.mstate
+        address = state.stack.pop()
+        state.stack.append(BitVec("balance_at_" + str(address), 256))
+        return [global_state]
+
+    @instruction
+    def origin_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        state.stack.append(environment.origin)
+        return [global_state]
+
+    @instruction
+    def caller_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        state.stack.append(environment.sender)
+        return [global_state]
+
+    @instruction
+    def codesize_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        state.stack.append(len(environment.code.instruction_list))
+        return [global_state]
+
+    @instruction
+    def sha3_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        op0, op1 = state.stack.pop(), state.stack.pop()
+
+        try:
+            index, length = util.get_concrete_int(op0), util.get_concrete_int(op1)
+        # FIXME: broad exception catch
+        except:
+            # Can't access symbolic memory offsets
+            state.stack.append(BitVec("KECCAC_mem_" + str(op0) + ")", 256))
+            return [global_state]
+
+
+        try:
+            data = b''
+
+            for i in range(index, index + length):
+                data += util.get_concrete_int(state.memory[i]).to_bytes(1, byteorder='big')
+                i += 1
+            # FIXME: broad exception catch
+        except:
+
+            svar = str(state.memory[index])
+
+            svar = svar.replace(" ", "_")
+
+            state.stack.append(BitVec("keccac_" + svar, 256))
+            return [global_state]
+
+        keccac = utils.sha3(utils.bytearray_to_bytestr(data))
+        logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccac)))
+
+        state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccac, 0), 256))
+        return [global_state]
+
+    @instruction
+    def gasprice_(self, global_state):
+        global_state.mstate.stack.append(BitVec("gasprice", 256))
+        return [global_state]
+
+    @instruction
+    def codecopy(self, global_state):
+        # FIXME: not implemented
+        state = global_state.mstate
+        start, s1, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+        return [global_state]
+
+    @instruction
+    def extcodesize_(self, global_state):
+        addr = global_state.mstate.stack.pop()
+        global_state.state.stack.append(BitVec("extcodesize", 256))
+        return [global_state]
+
+    @instruction
+    def extcodecopy_(self, global_state):
+        # FIXME: not implemented
+        state = global_state.mstate
+        addr = state.stack.pop()
+        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+        return [global_state]
+
+    @instruction
+    def returndatasize_(self, global_state):
+        global_state.mstate.stack.append(BitVec("returndatasize", 256))
+        return[global_state]
+
+    @instruction
+    def blockhash_(self, global_state):
+        state = global_state.mstate
+        blocknumber = state.stack.pop()
+        state.stack.append(BitVec("blockhash_block_" + str(blocknumber), 256))
+        return global_state
+
+    @instruction
+    def coinbase_(self, global_state):
+        global_state.mstate.stack.append(BitVec("coinbase", 256))
+        return [global_state]
+
+    @instruction
+    def timestamp_(self, global_state):
+        global_state.mstate.stack.append(BitVec("timestamp", 256))
+        return [global_state]
+
+    @instruction
+    def number_(self, global_state):
+        global_state.mstate.stack.append(BitVec("block_number", 256))
+        return [global_state]
+
+    @instruction
+    def difficulty_(self, global_state):
+        global_state.mstate.stack.append(BitVec("block_difficulty", 256))
+        return [global_state]
+
+    @instruction
+    def gaslimit_(self, global_state):
+        global_state.mstate.stack.append(BitVec("block_gaslimit", 256))
+        return [global_state]
+
 
