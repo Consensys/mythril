@@ -1,5 +1,6 @@
 from mythril.laser.ethereum import util
 from ethereum import utils
+from mythril.laser.ethereum.state import CalldataType, GlobalState, MachineState, Environment, Account
 from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
     is_false, is_true, ExprRef
 from mythril.laser.ethereum.svm import GlobalState
@@ -14,6 +15,10 @@ TT256M1 = 2 ** 256 - 1
 
 
 class StackUnderflowException(Exception):
+    pass
+
+
+class StopSignal(Exception):
     pass
 
 
@@ -295,3 +300,131 @@ class Instruction:
         state.stack.append(exp)
 
         return [global_state]
+
+    # Call data
+    @instruction
+    def callvalue_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        state.stack.append(environment.callvalue)
+
+        return [global_state]
+
+    @instruction
+    def calldataload_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        op0 = state.stack.pop()
+
+        try:
+            offset = util.get_concrete_int(simplify(op0))
+            b = environment.calldata[offset]
+        except AttributeError:
+            logging.debug("CALLDATALOAD: Unsupported symbolic index")
+            state.stack.append(
+                BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+            return [global_state]
+        except IndexError:
+            logging.debug("Calldata not set, using symbolic variable instead")
+            state.stack.append(
+                BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+            return [global_state]
+
+
+        if type(b) == int:
+            val = b''
+
+            try:
+                for i in range(offset, offset + 32):
+                    val += environment.calldata[i].to_bytes(1, byteorder='big')
+
+                logging.debug("Final value: " + str(int.from_bytes(val, byteorder='big')))
+                state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
+            #FIXME: broad exception catch
+            except:
+                state.stack.append(
+                    BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+        else:
+            # symbolic variable
+            state.stack.append(
+                BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+
+        return [global_state]
+
+    @instruction
+    def calldatasize_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        if environment.calldata_type == CalldataType.SYMBOLIC:
+            state.stack.append(BitVec("calldatasize_" + environment.active_account.contract_name, 256))
+        else:
+            state.stack.append(BitVecVal(len(environment.calldata), 256))
+        return [global_state]
+
+    @instruction
+    def calldatacopy_(self, global_state):
+        state = global_state.mstate
+        environment = global_state.environment
+        op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+        try:
+            mstart = util.get_concrete_int(op0)
+            #FIXME: broad exception catch
+        except:
+            logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
+            return [global_state]
+
+        try:
+            dstart = util.get_concrete_int(op1)
+            #FIXME: broad exception catch
+        except:
+            logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
+            state.mem_extend(mstart, 1)
+            state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_cpy",
+                                          256)
+            return [global_state]
+
+
+        try:
+            size = util.get_concrete_int(op2)
+            #FIXME: broad exception catch
+        except:
+            logging.debug("Unsupported symbolic size in CALLDATACOPY")
+            state.mem_extend(mstart, 1)
+            state.memory[mstart] = BitVec(
+                "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+            return [global_state]
+
+        if size > 0:
+            try:
+                state.mem_extend(mstart, size)
+            # FIXME: broad exception catch
+            except:
+                logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(size))
+                state.mem_extend(mstart, 1)
+                state.memory[mstart] = BitVec(
+                    "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                return [global_state]
+
+            try:
+                i_data = environment.calldata[dstart]
+
+                for i in range(mstart, mstart + size):
+                    state.memory[i] = environment.calldata[i_data]
+                    i_data += 1
+            except:
+                logging.debug("Exception copying calldata to memory")
+
+                state.memory[mstart] = BitVec(
+                    "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+        return [global_state]
+
+
+    @instruction
+    def stop_(self, global_state):
+        #TODO: how to do this
+        node = None
+        if len(self.call_stack):
+            self.pending_returns[self.call_stack[-1]].append(node.uid)
+
+        return []
