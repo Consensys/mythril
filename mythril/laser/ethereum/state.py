@@ -129,11 +129,12 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, accounts, environment, machine_state=None):
+    def __init__(self, accounts, environment, call_stack=None, machine_state=None):
         """ Constructor for GlobalState"""
         self.accounts = accounts
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
+        self.call_stack = call_stack if call_stack else []
 
     def __copy__(self):
         accounts = copy(self.accounts)
