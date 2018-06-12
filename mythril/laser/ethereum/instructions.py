@@ -63,6 +63,7 @@ class Instruction:
 
         return instruction_mutator(global_state)
 
+    #TODO: STOP
     @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
@@ -419,12 +420,3 @@ class Instruction:
                     "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
         return [global_state]
 
-
-    @instruction
-    def stop_(self, global_state):
-        #TODO: how to do this
-        node = None
-        if len(self.call_stack):
-            self.pending_returns[self.call_stack[-1]].append(node.uid)
-
-        return []
