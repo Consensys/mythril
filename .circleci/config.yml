@@ -80,6 +80,16 @@ jobs:
           command: twine upload dist/*
           working_directory: /home/mythril
 
+  dockerhub_deploy:
+    docker:
+      - image: docker:stable
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Building Docker Image
+          command: ./docker_build_and_deploy.sh
+
 workflows:
   version: 2
   build:
@@ -96,3 +106,12 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)*/
           requires:
             - test
+      - dockerhub_release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
+            - deploy
