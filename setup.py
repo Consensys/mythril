@@ -1,22 +1,24 @@
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+import sys
 import os
 
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
 
-VERSION = "v0.17.15"
+VERSION = "v0.18.0"
+
 
 class VerifyVersionCommand(install):
-  """Custom command to verify that the git tag matches our version"""
-  description = 'verify that the git tag matches our version'
+    """Custom command to verify that the git tag matches our version"""
+    description = 'verify that the git tag matches our version'
 
-  def run(self):
-      tag = os.getenv('CIRCLE_TAG')
+    def run(self):
+        tag = os.getenv('CIRCLE_TAG')
 
-      if (tag != VERSION):
-          info = "Git tag: {0} does not match the version of this app: {1}".format(tag, VERSION)
-          sys.exit(info)
+        if (tag != VERSION):
+            info = "Git tag: {0} does not match the version of this app: {1}".format(tag, VERSION)
+            sys.exit(info)
 
 long_description = '''
 Mythril is a security analysis tool for Ethereum smart contracts. It
@@ -327,25 +329,25 @@ setup(
     ],
 
     tests_require=[
-      'pytest>=3.6.0',
-      'pytest_mock',
-      'pytest-cov'
+        'pytest>=3.6.0',
+        'pytest_mock',
+        'pytest-cov'
     ],
 
     python_requires='>=3.5',
 
     extras_require={
     },
-    
+
     package_data={
         'mythril.analysis.templates': ['*']
     },
-    
+
     include_package_data=True,
 
     scripts=['myth'],
 
-    cmdclass = {
-      'verify': VerifyVersionCommand,
+    cmdclass={
+        'verify': VerifyVersionCommand,
     }
 )
