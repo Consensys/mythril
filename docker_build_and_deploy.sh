@@ -1,6 +1,14 @@
 #!/bin/sh
 
-VERSION=${CIRCLE_TAG#?}
-docker build -t mythril/mythril:${VERSION} .
+NAME=mythril/myth
+
+VERSION_TAG=${NAME}:${CIRCLE_TAG#?}
+LATEST_TAG=${NAME}:latest
+
+docker build -t ${VERSION_TAG} .
+docker tag ${VERSION_TAG} ${LATEST_TAG}
+
 docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-docker push mythril/mythril:${VERSION}
+
+docker push ${VERSION_TAG}
+docker push ${LATEST_TAG}

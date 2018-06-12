@@ -10,11 +10,10 @@ Mythril is a security analysis tool for Ethereum smart contracts. It uses concol
 
 ## Installation and setup
 
-Build the [Docker](https://www.docker.com) image:
+Get it with [Docker](https://www.docker.com):
 
 ```bash
-$ git clone https://github.com/ConsenSys/mythril/
-$ docker build mythril
+$ docker pull mythril/myth
 ```
 
 Install from Pypi:

@@ -6,7 +6,7 @@ import os
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
 
-VERSION = "v0.18.2"
+VERSION = "v0.18.3"
 
 
 class VerifyVersionCommand(install):
