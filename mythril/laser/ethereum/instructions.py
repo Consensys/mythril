@@ -557,4 +557,163 @@ class Instruction:
         global_state.mstate.stack.append(BitVec("block_gaslimit", 256))
         return [global_state]
 
+    # Memory operations
+    @instruction
+    def mload_(self, global_state):
+        state = global_state.mstate
+        op0 = state.stack.pop()
+
+        logging.debug("MLOAD[" + str(op0) + "]")
+
+        try:
+            offset = util.get_concrete_int(op0)
+        except AttributeError:
+            logging.debug("Can't MLOAD from symbolic index")
+            data = BitVec("mem_" + str(op0), 256)
+            state.stack.append(data)
+            return [global_state]
+
+        try:
+            data = util.concrete_int_from_bytes(state.memory, offset)
+        except IndexError:  # Memory slot not allocated
+            data = BitVec("mem_" + str(offset), 256)
+        except TypeError:  # Symbolic memory
+            data = state.memory[offset]
+
+        logging.debug("Load from memory[" + str(offset) + "]: " + str(data))
+
+        state.stack.append(data)
+        return [global_state]
+
+    @instruction
+    def mstore_(self, global_state):
+        state = global_state.mstate
+
+        op0, value = state.stack.pop(), state.stack.pop()
+
+        try:
+            mstart = util.get_concrete_int(op0)
+        except AttributeError:
+            logging.debug("MSTORE to symbolic index. Not supported")
+            return [global_state]
+
+        try:
+            state.mem_extend(mstart, 32)
+        except Exception:
+            logging.debug("Error extending memory, mstart = " + str(mstart) + ", size = 32")
+
+        logging.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
+
+        try:
+            # Attempt to concretize value
+            _bytes = util.concrete_int_to_bytes(value)
+
+            i = 0
+
+            for b in _bytes:
+                state.memory[mstart + i] = _bytes[i]
+                i += 1
+        except:
+            try:
+                state.memory[mstart] = value
+            except:
+                logging.debug("Invalid memory access")
+
+        return [global_state]
+
+    @instruction
+    def _mstore8(self, global_state):
+        state = global_state.mstate
+        op0, value = state.stack.pop(), state.stack.pop()
+
+        try:
+            offset = util.get_concrete_int(op0)
+        except AttributeError:
+            logging.debug("MSTORE to symbolic index. Not supported")
+            return [global_state]
+
+        state.mem_extend(offset, 1)
+
+        state.memory[offset] = value % 256
+        return [global_state]
+
+    @instruction
+    def _sload(self, global_state):
+        state = global_state.mstate
+        index = state.stack.pop()
+        logging.debug("Storage access at index " + str(index))
+
+        try:
+            index = util.get_concrete_int(index)
+        except AttributeError:
+            index = str(index)
+
+        try:
+            data = global_state.environment.active_account.storage[index]
+        except KeyError:
+            data = BitVec("storage_" + str(index), 256)
+            global_state.environment.active_account.storage[index] = data
+
+        state.stack.append(data)
+        return [global_state]
+
+    @instruction
+    def sstore_(self, global_state):
+        state = global_state.mstate
+        index, value = state.stack.pop(), state.stack.pop()
+
+        logging.debug("Write to storage[" + str(index) + "]")
+
+        try:
+            index = util.get_concrete_int(index)
+        except AttributeError:
+            index = str(index)
+
+        try:
+            # Create a fresh copy of the account object before modifying storage
+
+            for k in global_state.accounts:
+                if global_state.accounts[k] == global_state.environment.active_account:
+                    global_state.accounts[k] = copy.deepcopy(global_state.accounts[k])
+                    global_state.environment.active_account = global_state.accounts[k]
+                    break
+
+            global_state.environment.active_account.storage[index] = value
+        except KeyError:
+            logging.debug("Error writing to storage: Invalid index")
+        return [global_state]
+
+
+    @instruction
+    def jump_(self, global_state):
+        state = global_state.mstate
+        disassembly = global_state.environment.disassembly
+        try:
+            jump_addr = util.get_concrete_int(state.stack.pop())
+        except AttributeError:
+            logging.debug("Invalid jump argument (symbolic address)")
+            return []
+        except IndexError:  # Stack Underflow
+            return []
+
+        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
+        if index is None:
+            logging.debug("JUMP to invalid address")
+            return []
+
+        op_code = disassembly.instruction_list[index]['opcode']
+
+        if op_code != "JUMPDEST":
+            logging.debug("Skipping JUMP to invalid destination (not JUMPDEST): " + str(jump_addr))
+            return []
+
+        new_state = copy(global_state)
+        new_state.mstate.pc = index
+        new_state.mstate.depth += 1
+
+        # TODO: create new node
+        # self.nodes[new_node.uid] = new_node
+        # self.edges.append(Edge(node.uid, new_node.uid, JumpType.UNCONDITIONAL))
+
+        return [new_state]
 
