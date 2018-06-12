@@ -5,11 +5,13 @@ from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Co
     is_false, is_true, ExprRef
 from mythril.laser.ethereum.svm import GlobalState
 import mythril.laser.ethereum.util as helper
+from mythril.laser.ethereum.call import get_call_parameters
 import ethereum.opcodes as opcodes
 from z3 import BitVecVal, If, BoolRef
-from copy import copy
+from copy import copy, deepcopy
 import logging
 import binascii
+import re
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -64,7 +66,7 @@ class Instruction:
 
         return instruction_mutator(global_state)
 
-    #TODO: STOP
+    # TODO: STOP
     @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
@@ -332,7 +334,6 @@ class Instruction:
                 BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
             return [global_state]
 
-
         if type(b) == int:
             val = b''
 
@@ -342,7 +343,7 @@ class Instruction:
 
                 logging.debug("Final value: " + str(int.from_bytes(val, byteorder='big')))
                 state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
-            #FIXME: broad exception catch
+            # FIXME: broad exception catch
             except:
                 state.stack.append(
                     BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
@@ -371,14 +372,14 @@ class Instruction:
 
         try:
             mstart = util.get_concrete_int(op0)
-            #FIXME: broad exception catch
+            # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
         try:
             dstart = util.get_concrete_int(op1)
-            #FIXME: broad exception catch
+            # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             state.mem_extend(mstart, 1)
@@ -386,10 +387,9 @@ class Instruction:
                                           256)
             return [global_state]
 
-
         try:
             size = util.get_concrete_int(op2)
-            #FIXME: broad exception catch
+            # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic size in CALLDATACOPY")
             state.mem_extend(mstart, 1)
@@ -471,7 +471,6 @@ class Instruction:
             state.stack.append(BitVec("KECCAC_mem_" + str(op0) + ")", 256))
             return [global_state]
 
-
         try:
             data = b''
 
@@ -523,7 +522,7 @@ class Instruction:
     @instruction
     def returndatasize_(self, global_state):
         global_state.mstate.stack.append(BitVec("returndatasize", 256))
-        return[global_state]
+        return [global_state]
 
     @instruction
     def blockhash_(self, global_state):
@@ -683,7 +682,6 @@ class Instruction:
             logging.debug("Error writing to storage: Invalid index")
         return [global_state]
 
-
     @instruction
     def jump_(self, global_state):
         state = global_state.mstate
@@ -776,7 +774,6 @@ class Instruction:
         global_state.mstate.stack.append(global_state.mstate.pc - 1)
         return [global_state]
 
-
     @instruction
     def msize_(self, global_state):
         global_state.mstate.stack.append(BitVec("msize", 256))
@@ -824,3 +821,87 @@ class Instruction:
     def invalid_(self, global_state):
         # TODO: implement me
         return []
+
+    @instruction
+    def call_(self, global_state):
+        instr = global_state.get_current_instruction()
+        environment = global_state.environment
+
+        try:
+            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, True)
+        except ValueError as e:
+            logging.info(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
+            )
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        global_state.call_stack.append(instr['address'])
+        callee_environment = Environment(callee_account,
+                                         BitVecVal(int(environment.active_account.address, 16), 256),
+                                         call_data,
+                                         environment.gasprice,
+                                         value,
+                                         environment.origin,
+                                         calldata_type=call_data_type)
+        new_global_state = GlobalState(global_state.accounts, callee_environment, MachineState(gas))
+        new_global_state.mstate.depth = global_state.mstate.depth + 1
+        new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
+
+    @instruction
+    def callcode_(self, global_state):
+        instr = global_state.get_current_instruction()
+        environment = global_state.environment
+
+        try:
+            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, True)
+        except ValueError as e:
+            logging.info(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
+            )
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        global_state.call_stack.append(instr['address'])
+
+        environment = deepcopy(environment)
+
+        environment.callvalue = value
+        environment.caller = environment.address
+        environment.calldata = call_data
+
+        new_global_state = GlobalState(global_state.accounts, environment, MachineState(gas))
+        new_global_state.mstate.depth = global_state.mstate.depth + 1
+        new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
+
+        return [new_global_state]
+
+    @instruction
+    def delegate_call(self, global_state):
+        instr = global_state.get_current_instruction()
+        environment = global_state.environment
+
+        try:
+            callee_account, call_data, _, call_data_type, gas = get_call_parameters(global_state)
+        except ValueError as e:
+            logging.info(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
+            )
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        global_state.call_stack.append(instr['address'])
+
+        environment = deepcopy(environment)
+        environment = deepcopy(environment)
+
+        environment.code = callee_account.code
+        environment.calldata = call_data
+
+        new_global_state = GlobalState(global_state.accounts, environment, MachineState(gas))
+        new_global_state.mstate.depth = global_state.mstate.depth + 1
+        new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
+
+        return [new_global_state]
+
+
