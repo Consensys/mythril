@@ -5,7 +5,21 @@ from mythril.laser.ethereum.state import Account
 from mythril.laser.ethereum.svm import CalldataType
 import re
 
+"""
+This module contains the business logic used by Instruction in instructions.py
+to get the necessary elements from the stack and determine the parameters for the new global state.
+"""
+
+
 def get_call_parameters(global_state, dynamic_loader, with_value=False):
+    """
+    Gets call parameters from global state
+    Pops the values from the stack and determines output parameters
+    :param global_state: state to look in
+    :param dynamic_loader: dynamic loader to use
+    :param with_value: whether to pop the value argument from the stack
+    :return: callee_account, call_data, value, call_data_type, gas
+    """
     state = global_state.mstate
     instr = global_state.get_current_instruction()
 
@@ -32,6 +46,12 @@ def get_call_parameters(global_state, dynamic_loader, with_value=False):
 
 
 def get_callee_address(global_state, dynamic_loader):
+    """
+    Gets the address of the callee
+    :param global_state: state to look in
+    :param dynamic_loader:  dynamic loader to use
+    :return: Address of the callee
+    """
     to = global_state.mstate.stack[-2]
     environment = global_state.environment
 
@@ -65,6 +85,13 @@ def get_callee_address(global_state, dynamic_loader):
 
 
 def get_callee_account(global_state, callee_address, dynamic_loader):
+    """
+    Gets the callees account from the global_state
+    :param global_state: state to look in
+    :param callee_address: address of the callee
+    :param dynamic_loader: dynamic loader to use
+    :return: Account belonging to callee
+    """
     environment = global_state.environment
     accounts = global_state.accounts
 
@@ -93,12 +120,19 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     logging.info("Dependency loaded: " + callee_address)
 
 
-def get_call_data(global_state, meminstart, meminsz):
+def get_call_data(global_state, memory_start, memory_size):
+    """
+    Gets call_data from the global_state
+    :param global_state: state to look in
+    :param memory_start: Start index
+    :param memory_size: Size
+    :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
+    """
     state = global_state.mstate
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
-        call_data = state.memory[util.get_concrete_int(meminstart):util.get_concrete_int(meminstart + meminsz)]
+        call_data = state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
         if len(call_data) < 32:
             call_data += [0] * (32 - len(call_data))
         call_data_type = CalldataType.CONCRETE
