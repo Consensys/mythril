@@ -11,7 +11,6 @@ from z3 import BitVecVal, If, BoolRef
 from copy import copy, deepcopy
 import logging
 import binascii
-import re
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -814,11 +813,18 @@ class Instruction:
         #
         return []
 
+    @instruction
     def assert_fail_(self, global_state):
         # TODO: implement me
         return []
 
+    @instruction
     def invalid_(self, global_state):
+        # TODO: implement me
+        return []
+
+    @instruction
+    def stop_(self, global_state):
         # TODO: implement me
         return []
 
