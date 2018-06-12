@@ -1,0 +1,56 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" integrity="sha256-iq5ygGJ7021Pi7H5S+QAUXCPUfaBzfqeplbg/KlEssg=" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js" integrity="sha256-JuQeAGbk9rG/EoRMixuy5X8syzICcvB0dj3KindZkY0=" crossorigin="anonymous"></script>
+
+    
+    <style type="text/css">
+        #mynetwork {
+            background-color: #232625;
+        }
+        body {
+            background-color: #232625;
+            color: #ffffff;
+            font-size: 10px;
+        }
+    </style>
+    
+
+    <script>
+        var options = {"autoResize": true, "edges": {"font": {"align": "horizontal", "background": "none", "color": "#FFFFFF", "face": "arial", "multi": false, "strokeColor": "#ffffff", "strokeWidth": 0, "vadjust": 0}}, "height": "100%", "layout": {"hierarchical": {"blockShifting": true, "direction": "LR", "edgeMinimization": true, "enabled": true, "levelSeparation": 450, "nodeSpacing": 200, "parentCentralization": false, "sortMethod": "directed", "treeSpacing": 100}, "improvedLayout": true}, "manipulation": false, "nodes": {"borderWidth": 1, "borderWidthSelected": 2, "chosen": true, "color": "#000000", "font": {"align": "left", "color": "#FFFFFF"}, "shape": "box"}, "physics": {"enabled": false}, "width": "100%"};
+        var nodes = [{"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "65 JUMPDEST\n66 PUSH1 0x00\n68 DUP1\n69 REVERT", "id": "239", "isExpanded": false, "label": "65 JUMPDEST\n66 PUSH1 0x00\n68 DUP1\n69 REVERT", "size": 150, "truncLabel": "65 JUMPDEST\n66 PUSH1 0x00\n68 DUP1\n69 REVERT"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "175 DUP1\n176 DUP3\n177 SUB\n178 DUP1\n179 MLOAD\n180 PUSH1 0x01\n182 DUP4\n183 PUSH1 0x20\n185 SUB\n186 PUSH2 0x0100\n189 EXP\n190 SUB\n191 NOT\n192 AND\n193 DUP2\n194 MSTORE\n195 PUSH1 0x20\n197 ADD\n198 SWAP2\n199 POP\n200 JUMPDEST\n201 POP\n202 SWAP3\n203 POP\n204 POP\n205 POP\n206 PUSH1 0x40\n208 MLOAD\n209 DUP1\n210 SWAP2\n211 SUB\n212 SWAP1\n213 RETURN", "id": "248", "isExpanded": false, "label": "175 DUP1\n176 DUP3\n177 SUB\n178 DUP1\n179 MLOAD\n180 PUSH1 0x01\n(click to expand +)", "size": 150, "truncLabel": "175 DUP1\n176 DUP3\n177 SUB\n178 DUP1\n179 MLOAD\n180 PUSH1 0x01\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "155 JUMPDEST\n156 POP\n157 POP\n158 POP\n159 POP\n160 SWAP1\n161 POP\n162 SWAP1\n163 DUP2\n164 ADD\n165 SWAP1\n166 PUSH1 0x1f\n168 AND\n169 DUP1\n170 ISZERO\n171 PUSH2 0x00c8\n174 JUMPI", "id": "247", "isExpanded": false, "label": "155 JUMPDEST\n156 POP\n157 POP\n158 POP\n159 POP\n160 SWAP1\n(click to expand +)", "size": 150, "truncLabel": "155 JUMPDEST\n156 POP\n157 POP\n158 POP\n159 POP\n160 SWAP1\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "128 JUMPDEST\n129 DUP4\n130 DUP2\n131 LT\n132 ISZERO\n133 PUSH2 0x009b\n136 JUMPI", "id": "246", "isExpanded": false, "label": "128 JUMPDEST\n129 DUP4\n130 DUP2\n131 LT\n132 ISZERO\n133 PUSH2 0x009b\n(click to expand +)", "size": 150, "truncLabel": "128 JUMPDEST\n129 DUP4\n130 DUP2\n131 LT\n132 ISZERO\n133 PUSH2 0x009b\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "137 DUP1\n138 DUP3\n139 ADD\n140 MLOAD\n141 DUP2\n142 DUP5\n143 ADD\n144 MSTORE\n145 PUSH1 0x20\n147 DUP2\n148 ADD\n149 SWAP1\n150 POP\n151 PUSH2 0x0080\n154 JUMP", "id": "245", "isExpanded": false, "label": "137 DUP1\n138 DUP3\n139 ADD\n140 MLOAD\n141 DUP2\n142 DUP5\n(click to expand +)", "size": 150, "truncLabel": "137 DUP1\n138 DUP3\n139 ADD\n140 MLOAD\n141 DUP2\n142 DUP5\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "91 JUMPDEST\n92 PUSH1 0x40\n94 MLOAD\n95 DUP1\n96 DUP1\n97 PUSH1 0x20\n99 ADD\n100 DUP3\n101 DUP2\n102 SUB\n103 DUP3\n104 MSTORE\n105 DUP4\n106 DUP2\n107 DUP2\n108 MLOAD\n109 DUP2\n110 MSTORE\n111 PUSH1 0x20\n113 ADD\n114 SWAP2\n115 POP\n116 DUP1\n117 MLOAD\n118 SWAP1\n119 PUSH1 0x20\n121 ADD\n122 SWAP1\n123 DUP1\n124 DUP4\n125 DUP4\n126 PUSH1 0x00\n128 JUMPDEST\n129 DUP4\n130 DUP2\n131 LT\n132 ISZERO\n133 PUSH2 0x009b\n136 JUMPI", "id": "244", "isExpanded": false, "label": "91 JUMPDEST\n92 PUSH1 0x40\n94 MLOAD\n95 DUP1\n96 DUP1\n97 PUSH1 0x20\n(click to expand +)", "size": 150, "truncLabel": "91 JUMPDEST\n92 PUSH1 0x40\n94 MLOAD\n95 DUP1\n96 DUP1\n97 PUSH1 0x20\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "214 JUMPDEST\n215 PUSH1 0x60\n217 PUSH1 0x40\n219 DUP1\n220 MLOAD\n221 SWAP1\n222 DUP2\n223 ADD\n224 PUSH1 0x40\n226 MSTORE\n227 DUP1\n228 PUSH1 0x17\n230 DUP2\n231 MSTORE\n232 PUSH1 0x20\n234 ADD\n235 PUSH32 0xd0a5d18d(...)\n268 DUP2\n269 MSTORE\n270 POP\n271 SWAP1\n272 POP\n273 SWAP1\n274 JUMP", "id": "243", "isExpanded": false, "label": "214 JUMPDEST\n215 PUSH1 0x60\n217 PUSH1 0x40\n219 DUP1\n220 MLOAD\n221 SWAP1\n(click to expand +)", "size": 150, "truncLabel": "214 JUMPDEST\n215 PUSH1 0x60\n217 PUSH1 0x40\n219 DUP1\n220 MLOAD\n221 SWAP1\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "82 JUMPDEST\n83 POP\n84 PUSH2 0x005b\n87 PUSH2 0x00d6\n90 JUMP", "id": "242", "isExpanded": false, "label": "82 JUMPDEST\n83 POP\n84 PUSH2 0x005b\n87 PUSH2 0x00d6\n90 JUMP", "size": 150, "truncLabel": "82 JUMPDEST\n83 POP\n84 PUSH2 0x005b\n87 PUSH2 0x00d6\n90 JUMP"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "78 PUSH1 0x00\n80 DUP1\n81 REVERT", "id": "249", "isExpanded": false, "label": "78 PUSH1 0x00\n80 DUP1\n81 REVERT", "size": 150, "truncLabel": "78 PUSH1 0x00\n80 DUP1\n81 REVERT"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "_function_0x24ff38a2\n71 CALLVALUE\n72 DUP1\n73 ISZERO\n74 PUSH2 0x0052\n77 JUMPI", "id": "241", "isExpanded": false, "label": "_function_0x24ff38a2\n71 CALLVALUE\n72 DUP1\n73 ISZERO\n74 PUSH2 0x0052\n77 JUMPI", "size": 150, "truncLabel": "_function_0x24ff38a2\n71 CALLVALUE\n72 DUP1\n73 ISZERO\n74 PUSH2 0x0052\n77 JUMPI"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "65 JUMPDEST\n66 PUSH1 0x00\n68 DUP1\n69 REVERT", "id": "250", "isExpanded": false, "label": "65 JUMPDEST\n66 PUSH1 0x00\n68 DUP1\n69 REVERT", "size": 150, "truncLabel": "65 JUMPDEST\n66 PUSH1 0x00\n68 DUP1\n69 REVERT"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n53 AND\n54 DUP1\n55 PUSH4 0x24ff38a2\n60 EQ\n61 PUSH2 0x0046\n64 JUMPI", "id": "240", "isExpanded": false, "label": "13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)", "size": 150, "truncLabel": "13 PUSH1 0x00\n15 CALLDATALOAD\n16 PUSH29 0x01000000(...)\n46 SWAP1\n47 DIV\n48 PUSH4 0xffffffff\n(click to expand +)"}, {"color": {"background": "#2f7e5b", "border": "#26996f", "highlight": {"background": "#28a16f", "border": "#26996f"}}, "fullLabel": "0 PUSH1 0x80\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n9 PUSH2 0x0041\n12 JUMPI", "id": "238", "isExpanded": false, "label": "0 PUSH1 0x80\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)", "size": 150, "truncLabel": "0 PUSH1 0x80\n2 PUSH1 0x40\n4 MSTORE\n5 PUSH1 0x04\n7 CALLDATASIZE\n8 LT\n(click to expand +)"}];
+        var edges = [{"arrows": "to", "from": "238", "label": "Not(ULE(4, calldatasize_Unknown))", "smooth": {"type": "cubicBezier"}, "to": "239"}, {"arrows": "to", "from": "247", "label": "True", "smooth": {"type": "cubicBezier"}, "to": "248"}, {"arrows": "to", "from": "246", "label": "True", "smooth": {"type": "cubicBezier"}, "to": "247"}, {"arrows": "to", "from": "245", "label": "", "smooth": {"type": "cubicBezier"}, "to": "246"}, {"arrows": "to", "from": "244", "label": "True", "smooth": {"type": "cubicBezier"}, "to": "245"}, {"arrows": "to", "from": "243", "label": "", "smooth": {"type": "cubicBezier"}, "to": "244"}, {"arrows": "to", "from": "242", "label": "", "smooth": {"type": "cubicBezier"}, "to": "243"}, {"arrows": "to", "from": "241", "label": "callvalue == 0", "smooth": {"type": "cubicBezier"}, "to": "242"}, {"arrows": "to", "from": "241", "label": "Not(callvalue == 0)", "smooth": {"type": "cubicBezier"}, "to": "249"}, {"arrows": "to", "from": "240", "label": "Extract(0xff, 0xe0, calldata_Unknown_0) == 0x24ff38a2", "smooth": {"type": "cubicBezier"}, "to": "241"}, {"arrows": "to", "from": "240", "label": "Not(Extract(0xff, 0xe0, calldata_Unknown_0) == 0x24ff38a2)", "smooth": {"type": "cubicBezier"}, "to": "250"}, {"arrows": "to", "from": "238", "label": "ULE(4, calldatasize_Unknown)", "smooth": {"type": "cubicBezier"}, "to": "240"}];
+    </script>
+</head>
+<body>
+<p>Mythril / Ethereum LASER Symbolic VM</p>
+<p><div id="mynetwork"></div><br/></p>
+<script type="text/javascript">
+    var container = document.getElementById('mynetwork');
+
+    var nodesSet = new vis.DataSet(nodes);
+    var edgesSet = new vis.DataSet(edges);
+    var data = {'nodes': nodesSet, 'edges': edgesSet}
+
+    var gph = new vis.Network(container, data, options);
+    gph.on("click", function (params) {
+        // parse node id
+        var nodeID = params['nodes']['0'];
+        if (nodeID) {
+            var clickedNode = nodesSet.get(nodeID);
+
+            if(clickedNode.isExpanded) {
+                clickedNode.label = clickedNode.truncLabel;
+            }
+            else {
+                clickedNode.label = clickedNode.fullLabel;
+            }
+
+            clickedNode.isExpanded = !clickedNode.isExpanded;
+
+            nodesSet.update(clickedNode);
+        }
+    });
+</script>
+</body>
+</html>
