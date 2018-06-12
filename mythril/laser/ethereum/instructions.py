@@ -770,3 +770,57 @@ class Instruction:
             logging.debug("Pruned unreachable states.")
 
         return states
+
+    @instruction
+    def pc_(self, global_state):
+        global_state.mstate.stack.append(global_state.mstate.pc - 1)
+        return [global_state]
+
+
+    @instruction
+    def msize_(self, global_state):
+        global_state.mstate.stack.append(BitVec("msize", 256))
+        return [global_state]
+
+    @instruction
+    def gas_(self, global_state):
+        global_state.mstate.stack.append(BitVec("gas", 256))
+        return [global_state]
+
+    @instruction
+    def log_(self, global_state):
+        # TODO: implement me
+        state = global_state.mstate
+        dpth = int(self.op_code[3:])
+        state.stack.pop(), state.stack.pop()
+        [state.stack.pop() for x in range(dpth)]
+        # Not supported
+
+    @instruction
+    def create_(self, global_state):
+        # TODO: implement me
+        state = global_state.mstate
+        state.stack.pop(), state.stack.pop(), state.stack.pop()
+        # Not supported
+        state.stack.append(0)
+        return [global_state]
+
+    @instruction
+    def suicide_(self, global_state):
+        return []
+
+    @instruction
+    def revert_(self, global_state):
+        # TODO: implement me
+        # if len(self.call_stack):
+        #     self.pending_returns[self.call_stack[-1]].append(node.uid)
+        #
+        return []
+
+    def assert_fail_(self, global_state):
+        # TODO: implement me
+        return []
+
+    def invalid_(self, global_state):
+        # TODO: implement me
+        return []
