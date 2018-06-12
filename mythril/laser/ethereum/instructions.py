@@ -905,3 +905,9 @@ class Instruction:
         return [new_global_state]
 
 
+    @instruction
+    def staticcall(self, global_state):
+        # TODO: implement me
+        instr = global_state.get_current_instruction()
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        return [global_state]
