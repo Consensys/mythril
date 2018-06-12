@@ -11,16 +11,19 @@ import logging
 
 TT256M1 = 2 ** 256 - 1
 
+
 class StackUnderflowException(Exception):
     pass
 
 
 def instruction(func):
     """ Wrapper that handles copy and original return """
+
     def wrapper(self, global_state):
         new_global_state = copy(global_state)
         new_global_state.mstate.pc += 1
         return global_state, func(self, new_global_state)
+
     return wrapper
 
 
@@ -28,6 +31,7 @@ class Instruction:
     """
     Instruction class is used to mutate a state according to the current instruction
     """
+
     def __init__(self, op_code):
         assert any(lambda opcodes_element: op_code == opcodes_element[0], opcodes.opcodes)
         self.op_code = op_code
@@ -54,12 +58,6 @@ class Instruction:
         return instruction_mutator(global_state)
 
     @instruction
-    def add_(self, global_state):
-        mstate = global_state.mstate
-        mstate.stack.append((helper.pop_bitvec(mstate) + helper.pop_bitvec(mstate)))
-        return [global_state]
-
-    @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
@@ -79,6 +77,7 @@ class Instruction:
             stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         except IndexError:
             raise StackUnderflowException()
+        return [global_state]
 
     @instruction
     def pop_(self, global_state):
@@ -86,6 +85,7 @@ class Instruction:
             global_state.mstate.stack.pop()
         except IndexError:
             raise StackUnderflowException()
+        return [global_state]
 
     @instruction
     def and_(self, global_state):
@@ -100,6 +100,7 @@ class Instruction:
             stack.append(op1 & op2)
         except IndexError:
             raise StackUnderflowException()
+        return [global_state]
 
     @instruction
     def or_(self, global_state):
@@ -116,30 +117,79 @@ class Instruction:
             stack.append(op1 | op2)
         except IndexError:  # Stack underflow
             raise StackUnderflowException()
+        return [global_state]
 
     @instruction
     def xor_(self, global_state):
         mstate = global_state.mstate
         mstate.stack.append(mstate.stack.pop() ^ mstate.stack.pop())
+        return [global_state]
 
     @instruction
     def not_(self, global_state: GlobalState):
         mstate = global_state.mstate
         mstate.stack.append(TT256M1 - mstate.stack.pop())
-
+        return [global_state]
 
     @instruction
     def byte_(self, global_state):
         mstate = global_state.mstate
-        s0, s1 = mstate.stack.pop(), mstate.stack.pop()
+        op0, op1 = mstate.stack.pop(), mstate.stack.pop()
 
         try:
-            n = util.get_concrete_int(s0)
-            oft = (31 - n) * 8
-            result = Concat(BitVecVal(0, 248), Extract(oft + 7, oft, s1))
+            index = util.get_concrete_int(op0)
+            offset = (31 - index) * 8
+            result = Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1))
         except AttributeError:
             logging.debug("BYTE: Unsupported symbolic byte offset")
-            result = BitVec(str(simplify(s1)) + "_" + str(simplify(s0)), 256)
+            result = BitVec(str(simplify(op1)) + "_" + str(simplify(op0)), 256)
 
         mstate.stack.append(simplify(result))
+        return [global_state]
 
+    # Arithmetic
+    @instruction
+    def add_(self, global_state):
+        global_state.mstate.stack.append((helper.pop_bitvec(global_state.mstate) + helper.pop_bitvec(global_state.mstate)))
+        return [global_state]
+
+    @instruction
+    def sub_(self, global_state):
+        global_state.mstate.stack.append((helper.pop_bitvec(global_state.mstate) - helper.pop_bitvec(global_state.mstate)))
+        return [global_state]
+
+    @instruction
+    def mul_(self, global_state):
+        global_state.mstate.stack.append((helper.pop_bitvec(global_state.mstate) * helper.pop_bitvec(global_state.mstate)))
+        return [global_state]
+
+    @instruction
+    def div_(self, global_state):
+        global_state.mstate.stack.append(UDiv(util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)))
+        return [global_state]
+
+    @instruction
+    def sdiv_(self, global_state):
+        s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        global_state.mstate.stack.append(s0 / s1)
+        return [global_state]
+
+    @instruction
+    def smod_(self, global_state):
+        s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        global_state.mstate.stack.append(0 if s1 == 0 else s0 % s1)
+        return [global_state]
+
+    @instruction
+    def addmod_(self, global_state):
+        s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        global_state.mstate.stack.append((s0 + s1) % s2)
+        return [global_state]
+
+    @instruction
+    def mulmod_(self, global_state):
+        s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        global_state.mstate.stack.append((s0 * s1) % s2 if s2 else 0)
+
+    @instruction
+    def exp_(self, global_state):
