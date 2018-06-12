@@ -905,6 +905,7 @@ class LaserEVM:
                 if not is_false(simplify(negated)):
                     new_gblState = LaserEVM.copy_global_state(gblState)
                     new_gblState.mstate.constraints.append(negated)
+                    new_gblState.mstate.depth += 1
 
                     new_node = self._sym_exec(new_gblState)
                     self.nodes[new_node.uid] = new_node

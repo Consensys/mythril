@@ -62,7 +62,7 @@ def main():
 
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
-    options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
+    options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
