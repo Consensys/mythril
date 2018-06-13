@@ -801,31 +801,42 @@ class Instruction:
         return [global_state]
 
     @instruction
+    def return_(self, global_state):
+        state = global_state.mstate
+        offset, length = state.stack.pop(), state.stack.pop()
+        try:
+            return_value = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
+        except AttributeError:
+            logging.debug("Return with symbolic length or offset. Not supported")
+            return_value = BitVec("return_value" + global_state.environment.active_function_name, 256)
+
+        state.stack.append(return_value)
+        global_state.mstate.pc = global_state.call_stack.pop()
+
+        return [global_state]
+
+    @instruction
     def suicide_(self, global_state):
         return []
 
     @instruction
     def revert_(self, global_state):
-        # TODO: implement me
-        # if len(self.call_stack):
-        #     self.pending_returns[self.call_stack[-1]].append(node.uid)
-        #
         return []
 
     @instruction
     def assert_fail_(self, global_state):
-        # TODO: implement me
         return []
 
     @instruction
     def invalid_(self, global_state):
-        # TODO: implement me
         return []
 
     @instruction
     def stop_(self, global_state):
-        # TODO: implement me
-        return []
+        state = global_state.mstate
+        state.stack.append(BitVecVal(0, 256))
+        global_state.mstate.pc = global_state.call_stack.pop()
+        return [global_state]
 
     @instruction
     def call_(self, global_state):
