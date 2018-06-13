@@ -1,19 +1,21 @@
-from mythril.laser.ethereum import util
-from ethereum import utils
-from mythril.laser.ethereum.state import CalldataType, GlobalState, MachineState, Environment, Account
-from z3 import BitVecVal, BitVec, BoolRef, Extract, If, UDiv, URem, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_true, ExprRef
-from mythril.laser.ethereum.svm import GlobalState
-import mythril.laser.ethereum.util as helper
-from mythril.laser.ethereum.call import get_call_parameters
-import ethereum.opcodes as opcodes
-from z3 import BitVecVal, If, BoolRef
-from copy import copy, deepcopy
-import logging
 import binascii
+import logging
+from copy import copy, deepcopy
+
+import ethereum.opcodes as opcodes
+from ethereum import utils
+from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
+    is_false
+from z3 import BitVecVal, If, BoolRef
+
+import mythril.laser.ethereum.util as helper
+from mythril.laser.ethereum import util
+from mythril.laser.ethereum.call import get_call_parameters
+from mythril.laser.ethereum.state import GlobalState, MachineState, Environment
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
+
 
 
 class StackUnderflowException(Exception):
@@ -28,10 +30,11 @@ def instruction(func):
     """ Wrapper that handles copy and original return """
 
     def wrapper(self, global_state):
-        new_global_state = copy(global_state)
-        new_global_state.mstate.pc += 1
-        return global_state, func(self, new_global_state)
-
+        global_state_copy = copy(global_state)
+        new_global_states = func(self, global_state_copy)
+        for state in new_global_states:
+            state.mstate.pc += 1
+        return global_state, new_global_states
     return wrapper
 
 
@@ -41,7 +44,7 @@ class Instruction:
     """
 
     def __init__(self, op_code, dynamic_loader):
-        assert any(lambda opcodes_element: op_code == opcodes_element[0], opcodes)
+        # assert any(mPlambda opcodes_element: op_code == opcodes_element[0], opcodes)
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code
 
@@ -835,6 +838,8 @@ class Instruction:
     def stop_(self, global_state):
         state = global_state.mstate
         state.stack.append(BitVecVal(0, 256))
+        if len(global_state.call_stack) is 0:
+            return []
         global_state.mstate.pc = global_state.call_stack.pop()
         return [global_state]
 

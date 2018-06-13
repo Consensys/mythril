@@ -1,13 +1,11 @@
 from z3 import BitVec, BitVecVal
-from enum import Enum
-from mythril.laser.ethereum.instructions import Instruction
 from copy import copy
+from enum import Enum
 
 
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
-
 
 class Account:
     """
@@ -129,7 +127,7 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, accounts, environment, call_stack=None, machine_state=None):
+    def __init__(self, accounts, environment, machine_state=None, call_stack=None):
         """ Constructor for GlobalState"""
         self.accounts = accounts
         self.environment = environment
@@ -142,17 +140,8 @@ class GlobalState:
         mstate = copy(self.mstate)
         return GlobalState(accounts, environment, mstate)
 
-    @property
-    def instruction(self):
-        instructions = self.environment.code.instruction_list
-        op_code = instructions[self.mstate.pc]['opcode']
-        return Instruction(op_code)
-
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
         """ Gets the current instruction for this GlobalState"""
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
-
-    def execute(self):
-        return self.instruction.evaluate(self)
