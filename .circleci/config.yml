@@ -1,6 +1,6 @@
 defaults: &defaults
   docker:
-    - image: birdofpreyru/mythril-integration-tests:0.0.4
+    - image: mythril/dev_test_environment:latest
 
 version: 2
 jobs:
