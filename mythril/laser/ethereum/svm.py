@@ -388,7 +388,8 @@ class LaserEVM:
 
             elif op == 'BYTE':
                 s0, s1 = state.stack.pop(), state.stack.pop()
-
+                if type(s1) is not ExprRef:
+                    s1 = BitVecVal(s1, 256)
                 try:
                     n = helper.get_concrete_int(s0)
                     oft = (31 - n) * 8
