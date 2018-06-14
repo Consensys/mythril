@@ -1,4 +1,5 @@
 from z3 import *
+from copy import deepcopy
 
 class TransactionTrace:
 
@@ -27,20 +28,23 @@ class TransactionTrace:
     def apply_trace(self, tt):
         if tt is None:
             return self
-        subs_map = list(map(lambda x: (BitVec("storage_" + str(x[0]), 256), x[1]), tt.storage.items()))
+        new_trace = deepcopy(tt)
+        subs_map = list(map(lambda x: (BitVec("storage_" + str(x[0]), 256), x[1]), self.storage.items()))
         print("_________")
         print(subs_map)
         print(self.storage)
+        print("#########")
+        print(new_trace.storage)
         print("+++++++++")
-        for k,v in self.storage.items():
-            self.storage[k] = substitute(v, subs_map)
+        for k,v in new_trace.storage.items():
+            new_trace.storage[k] = substitute(v, subs_map)
         # Todo Add combination of constraints, this might by tricky if we cannot identify which entrancy constraints of
         # self can be omitted (e.g. when related storage locations were overwritten)
-        print(self.storage)
+        print(new_trace)
         print("=========")
-        self.simplify_storage()
-        print(self.storage)
-        return None
+        new_trace.simplify_storage()
+        print(new_trace.storage)
+        return new_trace
 
     def apply_traces_parallel(self, traces):
         combined_traces = []
@@ -55,7 +59,7 @@ class TransactionTrace:
         for i in range(depth):
             trace_lvl_np1 = []
             for trace in trace_lvl_n:
-                trace_lvl_np1.append(trace.apply_traces_parallel(traces))
+                trace_lvl_np1.extend(trace.apply_traces_parallel(traces))
             if TransactionTrace.deep_equals(trace_lvl_np1, trace_lvl_n): # Fixpoint detected, function needs to ignore lists, dicts and objects.
                 return trace_lvl_n
             trace_lvl_n = trace_lvl_np1
@@ -66,7 +70,7 @@ class TransactionTrace:
         for i in range(depth):
             trace_lvl_np1 = []
             for trace in traces_up_to[-1]:
-                trace_lvl_np1.append(trace.apply_traces_parallel(traces))
+                trace_lvl_np1.extend(trace.apply_traces_parallel(traces))
             for trace_lvl_i in traces_up_to:
                 # the following might be faster to check when using a content representing hash
                 if TransactionTrace.deep_equals(trace_lvl_np1, trace_lvl_i): # cycle in the traces of trace chains detected: levels

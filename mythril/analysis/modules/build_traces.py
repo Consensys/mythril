@@ -25,6 +25,7 @@ def execute(statespace):
 
     print("==== Second level traces ====")
     for trace in traces:
-        print(trace.apply_traces_parallel(traces))
+        print(trace.apply_up_to_trace_levels(traces, 4))
+
 
     return []
