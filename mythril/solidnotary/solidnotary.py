@@ -13,7 +13,7 @@ class SolidNotary:
         # Todo Find how they are storing results
         pass
 
-    def get_transaction_traces(statespace):
+    def get_transaction_traces(self, statespace):
         logging.debug("Executing module: Transaction End")
 
         traces = []
@@ -24,4 +24,4 @@ class SolidNotary:
                 instruction = state.get_current_instruction()
                 if instruction['opcode'] == "STOP":
                     traces.append(TransactionTrace(state.environment.active_account.storage))
-            return traces
+        return traces

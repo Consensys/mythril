@@ -1,4 +1,6 @@
 from mythril.analysis.report import Issue
+from mythril.solidnotary.transactiontrace import TransactionTrace
+from mythril.solidnotary.solidnotary import SolidNotary
 import logging
 
 
@@ -18,5 +20,11 @@ def execute(statespace):
     logging.debug("Executing module: Transaction End")
 
     traces = []
+
+    traces = SolidNotary().get_transaction_traces(statespace)
+
+    print("==== Second level traces ====")
+    for trace in traces:
+        print(trace.apply_traces_parallel(traces))
 
     return []

@@ -9,7 +9,8 @@ import logging
 def print_obj(obj):
     print()
     print(obj)
-    # print(dir(obj))
+    print(type(obj))
+    print(dir(obj))
     print()
 
 
@@ -27,7 +28,8 @@ def execute(statespace):
             instruction = state.get_current_instruction()
 
             if(instruction['opcode'] == "STOP"):
-                print_obj(state.environment.active_account.storage)
+                for k,v in state.environment.active_account.storage.items():
+                    print_obj(v)
                 # print("opc: {}, add: {} {}".format(instruction['opcode'], instruction['address'], instruction['argument'] if 'argument' in instruction else ""))
 
     return issues
