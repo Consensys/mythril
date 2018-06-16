@@ -887,7 +887,7 @@ class LaserEVM:
                 # True case
                 condi = condition if type(condition) == BoolRef else condition != 0
                 if instr['opcode'] == "JUMPDEST":
-                    if not is_false(simplify(condi)):
+                    if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
                         new_gblState = LaserEVM.copy_global_state(gblState)
                         new_gblState.mstate.pc = i
                         new_gblState.mstate.constraints.append(condi)
@@ -902,7 +902,7 @@ class LaserEVM:
                 # False case
                 negated = Not(condition) if type(condition) == BoolRef else condition == 0
 
-                if not is_false(simplify(negated)):
+                if (type(negated)==bool and negated) or (type(condi) == BoolRef and not is_false(simplify(negated))):
                     new_gblState = LaserEVM.copy_global_state(gblState)
                     new_gblState.mstate.constraints.append(negated)
                     new_gblState.mstate.depth += 1
