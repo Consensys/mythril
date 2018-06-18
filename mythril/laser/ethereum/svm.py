@@ -686,19 +686,19 @@ class LaserEVM:
                     state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_cpy", 256)
                     continue
                 try:
-                    size = helper.get_concrete_int(op2)
+                    newSize = helper.get_concrete_int(size)
                 except:
                     logging.debug("Unsupported symbolic size in CODECOPY")
                     state.mem_extend(mstart, 1)
                     state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_" + str(dstart), 256)
                     continue
 
-                if size > 0:
+                if newSize > 0:
 
                     try:
-                        state.mem_extend(mstart, size)
+                        state.mem_extend(mstart, newSize)
                     except:
-                        logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(size))
+                        logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(newSize))
                         state.mem_extend(mstart, 1)
                         state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_" + str(dstart), 256)
                         continue
@@ -706,7 +706,7 @@ class LaserEVM:
                     try:
                         i_data = disassembly.instruction_list[dstart]
 
-                        for i in range(mstart, mstart + size):
+                        for i in range(mstart, mstart + newSize):
                             state.memory[i] = disassembly.instruction_list[i_data]
                             i_data += 1
                     except:
@@ -730,26 +730,26 @@ class LaserEVM:
                     logging.debug("Unsupported symbolic memory offset in EXTCODECOPY")
                     continue
                 try:
-                    dstart = helper.get_concrete_int(s1)
+                    dstart = helper.get_concrete_int(s2)
                 except:
                     logging.debug("Unsupported symbolic code offset in EXTCODECOPY")
                     state.mem_extend(mstart, 1)
                     state.memory[mstart] = BitVec("code_" + str(addr) + "_cpy", 256)
                     continue
                 try:
-                    size = helper.get_concrete_int(op2)
+                    newSize = helper.get_concrete_int(size)
                 except:
                     logging.debug("Unsupported symbolic size in EXTCODECOPY")
                     state.mem_extend(mstart, 1)
                     state.memory[mstart] = BitVec("extcode_" + str(addr) + "_" + str(dstart), 256)
                     continue
                 
-                if size > 0:
+                if newSize > 0:
 
                     try:
-                        state.mem_extend(mstart, size)
+                        state.mem_extend(mstart, newSize)
                     except:
-                        logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(size))
+                        logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(newSize))
                         state.mem_extend(mstart, 1)
                         state.memory[mstart] = BitVec("extcode_" + str(addr) + "_" + str(dstart), 256)
                         continue
