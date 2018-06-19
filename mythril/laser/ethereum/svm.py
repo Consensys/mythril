@@ -1,4 +1,4 @@
-from mythril.laser.ethereum import helper
+from mythril.laser.ethereum import helper, natives
 from ethereum import utils
 from enum import Enum
 from flags import Flags
@@ -388,7 +388,8 @@ class LaserEVM:
 
             elif op == 'BYTE':
                 s0, s1 = state.stack.pop(), state.stack.pop()
-
+                if not isinstance(s1, ExprRef):
+                    s1 = BitVecVal(s1, 256)
                 try:
                     n = helper.get_concrete_int(s0)
                     oft = (31 - n) * 8
@@ -887,7 +888,7 @@ class LaserEVM:
                 # True case
                 condi = condition if type(condition) == BoolRef else condition != 0
                 if instr['opcode'] == "JUMPDEST":
-                    if not is_false(simplify(condi)):
+                    if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
                         new_gblState = LaserEVM.copy_global_state(gblState)
                         new_gblState.mstate.pc = i
                         new_gblState.mstate.constraints.append(condi)
@@ -902,7 +903,7 @@ class LaserEVM:
                 # False case
                 negated = Not(condition) if type(condition) == BoolRef else condition == 0
 
-                if not is_false(simplify(negated)):
+                if (type(negated)==bool and negated) or (type(condi) == BoolRef and not is_false(simplify(negated))):
                     new_gblState = LaserEVM.copy_global_state(gblState)
                     new_gblState.mstate.constraints.append(negated)
                     new_gblState.mstate.depth += 1
@@ -987,17 +988,31 @@ class LaserEVM:
                             logging.debug("Unsupported memory symbolic index")
                         continue
 
-                if not re.match(r"^0x[0-9a-f]{40}", callee_address):
+                if (not re.match(r"^0x[0-9a-f]{40}", callee_address) and re.match(r"^0x[0-9a-f]{5,}",callee_address)):
                         logging.debug("Invalid address: " + str(callee_address))
                         ret = BitVec("retval_" + str(instr['address']), 256)
                         state.stack.append(ret)
                         continue
 
-                if (int(callee_address, 16) < 5):
+                if int(callee_address, 16) < 5 and int(callee_address, 16) > 0:
 
                     logging.info("Native contract called: " + callee_address)
+                    calldata, calldata_type = self._get_calldata(meminstart, meminsz, state, pad=False)
+                    if calldata == [] and calldata_type == CalldataType.SYMBOLIC:
+                        logging.debug("CALL with symbolic data not supported")
+                        continue
 
-                    # Todo: Implement native contracts
+                    data = natives.native_contracts(int(callee_address, 16 ), calldata)
+                    try:
+                        mem_out_start = helper.get_concrete_int(memoutstart)
+                        mem_out_sz = memoutsz.as_long()
+                    except AttributeError:
+                        logging.debug("CALL with symbolic start or offset not supported")
+                        continue
+
+                    state.mem_extend(mem_out_start, mem_out_sz)
+                    for i in range(min(len(data), mem_out_sz)):     # If more data is used then it's chopped off
+                        state.memory[mem_out_start+i] = data[i]
 
                     ret = BitVec("retval_" + str(instr['address']), 256)
                     state.stack.append(ret)
@@ -1052,24 +1067,8 @@ class LaserEVM:
                     state.stack.append(ret)
                     continue
 
-                try:
-                    # TODO: This only allows for either fully concrete or fully symbolic calldata.
-                    # Improve management of memory and callata to support a mix between both types.
 
-                    calldata = state.memory[helper.get_concrete_int(meminstart):helper.get_concrete_int(meminstart + meminsz)]
-
-                    if (len(calldata) < 32):
-                        calldata += [0] * (32 - len(calldata))
-
-                    calldata_type = CalldataType.CONCRETE
-                    logging.debug("Calldata: " + str(calldata))
-
-                except AttributeError:
-
-                    logging.info("Unsupported symbolic calldata offset")
-                    calldata_type = CalldataType.SYMBOLIC
-                    calldata = []
-
+                calldata, calldata_type = self._get_calldata(meminstart, meminsz, state)
                 self.call_stack.append(instr['address'])
                 self.pending_returns[instr['address']] = []
 
@@ -1180,3 +1179,22 @@ class LaserEVM:
 
         logging.debug("Returning from node " + str(node.uid))
         return node
+    def _get_calldata(self,meminstart, meminsz, state, pad = True):
+        try:
+            # TODO: This only allows for either fully concrete or fully symbolic calldata.
+            # Improve management of memory and callata to support a mix between both types.
+
+            calldata = state.memory[helper.get_concrete_int(meminstart):helper.get_concrete_int(meminstart + meminsz)]
+
+            if (len(calldata) < 32 and pad):
+                calldata += [0] * (32 - len(calldata))
+
+            calldata_type = CalldataType.CONCRETE
+            logging.debug("Calldata: " + str(calldata))
+
+        except AttributeError:
+
+            logging.info("Unsupported symbolic calldata offset")
+            calldata_type = CalldataType.SYMBOLIC
+            calldata = []
+        return calldata, calldata_type
