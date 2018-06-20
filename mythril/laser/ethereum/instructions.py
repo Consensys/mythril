@@ -306,7 +306,7 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = val is False if type(val) == BoolRef else val == 0
+        exp = val == False if type(val) == BoolRef else val == 0
         state.stack.append(exp)
 
         return [global_state]
@@ -715,12 +715,9 @@ class Instruction:
         new_state.mstate.pc = index
         new_state.mstate.depth += 1
 
-        # TODO: create new node
-        # self.nodes[new_node.uid] = new_node
-        # self.edges.append(Edge(node.uid, new_node.uid, JumpType.UNCONDITIONAL))
-
         return [new_state]
 
+    @instruction
     def jumpi_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
@@ -745,8 +742,7 @@ class Instruction:
         # True case
         condi = condition if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            sat = not is_false(simplify(condi)) if type(condi) == BoolRef else condi
-            if sat:
+            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
@@ -758,11 +754,11 @@ class Instruction:
 
         # False case
         negated = Not(condition) if type(condition) == BoolRef else condition == 0
-        sat = not is_false(simplify(negated)) if type(condi) == BoolRef else condi
+        sat = not is_false(simplify(negated)) if type(condi) == BoolRef else not negated
 
         if sat:
             new_state = copy(global_state)
-            new_state.mstate.pc += 1
+            # new_state.mstate.pc += 1
             new_state.mstate.depth += 1
             new_state.mstate.constraints.append(negated)
             states.append(new_state)
@@ -872,6 +868,7 @@ class Instruction:
         new_global_state = GlobalState(global_state.accounts, callee_environment, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
+        return [global_state]
 
     @instruction
     def callcode_(self, global_state):

@@ -63,6 +63,7 @@ class LaserEVM:
         while True:
             try:
                 global_state = self.work_list.pop(0)
+                if global_state.mstate.depth >= 23: continue
             except IndexError:
                 return
 

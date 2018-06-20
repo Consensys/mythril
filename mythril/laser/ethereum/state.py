@@ -134,6 +134,9 @@ class GlobalState:
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
         self.call_stack = call_stack if call_stack else []
+        self.op_code = ""
+
+
 
     def __copy__(self):
         accounts = copy(self.accounts)
