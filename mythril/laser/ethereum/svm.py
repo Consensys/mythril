@@ -80,14 +80,16 @@ class LaserEVM:
 
     def manage_cfg(self, opcode, new_states):
         if opcode == "JUMP":
-            assert len(new_states) == 1
-            self._new_node_state(new_states[0])
+            assert len(new_states) <= 1
+            for state in new_states:
+                self._new_node_state(state)
         elif opcode == "JUMPI":
             for state in new_states:
                 self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
         elif opcode in ("CALL", 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
-            assert len(new_states) == 1
-            self._new_node_state(new_states[0], JumpType.CALL)
+            assert len(new_states) <= 1
+            for state in new_states:
+                self._new_node_state(state, JumpType.CALL)
         elif opcode == "RETURN":
             for state in new_states:
                 self._new_node_state(state, JumpType.RETURN)
@@ -99,5 +101,19 @@ class LaserEVM:
         new_node = Node(state.environment.active_account.contract_name)
         old_node = state.node
         state.node = new_node
+        new_node.constraints = state.mstate.constraints
         self.nodes[new_node.uid] = new_node
         self.edges.append(Edge(old_node.uid, new_node.uid, edge_type=edge_type, condition=condition))
+
+        address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
+        environment = state.environment
+        disassembly = environment.code
+        if address in state.environment.code.addr_to_func:
+            # Enter a new function
+
+            environment.active_function_name = disassembly.addr_to_func[address]
+            new_node.flags |= NodeFlags.FUNC_ENTRY
+
+            logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
+
+        new_node.function_name = environment.active_function_name
