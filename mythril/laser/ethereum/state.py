@@ -1,5 +1,5 @@
 from z3 import BitVec, BitVecVal
-from copy import copy
+from copy import copy, deepcopy
 from enum import Enum
 
 
@@ -127,8 +127,9 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, accounts, environment, machine_state=None, call_stack=None):
+    def __init__(self, accounts, environment, node, machine_state=None, call_stack=None):
         """ Constructor for GlobalState"""
+        self.node = node
         self.accounts = accounts
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
@@ -137,8 +138,8 @@ class GlobalState:
     def __copy__(self):
         accounts = copy(self.accounts)
         environment = copy(self.environment)
-        mstate = copy(self.mstate)
-        return GlobalState(accounts, environment, mstate)
+        mstate = deepcopy(self.mstate)
+        return GlobalState(accounts, environment, self.node, mstate)
 
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):

@@ -11,7 +11,7 @@ from z3 import BitVecVal, If, BoolRef
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
-from mythril.laser.ethereum.state import GlobalState, MachineState, Environment
+from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -34,7 +34,7 @@ def instruction(func):
         new_global_states = func(self, global_state_copy)
         for state in new_global_states:
             state.mstate.pc += 1
-        return global_state, new_global_states
+        return new_global_states
     return wrapper
 
 
@@ -51,6 +51,7 @@ class Instruction:
     def evaluate(self, global_state):
         """ Performs the mutation for this instruction """
         # Generalize some ops
+        logging.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -69,6 +70,10 @@ class Instruction:
         return instruction_mutator(global_state)
 
     @instruction
+    def jumpdest_(self, global_state):
+        return [global_state]
+
+    @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
@@ -76,8 +81,8 @@ class Instruction:
 
     @instruction
     def dup_(self, global_state):
-        value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
-        global_state.mstate.stack.append(value)
+        value = int(global_state.get_current_instruction()['opcode'][3:], 10)
+        global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
     @instruction
@@ -622,7 +627,7 @@ class Instruction:
         return [global_state]
 
     @instruction
-    def _mstore8(self, global_state):
+    def mstore8_(self, global_state):
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -638,7 +643,7 @@ class Instruction:
         return [global_state]
 
     @instruction
-    def _sload(self, global_state):
+    def sload_(self, global_state):
         state = global_state.mstate
         index = state.stack.pop()
         logging.debug("Storage access at index " + str(index))
@@ -674,7 +679,7 @@ class Instruction:
 
             for k in global_state.accounts:
                 if global_state.accounts[k] == global_state.environment.active_account:
-                    global_state.accounts[k] = copy.deepcopy(global_state.accounts[k])
+                    global_state.accounts[k] = deepcopy(global_state.accounts[k])
                     global_state.environment.active_account = global_state.accounts[k]
                     break
 
@@ -686,7 +691,7 @@ class Instruction:
     @instruction
     def jump_(self, global_state):
         state = global_state.mstate
-        disassembly = global_state.environment.disassembly
+        disassembly = global_state.environment.code
         try:
             jump_addr = util.get_concrete_int(state.stack.pop())
         except AttributeError:
@@ -718,7 +723,7 @@ class Instruction:
 
     def jumpi_(self, global_state):
         state = global_state.mstate
-        disassembly = global_state.environment.disassembly
+        disassembly = global_state.environment.code
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
@@ -740,31 +745,27 @@ class Instruction:
         # True case
         condi = condition if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if not is_false(simplify(condi)):
+            sat = not is_false(simplify(condi)) if type(condi) == BoolRef else condi
+            if sat:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
                 new_state.mstate.constraints.append(condi)
 
-                # TODO: create new node
-                # self.nodes[new_node.uid] = new_node
-                # self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, condi))
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
 
         # False case
         negated = Not(condition) if type(condition) == BoolRef else condition == 0
+        sat = not is_false(simplify(negated)) if type(condi) == BoolRef else condi
 
-        if not is_false(simplify(negated)):
+        if sat:
             new_state = copy(global_state)
-            new_state.mstate.pc = index
+            new_state.mstate.pc += 1
             new_state.mstate.depth += 1
             new_state.mstate.constraints.append(negated)
             states.append(new_state)
-            # TODO: create new node
-            # self.nodes[new_node.uid] = new_node
-            # self.edges.append(Edge(node.uid, new_node.uid, JumpType.CONDITIONAL, negated))
         else:
             logging.debug("Pruned unreachable states.")
 
@@ -814,6 +815,9 @@ class Instruction:
             return_value = BitVec("return_value" + global_state.environment.active_function_name, 256)
 
         state.stack.append(return_value)
+        if global_state.call_stack == []:
+            return []
+
         global_state.mstate.pc = global_state.call_stack.pop()
 
         return [global_state]
