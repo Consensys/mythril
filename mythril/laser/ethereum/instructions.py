@@ -63,9 +63,10 @@ class Instruction:
             op = "log"
 
         instruction_mutator = getattr(self, op + '_', None)
-
+        if global_state.mstate.pc == 322:
+            global_state.op_code = self.op_code
         if instruction_mutator is None:
-            raise NotImplemented()
+            raise NotImplemented
 
         return instruction_mutator(global_state)
 
@@ -76,7 +77,9 @@ class Instruction:
     @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
+        slen = len(global_state.mstate.stack)
         global_state.mstate.stack.append(value)
+        assert len(global_state.mstate.stack) == slen + 1
         return [global_state]
 
     @instruction
@@ -758,7 +761,6 @@ class Instruction:
 
         if sat:
             new_state = copy(global_state)
-            # new_state.mstate.pc += 1
             new_state.mstate.depth += 1
             new_state.mstate.constraints.append(negated)
             states.append(new_state)
@@ -790,6 +792,7 @@ class Instruction:
         state.stack.pop(), state.stack.pop()
         [state.stack.pop() for x in range(dpth)]
         # Not supported
+        return [global_state]
 
     @instruction
     def create_(self, global_state):
@@ -849,13 +852,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, True)
+            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
-            return [global_state]
+            # TODO: decide what to do in this case
+            # global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            # return [global_state]
+            return []
 
         global_state.call_stack.append(instr['address'])
         callee_environment = Environment(callee_account,
@@ -876,7 +881,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, True)
+            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
@@ -899,12 +904,12 @@ class Instruction:
         return [new_global_state]
 
     @instruction
-    def delegate_call_(self, global_state):
+    def delegatecall_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
         try:
-            callee_account, call_data, _, call_data_type, gas = get_call_parameters(global_state)
+            callee_account, call_data, _, call_data_type, gas = get_call_parameters(global_state, self.dynamic_loader)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
