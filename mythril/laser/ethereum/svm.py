@@ -16,7 +16,11 @@ class SVMError(Exception):
 Main symbolic execution engine.
 '''
 
+
 class LaserEVM:
+    """
+    Laser EVM class
+    """
     def __init__(self, accounts, dynamic_loader=None, max_depth=None):
         self.accounts = accounts
 
@@ -32,7 +36,6 @@ class LaserEVM:
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def sym_exec(self, main_address):
-
         logging.debug("Starting LASER execution")
 
         # Initialize the execution environment
@@ -107,6 +110,7 @@ class LaserEVM:
         self.edges.append(Edge(old_node.uid, new_node.uid, edge_type=edge_type, condition=condition))
 
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
+        
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:
