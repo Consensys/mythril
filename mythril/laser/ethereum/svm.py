@@ -27,6 +27,7 @@ class LaserEVM:
         self.dynamic_loader = dynamic_loader
 
         self.work_list = []
+        self.max_depth = max_depth
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -63,7 +64,7 @@ class LaserEVM:
         while True:
             try:
                 global_state = self.work_list.pop(0)
-                if global_state.mstate.depth >= 23: continue
+                if global_state.mstate.depth >= self.max_depth: continue
             except IndexError:
                 return
 
