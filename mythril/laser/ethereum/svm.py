@@ -994,12 +994,14 @@ class LaserEVM:
                         state.stack.append(ret)
                         continue
 
-                if int(callee_address, 16) < 5 and int(callee_address, 16) > 0:
+                if 0 < int(callee_address, 16) < 5:
 
                     logging.info("Native contract called: " + callee_address)
                     calldata, calldata_type = self._get_calldata(meminstart, meminsz, state, pad=False)
                     if calldata == [] and calldata_type == CalldataType.SYMBOLIC:
                         logging.debug("CALL with symbolic data not supported")
+                        ret = BitVec("retval_" + str(instr['address']), 256)
+                        state.stack.append(ret)
                         continue
 
                     data = natives.native_contracts(int(callee_address, 16 ), calldata)
@@ -1008,14 +1010,18 @@ class LaserEVM:
                         mem_out_sz = memoutsz.as_long()
                     except AttributeError:
                         logging.debug("CALL with symbolic start or offset not supported")
+                        ret = BitVec("retval_" + str(instr['address']), 256)
+                        state.stack.append(ret)
                         continue
 
                     state.mem_extend(mem_out_start, mem_out_sz)
-                    for i in range(min(len(data), mem_out_sz)):     # If more data is used then it's chopped off
-                        state.memory[mem_out_start+i] = data[i]
+                    try:
+                        for i in range(min(len(data), mem_out_sz)):     # If more data is used then it's chopped off
+                            state.memory[mem_out_start+i] = data[i]
+                    except:
+                       state.memory[mem_out_start] = BitVec(data, 256)
+                    state.stack.append(1)
 
-                    ret = BitVec("retval_" + str(instr['address']), 256)
-                    state.stack.append(ret)
                     continue
 
                 try:
