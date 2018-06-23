@@ -21,7 +21,7 @@ class LaserEVM:
     """
     Laser EVM class
     """
-    def __init__(self, accounts, dynamic_loader=None, max_depth=None):
+    def __init__(self, accounts, dynamic_loader=None, max_depth=22):
         self.accounts = accounts
 
         self.nodes = {}
