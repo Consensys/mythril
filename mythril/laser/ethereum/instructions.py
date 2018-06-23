@@ -17,7 +17,6 @@ TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
 
-
 class StackUnderflowException(Exception):
     pass
 
@@ -44,7 +43,6 @@ class Instruction:
     """
 
     def __init__(self, op_code, dynamic_loader):
-        # assert any(mPlambda opcodes_element: op_code == opcodes_element[0], opcodes)
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code
 
@@ -63,8 +61,7 @@ class Instruction:
             op = "log"
 
         instruction_mutator = getattr(self, op + '_', None)
-        if global_state.mstate.pc == 322:
-            global_state.op_code = self.op_code
+
         if instruction_mutator is None:
             raise NotImplemented
 
@@ -77,9 +74,7 @@ class Instruction:
     @instruction
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
-        slen = len(global_state.mstate.stack)
         global_state.mstate.stack.append(value)
-        assert len(global_state.mstate.stack) == slen + 1
         return [global_state]
 
     @instruction
