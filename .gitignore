@@ -177,3 +177,6 @@ coverage_html_report/
 tests/testdata/outputs_current/
 tests/testdata/outputs_current_laser_result/
 tests/mythril_dir/signatures.json
+
+# VSCode
+.vscode
