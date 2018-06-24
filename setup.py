@@ -323,8 +323,8 @@ setup(
         'rlp<1.0.0',
         'py-flags',
         'mock',
-        'configparser',
-        'persistent'
+        'configparser>=3.5.0',
+        'persistent>=4.2.0'
     ],
 
     tests_require=[
