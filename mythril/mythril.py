@@ -163,7 +163,7 @@ class Mythril(object):
             config.set('defaults', "#– Linux: ~/.ethereum/geth/chaindata")
             config.set('defaults', "#– Windows: %USERPROFILE%\\AppData\\Roaming\\Ethereum\\geth\\chaindata")
             config.set('defaults', 'leveldb_dir', fallback_dir)
-            with open(config_path, 'w', 'utf-8') as fp:
+            with codecs.open(config_path, 'w', 'utf-8') as fp:
                 config.write(fp)
 
         config = ConfigParser(allow_no_value=True)
