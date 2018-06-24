@@ -51,17 +51,15 @@ class EthLevelDB(object):
                 md5.update(code.encode('UTF-8'))
                 contract_hash = md5.digest()
                 contract = ETHContract(code, name=contract_hash.hex())
-                instance_list = InstanceList()
-                instance_list.add(_encode_hex(account.address), account.balance)
-                yield contract, instance_list
+                yield contract, _encode_hex(account.address), account.balance
 
     def search(self, expression, search_all, callback_func):
         '''
         searches through non-zero balance contracts
         '''
-        for contract, instance_list in self.get_contracts(search_all):
+        for contract, address, balance in self.get_contracts(search_all):
             if contract.matches_expression(expression):
-                callback_func(contract.name, contract, instance_list.addresses, instance_list.balances)
+                callback_func(contract.name, contract, [address], [balance])
 
     def eth_getBlockHeaderByNumber(self, number):
         '''
@@ -141,7 +139,7 @@ class EthLevelDB(object):
                 hash = self.headBlockHeader.prevhash
                 num = self._get_block_number(hash)
                 self.headBlockHeader = self._get_block_header(hash, num)
-            
+
         return self.headBlockHeader
 
     def _get_block_number(self, hash):
