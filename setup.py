@@ -159,26 +159,24 @@ unfortunately completely destroys usability.
 Blockchain exploration
 ----------------------
 
-Mythril builds its own contract database to enable fast search
-operations. This enables operations like those described in the
-`legendary "Mitch Brenner" blog
-post <https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
-in [STRIKEOUT:seconds] minutes instead of days. Unfortunately, the
-initial sync process is slow. You don't need to sync the whole
-blockchain right away though: If you abort the syncing process with
-``ctrl+c``, it will be auto-resumed the next time you run the
-``--init-db`` command.
+Mythril allows to search geth contract database directly as well as
+perform other operations targetting local geth database instead of
+exposed RPC/IPC API. This enables operations like those described
+in the `legendary "Mitch Brenner" blog post
+<https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
+in [STRIKEOUT:seconds] minutes instead of days.
 
-.. code:: bash
+The default behavior is to search contracts with a non-zero balance.
+You can disable this behavior with the ``--search-all`` flag.
 
-    $ myth --init-db
-    Starting synchronization from latest block: 4323706
-    Processing block 4323000, 3 individual contracts in database
-    (...)
+You may also use geth database directly for fetching contracts instead of
+using IPC/RPC APIs by specifying ``--leveldb`` flag. This is useful
+because search will return hashed addresses which will not be accepted by
+IPC/RPC APIs.
 
-The default behavior is to only sync contracts with a non-zero balance.
-You can disable this behavior with the ``--sync-all`` flag, but be aware
-that this will result in a huge (as in: dozens of GB) database.
+By default database operations will target default geth data directory on
+your system. You may edit the generated configuration at ``~/.mythril/config.ini``
+or you may supply ``--leveldb-dir <PATH>`` parameter in command line.
 
 Searching from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -190,8 +188,9 @@ expressions, such as:
 .. code:: bash
 
     $ myth --search "func#changeMultisig(address)#"
-    $ myth --search "code#PUSH1 0x50,POP#"
+    $ myth --search "code#PUSH1 0x50,POP#" --search-all
     $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
+    $ myth -s "code#PUSH#" --leveldb-dir /Volumes/MyPassport/Ether/Rinkeby/geth/chaindata
 
 Reading contract storage
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -307,10 +306,8 @@ setup(
 
     install_requires=[
         'ethereum>=2.3.0',
-        'ZODB>=5.3.0',
         'z3-solver>=4.5',
         'requests',
-        'BTrees',
         'py-solc',
         'plyvel',
         'eth_abi>=1.0.0',
@@ -325,7 +322,9 @@ setup(
         'jinja2',
         'rlp<1.0.0',
         'py-flags',
-        'mock'
+        'mock',
+        'configparser',
+        'persistent'
     ],
 
     tests_require=[

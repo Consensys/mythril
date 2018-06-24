@@ -121,10 +121,8 @@ class State():
 
     def get_all_accounts(self):
         '''
-        iterates through trie to get all items
+        iterates through trie to and yields non-blank leafs as accounts
         '''
-        accounts = []
-        for addressHash, rlpdata in self.secureTrie.trie.to_dict().items():
+        for addressHash, rlpdata in self.secureTrie.trie.iter_branch():
             if rlpdata != trie.BLANK_NODE:
-                accounts.append(rlp.decode(rlpdata, Account, db=self.db, address=addressHash))
-        return accounts
+                yield rlp.decode(rlpdata, Account, db=self.db, address=addressHash)

@@ -39,55 +39,29 @@ class EthLevelDB(object):
         self.db = ETH_DB(path)
         self.headBlockHeader = None
         self.headState = None
-        self.all_contracts = None
-        self.active_contracts = None
-        self.instance_lists = None
 
-    def get_all_contracts(self):
+    def get_contracts(self, search_all):
         '''
-        get all contracts
+        iterate through contracts with non-zero balance by default or all if search_all is set
         '''
-        if not self.all_contracts:
-            self.all_contracts = []
-            self.active_contracts = []
-            self.instance_lists = []
-            state = self._get_head_state()
-            accounts = state.get_all_accounts()
+        for account in self._get_head_state().get_all_accounts():
+            if account.code is not None and (search_all or account.balance != 0):
+                code = _encode_hex(account.code)
+                md5 = hashlib.md5()
+                md5.update(code.encode('UTF-8'))
+                contract_hash = md5.digest()
+                contract = ETHContract(code, name=contract_hash.hex())
+                instance_list = InstanceList()
+                instance_list.add(_encode_hex(account.address), account.balance)
+                yield contract, instance_list
 
-            for a in accounts:
-                if a.code is not None:
-                    code = _encode_hex(a.code)
-                    md5 = hashlib.md5()
-                    md5.update(code.encode('UTF-8'))
-                    contract_hash = md5.digest()
-                    contract = ETHContract(code, name=contract_hash.hex())
-                    self.all_contracts.append(contract)
-
-                    if a.balance != 0:
-                        md5 = InstanceList()
-                        md5.add(_encode_hex(a.address), a.balance)
-                        self.instance_lists.append(md5)
-                        self.active_contracts.append(contract)
-
-        return self.all_contracts
-
-    def get_active_contracts(self):
-        '''
-        get all contracts with non-zero balance
-        '''
-        if not self.active_contracts:
-            self.get_all_contracts() # optimized
-        return self.active_contracts
-
-    def search(self, expression, callback_func):
+    def search(self, expression, search_all, callback_func):
         '''
         searches through non-zero balance contracts
         '''
-        contracts = self.get_active_contracts()
-        for i in range(0, len(contracts)):
-            if contracts[i].matches_expression(expression):
-                m = self.instance_lists[i]
-                callback_func(contracts[i].name, contracts[i], m.addresses, m.balances)
+        for contract, instance_list in self.get_contracts(search_all):
+            if contract.matches_expression(expression):
+                callback_func(contract.name, contract, instance_list.addresses, instance_list.balances)
 
     def eth_getBlockHeaderByNumber(self, number):
         '''
