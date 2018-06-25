@@ -128,12 +128,6 @@ class TaintRunner:
 
     @staticmethod
     def execute_state(record, state):
-        op = state.get_current_instruction()['opcode']
-        addr = state.get_current_instruction()['address']
-        logging.debug("Taint: {}; {}".format(op, addr))
-        logging.debug("Taint: {}; {}".format(len(state.mstate.stack), len(record.stack)))
-        logging.debug("Taint: {}".format(state.op_code))
-
         assert len(state.mstate.stack) == len(record.stack)
         """ Runs taint analysis on a state """
         record.add_state(state)
