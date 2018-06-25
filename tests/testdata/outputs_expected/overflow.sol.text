@@ -12,7 +12,7 @@ balances[msg.sender] -= _value
 
 --------------------
 
-==== Integer Overflow  ====
+==== Integer Overflow ====
 Type: Warning
 Contract: Over
 Function name: sendeth(address,uint256)
