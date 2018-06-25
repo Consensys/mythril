@@ -11,7 +11,7 @@ def test_concrete_call():
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None)
+    state = GlobalState(None, None, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
     node = Node("example")
@@ -42,7 +42,7 @@ def test_concrete_call_symbolic_to():
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None)
+    state = GlobalState(None, None, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
     node = Node("example")
@@ -71,7 +71,7 @@ def test_concrete_call_symbolic_to():
 
 def test_concrete_call_not_calldata():
     # arrange
-    state = GlobalState(None, None)
+    state = GlobalState(None, None, None)
     state.mstate.memory = ["placeholder", "not_calldata"]
     meminstart = Variable(1, VarType.CONCRETE)
 
@@ -88,7 +88,7 @@ def test_symbolic_call_storage_to(mocker):
 
     active_account = Account(address)
     environment = Environment(active_account, None, None, None, None, None)
-    state = GlobalState(None, environment)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
 
@@ -126,7 +126,7 @@ def test_symbolic_call_calldata_to(mocker):
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None)
+    state = GlobalState(None, None, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
 
@@ -172,7 +172,7 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
 
     active_account = Account('0x10')
     environment = Environment(active_account, None, None, None, None, None)
-    state = GlobalState(None, environment)
+    state = GlobalState(None, environment, Node)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
     state.mstate.stack = [1, 2, 3]
     assert state.get_current_instruction() == {'address': '0x10'}
