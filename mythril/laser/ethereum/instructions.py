@@ -63,7 +63,7 @@ class Instruction:
         instruction_mutator = getattr(self, op + '_', None)
 
         if instruction_mutator is None:
-            raise NotImplemented
+            raise NotImplementedError
 
         return instruction_mutator(global_state)
 
