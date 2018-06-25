@@ -134,6 +134,7 @@ class TaintRunner:
         new_record = record.clone()
 
         # Apply Change
+        op = state.get_current_instruction()['opcode']
 
         if op in TaintRunner.stack_taint_table.keys():
             mutator = TaintRunner.stack_taint_table[op]
