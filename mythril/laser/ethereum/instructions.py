@@ -803,10 +803,12 @@ class Instruction:
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         try:
-            return_value = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
+            _ = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
-            return_value = BitVec("return_value" + global_state.environment.active_function_name, 256)
+
+        #TODO: return 1
+        return_value = BitVec("retval_" + global_state.environment.active_function_name, 256)
 
         state.stack.append(return_value)
         if global_state.call_stack == []:
