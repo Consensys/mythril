@@ -1,6 +1,6 @@
 defaults: &defaults
   docker:
-    - image: birdofpreyru/mythril-integration-tests:0.0.4
+    - image: mythril/dev_test_environment:latest
 
 version: 2
 jobs:
@@ -24,8 +24,8 @@ jobs:
           command: tox -vv --notest
           working_directory: /home/mythril
           environment:
-            LC_ALL: C.UTF-8
-            LANG: C.UTF-8
+            LC_ALL: en_US.ASCII
+            LANG: en_US.ASCII
 
       - save_cache:
           key: tox-env-{{ checksum "/home/mythril/setup.py" }}
@@ -43,8 +43,8 @@ jobs:
           command: tox
           working_directory: /home/mythril
           environment:
-            LC_ALL: C.UTF-8
-            LANG: C.UTF-8
+            LC_ALL: en_US.ASCII
+            LANG: en_US.ASCII
 
       - store_test_results:
           path: /home/mythril/.tox/output
@@ -62,7 +62,7 @@ jobs:
           command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
           working_directory: /home
 
-  deploy:
+  pypi_release:
     <<: *defaults
     steps:
       - checkout:
@@ -80,6 +80,16 @@ jobs:
           command: twine upload dist/*
           working_directory: /home/mythril
 
+  dockerhub_release:
+    docker:
+      - image: docker:stable
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Building Docker Image
+          command: ./docker_build_and_deploy.sh
+
 workflows:
   version: 2
   build:
@@ -88,7 +98,15 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - deploy:
+      - pypi_release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
+      - dockerhub_release:
           filters:
             branches:
               ignore: /.*/
