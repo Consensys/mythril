@@ -17,7 +17,7 @@ In *<TESTDATA>/inputs/overflow.sol:12*
 balances[msg.sender] -= _value
 ```
 
-## Integer Overflow
+## Integer Overflow 
 
 - Type: Warning
 - Contract: Over

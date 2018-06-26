@@ -3,7 +3,7 @@
     "error": null,
     "issues": [
         {
-            "title": "Integer Overflow",
+            "title": "Integer Overflow ",
             "description": "A possible integer overflow exists in the function `sendToken(address,uint256)`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
             "function": "sendToken(address,uint256)",
             "type": "Warning",
