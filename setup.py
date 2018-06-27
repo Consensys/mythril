@@ -319,7 +319,7 @@ setup(
         'eth-rlp>=0.1.0',
         'eth-tester>=0.1.0b21',
         'coverage',
-        'jinja2',
+        'jinja2>=2.9',
         'rlp<1.0.0',
         'py-flags',
         'mock',
