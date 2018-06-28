@@ -9,7 +9,7 @@ eth-keys>=0.2.0b3
 eth-rlp>=0.1.0
 eth-tester>=0.1.0b21
 eth-utils>=1.0.1
-jinja2
+jinja2>=2.9
 mock
 persistent>=4.2.0
 plyvel
