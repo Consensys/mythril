@@ -83,9 +83,9 @@ def _check_integer_overflow(statespace, state, node):
 
     if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
         return issues
-    
+
     # Build issue
-    issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
+    issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow", "Warning")
 
     issue.description = "A possible integer overflow exists in the function `{}`.\n" \
                         "The addition or multiplication may result in a value higher than the maximum representable integer.".format(

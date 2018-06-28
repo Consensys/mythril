@@ -1,6 +1,6 @@
 # Analysis results for test-filename.sol
 
-## Integer Overflow 
+## Integer Overflow
 
 - Type: Warning
 - Contract: Unknown

@@ -24,7 +24,7 @@ The subtraction may result in a value < 0.
 A possible integer underflow exists in the function `sendeth(address,uint256)`.
 The subtraction may result in a value < 0.
 
-## Integer Overflow 
+## Integer Overflow
 
 - Type: Warning
 - Contract: Unknown
