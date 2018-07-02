@@ -31,7 +31,7 @@ def get_call_parameters(global_state, dynamic_loader, with_value=False):
             state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
         value = None
 
-    callee_address = get_callee_address(global_state, dynamic_loader)
+    callee_address = get_callee_address(global_state, dynamic_loader, to)
 
     if int(callee_address, 16) < 5:
         logging.info("Native contract called: " + callee_address)
@@ -45,14 +45,13 @@ def get_call_parameters(global_state, dynamic_loader, with_value=False):
     return callee_account, call_data, value, call_data_type, gas
 
 
-def get_callee_address(global_state, dynamic_loader):
+def get_callee_address(global_state, dynamic_loader, to):
     """
     Gets the address of the callee
     :param global_state: state to look in
     :param dynamic_loader:  dynamic loader to use
     :return: Address of the callee
     """
-    to = global_state.mstate.stack[-2]
     environment = global_state.environment
 
     try:
