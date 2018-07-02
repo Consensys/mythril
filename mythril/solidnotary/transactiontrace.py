@@ -38,6 +38,8 @@ def is_t_variable(var):
     else:
         return False
 
+# Todo constructor mit den intentet initvalues versorgen
+
 
 def filter_for_t_variable_data(sym_vars):
     return list(filter(lambda x: is_t_variable(x), sym_vars))
@@ -45,11 +47,11 @@ def filter_for_t_variable_data(sym_vars):
 class TransactionTrace:
 
     def __init__(self, storage, constraints, lvl=1):
-        self.storage = storage # Todo give all non storage symbolic values that can be different every transaction the number one
+        self.storage = deepcopy(storage) # Todo give all non storage symbolic values that can be different every transaction the number one
         self.constraints = constraints # Todo eliminate all constraints that are not regarding the beginning of the transaction may not be necessary
         # eliminate all constraints that only contain names not in the set of names from storage
         self.constraints = simplify_constraints(self.constraints) # Todo simplification of the sum of constraints
-        self.tran_constraints = deepcopy(self.constraints)
+        self.tran_constraints = deepcopy(self.constraints) # Todo minimize them if they do not involve outside symb variables
         self.lvl = lvl
         self.sym_names = self.extract_sym_names_from_storage()
         self.sym_names.extend(self.extract_sym_names_from_constraints())
