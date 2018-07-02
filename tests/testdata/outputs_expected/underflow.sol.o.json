@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-{"error": null, "issues": [{"address": 567, "debug": "<DEBUG-DATA>", "description": "A possible integer underflow exists in the function `sendeth(address,uint256)`.\nThe subtraction may result in a value < 0.", "function": "sendeth(address,uint256)", "title": "Integer Underflow", "type": "Warning"}, {"address": 649, "debug": "<DEBUG-DATA>", "description": "A possible integer underflow exists in the function `sendeth(address,uint256)`.\nThe subtraction may result in a value < 0.", "function": "sendeth(address,uint256)", "title": "Integer Underflow", "type": "Warning"}, {"address": 725, "debug": "<DEBUG-DATA>", "description": "A possible integer overflow exists in the function `sendeth(address,uint256)`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.", "function": "sendeth(address,uint256)", "title": "Integer Overflow ", "type": "Warning"}], "success": true}
-=======
 {
     "success": true,
     "error": null,
@@ -31,4 +28,3 @@
         }
     ]
 }
->>>>>>> upstream/master
