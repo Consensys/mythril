@@ -512,7 +512,7 @@ class Instruction:
     @instruction
     def extcodesize_(self, global_state):
         addr = global_state.mstate.stack.pop()
-        global_state.state.stack.append(BitVec("extcodesize", 256))
+        global_state.mstate.stack.append(BitVec("extcodesize", 256))
         return [global_state]
 
     @instruction
@@ -800,6 +800,7 @@ class Instruction:
 
     @instruction
     def return_(self, global_state):
+        # TODO: memory
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         try:
@@ -811,7 +812,8 @@ class Instruction:
         return_value = BitVec("retval_" + global_state.environment.active_function_name, 256)
 
         state.stack.append(return_value)
-        if global_state.call_stack == []:
+
+        if not global_state.call_stack:
             return []
 
         global_state.mstate.pc = global_state.call_stack.pop()
@@ -855,9 +857,8 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
-            # global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
-            # return [global_state]
-            return []
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
 
         global_state.call_stack.append(instr['address'])
         callee_environment = Environment(callee_account,
