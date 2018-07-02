@@ -1,7 +1,7 @@
 import json
 from mythril.ether.soliditycontract import SolidityContract
 
-from mythril.laser.ethereum.svm import GlobalState, MachineState
+from mythril.laser.ethereum.state import GlobalState, MachineState
 from mythril.laser.ethereum import svm
 from tests import *
 
