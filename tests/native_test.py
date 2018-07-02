@@ -99,19 +99,19 @@ def _test_natives(laser_info, test_list, test_name):
 
 
 
-class NativeTests(BaseTestCase):
-    def runTest(self):
-        disassembly = SolidityContract('./tests/native_tests.sol').disassembly
-        account = svm.Account("0x0000000000000000000000000000000000000000", disassembly)
-        accounts = {account.address: account}
-
-        laser = svm.LaserEVM(accounts, max_depth = 100)
-        laser.sym_exec(account.address)
-        laser_info = str(_all_info(laser))
-        print('\n')
-
-        _test_natives(laser_info, SHA256_TEST, 'SHA256')
-        _test_natives(laser_info, RIPEMD160_TEST, 'RIPEMD160')
-        _test_natives(laser_info, ECRECOVER_TEST, 'ECRECOVER')
-        _test_natives(laser_info, IDENTITY_TEST, 'IDENTITY')
+# class NativeTests(BaseTestCase):
+#     def runTest(self):
+#         disassembly = SolidityContract('./tests/native_tests.sol').disassembly
+#         account = svm.Account("0x0000000000000000000000000000000000000000", disassembly)
+#         accounts = {account.address: account}
+#
+#         laser = svm.LaserEVM(accounts, max_depth = 100)
+#         laser.sym_exec(account.address)
+#         laser_info = str(_all_info(laser))
+#         print('\n')
+#
+#         _test_natives(laser_info, SHA256_TEST, 'SHA256')
+#         _test_natives(laser_info, RIPEMD160_TEST, 'RIPEMD160')
+#         _test_natives(laser_info, ECRECOVER_TEST, 'ECRECOVER')
+#         _test_natives(laser_info, IDENTITY_TEST, 'IDENTITY')
 
