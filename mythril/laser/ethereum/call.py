@@ -24,25 +24,23 @@ def get_call_parameters(global_state, dynamic_loader, with_value=False):
     instr = global_state.get_current_instruction()
 
     if with_value:
-        gas, to, value, meminstart, meminsz, memoutstart, memoutsz = \
+        gas, to, value, meminstart, meminsz, memory_out_offset, memory_out_size = \
             state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
     else:
-        gas, to, meminstart, meminsz, memoutstart, memoutsz = \
+        gas, to, meminstart, meminsz, memory_out_offset, memory_out_size = \
             state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
         value = None
 
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
-    if int(callee_address, 16) < 5:
-        logging.info("Native contract called: " + callee_address)
-        # Todo: Implement native contracts
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
-        return [global_state]
+    callee_account = None
+    call_data, call_data_type = get_call_data(global_state, meminstart, meminsz, False)
 
-    callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
-    call_data, call_data_type = get_call_data(global_state, meminstart, meminsz)
+    if int(callee_address, 16) >= 5:
+        call_data, call_data_type = get_call_data(global_state, meminstart, meminsz)
+        callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
 
-    return callee_account, call_data, value, call_data_type, gas
+    return callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size
 
 
 def get_callee_address(global_state, dynamic_loader, to):
@@ -119,7 +117,7 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     logging.info("Dependency loaded: " + callee_address)
 
 
-def get_call_data(global_state, memory_start, memory_size):
+def get_call_data(global_state, memory_start, memory_size, pad=True):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
@@ -132,7 +130,7 @@ def get_call_data(global_state, memory_start, memory_size):
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
         call_data = state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
-        if len(call_data) < 32:
+        if len(call_data) < 32 and pad:
             call_data += [0] * (32 - len(call_data))
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))

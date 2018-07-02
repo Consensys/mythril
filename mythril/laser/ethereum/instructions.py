@@ -12,6 +12,7 @@ import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
+import mythril.laser.ethereum.natives as natives
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -851,12 +852,39 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, self.dynamic_loader, True)
+            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        if 0 < int(callee_address, 16) < 5:
+            logging.info("Native contract called: " + callee_address)
+            if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
+                logging.debug("CALL with symbolic data not supported")
+                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+                return [global_state]
+
+            data = natives.native_contracts(int(callee_address, 16), call_data)
+            try:
+                mem_out_start = helper.get_concrete_int(memory_out_offset)
+                mem_out_sz = memory_out_size.as_long()
+            except AttributeError:
+                logging.debug("CALL with symbolic start or offset not supported")
+                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+                return [global_state]
+
+            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+            try:
+                for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
+                    global_state.mstate.memory[mem_out_start + i] = data[i]
+            except:
+                global_state.mstate.memory[mem_out_start] = BitVec(data, 256)
+
+            # TODO: maybe use BitVec here constrained to 1
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
@@ -879,7 +907,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_account, call_data, value, call_data_type, gas = get_call_parameters(global_state, self.dynamic_loader, True)
+            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
@@ -907,7 +935,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_account, call_data, _, call_data_type, gas = get_call_parameters(global_state, self.dynamic_loader)
+            callee_address, callee_account, call_data, _, call_data_type, gas, _, _ = get_call_parameters(global_state, self.dynamic_loader)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)

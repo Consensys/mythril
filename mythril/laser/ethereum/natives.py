@@ -6,7 +6,7 @@ import hashlib
 import coincurve
 
 from py_ecc.secp256k1 import N as secp256k1n
-from mythril.laser.ethereum.helper import ALL_BYTES, bytearray_to_int, concrete_int_to_bytes, sha3, zpad
+from mythril.laser.ethereum.util import ALL_BYTES, bytearray_to_int, concrete_int_to_bytes, sha3, zpad
 
 
 def int_to_32bytes(i):   #used because int can't fit as bytes function's input
