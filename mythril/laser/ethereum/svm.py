@@ -635,7 +635,7 @@ class LaserEVM:
                 state.stack.append(environment.sender)
 
             elif op == 'CODESIZE':
-                state.stack.append(len(disassembly.instruction_list))
+                state.stack.append(len(disassembly.bytecode) // 2)
 
             if op == 'SHA3':
                 op0, op1 = state.stack.pop(), state.stack.pop()

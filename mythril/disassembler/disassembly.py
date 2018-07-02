@@ -11,6 +11,7 @@ class Disassembly:
         self.xrefs = []
         self.func_to_addr = {}
         self.addr_to_func = {}
+        self.bytecode = code
 
         try:
             mythril_dir = os.environ['MYTHRIL_DIR']
