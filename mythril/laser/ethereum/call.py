@@ -56,29 +56,29 @@ def get_callee_address(global_state, dynamic_loader, to):
 
     try:
         callee_address = hex(util.get_concrete_int(to))
-        return callee_address
     except AttributeError:
         logging.info("Symbolic call encountered")
 
-    match = re.search(r'storage_(\d+)', str(simplify(to)))
-    logging.debug("CALL to: " + str(simplify(to)))
+        match = re.search(r'storage_(\d+)', str(simplify(to)))
+        logging.debug("CALL to: " + str(simplify(to)))
 
-    if match is None or dynamic_loader is None:
-        raise ValueError()
+        if match is None or dynamic_loader is None:
+            raise ValueError()
 
-    index = int(match.group(1))
-    logging.info("Dynamic contract address at storage index {}".format(index))
+        index = int(match.group(1))
+        logging.info("Dynamic contract address at storage index {}".format(index))
 
-    # attempt to read the contract address from instance storage
-    try:
-        callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
-    except:
-        logging.debug("Error accessing contract storage.")
-        raise ValueError()
+        # attempt to read the contract address from instance storage
+        # TODO: we need to do this correctly using multi transactional analysis
+        try:
+            callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
+        except:
+            logging.debug("Error accessing contract storage.")
+            raise ValueError
 
-    # testrpc simply returns the address, geth response is more elaborate.
-    if not re.match(r"^0x[0-9a-f]{40}$", callee_address):
-        callee_address = "0x" + callee_address[26:]
+        # testrpc simply returns the address, geth response is more elaborate.
+        if not re.match(r"^0x[0-9a-f]{40}$", callee_address):
+            callee_address = "0x" + callee_address[26:]
 
     return callee_address
 
