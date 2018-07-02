@@ -19,7 +19,7 @@ class SolidNotary:
         pass
 
 def get_transaction_traces(statespace):
-    logging.debug("Executing module: Transaction End")
+    print("get_transaction_traces")
 
     traces = []
 
@@ -27,7 +27,24 @@ def get_transaction_traces(statespace):
         node = statespace.nodes[k]
         for state in node.states:
             instruction = state.get_current_instruction()
+            # print("op: " + str(instruction['opcode']) + ((" " + instruction['argument']) if instruction['opcode'].startswith("PUSH") else "") + " stack: " + str(state.mstate.stack).replace("\n", "")+ " mem: " + str(state.mstate.memory).replace("\n", ""))
             if instruction['opcode'] == "STOP":
+                if are_satisfiable(state.mstate.constraints):
+                    traces.append(TransactionTrace(state.environment.active_account.storage, state.mstate.constraints))
+    return traces
+
+def get_construction_traces(statespace):
+    print("get_constructor_traces")
+
+    traces = []
+
+    for k in statespace.nodes:
+        node = statespace.nodes[k]
+        for state in node.states:
+            instruction = state.get_current_instruction()
+
+            # print("op: " + str(instruction['opcode']) + ((" " + instruction['argument']) if instruction['opcode'].startswith("PUSH") else "") + " stack: " + str(state.mstate.stack).replace("\n", "")+ " mem: " + str(state.mstate.memory).replace("\n", ""))
+            if instruction['opcode'] == "RETURN":
                 if are_satisfiable(state.mstate.constraints):
                     traces.append(TransactionTrace(state.environment.active_account.storage, state.mstate.constraints))
     return traces
