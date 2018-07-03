@@ -1,5 +1,4 @@
 from mythril.laser.ethereum import helper, natives
-from mythril import mythril
 from ethereum import utils
 from enum import Enum
 from flags import Flags
@@ -678,22 +677,22 @@ class LaserEVM:
 
             elif op == 'EXTCODESIZE':
                 addr = state.stack.pop()
-                myth = mythril.Mythril()
-                try:
-                    myth.set_api_rpc_infura()
-                except Exception as e:
-                    logging.info("Error while connecting to infura")
-                    state.stack.append(BitVec("extcodesize_"+str(addr), 256))
-                    continue
 
                 try:
-                    _, code = myth.load_from_address(hex(helper.get_concrete_int(addr)))
+                    addr = hex(helper.get_concrete_int(addr))
                 except AttributeError:
                     logging.info("unsupported symbolic address for EXTCODESIZE")
                     state.stack.append(BitVec("extcodesize_"+str(addr), 256))
                     continue
 
-                state.stack.append(len(code.code) // 2)
+                try:
+                    code = self.dynamic_loader.dynld(environment.active_account.address, addr)
+                except Exception as e:
+                    logging.info("error accessing contract storage due to: "+str(e))
+                    state.stack.append(BitVec("extcodesize_"+str(addr), 256))
+                    continue
+
+                state.stack.append(len(code.bytecode) // 2)
 
             elif op == 'EXTCODECOPY':
                 # Not implemented
