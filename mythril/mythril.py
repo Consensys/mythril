@@ -339,7 +339,7 @@ class Mythril(object):
             if self.eth is None:
                 self.set_api_rpc_infura()
             sym = SymExecWrapper(contract, address,
-                                 dynloader=DynLoader(self.eth) if not self.dynld else None,
+                                 dynloader=DynLoader(self.eth) if not self.dynld else self.dynld,
                                  max_depth=max_depth)
 
             issues = fire_lasers(sym, modules)
