@@ -12,11 +12,11 @@ class Disassembly:
         self.addr_to_func = {}
         self.bytecode = code
 
-        signatures = Signatures(enable_online_lookkup=True)  # control if you want to have online sighash lookups
+        signatures = Signatures(enable_online_lookup=True)  # control if you want to have online sighash lookups
         try:
             signatures.open()  # open from default locations
         except FileNotFoundError:
-            logging.info("Missing function signature file. Resolving of function names from disabled.")
+            logging.info("Missing function signature file. Resolving of function names from signature file disabled.")
 
         # Parse jump table & resolve function names
 
@@ -25,7 +25,15 @@ class Disassembly:
         for i in jmptable_indices:
             func_hash = self.instruction_list[i]['argument']
             try:
-                func_name = signatures.get(func_hash)  # tries local cache, file and optional online lookup
+                # tries local cache, file and optional online lookup
+                # may return more than one function signature. since we cannot probe for the correct one we'll use the first
+                func_names = signatures.get(func_hash)
+                if len(func_names) > 1:
+                    # ambigious result
+                    func_name = "**ambiguous** %s"%func_names[0]  # return first hit but note that result was ambiguous
+                else:
+                    # only one item
+                    func_name = func_names[0]
             except KeyError:
                 func_name = "_function_" + func_hash
 

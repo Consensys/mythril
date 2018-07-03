@@ -56,9 +56,9 @@ def add_signatures_from_file(file, sigs={}):
 
 class Signatures(object):
 
-    def __init__(self, enable_online_lookkup=True):
+    def __init__(self, enable_online_lookup=True):
         self.signatures = {}  # signatures in-mem cache
-        self.enable_online_lookup =enable_online_lookkup  # enable online funcsig resolving
+        self.enable_online_lookup =enable_online_lookup  # enable online funcsig resolving
 
     def open(self, path=None):
         if not path:
@@ -91,14 +91,17 @@ class Signatures(object):
         :return: list of function signatures
         """
         if not self.signatures.get(sighash) and self.enable_online_lookup:
-            self.signatures[sighash] = Signatures.lookup_online(sighash)  # might return multiple sigs
-        return self.signatures.get(sighash)
+            funcsigs = Signatures.lookup_online(sighash)  # might return multiple sigs
+            if funcsigs:
+                # only store if we get at least one result
+                self.signatures[sighash] = funcsigs
+        return self.signatures[sighash]  # raise keyerror
 
 
     @staticmethod
     def lookup_online(sighash):
         """
-        Lookup function signatures from 4bytes.directory.
+        Lookup function signatures from 4byte.directory.
         //tintinweb: the smart-contract-sanctuary project dumps contracts from etherscan.io and feeds them into
                      4bytes.directory.
                      https://github.com/tintinweb/smart-contract-sanctuary
