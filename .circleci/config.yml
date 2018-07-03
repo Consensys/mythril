@@ -1,11 +1,12 @@
-version: 2
+defaults: &defaults
+  docker:
+    - image: mythril/dev_test_environment:latest
 
+version: 2
 jobs:
   # Basic testing of a new commit to any branch.
   test:
-    docker:
-      - image: birdofpreyru/mythril:0.0.1
-
+    <<: *defaults
     steps:
       - checkout:
           path: /home/mythril
@@ -14,13 +15,23 @@ jobs:
       # path param in checkout command, and this symlink compenstates for that.
       # - run: ln -s /root/project /home/mythril
 
-      - run:
-          name: Installing mythril tools
-          command: cd /home && ./install-mythril-tools.sh laser-ethereum
+      - restore-cache:
+          keys:
+            - tox-env-{{ checksum "/home/mythril/setup.py" }}
 
       - run:
-          name: Install dependencies, in case any are missing in Docker image
-          command: pip3 install -r /home/mythril/requirements.txt
+          name: Install tox envs
+          command: tox -vv --notest
+          working_directory: /home/mythril
+          environment:
+            LC_ALL: en_US.ASCII
+            LANG: en_US.ASCII
+
+      - save_cache:
+          key: tox-env-{{ checksum "/home/mythril/setup.py" }}
+          paths: 
+            - .tox/py*
+            - /root/.cache/pip/wheels/
 
       - run:
           background: true
@@ -29,33 +40,55 @@ jobs:
 
       - run:
           name: Unit-testing
-          command: cd /home/mythril && ./all_tests.sh
+          command: tox
+          working_directory: /home/mythril
+          environment:
+            LC_ALL: en_US.ASCII
+            LANG: en_US.ASCII
 
       - store_test_results:
-          path: /tmp/test-reports
+          path: /home/mythril/.tox/output
 
       - store_artifacts:
-          path: /tmp/test-reports
+          path: /home/mythril/.tox/output
 
       - run:
           name: Ensuring that setup script is functional
-          command: cd /home/mythril && python3 setup.py install
+          command: python3 setup.py install
+          working_directory: /home/mythril
 
-  deploy:
-    docker:
-      - image: birdofpreyru/mythril:0.0.1
+      - run:
+          name: Integration tests
+          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
+          working_directory: /home
+
+  pypi_release:
+    <<: *defaults
     steps:
       - checkout:
           path: /home/mythril
       - run:
           name: Verify Git tag vs. version
-          command: cd /home/mythril && python3 setup.py verify
+          command: python3 setup.py verify
+          working_directory: /home/mythril
       - run:
           name: Build
-          command: cd /home/mythril && python3 setup.py sdist
+          command: python3 setup.py sdist
+          working_directory: /home/mythril
       - run:
           name: Deploy
-          command: cd /home/mythril && twine upload dist/*
+          command: twine upload dist/*
+          working_directory: /home/mythril
+
+  dockerhub_release:
+    docker:
+      - image: docker:stable
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Building Docker Image
+          command: ./docker_build_and_deploy.sh
 
 workflows:
   version: 2
@@ -65,7 +98,15 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - deploy:
+      - pypi_release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
+      - dockerhub_release:
           filters:
             branches:
               ignore: /.*/

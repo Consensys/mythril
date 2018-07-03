@@ -4,28 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-requests = "*"
-plyvel = "*"
-py-solc = "*"
-coverage = "*"
-BTrees = "*"
-ethereum = ">=2.3.0"
-zodb = ">=5.3.0"
-eth-abi = "*"
-"z3-solver" = ">=4.5"
-eth-account = "*"
-eth-tester = "*"
-laser-ethereum = ">=0.5.20"
-"jinja2" = "*"
-attrs = ">=17.0.0"
-rlp = "<1.0.0"
+"e1839a8" = {path = ".", editable = true}
+
 [dev-packages]
 pylint = "*"
 yapf = "*"
 pytest = "*"
+pytest-mock = "*"
+pytest-cov = "*"
 
 [requires]
-python_version = "3.6"
 
 [pipenv]
 allow_prereleases = true

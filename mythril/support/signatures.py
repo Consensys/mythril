@@ -10,7 +10,7 @@ def add_signatures_from_file(file, sigs={}):
 
         code = f.read()
 
-    funcs = re.findall(r'function[\s]+(.*?\))', code, re.DOTALL)
+    funcs = re.findall(r'function[\s]+(\w+\([^\)]*\))', code, re.DOTALL)
 
     for f in funcs:
 

@@ -1,4 +1,4 @@
-import laser.ethereum.helper as helper
+import mythril.laser.ethereum.helper as helper
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import *
 from mythril.exceptions import NoContractFoundError
@@ -36,7 +36,7 @@ class SolidityContract(ETHContract):
         self.solidity_files = []
 
         for filename in data['sourceList']:
-            with open(filename, 'r') as file:
+            with open(filename, 'r', encoding='utf-8') as file:
                 code = file.read()
                 self.solidity_files.append(SolidityFile(filename, code))
 

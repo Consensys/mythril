@@ -49,8 +49,9 @@ def main():
     outputs.add_argument('--verbose-report', action='store_true', help='Include debugging information in report')
 
     database = parser.add_argument_group('local contracts database')
-    database.add_argument('--init-db', action='store_true', help='initialize the contract database')
     database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
+    database.add_argument('--leveldb-dir', help='specify leveldb directory for search or direct access operations', metavar='LEVELDB_PATH')
+    database.add_argument('--search-all', action='store_true', help='search all contracts instead of active (non-zero balance) only')
 
     utilities = parser.add_argument_group('utilities')
     utilities.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
@@ -62,18 +63,18 @@ def main():
 
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
-    options.add_argument('--max-depth', type=int, default=12, help='Maximum recursion depth for symbolic execution')
+    options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
     options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
-    options.add_argument('--leveldb', help='enable direct leveldb access operations', metavar='LEVELDB_PATH')
 
     rpc = parser.add_argument_group('RPC options')
     rpc.add_argument('-i', action='store_true', help='Preset: Infura Node service (Mainnet)')
     rpc.add_argument('--rpc', help='custom RPC settings', metavar='HOST:PORT / ganache / infura-[network_name]')
     rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
     rpc.add_argument('--ipc', action='store_true', help='Connect via local IPC')
+    rpc.add_argument('--leveldb', action='store_true', help='Enable direct leveldb access operations')
 
     # Get config values
 
@@ -87,7 +88,7 @@ def main():
 
     # Parse cmdline args
 
-    if not (args.search or args.init_db or args.hash or args.disassemble or args.graph or args.fire_lasers
+    if not (args.search or args.hash or args.disassemble or args.graph or args.fire_lasers
             or args.storage or args.truffle or args.statespace_json):
         parser.print_help()
         sys.exit()
@@ -106,27 +107,31 @@ def main():
 
     try:
         # the mythril object should be our main interface
-        #init_db = None, infura = None, rpc = None, rpctls = None, ipc = None,
+        #infura = None, rpc = None, rpctls = None, ipc = None,
         #solc_args = None, dynld = None, max_recursion_depth = 12):
 
 
         mythril = Mythril(solv=args.solv, dynld=args.dynld,
                           solc_args=args.solc_args)
 
-        if args.leveldb:
-            # Open LevelDB if specified
-            mythril.set_db_leveldb(args.leveldb)
-
-        elif (args.address or args.init_db) and not args.leveldb:
+        if args.address and not args.leveldb:
             # Establish RPC/IPC connection if necessary
             if args.i:
-                mythril.set_db_rpc_infura()
+                mythril.set_api_rpc_infura()
             elif args.rpc:
-                mythril.set_db_rpc(rpc=args.rpc, rpctls=args.rpctls)
+                mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
             elif args.ipc:
-                mythril.set_db_ipc()
+                mythril.set_api_ipc()
             else:
-                mythril.set_db_rpc_localhost()
+                mythril.set_api_rpc_localhost()
+        elif args.leveldb or args.search:
+            # Open LevelDB if necessary
+            mythril.set_api_leveldb(mythril.leveldb_dir if not args.leveldb_dir else args.leveldb_dir)
+
+        if args.search:
+            # Database search ops
+            mythril.search_db(args.search, args.search_all)
+            sys.exit()
 
         if args.truffle:
             try:
@@ -135,15 +140,6 @@ def main():
             except FileNotFoundError:
                 print(
                     "Build directory not found. Make sure that you start the analysis from the project root, and that 'truffle compile' has executed successfully.")
-            sys.exit()
-
-        elif args.search:
-            # Database search ops
-            mythril.search_db(args.search)
-            sys.exit()
-
-        elif args.init_db:
-            mythril.init_db()
             sys.exit()
 
         # Load / compile input contracts
@@ -202,8 +198,8 @@ def main():
                                              max_depth=args.max_depth)
                 outputs = {
                     'json': report.as_json(),
-                    'text': report.as_text() or "The analysis was completed successfully. No issues were detected.",
-                    'markdown': report.as_markdown() or "The analysis was completed successfully. No issues were detected."
+                    'text': report.as_text(),
+                    'markdown': report.as_markdown()
                 }
                 print(outputs[args.outform])
 

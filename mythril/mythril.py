@@ -11,13 +11,15 @@ import os
 import re
 
 from ethereum import utils
+import codecs
 from solc.exceptions import SolcError
 import solc
+from configparser import ConfigParser
+import platform
 from copy import deepcopy
 from mythril.disassembler.disassembly import Disassembly
 
 from mythril.ether import util
-from mythril.ether.contractstorage import get_persistent_storage
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract
 from mythril.rpc.client import EthJsonRpc
@@ -39,7 +41,7 @@ from mythril.leveldb.client import EthLevelDB
 
 class Mythril(object):
     """
-    Mythril main interface class. 
+    Mythril main interface class.
 
     1. create mythril object
     2. set rpc or leveldb interface if needed
@@ -48,17 +50,17 @@ class Mythril(object):
 
     Example:
         mythril = Mythril()
-        mythril.set_db_rpc_infura()
+        mythril.set_api_rpc_infura()
 
-        # (optional) other db adapters
-        mythril.set_db_rpc(args)
-        mythril.set_db_ipc()
-        mythril.set_db_rpc_localhost()
+        # (optional) other API adapters
+        mythril.set_api_rpc(args)
+        mythril.set_api_ipc()
+        mythril.set_api_rpc_localhost()
+        mythril.set_api_leveldb(path)
 
         # (optional) other func
         mythril.analyze_truffle_project(args)
         mythril.search_db(args)
-        mythril.init_db()
 
         # load contract
         mythril.load_from_bytecode(bytecode)
@@ -71,7 +73,7 @@ class Mythril(object):
         # (optional) graph
         for contract in mythril.contracts:
             print(mythril.graph_html(args))  # prints html or save it to file
-        
+
         # (optional) other funcs
         mythril.dump_statespaces(args)
         mythril.disassemble(contract)
@@ -90,10 +92,10 @@ class Mythril(object):
         self.mythril_dir = self._init_mythril_dir()
         self.signatures_file, self.sigs = self._init_signatures()
         self.solc_binary = self._init_solc_binary(solv)
+        self.leveldb_dir = self._init_config()
 
-        self.eth = None
-        self.ethDb = None
-        self.dbtype = None  # track type of db (rpc,ipc,leveldb) used
+        self.eth = None # ethereum API client
+        self.ethDb = None # ethereum LevelDB client
 
         self.contracts = []  # loaded contracts
 
@@ -137,6 +139,41 @@ class Mythril(object):
 
         self.sigs = jsonsigs
 
+    def _init_config(self):
+
+        # If no config file exists, create it. Default LevelDB path is specified based on OS
+
+        config_path = os.path.join(self.mythril_dir, 'config.ini')
+        system = platform.system().lower()
+        fallback_dir = os.path.expanduser('~')
+        if system.startswith("darwin"):
+            fallback_dir = os.path.join(fallback_dir, "Library", "Ethereum")
+        elif system.startswith("windows"):
+            fallback_dir = os.path.join(fallback_dir, "AppData", "Roaming", "Ethereum")
+        else:
+            fallback_dir = os.path.join(fallback_dir, ".ethereum")
+        fallback_dir = os.path.join(fallback_dir, "geth", "chaindata")
+
+        if not os.path.exists(config_path):
+            logging.info("No config file found. Creating default: " + config_path)
+
+            config = ConfigParser(allow_no_value=True)
+            config.optionxform = str
+            config.add_section('defaults')
+            config.set('defaults', "#Default chaindata locations:")
+            config.set('defaults', "#– Mac: ~/Library/Ethereum/geth/chaindata")
+            config.set('defaults', "#– Linux: ~/.ethereum/geth/chaindata")
+            config.set('defaults', "#– Windows: %USERPROFILE%\\AppData\\Roaming\\Ethereum\\geth\\chaindata")
+            config.set('defaults', 'leveldb_dir', fallback_dir)
+            with codecs.open(config_path, 'w', 'utf-8') as fp:
+                config.write(fp)
+
+        config = ConfigParser(allow_no_value=True)
+        config.optionxform = str
+        config.read(config_path, 'utf-8')
+        leveldb_dir = config.get('defaults', 'leveldb_dir', fallback=fallback_dir)
+        return os.path.expanduser(leveldb_dir)
+
     def analyze_truffle_project(self, *args, **kwargs):
         return analyze_truffle_project(*args, **kwargs)  # just passthru for now
 
@@ -170,18 +207,16 @@ class Mythril(object):
                 solc_binary = 'solc'
         return solc_binary
 
-    def set_db_leveldb(self, leveldb):
+    def set_api_leveldb(self, leveldb):
         self.ethDb = EthLevelDB(leveldb)
         self.eth = self.ethDb
-        self.dbtype = "leveldb"
         return self.eth
 
-    def set_db_rpc_infura(self):
+    def set_api_rpc_infura(self):
         self.eth = EthJsonRpc('mainnet.infura.io', 443, True)
         logging.info("Using INFURA for RPC queries")
-        self.dbtype = "rpc"
 
-    def set_db_rpc(self, rpc=None, rpctls=False):
+    def set_api_rpc(self, rpc=None, rpctls=False):
         if rpc == 'ganache':
             rpcconfig = ('localhost', 7545, False)
         else:
@@ -197,49 +232,34 @@ class Mythril(object):
 
         if rpcconfig:
             self.eth = EthJsonRpc(rpcconfig[0], int(rpcconfig[1]), rpcconfig[2])
-            self.dbtype = "rpc"
             logging.info("Using RPC settings: %s" % str(rpcconfig))
         else:
             raise CriticalError("Invalid RPC settings, check help for details.")
 
-    def set_db_ipc(self):
+    def set_api_ipc(self):
         try:
             self.eth = EthIpc()
-            self.dbtype = "ipc"
         except Exception as e:
             raise CriticalError(
                 "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA. \n" + str(
                     e))
 
-    def set_db_rpc_localhost(self):
+    def set_api_rpc_localhost(self):
         self.eth = EthJsonRpc('localhost', 8545)
-        self.dbtype = "rpc"
         logging.info("Using default RPC settings: http://localhost:8545")
 
-    def search_db(self, search):
+    def search_db(self, search, search_all):
 
         def search_callback(code_hash, code, addresses, balances):
             print("Matched contract with code hash " + code_hash)
             for i in range(0, len(addresses)):
                 print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
 
-        contract_storage, _ = get_persistent_storage(self.mythril_dir)
         try:
-            if self.dbtype=="leveldb":
-                contract_storage.search(search, search_callback)
-            else:
-                self.ethDB.search(search, search_callback)
+            self.ethDb.search(search, search_all, search_callback)
+
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
-
-    def init_db(self):
-        contract_storage, _ = get_persistent_storage(self.mythril_dir)
-        try:
-            contract_storage.initialize(self.eth)
-        except FileNotFoundError as e:
-             raise CriticalError("Error syncing database over IPC: " + str(e))
-        except ConnectionError as e:
-            raise CriticalError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
 
     def load_from_bytecode(self, code):
         address = util.get_indexed_address(0)
@@ -283,6 +303,7 @@ class Mythril(object):
 
             try:
                 signatures.add_signatures_from_file(file, self.sigs)
+                self._update_signatures(self.sigs)
                 contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
                 logging.info("Analyzing contract %s:%s" % (file, contract.name))
             except FileNotFoundError:
@@ -295,7 +316,6 @@ class Mythril(object):
                 self.contracts.append(contract)
                 contracts.append(contract)
 
-        self._update_signatures(self.sigs)
         return address, contracts
 
     def dump_statespace(self, contract, address=None, max_depth=12):
