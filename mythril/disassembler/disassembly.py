@@ -1,6 +1,5 @@
 from mythril.ether import asm,util
-import os
-import json
+from mythril.support.signatures import Signatures
 import logging
 
 
@@ -13,21 +12,11 @@ class Disassembly:
         self.addr_to_func = {}
         self.bytecode = code
 
+        signatures = Signatures(enable_online_lookkup=True)  # control if you want to have online sighash lookups
         try:
-            mythril_dir = os.environ['MYTHRIL_DIR']
-        except KeyError:
-            mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
-
-        # Load function signatures
-
-        signatures_file = os.path.join(mythril_dir, 'signatures.json')
-
-        if not os.path.exists(signatures_file):
-            logging.info("Missing function signature file. Resolving of function names disabled.")
-            signatures = {}
-        else:
-            with open(signatures_file) as f:
-                signatures = json.load(f)
+            signatures.open()  # open from default locations
+        except FileNotFoundError:
+            logging.info("Missing function signature file. Resolving of function names from disabled.")
 
         # Parse jump table & resolve function names
 
@@ -36,7 +25,7 @@ class Disassembly:
         for i in jmptable_indices:
             func_hash = self.instruction_list[i]['argument']
             try:
-                func_name = signatures[func_hash]
+                func_name = signatures.get(func_hash)  # tries local cache, file and optional online lookup
             except KeyError:
                 func_name = "_function_" + func_hash
 
@@ -49,8 +38,5 @@ class Disassembly:
             except:
                 continue
 
-
-
     def get_easm(self):
-
         return asm.instruction_list_to_easm(self.instruction_list)
