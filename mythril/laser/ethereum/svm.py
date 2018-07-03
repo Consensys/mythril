@@ -683,14 +683,14 @@ class LaserEVM:
                     myth.set_api_rpc_infura()
                 except Exception as e:
                     logging.info("Error while connecting to infura")
-                    state.stack.append(BitVec("extcodesize", 256))
+                    state.stack.append(BitVec("extcodesize_"+str(addr), 256))
                     continue
 
                 try:
                     _, code = myth.load_from_address(hex(helper.get_concrete_int(addr)))
                 except AttributeError:
-                    logging.info("EXTCODECOPY is called with symbolic addr")
-                    state.stack.append(BitVec("extcodesize", 256))
+                    logging.info("unsupported symbolic address for EXTCODESIZE")
+                    state.stack.append(BitVec("extcodesize_"+str(addr), 256))
                     continue
 
                 state.stack.append(len(code.code) // 2)
