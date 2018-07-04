@@ -1,9 +1,9 @@
 from mythril.ether import asm,util
-from mythril.support.signatures import Signatures
+from mythril.support.signatures import SignatureDb
 import logging
 
 
-class Disassembly:
+class Disassembly(object):
 
     def __init__(self, code):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
@@ -12,7 +12,7 @@ class Disassembly:
         self.addr_to_func = {}
         self.bytecode = code
 
-        signatures = Signatures(enable_online_lookup=True)  # control if you want to have online sighash lookups
+        signatures = SignatureDb(enable_online_lookup=True)  # control if you want to have online sighash lookups
         try:
             signatures.open()  # open from default locations
         except FileNotFoundError:
@@ -30,7 +30,7 @@ class Disassembly:
                 func_names = signatures.get(func_hash)
                 if len(func_names) > 1:
                     # ambigious result
-                    func_name = "**ambiguous** %s"%func_names[0]  # return first hit but note that result was ambiguous
+                    func_name = "**ambiguous** %s" % func_names[0]  # return first hit but note that result was ambiguous
                 else:
                     # only one item
                     func_name = func_names[0]
@@ -46,5 +46,8 @@ class Disassembly:
             except:
                 continue
 
+        signatures.write()  # store resolved signatures (potentially resolved online)
+
     def get_easm(self):
+        # todo: tintinweb - print funcsig resolved data from self.addr_to_func?
         return asm.instruction_list_to_easm(self.instruction_list)
