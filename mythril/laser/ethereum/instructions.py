@@ -459,7 +459,8 @@ class Instruction:
     def codesize_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
-        state.stack.append(len(environment.code.instruction_list))
+        disassembly = environment.code
+        state.stack.append(len(disassembly.bytecode) // 2)
         return [global_state]
 
     @instruction
@@ -512,8 +513,24 @@ class Instruction:
 
     @instruction
     def extcodesize_(self, global_state):
-        addr = global_state.mstate.stack.pop()
-        global_state.mstate.stack.append(BitVec("extcodesize", 256))
+        state = global_state.mstate
+        addr = state.stack.pop()
+        environment = global_state.environment
+        try:
+            addr = hex(helper.get_concrete_int(addr))
+        except AttributeError:
+            logging.info("unsupported symbolic address for EXTCODESIZE")
+            state.stack.append(BitVec("extcodesize_" + str(addr), 256))
+            return [global_state]
+
+        try:
+            code = self.dynamic_loader.dynld(environment.active_account.address, addr)
+        except Exception as e:
+            logging.info("error accessing contract storage due to: " + str(e))
+            state.stack.append(BitVec("extcodesize_" + str(addr), 256))
+            return [global_state]
+
+        state.stack.append(len(code.bytecode) // 2)
         return [global_state]
 
     @instruction
