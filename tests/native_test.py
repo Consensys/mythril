@@ -1,7 +1,7 @@
 import json
 from mythril.ether.soliditycontract import SolidityContract
 
-from mythril.laser.ethereum.svm import GlobalState, MachineState
+from mythril.laser.ethereum.state import GlobalState, MachineState
 from mythril.laser.ethereum import svm
 from tests import *
 
@@ -48,7 +48,7 @@ IDENTITY_TEST[3] = (83269476937987, False)
 def _all_info(laser):
     accounts = {}
     for address, _account in laser.accounts.items():
-        account = _account.as_dict()
+        account = _account.as_dict
         account["code"] = account["code"].instruction_list
         account['balance'] = str(account['balance'])
         accounts[address] = account
@@ -58,14 +58,14 @@ def _all_info(laser):
         states = []
         for state in node.states:
             if isinstance(state, MachineState):
-                states.append(state.as_dict())
+                states.append(state.as_dict)
             elif isinstance(state, GlobalState):
-                environment = state.environment.as_dict()
+                environment = state.environment.as_dict
                 environment["active_account"] = environment["active_account"].address
                 states.append({
                     'accounts': state.accounts.keys(),
                     'environment': environment,
-                    'mstate': state.mstate.as_dict()
+                    'mstate': state.mstate.as_dict
                 })
 
         nodes[uid] = {
@@ -78,7 +78,7 @@ def _all_info(laser):
             'flags': str(node.flags)
         }
 
-    edges = [edge.as_dict() for edge in laser.edges]
+    edges = [edge.as_dict for edge in laser.edges]
 
     return {
         'accounts': accounts,
@@ -90,11 +90,11 @@ def _all_info(laser):
 
 def _test_natives(laser_info, test_list, test_name):
     success = 0
-    for i,j in test_list:
+    for i, j in test_list:
         if (str(i) in laser_info) == j:
-            success+=1
+            success += 1
         else:
-            print ("Failed: "+str(i)+" "+str(j))
+            print("Failed: "+str(i)+" "+str(j))
     assert(success == len(test_list))
 
 

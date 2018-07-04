@@ -18,6 +18,8 @@ class Issue:
         self.code = None
         self.lineno = None
 
+
+    @property
     def as_dict(self):
 
         issue = {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.address, 'debug': self.debug}
@@ -47,7 +49,7 @@ class Report:
         pass
 
     def sorted_issues(self):
-        issue_list = [issue.as_dict() for key, issue in self.issues.items()]
+        issue_list = [issue.as_dict for key, issue in self.issues.items()]
         return sorted(issue_list, key=operator.itemgetter('address', 'title'))
 
     def append_issue(self, issue):

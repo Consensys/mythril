@@ -1,14 +1,1 @@
-{
-    "success": true,
-    "error": null,
-    "issues": [
-        {
-            "title": "Ether send",
-            "description": "In the function `_function_0x8a4068dd` a non-zero amount of Ether is sent to msg.sender.\nIt seems that this function can be called without restrictions.",
-            "function": "_function_0x8a4068dd",
-            "type": "Warning",
-            "address": 142,
-            "debug": "<DEBUG-DATA>"
-        }
-    ]
-}
+{"error": null, "issues": [{"address": 142, "debug": "<DEBUG-DATA>", "description": "In the function `_function_0x8a4068dd` a non-zero amount of Ether is sent to msg.sender.\nIt seems that this function can be called without restrictions.", "function": "_function_0x8a4068dd", "title": "Ether send", "type": "Warning"}], "success": true}
