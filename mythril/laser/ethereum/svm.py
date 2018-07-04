@@ -672,8 +672,49 @@ class LaserEVM:
                 state.stack.append(BitVec("gasprice", 256))
 
             elif op == 'CODECOPY':
-                # Not implemented
                 start, s1, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+                try:
+                    mstart = helper.get_concrete_int(start)
+                except:
+                    logging.debug("Unsupported symbolic memory offset in CODECOPY")
+                    continue
+                try:
+                    dstart = helper.get_concrete_int(s1)
+                except:
+                    logging.debug("Unsupported symbolic code offset in CODECOPY")
+                    state.mem_extend(mstart, 1)
+                    state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_cpy", 256)
+                    continue
+                try:
+                    newSize = helper.get_concrete_int(size)
+                except:
+                    logging.debug("Unsupported symbolic size in CODECOPY")
+                    state.mem_extend(mstart, 1)
+                    state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_" + str(dstart), 256)
+                    continue
+
+                if newSize > 0:
+
+                    try:
+                        state.mem_extend(mstart, newSize)
+                    except:
+                        logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(newSize))
+                        state.mem_extend(mstart, 1)
+                        state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_" + str(dstart), 256)
+                        continue
+
+                    try:
+                        i_data = disassembly.instruction_list[dstart]
+
+                        for i in range(mstart, mstart + newSize):
+                            state.memory[i] = disassembly.instruction_list[i_data]
+                            i_data += 1
+                    except:
+                        logging.debug("Exception copying code to memory")
+
+                        state.memory[mstart] = BitVec("code_" + str(disassembly.instruction_list) + "_" + str(dstart), 256)
+
 
             elif op == 'EXTCODESIZE':
                 addr = state.stack.pop()
@@ -695,10 +736,47 @@ class LaserEVM:
                 state.stack.append(len(code.bytecode) // 2)
 
             elif op == 'EXTCODECOPY':
-                # Not implemented
 
                 addr = state.stack.pop()
                 start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+                try:
+                    mstart = helper.get_concrete_int(start)
+                except:
+                    logging.debug("Unsupported symbolic memory offset in EXTCODECOPY")
+                    continue
+                try:
+                    dstart = helper.get_concrete_int(s2)
+                except:
+                    logging.debug("Unsupported symbolic code offset in EXTCODECOPY")
+                    state.mem_extend(mstart, 1)
+                    state.memory[mstart] = BitVec("code_" + str(addr) + "_cpy", 256)
+                    continue
+                try:
+                    newSize = helper.get_concrete_int(size)
+                except:
+                    logging.debug("Unsupported symbolic size in EXTCODECOPY")
+                    state.mem_extend(mstart, 1)
+                    state.memory[mstart] = BitVec("extcode_" + str(addr) + "_" + str(dstart), 256)
+                    continue
+                
+                if newSize > 0:
+
+                    try:
+                        state.mem_extend(mstart, newSize)
+                    except:
+                        logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(newSize))
+                        state.mem_extend(mstart, 1)
+                        state.memory[mstart] = BitVec("extcode_" + str(addr) + "_" + str(dstart), 256)
+                        continue
+
+                    try:
+                        state.memory[i] = addr
+                    except:
+                        logging.debug("Exception copying address to memory")
+
+                        state.memory[mstart] = BitVec("extcode_" + str(addr) + "_" + str(dstart), 256)
+
 
             elif op == 'RETURNDATASIZE':
                 state.stack.append(BitVec("returndatasize", 256))
