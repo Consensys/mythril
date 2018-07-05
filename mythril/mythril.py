@@ -336,7 +336,8 @@ class Mythril(object):
 
         all_issues = []
         for contract in (contracts or self.contracts):
-
+            if self.eth is None:
+                self.set_api_rpc_infura()
             sym = SymExecWrapper(contract, address,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
                                  max_depth=max_depth)

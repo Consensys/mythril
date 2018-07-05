@@ -134,8 +134,8 @@ def extract_edges(statespace):
         label = re.sub(r'([^_])([\d]{2}\d+)', lambda m: m.group(1) + hex(int(m.group(2))), label)
 
         edges.append({
-            'from': str(edge.as_dict()['from']),
-            'to': str(edge.as_dict()['to']),
+            'from': str(edge.as_dict['from']),
+            'to': str(edge.as_dict['to']),
             'arrows': 'to',
             'label': label,
             'smooth': {'type': 'cubicBezier'}
