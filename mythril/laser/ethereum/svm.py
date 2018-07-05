@@ -3,6 +3,7 @@ import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
+from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -31,6 +32,7 @@ class LaserEVM:
         self.dynamic_loader = dynamic_loader
 
         self.work_list = []
+        self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
         self.max_depth = max_depth
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -57,20 +59,14 @@ class LaserEVM:
         initial_node.states.append(global_state)
 
         # Empty the work_list before starting an execution
-        self.work_list = [global_state]
+        self.work_list.append(global_state)
         self._sym_exec()
 
         logging.info("Execution complete")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
     def _sym_exec(self):
-        while True:
-            try:
-                global_state = self.work_list.pop(0)
-                if global_state.mstate.depth >= self.max_depth: continue
-            except IndexError:
-                return
-
+        for global_state in self.strategy:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
