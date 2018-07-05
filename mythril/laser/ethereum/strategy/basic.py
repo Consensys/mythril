@@ -1,17 +1,29 @@
-class DepthFirstSearchStrategy:
+"""
+This module implements basic symbolic execution search strategies
+"""
 
-    def __init__(self, content, max_depth):
-        self.content = content
+
+class DepthFirstSearchStrategy:
+    """
+    Implements a depth first search strategy
+    I.E. Follow one path to a leaf, and then continue to the next one
+    """
+    def __init__(self, work_list, max_depth):
+        self.work_list = work_list
         self.max_depth = max_depth
 
     def __iter__(self):
         return self
 
     def __next__(self):
+        """ Picks the next state to execute """
         try:
-            global_state = self.content.pop(0)
+            # This strategies assumes that new states are appended at the end of the work_list
+            # By taking the last element we effectively pick the "newest" states, which amounts to dfs
+            global_state = self.work_list.pop()
             if global_state.mstate.depth >= self.max_depth:
                 return self.__next__()
             return global_state
         except IndexError:
             raise StopIteration()
+
