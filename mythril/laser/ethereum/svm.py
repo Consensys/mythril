@@ -33,6 +33,7 @@ class LaserEVM:
 
         self.work_list = []
         self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
+        self.max_depth = max_depth
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
