@@ -99,7 +99,7 @@ class SignatureDb(object):
             logging.debug("Signatures: file not found: %s" % path)
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
 
-        self.signatures_file_lock = SimpleFileLock(self.signatures_file)  # lock file to prevent concurrency issues
+        self.signatures_file_lock = self.signatures_file_lock or SimpleFileLock(self.signatures_file)  # lock file to prevent concurrency issues
         self.signatures_file_lock.aquire()  # try to aquire it within the next 10s
 
         with open(path, 'r') as f:
@@ -110,7 +110,7 @@ class SignatureDb(object):
         # normalize it to {sighash:list(signatures,...)}
         for sighash, funcsig in sigs.items():
             if isinstance(funcsig, list):
-                self.signatures = sigs  # keep original todo: tintinweb - super hacky. make sure signatures.json is initially in correct format fixme
+                self.signatures = sigs
                 break  # already normalized
             self.signatures.setdefault(sighash, [])
             self.signatures[sighash].append(funcsig)
@@ -126,7 +126,7 @@ class SignatureDb(object):
         :return: self
         """
         path = path or self.signatures_file
-        self.signatures_file_lock = SimpleFileLock(path)  # lock file to prevent concurrency issues
+        self.signatures_file_lock = self.signatures_file_lock or SimpleFileLock(path)  # lock file to prevent concurrency issues
         self.signatures_file_lock.aquire()  # try to aquire it within the next 10s
 
         if sync and os.path.exists(path):
