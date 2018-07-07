@@ -529,8 +529,12 @@ class Instruction:
             logging.info("error accessing contract storage due to: " + str(e))
             state.stack.append(BitVec("extcodesize_" + str(addr), 256))
             return [global_state]
+        
+        if code is None:
+            state.stack.append(0)
+        else:
+            state.stack.append(len(code.bytecode) // 2)
 
-        state.stack.append(len(code.bytecode) // 2)
         return [global_state]
 
     @instruction
