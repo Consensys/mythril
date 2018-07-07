@@ -35,7 +35,7 @@ from mythril.analysis.report import Report
 from mythril.leveldb.client import EthLevelDB
 
 
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 class Mythril(object):
     """
@@ -336,7 +336,7 @@ class Mythril(object):
 
         all_issues = []
         for contract in (contracts or self.contracts):
-            if self.eth is None:
+            if self.dynld and self.eth is None:
                 self.set_api_rpc_infura()
             sym = SymExecWrapper(contract, address,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
