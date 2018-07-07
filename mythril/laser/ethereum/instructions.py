@@ -913,7 +913,7 @@ class Instruction:
                                          value,
                                          environment.origin,
                                          calldata_type=call_data_type)
-        new_global_state = GlobalState(global_state.accounts, callee_environment, None, MachineState(gas))
+        new_global_state = GlobalState(global_state.accounts, callee_environment, global_state.node, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
         return [global_state]
@@ -940,7 +940,7 @@ class Instruction:
         environment.caller = environment.address
         environment.calldata = call_data
 
-        new_global_state = GlobalState(global_state.accounts, environment, None, MachineState(gas))
+        new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
@@ -968,7 +968,7 @@ class Instruction:
         environment.code = callee_account.code
         environment.calldata = call_data
 
-        new_global_state = GlobalState(global_state.accounts, environment, None, MachineState(gas))
+        new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
