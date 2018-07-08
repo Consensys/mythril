@@ -2,14 +2,16 @@
 
 import copy
 import hashlib
+import logging
 
 import coincurve
+from z3 import BitVec
 
 from py_ecc.secp256k1 import N as secp256k1n
 from mythril.laser.ethereum.util import ALL_BYTES, bytearray_to_int, concrete_int_to_bytes, sha3, zpad
 
 
-def int_to_32bytes(i):   #used because int can't fit as bytes function's input
+def int_to_32bytes(i):   # used because int can't fit as bytes function's input
     o = [0] * 32
     for x in range(32):
         o[31 - x] = i & 0xff
@@ -44,7 +46,7 @@ def ecrecover(data):
     try:
         data = bytearray(data)
     except TypeError:
-        return "ecrecover_"+str(data)
+        return BitVec("ecrecover_"+str(data), 256)
     message = b''.join(map(lambda x: ALL_BYTES[x], data[0:32]))
     v = extract32(data, 32)
     r = extract32(data, 64)
@@ -54,6 +56,7 @@ def ecrecover(data):
     try:
         pub = ecrecover_to_pub(message, v, r, s)
     except Exception as e:
+        logging.info("An error has been encountered while extracting public key: " + str(e))
         return []
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
     return o
@@ -63,7 +66,7 @@ def sha256(data):
     try:
         data = bytes(data)
     except TypeError:
-        return "sha256_"+str(data)
+        return BitVec("sha256_"+str(data), 256)
     return hashlib.sha256(data).digest()
 
 
@@ -71,7 +74,7 @@ def ripemd160(data):
     try:
         data = bytes(data)
     except TypeError:
-        return "ripemd160_"+str(data)
+        return BitVec("ripemd160_"+str(data), 256)
     return 12*[0]+[i for i in hashlib.new('ripemd160', data).digest()]
 
 

@@ -1,11 +1,11 @@
 import binascii
-import logging
+import logging,sys
 from copy import copy, deepcopy
 
 import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false
+    is_false, BitVecRef
 from z3 import BitVecVal, If, BoolRef
 
 import mythril.laser.ethereum.util as helper
@@ -529,7 +529,7 @@ class Instruction:
             logging.info("error accessing contract storage due to: " + str(e))
             state.stack.append(BitVec("extcodesize_" + str(addr), 256))
             return [global_state]
-        
+
         if code is None:
             state.stack.append(0)
         else:
@@ -899,11 +899,15 @@ class Instruction:
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
-            try:
-                for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
-                    global_state.mstate.memory[mem_out_start + i] = data[i]
-            except:
-                global_state.mstate.memory[mem_out_start] = BitVec(data, 256)
+            if type(data) == BitVecRef:
+                global_state.mstate.memory[mem_out_start] = data
+            else:
+                try:
+                    for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
+                        global_state.mstate.memory[mem_out_start + i] = data[i]
+                except:
+                    sys.stderr.write(str(data))
+                    global_state.mstate.memory[mem_out_start] = BitVec(data, 256)
 
             # TODO: maybe use BitVec here constrained to 1
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
