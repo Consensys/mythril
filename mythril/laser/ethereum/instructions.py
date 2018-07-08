@@ -529,7 +529,7 @@ class Instruction:
             logging.info("error accessing contract storage due to: " + str(e))
             state.stack.append(BitVec("extcodesize_" + str(addr), 256))
             return [global_state]
-        
+
         if code is None:
             state.stack.append(0)
         else:
@@ -555,7 +555,7 @@ class Instruction:
         state = global_state.mstate
         blocknumber = state.stack.pop()
         state.stack.append(BitVec("blockhash_block_" + str(blocknumber), 256))
-        return global_state
+        return [global_state]
 
     @instruction
     def coinbase_(self, global_state):
