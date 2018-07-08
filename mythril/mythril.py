@@ -78,8 +78,6 @@ class Mythril(object):
         mythril.get_state_variable_from_storage(args)
 
     """
-
-
     def __init__(self, solv=None,
                  solc_args=None, dynld=False):
 
@@ -88,7 +86,17 @@ class Mythril(object):
         self.dynld = dynld
 
         self.mythril_dir = self._init_mythril_dir()
-        self.signatures_file, self.sigs = self._init_signatures()
+
+        self.sigs = signatures.SignatureDb()
+        try:
+            self.sigs.open()  # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
+        except FileNotFoundError as fnfe:
+            logging.info(
+                "No signature database found. Creating database if sigs are loaded in: " + self.sigs.signatures_file + "\n" +
+                "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
+        except json.JSONDecodeError as jde:
+            raise CriticalError("Invalid JSON in signatures file " + self.sigs.signatures_file + "\n" + str(jde))
+
         self.solc_binary = self._init_solc_binary(solv)
         self.leveldb_dir = self._init_config()
 
@@ -109,33 +117,6 @@ class Mythril(object):
             logging.info("Creating mythril data directory")
             os.mkdir(mythril_dir)
         return mythril_dir
-
-    def _init_signatures(self):
-
-        # If no function signature file exists, create it. Function signatures from Solidity source code are added automatically.
-
-        signatures_file = os.path.join(self.mythril_dir, 'signatures.json')
-
-        sigs = {}
-        if not os.path.exists(signatures_file):
-            logging.info("No signature database found. Creating empty database: " + signatures_file + "\n" +
-                         "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
-            with open(signatures_file, 'a') as f:
-                json.dump({}, f)
-
-        with open(signatures_file) as f:
-            try:
-                sigs = json.load(f)
-            except json.JSONDecodeError as e:
-                raise CriticalError("Invalid JSON in signatures file " + signatures_file + "\n" + str(e))
-        return signatures_file, sigs
-
-    def _update_signatures(self, jsonsigs):
-        # Save updated function signatures
-        with open(self.signatures_file, 'w') as f:
-            json.dump(jsonsigs, f)
-
-        self.sigs = jsonsigs
 
     def _init_config(self):
 
@@ -300,27 +281,32 @@ class Mythril(object):
             file = os.path.expanduser(file)
 
             try:
-                signatures.add_signatures_from_file(file, self.sigs)
-                self._update_signatures(self.sigs)
+                # import signatures from solidity source
+                with open(file, encoding="utf-8") as f:
+                    self.sigs.import_from_solidity_source(f.read())
+
                 contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
                 logging.info("Analyzing contract %s:%s" % (file, contract.name))
             except FileNotFoundError:
-                 raise CriticalError("Input file not found: " + file)
+                raise CriticalError("Input file not found: " + file)
             except CompilerError as e:
-                 raise CriticalError(e)
+                raise CriticalError(e)
             except NoContractFoundError:
                 logging.info("The file " + file + " does not contain a compilable contract.")
             else:
                 self.contracts.append(contract)
                 contracts.append(contract)
 
+        # Save updated function signatures
+        self.sigs.write()  # dump signatures to disk (previously opened file or default location)
+
         return address, contracts
 
     def dump_statespace(self, contract, address=None, max_depth=12):
 
         sym = SymExecWrapper(contract, address,
-            dynloader=DynLoader(self.eth) if self.dynld else None,
-            max_depth=max_depth)
+                             dynloader=DynLoader(self.eth) if self.dynld else None,
+                             max_depth=max_depth)
 
         return get_serializable_statespace(sym)
 

@@ -1,10 +1,9 @@
 from mythril.ether import asm,util
-import os
-import json
+from mythril.support.signatures import SignatureDb
 import logging
 
 
-class Disassembly:
+class Disassembly(object):
 
     def __init__(self, code):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
@@ -13,21 +12,11 @@ class Disassembly:
         self.addr_to_func = {}
         self.bytecode = code
 
+        signatures = SignatureDb(enable_online_lookup=True)  # control if you want to have online sighash lookups
         try:
-            mythril_dir = os.environ['MYTHRIL_DIR']
-        except KeyError:
-            mythril_dir = os.path.join(os.path.expanduser('~'), ".mythril")
-
-        # Load function signatures
-
-        signatures_file = os.path.join(mythril_dir, 'signatures.json')
-
-        if not os.path.exists(signatures_file):
-            logging.info("Missing function signature file. Resolving of function names disabled.")
-            signatures = {}
-        else:
-            with open(signatures_file) as f:
-                signatures = json.load(f)
+            signatures.open()  # open from default locations
+        except FileNotFoundError:
+            logging.info("Missing function signature file. Resolving of function names from signature file disabled.")
 
         # Parse jump table & resolve function names
 
@@ -36,7 +25,15 @@ class Disassembly:
         for i in jmptable_indices:
             func_hash = self.instruction_list[i]['argument']
             try:
-                func_name = signatures[func_hash]
+                # tries local cache, file and optional online lookup
+                # may return more than one function signature. since we cannot probe for the correct one we'll use the first
+                func_names = signatures.get(func_hash)
+                if len(func_names) > 1:
+                    # ambigious result
+                    func_name = "**ambiguous** %s" % func_names[0]  # return first hit but note that result was ambiguous
+                else:
+                    # only one item
+                    func_name = func_names[0]
             except KeyError:
                 func_name = "_function_" + func_hash
 
@@ -49,8 +46,8 @@ class Disassembly:
             except:
                 continue
 
-
+        signatures.write()  # store resolved signatures (potentially resolved online)
 
     def get_easm(self):
-
+        # todo: tintinweb - print funcsig resolved data from self.addr_to_func?
         return asm.instruction_list_to_easm(self.instruction_list)
