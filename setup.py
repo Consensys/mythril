@@ -305,7 +305,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
-        'ethereum>=2.3.0',
+        'ethereum==2.3.1',
         'z3-solver>=4.5',
         'requests',
         'py-solc',
