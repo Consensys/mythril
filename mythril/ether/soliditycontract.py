@@ -51,6 +51,7 @@ class SolidityContract(ETHContract):
                 if filename == input_file and name == _name:
                     name = name
                     code = contract['bin-runtime']
+                    abi = contract['abi']
                     creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
                     has_contract = True
@@ -65,6 +66,7 @@ class SolidityContract(ETHContract):
                 if filename == input_file and len(contract['bin-runtime']):
                     name = name
                     code = contract['bin-runtime']
+                    abi = contract['abi']
                     creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
                     has_contract = True
@@ -89,6 +91,7 @@ class SolidityContract(ETHContract):
             lineno = self.solidity_files[idx].data[0:offset].count('\n') + 1
 
             self.mappings.append(SourceMapping(idx, offset, length, lineno))
+            self.abi = abi
 
         super().__init__(code, creation_code, name=name)
 
