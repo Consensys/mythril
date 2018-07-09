@@ -385,20 +385,20 @@ class Instruction:
         dstart_sym = False
         try:
             dstart = util.get_concrete_int(op1)
-            dstart_sym = True
             # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
+            dstart_sym = True
 
         size_sym = False
         try:
             size = util.get_concrete_int(op2)
-            size_sym = True
             # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic size in CALLDATACOPY")
             size = simplify(op2)
+            size_sym = True
 
         if dstart_sym or size_sym:
             state.mem_extend(mstart, 1)
