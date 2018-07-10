@@ -537,7 +537,11 @@ class Instruction:
             state.stack.append(BitVec("extcodesize_" + str(addr), 256))
             return [global_state]
 
-        state.stack.append(len(code.bytecode) // 2)
+        if code is None:
+            state.stack.append(0)
+        else:
+            state.stack.append(len(code.bytecode) // 2)
+
         return [global_state]
 
     @instruction
@@ -558,7 +562,7 @@ class Instruction:
         state = global_state.mstate
         blocknumber = state.stack.pop()
         state.stack.append(BitVec("blockhash_block_" + str(blocknumber), 256))
-        return global_state
+        return [global_state]
 
     @instruction
     def coinbase_(self, global_state):
@@ -920,7 +924,7 @@ class Instruction:
                                          value,
                                          environment.origin,
                                          calldata_type=call_data_type)
-        new_global_state = GlobalState(global_state.accounts, callee_environment, MachineState(gas))
+        new_global_state = GlobalState(global_state.accounts, callee_environment, global_state.node, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
         return [global_state]
@@ -947,7 +951,7 @@ class Instruction:
         environment.caller = environment.address
         environment.calldata = call_data
 
-        new_global_state = GlobalState(global_state.accounts, environment, MachineState(gas))
+        new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
@@ -975,7 +979,7 @@ class Instruction:
         environment.code = callee_account.code
         environment.calldata = call_data
 
-        new_global_state = GlobalState(global_state.accounts, environment, MachineState(gas))
+        new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 

@@ -36,7 +36,7 @@ def get_call_parameters(global_state, dynamic_loader, with_value=False):
     callee_account = None
     call_data, call_data_type = get_call_data(global_state, meminstart, meminsz, False)
 
-    if int(callee_address, 16) >= 5:
+    if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
         call_data, call_data_type = get_call_data(global_state, meminstart, meminsz)
         callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
 
@@ -111,10 +111,13 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     if code is None:
         logging.info("No code returned, not a contract account?")
         raise ValueError()
-
-    accounts[callee_address] = Account(callee_address, code, callee_address)
-
     logging.info("Dependency loaded: " + callee_address)
+
+    callee_account = Account(callee_address, code, callee_address)
+    accounts[callee_address] = callee_account
+
+    return callee_account
+
 
 
 def get_call_data(global_state, memory_start, memory_size, pad=True):
