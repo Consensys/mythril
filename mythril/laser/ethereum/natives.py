@@ -11,6 +11,10 @@ from py_ecc.secp256k1 import N as secp256k1n
 from mythril.laser.ethereum.util import ALL_BYTES, bytearray_to_int, concrete_int_to_bytes, sha3, zpad
 
 
+class NativeContractException(Exception):
+    pass
+
+
 def int_to_32bytes(i):   # used because int can't fit as bytes function's input
     o = [0] * 32
     for x in range(32):
@@ -46,7 +50,7 @@ def ecrecover(data):
     try:
         data = bytearray(data)
     except TypeError:
-        return BitVec("ecrecover_"+str(data), 256)
+        raise NativeContractException
     message = b''.join(map(lambda x: ALL_BYTES[x], data[0:32]))
     v = extract32(data, 32)
     r = extract32(data, 64)
@@ -66,7 +70,7 @@ def sha256(data):
     try:
         data = bytes(data)
     except TypeError:
-        return BitVec("sha256_"+str(data), 256)
+        raise NativeContractException
     return hashlib.sha256(data).digest()
 
 
@@ -74,7 +78,7 @@ def ripemd160(data):
     try:
         data = bytes(data)
     except TypeError:
-        return BitVec("ripemd160_"+str(data), 256)
+        raise NativeContractException
     return 12*[0]+[i for i in hashlib.new('ripemd160', data).digest()]
 
 

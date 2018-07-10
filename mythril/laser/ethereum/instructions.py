@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, BitVecRef
+    is_false, ExprRef
 from z3 import BitVecVal, If, BoolRef
 
 import mythril.laser.ethereum.util as helper
@@ -150,7 +150,8 @@ class Instruction:
     def byte_(self, global_state):
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
-
+        if not isinstance(op1, ExprRef):
+            op1 = BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
             offset = (31 - index) * 8
@@ -889,7 +890,6 @@ class Instruction:
                 global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
-            data = natives.native_contracts(int(callee_address, 16), call_data)
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
                 mem_out_sz = memory_out_size.as_long()
@@ -899,15 +899,21 @@ class Instruction:
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
-            if type(data) == BitVecRef:
-                global_state.mstate.memory[mem_out_start] = data
-            else:
-                try:
-                    for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
-                        global_state.mstate.memory[mem_out_start + i] = data[i]
-                except:
-                    sys.stderr.write(str(data))
-                    global_state.mstate.memory[mem_out_start] = BitVec(data, 256)
+            call_address_int = int(callee_address, 16)
+            try:
+                data = natives.native_contracts(call_address_int, call_data)
+            except natives.NativeContractException:
+                contract_list = ['ecerecover', 'sha256', 'ripemd160', 'identity']
+                for i in range(mem_out_sz):
+                    global_state.mstate.memory[mem_out_start+i] = BitVec(contract_list[call_address_int - 1]+
+                                                                         "(" + str(call_data) + ")", 256)
+
+
+                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+                return [global_state]
+
+            for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
+                global_state.mstate.memory[mem_out_start + i] = data[i]
 
             # TODO: maybe use BitVec here constrained to 1
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
