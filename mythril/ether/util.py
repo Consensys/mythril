@@ -18,7 +18,7 @@ def safe_decode(hex_encoded_string):
 
 def get_solc_json(file, solc_binary="solc", solc_args=None):
 
-    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap-runtime,abi", '--allow-paths', "."]
+    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap-runtime", '--allow-paths', "."]
 
     if solc_args:
         cmd.extend(solc_args.split(" "))

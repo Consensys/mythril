@@ -11,7 +11,7 @@ class SymExecWrapper:
     Wrapper class for the LASER Symbolic virtual machine. Symbolically executes the code and does a bit of pre-analysis for convenience.
     '''
 
-    def __init__(self, contract, address, dynloader=None, max_depth=12, gblState=None):
+    def __init__(self, contract, address, dynloader=None, max_depth=12):
 
         account = svm.Account(address, contract.disassembly, contract_name=contract.name)
 
@@ -19,12 +19,7 @@ class SymExecWrapper:
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth)
 
-        if not (gblState is None):
-            # Adding the ability to specify a custom global state, e.g. machine configuration from outside
-            node = self.laser._sym_exec(gblState)
-            self.laser.nodes[node.uid] = node
-        else:
-            self.laser.sym_exec(address)
+        self.laser.sym_exec(address)
 
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
