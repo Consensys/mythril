@@ -1,5 +1,5 @@
 import binascii
-import logging,sys
+import logging
 from copy import copy, deepcopy
 
 import ethereum.opcodes as opcodes
