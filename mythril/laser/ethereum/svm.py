@@ -35,6 +35,9 @@ class LaserEVM:
         self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
         self.max_depth = max_depth
 
+        self.pre_hooks = {}
+        self.post_hooks = {}
+
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def sym_exec(self, main_address):
@@ -81,7 +84,12 @@ class LaserEVM:
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
-        return Instruction(op_code, self.dynamic_loader).evaluate(global_state), op_code
+
+        self._execute_pre_hook(op_code, global_state)
+        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+        self._execute_post_hook(op_code, new_global_states)
+
+        return new_global_states, op_code
 
     def manage_cfg(self, opcode, new_states):
         if opcode == "JUMP":
@@ -130,3 +138,33 @@ class LaserEVM:
             logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
 
         new_node.function_name = environment.active_function_name
+
+    def _execute_pre_hook(self, op_code, global_state):
+        if op_code not in self.pre_hooks.keys():
+            return
+        for hook in self.pre_hooks[op_code]:
+            hook(global_state)
+
+    def _execute_post_hook(self, op_code, global_states):
+        if op_code not in self.post_hooks.keys():
+            return
+
+        for hook in self.post_hooks[op_code]:
+            for global_state in global_states:
+                hook(global_state)
+
+    def hook(self, op_code):
+        def hook_decorator(function):
+            if op_code not in self.pre_hooks.keys():
+                self.pre_hooks[op_code] = []
+            self.pre_hooks[op_code].append(function)
+            return function
+        return hook_decorator
+
+    def post_hook(self, op_code):
+        def hook_decorator(function):
+            if op_code not in self.post_hooks.keys():
+                self.post_hooks[op_code] = []
+            self.post_hooks[op_code].append(function)
+            return function
+        return hook_decorator
