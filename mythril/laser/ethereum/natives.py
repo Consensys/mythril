@@ -5,7 +5,6 @@ import hashlib
 import logging
 
 import coincurve
-from z3 import BitVec
 
 from py_ecc.secp256k1 import N as secp256k1n
 from mythril.laser.ethereum.util import ALL_BYTES, bytearray_to_int, concrete_int_to_bytes, sha3, zpad
