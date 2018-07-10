@@ -138,5 +138,5 @@ class LaserEVM:
 
     @property
     def coverage(self):
-        return reduce(lambda sum, val: sum + 1 if val else sum, self.instructions_covered) / float(
+        return reduce(lambda sum_, val: sum_ + 1 if val else sum_, self.instructions_covered) / float(
             len(self.instructions_covered)) * 100
