@@ -1,6 +1,6 @@
-from z3 import Solver, simplify, sat
+from z3 import Solver, simplify, sat, unknown
 from mythril.exceptions import UnsatError
-
+import logging
 
 def get_model(constraints):
     s = Solver()
@@ -8,13 +8,12 @@ def get_model(constraints):
 
     for constraint in constraints:
         s.add(constraint)
-
-    if (s.check() == sat):
-
+    result = s.check()
+    if result == sat:
         return s.model()
-
-    else:
-        raise UnsatError
+    elif result == unknown:
+        logging.info("Timeout encountered while solving expression using z3")
+    raise UnsatError
 
 
 def pretty_print_model(model):
