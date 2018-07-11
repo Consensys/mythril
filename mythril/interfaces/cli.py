@@ -64,6 +64,8 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
+    options.add_argument('--execution-timeout', type=int, default=60, help="The amount of seconds to spend on "
+                                                                           "symbolic execution")
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
@@ -195,7 +197,7 @@ def main():
                 report = mythril.fire_lasers(address=address,
                                              modules=[m.strip() for m in args.modules.strip().split(",")] if args.modules else [],
                                              verbose_report=args.verbose_report,
-                                             max_depth=args.max_depth)
+                                             max_depth=args.max_depth, execution_timeout=args.execution_timeout)
                 outputs = {
                     'json': report.as_json(),
                     'text': report.as_text(),

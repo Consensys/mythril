@@ -4,6 +4,7 @@ from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType,
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from datetime import datetime, timedelta
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -22,7 +23,7 @@ class LaserEVM:
     """
     Laser EVM class
     """
-    def __init__(self, accounts, dynamic_loader=None, max_depth=22):
+    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60):
         self.accounts = accounts
 
         self.nodes = {}
@@ -34,12 +35,15 @@ class LaserEVM:
         self.work_list = []
         self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
         self.max_depth = max_depth
+        self.execution_timeout = execution_timeout
+
+        self.time = None
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
-
+        self.time = datetime.now()
         # Initialize the execution environment
         environment = Environment(
             self.accounts[main_address],
@@ -67,6 +71,9 @@ class LaserEVM:
 
     def _sym_exec(self):
         for global_state in self.strategy:
+            if self.execution_timeout:
+                if self.time + timedelta(seconds=self.execution_timeout) <= datetime.now():
+                    return
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:

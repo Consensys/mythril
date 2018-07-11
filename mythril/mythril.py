@@ -318,7 +318,7 @@ class Mythril(object):
 
     def fire_lasers(self, contracts=None, address=None,
                     modules=None,
-                    verbose_report=False, max_depth=12):
+                    verbose_report=False, max_depth=None, execution_timeout=None):
 
         all_issues = []
         if self.dynld and self.eth is None:
@@ -326,7 +326,7 @@ class Mythril(object):
         for contract in (contracts or self.contracts):
             sym = SymExecWrapper(contract, address,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
-                                 max_depth=max_depth)
+                                 max_depth=max_depth, execution_timeout=execution_timeout)
 
             issues = fire_lasers(sym, modules)
 
