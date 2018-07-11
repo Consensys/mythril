@@ -4,6 +4,7 @@ from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType,
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from functools import reduce
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -23,6 +24,7 @@ class LaserEVM:
     Laser EVM class
     """
     def __init__(self, accounts, dynamic_loader=None, max_depth=22):
+        self.instructions_covered = []
         self.accounts = accounts
 
         self.nodes = {}
@@ -54,7 +56,8 @@ class LaserEVM:
             calldata_type=CalldataType.SYMBOLIC,
         )
 
-        # TODO: contact name fix
+        self.instructions_covered = [False for _ in environment.code.instruction_list]
+
         initial_node = Node(environment.active_account.contract_name)
         self.nodes[initial_node.uid] = initial_node
 
@@ -66,6 +69,7 @@ class LaserEVM:
         self._sym_exec()
 
         logging.info("Execution complete")
+        logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
     def _sym_exec(self):
@@ -84,6 +88,7 @@ class LaserEVM:
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
+        self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
         new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
@@ -136,8 +141,15 @@ class LaserEVM:
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
             logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
+        elif address == 0:
+            environment.active_function_name = "fallback"
 
         new_node.function_name = environment.active_function_name
+
+    @property
+    def coverage(self):
+        return reduce(lambda sum_, val: sum_ + 1 if val else sum_, self.instructions_covered) / float(
+            len(self.instructions_covered)) * 100
 
     def _execute_pre_hook(self, op_code, global_state):
         if op_code not in self.pre_hooks.keys():
