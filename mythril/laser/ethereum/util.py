@@ -10,11 +10,6 @@ TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
 
 
-ALL_BYTES = tuple(
-            struct.pack('B', i)
-            for i in range(256)
-            )
-
 
 
 def zpad(x, l):
