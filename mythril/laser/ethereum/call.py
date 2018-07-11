@@ -1,8 +1,7 @@
 import logging
 from z3 import BitVec, simplify
 import mythril.laser.ethereum.util as util
-from mythril.laser.ethereum.state import Account
-from mythril.laser.ethereum.svm import CalldataType
+from mythril.laser.ethereum.state import Account, CalldataType
 import re
 
 """
