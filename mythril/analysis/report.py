@@ -22,7 +22,7 @@ class Issue:
     @property
     def as_dict(self):
 
-        issue = {'title': self.title, 'description':self.description, 'function': self.function, 'type': self.type, 'address': self.address, 'debug': self.debug}
+        issue = {'title': self.title, 'contract': self.contract, 'description': self.description, 'function': self.function, 'type': self.type, 'address': self.address, 'debug': self.debug}
 
         if self.filename and self.lineno:
             issue['filename'] = self.filename
