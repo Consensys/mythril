@@ -3,6 +3,7 @@ from mythril.laser.ethereum import svm
 import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType
+from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, BreadthFirstSearchStrategy
 
 
 class SymExecWrapper:
@@ -11,13 +12,20 @@ class SymExecWrapper:
     Wrapper class for the LASER Symbolic virtual machine. Symbolically executes the code and does a bit of pre-analysis for convenience.
     '''
 
-    def __init__(self, contract, address, dynloader=None, max_depth=None, execution_timeout=None):
+    def __init__(self, contract, address, strategy, dynloader=None, max_depth=None, execution_timeout=None):
+        s_strategy = None
+        if strategy == 'dfs':
+            s_strategy = DepthFirstSearchStrategy
+        elif strategy == 'bfs':
+            s_strategy = BreadthFirstSearchStrategy
+        else:
+            raise ValueError("Invalid strategy argument supplied")
 
         account = svm.Account(address, contract.disassembly, contract_name=contract.name)
 
         self.accounts = {address: account}
 
-        self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth, execution_timeout=execution_timeout)
+        self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth, execution_timeout=execution_timeout, strategy=s_strategy)
 
         self.laser.sym_exec(address)
 
