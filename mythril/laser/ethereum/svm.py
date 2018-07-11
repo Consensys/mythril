@@ -23,7 +23,7 @@ class LaserEVM:
     """
     Laser EVM class
     """
-    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60):
+    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60, strategy=None):
         self.accounts = accounts
 
         self.nodes = {}
@@ -33,7 +33,7 @@ class LaserEVM:
         self.dynamic_loader = dynamic_loader
 
         self.work_list = []
-        self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
+        self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth) if strategy is None else strategy
         self.max_depth = max_depth
         self.execution_timeout = execution_timeout
 
