@@ -1,5 +1,5 @@
 import logging, copy
-import mythril.laser.ethereum.helper as helper
+import mythril.laser.ethereum.util as helper
 
 
 class TaintRecord:
@@ -135,6 +135,7 @@ class TaintRunner:
 
         # Apply Change
         op = state.get_current_instruction()['opcode']
+
         if op in TaintRunner.stack_taint_table.keys():
             mutator = TaintRunner.stack_taint_table[op]
             TaintRunner.mutate_stack(new_record, mutator)

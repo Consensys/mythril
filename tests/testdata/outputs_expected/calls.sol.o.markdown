@@ -16,7 +16,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Type: Informational
 - Contract: Unknown
 - Function name: `_function_0x5a6814ec`
-- PC address: 661
+- PC address: 666
 
 ### Description
 
@@ -49,7 +49,7 @@ A possible transaction order independence vulnerability exists in function _func
 - Type: Informational
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
-- PC address: 779
+- PC address: 784
 
 ### Description
 
@@ -66,17 +66,6 @@ The return value of an external call is not checked. Note that execution continu
 
 This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
 
-## Unchecked CALL return value
-
-- Type: Informational
-- Contract: Unknown
-- Function name: `_function_0xe11f493e`
-- PC address: 858
-
-### Description
-
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
-
 ## State change after external call
 
 - Type: Warning
@@ -87,6 +76,17 @@ The return value of an external call is not checked. Note that execution continu
 ### Description
 
 The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.
+
+## Unchecked CALL return value
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0xe11f493e`
+- PC address: 871
+
+### Description
+
+The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
 ## Message call to external contract
 
@@ -104,7 +104,7 @@ This contract executes a message call to an address provided as a function argum
 - Type: Informational
 - Contract: Unknown
 - Function name: `_function_0xe1d10f79`
-- PC address: 912
+- PC address: 918
 
 ### Description
 

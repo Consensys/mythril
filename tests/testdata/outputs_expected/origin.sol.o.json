@@ -1,14 +1,1 @@
-{
-    "success": true,
-    "error": null,
-    "issues": [
-        {
-            "title": "Use of tx.origin",
-            "description": "Function transferOwnership(address) retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.\nSee also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin",
-            "function": "transferOwnership(address)",
-            "type": "Warning",
-            "address": 317,
-            "debug": "<DEBUG-DATA>"
-        }
-    ]
-}
+{"error": null, "issues": [{"address": 317, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "Function transferOwnership(address) retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.\nSee also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin", "function": "transferOwnership(address)", "title": "Use of tx.origin", "type": "Warning"}], "success": true}

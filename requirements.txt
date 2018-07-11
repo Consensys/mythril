@@ -1,16 +1,17 @@
-BTrees
+configparser>=3.5.0
 coverage
 eth_abi>=1.0.0
 eth-account>=0.1.0a2
-ethereum>=2.3.0
+ethereum==2.3.1
 eth-hash>=0.1.0
 eth-keyfile>=0.5.1
 eth-keys>=0.2.0b3
 eth-rlp>=0.1.0
 eth-tester>=0.1.0b21
 eth-utils>=1.0.1
-jinja2
+jinja2>=2.9
 mock
+persistent>=4.2.0
 plyvel
 py-flags
 py-solc
@@ -20,4 +21,3 @@ pytest_mock
 requests
 rlp<1.0.0
 z3-solver>=4.5
-ZODB>=5.3.0

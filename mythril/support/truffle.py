@@ -10,7 +10,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
 
 from mythril.ether import util
-from mythril.laser.ethereum import helper
+from mythril.laser.ethereum.util import get_instruction_index
 
 
 def analyze_truffle_project(args):
@@ -41,7 +41,7 @@ def analyze_truffle_project(args):
             ethcontract = ETHContract(bytecode, name=name)
 
             address = util.get_indexed_address(0)
-            sym = SymExecWrapper(ethcontract, address, max_depth=10)
+            sym = SymExecWrapper(ethcontract, address, max_depth=args.max_depth)
             issues = fire_lasers(sym)
 
             if not len(issues):
@@ -80,7 +80,7 @@ def analyze_truffle_project(args):
 
                 for issue in issues:
 
-                    index = helper.get_instruction_index(disassembly.instruction_list, issue.address)
+                    index = get_instruction_index(disassembly.instruction_list, issue.address)
 
                     if index:
                             try:
@@ -97,7 +97,7 @@ def analyze_truffle_project(args):
 
                 if (args.outform == 'json'):
 
-                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict(), issues))}}
+                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict, issues))}}
                     print(json.dumps(result))
 
                 else:

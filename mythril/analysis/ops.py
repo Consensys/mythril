@@ -1,6 +1,6 @@
 from z3 import *
 from enum import Enum
-from mythril.laser.ethereum import helper
+from mythril.laser.ethereum import util
 
 
 class VarType(Enum):
@@ -20,7 +20,7 @@ class Variable:
 
 def get_variable(i):
     try:
-        return Variable(helper.get_concrete_int(i), VarType.CONCRETE)
+        return Variable(util.get_concrete_int(i), VarType.CONCRETE)
     except AttributeError:
         return Variable(simplify(i), VarType.SYMBOLIC)
 

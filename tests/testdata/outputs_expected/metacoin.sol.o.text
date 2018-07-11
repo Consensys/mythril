@@ -1,4 +1,4 @@
-==== Integer Overflow  ====
+==== Integer Overflow ====
 Type: Warning
 Contract: Unknown
 Function name: sendToken(address,uint256)

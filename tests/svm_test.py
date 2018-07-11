@@ -4,7 +4,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract
 
-from mythril.laser.ethereum.svm import GlobalState, MachineState
+from mythril.laser.ethereum.state import GlobalState, MachineState
 from mythril.laser.ethereum import svm
 from tests import *
 
@@ -19,7 +19,7 @@ class LaserEncoder(json.JSONEncoder):
 def _all_info(laser):
     accounts = {}
     for address, _account in laser.accounts.items():
-        account = _account.as_dict()
+        account = _account.as_dict
         account["code"] = account["code"].instruction_list
         account['balance'] = str(account['balance'])
         accounts[address] = account
@@ -29,14 +29,14 @@ def _all_info(laser):
         states = []
         for state in node.states:
             if isinstance(state, MachineState):
-                states.append(state.as_dict())
+                states.append(state.as_dict)
             elif isinstance(state, GlobalState):
-                environment = state.environment.as_dict()
+                environment = state.environment.as_dict
                 environment["active_account"] = environment["active_account"].address
                 states.append({
                     'accounts': state.accounts.keys(),
                     'environment': environment,
-                    'mstate': state.mstate.as_dict()
+                    'mstate': state.mstate.as_dict
                 })
 
         nodes[uid] = {
@@ -49,7 +49,7 @@ def _all_info(laser):
             'flags': str(node.flags)
         }
 
-    edges = [edge.as_dict() for edge in laser.edges]
+    edges = [edge.as_dict for edge in laser.edges]
 
     return {
         'accounts': accounts,
