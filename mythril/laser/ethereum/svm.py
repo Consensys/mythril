@@ -128,5 +128,7 @@ class LaserEVM:
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
             logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
+        elif address == 0:
+            environment.active_function_name = "fallback"
 
         new_node.function_name = environment.active_function_name
