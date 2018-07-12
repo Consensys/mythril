@@ -481,7 +481,7 @@ class Instruction:
         # FIXME: broad exception catch
         except:
             # Can't access symbolic memory offsets
-            state.stack.append(BitVec("KECCAC_mem[" + str(simplify(op0)) + "]", 256))
+            state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
             return [global_state]
 
         try:
