@@ -2,12 +2,12 @@
 
 import copy
 import hashlib
-import logging
 
-import coincurve
-
+from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
-from mythril.laser.ethereum.util import ALL_BYTES, bytearray_to_int, concrete_int_to_bytes, sha3, zpad
+from rlp.utils import ALL_BYTES
+
+from mythril.laser.ethereum.util import bytearray_to_int, sha3
 
 
 class NativeContractException(Exception):
@@ -20,21 +20,6 @@ def int_to_32bytes(i):   # used because int can't fit as bytes function's input
         o[31 - x] = i & 0xff
         i >>= 8
     return bytes(o)
-
-
-def ecrecover_to_pub(rawhash, v, r, s):
-    try:
-        pk = coincurve.PublicKey.from_signature_and_message(
-            zpad(concrete_int_to_bytes(r), 32) + zpad(concrete_int_to_bytes(s), 32) +
-            ALL_BYTES[v - 27],
-            rawhash,
-            hasher=None,
-        )
-        pub = pk.format(compressed=False)[1:]
-    except BaseException:
-        pub = b"\x00" * 64
-
-    return pub
 
 
 def extract32(data, i):
@@ -50,17 +35,14 @@ def ecrecover(data):
         data = bytearray(data)
     except TypeError:
         raise NativeContractException
-    message = b''.join(map(lambda x: ALL_BYTES[x], data[0:32]))
+    message = b''.join([ALL_BYTES[x] for x in data[0:32]])
     v = extract32(data, 32)
     r = extract32(data, 64)
     s = extract32(data, 96)
     if r >= secp256k1n or s >= secp256k1n or v < 27 or v > 28:
         return []
-    try:
-        pub = ecrecover_to_pub(message, v, r, s)
-    except Exception as e:
-        logging.info("An error has been encountered while extracting public key: " + str(e))
-        return []
+
+    pub = ecrecover_to_pub(message, v, r, s)
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
     return o
 
@@ -86,9 +68,9 @@ def identity(data):
 
 
 def native_contracts(address, data):
-    '''
+    """
     takes integer address 1, 2, 3, 4
-    '''
+    """
 
     functions = (ecrecover, sha256, ripemd160, identity)
     return functions[address-1](data)
