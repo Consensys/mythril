@@ -64,7 +64,7 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
-    options.add_argument('--execution-timeout', type=int, default=60, help="The amount of seconds to spend on "
+    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on "
                                                                            "symbolic execution")
     outputs.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs',
                          help='Symbolic execution strategy')
