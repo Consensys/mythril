@@ -41,8 +41,10 @@ def ecrecover(data):
     s = extract32(data, 96)
     if r >= secp256k1n or s >= secp256k1n or v < 27 or v > 28:
         return []
-
-    pub = ecrecover_to_pub(message, v, r, s)
+    try:
+        pub = ecrecover_to_pub(message, v, r, s)
+    except ValueError:
+        return []
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
     return o
 
