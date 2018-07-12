@@ -32,14 +32,16 @@ def extract32(data, i):
 
 
 def ecrecover(data):
+
     try:
         data = bytearray(data)
+        v = extract32(data, 32)
+        r = extract32(data, 64)
+        s = extract32(data, 96)
     except TypeError:
         raise NativeContractException
+
     message = b''.join([ALL_BYTES[x] for x in data[0:32]])
-    v = extract32(data, 32)
-    r = extract32(data, 64)
-    s = extract32(data, 96)
     if r >= secp256k1n or s >= secp256k1n or v < 27 or v > 28:
         return []
     try:
