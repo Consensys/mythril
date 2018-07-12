@@ -1,14 +1,1 @@
-{
-    "success": true,
-    "error": null,
-    "issues": [
-        {
-            "title": "Integer Overflow",
-            "description": "A possible integer overflow exists in the function `sendToken(address,uint256)`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.",
-            "function": "sendToken(address,uint256)",
-            "type": "Warning",
-            "address": 498,
-            "debug": "<DEBUG-DATA>"
-        }
-    ]
-}
+{"error": null, "issues": [{"address": 498, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A possible integer overflow exists in the function `sendToken(address,uint256)`.\nThe addition or multiplication may result in a value higher than the maximum representable integer.", "function": "sendToken(address,uint256)", "title": "Integer Overflow", "type": "Warning"}], "success": true}

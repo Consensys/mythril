@@ -305,7 +305,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
-        'ethereum==2.3.1',
+        'ethereum>=2.3.2',
         'z3-solver>=4.5',
         'requests',
         'py-solc',
@@ -320,7 +320,7 @@ setup(
         'eth-tester>=0.1.0b21',
         'coverage',
         'jinja2>=2.9',
-        'rlp<1.0.0',
+        'rlp>=1.0.1',
         'py-flags',
         'mock',
         'configparser>=3.5.0',

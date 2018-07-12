@@ -2,7 +2,7 @@ configparser>=3.5.0
 coverage
 eth_abi>=1.0.0
 eth-account>=0.1.0a2
-ethereum==2.3.1
+ethereum>=2.3.2
 eth-hash>=0.1.0
 eth-keyfile>=0.5.1
 eth-keys>=0.2.0b3
@@ -19,5 +19,5 @@ pytest>=3.6.0
 pytest-cov
 pytest_mock
 requests
-rlp<1.0.0
+rlp>=1.0.1
 z3-solver>=4.5

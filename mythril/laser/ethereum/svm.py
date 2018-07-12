@@ -4,6 +4,7 @@ from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType,
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from functools import reduce
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -23,6 +24,7 @@ class LaserEVM:
     Laser EVM class
     """
     def __init__(self, accounts, dynamic_loader=None, max_depth=22):
+        self.instructions_covered = []
         self.accounts = accounts
 
         self.nodes = {}
@@ -34,6 +36,9 @@ class LaserEVM:
         self.work_list = []
         self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
         self.max_depth = max_depth
+
+        self.pre_hooks = {}
+        self.post_hooks = {}
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -51,7 +56,8 @@ class LaserEVM:
             calldata_type=CalldataType.SYMBOLIC,
         )
 
-        # TODO: contact name fix
+        self.instructions_covered = [False for _ in environment.code.instruction_list]
+
         initial_node = Node(environment.active_account.contract_name)
         self.nodes[initial_node.uid] = initial_node
 
@@ -63,6 +69,7 @@ class LaserEVM:
         self._sym_exec()
 
         logging.info("Execution complete")
+        logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
     def _sym_exec(self):
@@ -81,7 +88,13 @@ class LaserEVM:
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
-        return Instruction(op_code, self.dynamic_loader).evaluate(global_state), op_code
+        self.instructions_covered[global_state.mstate.pc] = True
+
+        self._execute_pre_hook(op_code, global_state)
+        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+        self._execute_post_hook(op_code, new_global_states)
+
+        return new_global_states, op_code
 
     def manage_cfg(self, opcode, new_states):
         if opcode == "JUMP":
@@ -128,5 +141,42 @@ class LaserEVM:
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
             logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
+        elif address == 0:
+            environment.active_function_name = "fallback"
 
         new_node.function_name = environment.active_function_name
+
+    @property
+    def coverage(self):
+        return reduce(lambda sum_, val: sum_ + 1 if val else sum_, self.instructions_covered) / float(
+            len(self.instructions_covered)) * 100
+
+    def _execute_pre_hook(self, op_code, global_state):
+        if op_code not in self.pre_hooks.keys():
+            return
+        for hook in self.pre_hooks[op_code]:
+            hook(global_state)
+
+    def _execute_post_hook(self, op_code, global_states):
+        if op_code not in self.post_hooks.keys():
+            return
+
+        for hook in self.post_hooks[op_code]:
+            for global_state in global_states:
+                hook(global_state)
+
+    def hook(self, op_code):
+        def hook_decorator(function):
+            if op_code not in self.pre_hooks.keys():
+                self.pre_hooks[op_code] = []
+            self.pre_hooks[op_code].append(function)
+            return function
+        return hook_decorator
+
+    def post_hook(self, op_code):
+        def hook_decorator(function):
+            if op_code not in self.post_hooks.keys():
+                self.post_hooks[op_code] = []
+            self.post_hooks[op_code].append(function)
+            return function
+        return hook_decorator
