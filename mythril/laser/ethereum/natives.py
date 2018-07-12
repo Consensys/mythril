@@ -2,6 +2,7 @@
 
 import copy
 import hashlib
+import logging
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
@@ -43,7 +44,8 @@ def ecrecover(data):
         return []
     try:
         pub = ecrecover_to_pub(message, v, r, s)
-    except ValueError:
+    except Exception as e:
+        logging.info("An error has occured while extracting public key: "+e)
         return []
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
     return o
