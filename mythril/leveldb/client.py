@@ -2,6 +2,7 @@ import plyvel
 import binascii
 import rlp
 import hashlib
+import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
 from mythril.leveldb.state import State, Account
@@ -47,19 +48,27 @@ class EthLevelDB(object):
         for account in self._get_head_state().get_all_accounts():
             if account.code is not None:
                 code = _encode_hex(account.code)
-                md5 = hashlib.md5()
-                md5.update(code.encode('UTF-8'))
-                contract_hash = md5.digest()
-                contract = ETHContract(code, name=contract_hash.hex())
+                # md5 = hashlib.md5()
+                # md5.update(code.encode('UTF-8'))
+                # contract_hash = md5.digest()
+                contract = ETHContract(code)
                 yield contract, _encode_hex(account.address), account.balance
 
     def search(self, expression, callback_func):
         '''
         searches through non-zero balance contracts
         '''
+        cnt = 0
+
         for contract, address, balance in self.get_contracts():
+
             if contract.matches_expression(expression):
                 callback_func(contract.name, contract, [address], [balance])
+
+            cnt += 1
+
+            if not cnt % 1000:
+                logging.info("Searched %d contracts" % cnt)
 
     def eth_getBlockHeaderByNumber(self, number):
         '''

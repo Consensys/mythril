@@ -230,9 +230,8 @@ class Mythril(object):
     def search_db(self, search):
 
         def search_callback(code_hash, code, addresses, balances):
-            print("Matched contract with code hash " + code_hash)
             for i in range(0, len(addresses)):
-                print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
+                print("Address Hash: " + addresses[i] + ", balance: " + str(balances[i]))
 
         try:
             self.ethDb.search(search, search_callback)
