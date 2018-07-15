@@ -227,7 +227,7 @@ class Mythril(object):
         self.eth = EthJsonRpc('localhost', 8545)
         logging.info("Using default RPC settings: http://localhost:8545")
 
-    def search_db(self, search, search_all):
+    def search_db(self, search):
 
         def search_callback(code_hash, code, addresses, balances):
             print("Matched contract with code hash " + code_hash)
@@ -235,7 +235,7 @@ class Mythril(object):
                 print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
 
         try:
-            self.ethDb.search(search, search_all, search_callback)
+            self.ethDb.search(search, search_callback)
 
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")

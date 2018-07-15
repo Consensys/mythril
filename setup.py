@@ -166,9 +166,6 @@ in the `legendary "Mitch Brenner" blog post
 <https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
 in [STRIKEOUT:seconds] minutes instead of days.
 
-The default behavior is to search contracts with a non-zero balance.
-You can disable this behavior with the ``--search-all`` flag.
-
 You may also use geth database directly for fetching contracts instead of
 using IPC/RPC APIs by specifying ``--leveldb`` flag. This is useful
 because search will return hashed addresses which will not be accepted by

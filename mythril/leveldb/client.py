@@ -40,12 +40,12 @@ class EthLevelDB(object):
         self.headBlockHeader = None
         self.headState = None
 
-    def get_contracts(self, search_all):
+    def get_contracts(self):
         '''
-        iterate through contracts with non-zero balance by default or all if search_all is set
+        iterate through all contracts
         '''
         for account in self._get_head_state().get_all_accounts():
-            if account.code is not None and (search_all or account.balance != 0):
+            if account.code is not None:
                 code = _encode_hex(account.code)
                 md5 = hashlib.md5()
                 md5.update(code.encode('UTF-8'))
@@ -53,11 +53,11 @@ class EthLevelDB(object):
                 contract = ETHContract(code, name=contract_hash.hex())
                 yield contract, _encode_hex(account.address), account.balance
 
-    def search(self, expression, search_all, callback_func):
+    def search(self, expression, callback_func):
         '''
         searches through non-zero balance contracts
         '''
-        for contract, address, balance in self.get_contracts(search_all):
+        for contract, address, balance in self.get_contracts():
             if contract.matches_expression(expression):
                 callback_func(contract.name, contract, [address], [balance])
 
