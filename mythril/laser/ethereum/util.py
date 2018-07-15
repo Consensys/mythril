@@ -3,21 +3,11 @@ from z3 import *
 import logging
 
 import sha3 as _sha3
-import struct
+
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
-
-
-
-
-def zpad(x, l):
-    """ Left zero pad value `x` at least to length `l`.
-    >>> zpad('\xca\xfe', 4)
-    '\x00\x00\xca\xfe'
-    """
-    return b'\x00' * max(0, l - len(x)) + x
 
 
 def sha3(seed):
