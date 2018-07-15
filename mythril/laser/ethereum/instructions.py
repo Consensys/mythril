@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, ExprRef
+    is_false, is_expr, ExprRef
 from z3 import BitVecVal, If, BoolRef
 
 import mythril.laser.ethereum.util as helper
@@ -482,7 +482,9 @@ class Instruction:
         # FIXME: broad exception catch
         except:
             # Can't access symbolic memory offsets
-            state.stack.append(BitVec("KECCAC_mem[" + str(simplify(op0)) + "]", 256))
+            if is_expr(op0):
+                op0 = simplify(op0)
+            state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
             return [global_state]
 
         try:
