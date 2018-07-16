@@ -48,9 +48,6 @@ class EthLevelDB(object):
         for account in self._get_head_state().get_all_accounts():
             if account.code is not None:
                 code = _encode_hex(account.code)
-                # md5 = hashlib.md5()
-                # md5.update(code.encode('UTF-8'))
-                # contract_hash = md5.digest()
                 contract = ETHContract(code)
                 yield contract, _encode_hex(account.address), account.balance
 
