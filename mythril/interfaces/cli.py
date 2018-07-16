@@ -64,6 +64,11 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
+    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on "
+                                                                           "symbolic execution")
+    outputs.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs',
+                         help='Symbolic execution strategy')
+
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
@@ -192,10 +197,10 @@ def main():
                     exit_with_error(args.outform, "Error saving graph: " + str(e))
 
             else:
-                report = mythril.fire_lasers(address=address,
+                report = mythril.fire_lasers(strategy=args.strategy, address=address,
                                              modules=[m.strip() for m in args.modules.strip().split(",")] if args.modules else [],
                                              verbose_report=args.verbose_report,
-                                             max_depth=args.max_depth)
+                                             max_depth=args.max_depth, execution_timeout=args.execution_timeout)
                 outputs = {
                     'json': report.as_json(),
                     'text': report.as_text(),

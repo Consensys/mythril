@@ -34,7 +34,6 @@ from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 from mythril.leveldb.client import EthLevelDB
 
-
 # logging.basicConfig(level=logging.DEBUG)
 
 class Mythril(object):
@@ -316,17 +315,18 @@ class Mythril(object):
                              max_depth=max_depth)
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
-    def fire_lasers(self, contracts=None, address=None,
+    def fire_lasers(self, strategy, contracts=None, address=None,
                     modules=None,
-                    verbose_report=False, max_depth=12):
+                    verbose_report=False, max_depth=None, execution_timeout=None, ):
+
 
         all_issues = []
         if self.dynld and self.eth is None:
             self.set_api_rpc_infura()
         for contract in (contracts or self.contracts):
-            sym = SymExecWrapper(contract, address,
+            sym = SymExecWrapper(contract, address, strategy,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
-                                 max_depth=max_depth)
+                                 max_depth=max_depth, execution_timeout=execution_timeout)
 
             issues = fire_lasers(sym, modules)
 
