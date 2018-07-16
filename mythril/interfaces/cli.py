@@ -51,7 +51,6 @@ def main():
     database = parser.add_argument_group('local contracts database')
     database.add_argument('-s', '--search', help='search the contract database', metavar='EXPRESSION')
     database.add_argument('--leveldb-dir', help='specify leveldb directory for search or direct access operations', metavar='LEVELDB_PATH')
-    database.add_argument('--search-all', action='store_true', help='search all contracts instead of active (non-zero balance) only')
 
     utilities = parser.add_argument_group('utilities')
     utilities.add_argument('--hash', help='calculate function signature hash', metavar='SIGNATURE')
@@ -135,7 +134,7 @@ def main():
 
         if args.search:
             # Database search ops
-            mythril.search_db(args.search, args.search_all)
+            mythril.search_db(args.search)
             sys.exit()
 
         if args.truffle:
