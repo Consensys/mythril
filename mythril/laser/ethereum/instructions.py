@@ -889,6 +889,7 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
         global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
@@ -914,7 +915,6 @@ class Instruction:
                 for i in range(mem_out_sz):
                     global_state.mstate.memory[mem_out_start+i] = BitVec(contract_list[call_address_int - 1]+
                                                                          "(" + str(call_data) + ")", 256)
-
 
                 return [global_state]
 
@@ -952,6 +952,7 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         environment = deepcopy(environment)
 
@@ -981,6 +982,7 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         environment = deepcopy(environment)
         environment = deepcopy(environment)
