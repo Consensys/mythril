@@ -985,7 +985,6 @@ class Instruction:
         global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         environment = deepcopy(environment)
-        environment = deepcopy(environment)
 
         environment.code = callee_account.code
         environment.calldata = call_data
