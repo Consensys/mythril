@@ -101,15 +101,28 @@ class TaintRunner:
 
         # List of (Node, TaintRecord, index)
         current_nodes = [(node, init_record, state_index)]
+        contract_name = node.contract_name
 
         for node, record, index in current_nodes:
             records = TaintRunner.execute_node(node, record, index)
+
             result.add_records(records)
 
-            children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+            children = TaintRunner.children(node, statespace, contract_name)
             for child in children:
-                current_nodes.append((child, records[-1], 0))
+                    current_nodes.append((child, records[-1], 0))
         return result
+
+    @staticmethod
+    def children(node, statespace, contract_name):
+        direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+        children = []
+        for child in direct_children:
+            if child.contract_name == contract_name:
+                children.append(child)
+            else:
+                children += TaintRunner.children(child, statespace, contract_name)
+        return children
 
     @staticmethod
     def execute_node(node, last_record, state_index=0):
