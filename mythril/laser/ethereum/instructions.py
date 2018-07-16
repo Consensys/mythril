@@ -623,8 +623,10 @@ class Instruction:
     @instruction
     def mstore_(self, global_state):
         state = global_state.mstate
-
-        op0, value = state.stack.pop(), state.stack.pop()
+        try:
+            op0, value = state.stack.pop(), state.stack.pop()
+        except IndexError:
+            raise StackUnderflowException()
 
         try:
             mstart = util.get_concrete_int(op0)
@@ -840,17 +842,17 @@ class Instruction:
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
 
-        #TODO: return 1
         return_value = BitVec("retval_" + global_state.environment.active_function_name, 256)
-
-        state.stack.append(return_value)
 
         if not global_state.call_stack:
             return []
 
-        global_state.mstate.pc = global_state.call_stack.pop()
+        new_global_state = deepcopy(global_state.call_stack.pop())
+        new_global_state.node = global_state.node
+        new_global_state.mstate.stack.append(return_value)
+        # TODO: copy memory
 
-        return [global_state]
+        return [new_global_state]
 
     @instruction
     def suicide_(self, global_state):
@@ -870,12 +872,12 @@ class Instruction:
 
     @instruction
     def stop_(self, global_state):
-        state = global_state.mstate
-        state.stack.append(BitVecVal(0, 256))
         if len(global_state.call_stack) is 0:
             return []
-        global_state.mstate.pc = global_state.call_stack.pop()
-        return [global_state]
+        new_global_state = deepcopy(global_state.call_stack.pop())
+        new_global_state.node = global_state.node
+        new_global_state.mstate.stack.append(BitVecVal(0, 256))
+        return [new_global_state]
 
     @instruction
     def call_(self, global_state):
@@ -928,7 +930,6 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.call_stack.append(instr['address'])
         callee_environment = Environment(callee_account,
                                          BitVecVal(int(environment.active_account.address, 16), 256),
                                          call_data,
@@ -937,9 +938,11 @@ class Instruction:
                                          environment.origin,
                                          calldata_type=call_data_type)
         new_global_state = GlobalState(global_state.accounts, callee_environment, global_state.node, MachineState(gas))
+        new_global_state.call_stack.append(global_state)
+        new_global_state.mstate.pc = -1
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
-        return [global_state]
+        return [new_global_state]
 
     @instruction
     def callcode_(self, global_state):
@@ -955,7 +958,6 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.call_stack.append(instr['address'])
 
         environment = deepcopy(environment)
 
@@ -964,6 +966,8 @@ class Instruction:
         environment.calldata = call_data
 
         new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
+        new_global_state.call_stack.append(global_state)
+        new_global_state.mstate.pc = -1
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
@@ -983,7 +987,6 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.call_stack.append(instr['address'])
 
         environment = deepcopy(environment)
         environment = deepcopy(environment)
@@ -992,6 +995,8 @@ class Instruction:
         environment.calldata = call_data
 
         new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
+        new_global_state.call_stack.append(global_state)
+        new_global_state.mstate.pc = -1
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
