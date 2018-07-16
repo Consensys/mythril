@@ -881,7 +881,6 @@ class Instruction:
     def call_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         try:
             callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(global_state, self.dynamic_loader, True)
@@ -891,6 +890,7 @@ class Instruction:
             )
             # TODO: decide what to do in this case
             return [global_state]
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         if 0 < int(callee_address, 16) < 5:
             logging.info("Native contract called: " + callee_address)
