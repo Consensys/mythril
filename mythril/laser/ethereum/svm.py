@@ -62,6 +62,7 @@ class LaserEVM:
         self.nodes[initial_node.uid] = initial_node
 
         global_state = GlobalState(self.accounts, environment, initial_node)
+        global_state.environment.active_function_name = "fallback()"
         initial_node.states.append(global_state)
 
         # Empty the work_list before starting an execution
