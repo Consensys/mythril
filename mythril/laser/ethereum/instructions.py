@@ -849,7 +849,6 @@ class Instruction:
 
         new_global_state = deepcopy(global_state.call_stack.pop())
         new_global_state.node = global_state.node
-        new_global_state.mstate.stack.append(return_value)
         # TODO: copy memory
 
         return [new_global_state]
@@ -876,13 +875,13 @@ class Instruction:
             return []
         new_global_state = deepcopy(global_state.call_stack.pop())
         new_global_state.node = global_state.node
-        new_global_state.mstate.stack.append(BitVecVal(0, 256))
         return [new_global_state]
 
     @instruction
     def call_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         try:
             callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(global_state, self.dynamic_loader, True)
@@ -891,14 +890,12 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         if 0 < int(callee_address, 16) < 5:
             logging.info("Native contract called: " + callee_address)
             if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
                 logging.debug("CALL with symbolic data not supported")
-                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
             try:
@@ -906,7 +903,6 @@ class Instruction:
                 mem_out_sz = memory_out_size.as_long()
             except AttributeError:
                 logging.debug("CALL with symbolic start or offset not supported")
-                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
@@ -920,14 +916,12 @@ class Instruction:
                                                                          "(" + str(call_data) + ")", 256)
 
 
-                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
             for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
                 global_state.mstate.memory[mem_out_start + i] = data[i]
 
             # TODO: maybe use BitVec here constrained to 1
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         callee_environment = Environment(callee_account,
