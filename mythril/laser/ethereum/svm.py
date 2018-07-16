@@ -136,9 +136,12 @@ class LaserEVM:
         if edge_type == JumpType.RETURN:
             new_node.flags |= NodeFlags.CALL_RETURN
         elif edge_type == JumpType.CALL:
-            if 'retval' in str(state.mstate.stack[-1]):
-                new_node.flags |= NodeFlags.CALL_RETURN
-            else:
+            try:
+                if 'retval' in str(state.mstate.stack[-1]):
+                    new_node.flags |= NodeFlags.CALL_RETURN
+                else:
+                    new_node.flags |= NodeFlags.FUNC_ENTRY
+            except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
 
