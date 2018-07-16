@@ -24,7 +24,9 @@ class LaserEVM:
     """
     Laser EVM class
     """
-    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60, strategy=DepthFirstSearchStrategy):
+
+    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60,
+                 strategy=DepthFirstSearchStrategy):
         self.instructions_covered = []
         self.accounts = accounts
 
@@ -38,7 +40,7 @@ class LaserEVM:
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
         self.execution_timeout = execution_timeout
-	self.time = None
+        self.time = None
 
         self.pre_hooks = {}
         self.post_hooks = {}
@@ -138,7 +140,7 @@ class LaserEVM:
             else:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
-        
+
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:
@@ -147,7 +149,8 @@ class LaserEVM:
             environment.active_function_name = disassembly.addr_to_func[address]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
+            logging.info(
+                "- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
         elif address == 0:
             environment.active_function_name = "fallback"
 
@@ -178,6 +181,7 @@ class LaserEVM:
                 self.pre_hooks[op_code] = []
             self.pre_hooks[op_code].append(function)
             return function
+
         return hook_decorator
 
     def post_hook(self, op_code):
@@ -186,4 +190,5 @@ class LaserEVM:
                 self.post_hooks[op_code] = []
             self.post_hooks[op_code].append(function)
             return function
+
         return hook_decorator
