@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false
+    is_false, is_expr, ExprRef
 from z3 import BitVecVal, If, BoolRef
 
 import mythril.laser.ethereum.util as helper
@@ -150,14 +150,15 @@ class Instruction:
     def byte_(self, global_state):
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
-
+        if not isinstance(op1, ExprRef):
+            op1 = BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
             offset = (31 - index) * 8
             result = Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1))
         except AttributeError:
             logging.debug("BYTE: Unsupported symbolic byte offset")
-            result = BitVec(str(simplify(op1)) + "_" + str(simplify(op0)), 256)
+            result = BitVec(str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256)
 
         mstate.stack.append(simplify(result))
         return [global_state]
@@ -219,7 +220,7 @@ class Instruction:
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
-            state.stack.append(BitVec(str(base) + "_EXP_" + str(exponent), 256))
+            state.stack.append(BitVec("(" + str(simplify(base)) + ")^(" + str(simplify(exponent)) + ")", 256))
         elif base.as_long() == 2:
             if exponent.as_long() == 0:
                 state.stack.append(BitVecVal(1, 256))
@@ -330,13 +331,13 @@ class Instruction:
             b = environment.calldata[offset]
         except AttributeError:
             logging.debug("CALLDATALOAD: Unsupported symbolic index")
-            state.stack.append(
-                BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+            state.stack.append(BitVec(
+                "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
             return [global_state]
         except IndexError:
             logging.debug("Calldata not set, using symbolic variable instead")
-            state.stack.append(
-                BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+            state.stack.append(BitVec(
+                "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
             return [global_state]
 
         if type(b) == int:
@@ -350,12 +351,12 @@ class Instruction:
                 state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
             # FIXME: broad exception catch
             except:
-                state.stack.append(
-                    BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+                state.stack.append(BitVec(
+                    "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
         else:
             # symbolic variable
-            state.stack.append(
-                BitVec("calldata_" + str(environment.active_account.contract_name) + "_" + str(op0), 256))
+            state.stack.append(BitVec(
+                "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
 
         return [global_state]
 
@@ -382,24 +383,29 @@ class Instruction:
             logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
+        dstart_sym = False
         try:
             dstart = util.get_concrete_int(op1)
             # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
-            state.mem_extend(mstart, 1)
-            state.memory[mstart] = BitVec("calldata_" + str(environment.active_account.contract_name) + "_cpy",
-                                          256)
-            return [global_state]
+            dstart = simplify(op1)
+            dstart_sym = True
 
+        size_sym = False
         try:
             size = util.get_concrete_int(op2)
             # FIXME: broad exception catch
         except:
             logging.debug("Unsupported symbolic size in CALLDATACOPY")
+            size = simplify(op2)
+            size_sym = True
+
+        if dstart_sym or size_sym:
             state.mem_extend(mstart, 1)
             state.memory[mstart] = BitVec(
-                "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
+                    size) + "]", 256)
             return [global_state]
 
         if size > 0:
@@ -410,7 +416,8 @@ class Instruction:
                 logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(size))
                 state.mem_extend(mstart, 1)
                 state.memory[mstart] = BitVec(
-                    "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                    "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
+                        size) + "]", 256)
                 return [global_state]
 
             try:
@@ -423,7 +430,8 @@ class Instruction:
                 logging.debug("Exception copying calldata to memory")
 
                 state.memory[mstart] = BitVec(
-                    "calldata_" + str(environment.active_account.contract_name) + "_" + str(dstart), 256)
+                    "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
+                        size) + "]", 256)
         return [global_state]
 
     # Environment
@@ -474,7 +482,9 @@ class Instruction:
         # FIXME: broad exception catch
         except:
             # Can't access symbolic memory offsets
-            state.stack.append(BitVec("KECCAC_mem_" + str(op0) + ")", 256))
+            if is_expr(op0):
+                op0 = simplify(op0)
+            state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
             return [global_state]
 
         try:
@@ -594,14 +604,14 @@ class Instruction:
             offset = util.get_concrete_int(op0)
         except AttributeError:
             logging.debug("Can't MLOAD from symbolic index")
-            data = BitVec("mem_" + str(op0), 256)
+            data = BitVec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
             return [global_state]
 
         try:
             data = util.concrete_int_from_bytes(state.memory, offset)
         except IndexError:  # Memory slot not allocated
-            data = BitVec("mem_" + str(offset), 256)
+            data = BitVec("mem[" + str(offset) + "]", 256)
         except TypeError:  # Symbolic memory
             data = state.memory[offset]
 
@@ -889,7 +899,6 @@ class Instruction:
                 global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
-            data = natives.native_contracts(int(callee_address, 16), call_data)
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
                 mem_out_sz = memory_out_size.as_long()
@@ -899,11 +908,21 @@ class Instruction:
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+            call_address_int = int(callee_address, 16)
             try:
-                for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
-                    global_state.mstate.memory[mem_out_start + i] = data[i]
-            except:
-                global_state.mstate.memory[mem_out_start] = BitVec(data, 256)
+                data = natives.native_contracts(call_address_int, call_data)
+            except natives.NativeContractException:
+                contract_list = ['ecerecover', 'sha256', 'ripemd160', 'identity']
+                for i in range(mem_out_sz):
+                    global_state.mstate.memory[mem_out_start+i] = BitVec(contract_list[call_address_int - 1]+
+                                                                         "(" + str(call_data) + ")", 256)
+
+
+                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+                return [global_state]
+
+            for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
+                global_state.mstate.memory[mem_out_start + i] = data[i]
 
             # TODO: maybe use BitVec here constrained to 1
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
