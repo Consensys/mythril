@@ -185,7 +185,7 @@ def main():
                 exit_with_error(args.outform, "input files do not contain any valid contracts")
 
             if args.graph:
-                html = mythril.graph_html(mythril.contracts[0], address=address,
+                html = mythril.graph_html(strategy=args.strategy, contract=mythril.contracts[0], address=address,
                                           enable_physics=args.enable_physics, phrackify=args.phrack,
                                           max_depth=args.max_depth)
 
@@ -212,7 +212,7 @@ def main():
             if not mythril.contracts:
                 exit_with_error(args.outform, "input files do not contain any valid contracts")
 
-            statespace = mythril.dump_statespace(mythril.contracts[0], address=address, max_depth=args.max_depth)
+            statespace = mythril.dump_statespace(strategy=args.strategy, contract=mythril.contracts[0], address=address, max_depth=args.max_depth)
 
             try:
                 with open(args.statespace_json, "w") as f:
