@@ -19,7 +19,7 @@ import platform
 
 from mythril.ether import util
 from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from mythril.rpc.exceptions import ConnectionError
@@ -282,18 +282,21 @@ class Mythril(object):
                 # import signatures from solidity source
                 with open(file, encoding="utf-8") as f:
                     self.sigs.import_from_solidity_source(f.read())
+                if contract_name is not None:
+                    contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
+                    self.contracts.append(contract)
+                    contracts.append(contract)
+                else:
+                    for contract in get_contracts_from_file(file, solc_args=self.solc_args):
+                        self.contracts.append(contract)
+                        contracts.append(contract)
 
-                contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
-                logging.info("Analyzing contract %s:%s" % (file, contract.name))
             except FileNotFoundError:
                 raise CriticalError("Input file not found: " + file)
             except CompilerError as e:
                 raise CriticalError(e)
             except NoContractFoundError:
                 logging.info("The file " + file + " does not contain a compilable contract.")
-            else:
-                self.contracts.append(contract)
-                contracts.append(contract)
 
         # Save updated function signatures
         self.sigs.write()  # dump signatures to disk (previously opened file or default location)
