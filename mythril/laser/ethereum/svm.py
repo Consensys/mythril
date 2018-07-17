@@ -1,6 +1,6 @@
 from z3 import BitVec
 import logging
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account
+from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -25,7 +25,8 @@ class LaserEVM:
     """
     def __init__(self, accounts, dynamic_loader=None, max_depth=22):
         self.instructions_covered = []
-        self.accounts = accounts
+        self.world_state = WorldState()
+        self.world_state.accounts = accounts
 
         self.nodes = {}
         self.edges = []
@@ -47,7 +48,7 @@ class LaserEVM:
 
         # Initialize the execution environment
         environment = Environment(
-            self.accounts[main_address],
+            self.world_state[main_address],
             BitVec("caller", 256),
             [],
             BitVec("gasprice", 256),
@@ -61,7 +62,7 @@ class LaserEVM:
         initial_node = Node(environment.active_account.contract_name)
         self.nodes[initial_node.uid] = initial_node
 
-        global_state = GlobalState(self.accounts, environment, initial_node)
+        global_state = GlobalState(self.world_state, environment, initial_node)
         initial_node.states.append(global_state)
 
         # Empty the work_list before starting an execution
