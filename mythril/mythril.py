@@ -303,16 +303,16 @@ class Mythril(object):
 
         return address, contracts
 
-    def dump_statespace(self, contract, address=None, max_depth=12):
+    def dump_statespace(self, strategy, contract, address=None, max_depth=12):
 
-        sym = SymExecWrapper(contract, address,
+        sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
                              max_depth=max_depth)
 
         return get_serializable_statespace(sym)
 
-    def graph_html(self, contract, address, max_depth=12, enable_physics=False, phrackify=False):
-        sym = SymExecWrapper(contract, address,
+    def graph_html(self, strategy, contract, address, max_depth=12, enable_physics=False, phrackify=False):
+        sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
                              max_depth=max_depth)
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
