@@ -98,7 +98,10 @@ class LaserEVM:
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
-        self.instructions_covered[global_state.mstate.pc] = True
+
+        # Only count coverage for the main contract
+        if len(global_state.call_stack) == 0:
+            self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
         new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
