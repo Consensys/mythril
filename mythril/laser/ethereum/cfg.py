@@ -8,6 +8,7 @@ class JumpType(Enum):
     UNCONDITIONAL = 2
     CALL = 3
     RETURN = 4
+    Transaction = 5
 
 
 class NodeFlags(Flags):
