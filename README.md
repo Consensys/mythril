@@ -26,7 +26,7 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/wiki). For support, visit the [Gitter channel](https://gitter.im/ConsenSys/mythril) or [Telegram group](https://t.me/joinchat/GFWubxKo_G6eB7wI_kZ-LA).
+Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/wiki). For support, visit the [Gitter channel](https://gitter.im/ConsenSys/mythril) or [Telegram group](https://t.me/mythril_tool).
 
 ## Publications and Videos
 
