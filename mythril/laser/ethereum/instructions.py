@@ -515,7 +515,7 @@ class Instruction:
         return [global_state]
 
     @instruction
-    def codecopy(self, global_state):
+    def codecopy_(self, global_state):
         # FIXME: not implemented
         state = global_state.mstate
         start, s1, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
