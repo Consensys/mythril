@@ -160,13 +160,14 @@ class GlobalState:
 
 class WorldState:
     """
-    The WorldState class represents the world state as described in the yellowpaper
+    The WorldState class represents the world state as described in the yellow paper
     """
     def __init__(self):
         """
         Constructor for the world state. Initializes the accounts record
         """
         self.accounts = {}
+        self.node = None
 
     def __getitem__(self, item):
         """
