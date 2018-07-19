@@ -5,7 +5,12 @@ from z3 import BitVec
 
 
 class CallTransaction:
+    """ Represents a call value transaction """
     def __init__(self, callee_address):
+        """
+        Constructor for Call transaction, sets up all symbolic parameters
+        :param callee_address: Address of the contract that will be called
+        """
         self.callee_address = callee_address
         self.caller = BitVec("caller", 256)
         self.gas_price = BitVec("gasprice", 256)
@@ -14,6 +19,7 @@ class CallTransaction:
         pass
 
     def run(self, open_world_states, evm):
+        """ Runs this transaction on the evm starting from the open world states"""
         for open_world_state in open_world_states:
 
             # Initialize the execution environment
