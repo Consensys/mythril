@@ -1,6 +1,7 @@
 from z3 import BitVec
 import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
+from mythril.laser.ethereum.transaction import CallTransaction
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -45,35 +46,12 @@ class LaserEVM:
 
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
+        transaction = CallTransaction(main_address)
+        transaction.run([self.world_state], self)
 
-        # Initialize the execution environment
-        environment = Environment(
-            self.world_state[main_address],
-            BitVec("caller", 256),
-            [],
-            BitVec("gasprice", 256),
-            BitVec("callvalue", 256),
-            BitVec("origin", 256),
-            calldata_type=CalldataType.SYMBOLIC,
-        )
-
-        self.instructions_covered = [False for _ in environment.code.instruction_list]
-
-        initial_node = Node(environment.active_account.contract_name)
-        self.nodes[initial_node.uid] = initial_node
-
-        global_state = GlobalState(self.world_state, environment, initial_node)
-        initial_node.states.append(global_state)
-
-        # Empty the work_list before starting an execution
-        self.work_list.append(global_state)
-        self._sym_exec()
-
-        logging.info("Execution complete")
-        logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
-    def _sym_exec(self):
+    def exec(self):
         for global_state in self.strategy:
             try:
                 new_states, op_code = self.execute_state(global_state)
