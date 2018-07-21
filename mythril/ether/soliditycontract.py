@@ -57,7 +57,6 @@ class SolidityContract(ETHContract):
                 filename, _name = key.split(":")
 
                 if filename == input_file and name == _name and len(contract['bin-runtime']):
-                    name = name
                     code = contract['bin-runtime']
                     creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
@@ -71,7 +70,6 @@ class SolidityContract(ETHContract):
                 filename, name = key.split(":")
 
                 if filename == input_file and len(contract['bin-runtime']):
-                    name = name
                     code = contract['bin-runtime']
                     creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
