@@ -84,12 +84,6 @@ def main():
 
     args = parser.parse_args()
 
-    # -- args sanity checks --
-    # Detect unsupported combinations of command line args
-
-    if args.dynld and not args.address:
-        exit_with_error(args.outform, "Dynamic loader can be used in on-chain analysis mode only (-a).")
-
     # Parse cmdline args
 
     if not (args.search or args.hash or args.disassemble or args.graph or args.fire_lasers
@@ -111,12 +105,13 @@ def main():
 
     try:
         # the mythril object should be our main interface
-        #infura = None, rpc = None, rpctls = None, ipc = None,
-        #solc_args = None, dynld = None, max_recursion_depth = 12):
-
+        # infura = None, rpc = None, rpctls = None, ipc = None,
+        # solc_args = None, dynld = None, max_recursion_depth = 12):
 
         mythril = Mythril(solv=args.solv, dynld=args.dynld,
                           solc_args=args.solc_args)
+        if args.dynld and not (args.ipc or args.rpc or args.i):
+            mythril.set_api_from_config_path()
 
         if args.address and not args.leveldb:
             # Establish RPC/IPC connection if necessary
@@ -157,7 +152,7 @@ def main():
             address, _ = mythril.load_from_address(args.address)
         elif args.solidity_file:
             # Compile Solidity source file(s)
-            #if args.graph and len(args.solidity_file) > 1:
+            # if args.graph and len(args.solidity_file) > 1:
             #    exit_with_error(args.outform,
             #                    "Cannot generate call graphs from multiple input files. Please do it one at a time.")
             address, _ = mythril.load_from_solidity(args.solidity_file)  # list of files
@@ -225,6 +220,7 @@ def main():
 
     except CriticalError as ce:
         exit_with_error(args.outform, str(ce))
+
 
 if __name__ == "__main__":
     main()
