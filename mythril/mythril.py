@@ -119,8 +119,11 @@ class Mythril(object):
         return mythril_dir
 
     def _init_config(self):
-
-        # If no config file exists, create it and add default options. Default LevelDB path is specified based on OS
+        """
+        If no config file exists, create it and add default options.
+        Default LevelDB path is specified based on OS
+        dynamic loading is set to infura by default in the file
+        """
 
         system = platform.system().lower()
         leveldb_fallback_dir = os.path.expanduser('~')
