@@ -26,8 +26,10 @@ class LaserEVM:
     """
     def __init__(self, accounts, dynamic_loader=None, max_depth=22):
         self.instructions_covered = []
-        self.world_state = WorldState()
-        self.world_state.accounts = accounts
+
+        world_state = WorldState()
+        world_state.accounts = accounts
+        self.open_states = [world_state]
 
         self.nodes = {}
         self.edges = []
@@ -47,7 +49,7 @@ class LaserEVM:
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
         transaction = CallTransaction(main_address)
-        transaction.run([self.world_state], self)
+        transaction.run(self.open_states, self)
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
@@ -58,6 +60,13 @@ class LaserEVM:
             except NotImplementedError:
                 logging.debug("Encountered unimplemented instruction")
                 continue
+
+            if len(new_states) == 0:
+                # TODO: let global state use worldstate
+                open_world_state = WorldState()
+                open_world_state.accounts = global_state.accounts
+                open_world_state.node = global_state.node
+                self.open_states.append(open_world_state)
 
             self.manage_cfg(op_code, new_states)
 

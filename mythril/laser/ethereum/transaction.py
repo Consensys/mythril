@@ -16,11 +16,20 @@ class CallTransaction:
         self.gas_price = BitVec("gasprice", 256)
         self.call_value = BitVec("callvalue", 256)
         self.origin = BitVec("origin", 256)
-        pass
 
-    def run(self, open_world_states, evm):
+        self.open_states = None
+
+    @property
+    def has_ran(self):
+        return self.open_states is None
+
+    def run(self, open_world_states: list, evm):
         """ Runs this transaction on the evm starting from the open world states """
-        for open_world_state in open_world_states:
+        # Consume the open states
+        open_states = open_world_states[:]
+        del open_world_states[:]
+
+        for open_world_state in open_states:
 
             # Initialize the execution environment
             environment = Environment(
