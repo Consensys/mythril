@@ -31,12 +31,12 @@ class ETHContract(persistent.Persistent):
 
     def get_easm(self):
 
-        return Disassembly(self.code).get_easm()
+        return self.disassembly.get_easm()
 
     def matches_expression(self, expression):
 
-        easm_code = self.get_easm()
         str_eval = ''
+        easm_code = None
 
         matches = re.findall(r'func#([a-zA-Z0-9\s_,(\\)\[\]]+)#', expression)
 
@@ -58,6 +58,9 @@ class ETHContract(persistent.Persistent):
             m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
 
             if (m):
+                if easm_code is None:
+                    easm_code = self.get_easm()
+
                 code = m.group(1).replace(",", "\\n")
                 str_eval += "\"" + code + "\" in easm_code"
                 continue
@@ -65,7 +68,7 @@ class ETHContract(persistent.Persistent):
             m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in easm_code"
+                str_eval += "\"" + m.group(1) + "\" in self.disassembly.func_hashes"
 
                 continue
 
