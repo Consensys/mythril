@@ -1,4 +1,4 @@
-from mythril.ether import asm,util
+from mythril.ether import asm, util
 from mythril.support.signatures import SignatureDb
 import logging
 
@@ -38,7 +38,7 @@ class Disassembly(object):
                 func_name = "_function_" + func_hash
 
             try:
-                offset = self.instruction_list[i+2]['argument']
+                offset = self.instruction_list[i + 2]['argument']
                 jump_target = int(offset, 16)
 
                 self.func_to_addr[func_name] = jump_target

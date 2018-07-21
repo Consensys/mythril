@@ -70,16 +70,3 @@ class ETHContract(persistent.Persistent):
                 continue
 
         return eval(str_eval.strip())
-
-
-class InstanceList(persistent.Persistent):
-
-    def __init__(self):
-        self.addresses = []
-        self.balances = []
-        pass
-
-    def add(self, address, balance=0):
-        self.addresses.append(address)
-        self.balances.append(balance)
-        self._p_changed = True
