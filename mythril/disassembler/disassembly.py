@@ -7,7 +7,7 @@ class Disassembly(object):
 
     def __init__(self, code):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
-        self.xrefs = []
+        self.func_hashes = []
         self.func_to_addr = {}
         self.addr_to_func = {}
         self.bytecode = code
@@ -24,6 +24,7 @@ class Disassembly(object):
 
         for i in jmptable_indices:
             func_hash = self.instruction_list[i]['argument']
+            self.func_hashes.append(func_hash)
             try:
                 # tries local cache, file and optional online lookup
                 # may return more than one function signature. since we cannot probe for the correct one we'll use the first
