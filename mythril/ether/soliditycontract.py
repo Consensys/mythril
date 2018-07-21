@@ -27,6 +27,14 @@ class SourceCodeInfo:
         self.code = code
 
 
+def get_contracts_from_file(input_file, solc_args=None):
+    data = get_solc_json(input_file, solc_args=solc_args)
+    for key, contract in data['contracts'].items():
+        filename, name = key.split(":")
+        if filename == input_file and len(contract['bin-runtime']):
+            yield SolidityContract(input_file, name, solc_args)
+
+
 class SolidityContract(ETHContract):
 
     def __init__(self, input_file, name=None, solc_args=None):
@@ -48,7 +56,7 @@ class SolidityContract(ETHContract):
             for key, contract in data['contracts'].items():
                 filename, _name = key.split(":")
 
-                if filename == input_file and name == _name:
+                if filename == input_file and name == _name and len(contract['bin-runtime']):
                     name = name
                     code = contract['bin-runtime']
                     creation_code = contract['bin']

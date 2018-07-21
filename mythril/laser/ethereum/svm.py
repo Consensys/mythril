@@ -4,6 +4,7 @@ from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType,
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from datetime import datetime, timedelta
 from functools import reduce
 
 TT256 = 2 ** 256
@@ -23,7 +24,9 @@ class LaserEVM:
     """
     Laser EVM class
     """
-    def __init__(self, accounts, dynamic_loader=None, max_depth=22):
+
+    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60,
+                 strategy=DepthFirstSearchStrategy):
         self.instructions_covered = []
         self.accounts = accounts
 
@@ -34,8 +37,10 @@ class LaserEVM:
         self.dynamic_loader = dynamic_loader
 
         self.work_list = []
-        self.strategy = DepthFirstSearchStrategy(self.work_list, max_depth)
+        self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
+        self.execution_timeout = execution_timeout
+        self.time = None
 
         self.pre_hooks = {}
         self.post_hooks = {}
@@ -44,6 +49,7 @@ class LaserEVM:
 
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
+        self.time = datetime.now()
 
         # Initialize the execution environment
         environment = Environment(
@@ -62,6 +68,7 @@ class LaserEVM:
         self.nodes[initial_node.uid] = initial_node
 
         global_state = GlobalState(self.accounts, environment, initial_node)
+        global_state.environment.active_function_name = "fallback()"
         initial_node.states.append(global_state)
 
         # Empty the work_list before starting an execution
@@ -74,6 +81,9 @@ class LaserEVM:
 
     def _sym_exec(self):
         for global_state in self.strategy:
+            if self.execution_timeout:
+                if self.time + timedelta(seconds=self.execution_timeout) <= datetime.now():
+                    return
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
@@ -88,7 +98,10 @@ class LaserEVM:
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
-        self.instructions_covered[global_state.mstate.pc] = True
+
+        # Only count coverage for the main contract
+        if len(global_state.call_stack) == 0:
+            self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
         new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
@@ -126,12 +139,15 @@ class LaserEVM:
         if edge_type == JumpType.RETURN:
             new_node.flags |= NodeFlags.CALL_RETURN
         elif edge_type == JumpType.CALL:
-            if 'retval' in str(state.mstate.stack[-1]):
-                new_node.flags |= NodeFlags.CALL_RETURN
-            else:
+            try:
+                if 'retval' in str(state.mstate.stack[-1]):
+                    new_node.flags |= NodeFlags.CALL_RETURN
+                else:
+                    new_node.flags |= NodeFlags.FUNC_ENTRY
+            except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
-        
+
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:
@@ -140,7 +156,8 @@ class LaserEVM:
             environment.active_function_name = disassembly.addr_to_func[address]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            logging.info("- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
+            logging.info(
+                "- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
         elif address == 0:
             environment.active_function_name = "fallback"
 
@@ -171,6 +188,7 @@ class LaserEVM:
                 self.pre_hooks[op_code] = []
             self.pre_hooks[op_code].append(function)
             return function
+
         return hook_decorator
 
     def post_hook(self, op_code):
@@ -179,4 +197,5 @@ class LaserEVM:
                 self.post_hooks[op_code] = []
             self.post_hooks[op_code].append(function)
             return function
+
         return hook_decorator

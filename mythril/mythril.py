@@ -19,7 +19,7 @@ import platform
 
 from mythril.ether import util
 from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.rpc.client import EthJsonRpc
 from mythril.ipc.client import EthIpc
 from mythril.rpc.exceptions import ConnectionError
@@ -33,7 +33,6 @@ from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 from mythril.leveldb.client import EthLevelDB
-
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -283,49 +282,53 @@ class Mythril(object):
                 # import signatures from solidity source
                 with open(file, encoding="utf-8") as f:
                     self.sigs.import_from_solidity_source(f.read())
+                if contract_name is not None:
+                    contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
+                    self.contracts.append(contract)
+                    contracts.append(contract)
+                else:
+                    for contract in get_contracts_from_file(file, solc_args=self.solc_args):
+                        self.contracts.append(contract)
+                        contracts.append(contract)
 
-                contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
-                logging.info("Analyzing contract %s:%s" % (file, contract.name))
             except FileNotFoundError:
                 raise CriticalError("Input file not found: " + file)
             except CompilerError as e:
                 raise CriticalError(e)
             except NoContractFoundError:
                 logging.info("The file " + file + " does not contain a compilable contract.")
-            else:
-                self.contracts.append(contract)
-                contracts.append(contract)
 
         # Save updated function signatures
         self.sigs.write()  # dump signatures to disk (previously opened file or default location)
 
         return address, contracts
 
-    def dump_statespace(self, contract, address=None, max_depth=12):
+    def dump_statespace(self, strategy, contract, address=None, max_depth=12):
 
-        sym = SymExecWrapper(contract, address,
+        sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
                              max_depth=max_depth)
 
         return get_serializable_statespace(sym)
 
-    def graph_html(self, contract, address, max_depth=12, enable_physics=False, phrackify=False):
-        sym = SymExecWrapper(contract, address,
+    def graph_html(self, strategy, contract, address, max_depth=12, enable_physics=False, phrackify=False):
+        sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
                              max_depth=max_depth)
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
-    def fire_lasers(self, contracts=None, address=None,
+    def fire_lasers(self, strategy, contracts=None, address=None,
                     modules=None,
-                    verbose_report=False, max_depth=12):
+                    verbose_report=False, max_depth=None, execution_timeout=None, ):
+
 
         all_issues = []
         if self.dynld and self.eth is None:
             self.set_api_rpc_infura()
         for contract in (contracts or self.contracts):
-            sym = SymExecWrapper(contract, address,
+            sym = SymExecWrapper(contract, address, strategy,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
-                                 max_depth=max_depth)
+                                 max_depth=max_depth, execution_timeout=execution_timeout)
 
             issues = fire_lasers(sym, modules)
 

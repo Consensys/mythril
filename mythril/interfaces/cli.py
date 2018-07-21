@@ -63,6 +63,11 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
+    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on "
+                                                                           "symbolic execution")
+    outputs.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs',
+                         help='Symbolic execution strategy')
+
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
@@ -180,7 +185,7 @@ def main():
                 exit_with_error(args.outform, "input files do not contain any valid contracts")
 
             if args.graph:
-                html = mythril.graph_html(mythril.contracts[0], address=address,
+                html = mythril.graph_html(strategy=args.strategy, contract=mythril.contracts[0], address=address,
                                           enable_physics=args.enable_physics, phrackify=args.phrack,
                                           max_depth=args.max_depth)
 
@@ -191,10 +196,10 @@ def main():
                     exit_with_error(args.outform, "Error saving graph: " + str(e))
 
             else:
-                report = mythril.fire_lasers(address=address,
+                report = mythril.fire_lasers(strategy=args.strategy, address=address,
                                              modules=[m.strip() for m in args.modules.strip().split(",")] if args.modules else [],
                                              verbose_report=args.verbose_report,
-                                             max_depth=args.max_depth)
+                                             max_depth=args.max_depth, execution_timeout=args.execution_timeout)
                 outputs = {
                     'json': report.as_json(),
                     'text': report.as_text(),
@@ -207,7 +212,7 @@ def main():
             if not mythril.contracts:
                 exit_with_error(args.outform, "input files do not contain any valid contracts")
 
-            statespace = mythril.dump_statespace(mythril.contracts[0], address=address, max_depth=args.max_depth)
+            statespace = mythril.dump_statespace(strategy=args.strategy, contract=mythril.contracts[0], address=address, max_depth=args.max_depth)
 
             try:
                 with open(args.statespace_json, "w") as f:
