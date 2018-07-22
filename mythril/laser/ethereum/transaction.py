@@ -4,7 +4,8 @@ from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from z3 import BitVec
 
 
-class CallTransaction:
+class MessageCall:
+
     """ Represents a call value transaction """
     def __init__(self, callee_address):
         """
@@ -21,7 +22,7 @@ class CallTransaction:
 
     @property
     def has_ran(self):
-        return self.open_states is None
+        return self.open_states is not None
 
     def run(self, open_world_states: list, evm):
         """ Runs this transaction on the evm starting from the open world states """

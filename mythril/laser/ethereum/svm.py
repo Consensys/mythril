@@ -1,7 +1,7 @@
 from z3 import BitVec
 import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
-from mythril.laser.ethereum.transaction import CallTransaction
+from mythril.laser.ethereum.transaction import MessageCall
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -48,7 +48,8 @@ class LaserEVM:
 
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
-        transaction = CallTransaction(main_address)
+
+        transaction = MessageCall(main_address)
         transaction.run(self.open_states, self)
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
