@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """mythril.py: Bug hunting on the Ethereum blockchain
 
    http://www.github.com/ConsenSys/mythril
@@ -14,6 +14,7 @@ import argparse
 
 from mythril.exceptions import CriticalError
 from mythril.mythril import Mythril
+from mythril.version import VERSION
 
 
 def exit_with_error(format, message):
@@ -31,6 +32,8 @@ def main():
 
     commands = parser.add_argument_group('commands')
     commands.add_argument('-g', '--graph', help='generate a control flow graph')
+    commands.add_argument('-V', '--version', action='store_true',
+                          help='print the Mythril version number and exit')
     commands.add_argument('-x', '--fire-lasers', action='store_true',
                           help='detect vulnerabilities, use with -c, -a or solidity file(s)')
     commands.add_argument('-t', '--truffle', action='store_true',
@@ -83,6 +86,10 @@ def main():
     # Get config values
 
     args = parser.parse_args()
+
+    if args.version:
+        print("Mythril version {}".format(VERSION))
+        sys.exit()
 
     # -- args sanity checks --
     # Detect unsupported combinations of command line args
