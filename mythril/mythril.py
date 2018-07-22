@@ -123,6 +123,7 @@ class Mythril(object):
         If no config file exists, create it and add default options.
         Default LevelDB path is specified based on OS
         dynamic loading is set to infura by default in the file
+        Returns: leveldb directory
         """
 
         system = platform.system().lower()
@@ -143,25 +144,23 @@ class Mythril(object):
         config.optionxform = str
         config.read(self.config_path, 'utf-8')
         if 'defaults' not in config.sections() :
-            config = self._add_default_options(config)
+            self._add_default_options(config)
 
         if not config.has_option('defaults', 'leveldb_dir'):
-            config = self._add_leveldb_option(config, leveldb_fallback_dir)
+            self._add_leveldb_option(config, leveldb_fallback_dir)
 
         if not config.has_option('defaults', 'dynamic_loading'):
-            config = self._add_dynamic_loading_option(config)
+            self._add_dynamic_loading_option(config)
 
         with codecs.open(self.config_path, 'w', 'utf-8') as fp:
             config.write(fp)
 
-        config.read(self.config_path, 'utf-8')
         leveldb_dir = config.get('defaults', 'leveldb_dir', fallback=leveldb_fallback_dir)
         return os.path.expanduser(leveldb_dir)
 
     @staticmethod
     def _add_default_options(config):
         config.add_section('defaults')
-        return config
 
     @staticmethod
     def _add_leveldb_option(config, leveldb_fallback_dir):
@@ -170,7 +169,6 @@ class Mythril(object):
         config.set('defaults', "#– Linux: ~/.ethereum/geth/chaindata")
         config.set('defaults', "#– Windows: %USERPROFILE%\\AppData\\Roaming\\Ethereum\\geth\\chaindata")
         config.set('defaults', 'leveldb_dir', leveldb_fallback_dir)
-        return config
 
     @staticmethod
     def _add_dynamic_loading_option(config):
@@ -180,7 +178,6 @@ class Mythril(object):
                                'dynamic_loading: HOST:PORT / ganache / infura-[network_name]')
         config.set('defaults', '#– To connect to local host use dynamic_loading: localhost')
         config.set('defaults', 'dynamic_loading', 'infura')
-        return config
 
     def analyze_truffle_project(self, *args, **kwargs):
         return analyze_truffle_project(*args, **kwargs)  # just passthru for now
