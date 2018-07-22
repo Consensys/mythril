@@ -6,7 +6,7 @@ import os
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
 
-VERSION = "v0.18.7"
+VERSION = "v0.18.9"
 
 
 class VerifyVersionCommand(install):
@@ -165,9 +165,6 @@ exposed RPC/IPC API. This enables operations like those described
 in the `legendary "Mitch Brenner" blog post
 <https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
 in [STRIKEOUT:seconds] minutes instead of days.
-
-The default behavior is to search contracts with a non-zero balance.
-You can disable this behavior with the ``--search-all`` flag.
 
 You may also use geth database directly for fetching contracts instead of
 using IPC/RPC APIs by specifying ``--leveldb`` flag. This is useful
