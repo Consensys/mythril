@@ -1,13 +1,11 @@
-import plyvel
 import binascii
 import rlp
-import hashlib
 import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
-from mythril.leveldb.state import State, Account
+from mythril.leveldb.state import State
 from mythril.leveldb.eth_db import ETH_DB
-from mythril.ether.ethcontract import ETHContract, InstanceList
+from mythril.ether.ethcontract import ETHContract
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/database_util.go
 # prefixes and suffixes for keys in geth
@@ -16,7 +14,8 @@ bodyPrefix = b'b'       # bodyPrefix + num (uint64 big endian) + hash -> block b
 numSuffix = b'n'        # headerPrefix + num (uint64 big endian) + numSuffix -> hash
 blockHashPrefix = b'H'  # blockHashPrefix + hash -> num (uint64 big endian)
 # known geth keys
-headHeaderKey = b'LastBlock' # head (latest) header hash
+headHeaderKey = b'LastBlock'  # head (latest) header hash
+
 
 def _formatBlockNumber(number):
     '''
@@ -24,11 +23,13 @@ def _formatBlockNumber(number):
     '''
     return utils.zpad(utils.int_to_big_endian(number), 8)
 
+
 def _encode_hex(v):
     '''
     encodes hash as hex
     '''
     return '0x' + utils.encode_hex(v)
+
 
 class EthLevelDB(object):
     '''
