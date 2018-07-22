@@ -59,6 +59,7 @@ def main():
     utilities.add_argument('--solv',
                            help='specify solidity compiler version. If not present, will try to install it (Experimental)',
                            metavar='SOLV')
+    utilities.add_argument('--contract-hash-to-address', help='returns corresponding address for a contract address hash', metavar='SHA3_TO_LOOK_FOR')
 
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
@@ -93,7 +94,7 @@ def main():
     # Parse cmdline args
 
     if not (args.search or args.hash or args.disassemble or args.graph or args.fire_lasers
-            or args.storage or args.truffle or args.statespace_json):
+            or args.storage or args.truffle or args.statespace_json or args.contract_hash_to_address):
         parser.print_help()
         sys.exit()
 
@@ -128,13 +129,18 @@ def main():
                 mythril.set_api_ipc()
             else:
                 mythril.set_api_rpc_localhost()
-        elif args.leveldb or args.search:
+        elif args.leveldb or args.search or args.contract_hash_to_address:
             # Open LevelDB if necessary
             mythril.set_api_leveldb(mythril.leveldb_dir if not args.leveldb_dir else args.leveldb_dir)
 
         if args.search:
             # Database search ops
             mythril.search_db(args.search)
+            sys.exit()
+
+        if args.contract_hash_to_address:
+            # search corresponding address
+            mythril.contract_hash_to_address(args.contract_hash_to_address)
             sys.exit()
 
         if args.truffle:
