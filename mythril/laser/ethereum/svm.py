@@ -29,6 +29,8 @@ class LaserEVM:
 
         world_state = WorldState()
         world_state.accounts = accounts
+        # this sets the initial world state
+        self.world_state = world_state
         self.open_states = [world_state]
 
         self.nodes = {}
