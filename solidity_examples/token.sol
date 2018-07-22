@@ -1,4 +1,6 @@
-contract Under {
+pragma solidity ^0.4.18;
+
+contract Token {
 
   mapping(address => uint) balances;
   uint public totalSupply;
@@ -7,7 +9,7 @@ contract Under {
     balances[msg.sender] = totalSupply = _initialSupply;
   }
 
-  function sendeth(address _to, uint _value) public returns (bool) {
+  function transfer(address _to, uint _value) public returns (bool) {
     require(balances[msg.sender] - _value >= 0);
     balances[msg.sender] -= _value;
     balances[_to] += _value;
