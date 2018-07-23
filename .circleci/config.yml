@@ -58,6 +58,10 @@ jobs:
           working_directory: /home/mythril
 
       - run:
+          name: Sonar analysis
+          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then if [ -z "$CIRCLE_TAG" ]; then sonar-scanner -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.organization=$SONAR_ORGANIZATION -Dsonar.branch.name=$CIRCLE_BRANCH -Dsonar.projectBaseDir=/home/mythril -Dsonar.sources=mythril -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN; fi; fi
+
+      - run:
           name: Integration tests
           command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
           working_directory: /home

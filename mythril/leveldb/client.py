@@ -1,15 +1,13 @@
-import plyvel
 import binascii
 import rlp
 from mythril.leveldb.accountindexing import CountableList
-import hashlib
+from mythril.leveldb.accountindexing import ReceiptForStorage, AccountIndexer
 import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
-from mythril.leveldb.accountindexing import ReceiptForStorage, AccountIndexer
-from mythril.leveldb.state import State, Account
+from mythril.leveldb.state import State
 from mythril.leveldb.eth_db import ETH_DB
-from mythril.ether.ethcontract import ETHContract, InstanceList
+from mythril.ether.ethcontract import ETHContract
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/database_util.go
 # prefixes and suffixes for keys in geth
@@ -24,12 +22,15 @@ headHeaderKey = b'LastBlock' # head (latest) header hash
 addressPrefix = b'AM'       # addressPrefix + hash -> address
 # custom keys
 addressMappingHeadKey = b'accountMapping' # head (latest) number of indexed block
+headHeaderKey = b'LastBlock'  # head (latest) header hash
+
 
 def _formatBlockNumber(number):
     '''
     formats block number to uint64 big endian
     '''
     return utils.zpad(utils.int_to_big_endian(number), 8)
+
 
 def _encode_hex(v):
     '''

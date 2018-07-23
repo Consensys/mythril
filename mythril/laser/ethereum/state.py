@@ -137,12 +137,12 @@ class GlobalState:
         self.op_code = ""
 
 
-
     def __copy__(self):
-        accounts = copy(self.accounts)
+        accounts = self.accounts
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
-        return GlobalState(accounts, environment, self.node, mstate)
+        call_stack = copy(self.call_stack)
+        return GlobalState(accounts, environment, self.node, mstate, call_stack=call_stack)
 
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
