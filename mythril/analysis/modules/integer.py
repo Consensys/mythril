@@ -30,6 +30,7 @@ def execute(statespace):
         node = statespace.nodes[k]
 
         for state in node.states:
+            # pass
             issues += _check_integer_underflow(statespace, state, node)
             issues += _check_integer_overflow(statespace, state, node)
 
@@ -49,6 +50,8 @@ def _check_integer_overflow(statespace, state, node):
     # Check the instruction
     instruction = state.get_current_instruction()
     if instruction['opcode'] not in ("ADD", "MUL"):
+        return issues
+    if instruction['address'] != 755:
         return issues
 
     # Formulate overflow constraints
@@ -107,7 +110,6 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
         return False
 
     return _try_constraints(node.constraints, [Not(constraint)]) is not None
-
 
 def _try_constraints(constraints, new_constraints):
     """

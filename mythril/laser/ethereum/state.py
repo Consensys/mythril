@@ -39,7 +39,12 @@ class Account:
         self.balance += balance
 
     def get_storage(self, index):
-        return self.storage[index] if index in self.storage.keys() else BitVec("storage_" + str(index), 256)
+        if index in self.storage.keys():
+            return self.storage[index]
+        else:
+            symbol = BitVec("storage_" + str(index), 256)
+            self.storage[index] = symbol
+            return symbol
 
     @property
     def as_dict(self):

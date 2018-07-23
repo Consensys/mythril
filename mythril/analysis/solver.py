@@ -4,7 +4,7 @@ import logging
 
 def get_model(constraints):
     s = Solver()
-    s.set("timeout", 10000)
+    s.set("timeout", 100000)
 
     for constraint in constraints:
         s.add(constraint)
@@ -12,7 +12,7 @@ def get_model(constraints):
     if result == sat:
         return s.model()
     elif result == unknown:
-        logging.info("Timeout encountered while solving expression using z3")
+        logging.error("Timeout encountered while solving expression using z3")
     raise UnsatError
 
 
