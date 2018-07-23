@@ -3,6 +3,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.taint_analysis import TaintRunner
 import re
 import copy
 import logging
@@ -29,9 +30,7 @@ def execute(statespace):
         node = statespace.nodes[k]
 
         for state in node.states:
-            logging.debug("Checking for integer underflow")
             issues += _check_integer_underflow(statespace, state, node)
-            logging.debug("Checking for integer overflow")
             issues += _check_integer_overflow(statespace, state, node)
 
     return issues
@@ -62,14 +61,20 @@ def _check_integer_overflow(statespace, state, node):
     if not (type(op0) in allowed_types and type(op1) in allowed_types):
         return issues
 
+    # Change ints to BitVec
+    if type(op0) is int:
+        op0 = BitVecVal(op0, 256)
+    if type(op1) is int:
+        op1 = BitVecVal(op1, 256)
+
     # Formulate expression
     if instruction['opcode'] == "ADD":
         expr = op0 + op1
     else:
-        expr = op0 * op1
+        expr = op1 * op0
 
     # Check satisfiable
-    constraint = Or(ULT(expr, op0), ULT(expr, op1))
+    constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
     model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
@@ -80,7 +85,7 @@ def _check_integer_overflow(statespace, state, node):
         return issues
 
     # Build issue
-    issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow ", "Warning")
+    issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow", "Warning")
 
     issue.description = "A possible integer overflow exists in the function `{}`.\n" \
                         "The addition or multiplication may result in a value higher than the maximum representable integer.".format(
@@ -95,26 +100,13 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
     """ Verifies existence of integer overflow """
     # If we get to this point then there has been an integer overflow
     # Find out if the overflowed value is actually used
-    interesting_usages = _search_children(statespace, node, expr, index=node.states.index(state))
+    interesting_usages = _search_children(statespace, node, expr, constraint=[constraint], index=node.states.index(state))
 
     # Stop if it isn't
     if len(interesting_usages) == 0:
         return False
 
-    model0, model1 = None, None
-
-    if type(op0) is not int:
-        op0_value = int(str(model.eval(op0, model_completion=True)))
-        model0 = _try_constraints(node.constraints, [constraint, op0 != op0_value])
-
-    if type(op1) is not int:
-        op1_value = int(str(model.eval(op1, model_completion=True)))
-        model1 = _try_constraints(node.constraints, [constraint, op1 != op1_value])
-
-    if model0 is None and model1 is None:
-        return False
-
-    return True
+    return _try_constraints(node.constraints, [Not(constraint)]) is not None
 
 
 def _try_constraints(constraints, new_constraints):
@@ -141,7 +133,6 @@ def _check_integer_underflow(statespace, state, node):
     """
     issues = []
     instruction = state.get_current_instruction()
-
     if instruction['opcode'] == "SUB":
 
         stack = state.mstate.stack
@@ -178,7 +169,6 @@ def _check_integer_underflow(statespace, state, node):
                 # If we get to this point then there has been an integer overflow
                 # Find out if the overflowed value is actually used
                 interesting_usages = _search_children(statespace, node, (op0 - op1), index=node.states.index(state))
-                logging.info(interesting_usages)
 
                 # Stop if it isn't
                 if len(interesting_usages) == 0:
@@ -198,57 +188,50 @@ def _check_integer_underflow(statespace, state, node):
     return issues
 
 
-def _check_usage(state, expression):
+def _check_usage(state, taint_result):
     """Delegates checks to _check_{instruction_name}()"""
     opcode = state.get_current_instruction()['opcode']
 
     if opcode == 'JUMPI':
-        if _check_jumpi(state, expression):
+        if _check_jumpi(state, taint_result):
             return [state]
     elif opcode == 'SSTORE':
-        if _check_sstore(state, expression):
+        if _check_sstore(state, taint_result):
             return [state]
     return []
 
-def _check_taint(statement, expression):
-    """Checks if statement is influenced by tainted expression"""
-    found = str(expression) in str(statement)
-
-    if found:
-        i = str(statement).index(str(expression))
-        char = str(statement)[i - 1]
-        if char == '_':
-            return False
-    return found
-
-def _check_jumpi(state, expression):
+def _check_jumpi(state, taint_result):
     """ Check if conditional jump is dependent on the result of expression"""
-    logging.info(state.get_current_instruction()['opcode'])
     assert state.get_current_instruction()['opcode'] == 'JUMPI'
-    condition = state.mstate.stack[-2]
-    return _check_taint(condition, expression)
+    return taint_result.check(state, -2)
 
 
-def _check_sstore(state, expression):
+def _check_sstore(state, taint_result):
     """ Check if store operation is dependent on the result of expression"""
-    logging.info(state.get_current_instruction()['opcode'])
     assert state.get_current_instruction()['opcode'] == 'SSTORE'
-    value = state.mstate.stack[-2]
-    return _check_taint(value, expression)
+    return taint_result.check(state, -2)
 
-def _search_children(statespace, node, expression, index=0, depth=0, max_depth=64):
+
+def _search_children(statespace, node, expression, taint_result=None, constraint=[], index=0, depth=0, max_depth=64):
     """
     Checks the statespace for children states, with JUMPI or SSTORE instuctions,
     for dependency on expression
     :param statespace: The statespace to explore
     :param node: Current node to explore from
     :param expression: Expression to look for
+    :param taint_result: Result of taint analysis
     :param index: Current state index node.states[index] == current_state
     :param depth: Current depth level
     :param max_depth: Max depth to explore
     :return: List of states that match the opcodes and are dependent on expression
     """
     logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
+
+    if taint_result is None:
+        state = node.states[index]
+        taint_stack = [False for _ in state.mstate.stack]
+        taint_stack[-1] = True
+        taint_result = TaintRunner.execute(statespace, node, state, initial_stack=taint_stack)
 
     results = []
 
@@ -260,11 +243,44 @@ def _search_children(statespace, node, expression, index=0, depth=0, max_depth=6
         current_state = node.states[j]
         current_instruction = current_state.get_current_instruction()
         if current_instruction['opcode'] in ('JUMPI', 'SSTORE'):
-            results += _check_usage(current_state, expression)
+            element = _check_usage(current_state, taint_result)
+            if len(element) < 1:
+                continue
+            if _check_requires(element[0], node, statespace, constraint):
+                 continue
+            results += element
 
     # Recursively search children
-    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+    children = \
+        [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid
+            # and _try_constraints(statespace.nodes[edge.node_to].constraints, constraint) is not None
+        ]
+
     for child in children:
-        results += _search_children(statespace, child, expression, depth=depth + 1, max_depth=max_depth)
+        results += _search_children(statespace, child, expression, taint_result, depth=depth + 1, max_depth=max_depth)
 
     return results
+
+
+def _check_requires(state, node, statespace, constraint):
+    """Checks if usage of overflowed statement results in a revert statement"""
+    instruction = state.get_current_instruction()
+    if instruction['opcode'] is not "JUMPI":
+        return False
+    children = [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid
+        ]
+
+    for child in children:
+        opcodes = [s.get_current_instruction()['opcode'] for s in child.states]
+        if "REVERT" in opcodes or "ASSERT_FAIL" in opcodes:
+            return True
+    # I added the following case, bc of false positives if the max depth is not high enough
+    if len(children) == 0:
+        return True
+    return False

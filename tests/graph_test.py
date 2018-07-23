@@ -15,7 +15,7 @@ class GraphTest(BaseTestCase):
 
             contract = ETHContract(input_file.read_text())
 
-            sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)))
+            sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)), strategy="dfs")
 
             html = generate_graph(sym)
             output_current.write_text(html)

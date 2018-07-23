@@ -14,7 +14,7 @@ class ETHContract(persistent.Persistent):
         # Workaround: We currently do not support compile-time linking.
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
 
-        code = re.sub(r'(_+[A-Za-z0-9]+_+)', 'aa' * 20, code)
+        code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
 
         self.code = code
         self.disassembly = Disassembly(self.code)
@@ -31,12 +31,12 @@ class ETHContract(persistent.Persistent):
 
     def get_easm(self):
 
-        return Disassembly(self.code).get_easm()
+        return self.disassembly.get_easm()
 
     def matches_expression(self, expression):
 
-        easm_code = self.get_easm()
         str_eval = ''
+        easm_code = None
 
         matches = re.findall(r'func#([a-zA-Z0-9\s_,(\\)\[\]]+)#', expression)
 
@@ -58,6 +58,9 @@ class ETHContract(persistent.Persistent):
             m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
 
             if (m):
+                if easm_code is None:
+                    easm_code = self.get_easm()
+
                 code = m.group(1).replace(",", "\\n")
                 str_eval += "\"" + code + "\" in easm_code"
                 continue
@@ -65,21 +68,8 @@ class ETHContract(persistent.Persistent):
             m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in easm_code"
+                str_eval += "\"" + m.group(1) + "\" in self.disassembly.func_hashes"
 
                 continue
 
         return eval(str_eval.strip())
-
-
-class InstanceList(persistent.Persistent):
-
-    def __init__(self):
-        self.addresses = []
-        self.balances = []
-        pass
-
-    def add(self, address, balance=0):
-        self.addresses.append(address)
-        self.balances.append(balance)
-        self._p_changed = True

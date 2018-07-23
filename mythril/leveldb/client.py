@@ -1,12 +1,11 @@
-import plyvel
 import binascii
 import rlp
-import hashlib
+import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
-from mythril.leveldb.state import State, Account
+from mythril.leveldb.state import State
 from mythril.leveldb.eth_db import ETH_DB
-from mythril.ether.ethcontract import ETHContract, InstanceList
+from mythril.ether.ethcontract import ETHContract
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/database_util.go
 # prefixes and suffixes for keys in geth
@@ -15,7 +14,8 @@ bodyPrefix = b'b'       # bodyPrefix + num (uint64 big endian) + hash -> block b
 numSuffix = b'n'        # headerPrefix + num (uint64 big endian) + numSuffix -> hash
 blockHashPrefix = b'H'  # blockHashPrefix + hash -> num (uint64 big endian)
 # known geth keys
-headHeaderKey = b'LastBlock' # head (latest) header hash
+headHeaderKey = b'LastBlock'  # head (latest) header hash
+
 
 def _formatBlockNumber(number):
     '''
@@ -23,11 +23,13 @@ def _formatBlockNumber(number):
     '''
     return utils.zpad(utils.int_to_big_endian(number), 8)
 
+
 def _encode_hex(v):
     '''
     encodes hash as hex
     '''
     return '0x' + utils.encode_hex(v)
+
 
 class EthLevelDB(object):
     '''
@@ -39,55 +41,32 @@ class EthLevelDB(object):
         self.db = ETH_DB(path)
         self.headBlockHeader = None
         self.headState = None
-        self.all_contracts = None
-        self.active_contracts = None
-        self.instance_lists = None
 
-    def get_all_contracts(self):
+    def get_contracts(self):
         '''
-        get all contracts
+        iterate through all contracts
         '''
-        if not self.all_contracts:
-            self.all_contracts = []
-            self.active_contracts = []
-            self.instance_lists = []
-            state = self._get_head_state()
-            accounts = state.get_all_accounts()
-
-            for a in accounts:
-                if a.code is not None:
-                    code = _encode_hex(a.code)
-                    md5 = hashlib.md5()
-                    md5.update(code.encode('UTF-8'))
-                    contract_hash = md5.digest()
-                    contract = ETHContract(code, name=contract_hash.hex())
-                    self.all_contracts.append(contract)
-
-                    if a.balance != 0:
-                        md5 = InstanceList()
-                        md5.add(_encode_hex(a.address), a.balance)
-                        self.instance_lists.append(md5)
-                        self.active_contracts.append(contract)
-
-        return self.all_contracts
-
-    def get_active_contracts(self):
-        '''
-        get all contracts with non-zero balance
-        '''
-        if not self.active_contracts:
-            self.get_all_contracts() # optimized
-        return self.active_contracts
+        for account in self._get_head_state().get_all_accounts():
+            if account.code is not None:
+                code = _encode_hex(account.code)
+                contract = ETHContract(code)
+                yield contract, _encode_hex(account.address), account.balance
 
     def search(self, expression, callback_func):
         '''
         searches through non-zero balance contracts
         '''
-        contracts = self.get_active_contracts()
-        for i in range(0, len(contracts)):
-            if contracts[i].matches_expression(expression):
-                m = self.instance_lists[i]
-                callback_func(contracts[i].name, contracts[i], m.addresses, m.balances)
+        cnt = 0
+
+        for contract, address, balance in self.get_contracts():
+
+            if contract.matches_expression(expression):
+                callback_func(contract.name, contract, [address], [balance])
+
+            cnt += 1
+
+            if not cnt % 1000:
+                logging.info("Searched %d contracts" % cnt)
 
     def eth_getBlockHeaderByNumber(self, number):
         '''
@@ -167,7 +146,7 @@ class EthLevelDB(object):
                 hash = self.headBlockHeader.prevhash
                 num = self._get_block_number(hash)
                 self.headBlockHeader = self._get_block_header(hash, num)
-            
+
         return self.headBlockHeader
 
     def _get_block_number(self, hash):

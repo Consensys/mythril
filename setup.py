@@ -1,21 +1,29 @@
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from pathlib import Path
+import sys
 import os
+
+# To make lint checkers happy we set VERSION here, but
+# it is redefined by the exec below
+VERSION = None
 
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
-VERSION = "v0.16.25"
+
+version_path = (Path(__file__).parent / 'mythril' / 'version.py').absolute()
+exec(open(version_path, 'r').read())
 
 class VerifyVersionCommand(install):
-  """Custom command to verify that the git tag matches our version"""
-  description = 'verify that the git tag matches our version'
+    """Custom command to verify that the git tag matches our version"""
+    description = 'verify that the git tag matches our version'
 
-  def run(self):
-      tag = os.getenv('CIRCLE_TAG')
+    def run(self):
+        tag = os.getenv('CIRCLE_TAG')
 
-      if (tag != VERSION):
-          info = "Git tag: {0} does not match the version of this app: {1}".format(tag, VERSION)
-          sys.exit(info)
+        if (tag != VERSION):
+            info = "Git tag: {0} does not match the version of this app: {1}".format(tag, VERSION)
+            sys.exit(info)
 
 long_description = '''
 Mythril is a security analysis tool for Ethereum smart contracts. It
@@ -156,26 +164,21 @@ unfortunately completely destroys usability.
 Blockchain exploration
 ----------------------
 
-Mythril builds its own contract database to enable fast search
-operations. This enables operations like those described in the
-`legendary "Mitch Brenner" blog
-post <https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
-in [STRIKEOUT:seconds] minutes instead of days. Unfortunately, the
-initial sync process is slow. You don't need to sync the whole
-blockchain right away though: If you abort the syncing process with
-``ctrl+c``, it will be auto-resumed the next time you run the
-``--init-db`` command.
+Mythril allows to search geth contract database directly as well as
+perform other operations targetting local geth database instead of
+exposed RPC/IPC API. This enables operations like those described
+in the `legendary "Mitch Brenner" blog post
+<https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
+in [STRIKEOUT:seconds] minutes instead of days.
 
-.. code:: bash
+You may also use geth database directly for fetching contracts instead of
+using IPC/RPC APIs by specifying ``--leveldb`` flag. This is useful
+because search will return hashed addresses which will not be accepted by
+IPC/RPC APIs.
 
-    $ myth --init-db
-    Starting synchronization from latest block: 4323706
-    Processing block 4323000, 3 individual contracts in database
-    (...)
-
-The default behavior is to only sync contracts with a non-zero balance.
-You can disable this behavior with the ``--sync-all`` flag, but be aware
-that this will result in a huge (as in: dozens of GB) database.
+By default database operations will target default geth data directory on
+your system. You may edit the generated configuration at ``~/.mythril/config.ini``
+or you may supply ``--leveldb-dir <PATH>`` parameter in command line.
 
 Searching from the command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,8 +190,9 @@ expressions, such as:
 .. code:: bash
 
     $ myth --search "func#changeMultisig(address)#"
-    $ myth --search "code#PUSH1 0x50,POP#"
+    $ myth --search "code#PUSH1 0x50,POP#" --search-all
     $ myth --search "func#changeMultisig(address)# and code#PUSH1 0x50#"
+    $ myth -s "code#PUSH#" --leveldb-dir /Volumes/MyPassport/Ether/Rinkeby/geth/chaindata
 
 Reading contract storage
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -303,15 +307,11 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
-        'ethereum>=2.3.0',
-        'ZODB>=5.3.0',
+        'ethereum>=2.3.2',
         'z3-solver>=4.5',
-        'laser-ethereum>=0.5.20',
         'requests',
-        'BTrees',
         'py-solc',
         'plyvel',
-        'pytest',
         'eth_abi>=1.0.0',
         'eth-utils>=1.0.1',
         'eth-account>=0.1.0a2',
@@ -321,8 +321,18 @@ setup(
         'eth-rlp>=0.1.0',
         'eth-tester>=0.1.0b21',
         'coverage',
-        'jinja2',
-        'attrs'
+        'jinja2>=2.9',
+        'rlp>=1.0.1',
+        'py-flags',
+        'mock',
+        'configparser>=3.5.0',
+        'persistent>=4.2.0'
+    ],
+
+    tests_require=[
+        'pytest>=3.6.0',
+        'pytest_mock',
+        'pytest-cov'
     ],
 
     python_requires='>=3.5',
@@ -330,11 +340,15 @@ setup(
     extras_require={
     },
 
+    package_data={
+        'mythril.analysis.templates': ['*']
+    },
+
     include_package_data=True,
 
     scripts=['myth'],
 
-    cmdclass = {
-      'verify': VerifyVersionCommand,
+    cmdclass={
+        'verify': VerifyVersionCommand,
     }
 )

@@ -43,6 +43,102 @@
             "debug": "<DEBUG-DATA>"
         },
         {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "fallback",
+            "type": "Informational",
+            "address": 3111,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "fallback",
+            "type": "Informational",
+            "address": 3140,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "fallback",
+            "type": "Informational",
+            "address": 2950,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "fallback",
+            "type": "Informational",
+            "address": 1268,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x09dfdc71",
+            "type": "Informational",
+            "address": 310,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x09dfdc71",
+            "type": "Informational",
+            "address": 1316,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x253459e3",
+            "type": "Informational",
+            "address": 1375,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x4229616d",
+            "type": "Informational",
+            "address": 1511,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x57d4021b",
+            "type": "Informational",
+            "address": 1679,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x6fbaaa1e",
+            "type": "Informational",
+            "address": 618,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x8a5fb3ca",
+            "type": "Informational",
+            "address": 805,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Invariant branch condition",
+            "description": "Found a conditional jump which always follows the same branch",
+            "function": "_function_0x9dbc4f9b",
+            "type": "Informational",
+            "address": 2187,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
             "title": "Unchecked CALL return value",
             "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
             "function": "_function_0x4229616d",

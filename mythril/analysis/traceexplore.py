@@ -1,5 +1,5 @@
 from z3 import Z3Exception, simplify
-from laser.ethereum.svm import NodeFlags
+from mythril.laser.ethereum.svm import NodeFlags
 import re
 
 colors = [
@@ -43,7 +43,7 @@ def get_serializable_statespace(statespace):
         def get_state_accounts(state):
             state_accounts = []
             for key in state.accounts:
-                account = state.accounts[key].as_dict()
+                account = state.accounts[key].as_dict
                 account.pop('code', None)
                 account['balance'] = str(account['balance'])
                 
@@ -57,7 +57,7 @@ def get_serializable_statespace(statespace):
                 })  
             return state_accounts          
                 
-        states = [{'machine': x.mstate.as_dict(), 'accounts': get_state_accounts(x)} for x in node.states]
+        states = [{'machine': x.mstate.as_dict, 'accounts': get_state_accounts(x)} for x in node.states]
         
         for state in states:
             state['machine']['stack'] = [str(s) for s in state['machine']['stack']]
@@ -94,8 +94,8 @@ def get_serializable_statespace(statespace):
         code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
 
         s_edge = {
-            'from': str(edge.as_dict()['from']),
-            'to': str(edge.as_dict()['to']),
+            'from': str(edge.as_dict['from']),
+            'to': str(edge.as_dict['to']),
             'arrows': 'to',
             'label': label,
             'smooth': { 'type': "cubicBezier" }

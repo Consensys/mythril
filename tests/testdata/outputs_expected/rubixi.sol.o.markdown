@@ -72,6 +72,138 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 
 A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. This is acceptable in most situations. Note however that `assert()` should only be used to check invariants. Use `require()` for regular input checking. 
 
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `fallback`
+- PC address: 3111
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `fallback`
+- PC address: 3140
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `fallback`
+- PC address: 2950
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `fallback`
+- PC address: 1268
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x09dfdc71`
+- PC address: 310
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: False
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x09dfdc71`
+- PC address: 1316
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x253459e3`
+- PC address: 1375
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x4229616d`
+- PC address: 1511
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x57d4021b`
+- PC address: 1679
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x6fbaaa1e`
+- PC address: 618
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: False
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x8a5fb3ca`
+- PC address: 805
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: False
+
+## Tautology
+
+- Type: Informational
+- Contract: Unknown
+- Function name: `_function_0x9dbc4f9b`
+- PC address: 2187
+
+### Description
+
+Found a conditional jump which always follows the same branch, value: True
+
 ## Unchecked CALL return value
 
 - Type: Informational
