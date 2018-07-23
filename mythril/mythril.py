@@ -230,13 +230,19 @@ class Mythril(object):
 
         def search_callback(code_hash, code, addresses, balances):
             for i in range(0, len(addresses)):
-                print("Address Hash: " + addresses[i] + ", balance: " + str(balances[i]))
+                print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
 
         try:
             self.ethDb.search(search, search_callback)
 
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
+
+    def contract_hash_to_address(self, hash):
+        if not re.match(r'0x[a-fA-F0-9]{64}', hash):
+             raise CriticalError("Invalid address hash. Expected format is '0x...'.")
+
+        print(self.ethDb.contract_hash_to_address(hash))
 
     def load_from_bytecode(self, code):
         address = util.get_indexed_address(0)

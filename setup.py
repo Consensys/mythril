@@ -1,13 +1,18 @@
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from pathlib import Path
 import sys
 import os
+
+# To make lint checkers happy we set VERSION here, but
+# it is redefined by the exec below
+VERSION = None
 
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
 
-VERSION = "v0.18.9"
-
+version_path = (Path(__file__).parent / 'mythril' / 'version.py').absolute()
+exec(open(version_path, 'r').read())
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -318,6 +323,7 @@ setup(
         'coverage',
         'jinja2>=2.9',
         'rlp>=1.0.1',
+        'transaction>=2.2.1',
         'py-flags',
         'mock',
         'configparser>=3.5.0',
