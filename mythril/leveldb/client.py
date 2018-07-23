@@ -17,11 +17,11 @@ numSuffix = b'n'            # headerPrefix + num (uint64 big endian) + numSuffix
 blockHashPrefix = b'H'      # blockHashPrefix + hash -> num (uint64 big endian)
 blockReceiptsPrefix = b'r'  # blockReceiptsPrefix + num (uint64 big endian) + hash -> block receipts
 # known geth keys
-headHeaderKey = b'LastBlock' # head (latest) header hash
+headHeaderKey = b'LastBlock'  # head (latest) header hash
 # custom prefixes
 addressPrefix = b'AM'       # addressPrefix + hash -> address
 # custom keys
-addressMappingHeadKey = b'accountMapping' # head (latest) number of indexed block
+addressMappingHeadKey = b'accountMapping'  # head (latest) number of indexed block
 headHeaderKey = b'LastBlock'  # head (latest) header hash
 
 
@@ -37,6 +37,7 @@ def _encode_hex(v):
     encodes hash as hex
     '''
     return '0x' + utils.encode_hex(v)
+
 
 class LevelDBReader(object):
     '''
@@ -128,6 +129,7 @@ class LevelDBReader(object):
         receipts = rlp.decode(receiptsData, sedes=CountableList(ReceiptForStorage))
         return receipts
 
+
 class LevelDBWriter(object):
     '''
     level db writing interface
@@ -161,6 +163,7 @@ class LevelDBWriter(object):
         '''
         addressKey = addressPrefix + utils.sha3(address)
         self.wb.put(addressKey, address)
+
 
 class EthLevelDB(object):
     '''
