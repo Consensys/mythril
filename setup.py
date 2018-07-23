@@ -323,6 +323,7 @@ setup(
         'coverage',
         'jinja2>=2.9',
         'rlp>=1.0.1',
+        'transaction>=2.2.1',
         'py-flags',
         'mock',
         'configparser>=3.5.0',
