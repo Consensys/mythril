@@ -66,7 +66,11 @@ class Environment:
         self.active_function_name = ""
 
         self.address = BitVecVal(int(active_account.address, 16), 256)
+
+        # Code contains the instruction models
         self.code = active_account.code
+        # Bytecode contains the actual bytes
+        self.bytecode = []
 
         self.sender = sender
         self.calldata = calldata
@@ -74,6 +78,7 @@ class Environment:
         self.gasprice = gasprice
         self.origin = origin
         self.callvalue = callvalue
+
 
     def __str__(self):
         return str(self.as_dict)
