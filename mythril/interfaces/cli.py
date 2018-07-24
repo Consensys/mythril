@@ -91,11 +91,6 @@ def main():
         print("Mythril version {}".format(VERSION))
         sys.exit()
 
-    # -- args sanity checks --
-    # Detect unsupported combinations of command line args
-
-    if args.dynld and not args.address:
-        exit_with_error(args.outform, "Dynamic loader can be used in on-chain analysis mode only (-a).")
 
     # Parse cmdline args
 

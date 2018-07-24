@@ -143,7 +143,7 @@ class Mythril(object):
         config = ConfigParser(allow_no_value=True)
         config.optionxform = str
         config.read(self.config_path, 'utf-8')
-        if 'defaults' not in config.sections() :
+        if 'defaults' not in config.sections():
             self._add_default_options(config)
 
         if not config.has_option('defaults', 'leveldb_dir'):
