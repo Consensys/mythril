@@ -12,7 +12,7 @@ VERSION = None
 # deployment; otherwise the build will failed.
 
 version_path = (Path(__file__).parent / 'mythril' / 'version.py').absolute()
-exec(open(version_path, 'r').read())
+exec(open(str(version_path), 'r').read())
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -48,7 +48,7 @@ Or, clone the GitHub repo to install the newest master branch:
     $ cd mythril
     $ python setup.py install
 
-Note that Mythril requires Python 3.5 to work.
+Note that Mythril requires Python 3.5 or later to work.
 
 Function signatures
 ~~~~~~~~~~~~~~~~~~~
@@ -294,12 +294,9 @@ setup(
 
         'License :: OSI Approved :: MIT License',
 
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 
     keywords='hacking disassembler security ethereum',
