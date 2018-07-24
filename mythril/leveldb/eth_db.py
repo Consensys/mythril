@@ -1,6 +1,6 @@
 import plyvel
 from ethereum.db import BaseDB
-from ethereum import utils
+
 
 class ETH_DB(BaseDB):
     '''

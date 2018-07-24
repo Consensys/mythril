@@ -1,18 +1,14 @@
-import os
-import hashlib
-import transaction
-from threading import Thread
 import logging
 from mythril import ether
 import time
 from ethereum.messages import Log
-from ethereum.block import BlockHeader
 import rlp
 from rlp.sedes import big_endian_int, binary
 from ethereum import utils
 from ethereum.utils import hash32, address, int256
 
-BATCH_SIZE = 8*4096
+BATCH_SIZE = 8 * 4096
+
 
 class CountableList(object):
     """A sedes for lists of arbitrary length.
@@ -35,6 +31,7 @@ class CountableList(object):
         except:
             return []
 
+
 class ReceiptForStorage(rlp.Serializable):
     '''
     Receipt format stored in levelDB
@@ -49,6 +46,7 @@ class ReceiptForStorage(rlp.Serializable):
         ('logs', CountableList(Log)),
         ('gas_used', big_endian_int)
     ]
+
 
 class AccountIndexer(object):
     '''
@@ -117,7 +115,7 @@ class AccountIndexer(object):
 
         blockNum = 0
         if self.lastProcessedBlock is not None:
-            blockNum = self.lastProcessedBlock+1
+            blockNum = self.lastProcessedBlock + 1
             print("Updating hash-to-address index from block " + str(self.lastProcessedBlock))
         else:
             print("Starting hash-to-address index")
@@ -136,20 +134,19 @@ class AccountIndexer(object):
             # store new mappings
             self.db.writer._start_writing()
             count += len(results)
-            for address in results:
-                self.db.writer._store_account_address(address)
+            for addr in results:
+                self.db.writer._store_account_address(addr)
 
             self.db.writer._commit_batch()
 
             processed += BATCH_SIZE
-            blockNum = min(blockNum + BATCH_SIZE, self.lastBlock+1)
+            blockNum = min(blockNum + BATCH_SIZE, self.lastBlock + 1)
 
             cost_time = time.time() - ether.start_time
             print("%d blocks processed (in %d seconds), %d unique addresses found, next block: %d" % (processed, cost_time, count, min(self.lastBlock, blockNum)))
 
-            self.lastProcessedBlock = blockNum-1
+            self.lastProcessedBlock = blockNum - 1
             self.db.writer._set_last_indexed_number(self.lastProcessedBlock)
-
 
         print("Finished indexing")
         self.lastBlock = self.lastProcessedBlock
