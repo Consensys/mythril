@@ -51,8 +51,6 @@ def _check_integer_overflow(statespace, state, node):
     instruction = state.get_current_instruction()
     if instruction['opcode'] not in ("ADD", "MUL"):
         return issues
-    if instruction['address'] != 755:
-        return issues
 
     # Formulate overflow constraints
     stack = state.mstate.stack
