@@ -38,15 +38,6 @@ class ETHContract(persistent.Persistent):
         str_eval = ''
         easm_code = None
 
-        matches = re.findall(r'func#([a-zA-Z0-9\s_,(\\)\[\]]+)#', expression)
-
-        for m in matches:
-            # Calculate function signature hashes
-
-            sign_hash = utils.sha3(m)[:4].hex()
-
-            expression = expression.replace(m, sign_hash)
-
         tokens = filter(None, re.split("(and|or|not)", expression.replace(" ", ""), re.IGNORECASE))
 
         for token in tokens:
@@ -65,11 +56,14 @@ class ETHContract(persistent.Persistent):
                 str_eval += "\"" + code + "\" in easm_code"
                 continue
 
-            m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
+            m = re.match(r'^func#([a-zA-Z0-9\s_,(\\)\[\]]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in self.disassembly.func_hashes"
+
+                sign_hash = "0x" + utils.sha3(m.group(1))[:4].hex()
+
+                str_eval += "\"" + sign_hash + "\" in self.disassembly.func_hashes"
 
                 continue
-
+	
         return eval(str_eval.strip())
