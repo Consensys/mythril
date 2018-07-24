@@ -127,7 +127,7 @@ def main():
                 mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
             elif args.ipc:
                 mythril.set_api_ipc()
-            else:
+            elif not args.dynld:
                 mythril.set_api_rpc_localhost()
         elif args.leveldb or args.search:
             # Open LevelDB if necessary
