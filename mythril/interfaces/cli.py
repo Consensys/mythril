@@ -91,7 +91,6 @@ def main():
         print("Mythril version {}".format(VERSION))
         sys.exit()
 
-
     # Parse cmdline args
 
     if not (args.search or args.hash or args.disassemble or args.graph or args.fire_lasers
@@ -159,9 +158,9 @@ def main():
             address, _ = mythril.load_from_address(args.address)
         elif args.solidity_file:
             # Compile Solidity source file(s)
-            # if args.graph and len(args.solidity_file) > 1:
-            #    exit_with_error(args.outform,
-            #                    "Cannot generate call graphs from multiple input files. Please do it one at a time.")
+            if args.graph and len(args.solidity_file) > 1:
+                exit_with_error(args.outform,
+                                "Cannot generate call graphs from multiple input files. Please do it one at a time.")
             address, _ = mythril.load_from_solidity(args.solidity_file)  # list of files
         else:
             exit_with_error(args.outform,
