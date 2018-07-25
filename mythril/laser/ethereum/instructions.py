@@ -520,14 +520,16 @@ class Instruction:
 
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
-        except:
+        except AttributeError:
             logging.debug("Unsupported symbolic memory offset in CODECOPY")
             return [global_state]
 
         try:
             concrete_size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+
         except:
-            logging.debug("Unsupported symbolic size in CODECOPY")
+            # except both attribute error and Exception
             global_state.mstate.mem_extend(concrete_memory_offset, 1)
             global_state.mstate.memory[concrete_memory_offset] = \
                 BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
@@ -535,7 +537,7 @@ class Instruction:
 
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
-        except:
+        except AttributeError:
             logging.debug("Unsupported symbolic code offset in CODECOPY")
             global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
             for i in range(concrete_size):
