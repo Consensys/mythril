@@ -546,7 +546,12 @@ class Instruction:
         bytecode = global_state.environment.active_account.code.bytecode
 
         for i in range(concrete_size):
-            global_state.mstate.memory[concrete_memory_offset + i] = bytecode[concrete_code_offset + i]
+            try:
+                global_state.mstate.memory[concrete_memory_offset + i] =\
+                    int(bytecode[concrete_code_offset + i: concrete_code_offset + i + 2], 16)
+            except IndexError:
+                global_state.mstate.memory[concrete_memory_offset + i] = \
+                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
 
         return [global_state]
 
