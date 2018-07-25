@@ -1,5 +1,5 @@
 import os
-from pathlib import Path
+from pathlib import PurePath
 import re
 import sys
 import json
@@ -32,7 +32,7 @@ def analyze_truffle_project(args):
             try:
                 name = contractdata['contractName']
                 bytecode = contractdata['deployedBytecode']
-                filename = Path(contractdata['sourcePath']).name
+                filename = PurePath(contractdata['sourcePath']).name
             except:
                 print("Unable to parse contract data. Please use Truffle 4 to compile your project.")
                 sys.exit()
