@@ -38,13 +38,14 @@ class Account:
     def add_balance(self, balance):
         self.balance += balance
 
-    def get_storage(self, index):
-        if index in self.storage.keys():
-            return self.storage[index]
-        else:
-            symbol = BitVec("storage_" + str(index), 256)
-            self.storage[index] = symbol
-            return symbol
+    # def get_storage(self, index):
+    #     return BitVec("storage_" + str(index), 256)
+    #     if index in self.storage.keys():
+    #         return self.storage[index]
+    #     else:
+    #         symbol = BitVec("storage_" + str(index), 256)
+    #         self.storage[index] = symbol
+    #         return symbol
 
     @property
     def as_dict(self):
@@ -82,6 +83,7 @@ class Environment:
 
     def __str__(self):
         return str(self.as_dict)
+
 
     @property
     def as_dict(self):
@@ -150,7 +152,7 @@ class GlobalState:
 
 
     def __copy__(self):
-        accounts = self.accounts
+        accounts = copy(self.accounts)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         call_stack = copy(self.call_stack)

@@ -118,7 +118,7 @@ class TaintRunner:
         direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
         children = []
         for child in direct_children:
-            if child.states[0].environment.active_account == environment.active_account:
+            if child.states[0].environment.active_account.address == environment.active_account.address:
                 children.append(child)
             else:
                 children += TaintRunner.children(child, statespace, environment)
