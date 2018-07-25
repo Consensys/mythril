@@ -1,11 +1,12 @@
 from z3 import BitVec, BitVecVal
 from copy import copy, deepcopy
 from enum import Enum
-
+from random import random
 
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
+
 
 class Account:
     """
@@ -31,8 +32,20 @@ class Account:
     def __str__(self):
         return str(self.as_dict)
 
-    def get_storage(self, index):
-        return self.storage[index] if index in self.storage.keys() else BitVec("storage_" + str(index), 256)
+    def set_balance(self, balance):
+        self.balance = balance
+
+    def add_balance(self, balance):
+        self.balance += balance
+
+    # def get_storage(self, index):
+    #     return BitVec("storage_" + str(index), 256)
+    #     if index in self.storage.keys():
+    #         return self.storage[index]
+    #     else:
+    #         symbol = BitVec("storage_" + str(index), 256)
+    #         self.storage[index] = symbol
+    #         return symbol
 
     @property
     def as_dict(self):
@@ -70,6 +83,7 @@ class Environment:
 
     def __str__(self):
         return str(self.as_dict)
+
 
     @property
     def as_dict(self):
@@ -138,7 +152,7 @@ class GlobalState:
 
 
     def __copy__(self):
-        accounts = self.accounts
+        accounts = copy(self.accounts)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         call_stack = copy(self.call_stack)
@@ -149,3 +163,55 @@ class GlobalState:
         """ Gets the current instruction for this GlobalState"""
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
+
+
+class WorldState:
+    """
+    The WorldState class represents the world state as described in the yellow paper
+    """
+    def __init__(self):
+        """
+        Constructor for the world state. Initializes the accounts record
+        """
+        self.accounts = {}
+        self.node = None
+
+    def __getitem__(self, item):
+        """
+        Gets an account from the worldstate using item as key
+        :param item: Address of the account to get
+        :return: Account associated with the address
+        """
+        return self.accounts[item]
+
+    def create_account(self, balance=0):
+        """
+        Create non-contract account
+        :param balance: Initial balance for the account
+        :return: The new account
+        """
+        new_account = Account(self._generate_new_address(), balance=balance)
+        self._put_account(new_account)
+        return new_account
+
+    def create_initialized_contract_account(self, contract_code, storage):
+        """
+        Creates a new contract account, based on the contract code and storage provided
+        The contract code only includes the runtime contract bytecode
+        :param contract_code: Runtime bytecode for the contract
+        :param storage: Initial storage for the contract
+        :return: The new account
+        """
+        new_account = Account(self._generate_new_address(), code=contract_code, balance=0)
+        new_account.storage = storage
+        self._put_account(new_account)
+
+    def _generate_new_address(self):
+        """ Generates a new address for the global state"""
+        while True:
+            address = '0x' + ''.join([str(hex(random(0, 16)))[-1] for _ in range(20)])
+            if address not in self.accounts.keys():
+                return address
+
+    def _put_account(self, account):
+        self.accounts[account.address] = account

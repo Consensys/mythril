@@ -707,13 +707,8 @@ class Instruction:
             index = str(index)
 
         try:
-            # Create a fresh copy of the account object before modifying storage
-
-            for k in global_state.accounts:
-                if global_state.accounts[k] == global_state.environment.active_account:
-                    global_state.accounts[k] = deepcopy(global_state.accounts[k])
-                    global_state.environment.active_account = global_state.accounts[k]
-                    break
+            global_state.environment.active_account = deepcopy(global_state.environment.active_account)
+            global_state.accounts[global_state.environment.active_account.address] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = value
         except KeyError:
@@ -778,7 +773,7 @@ class Instruction:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
+                new_state.mstate.constraints.append(simplify(condi))
 
                 states.append(new_state)
             else:
@@ -786,12 +781,11 @@ class Instruction:
 
         # False case
         negated = Not(condition) if type(condition) == BoolRef else condition == 0
-        sat = not is_false(simplify(negated)) if type(condi) == BoolRef else not negated
 
-        if sat:
+        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(simplify(negated))):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(simplify(negated))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")

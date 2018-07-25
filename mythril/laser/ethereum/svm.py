@@ -1,6 +1,7 @@
 from z3 import BitVec
 import logging
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account
+from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
+from mythril.laser.ethereum.transaction import MessageCall
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -28,7 +29,12 @@ class LaserEVM:
     def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60,
                  strategy=DepthFirstSearchStrategy):
         self.instructions_covered = []
-        self.accounts = accounts
+
+        world_state = WorldState()
+        world_state.accounts = accounts
+        # this sets the initial world state
+        self.world_state = world_state
+        self.open_states = [world_state]
 
         self.nodes = {}
         self.edges = []
@@ -51,35 +57,12 @@ class LaserEVM:
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
-        # Initialize the execution environment
-        environment = Environment(
-            self.accounts[main_address],
-            BitVec("caller", 256),
-            [],
-            BitVec("gasprice", 256),
-            BitVec("callvalue", 256),
-            BitVec("origin", 256),
-            calldata_type=CalldataType.SYMBOLIC,
-        )
+        transaction = MessageCall(main_address)
+        transaction.run(self.open_states, self)
 
-        self.instructions_covered = [False for _ in environment.code.instruction_list]
-
-        initial_node = Node(environment.active_account.contract_name)
-        self.nodes[initial_node.uid] = initial_node
-
-        global_state = GlobalState(self.accounts, environment, initial_node)
-        global_state.environment.active_function_name = "fallback()"
-        initial_node.states.append(global_state)
-
-        # Empty the work_list before starting an execution
-        self.work_list.append(global_state)
-        self._sym_exec()
-
-        logging.info("Execution complete")
-        logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
-    def _sym_exec(self):
+    def exec(self):
         for global_state in self.strategy:
             if self.execution_timeout:
                 if self.time + timedelta(seconds=self.execution_timeout) <= datetime.now():
@@ -87,8 +70,15 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.debug("Encountered unimplemented instruction")
+                logging.info("Encountered unimplemented instruction: {}".format(op_code))
                 continue
+
+            if len(new_states) == 0:
+                # TODO: let global state use worldstate
+                open_world_state = WorldState()
+                open_world_state.accounts = global_state.accounts
+                open_world_state.node = global_state.node
+                self.open_states.append(open_world_state)
 
             self.manage_cfg(op_code, new_states)
 
@@ -147,7 +137,7 @@ class LaserEVM:
             except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
-
+        
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:
