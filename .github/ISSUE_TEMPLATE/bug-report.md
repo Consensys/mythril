@@ -34,6 +34,9 @@ Function name: ...
 $
 ```
 
+If there is a Solidity source code, a truffle project, or bytecode
+that is involved, please provide that or links to it.
+
 ## Expected behavior
 
 A clear and concise description of what you expected to happen.
@@ -50,10 +53,11 @@ _This section sometimes is optional but helpful to us._
 
 Please modify for your setup
 
-- OS: [e.g. iOS]
-- OS Version [e.g. 22]
 - Mythril version: output from  `myth --version` or `pip show mythril`
 - Solidity compiler and version: `solc --version`
+- Python version: `python -V`
+- OS: [e.g. iOS]
+- OS Version [e.g. 22]
 
 ## Additional Environment or Context
 
