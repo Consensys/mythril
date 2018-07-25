@@ -70,7 +70,7 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.error("Encountered unimplemented instruction: {}".format(op_code))
+                logging.info("Encountered unimplemented instruction: {}".format(op_code))
                 continue
 
             if len(new_states) == 0:

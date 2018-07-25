@@ -12,7 +12,7 @@ def get_model(constraints):
     if result == sat:
         return s.model()
     elif result == unknown:
-        logging.error("Timeout encountered while solving expression using z3")
+        logging.info("Timeout encountered while solving expression using z3")
     raise UnsatError
 
 

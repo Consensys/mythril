@@ -30,7 +30,6 @@ def execute(statespace):
         node = statespace.nodes[k]
 
         for state in node.states:
-            # pass
             issues += _check_integer_underflow(statespace, state, node)
             issues += _check_integer_overflow(statespace, state, node)
 
