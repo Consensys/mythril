@@ -707,13 +707,8 @@ class Instruction:
             index = str(index)
 
         try:
-            # Create a fresh copy of the account object before modifying storage
-
-            for k in global_state.accounts:
-                if global_state.accounts[k] == global_state.environment.active_account:
-                    global_state.accounts[k] = deepcopy(global_state.accounts[k])
-                    global_state.environment.active_account = global_state.accounts[k]
-                    break
+            global_state.environment.active_account = deepcopy(global_state.environment.active_account)
+            global_state.accounts[global_state.environment.active_account.address] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = value
         except KeyError:
