@@ -527,7 +527,6 @@ class Instruction:
         try:
             concrete_size = helper.get_concrete_int(size)
             global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
-
         except:
             # except both attribute error and Exception
             global_state.mstate.mem_extend(concrete_memory_offset, 1)
