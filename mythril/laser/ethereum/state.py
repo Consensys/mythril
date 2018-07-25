@@ -67,10 +67,7 @@ class Environment:
 
         self.address = BitVecVal(int(active_account.address, 16), 256)
 
-        # Code contains the instruction models
         self.code = active_account.code
-        # Bytecode contains the actual bytes
-        self.bytecode = []
 
         self.sender = sender
         self.calldata = calldata
