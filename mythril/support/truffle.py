@@ -90,7 +90,7 @@ def analyze_truffle_project(args):
                                 length = mappings[index].length
 
                                 issue.filename = filename
-                                issue.code = source[offset:offset + length]
+                                issue.code = source.encode('utf-8')[offset:offset + length].decode('utf-8')
                                 issue.lineno = mappings[index].lineno
                             except IndexError:
                                 logging.debug("No code mapping at index %d", index)

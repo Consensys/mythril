@@ -109,7 +109,7 @@ class SolidityContract(ETHContract):
         offset = self.mappings[index].offset
         length = self.mappings[index].length
 
-        code = solidity_file.data[offset:offset + length]
+        code = solidity_file.data.encode('utf-8')[offset:offset + length].decode('utf-8')
         lineno = self.mappings[index].lineno
 
         return SourceCodeInfo(filename, lineno, code)
