@@ -154,8 +154,9 @@ class SignatureDb(object):
         """
         if not sighash.startswith("0x"):
             sighash = "0x%s" % sighash  # normalize sighash format
-
-        if self.enable_online_lookup and not self.signatures.get(sighash) and sighash not in self.online_lookup_miss and time.time() > self.online_directory_unavailable_until:
+        if self.signatures.get(sighash):
+            return [self.signatures[sighash]]
+        if self.enable_online_lookup and sighash not in self.online_lookup_miss and time.time() > self.online_directory_unavailable_until:
             # online lookup enabled, and signature not in cache, sighash was not a miss earlier, and online directory not down
             logging.debug("Signatures: performing online lookup for sighash %r" % sighash)
             try:
