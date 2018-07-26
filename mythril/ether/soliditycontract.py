@@ -3,6 +3,7 @@ from mythril.ether.ethcontract import ETHContract
 from mythril.ether.util import *
 from mythril.exceptions import NoContractFoundError
 
+
 class SourceMapping:
 
     def __init__(self, solidity_file_idx, offset, length, lineno):
@@ -91,8 +92,7 @@ class SolidityContract(ETHContract):
 
             if len(mapping) > 2 and len(mapping[2]) > 0:
                 idx = int(mapping[2])
-
-            lineno = self.solidity_files[idx].data[0:offset].count('\n') + 1
+            lineno = self.solidity_files[idx].data.encode('utf-8')[0:offset].count('\n'.encode('utf-8')) + 1
 
             self.mappings.append(SourceMapping(idx, offset, length, lineno))
 

@@ -76,7 +76,7 @@ def analyze_truffle_project(args):
                     if len(mapping) > 2 and len(mapping[2]) > 0:
                         idx = int(mapping[2])
 
-                    lineno = source[0:offset].count('\n') + 1
+                    lineno = source.encode('utf-8')[0:offset].count('\n'.encode('utf-8')) + 1
 
                     mappings.append(SourceMapping(idx, offset, length, lineno))
 
