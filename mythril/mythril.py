@@ -332,6 +332,9 @@ class Mythril(object):
                 # import signatures from solidity source
                 with open(file, encoding="utf-8") as f:
                     self.sigs.import_from_solidity_source(f.read())
+                # Save updated function signatures
+                self.sigs.write()  # dump signatures to disk (previously opened file or default location)
+
                 if contract_name is not None:
                     contract = SolidityContract(file, contract_name, solc_args=self.solc_args)
                     self.contracts.append(contract)
@@ -341,6 +344,7 @@ class Mythril(object):
                         self.contracts.append(contract)
                         contracts.append(contract)
 
+
             except FileNotFoundError:
                 raise CriticalError("Input file not found: " + file)
             except CompilerError as e:
@@ -348,8 +352,6 @@ class Mythril(object):
             except NoContractFoundError:
                 logging.info("The file " + file + " does not contain a compilable contract.")
 
-        # Save updated function signatures
-        self.sigs.write()  # dump signatures to disk (previously opened file or default location)
 
         return address, contracts
 
