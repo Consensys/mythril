@@ -709,12 +709,8 @@ class Instruction:
         try:
             # Create a fresh copy of the account object before modifying storage
 
-            for k in global_state.accounts:
-                if global_state.accounts[k] == global_state.environment.active_account:
-                    global_state.accounts[k] = deepcopy(global_state.accounts[k])
-                    global_state.environment.active_account = global_state.accounts[k]
-                    break
-
+            global_state.environment = deepcopy(global_state.environment)
+            
             global_state.environment.active_account.storage[index] = value
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
