@@ -23,15 +23,6 @@ def analyze_truffle_project(sigs, args):
 
     files = os.listdir(build_dir)
 
-    try:
-        sigs.open()
-    except FileNotFoundError as fnfe:
-        logging.info(
-            "No signature database found. Creating database if sigs are loaded in: " + sigs.signatures_file + "\n" +
-            "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
-    except json.JSONDecodeError as jde:
-        raise CriticalError("Invalid JSON in signatures file " + sigs.signatures_file + "\n" + str(jde))
-
     for filename in files:
 
         if re.match(r'.*\.json$', filename) and filename != "Migrations.json":
