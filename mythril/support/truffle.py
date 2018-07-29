@@ -60,11 +60,11 @@ def analyze_truffle_project(args):
                 disassembly = ethcontract.disassembly
                 source = contractdata['source']
 
-                deployedSourceMap = contractdata['deployedSourceMap'].split(";")
+                deployed_source_map = contractdata['deployedSourceMap'].split(";")
 
                 mappings = []
 
-                for item in deployedSourceMap:
+                for item in deployed_source_map:
                     mapping = item.split(":")
 
                     if len(mapping) > 0 and len(mapping[0]) > 0:
