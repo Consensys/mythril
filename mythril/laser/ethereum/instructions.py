@@ -714,7 +714,7 @@ class Instruction:
                     global_state.accounts[k] = deepcopy(global_state.accounts[k])
                     global_state.environment.active_account = global_state.accounts[k]
                     break
-
+            
             global_state.environment.active_account.storage[index] = value
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
@@ -775,7 +775,7 @@ class Instruction:
         condi = condition if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
             if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
-                new_state = copy(global_state)
+                new_state = deepcopy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
                 new_state.mstate.constraints.append(condi)
