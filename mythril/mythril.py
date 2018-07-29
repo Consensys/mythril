@@ -180,7 +180,7 @@ class Mythril(object):
         config.set('defaults', 'dynamic_loading', 'infura')
 
     def analyze_truffle_project(self, *args, **kwargs):
-        return analyze_truffle_project(*args, **kwargs)  # just passthru for now
+        return analyze_truffle_project(self.sigs, *args, **kwargs)  # just passthru by passing signatures for now
 
     def _init_solc_binary(self, version):
         # Figure out solc binary and version

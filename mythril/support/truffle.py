@@ -6,6 +6,7 @@ import json
 import logging
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SourceMapping
+from mythril.exceptions import CriticalError
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
@@ -14,13 +15,22 @@ from mythril.ether import util
 from mythril.laser.ethereum.util import get_instruction_index
 
 
-def analyze_truffle_project(args):
+def analyze_truffle_project(sigs, args):
 
     project_root = os.getcwd()
 
     build_dir = os.path.join(project_root, "build", "contracts")
 
     files = os.listdir(build_dir)
+
+    try:
+        sigs.open()
+    except FileNotFoundError as fnfe:
+        logging.info(
+            "No signature database found. Creating database if sigs are loaded in: " + sigs.signatures_file + "\n" +
+            "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
+    except json.JSONDecodeError as jde:
+        raise CriticalError("Invalid JSON in signatures file " + sigs.signatures_file + "\n" + str(jde))
 
     for filename in files:
 
@@ -33,12 +43,16 @@ def analyze_truffle_project(args):
                 name = contractdata['contractName']
                 bytecode = contractdata['deployedBytecode']
                 filename = PurePath(contractdata['sourcePath']).name
-            except:
+                abi = contractdata['abi']
+            except KeyError:
                 print("Unable to parse contract data. Please use Truffle 4 to compile your project.")
                 sys.exit()
-
-            if (len(bytecode) < 4):
+            if len(bytecode) < 4:
                 continue
+
+            list_of_functions = parse_abi_for_functions(abi)
+            sigs.signatures.update(sigs.get_sigs_from_functions(list_of_functions))
+            sigs.write()
 
             ethcontract = ETHContract(bytecode, name=name)
 
@@ -47,7 +61,7 @@ def analyze_truffle_project(args):
             issues = fire_lasers(sym)
 
             if not len(issues):
-                if (args.outform == 'text' or args.outform == 'markdown'):
+                if args.outform == 'text' or args.outform == 'markdown':
                     print("# Analysis result for " + name + "\n\nNo issues found.")
                 else:
                     result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': []}}
@@ -60,11 +74,11 @@ def analyze_truffle_project(args):
                 disassembly = ethcontract.disassembly
                 source = contractdata['source']
 
-                deployedSourceMap = contractdata['deployedSourceMap'].split(";")
+                deployed_source_map = contractdata['deployedSourceMap'].split(";")
 
                 mappings = []
 
-                for item in deployedSourceMap:
+                for item in deployed_source_map:
                     mapping = item.split(":")
 
                     if len(mapping) > 0 and len(mapping[0]) > 0:
@@ -97,13 +111,23 @@ def analyze_truffle_project(args):
 
                     report.append_issue(issue)
 
-                if (args.outform == 'json'):
+                if args.outform == 'json':
 
                     result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict, issues))}}
                     print(json.dumps(result))
 
                 else:
-                    if (args.outform == 'text'):
+                    if args.outform == 'text':
                         print("# Analysis result for " + name + ":\n\n" + report.as_text())
-                    elif (args.outform == 'markdown'):
+                    elif args.outform == 'markdown':
                         print(report.as_markdown())
+
+
+def parse_abi_for_functions(abi):
+    funcs = []
+    for data in abi:
+        if data['type'] != 'function':
+            continue
+        args = '('+','.join([input['type'] for input in data['inputs']])+')'
+        funcs.append(data['name']+args)
+    return funcs
