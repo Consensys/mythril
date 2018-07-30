@@ -58,6 +58,7 @@ class Environment:
         gasprice,
         callvalue,
         origin,
+        code=None,
         calldata_type=CalldataType.SYMBOLIC,
     ):
         # Metadata
@@ -66,7 +67,9 @@ class Environment:
         self.active_function_name = ""
 
         self.address = BitVecVal(int(active_account.address, 16), 256)
-        self.code = active_account.code
+
+        # Ib
+        self.code = active_account.code if code is None else code
 
         self.sender = sender
         self.calldata = calldata
@@ -144,12 +147,12 @@ class GlobalState:
         self.op_code = ""
 
 
-
     def __copy__(self):
         accounts = copy(self.accounts)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
-        return GlobalState(accounts, environment, self.node, mstate)
+        call_stack = copy(self.call_stack)
+        return GlobalState(accounts, environment, self.node, mstate, call_stack=call_stack)
 
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
