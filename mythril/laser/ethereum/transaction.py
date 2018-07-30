@@ -43,7 +43,6 @@ class MessageCall:
                 self.origin,
                 calldata_type=CalldataType.SYMBOLIC,
             )
-
             new_node = Node(environment.active_account.contract_name)
             evm.instructions_covered = [False for _ in environment.code.instruction_list]
 
@@ -51,7 +50,8 @@ class MessageCall:
             if open_world_state.node:
                 evm.edges.append(Edge(open_world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction, condition=None))
 
-            global_state = GlobalState(open_world_state, environment, new_node)
+            global_state = GlobalState(open_world_state.accounts, environment, new_node)
+            global_state.environment.active_function_name = 'fallback()'
             new_node.states.append(global_state)
 
             evm.work_list.append(global_state)

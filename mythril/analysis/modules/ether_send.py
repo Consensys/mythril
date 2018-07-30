@@ -27,15 +27,14 @@ def execute(statespace):
         state = call.state
         address = state.get_current_instruction()['address']
 
-        if ("callvalue" in str(call.value)):
+        if "callvalue" in str(call.value):
             logging.debug("[ETHER_SEND] Skipping refund function")
             continue
 
         # We're only interested in calls that send Ether
 
-        if call.value.type == VarType.CONCRETE:
-            if call.value.val == 0:
-                continue
+        if call.value.type == VarType.CONCRETE and call.value.val == 0:
+            continue
 
         interesting = False
 
@@ -52,14 +51,14 @@ def execute(statespace):
         else:
             m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
 
-            if (m):
+            if m:
                 idx = m.group(1)
 
                 description += "a non-zero amount of Ether is sent to an address taken from storage slot " + str(idx) + ".\n"
 
                 func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
-                if (func):
+                if func:
                     description += "There is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function `" + func + "`.\n"
                     interesting = True
                 else:
@@ -74,7 +73,7 @@ def execute(statespace):
 
             index = 0
 
-            while(can_solve and index < len(node.constraints)):
+            while can_solve and index < len(node.constraints):
 
                 constraint = node.constraints[index]
                 index += 1
@@ -82,14 +81,14 @@ def execute(statespace):
 
                 m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
 
-                if (m):
+                if m:
 
                     constrained = True
                     idx = m.group(1)
 
                     func = statespace.find_storage_write(state.environment.active_account.address, idx)
 
-                    if (func):
+                    if func:
                         description += "\nThere is a check on storage index " + str(idx) + ". This storage slot can be written to by calling the function `" + func + "`."
                     else:
                         logging.debug("[ETHER_SEND] No storage writes to index " + str(idx))
@@ -98,7 +97,7 @@ def execute(statespace):
 
                 # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
 
-                elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
+                elif re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint)):
                     constrained = True
                     can_solve = False
                     break
@@ -116,7 +115,8 @@ def execute(statespace):
 
                     debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Ether send", "Warning", description, debug)
+                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Ether send", "Warning",
+                                  description, debug)
                     issues.append(issue)
 
                 except UnsatError:

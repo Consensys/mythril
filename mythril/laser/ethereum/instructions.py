@@ -515,7 +515,7 @@ class Instruction:
         return [global_state]
 
     @instruction
-    def codecopy(self, global_state):
+    def codecopy_(self, global_state):
         # FIXME: not implemented
         state = global_state.mstate
         start, s1, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -623,8 +623,10 @@ class Instruction:
     @instruction
     def mstore_(self, global_state):
         state = global_state.mstate
-
-        op0, value = state.stack.pop(), state.stack.pop()
+        try:
+            op0, value = state.stack.pop(), state.stack.pop()
+        except IndexError:
+            raise StackUnderflowException()
 
         try:
             mstart = util.get_concrete_int(op0)
@@ -705,13 +707,8 @@ class Instruction:
             index = str(index)
 
         try:
-            # Create a fresh copy of the account object before modifying storage
-
-            for k in global_state.accounts:
-                if global_state.accounts[k] == global_state.environment.active_account:
-                    global_state.accounts[k] = deepcopy(global_state.accounts[k])
-                    global_state.environment.active_account = global_state.accounts[k]
-                    break
+            global_state.environment.active_account = deepcopy(global_state.environment.active_account)
+            global_state.accounts[global_state.environment.active_account.address] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = value
         except KeyError:
@@ -776,7 +773,7 @@ class Instruction:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
+                new_state.mstate.constraints.append(simplify(condi))
 
                 states.append(new_state)
             else:
@@ -784,12 +781,11 @@ class Instruction:
 
         # False case
         negated = Not(condition) if type(condition) == BoolRef else condition == 0
-        sat = not is_false(simplify(negated)) if type(condi) == BoolRef else not negated
 
-        if sat:
+        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(simplify(negated))):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(simplify(negated))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
@@ -840,17 +836,16 @@ class Instruction:
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
 
-        #TODO: return 1
         return_value = BitVec("retval_" + global_state.environment.active_function_name, 256)
-
-        state.stack.append(return_value)
 
         if not global_state.call_stack:
             return []
 
-        global_state.mstate.pc = global_state.call_stack.pop()
+        new_global_state = deepcopy(global_state.call_stack.pop())
+        new_global_state.node = global_state.node
+        # TODO: copy memory
 
-        return [global_state]
+        return [new_global_state]
 
     @instruction
     def suicide_(self, global_state):
@@ -870,12 +865,11 @@ class Instruction:
 
     @instruction
     def stop_(self, global_state):
-        state = global_state.mstate
-        state.stack.append(BitVecVal(0, 256))
         if len(global_state.call_stack) is 0:
             return []
-        global_state.mstate.pc = global_state.call_stack.pop()
-        return [global_state]
+        new_global_state = deepcopy(global_state.call_stack.pop())
+        new_global_state.node = global_state.node
+        return [new_global_state]
 
     @instruction
     def call_(self, global_state):
@@ -891,12 +885,12 @@ class Instruction:
             # TODO: decide what to do in this case
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         if 0 < int(callee_address, 16) < 5:
             logging.info("Native contract called: " + callee_address)
             if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
                 logging.debug("CALL with symbolic data not supported")
-                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
             try:
@@ -904,7 +898,6 @@ class Instruction:
                 mem_out_sz = memory_out_size.as_long()
             except AttributeError:
                 logging.debug("CALL with symbolic start or offset not supported")
-                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
@@ -917,18 +910,14 @@ class Instruction:
                     global_state.mstate.memory[mem_out_start+i] = BitVec(contract_list[call_address_int - 1]+
                                                                          "(" + str(call_data) + ")", 256)
 
-
-                global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
                 return [global_state]
 
             for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
                 global_state.mstate.memory[mem_out_start + i] = data[i]
 
             # TODO: maybe use BitVec here constrained to 1
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.call_stack.append(instr['address'])
         callee_environment = Environment(callee_account,
                                          BitVecVal(int(environment.active_account.address, 16), 256),
                                          call_data,
@@ -937,9 +926,11 @@ class Instruction:
                                          environment.origin,
                                          calldata_type=call_data_type)
         new_global_state = GlobalState(global_state.accounts, callee_environment, global_state.node, MachineState(gas))
+        new_global_state.call_stack.append(global_state)
+        new_global_state.mstate.pc = -1
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
-        return [global_state]
+        return [new_global_state]
 
     @instruction
     def callcode_(self, global_state):
@@ -955,7 +946,7 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.call_stack.append(instr['address'])
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
         environment = deepcopy(environment)
 
@@ -964,6 +955,8 @@ class Instruction:
         environment.calldata = call_data
 
         new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
+        new_global_state.call_stack.append(global_state)
+        new_global_state.mstate.pc = -1
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
@@ -983,15 +976,16 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.call_stack.append(instr['address'])
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
 
-        environment = deepcopy(environment)
         environment = deepcopy(environment)
 
         environment.code = callee_account.code
         environment.calldata = call_data
 
         new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
+        new_global_state.call_stack.append(global_state)
+        new_global_state.mstate.pc = -1
         new_global_state.mstate.depth = global_state.mstate.depth + 1
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 

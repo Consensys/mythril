@@ -18,7 +18,7 @@ class LaserEncoder(json.JSONEncoder):
 
 def _all_info(laser):
     accounts = {}
-    for address, _account in laser.accounts.items():
+    for address, _account in laser.world_state.accounts.items():
         account = _account.as_dict
         account["code"] = account["code"].instruction_list
         account['balance'] = str(account['balance'])
@@ -77,7 +77,7 @@ class SVMTestCase(BaseTestCase):
             account = svm.Account("0x0000000000000000000000000000000000000000", disassembly)
             accounts = {account.address: account}
 
-            laser = svm.LaserEVM(accounts)
+            laser = svm.LaserEVM(accounts, max_depth=22)
             laser.sym_exec(account.address)
             laser_info = _all_info(laser)
 

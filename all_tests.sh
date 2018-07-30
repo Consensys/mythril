@@ -3,8 +3,8 @@
 echo -n "Checking Python version... "
 python -c 'import sys
 print(sys.version)
-assert sys.version_info[0:2] >= (3,6), \
-"""Please make sure you are using Python 3.6.x.
+assert sys.version_info[0:2] >= (3,5), \
+"""Please make sure you are using Python 3.5 or later.
 You ran with {}""".format(sys.version)' || exit $?
 
 echo "Checking solc version..."
@@ -15,7 +15,7 @@ out=$(solc --version) || {
 case $out in
     *Version:\ 0.4.2[1-9]* )
 	echo $out
-	break ;;
+	;;
     * )
 	echo $out
 	echo "Please make sure your solc version is at least 0.4.21"

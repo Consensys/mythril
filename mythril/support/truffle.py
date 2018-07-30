@@ -1,4 +1,5 @@
 import os
+from pathlib import PurePath
 import re
 import sys
 import json
@@ -31,6 +32,7 @@ def analyze_truffle_project(args):
             try:
                 name = contractdata['contractName']
                 bytecode = contractdata['deployedBytecode']
+                filename = PurePath(contractdata['sourcePath']).name
             except:
                 print("Unable to parse contract data. Please use Truffle 4 to compile your project.")
                 sys.exit()
@@ -41,7 +43,7 @@ def analyze_truffle_project(args):
             ethcontract = ETHContract(bytecode, name=name)
 
             address = util.get_indexed_address(0)
-            sym = SymExecWrapper(ethcontract, address, max_depth=args.max_depth)
+            sym = SymExecWrapper(ethcontract, address, args.strategy, max_depth=args.max_depth)
             issues = fire_lasers(sym)
 
             if not len(issues):
@@ -74,7 +76,7 @@ def analyze_truffle_project(args):
                     if len(mapping) > 2 and len(mapping[2]) > 0:
                         idx = int(mapping[2])
 
-                    lineno = source[0:offset].count('\n') + 1
+                    lineno = source.encode('utf-8')[0:offset].count('\n'.encode('utf-8')) + 1
 
                     mappings.append(SourceMapping(idx, offset, length, lineno))
 
@@ -88,7 +90,7 @@ def analyze_truffle_project(args):
                                 length = mappings[index].length
 
                                 issue.filename = filename
-                                issue.code = source[offset:offset + length]
+                                issue.code = source.encode('utf-8')[offset:offset + length].decode('utf-8')
                                 issue.lineno = mappings[index].lineno
                             except IndexError:
                                 logging.debug("No code mapping at index %d", index)

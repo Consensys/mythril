@@ -47,7 +47,7 @@ IDENTITY_TEST[3] = (83269476937987, False)
 
 def _all_info(laser):
     accounts = {}
-    for address, _account in laser.accounts.items():
+    for address, _account in laser.world_state.accounts.items():
         account = _account.as_dict
         account["code"] = account["code"].instruction_list
         account['balance'] = str(account['balance'])

@@ -154,7 +154,6 @@ class SignatureDb(object):
         """
         if not sighash.startswith("0x"):
             sighash = "0x%s" % sighash  # normalize sighash format
-
         if self.enable_online_lookup and not self.signatures.get(sighash) and sighash not in self.online_lookup_miss and time.time() > self.online_directory_unavailable_until:
             # online lookup enabled, and signature not in cache, sighash was not a miss earlier, and online directory not down
             logging.debug("Signatures: performing online lookup for sighash %r" % sighash)
@@ -169,7 +168,10 @@ class SignatureDb(object):
             except FourByteDirectoryOnlineLookupError as fbdole:
                 self.online_directory_unavailable_until = time.time() + 2 * 60  # wait at least 2 mins to try again
                 logging.warning("online function signature lookup not available. will not try to lookup hash for the next 2 minutes. exception: %r" % fbdole)
+        if type(self.signatures[sighash]) != list:
+            return [self.signatures[sighash]]
         return self.signatures[sighash]  # raise keyerror
+
 
     def __getitem__(self, item):
         """

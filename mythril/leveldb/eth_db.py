@@ -1,6 +1,6 @@
 import plyvel
 from ethereum.db import BaseDB
-from ethereum import utils
+
 
 class ETH_DB(BaseDB):
     '''
@@ -21,3 +21,9 @@ class ETH_DB(BaseDB):
         puts value for key
         '''
         self.db.put(key, value)
+
+    def write_batch(self):
+        '''
+        start writing a batch
+        '''
+        return self.db.write_batch()

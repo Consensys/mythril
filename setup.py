@@ -1,13 +1,18 @@
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from pathlib import Path
 import sys
 import os
+
+# To make lint checkers happy we set VERSION here, but
+# it is redefined by the exec below
+VERSION = None
 
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
 
-VERSION = "v0.18.7"
-
+version_path = (Path(__file__).parent / 'mythril' / 'version.py').absolute()
+exec(open(str(version_path), 'r').read())
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -43,7 +48,7 @@ Or, clone the GitHub repo to install the newest master branch:
     $ cd mythril
     $ python setup.py install
 
-Note that Mythril requires Python 3.5 to work.
+Note that Mythril requires Python 3.5 or later to work.
 
 Function signatures
 ~~~~~~~~~~~~~~~~~~~
@@ -165,9 +170,6 @@ exposed RPC/IPC API. This enables operations like those described
 in the `legendary "Mitch Brenner" blog post
 <https://medium.com/@rtaylor30/how-i-snatched-your-153-037-eth-after-a-bad-tinder-date-d1d84422a50b>`__
 in [STRIKEOUT:seconds] minutes instead of days.
-
-The default behavior is to search contracts with a non-zero balance.
-You can disable this behavior with the ``--search-all`` flag.
 
 You may also use geth database directly for fetching contracts instead of
 using IPC/RPC APIs by specifying ``--leveldb`` flag. This is useful
@@ -292,12 +294,9 @@ setup(
 
         'License :: OSI Approved :: MIT License',
 
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 
     keywords='hacking disassembler security ethereum',
@@ -321,6 +320,7 @@ setup(
         'coverage',
         'jinja2>=2.9',
         'rlp>=1.0.1',
+        'transaction>=2.2.1',
         'py-flags',
         'mock',
         'configparser>=3.5.0',
