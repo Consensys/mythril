@@ -108,7 +108,6 @@ def _verify_integer_overflow(statespace, node, expr, state, model, constraint, o
 
     return _try_constraints(node.constraints, [Not(constraint)]) is not None
 
-
 def _try_constraints(constraints, new_constraints):
     """
     Tries new constraints

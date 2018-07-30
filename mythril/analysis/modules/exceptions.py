@@ -24,9 +24,7 @@ def execute(statespace):
         for state in node.states:
 
             instruction = state.get_current_instruction()
-
             if(instruction['opcode'] == "ASSERT_FAIL"):
-
                 try:
                     model = solver.get_model(node.constraints)
                     address = state.get_current_instruction()['address']
