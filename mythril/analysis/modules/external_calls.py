@@ -21,11 +21,11 @@ def search_children(statespace, node, start_index=0, depth=0, results=[]):
 
     if(depth < MAX_SEARCH_DEPTH):
 
-        nStates = len(node.states)
+        n_states = len(node.states)
 
-        if nStates > start_index:
+        if n_states > start_index:
 
-            for j in range(start_index, nStates):
+            for j in range(start_index, n_states):
                 if node.states[j].get_current_instruction()['opcode'] == 'SSTORE':
                     results.append(node.states[j].get_current_instruction()['address'])
 
