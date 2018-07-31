@@ -17,12 +17,12 @@ num_suffix = b'n'            # header_prefix + num (uint64 big endian) + num_suf
 block_hash_prefix = b'H'      # block_hash_prefix + hash -> num (uint64 big endian)
 block_receipts_prefix = b'r'  # block_receipts_prefix + num (uint64 big endian) + hash -> block receipts
 # known geth keys
-head_header_key = b'last_block'  # head (latest) header hash
+head_header_key = b'LastBlock'  # head (latest) header hash
 # custom prefixes
 address_prefix = b'AM'       # address_prefix + hash -> address
 # custom keys
-address_mapping_head_key = b'account_mapping'  # head (latest) number of indexed block
-head_header_key = b'last_block'  # head (latest) header hash
+address_mapping_head_key = b'accountMapping'  # head (latest) number of indexed block
+head_header_key = b'LastBlock'  # head (latest) header hash
 
 
 def _format_block_number(number):
