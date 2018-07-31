@@ -203,7 +203,7 @@ class EthLevelDB(object):
 
             cnt += 1
 
-            if not cnt % 10:
+            if not cnt % 1000:
                 logging.info("Searched %d contracts" % cnt)
 
     def contract_hash_to_address(self, hash):
