@@ -5,14 +5,14 @@ import logging
 
 class Disassembly(object):
 
-    def __init__(self, code):
+    def __init__(self, code, enable_online_lookup=True):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
         self.func_hashes = []
         self.func_to_addr = {}
         self.addr_to_func = {}
         self.bytecode = code
 
-        signatures = SignatureDb(enable_online_lookup=True)  # control if you want to have online sighash lookups
+        signatures = SignatureDb(enable_online_lookup)  # control if you want to have online sighash lookups
         try:
             signatures.open()  # open from default locations
         except FileNotFoundError:
