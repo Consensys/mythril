@@ -13,6 +13,7 @@ from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
 import mythril.laser.ethereum.natives as natives
+from mythril.laser.ethereum.transaction import CallTransaction, TransactionEndSignal, TransactionStartSignal
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -35,8 +36,8 @@ def instruction(func):
         for state in new_global_states:
             state.mstate.pc += 1
         return new_global_states
-    return wrapper
 
+    return wrapper
 
 class Instruction:
     """
@@ -47,7 +48,7 @@ class Instruction:
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code
 
-    def evaluate(self, global_state):
+    def evaluate(self, global_state, post=False):
         """ Performs the mutation for this instruction """
         # Generalize some ops
         logging.debug("Evaluating {}".format(self.op_code))
@@ -61,7 +62,7 @@ class Instruction:
         elif self.op_code.startswith("LOG"):
             op = "log"
 
-        instruction_mutator = getattr(self, op + '_', None)
+        instruction_mutator = getattr(self, op + '_', None) if not post else getattr(self, op + '_' + 'post', None)
 
         if instruction_mutator is None:
             raise NotImplementedError
@@ -708,7 +709,8 @@ class Instruction:
 
         try:
             global_state.environment.active_account = deepcopy(global_state.environment.active_account)
-            global_state.accounts[global_state.environment.active_account.address] = global_state.environment.active_account
+            global_state.accounts[
+                global_state.environment.active_account.address] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = value
         except KeyError:
@@ -828,24 +830,15 @@ class Instruction:
 
     @instruction
     def return_(self, global_state):
-        # TODO: memory
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         try:
-            _ = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
+            return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
+            global_state.transaction_stack[-1][0].end(global_state, [BitVec("return_data")])
 
-        return_value = BitVec("retval_" + global_state.environment.active_function_name, 256)
-
-        if not global_state.call_stack:
-            return []
-
-        new_global_state = deepcopy(global_state.call_stack.pop())
-        new_global_state.node = global_state.node
-        # TODO: copy memory
-
-        return [new_global_state]
+        global_state.transaction_stack[-1][0].end(global_state, return_data)
 
     @instruction
     def suicide_(self, global_state):
@@ -865,11 +858,7 @@ class Instruction:
 
     @instruction
     def stop_(self, global_state):
-        if len(global_state.call_stack) is 0:
-            return []
-        new_global_state = deepcopy(global_state.call_stack.pop())
-        new_global_state.node = global_state.node
-        return [new_global_state]
+        return []
 
     @instruction
     def call_(self, global_state):
@@ -877,7 +866,8 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(global_state, self.dynamic_loader, True)
+            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+                global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
@@ -907,8 +897,8 @@ class Instruction:
             except natives.NativeContractException:
                 contract_list = ['ecerecover', 'sha256', 'ripemd160', 'identity']
                 for i in range(mem_out_sz):
-                    global_state.mstate.memory[mem_out_start+i] = BitVec(contract_list[call_address_int - 1]+
-                                                                         "(" + str(call_data) + ")", 256)
+                    global_state.mstate.memory[mem_out_start + i] = BitVec(contract_list[call_address_int - 1] +
+                                                                           "(" + str(call_data) + ")", 256)
 
                 return [global_state]
 
@@ -918,19 +908,15 @@ class Instruction:
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
 
-        callee_environment = Environment(callee_account,
-                                         BitVecVal(int(environment.active_account.address, 16), 256),
-                                         call_data,
-                                         environment.gasprice,
-                                         value,
-                                         environment.origin,
-                                         calldata_type=call_data_type)
-        new_global_state = GlobalState(global_state.accounts, callee_environment, global_state.node, MachineState(gas))
-        new_global_state.call_stack.append(global_state)
-        new_global_state.mstate.pc = -1
-        new_global_state.mstate.depth = global_state.mstate.depth + 1
-        new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
-        return [new_global_state]
+        transaction = CallTransaction(global_state.accounts,
+                                      callee_account,
+                                      BitVecVal(int(environment.active_account.address, 16), 256),
+                                      call_data,
+                                      environment.gasprice,
+                                      value,
+                                      environment.origin,
+                                      call_data_type)
+        raise TransactionStartSignal(transaction, self.op_code)
 
     @instruction
     def callcode_(self, global_state):
@@ -938,7 +924,8 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(global_state, self.dynamic_loader, True)
+            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+                global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
@@ -968,7 +955,8 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, _, call_data_type, gas, _, _ = get_call_parameters(global_state, self.dynamic_loader)
+            callee_address, callee_account, call_data, _, call_data_type, gas, _, _ = get_call_parameters(global_state,
+                                                                                                          self.dynamic_loader)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
@@ -990,7 +978,6 @@ class Instruction:
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
         return [new_global_state]
-
 
     @instruction
     def staticcall_(self, global_state):

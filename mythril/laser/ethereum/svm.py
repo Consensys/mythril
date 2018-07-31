@@ -1,7 +1,7 @@
 from z3 import BitVec
 import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
-from mythril.laser.ethereum.transaction import MessageCall
+from mythril.laser.ethereum.transaction import MessageCall, TransactionStartSignal, TransactionEndSignal
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -70,31 +70,34 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.info("Encountered unimplemented instruction: {}".format(op_code))
+                logging.info("Encountered unimplemented instruction")
                 continue
-
-            if len(new_states) == 0:
-                # TODO: let global state use worldstate
-                open_world_state = WorldState()
-                open_world_state.accounts = global_state.accounts
-                open_world_state.node = global_state.node
-                self.open_states.append(open_world_state)
+            except TransactionStartSignal as e:
+                new_global_state = transaction.initial_global_state()
+                new_global_state.transaction_stack.append(e.transaction, global_state)
+                new_states, op_code = [e.transaction.initial_global_state()], e.op_code
+            except TransactionEndSignal as e:
+                transaction, return_global_state = e.global_state.transaction_stack.pop()
+                if return_global_state is None:
+                    self.open_states.append(e.global_state)
+                    continue
+                new_states, op_code = self.execute_state(return_global_state, post=True)
 
             self.manage_cfg(op_code, new_states)
 
             self.work_list += new_states
             self.total_states += len(new_states)
 
-    def execute_state(self, global_state):
+    def execute_state(self, global_state, post=False):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
 
         # Only count coverage for the main contract
-        if len(global_state.call_stack) == 0:
+        if len(global_state.transaction_stack) == 0:
             self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
-        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state, post)
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
@@ -189,3 +192,16 @@ class LaserEVM:
             return function
 
         return hook_decorator
+
+    # def start_transaction(self, type, world_state, account, caller,
+    #                       call_data, gas_price, call_value, origin, call_data_type):
+    #     environment = Environment(
+    #         account,
+    #         caller,
+    #         call_data,
+    #         gas_price,
+    #         call_value,
+    #         origin,
+    #         call_data_type,
+    #     )
+    #     new_node = Node(environment.active_account.contract_name)

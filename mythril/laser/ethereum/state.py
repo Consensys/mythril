@@ -144,22 +144,21 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, accounts, environment, node, machine_state=None, call_stack=None):
+    def __init__(self, accounts, environment, node, machine_state=None, transaction_stack=None):
         """ Constructor for GlobalState"""
         self.node = node
         self.accounts = accounts
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
-        self.call_stack = call_stack if call_stack else []
+        self.transaction_stack = transaction_stack if transaction_stack else []
         self.op_code = ""
-
 
     def __copy__(self):
         accounts = copy(self.accounts)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
-        call_stack = copy(self.call_stack)
-        return GlobalState(accounts, environment, self.node, mstate, call_stack=call_stack)
+        transaction_stack = deepcopy(self.transaction_stack)
+        return GlobalState(accounts, environment, self.node, mstate, transaction_stack=transaction_stack)
 
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
