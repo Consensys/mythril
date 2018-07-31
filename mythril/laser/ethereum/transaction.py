@@ -5,7 +5,19 @@ from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from z3 import BitVec
 
 
-class MessageCall:
+class Transaction:
+    def __init__(self):
+        self.open_states = None
+
+    @property
+    def has_ran(self):
+        return self.open_states is not None
+
+    def run(self, open_world_states, evm):
+        raise NotImplementedError()
+
+
+class MessageCall(Transaction):
 
     """ Represents a call value transaction """
     def __init__(self, callee_address):
@@ -18,12 +30,7 @@ class MessageCall:
         self.gas_price = BitVec("gasprice", 256)
         self.call_value = BitVec("callvalue", 256)
         self.origin = BitVec("origin", 256)
-
-        self.open_states = None
-
-    @property
-    def has_ran(self):
-        return self.open_states is not None
+        Transaction.__init__(self)
 
     def run(self, open_world_states: list, evm):
         """ Runs this transaction on the evm starting from the open world states """
@@ -61,7 +68,7 @@ class MessageCall:
         logging.info("Achieved {0:.3g}% coverage".format(evm.coverage))
 
 
-class ContractCreation:
+class ContractCreation(Transaction):
     """ Represents a contract creation transaction"""
 
     def __init__(self, creation_code):
@@ -74,11 +81,8 @@ class ContractCreation:
         self.origin = BitVec("origin", 256)
 
         self.init = creation_code
-        self.open_states = None
 
-    @property
-    def has_ran(self):
-        return self.open_states is not None
+        Transaction.__init__(self)
 
     def run(self, open_world_states: list, evm):
         """ Runs this transaction on the evm starting from the open world states """
@@ -88,6 +92,7 @@ class ContractCreation:
 
         for open_world_state in open_states:
             new_account = open_world_state.create_account()
+
             # Initialize the execution environment
             environment = Environment(
                 new_account,
