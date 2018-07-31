@@ -1,5 +1,5 @@
 from mythril.disassembler.disassembly import Disassembly
-from mythril.ether import util
+from mythril.contract import util
 from tests import *
 
 def _compile_to_code(input_file):

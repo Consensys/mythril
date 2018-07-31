@@ -1,8 +1,8 @@
 from mythril.analysis.report import Report
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
-from mythril.ether import util
-from mythril.ether.soliditycontract import ETHContract
+from mythril.contract import util
+from mythril.contract.soliditycontract import ETHContract
 from multiprocessing import Pool, cpu_count
 import datetime
 import pytest

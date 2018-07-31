@@ -1,7 +1,7 @@
 import sys
 import re
 from ethereum.opcodes import opcodes
-from mythril.ether import util
+from mythril.contract import util
 
 
 regex_PUSH = re.compile('^PUSH(\d*)$')

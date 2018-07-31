@@ -1,7 +1,7 @@
 from ethereum import vm, messages, transactions
 from ethereum.state import State
 from ethereum.slogging import get_logger
-from mythril.ether import util
+from mythril.contract import util
 from logging import StreamHandler
 from io import StringIO
 import re

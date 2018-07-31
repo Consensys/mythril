@@ -1,6 +1,6 @@
 # compile test contracts
 from pathlib import Path
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.contract.soliditycontract import SolidityContract
 
 # Recompiles all the to be tested contracts
 root = Path(__file__).parent

@@ -4,13 +4,13 @@ import re
 import sys
 import json
 import logging
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SourceMapping
+from mythril.contract.ethcontract import ETHContract
+from mythril.contract.soliditycontract import SourceMapping
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
 
-from mythril.ether import util
+from mythril.contract import util
 from mythril.laser.ethereum.util import get_instruction_index
 
 

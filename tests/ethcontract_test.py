@@ -1,5 +1,5 @@
 import unittest
-from mythril.ether.ethcontract import ETHContract
+from mythril.contract.ethcontract import ETHContract
 
 
 class ETHContractTestCase(unittest.TestCase):
