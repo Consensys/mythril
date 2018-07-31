@@ -184,7 +184,7 @@ class EthLevelDB(object):
         for account in self.reader._get_head_state().get_all_accounts():
             if account.code is not None:
                 code = _encode_hex(account.code)
-                contract = ETHContract(code)
+                contract = ETHContract(code, enable_online_lookup=False)
                 address = indexer.get_contract_by_hash(account.address)
                 if address is None:
                     address = account.address

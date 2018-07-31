@@ -12,7 +12,7 @@ class Disassembly(object):
         self.addr_to_func = {}
         self.bytecode = code
 
-        signatures = SignatureDb(enable_online_lookup)  # control if you want to have online sighash lookups
+        signatures = SignatureDb(enable_online_lookup=enable_online_lookup)  # control if you want to have online sighash lookups
         try:
             signatures.open()  # open from default locations
         except FileNotFoundError:
