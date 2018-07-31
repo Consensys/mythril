@@ -17,12 +17,12 @@ import solc
 from configparser import ConfigParser
 import platform
 
-from mythril.ether import util
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
-from mythril.rpc.client import EthJsonRpc
-from mythril.ipc.client import EthIpc
-from mythril.rpc.exceptions import ConnectionError
+from mythril.contract import util
+from mythril.contract.ethcontract import ETHContract
+from mythril.contract.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum.interface.rpc.client import EthJsonRpc
+from mythril.ethereum.interface.ipc.client import EthIpc
+from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
@@ -32,7 +32,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
-from mythril.leveldb.client import EthLevelDB
+from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 # logging.basicConfig(level=logging.DEBUG)
 

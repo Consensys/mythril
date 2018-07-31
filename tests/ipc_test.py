@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from mythril.ipc.client import EthIpc
+from mythril.ethereum.interface.ipc.client import EthIpc
 
 class IpcTest(TestCase):
     client = None

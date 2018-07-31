@@ -1,8 +1,8 @@
 import json
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.contract.ethcontract import ETHContract
+from mythril.contract.soliditycontract import SolidityContract
 
 from mythril.laser.ethereum.state import GlobalState, MachineState
 from mythril.laser.ethereum import svm

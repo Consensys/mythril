@@ -1,4 +1,4 @@
-from mythril import ether
+from mythril import contract
 from mythril.laser.ethereum import svm
 import copy
 import logging
