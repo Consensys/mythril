@@ -8,11 +8,15 @@ class Disassembly(object):
 
     def __init__(self, code):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
+        self.bytecode = code
+
         self.func_hashes = []
         self.func_to_addr = {}
         self.addr_to_func = {}
-        self.bytecode = code
 
+        self._parse_jump_table()
+
+    def _parse_jump_table(self):
         signatures = SignatureDb(enable_online_lookup=True)  # control if you want to have online sighash lookups
         try:
             signatures.open()  # open from default locations
@@ -20,7 +24,6 @@ class Disassembly(object):
             logging.info("Missing function signature file. Resolving of function names from signature file disabled.")
 
         # Parse jump table & resolve function names
-
         jmptable_indices = asm.find_opcode_sequence(["PUSH4", "EQ"], self.instruction_list)
 
         for i in jmptable_indices:
@@ -53,3 +56,6 @@ class Disassembly(object):
     def get_easm(self):
         # todo: tintinweb - print funcsig resolved data from self.addr_to_func?
         return asm.instruction_list_to_easm(self.instruction_list)
+
+
+
