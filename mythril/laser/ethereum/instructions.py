@@ -986,6 +986,41 @@ class Instruction:
         return [new_global_state]
 
     @instruction
+    def callcode_post(self, global_state):
+        instr = global_state.get_current_instruction()
+
+        try:
+            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+                global_state, self.dynamic_loader, True)
+        except ValueError as e:
+            logging.info(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
+            )
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        if global_state.last_return_data is None:
+            # Put return value on stack
+            return_value = BitVec("retval_" + str(instr['address']), 256)
+            global_state.mstate.stack.append(return_value)
+            global_state.mstate.constraints.append(return_value == 0)
+
+            return [global_state]
+
+        # Copy memory
+        global_state.mstate.mem_extend(memory_out_offset, min(memory_out_size.as_long(), len(global_state.last_return_data)))
+        for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
+            global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
+
+        # Put return value on stack
+        return_value = BitVec("retval_" + str(instr['address']), 256)
+        global_state.mstate.stack.append(return_value)
+        global_state.mstate.constraints.append(return_value == 1)
+
+        return [global_state]
+
+
+    @instruction
     def delegatecall_(self, global_state):
         instr = global_state.get_current_instruction()
 
@@ -1018,6 +1053,41 @@ class Instruction:
         new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
 
         return [new_global_state]
+
+    @instruction
+    def delegatecall_post(self, global_state):
+        instr = global_state.get_current_instruction()
+
+        try:
+            _, _, _, _, _, _, memory_out_offset, memory_out_size =\
+                get_call_parameters(global_state, self.dynamic_loader)
+        except ValueError as e:
+            logging.info(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
+            )
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        if global_state.last_return_data is None:
+            # Put return value on stack
+            return_value = BitVec("retval_" + str(instr['address']), 256)
+            global_state.mstate.stack.append(return_value)
+            global_state.mstate.constraints.append(return_value == 0)
+
+            return [global_state]
+
+            # Copy memory
+        global_state.mstate.mem_extend(memory_out_offset,
+                                       min(memory_out_size.as_long(), len(global_state.last_return_data)))
+        for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
+            global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
+
+        # Put return value on stack
+        return_value = BitVec("retval_" + str(instr['address']), 256)
+        global_state.mstate.stack.append(return_value)
+        global_state.mstate.constraints.append(return_value == 1)
+
+        return [global_state]
 
     @instruction
     def staticcall_(self, global_state):
