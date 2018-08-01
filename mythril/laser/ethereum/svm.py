@@ -141,6 +141,7 @@ class LaserEVM:
             assert len(new_states) <= 1
             for state in new_states:
                 self._new_node_state(state, JumpType.CALL)
+                # Keep track of added contracts so the graph can be generated properly
                 if state.environment.active_account.contract_name not in self.world_state.accounts.keys():
                     self.world_state.accounts[state.environment.active_account.contract_name] = state.environment.active_account
         elif opcode == "RETURN":
