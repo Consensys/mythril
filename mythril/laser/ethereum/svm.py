@@ -68,8 +68,6 @@ class LaserEVM:
             if self.execution_timeout:
                 if self.time + timedelta(seconds=self.execution_timeout) <= datetime.now():
                     return
-            if len(global_state.transaction_stack) > 2:
-                continue
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
@@ -81,7 +79,7 @@ class LaserEVM:
             self.work_list += new_states
             self.total_states += len(new_states)
 
-    def execute_state(self, global_state, post=False):
+    def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
 
@@ -91,25 +89,42 @@ class LaserEVM:
 
         self._execute_pre_hook(op_code, global_state)
         try:
-            new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state, post)
+            new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+
         except TransactionStartSignal as e:
+            # Setup new global state
             new_global_state = e.transaction.initial_global_state()
             new_global_state.transaction_stack.append((e.transaction, global_state))
             new_global_state.node = global_state.node
-            new_global_states = [new_global_state]
+
+            return [new_global_state], op_code
+
         except TransactionEndSignal as e:
             transaction, return_global_state = e.global_state.transaction_stack.pop()
+
             if return_global_state is None:
                 self.open_states.append(e.global_state)
                 new_global_states = []
             else:
+                # First execute the post hook for the transaction ending instruction
+                self._execute_post_hook(op_code, [e.global_state])
+
+                # Resume execution of the transaction initializing instruction
+                op_code = return_global_state.environment.code.instruction_list[return_global_state.mstate.pc]['opcode']
+
+                # Set execution result in the return_state
                 return_global_state.last_return_data = transaction.return_data
                 return_global_state.accounts = copy(global_state.accounts)
                 return_global_state.environment.active_account =\
                     global_state.accounts[return_global_state.environment.active_account.contract_name]
-                new_global_states, op_code = self.execute_state(return_global_state, post=True)
+
+                # Execute the post instruction handler
+                new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(return_global_state, True)
+
+                # In order to get a nice call graph we need to set the nodes here
                 for state in new_global_states:
                     state.node = global_state.node
+
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
