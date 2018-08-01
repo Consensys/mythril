@@ -50,7 +50,7 @@ class MessageCall:
                 evm.edges.append(Edge(open_world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction, condition=None))
 
             global_state = GlobalState(open_world_state.accounts, environment, new_node)
-            global_state.environment.active_function_name = 'unnamed fallback'
+            global_state.environment.active_function_name = 'fallback'
             new_node.states.append(global_state)
 
             evm.work_list.append(global_state)
