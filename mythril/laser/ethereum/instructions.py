@@ -767,25 +767,25 @@ class Instruction:
         instr = disassembly.instruction_list[index]
 
         # True case
-        condi = condition if type(condition) == BoolRef else condition != 0
+        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
+            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(simplify(condi))
+                new_state.mstate.constraints.append(condi)
 
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
 
         # False case
-        negated = Not(condition) if type(condition) == BoolRef else condition == 0
+        negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
 
-        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(simplify(negated))):
+        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
-            new_state.mstate.constraints.append(simplify(negated))
+            new_state.mstate.constraints.append(negated)
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
