@@ -68,7 +68,6 @@ class Environment:
         calldata_type=CalldataType.SYMBOLIC,
     ):
         # Metadata
-        assert type(active_account) == Account
         self.active_account = active_account
         self.active_function_name = ""
 
@@ -147,7 +146,6 @@ class GlobalState:
     def __init__(self, world_state, environment, node, machine_state=None, transaction_stack=None, ret_data=None):
         """ Constructor for GlobalState"""
         self.node = node
-        assert isinstance(world_state, WorldState)
         self.world_state = world_state
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
