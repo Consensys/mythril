@@ -68,7 +68,7 @@ class Environment:
         calldata_type=CalldataType.SYMBOLIC,
     ):
         # Metadata
-
+        assert type(active_account) == Account
         self.active_account = active_account
         self.active_function_name = ""
 
@@ -144,7 +144,7 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, accounts, environment, node, machine_state=None, transaction_stack=None):
+    def __init__(self, accounts, environment, node, machine_state=None, transaction_stack=None, ret_data=None):
         """ Constructor for GlobalState"""
         self.node = node
         self.accounts = accounts
@@ -152,13 +152,14 @@ class GlobalState:
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
         self.transaction_stack = transaction_stack if transaction_stack else []
         self.op_code = ""
+        self.last_return_data = ret_data
 
     def __copy__(self):
         accounts = copy(self.accounts)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
-        transaction_stack = deepcopy(self.transaction_stack)
-        return GlobalState(accounts, environment, self.node, mstate, transaction_stack=transaction_stack)
+        transaction_stack = copy(self.transaction_stack)
+        return GlobalState(accounts, environment, self.node, mstate, transaction_stack=transaction_stack, ret_data=self.last_return_data)
 
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
@@ -166,6 +167,12 @@ class GlobalState:
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
 
+    @property
+    def current_transaction(self):
+        try:
+            return self.transaction_stack[-1][0]
+        except IndexError:
+            return None
 
 class WorldState:
     """

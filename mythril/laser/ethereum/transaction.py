@@ -52,7 +52,7 @@ class CallTransaction:
             calldata_type=self.call_data_type,
         )
 
-        global_state = GlobalState(self.world_state.accounts, environment, None)
+        global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = 'fallback'
 
         return global_state
@@ -98,7 +98,7 @@ class MessageCall(Transaction):
         for open_world_state in open_states:
 
             transaction = CallTransaction(
-                open_world_state,
+                open_world_state.accounts,
                 open_world_state[self.callee_address],
                 self.caller,
                 [],

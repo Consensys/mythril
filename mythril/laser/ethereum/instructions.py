@@ -775,7 +775,7 @@ class Instruction:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(simplify(condi))
+                new_state.mstate.constraints.append(condi)
 
                 states.append(new_state)
             else:
@@ -787,7 +787,7 @@ class Instruction:
         if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(simplify(negated))):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
-            new_state.mstate.constraints.append(simplify(negated))
+            new_state.mstate.constraints.append(negated)
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
@@ -830,15 +830,18 @@ class Instruction:
 
     @instruction
     def return_(self, global_state):
+        # return []
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
+        return_data = None
+
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
-            global_state.transaction_stack[-1][0].end(global_state, [BitVec("return_data")])
+            global_state.current_transaction.end(global_state, [BitVec("return_data")])
 
-        global_state.transaction_stack[-1][0].end(global_state, return_data)
+        global_state.current_transaction.end(global_state, return_data)
 
     @instruction
     def suicide_(self, global_state):
@@ -858,7 +861,7 @@ class Instruction:
 
     @instruction
     def stop_(self, global_state):
-        return []
+        global_state.current_transaction.end(global_state)
 
     @instruction
     def call_(self, global_state):
@@ -919,8 +922,39 @@ class Instruction:
         raise TransactionStartSignal(transaction, self.op_code)
 
     @instruction
+    def call_post(self, global_state):
+        instr = global_state.get_current_instruction()
+        environment = global_state.environment
+
+        try:
+            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+                global_state, self.dynamic_loader, True)
+        except ValueError as e:
+            logging.info(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
+            )
+            # TODO: decide what to do in this case
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        if global_state.last_return_data is None:
+            # TODO: set to 0
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
+        global_state.mstate.mem_extend(memory_out_offset, min(memory_out_size.as_long(), len(global_state.last_return_data)))
+        for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
+            global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
+        # TODO: set to 1
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        return [global_state]
+
+    @instruction
     def callcode_(self, global_state):
         instr = global_state.get_current_instruction()
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        return [global_state]
+
         environment = global_state.environment
 
         try:
@@ -952,6 +986,10 @@ class Instruction:
     @instruction
     def delegatecall_(self, global_state):
         instr = global_state.get_current_instruction()
+
+        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        return [global_state]
+
         environment = global_state.environment
 
         try:
