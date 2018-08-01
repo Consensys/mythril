@@ -7,6 +7,7 @@ from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from functools import reduce
+from copy import copy
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -74,21 +75,6 @@ class LaserEVM:
             except NotImplementedError:
                 logging.info("Encountered unimplemented instruction")
                 continue
-            except TransactionStartSignal as e:
-                new_global_state = transaction.initial_global_state()
-                new_global_state.transaction_stack.append((e.transaction, global_state))
-                new_global_state.node = global_state.node
-                new_states, op_code = [new_global_state], e.op_code
-            except TransactionEndSignal as e:
-                transaction, return_global_state = e.global_state.transaction_stack.pop()
-                if return_global_state is None:
-                    self.open_states.append(e.global_state)
-                    continue
-                return_global_state.last_return_data = transaction.return_data
-                new_states, op_code = self.execute_state(return_global_state, post=True)
-                op_code = "RETURN"
-                for state in new_states:
-                    state.node = global_state.node
 
             self.manage_cfg(op_code, new_states)
 
@@ -104,7 +90,26 @@ class LaserEVM:
             self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
-        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state, post)
+        try:
+            new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state, post)
+        except TransactionStartSignal as e:
+            new_global_state = e.transaction.initial_global_state()
+            new_global_state.transaction_stack.append((e.transaction, global_state))
+            new_global_state.node = global_state.node
+            new_global_states = [new_global_state]
+        except TransactionEndSignal as e:
+            transaction, return_global_state = e.global_state.transaction_stack.pop()
+            if return_global_state is None:
+                self.open_states.append(e.global_state)
+                new_global_states = []
+            else:
+                return_global_state.last_return_data = transaction.return_data
+                return_global_state.accounts = copy(global_state.accounts)
+                return_global_state.environment.active_account =\
+                    global_state.accounts[return_global_state.environment.active_account.contract_name]
+                new_global_states, op_code = self.execute_state(return_global_state, post=True)
+                for state in new_global_states:
+                    state.node = global_state.node
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
