@@ -222,16 +222,3 @@ class LaserEVM:
             return function
 
         return hook_decorator
-
-    # def start_transaction(self, type, world_state, account, caller,
-    #                       call_data, gas_price, call_value, origin, call_data_type):
-    #     environment = Environment(
-    #         account,
-    #         caller,
-    #         call_data,
-    #         gas_price,
-    #         call_value,
-    #         origin,
-    #         call_data_type,
-    #     )
-    #     new_node = Node(environment.active_account.contract_name)
