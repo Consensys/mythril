@@ -516,9 +516,44 @@ class Instruction:
 
     @instruction
     def codecopy_(self, global_state):
-        # FIXME: not implemented
-        state = global_state.mstate
-        start, s1, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+        memory_offset, code_offset, size = global_state.mstate.stack.pop(), global_state.mstate.stack.pop(), global_state.mstate.stack.pop()
+
+        try:
+            concrete_memory_offset = helper.get_concrete_int(memory_offset)
+        except AttributeError:
+            logging.debug("Unsupported symbolic memory offset in CODECOPY")
+            return [global_state]
+
+        try:
+            concrete_size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+        except:
+            # except both attribute error and Exception
+            global_state.mstate.mem_extend(concrete_memory_offset, 1)
+            global_state.mstate.memory[concrete_memory_offset] = \
+                BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+            return [global_state]
+
+        try:
+            concrete_code_offset = helper.get_concrete_int(code_offset)
+        except AttributeError:
+            logging.debug("Unsupported symbolic code offset in CODECOPY")
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+            for i in range(concrete_size):
+                global_state.mstate.memory[concrete_memory_offset + i] = \
+                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+            return [global_state]
+
+        bytecode = global_state.environment.active_account.code.bytecode
+
+        for i in range(concrete_size):
+            try:
+                global_state.mstate.memory[concrete_memory_offset + i] =\
+                    int(bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)], 16)
+            except IndexError:
+                global_state.mstate.memory[concrete_memory_offset + i] = \
+                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+
         return [global_state]
 
     @instruction
