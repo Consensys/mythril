@@ -36,8 +36,8 @@ def instruction(func):
         for state in new_global_states:
             state.mstate.pc += 1
         return new_global_states
-
     return wrapper
+
 
 class Instruction:
     """
@@ -830,17 +830,13 @@ class Instruction:
 
     @instruction
     def return_(self, global_state):
-        # return []
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = None
-
+        return_data = [BitVec("return_data", 256)]
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
-            global_state.current_transaction.end(global_state, [BitVec("return_data", 256)])
-
         global_state.current_transaction.end(global_state, return_data)
 
     @instruction
@@ -937,7 +933,7 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        if global_state.last_return_data is None:
+        if global_state.last_return_data is None or True:
             # TODO: set to 0
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
