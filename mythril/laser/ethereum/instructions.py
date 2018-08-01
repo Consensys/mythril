@@ -954,9 +954,6 @@ class Instruction:
     @instruction
     def callcode_(self, global_state):
         instr = global_state.get_current_instruction()
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
-        return [global_state]
-
         environment = global_state.environment
 
         try:
@@ -969,21 +966,17 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
-
-        environment = deepcopy(environment)
-
-        environment.callvalue = value
-        environment.caller = environment.address
-        environment.calldata = call_data
-
-        new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
-        new_global_state.call_stack.append(global_state)
-        new_global_state.mstate.pc = -1
-        new_global_state.mstate.depth = global_state.mstate.depth + 1
-        new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
-
-        return [new_global_state]
+        transaction = MessageCallTransaction(global_state.world_state,
+                                             environment.active_account,
+                                             environment.address,
+                                             call_data,
+                                             environment.gasprice,
+                                             value,
+                                             environment.origin,
+                                             call_data_type,
+                                             callee_account.code
+                                             )
+        raise TransactionStartSignal(transaction, self.op_code)
 
     @instruction
     def callcode_post(self, global_state):
@@ -1023,10 +1016,6 @@ class Instruction:
     @instruction
     def delegatecall_(self, global_state):
         instr = global_state.get_current_instruction()
-
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
-        return [global_state]
-
         environment = global_state.environment
 
         try:
@@ -1039,20 +1028,18 @@ class Instruction:
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        transaction = MessageCallTransaction(global_state.world_state,
+                                             environment.active_account,
+                                             environment.sender,
+                                             call_data,
+                                             environment.gasprice,
+                                             environment.callvalue,
+                                             environment.origin,
+                                             call_data_type,
+                                             callee_account.code
+                                             )
+        raise TransactionStartSignal(transaction, self.op_code)
 
-        environment = deepcopy(environment)
-
-        environment.code = callee_account.code
-        environment.calldata = call_data
-
-        new_global_state = GlobalState(global_state.accounts, environment, global_state.node, MachineState(gas))
-        new_global_state.call_stack.append(global_state)
-        new_global_state.mstate.pc = -1
-        new_global_state.mstate.depth = global_state.mstate.depth + 1
-        new_global_state.mstate.constraints = copy(global_state.mstate.constraints)
-
-        return [new_global_state]
 
     @instruction
     def delegatecall_post(self, global_state):

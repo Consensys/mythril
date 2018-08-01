@@ -28,7 +28,8 @@ class MessageCallTransaction:
                  gas_price=BitVec("gasprice", 256),
                  call_value=BitVec("callvalue", 256),
                  origin=BitVec("origin", 256),
-                 call_data_type=BitVec("call_data_type", 256)
+                 call_data_type=BitVec("call_data_type", 256),
+                 code=None
                  ):
         assert isinstance(world_state, WorldState)
 
@@ -40,7 +41,7 @@ class MessageCallTransaction:
         self.call_value = call_value
         self.origin = origin
         self.call_data_type = call_data_type
-
+        self.code = code
         self.return_data = None
 
     def initial_global_state(self):
@@ -52,7 +53,7 @@ class MessageCallTransaction:
             self.gas_price,
             self.call_value,
             self.origin,
-            code=self.callee_account.code,
+            code=self.callee_account.code if self.code is None else self.code,
             calldata_type=self.call_data_type,
         )
 
