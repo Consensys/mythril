@@ -46,7 +46,7 @@ class LaserEVM:
         self.work_list = []
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
-        self.execution_timeout = 20
+        self.execution_timeout = execution_timeout
         self.time = None
 
         self.pre_hooks = {}

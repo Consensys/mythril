@@ -194,7 +194,7 @@ def main():
             if args.graph:
                 html = mythril.graph_html(strategy=args.strategy, contract=mythril.contracts[0], address=address,
                                           enable_physics=args.enable_physics, phrackify=args.phrack,
-                                          max_depth=args.max_depth)
+                                          max_depth=args.max_depth, execution_timeout=args.execution_timeout)
 
                 try:
                     with open(args.graph, "w") as f:

@@ -363,10 +363,10 @@ class Mythril(object):
 
         return get_serializable_statespace(sym)
 
-    def graph_html(self, strategy, contract, address, max_depth=12, enable_physics=False, phrackify=False):
+    def graph_html(self, strategy, contract, address, max_depth=12, enable_physics=False, phrackify=False, execution_timeout=None):
         sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
-                             max_depth=max_depth)
+                             max_depth=max_depth, execution_timeout=execution_timeout)
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
     def fire_lasers(self, strategy, contracts=None, address=None,
