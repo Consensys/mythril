@@ -920,29 +920,35 @@ class Instruction:
     @instruction
     def call_post(self, global_state):
         instr = global_state.get_current_instruction()
-        environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True)
         except ValueError as e:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            # TODO: decide what to do in this case
             global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
-        if global_state.last_return_data is None or True:
-            # TODO: set to 0
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        if global_state.last_return_data is None:
+            # Put return value on stack
+            return_value = BitVec("retval_" + str(instr['address']), 256)
+            global_state.mstate.stack.append(return_value)
+            global_state.mstate.constraints.append(return_value == 0)
+
             return [global_state]
 
+        # Copy memory
         global_state.mstate.mem_extend(memory_out_offset, min(memory_out_size.as_long(), len(global_state.last_return_data)))
         for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
             global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
-        # TODO: set to 1
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+
+        # Put return value on stack
+        return_value = BitVec("retval_" + str(instr['address']), 256)
+        global_state.mstate.stack.append(return_value)
+        global_state.mstate.constraints.append(return_value == 1)
+
         return [global_state]
 
     @instruction
