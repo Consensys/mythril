@@ -114,7 +114,7 @@ class LaserEVM:
 
                 # Set execution result in the return_state
                 return_global_state.last_return_data = transaction.return_data
-                return_global_state.accounts = copy(global_state.accounts)
+                return_global_state.world_state = copy(global_state.world_state)
                 return_global_state.environment.active_account =\
                     global_state.accounts[return_global_state.environment.active_account.contract_name]
 

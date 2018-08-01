@@ -1,6 +1,6 @@
 import logging
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType
+from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, WorldState
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from z3 import BitVec
 
@@ -28,6 +28,8 @@ class CallTransaction:
                  origin=BitVec("origin", 256),
                  call_data_type=BitVec("call_data_type", 256)
                  ):
+        assert isinstance(world_state, WorldState)
+
         self.world_state = world_state
         self.callee_account = callee_account
         self.caller = caller
@@ -98,7 +100,7 @@ class MessageCall(Transaction):
         for open_world_state in open_states:
 
             transaction = CallTransaction(
-                open_world_state.accounts,
+                open_world_state,
                 open_world_state[self.callee_address],
                 self.caller,
                 [],

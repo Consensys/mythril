@@ -907,7 +907,7 @@ class Instruction:
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
 
-        transaction = CallTransaction(global_state.accounts,
+        transaction = CallTransaction(global_state.world_state,
                                       callee_account,
                                       BitVecVal(int(environment.active_account.address, 16), 256),
                                       call_data,

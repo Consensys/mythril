@@ -144,10 +144,11 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, accounts, environment, node, machine_state=None, transaction_stack=None, ret_data=None):
+    def __init__(self, world_state, environment, node, machine_state=None, transaction_stack=None, ret_data=None):
         """ Constructor for GlobalState"""
         self.node = node
-        self.accounts = accounts
+        assert isinstance(world_state, WorldState)
+        self.world_state = world_state
         self.environment = environment
         self.mstate = machine_state if machine_state else MachineState(gas=10000000)
         self.transaction_stack = transaction_stack if transaction_stack else []
@@ -155,11 +156,15 @@ class GlobalState:
         self.last_return_data = ret_data
 
     def __copy__(self):
-        accounts = copy(self.accounts)
+        world_state = copy(self.world_state)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         transaction_stack = copy(self.transaction_stack)
-        return GlobalState(accounts, environment, self.node, mstate, transaction_stack=transaction_stack, ret_data=self.last_return_data)
+        return GlobalState(world_state, environment, self.node, mstate, transaction_stack=transaction_stack, ret_data=self.last_return_data)
+
+    @property
+    def accounts(self):
+        return self.world_state.accounts
 
     #TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
@@ -192,6 +197,12 @@ class WorldState:
         :return: Account associated with the address
         """
         return self.accounts[item]
+
+    def __copy__(self):
+        new_world_state = WorldState()
+        new_world_state.accounts = copy(self.accounts)
+        new_world_state.node = self.node
+        return new_world_state
 
     def create_account(self, balance=0):
         """
