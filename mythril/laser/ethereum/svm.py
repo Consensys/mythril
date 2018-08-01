@@ -1,7 +1,7 @@
 from z3 import BitVec
 import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
-from mythril.laser.ethereum.transaction import MessageCall, TransactionStartSignal, TransactionEndSignal
+from mythril.laser.ethereum.transaction import CallTransaction, TransactionStartSignal, TransactionEndSignal
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -58,8 +58,7 @@ class LaserEVM:
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
-        transaction = MessageCall(main_address)
-        transaction.run(self.open_states, self)
+        self.execute_message_call(main_address)
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
@@ -222,3 +221,42 @@ class LaserEVM:
             return function
 
         return hook_decorator
+
+    def execute_message_call(self, callee_address):
+        caller = BitVec("caller", 256)
+        gas_price = BitVec("gasprice", 256)
+        call_value = BitVec("callvalue", 256)
+        origin = BitVec("origin", 256)
+
+        open_states = self.open_states[:]
+        del self.open_states[:]
+
+        for open_world_state in open_states:
+
+            transaction = CallTransaction(
+                open_world_state,
+                open_world_state[callee_address],
+                caller,
+                [],
+                gas_price,
+                call_value,
+                origin,
+                CalldataType.SYMBOLIC,
+            )
+            global_state = transaction.initial_global_state()
+            global_state.transaction_stack.append((transaction, None))
+
+            new_node = Node(global_state.environment.active_account.contract_name)
+            self.instructions_covered = [False for _ in global_state.environment.code.instruction_list]
+
+            self.nodes[new_node.uid] = new_node
+            if open_world_state.node:
+                self.edges.append(Edge(open_world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
+                                      condition=None))
+            global_state.node = new_node
+            new_node.states.append(global_state)
+            self.work_list.append(global_state)
+
+        self.exec()
+        logging.info("Execution complete")
+        logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
