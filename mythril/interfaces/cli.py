@@ -82,7 +82,6 @@ def main():
     rpc.add_argument('--rpc', help='custom RPC settings', metavar='HOST:PORT / ganache / infura-[network_name]')
     rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
     rpc.add_argument('--ipc', action='store_true', help='Connect via local IPC')
-    rpc.add_argument('--leveldb', action='store_true', help='Enable direct leveldb access operations')
 
     # Get config values
 
@@ -120,7 +119,7 @@ def main():
         if args.dynld and not (args.ipc or args.rpc or args.i):
             mythril.set_api_from_config_path()
 
-        if args.address and not args.leveldb:
+        if args.address:
             # Establish RPC/IPC connection if necessary
             if args.i:
                 mythril.set_api_rpc_infura()
@@ -130,7 +129,7 @@ def main():
                 mythril.set_api_ipc()
             elif not args.dynld:
                 mythril.set_api_rpc_localhost()
-        elif args.leveldb or args.search or args.contract_hash_to_address:
+        elif args.search or args.contract_hash_to_address:
             # Open LevelDB if necessary
             mythril.set_api_leveldb(mythril.leveldb_dir if not args.leveldb_dir else args.leveldb_dir)
 
