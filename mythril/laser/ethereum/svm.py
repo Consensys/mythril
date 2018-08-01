@@ -93,8 +93,10 @@ class LaserEVM:
         except TransactionStartSignal as e:
             # Setup new global state
             new_global_state = e.transaction.initial_global_state()
+
             new_global_state.transaction_stack.append((e.transaction, global_state))
             new_global_state.node = global_state.node
+            new_global_state.mstate.constraints = global_state.mstate.constraints
 
             return [new_global_state], op_code
 
