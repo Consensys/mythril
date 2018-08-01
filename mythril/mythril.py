@@ -101,7 +101,7 @@ class Mythril(object):
         self.leveldb_dir = self._init_config()
 
         self.eth = None # ethereum API client
-        self.ethDb = None # ethereum LevelDB client
+        self.eth_db = None # ethereum LevelDB client
 
         self.contracts = []  # loaded contracts
 
@@ -213,8 +213,8 @@ class Mythril(object):
         return solc_binary
 
     def set_api_leveldb(self, leveldb):
-        self.ethDb = EthLevelDB(leveldb)
-        self.eth = self.ethDb
+        self.eth_db = EthLevelDB(leveldb)
+        self.eth = self.eth_db
         return self.eth
 
     def set_api_rpc_infura(self):
@@ -277,7 +277,7 @@ class Mythril(object):
                 print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
 
         try:
-            self.ethDb.search(search, search_callback)
+            self.eth_db.search(search, search_callback)
 
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
@@ -286,7 +286,7 @@ class Mythril(object):
         if not re.match(r'0x[a-fA-F0-9]{64}', hash):
              raise CriticalError("Invalid address hash. Expected format is '0x...'.")
 
-        print(self.ethDb.contract_hash_to_address(hash))
+        print(self.eth_db.contract_hash_to_address(hash))
 
     def load_from_bytecode(self, code):
         address = util.get_indexed_address(0)

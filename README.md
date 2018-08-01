@@ -1,4 +1,4 @@
-# Mythril
+# Mythril [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Mythril%20-%20Security%20Analyzer%20for%20Ethereum%20Smart%20Contracts&url=https://www.github.com/ConsenSys/mythril)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
 [![Join the chat at https://gitter.im/ConsenSys/mythril](https://badges.gitter.im/ConsenSys/mythril.svg)](https://gitter.im/ConsenSys/mythril?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)

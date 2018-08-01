@@ -516,9 +516,44 @@ class Instruction:
 
     @instruction
     def codecopy_(self, global_state):
-        # FIXME: not implemented
-        state = global_state.mstate
-        start, s1, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+        memory_offset, code_offset, size = global_state.mstate.stack.pop(), global_state.mstate.stack.pop(), global_state.mstate.stack.pop()
+
+        try:
+            concrete_memory_offset = helper.get_concrete_int(memory_offset)
+        except AttributeError:
+            logging.debug("Unsupported symbolic memory offset in CODECOPY")
+            return [global_state]
+
+        try:
+            concrete_size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+        except:
+            # except both attribute error and Exception
+            global_state.mstate.mem_extend(concrete_memory_offset, 1)
+            global_state.mstate.memory[concrete_memory_offset] = \
+                BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+            return [global_state]
+
+        try:
+            concrete_code_offset = helper.get_concrete_int(code_offset)
+        except AttributeError:
+            logging.debug("Unsupported symbolic code offset in CODECOPY")
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+            for i in range(concrete_size):
+                global_state.mstate.memory[concrete_memory_offset + i] = \
+                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+            return [global_state]
+
+        bytecode = global_state.environment.active_account.code.bytecode
+
+        for i in range(concrete_size):
+            try:
+                global_state.mstate.memory[concrete_memory_offset + i] =\
+                    int(bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)], 16)
+            except IndexError:
+                global_state.mstate.memory[concrete_memory_offset + i] = \
+                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+
         return [global_state]
 
     @instruction
@@ -767,25 +802,25 @@ class Instruction:
         instr = disassembly.instruction_list[index]
 
         # True case
-        condi = condition if type(condition) == BoolRef else condition != 0
+        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
+            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(simplify(condi))
+                new_state.mstate.constraints.append(condi)
 
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
 
         # False case
-        negated = Not(condition) if type(condition) == BoolRef else condition == 0
+        negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
 
-        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(simplify(negated))):
+        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
-            new_state.mstate.constraints.append(simplify(negated))
+            new_state.mstate.constraints.append(negated)
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")

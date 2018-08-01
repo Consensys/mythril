@@ -72,6 +72,7 @@ class Environment:
         self.active_function_name = ""
 
         self.address = BitVecVal(int(active_account.address, 16), 256)
+
         self.code = active_account.code
 
         self.sender = sender
@@ -80,6 +81,7 @@ class Environment:
         self.gasprice = gasprice
         self.origin = origin
         self.callvalue = callvalue
+
 
     def __str__(self):
         return str(self.as_dict)

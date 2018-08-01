@@ -9,15 +9,15 @@ import re
 
 def trace(code, calldata = ""):
 
-	logHandlers = ['eth.vm.op', 'eth.vm.op.stack', 'eth.vm.op.memory', 'eth.vm.op.storage']
+	log_handlers = ['eth.vm.op', 'eth.vm.op.stack', 'eth.vm.op.memory', 'eth.vm.op.storage']
 
 	output = StringIO()
-	streamHandler = StreamHandler(output)
+	stream_handler = StreamHandler(output)
 
-	for handler in logHandlers:
+	for handler in log_handlers:
 		log_vm_op = get_logger(handler)
 		log_vm_op.setLevel("TRACE")
-		log_vm_op.addHandler(streamHandler)
+		log_vm_op.addHandler(stream_handler)
 
 	addr = bytes.fromhex('0123456789ABCDEF0123456789ABCDEF01234567')
 
@@ -29,7 +29,7 @@ def trace(code, calldata = ""):
 
 	res, gas, dat = vm.vm_execute(ext, message, util.safe_decode(code))
 
-	streamHandler.flush()
+	stream_handler.flush()
 
 	ret = output.getvalue()
 
