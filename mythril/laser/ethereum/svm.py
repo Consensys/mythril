@@ -1,7 +1,7 @@
 from z3 import BitVec
 import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
-from mythril.laser.ethereum.transaction import CallTransaction, TransactionStartSignal, TransactionEndSignal
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, TransactionEndSignal
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -233,7 +233,7 @@ class LaserEVM:
 
         for open_world_state in open_states:
 
-            transaction = CallTransaction(
+            transaction = MessageCallTransaction(
                 open_world_state,
                 open_world_state[callee_address],
                 caller,

@@ -18,7 +18,7 @@ class TransactionStartSignal(Exception):
         self.op_code = op_code
 
 
-class CallTransaction:
+class MessageCallTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
                  world_state,
@@ -64,19 +64,5 @@ class CallTransaction:
     def end(self, global_state, return_data=None):
         self.return_data = return_data
         raise TransactionEndSignal(global_state)
-
-
-class Transaction:
-    def __init__(self):
-        self.open_states = None
-
-    @property
-    def has_ran(self):
-        return self.open_states is not None
-
-    def run(self, open_world_states, evm):
-        raise NotImplementedError()
-
-
 
 

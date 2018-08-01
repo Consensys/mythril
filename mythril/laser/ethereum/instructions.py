@@ -13,7 +13,7 @@ from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
 import mythril.laser.ethereum.natives as natives
-from mythril.laser.ethereum.transaction import CallTransaction, TransactionEndSignal, TransactionStartSignal
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionEndSignal, TransactionStartSignal
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -907,14 +907,14 @@ class Instruction:
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
 
-        transaction = CallTransaction(global_state.world_state,
-                                      callee_account,
-                                      BitVecVal(int(environment.active_account.address, 16), 256),
-                                      call_data,
-                                      environment.gasprice,
-                                      value,
-                                      environment.origin,
-                                      call_data_type)
+        transaction = MessageCallTransaction(global_state.world_state,
+                                             callee_account,
+                                             BitVecVal(int(environment.active_account.address, 16), 256),
+                                             call_data,
+                                             environment.gasprice,
+                                             value,
+                                             environment.origin,
+                                             call_data_type)
         raise TransactionStartSignal(transaction, self.op_code)
 
     @instruction
