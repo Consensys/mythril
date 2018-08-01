@@ -839,7 +839,7 @@ class Instruction:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
         except AttributeError:
             logging.debug("Return with symbolic length or offset. Not supported")
-            global_state.current_transaction.end(global_state, [BitVec("return_data")])
+            global_state.current_transaction.end(global_state, [BitVec("return_data", 256)])
 
         global_state.current_transaction.end(global_state, return_data)
 
