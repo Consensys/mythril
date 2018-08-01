@@ -67,11 +67,8 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
-    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on "
-                                                                           "symbolic execution")
-    outputs.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs',
-                         help='Symbolic execution strategy')
-
+    options.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs', help='Symbolic execution strategy')
+    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on symbolic execution")
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
@@ -81,7 +78,6 @@ def main():
     rpc.add_argument('-i', action='store_true', help='Preset: Infura Node service (Mainnet)')
     rpc.add_argument('--rpc', help='custom RPC settings', metavar='HOST:PORT / ganache / infura-[network_name]')
     rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
-    rpc.add_argument('--ipc', action='store_true', help='Connect via local IPC')
 
     # Get config values
 
