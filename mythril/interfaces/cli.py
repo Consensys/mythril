@@ -12,7 +12,7 @@ import argparse
 
 # logging.basicConfig(level=logging.DEBUG)
 
-from mythril.exceptions import CriticalError
+from mythril.exceptions import CriticalError, AddressNotFoundError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
 
@@ -136,7 +136,11 @@ def main():
 
         if args.contract_hash_to_address:
             # search corresponding address
-            mythril.contract_hash_to_address(args.contract_hash_to_address)
+            try:
+                mythril.contract_hash_to_address(args.contract_hash_to_address)
+            except AddressNotFoundError:
+                print("Address not found.")
+
             sys.exit()
 
         if args.truffle:

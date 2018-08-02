@@ -223,13 +223,11 @@ class EthLevelDB(object):
         '''
         tries to find corresponding account address
         '''
-        # indexer = AccountIndexer(self)
-        return binascii.a2b_hex(utils.remove_0x_head(hash))
 
-        # if address:
-        #    return _encode_hex(address)
-        # else:
-        #    return "Not found"
+        address_hash = binascii.a2b_hex(utils.remove_0x_head(hash))
+        indexer = AccountIndexer(self)
+
+        return _encode_hex(indexer.get_contract_by_hash(address_hash))
 
     def eth_getBlockHeaderByNumber(self, number):
         '''
