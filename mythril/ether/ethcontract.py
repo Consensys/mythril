@@ -38,8 +38,6 @@ class ETHContract(persistent.Persistent):
         str_eval = ''
         easm_code = None
 
-        # tokens = filter(None, re.split("( and | or | not )", expression.replace(" ", ""), re.IGNORECASE))
-
         tokens = re.split("\s+(and|or|not)\s+", expression, re.IGNORECASE)
 
         print(tokens)
@@ -69,7 +67,5 @@ class ETHContract(persistent.Persistent):
                 str_eval += "\"" + sign_hash + "\" in self.disassembly.func_hashes"
 
                 continue
-
-            print(str_eval)
 
         return eval(str_eval.strip())
