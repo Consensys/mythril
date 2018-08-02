@@ -186,14 +186,6 @@ class EthLevelDB(object):
                 code = _encode_hex(account.code)
                 contract = ETHContract(code, enable_online_lookup=False)
 
-                # print("Resolving: %s | %s (%d)" % (account.address, _encode_hex(account.address), len(account.address)))
-
-                # if(account.address[0] == 0):
-                #    print("Zero first")
-                #    print(account.address)
-
-                # if address is None:
-                #    address = account.address
                 yield contract, account.address, account.balance
 
     def search(self, expression, callback_func):
