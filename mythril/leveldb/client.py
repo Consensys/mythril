@@ -204,7 +204,7 @@ class EthLevelDB(object):
                 except AddressNotFoundError:
                     address = _encode_hex(address_hash)
 
-                callback_func(contract.name, contract, [address], [balance])
+                callback_func(contract, address, balance)
 
             cnt += 1
 
