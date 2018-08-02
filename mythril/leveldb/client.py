@@ -8,6 +8,7 @@ from ethereum.block import BlockHeader, Block
 from mythril.leveldb.state import State
 from mythril.leveldb.eth_db import ETH_DB
 from mythril.ether.ethcontract import ETHContract
+from mythril.exceptions import AddressNotFoundError
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/database_util.go
 # prefixes and suffixes for keys in geth
@@ -180,25 +181,37 @@ class EthLevelDB(object):
         '''
         iterate through all contracts
         '''
-        indexer = AccountIndexer(self)
         for account in self.reader._get_head_state().get_all_accounts():
             if account.code is not None:
                 code = _encode_hex(account.code)
                 contract = ETHContract(code, enable_online_lookup=False)
-                address = indexer.get_contract_by_hash(account.address)
-                if address is None:
-                    address = account.address
-                yield contract, _encode_hex(address), account.balance
+
+                # print("Resolving: %s | %s (%d)" % (account.address, _encode_hex(account.address), len(account.address)))
+
+                # if(account.address[0] == 0):
+                #    print("Zero first")
+                #    print(account.address)
+
+                # if address is None:
+                #    address = account.address
+                yield contract, account.address, account.balance
 
     def search(self, expression, callback_func):
         '''
         searches through non-zero balance contracts
         '''
         cnt = 0
+        indexer = AccountIndexer(self)
 
-        for contract, address, balance in self.get_contracts():
+        for contract, address_hash, balance in self.get_contracts():
 
             if contract.matches_expression(expression):
+
+                try:
+                    address = _encode_hex(indexer.get_contract_by_hash(address_hash))
+                except AddressNotFoundError:
+                    address = _encode_hex(address_hash)
+
                 callback_func(contract.name, contract, [address], [balance])
 
             cnt += 1
@@ -210,13 +223,13 @@ class EthLevelDB(object):
         '''
         tries to find corresponding account address
         '''
-        indexer = AccountIndexer(self)
-        address_hash = binascii.a2b_hex(utils.remove_0x_head(hash))
-        address = indexer.get_contract_by_hash(address_hash)
-        if address:
-            return _encode_hex(address)
-        else:
-            return "Not found"
+        # indexer = AccountIndexer(self)
+        return binascii.a2b_hex(utils.remove_0x_head(hash))
+
+        # if address:
+        #    return _encode_hex(address)
+        # else:
+        #    return "Not found"
 
     def eth_getBlockHeaderByNumber(self, number):
         '''
