@@ -6,6 +6,7 @@ import rlp
 from rlp.sedes import big_endian_int, binary
 from ethereum import utils
 from ethereum.utils import hash32, address, int256
+from mythril.exceptions import AddressNotFoundError
 
 BATCH_SIZE = 8 * 4096
 
@@ -65,6 +66,9 @@ class AccountIndexer(object):
         address = self.db.reader._get_address_by_hash(contract_hash)
         if address is not None:
             return address
+        else:
+            raise AddressNotFoundError
+
         self.updateIfNeeded()
         return self.db.reader._get_address_by_hash(contract_hash)
 

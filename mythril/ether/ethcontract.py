@@ -6,7 +6,7 @@ import re
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code="", name="Unknown"):
+    def __init__(self, code, creation_code="", name="Unknown", enable_online_lookup=True):
 
         self.creation_code = creation_code
         self.name = name
@@ -17,7 +17,7 @@ class ETHContract(persistent.Persistent):
         code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
 
         self.code = code
-        self.disassembly = Disassembly(self.code)
+        self.disassembly = Disassembly(self.code, enable_online_lookup=enable_online_lookup)
 
     def as_dict(self):
 

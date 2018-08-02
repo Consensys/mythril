@@ -33,7 +33,7 @@ class SimpleFileLock(object):
         if self.locked:
             raise Exception("SimpleFileLock: lock already aquired")
 
-        t_end = time.time()+timeout
+        t_end = time.time() + timeout
         while time.time() < t_end:
             # try to aquire lock
             try:
@@ -49,7 +49,7 @@ class SimpleFileLock(object):
                 time.sleep(0.5)  # busywait is evil
                 continue
 
-        raise Exception("SimpleFileLock: timeout hit. failed to aquire lock: %s"% (time.time()-self.lockfile.stat().st_mtime))
+        raise Exception("SimpleFileLock: timeout hit. failed to aquire lock: %s" % (time.time() - self.lockfile.stat().st_mtime))
 
     def release(self, force=False):
         if not force and not self.locked:
@@ -61,7 +61,6 @@ class SimpleFileLock(object):
             logging.warning("SimpleFileLock: release(force=%s) on unavailable file. race? %r" % (force, fnfe))
 
         self.locked = False
-
 
 
 class SignatureDb(object):
@@ -171,7 +170,6 @@ class SignatureDb(object):
         if type(self.signatures[sighash]) != list:
             return [self.signatures[sighash]]
         return self.signatures[sighash]  # raise keyerror
-
 
     def __getitem__(self, item):
         """
