@@ -59,6 +59,8 @@ class AccountIndexer(object):
         self.lastBlock = None
         self.lastProcessedBlock = None
 
+        self.updateIfNeeded()
+
     def get_contract_by_hash(self, contract_hash):
         '''
         get mapped address by its hash, if not found try indexing
@@ -69,7 +71,6 @@ class AccountIndexer(object):
         else:
             raise AddressNotFoundError
 
-        self.updateIfNeeded()
         return self.db.reader._get_address_by_hash(contract_hash)
 
     def _process(self, startblock):
