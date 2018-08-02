@@ -40,8 +40,6 @@ class ETHContract(persistent.Persistent):
 
         tokens = re.split("\s+(and|or|not)\s+", expression, re.IGNORECASE)
 
-        print(tokens)
-
         for token in tokens:
 
             if token in ("and", "or", "not"):
