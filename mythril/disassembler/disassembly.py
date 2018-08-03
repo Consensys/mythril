@@ -5,8 +5,11 @@ import logging
 
 class Disassembly(object):
 
-    def __init__(self, code):
-        self.instruction_list = asm.disassemble(util.safe_decode(code))
+    def __init__(self, code, decode=True):
+        if decode:
+            self.instruction_list = asm.disassemble(util.safe_decode(code))
+        else:
+            self.instruction_list = asm.disassemble(code)
         self.func_hashes = []
         self.func_to_addr = {}
         self.addr_to_func = {}
