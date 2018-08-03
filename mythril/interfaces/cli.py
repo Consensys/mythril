@@ -121,8 +121,6 @@ def main():
                 mythril.set_api_rpc_infura()
             elif args.rpc:
                 mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-            elif args.ipc:
-                mythril.set_api_ipc()
             elif not args.dynld:
                 mythril.set_api_rpc_localhost()
         elif args.search or args.contract_hash_to_address:
