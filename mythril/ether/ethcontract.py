@@ -6,7 +6,7 @@ import re
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code="", name="Unknown"):
+    def __init__(self, code, creation_code="", name="Unknown", enable_online_lookup=True):
 
         self.creation_code = creation_code
         self.name = name
@@ -17,7 +17,7 @@ class ETHContract(persistent.Persistent):
         code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
 
         self.code = code
-        self.disassembly = Disassembly(self.code)
+        self.disassembly = Disassembly(self.code, enable_online_lookup=enable_online_lookup)
 
     def as_dict(self):
 
@@ -38,16 +38,7 @@ class ETHContract(persistent.Persistent):
         str_eval = ''
         easm_code = None
 
-        matches = re.findall(r'func#([a-zA-Z0-9\s_,(\\)\[\]]+)#', expression)
-
-        for m in matches:
-            # Calculate function signature hashes
-
-            sign_hash = utils.sha3(m)[:4].hex()
-
-            expression = expression.replace(m, sign_hash)
-
-        tokens = filter(None, re.split("(and|or|not)", expression.replace(" ", ""), re.IGNORECASE))
+        tokens = re.split("\s+(and|or|not)\s+", expression, re.IGNORECASE)
 
         for token in tokens:
 
@@ -65,10 +56,13 @@ class ETHContract(persistent.Persistent):
                 str_eval += "\"" + code + "\" in easm_code"
                 continue
 
-            m = re.match(r'^func#([a-fA-F0-9]+)#$', token)
+            m = re.match(r'^func#([a-zA-Z0-9\s_,(\\)\[\]]+)#$', token)
 
             if (m):
-                str_eval += "\"" + m.group(1) + "\" in self.disassembly.func_hashes"
+
+                sign_hash = "0x" + utils.sha3(m.group(1))[:4].hex()
+
+                str_eval += "\"" + sign_hash + "\" in self.disassembly.func_hashes"
 
                 continue
 

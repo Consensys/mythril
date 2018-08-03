@@ -12,7 +12,7 @@ import argparse
 
 # logging.basicConfig(level=logging.DEBUG)
 
-from mythril.exceptions import CriticalError
+from mythril.exceptions import CriticalError, AddressNotFoundError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
 
@@ -67,11 +67,8 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
-    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on "
-                                                                           "symbolic execution")
-    outputs.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs',
-                         help='Symbolic execution strategy')
-
+    options.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs', help='Symbolic execution strategy')
+    options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on symbolic execution")
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
@@ -81,8 +78,6 @@ def main():
     rpc.add_argument('-i', action='store_true', help='Preset: Infura Node service (Mainnet)')
     rpc.add_argument('--rpc', help='custom RPC settings', metavar='HOST:PORT / ganache / infura-[network_name]')
     rpc.add_argument('--rpctls', type=bool, default=False, help='RPC connection over TLS')
-    rpc.add_argument('--ipc', action='store_true', help='Connect via local IPC')
-    rpc.add_argument('--leveldb', action='store_true', help='Enable direct leveldb access operations')
 
     # Get config values
 
@@ -120,7 +115,7 @@ def main():
         if args.dynld and not (args.ipc or args.rpc or args.i):
             mythril.set_api_from_config_path()
 
-        if args.address and not args.leveldb:
+        if args.address:
             # Establish RPC/IPC connection if necessary
             if args.i:
                 mythril.set_api_rpc_infura()
@@ -130,7 +125,7 @@ def main():
                 mythril.set_api_ipc()
             elif not args.dynld:
                 mythril.set_api_rpc_localhost()
-        elif args.leveldb or args.search or args.contract_hash_to_address:
+        elif args.search or args.contract_hash_to_address:
             # Open LevelDB if necessary
             mythril.set_api_leveldb(mythril.leveldb_dir if not args.leveldb_dir else args.leveldb_dir)
 
@@ -141,7 +136,11 @@ def main():
 
         if args.contract_hash_to_address:
             # search corresponding address
-            mythril.contract_hash_to_address(args.contract_hash_to_address)
+            try:
+                mythril.contract_hash_to_address(args.contract_hash_to_address)
+            except AddressNotFoundError:
+                print("Address not found.")
+
             sys.exit()
 
         if args.truffle:

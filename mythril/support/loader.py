@@ -1,14 +1,13 @@
-from mythril.ether.ethcontract import ETHContract
 from mythril.disassembler.disassembly import Disassembly
 import logging
 import re
+
 
 class DynLoader:
 
     def __init__(self, eth):
         self.eth = eth
         self.storage_cache = {}
-
 
     def read_storage(self, contract_address, index):
 
@@ -31,7 +30,6 @@ class DynLoader:
             self.storage_cache[contract_address][index] = data
 
         return data
-
 
     def dynld(self, contract_address, dependency_address):
 

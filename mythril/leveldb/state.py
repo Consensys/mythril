@@ -96,7 +96,7 @@ class State():
     def __init__(self, db, root):
         self.db = db
         self.trie = Trie(self.db, root)
-        self.secureTrie = SecureTrie(self.trie)
+        self.secure_trie = SecureTrie(self.trie)
         self.journal = []
         self.cache = {}
 
@@ -106,7 +106,7 @@ class State():
         '''
         if address in self.cache:
             return self.cache[address]
-        rlpdata = self.secureTrie.get(address)
+        rlpdata = self.secure_trie.get(address)
         if rlpdata == trie.BLANK_NODE and len(address) == 32: # support for hashed addresses
             rlpdata = self.trie.get(address)
         if rlpdata != trie.BLANK_NODE:
@@ -123,6 +123,6 @@ class State():
         '''
         iterates through trie to and yields non-blank leafs as accounts
         '''
-        for addressHash, rlpdata in self.secureTrie.trie.iter_branch():
+        for address_hash, rlpdata in self.secure_trie.trie.iter_branch():
             if rlpdata != trie.BLANK_NODE:
-                yield rlp.decode(rlpdata, Account, db=self.db, address=addressHash)
+                yield rlp.decode(rlpdata, Account, db=self.db, address=address_hash)

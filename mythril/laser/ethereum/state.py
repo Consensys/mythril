@@ -68,6 +68,7 @@ class Environment:
         calldata_type=CalldataType.SYMBOLIC,
     ):
         # Metadata
+
         self.active_account = active_account
         self.active_function_name = ""
 

@@ -101,7 +101,7 @@ class Mythril(object):
         self.leveldb_dir = self._init_config()
 
         self.eth = None # ethereum API client
-        self.ethDb = None # ethereum LevelDB client
+        self.eth_db = None # ethereum LevelDB client
 
         self.contracts = []  # loaded contracts
 
@@ -180,7 +180,7 @@ class Mythril(object):
         config.set('defaults', 'dynamic_loading', 'infura')
 
     def analyze_truffle_project(self, *args, **kwargs):
-        return analyze_truffle_project(*args, **kwargs)  # just passthru for now
+        return analyze_truffle_project(self.sigs, *args, **kwargs)  # just passthru by passing signatures for now
 
     def _init_solc_binary(self, version):
         # Figure out solc binary and version
@@ -213,8 +213,8 @@ class Mythril(object):
         return solc_binary
 
     def set_api_leveldb(self, leveldb):
-        self.ethDb = EthLevelDB(leveldb)
-        self.eth = self.ethDb
+        self.eth_db = EthLevelDB(leveldb)
+        self.eth = self.eth_db
         return self.eth
 
     def set_api_rpc_infura(self):
@@ -272,12 +272,12 @@ class Mythril(object):
 
     def search_db(self, search):
 
-        def search_callback(code_hash, code, addresses, balances):
-            for i in range(0, len(addresses)):
-                print("Address: " + addresses[i] + ", balance: " + str(balances[i]))
+        def search_callback(contract, address, balance):
+
+            print("Address: " + address + ", balance: " + str(balance))
 
         try:
-            self.ethDb.search(search, search_callback)
+            self.eth_db.search(search, search_callback)
 
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
@@ -286,7 +286,7 @@ class Mythril(object):
         if not re.match(r'0x[a-fA-F0-9]{64}', hash):
              raise CriticalError("Invalid address hash. Expected format is '0x...'.")
 
-        print(self.ethDb.contract_hash_to_address(hash))
+        print(self.eth_db.contract_hash_to_address(hash))
 
     def load_from_bytecode(self, code):
         address = util.get_indexed_address(0)
