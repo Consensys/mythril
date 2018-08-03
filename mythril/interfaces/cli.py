@@ -107,12 +107,12 @@ def main():
 
     try:
         # the mythril object should be our main interface
-        # infura = None, rpc = None, rpctls = None, ipc = None,
+        # infura = None, rpc = None, rpctls = None
         # solc_args = None, dynld = None, max_recursion_depth = 12):
 
         mythril = Mythril(solv=args.solv, dynld=args.dynld,
                           solc_args=args.solc_args)
-        if args.dynld and not (args.ipc or args.rpc or args.i):
+        if args.dynld and not (args.rpc or args.i):
             mythril.set_api_from_config_path()
 
         if args.address:
