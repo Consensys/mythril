@@ -214,9 +214,17 @@ class SignatureDb(object):
         :param code: solidity source code
         :return: dictionary {sighash: function_signature}
         """
-        sigs = {}
 
         funcs = re.findall(r'function[\s]+(.*?\))', code, re.DOTALL)
+        return SignatureDb.get_sigs_from_functions(funcs)
+
+    @staticmethod
+    def get_sigs_from_functions(funcs):
+        """
+        :param funcs: accepts a list of functions
+        :return: their signature mappings
+        """
+        sigs = {}
         for f in funcs:
             f = re.sub(r'[\n]', '', f)
             m = re.search(r'^([A-Za-z0-9_]+)', f)
@@ -240,5 +248,5 @@ class SignatureDb(object):
                 signature = re.sub(r'\s', '', signature)
                 sigs["0x" + utils.sha3(signature)[:4].hex()] = signature
 
-        logging.debug("Signatures: parse soldiity found %d signatures" % len(sigs))
+        logging.debug("Signatures: found %d signatures after parsing" % len(sigs))
         return sigs
