@@ -1,7 +1,7 @@
 from z3 import BitVec, BitVecVal
 from copy import copy, deepcopy
 from enum import Enum
-from random import random
+from random import randint
 
 class CalldataType(Enum):
     CONCRETE = 1
@@ -229,7 +229,7 @@ class WorldState:
     def _generate_new_address(self):
         """ Generates a new address for the global state"""
         while True:
-            address = '0x' + ''.join([str(hex(random(0, 16)))[-1] for _ in range(20)])
+            address = '0x' + ''.join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():
                 return address
 
