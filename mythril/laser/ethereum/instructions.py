@@ -545,12 +545,15 @@ class Instruction:
                     BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
             return [global_state]
 
-        bytecode = global_state.environment.active_account.code.bytecode
+        bytecode = global_state.environment.code.bytecode
 
         for i in range(concrete_size):
             try:
+                str_val = bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)]
+                if str_val == '':
+                    raise IndexError()
                 global_state.mstate.memory[concrete_memory_offset + i] =\
-                    int(bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)], 16)
+                    int(str_val, 16)
             except IndexError:
                 global_state.mstate.memory[concrete_memory_offset + i] = \
                     BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)

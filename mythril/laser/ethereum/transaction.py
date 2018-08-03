@@ -119,7 +119,7 @@ class ContractCreationTransaction:
             raise TransactionEndSignal(global_state)
 
         contract_code = array.array('B', return_data).tostring()
-        self.callee_account.code = Disassembly(contract_code, decode=False)
-        self.return_data = self.callee_account.address
+        global_state.environment.active_account.code = Disassembly(contract_code, decode=False)
+        self.return_data = global_state.environment.active_account.address
 
         raise TransactionEndSignal(global_state)
