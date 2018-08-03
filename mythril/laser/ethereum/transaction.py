@@ -10,18 +10,6 @@ class TransactionEndSignal(Exception):
     def __init__(self, global_state):
         self.global_state = global_state
 
-    """ Represents a call value transaction """
-    def __init__(self, callee_address):
-        """
-        Constructor for Call transaction, sets up all symbolic parameters
-        :param callee_address: Address of the contract that will be called
-        """
-        self.callee_address = callee_address
-        self.caller = BitVec("caller", 256)
-        self.gas_price = BitVec("gasprice", 256)
-        self.call_value = BitVec("callvalue", 256)
-        self.origin = BitVec("origin", 256)
-
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
     def __init__(self, transaction, op_code):
