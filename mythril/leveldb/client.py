@@ -190,7 +190,7 @@ class EthLevelDB(object):
 
     def search(self, expression, callback_func):
         '''
-        searches through non-zero balance contracts
+        searches through all contract accounts
         '''
         cnt = 0
         indexer = AccountIndexer(self)
@@ -202,7 +202,13 @@ class EthLevelDB(object):
                 try:
                     address = _encode_hex(indexer.get_contract_by_hash(address_hash))
                 except AddressNotFoundError:
-                    address = _encode_hex(address_hash)
+                    '''
+                    The hash->address mapping does not exist in our index. If the index is up-to-date, this likely means
+                    that the contract was created by an internal transaction. Skip this contract as right now we don't
+                    have a good solution for this.
+                    '''
+
+                    continue
 
                 callback_func(contract, address, balance)
 
