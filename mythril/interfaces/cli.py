@@ -84,7 +84,10 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        print("Mythril version {}".format(VERSION))
+        if args.outform == 'json':
+            print(json.dumps({'version_str': VERSION}))
+        else:
+            print("Mythril version {}".format(VERSION))
         sys.exit()
 
     # Parse cmdline args
