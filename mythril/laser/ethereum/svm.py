@@ -54,6 +54,10 @@ class LaserEVM:
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
+    @property
+    def accounts(self):
+        return self.world_state.accounts
+
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
@@ -117,7 +121,7 @@ class LaserEVM:
                 return_global_state.last_return_data = transaction.return_data
                 return_global_state.world_state = copy(global_state.world_state)
                 return_global_state.environment.active_account =\
-                    global_state.accounts[return_global_state.environment.active_account.contract_name]
+                    global_state.accounts[return_global_state.environment.active_account.address]
 
                 # Execute the post instruction handler
                 new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(return_global_state, True)
