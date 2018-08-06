@@ -48,7 +48,7 @@ def main():
 
     outputs = parser.add_argument_group('output formats')
     outputs.add_argument('-o', '--outform', choices=['text', 'markdown', 'json'], default='text',
-                         help='report output format', metavar='<text/json>')
+                         help='report output format', metavar='<text/markdown/json>')
     outputs.add_argument('--verbose-report', action='store_true', help='Include debugging information in report')
 
     database = parser.add_argument_group('local contracts database')
