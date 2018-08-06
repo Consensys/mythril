@@ -10,7 +10,7 @@ from mythril.leveldb.eth_db import ETH_DB
 from mythril.ether.ethcontract import ETHContract
 from mythril.exceptions import AddressNotFoundError
 
-# Per https://github.com/ethereum/go-ethereum/blob/master/core/database_util.go
+# Per https://github.com/ethereum/go-ethereum/blob/master/core/rawdb/schema.go
 # prefixes and suffixes for keys in geth
 header_prefix = b'h'         # header_prefix + num (uint64 big endian) + hash -> header
 body_prefix = b'b'           # body_prefix + num (uint64 big endian) + hash -> block body
@@ -23,7 +23,6 @@ head_header_key = b'LastBlock'  # head (latest) header hash
 address_prefix = b'AM'       # address_prefix + hash -> address
 # custom keys
 address_mapping_head_key = b'accountMapping'  # head (latest) number of indexed block
-head_header_key = b'LastBlock'  # head (latest) header hash
 
 
 def _format_block_number(number):
