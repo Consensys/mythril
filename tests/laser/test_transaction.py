@@ -1,8 +1,5 @@
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum import svm
-from mythril.analysis.callgraph import generate_graph
-import logging
-
 
 
 def test_intercontract_call():
@@ -29,6 +26,7 @@ def test_intercontract_call():
 
     # Assert
     # Initial node starts in contract caller
+    assert len(laser.nodes.keys()) > 0
     assert laser.nodes[0].contract_name == 'Caller'
 
     # At one point we call into contract callee
