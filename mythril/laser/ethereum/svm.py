@@ -55,11 +55,15 @@ class LaserEVM:
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
-    def sym_exec(self, main_address):
+    def sym_exec(self, main_address=None, creation_code=None):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
-        self.execute_message_call(main_address)
+        if main_address:
+            self.execute_message_call(main_address)
+        elif creation_code:
+            self.execute_contract_creation(creation_code)
+            self.execute_message_call()
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
@@ -301,5 +305,6 @@ class LaserEVM:
             self.work_list.append(global_state)
 
         self.exec()
+
         logging.info("Execution complete")
         logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
