@@ -12,6 +12,7 @@ eth-utils>=1.0.1
 jinja2>=2.9
 mock
 persistent>=4.2.0
+pathlib>=1.0.1
 plyvel
 py-flags
 py-solc
