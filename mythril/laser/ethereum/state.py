@@ -205,13 +205,15 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0):
+    def create_account(self, balance=0, address=None):
         """
         Create non-contract account
+        :param address: The account's address
         :param balance: Initial balance for the account
         :return: The new account
         """
-        new_account = Account(self._generate_new_address(), balance=balance)
+        address = address if address else self._generate_new_address()
+        new_account = Account(address, balance=balance)
         self._put_account(new_account)
         return new_account
 
