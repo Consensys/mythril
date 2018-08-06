@@ -1042,6 +1042,13 @@ class Instruction:
 
             return [global_state]
 
+        try:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
+        except AttributeError:
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
         # Copy memory
         global_state.mstate.mem_extend(memory_out_offset, min(memory_out_size.as_long(), len(global_state.last_return_data)))
         for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
@@ -1103,6 +1110,15 @@ class Instruction:
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
+            return [global_state]
+
+        try:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset,
+                                                                                       ExprRef) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size,
+                                                                                   ExprRef) else memory_out_size
+        except AttributeError:
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
             return [global_state]
 
             # Copy memory
