@@ -71,6 +71,7 @@ class ContractCreationTransaction:
     def __init__(self,
                  world_state,
                  caller,
+                 callee_account=None,
                  code=None,
                  call_data=(),
                  gas_price=BitVec("gasprice", 256),
@@ -82,7 +83,7 @@ class ContractCreationTransaction:
 
         self.world_state = world_state
         # TODO: set correct balance for new account
-        self.callee_account = world_state.create_account(0)
+        self.callee_account = callee_account if callee_account else world_state.create_account(0)
 
         self.caller = caller
         self.call_data = call_data

@@ -63,8 +63,8 @@ class LaserEVM:
         if main_address:
             self.execute_message_call(main_address)
         elif creation_code:
-            self.execute_contract_creation(creation_code)
-            self.execute_message_call()
+            created_account = self.execute_contract_creation(creation_code)
+            self.execute_message_call(created_account.address)
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
@@ -110,7 +110,7 @@ class LaserEVM:
             transaction, return_global_state = e.global_state.transaction_stack.pop()
 
             if return_global_state is None:
-                self.open_states.append(e.global_state)
+                self.open_states.append(e.global_state.world_state)
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
@@ -257,20 +257,25 @@ class LaserEVM:
         open_states = self.open_states[:]
         del self.open_states[:]
 
+        new_account = self.world_state.create_account(0)
+
         for open_world_state in open_states:
             transaction = ContractCreationTransaction(
                 open_world_state,
                 BitVec("caller", 256),
+                new_account,
                 Disassembly(contract_initialization_code),
                 [],
                 BitVec("gas_price", 256),
                 BitVec("call_value", 256),
                 BitVec("origin", 256),
-                CalldataType.SYMBOLIC,
+                CalldataType.SYMBOLIC
             )
-            self._setup_global_state_for_execution(transaction)
 
+            self._setup_global_state_for_execution(transaction)
         self.exec()
+
+        return new_account
 
     def _setup_global_state_for_execution(self, transaction):
         """ Sets up global state and cfg for a transactions execution"""

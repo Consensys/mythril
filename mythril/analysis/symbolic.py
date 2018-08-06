@@ -1,5 +1,6 @@
 from mythril import ether
 from mythril.laser.ethereum import svm
+from mythril.ether.soliditycontract import SolidityContract
 import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType
@@ -27,7 +28,10 @@ class SymExecWrapper:
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth, execution_timeout=execution_timeout, strategy=s_strategy)
 
-        self.laser.sym_exec(address)
+        if isinstance(contract, SolidityContract):
+            self.laser.sym_exec(creation_code=contract.creation_code)
+        else:
+            self.laser.sym_exec(address)
 
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
