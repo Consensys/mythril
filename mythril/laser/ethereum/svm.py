@@ -1,12 +1,13 @@
 from z3 import BitVec
 import logging
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
-from mythril.laser.ethereum.transaction import MessageCall
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, TransactionEndSignal
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from functools import reduce
+from copy import copy
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -53,12 +54,15 @@ class LaserEVM:
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
+    @property
+    def accounts(self):
+        return self.world_state.accounts
+
     def sym_exec(self, main_address):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
-        transaction = MessageCall(main_address)
-        transaction.run(self.open_states, self)
+        self.execute_message_call(main_address)
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
@@ -70,15 +74,8 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.info("Encountered unimplemented instruction: {}".format(op_code))
+                logging.info("Encountered unimplemented instruction")
                 continue
-
-            if len(new_states) == 0:
-                # TODO: let global state use worldstate
-                open_world_state = WorldState()
-                open_world_state.accounts = global_state.accounts
-                open_world_state.node = global_state.node
-                self.open_states.append(open_world_state)
 
             self.manage_cfg(op_code, new_states)
 
@@ -90,11 +87,49 @@ class LaserEVM:
         op_code = instructions[global_state.mstate.pc]['opcode']
 
         # Only count coverage for the main contract
-        if len(global_state.call_stack) == 0:
+        if len(global_state.transaction_stack) == 0:
             self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
-        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+        try:
+            new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+
+        except TransactionStartSignal as e:
+            # Setup new global state
+            new_global_state = e.transaction.initial_global_state()
+
+            new_global_state.transaction_stack = copy(global_state.transaction_stack) + [(e.transaction, global_state)]
+            new_global_state.node = global_state.node
+            new_global_state.mstate.constraints = global_state.mstate.constraints
+
+            return [new_global_state], op_code
+
+        except TransactionEndSignal as e:
+            transaction, return_global_state = e.global_state.transaction_stack.pop()
+
+            if return_global_state is None:
+                self.open_states.append(e.global_state)
+                new_global_states = []
+            else:
+                # First execute the post hook for the transaction ending instruction
+                self._execute_post_hook(op_code, [e.global_state])
+
+                # Resume execution of the transaction initializing instruction
+                op_code = return_global_state.environment.code.instruction_list[return_global_state.mstate.pc]['opcode']
+
+                # Set execution result in the return_state
+                return_global_state.last_return_data = transaction.return_data
+                return_global_state.world_state = copy(global_state.world_state)
+                return_global_state.environment.active_account =\
+                    global_state.accounts[return_global_state.environment.active_account.address]
+
+                # Execute the post instruction handler
+                new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(return_global_state, True)
+
+                # In order to get a nice call graph we need to set the nodes here
+                for state in new_global_states:
+                    state.node = global_state.node
+
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
@@ -111,6 +146,9 @@ class LaserEVM:
             assert len(new_states) <= 1
             for state in new_states:
                 self._new_node_state(state, JumpType.CALL)
+                # Keep track of added contracts so the graph can be generated properly
+                if state.environment.active_account.contract_name not in self.world_state.accounts.keys():
+                    self.world_state.accounts[state.environment.active_account.contract_name] = state.environment.active_account
         elif opcode == "RETURN":
             for state in new_states:
                 self._new_node_state(state, JumpType.RETURN)
@@ -189,3 +227,42 @@ class LaserEVM:
             return function
 
         return hook_decorator
+
+    def execute_message_call(self, callee_address):
+        caller = BitVec("caller", 256)
+        gas_price = BitVec("gasprice", 256)
+        call_value = BitVec("callvalue", 256)
+        origin = BitVec("origin", 256)
+
+        open_states = self.open_states[:]
+        del self.open_states[:]
+
+        for open_world_state in open_states:
+
+            transaction = MessageCallTransaction(
+                open_world_state,
+                open_world_state[callee_address],
+                caller,
+                [],
+                gas_price,
+                call_value,
+                origin,
+                CalldataType.SYMBOLIC,
+            )
+            global_state = transaction.initial_global_state()
+            global_state.transaction_stack.append((transaction, None))
+
+            new_node = Node(global_state.environment.active_account.contract_name)
+            self.instructions_covered = [False for _ in global_state.environment.code.instruction_list]
+
+            self.nodes[new_node.uid] = new_node
+            if open_world_state.node:
+                self.edges.append(Edge(open_world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
+                                      condition=None))
+            global_state.node = new_node
+            new_node.states.append(global_state)
+            self.work_list.append(global_state)
+
+        self.exec()
+        logging.info("Execution complete")
+        logging.info("Achieved {0:.3g}% coverage".format(self.coverage))
