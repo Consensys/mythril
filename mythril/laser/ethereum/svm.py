@@ -31,8 +31,6 @@ class LaserEVM:
 
     def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60,
                  strategy=DepthFirstSearchStrategy):
-        self.instructions_covered = []
-
         world_state = WorldState()
         world_state.accounts = accounts
         # this sets the initial world state
@@ -87,10 +85,6 @@ class LaserEVM:
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
         op_code = instructions[global_state.mstate.pc]['opcode']
-
-        # Only count coverage for the main contract
-        if len(global_state.transaction_stack) == 0:
-            self.instructions_covered[global_state.mstate.pc] = True
 
         self._execute_pre_hook(op_code, global_state)
         try:
@@ -194,11 +188,6 @@ class LaserEVM:
 
         new_node.function_name = environment.active_function_name
 
-    @property
-    def coverage(self):
-        return reduce(lambda sum_, val: sum_ + 1 if val else sum_, self.instructions_covered) / float(
-            len(self.instructions_covered)) * 100
-
     def _execute_pre_hook(self, op_code, global_state):
         if op_code not in self.pre_hooks.keys():
             return
@@ -283,7 +272,6 @@ class LaserEVM:
         global_state.transaction_stack.append((transaction, None))
 
         new_node = Node(global_state.environment.active_account.contract_name)
-        self.instructions_covered = [False for _ in global_state.environment.code.instruction_list]
 
         self.nodes[new_node.uid] = new_node
         if transaction.world_state.node:

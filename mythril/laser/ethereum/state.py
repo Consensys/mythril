@@ -38,15 +38,6 @@ class Account:
     def add_balance(self, balance):
         self.balance += balance
 
-    # def get_storage(self, index):
-    #     return BitVec("storage_" + str(index), 256)
-    #     if index in self.storage.keys():
-    #         return self.storage[index]
-    #     else:
-    #         symbol = BitVec("storage_" + str(index), 256)
-    #         self.storage[index] = symbol
-    #         return symbol
-
     @property
     def as_dict(self):
         return {'nonce': self.nonce, 'code': self.code, 'balance': self.balance, 'storage': self.storage}
