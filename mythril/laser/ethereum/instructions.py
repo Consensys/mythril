@@ -548,13 +548,10 @@ class Instruction:
         bytecode = global_state.environment.code.bytecode
 
         for i in range(concrete_size):
-            try:
-                str_val = bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)]
-                if str_val == '':
-                    raise IndexError()
+            if 2 * (concrete_code_offset + i + 1) <= len(bytecode):
                 global_state.mstate.memory[concrete_memory_offset + i] =\
-                    int(str_val, 16)
-            except IndexError:
+                    int(bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)], 16)
+            else:
                 global_state.mstate.memory[concrete_memory_offset + i] = \
                     BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
 
@@ -807,9 +804,9 @@ class Instruction:
         instr = disassembly.instruction_list[index]
 
         # True case
-        condi = condition if type(condition) == BoolRef else condition != 0
+        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(simplify(condi))):
+            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
@@ -820,9 +817,9 @@ class Instruction:
                 logging.debug("Pruned unreachable states.")
 
         # False case
-        negated = Not(condition) if type(condition) == BoolRef else condition == 0
+        negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
 
-        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(simplify(negated))):
+        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.constraints.append(negated)
@@ -1045,9 +1042,16 @@ class Instruction:
 
             return [global_state]
 
+        try:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
+        except AttributeError:
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
         # Copy memory
-        global_state.mstate.mem_extend(memory_out_offset, min(memory_out_size.as_long(), len(global_state.last_return_data)))
-        for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
+        global_state.mstate.mem_extend(memory_out_offset, min(memory_out_size, len(global_state.last_return_data)))
+        for i in range(min(memory_out_size, len(global_state.last_return_data))):
             global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
 
         # Put return value on stack
@@ -1108,10 +1112,19 @@ class Instruction:
 
             return [global_state]
 
+        try:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset,
+                                                                                       ExprRef) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size,
+                                                                                   ExprRef) else memory_out_size
+        except AttributeError:
+            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            return [global_state]
+
             # Copy memory
         global_state.mstate.mem_extend(memory_out_offset,
-                                       min(memory_out_size.as_long(), len(global_state.last_return_data)))
-        for i in range(min(memory_out_size.as_long(), len(global_state.last_return_data))):
+                                       min(memory_out_size, len(global_state.last_return_data)))
+        for i in range(min(memory_out_size, len(global_state.last_return_data))):
             global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
 
         # Put return value on stack

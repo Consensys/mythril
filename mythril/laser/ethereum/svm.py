@@ -54,6 +54,10 @@ class LaserEVM:
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
+    @property
+    def accounts(self):
+        return self.world_state.accounts
+
     def sym_exec(self, main_address=None, creation_code=None):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
@@ -94,7 +98,7 @@ class LaserEVM:
             # Setup new global state
             new_global_state = e.transaction.initial_global_state()
 
-            new_global_state.transaction_stack.append((e.transaction, global_state))
+            new_global_state.transaction_stack = copy(global_state.transaction_stack) + [(e.transaction, global_state)]
             new_global_state.node = global_state.node
             new_global_state.mstate.constraints = global_state.mstate.constraints
 
@@ -117,7 +121,7 @@ class LaserEVM:
                 return_global_state.last_return_data = transaction.return_data
                 return_global_state.world_state = copy(global_state.world_state)
                 return_global_state.environment.active_account = \
-                    global_state.accounts[return_global_state.environment.active_account.contract_name]
+                    global_state.accounts[return_global_state.environment.active_account.address]
 
                 # Execute the post instruction handler
                 new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(return_global_state, True)
@@ -145,7 +149,7 @@ class LaserEVM:
                 # Keep track of added contracts so the graph can be generated properly
                 if state.environment.active_account.contract_name not in self.world_state.accounts.keys():
                     self.world_state.accounts[
-                        state.environment.active_account.contract_name] = state.environment.active_account
+                        state.environment.active_account.address] = state.environment.active_account
         elif opcode == "RETURN":
             for state in new_states:
                 self._new_node_state(state, JumpType.RETURN)
@@ -172,7 +176,7 @@ class LaserEVM:
             except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
-
+        
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:

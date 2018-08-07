@@ -10,13 +10,15 @@ class TransactionEndSignal(Exception):
     def __init__(self, global_state):
         self.global_state = global_state
 
-
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
     def __init__(self, transaction, op_code):
         self.transaction = transaction
         self.op_code = op_code
 
+    @property
+    def has_ran(self):
+        return self.open_states is not None
 
 class MessageCallTransaction:
     """ Transaction object models an transaction"""

@@ -1,4 +1,4 @@
-# Mythril
+# Mythril [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Mythril%20-%20Security%20Analyzer%20for%20Ethereum%20Smart%20Contracts&url=https://www.github.com/ConsenSys/mythril)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
 [![Join the chat at https://gitter.im/ConsenSys/mythril](https://badges.gitter.im/ConsenSys/mythril.svg)](https://gitter.im/ConsenSys/mythril?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
@@ -26,20 +26,16 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Documentation has moved to the [Wiki page](https://github.com/ConsenSys/mythril/wiki). For support, visit the [Gitter channel](https://gitter.im/ConsenSys/mythril) or [Telegram group](https://t.me/mythril_tool).
+Please visit the [Wiki page](https://github.com/ConsenSys/mythril/wiki) and [Gitter channel](https://gitter.im/ConsenSys/mythril) for documentation and technical support.
 
-## Publications and Videos
+Also, don't forget to join the Mythril community for the latest news, announcements and discussions:
+
+- [Mythril on Twitter](https://twitter.com/mythril_tool)
+- [Mythril Community Telegram group](https://t.me/mythril_tool)
+
+## Presentations, papers and videos
 
 - [HITBSecConf 2018 conference paper](https://github.com/b-mueller/smashing-smart-contracts/blob/master/smashing-smart-contracts-1of1.pdf)
 - [HITBSecConf 2018 - Smashing Ethereum smart contracts for fun and real profit](https://www.youtube.com/watch?v=iqf6epACgds)
 - [EDCon Toronto 2018 - Mythril: Find bugs and verify security properties in your contracts](https://www.youtube.com/watch?v=NJ9StJThxZY&feature=youtu.be&t=3h3m18s)
 
-## Mythril is Hiring
-
-[ConsenSys Diligence](https://consensys.net/diligence/) is building a dedicated Mythril team. If you're a coder and/or Ethereum security enthusiast who wants to do interesting and challenging work for a decentralized organization, check out the open positions below. Please visit the links below to apply.
-
-- [Developer - Security Analysis Tools](https://new.consensys.net/careers/?gh_jid=1129067)
-- [Developer - Security Analysis Tools (Part Time)](https://new.consensys.net/careers/?gh_jid=1129048)
-- [Lead Developer - Security Tools for Auditors](https://new.consensys.net/careers/?gh_jid=1127282)
-- [Lead Developer - Secure SDLC Tools](https://new.consensys.net/careers/?gh_jid=1127284)
-- [Product Manager - Security Tools](https://new.consensys.net/careers/?gh_jid=1127271)

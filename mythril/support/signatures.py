@@ -33,7 +33,7 @@ class SimpleFileLock(object):
         if self.locked:
             raise Exception("SimpleFileLock: lock already aquired")
 
-        t_end = time.time()+timeout
+        t_end = time.time() + timeout
         while time.time() < t_end:
             # try to aquire lock
             try:
@@ -49,7 +49,7 @@ class SimpleFileLock(object):
                 time.sleep(0.5)  # busywait is evil
                 continue
 
-        raise Exception("SimpleFileLock: timeout hit. failed to aquire lock: %s"% (time.time()-self.lockfile.stat().st_mtime))
+        raise Exception("SimpleFileLock: timeout hit. failed to aquire lock: %s" % (time.time() - self.lockfile.stat().st_mtime))
 
     def release(self, force=False):
         if not force and not self.locked:
@@ -61,7 +61,6 @@ class SimpleFileLock(object):
             logging.warning("SimpleFileLock: release(force=%s) on unavailable file. race? %r" % (force, fnfe))
 
         self.locked = False
-
 
 
 class SignatureDb(object):
@@ -172,7 +171,6 @@ class SignatureDb(object):
             return [self.signatures[sighash]]
         return self.signatures[sighash]  # raise keyerror
 
-
     def __getitem__(self, item):
         """
         Provide dict interface Signatures()[sighash]
@@ -216,9 +214,17 @@ class SignatureDb(object):
         :param code: solidity source code
         :return: dictionary {sighash: function_signature}
         """
-        sigs = {}
 
         funcs = re.findall(r'function[\s]+(.*?\))', code, re.DOTALL)
+        return SignatureDb.get_sigs_from_functions(funcs)
+
+    @staticmethod
+    def get_sigs_from_functions(funcs):
+        """
+        :param funcs: accepts a list of functions
+        :return: their signature mappings
+        """
+        sigs = {}
         for f in funcs:
             f = re.sub(r'[\n]', '', f)
             m = re.search(r'^([A-Za-z0-9_]+)', f)
@@ -242,5 +248,5 @@ class SignatureDb(object):
                 signature = re.sub(r'\s', '', signature)
                 sigs["0x" + utils.sha3(signature)[:4].hex()] = signature
 
-        logging.debug("Signatures: parse soldiity found %d signatures" % len(sigs))
+        logging.debug("Signatures: found %d signatures after parsing" % len(sigs))
         return sigs
