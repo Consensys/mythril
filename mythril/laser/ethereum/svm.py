@@ -108,6 +108,7 @@ class LaserEVM:
             transaction, return_global_state = e.global_state.transaction_stack.pop()
 
             if return_global_state is None:
+                e.global_state.world_state.node = global_state.node
                 self.open_states.append(e.global_state.world_state)
                 new_global_states = []
             else:
