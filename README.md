@@ -3,6 +3,8 @@
 [![Join the chat at https://gitter.im/ConsenSys/mythril](https://badges.gitter.im/ConsenSys/mythril.svg)](https://gitter.im/ConsenSys/mythril?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril.svg?columns=all)](https://waffle.io/ConsenSys/mythril)
+[![Sonarcloud - Maintainabilitt](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
+
 
 <img height="120px" align="right" src="/static/mythril.png"/>
 
