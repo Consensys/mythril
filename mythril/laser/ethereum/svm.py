@@ -66,13 +66,18 @@ class LaserEVM:
         self.time = datetime.now()
 
         if main_address:
+            logging.info("Starting message call transaction to {}".format(main_address))
             self.execute_message_call(main_address)
         elif creation_code:
+            logging.info("Starting contract creation transaction")
             created_account = self.execute_contract_creation(creation_code)
+            logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
 
             self.time = datetime.now()
+            logging.info("Starting message call transaction")
             self.execute_message_call(created_account.address)
 
+        logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
     def exec(self, create=False):
