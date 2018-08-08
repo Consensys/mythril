@@ -106,22 +106,15 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        if start < 4096 and size < 4096:
 
-            if size and start + size > len(self.memory):
-                n_append = start + size - len(self.memory)
+        if size and start + size > len(self.memory):
+            n_append = start + size - len(self.memory)
 
-                while n_append > 0:
-                    self.memory.append(0)
-                    n_append -= 1
+            while n_append > 0:
+                self.memory.append(0)
+                n_append -= 1
 
-                # FIXME: this does not seem right
-                self.memory_size = size
-
-        else:
-            # TODO: Specific exception
-            raise Exception
-            # TODO: Deduct gas for memory extension... not yet implemented
+            self.memory_size = len(self.memory)
 
     def __str__(self):
         return str(self.as_dict)
@@ -160,6 +153,8 @@ class GlobalState:
     # TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
         """ Gets the current instruction for this GlobalState"""
+
+
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
 
