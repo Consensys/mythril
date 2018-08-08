@@ -95,7 +95,6 @@ class MachineState:
         self.pc = 0
         self.stack = []
         self.memory = []
-        self.memory_size = 0
         self.gas = gas
         self.constraints = []
         self.depth = 0
@@ -106,18 +105,14 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-
-        if size and start + size > len(self.memory):
-            n_append = start + size - len(self.memory)
-
-            while n_append > 0:
-                self.memory.append(0)
-                n_append -= 1
-
-            self.memory_size = len(self.memory)
+        self.memory += [0] * max(0, start + size - self.memory_size)
 
     def __str__(self):
         return str(self.as_dict)
+
+    @property
+    def memory_size(self):
+        return len(self.memory)
 
     @property
     def as_dict(self):
