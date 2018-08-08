@@ -29,7 +29,7 @@ class LaserEVM:
     Laser EVM class
     """
 
-    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60,
+    def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60, create_timeout=10,
                  strategy=DepthFirstSearchStrategy):
         world_state = WorldState()
         world_state.accounts = accounts
@@ -46,7 +46,10 @@ class LaserEVM:
         self.work_list = []
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
+
         self.execution_timeout = execution_timeout
+        self.create_timeout = create_timeout
+
         self.time = None
 
         self.pre_hooks = {}
@@ -66,15 +69,21 @@ class LaserEVM:
             self.execute_message_call(main_address)
         elif creation_code:
             created_account = self.execute_contract_creation(creation_code)
+
+            self.time = datetime.now()
             self.execute_message_call(created_account.address)
 
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
 
-    def exec(self):
+    def exec(self, create=False):
         for global_state in self.strategy:
-            if self.execution_timeout:
+            if self.execution_timeout and not create:
                 if self.time + timedelta(seconds=self.execution_timeout) <= datetime.now():
                     return
+            elif self.create_timeout and create:
+                if self.time + timedelta(seconds=self.create_timeout) <= datetime.now():
+                    return
+
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
@@ -267,7 +276,7 @@ class LaserEVM:
             )
 
             self._setup_global_state_for_execution(transaction)
-        self.exec()
+        self.exec(True)
 
         return new_account
 
