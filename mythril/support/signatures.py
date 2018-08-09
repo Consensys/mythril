@@ -213,7 +213,7 @@ class SignatureDb(object):
     @staticmethod
     def get_sigs_from_file(file_name):
         """
-        :param funcs: accepts a list of functions
+        :param file_name: accepts a filename
         :return: their signature mappings
         """
         sigs = {}
