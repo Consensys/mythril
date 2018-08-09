@@ -34,15 +34,13 @@ def analyze_truffle_project(sigs, args):
                 name = contractdata['contractName']
                 bytecode = contractdata['deployedBytecode']
                 filename = PurePath(contractdata['sourcePath']).name
-                abi = contractdata['abi']
             except KeyError:
                 print("Unable to parse contract data. Please use Truffle 4 to compile your project.")
                 sys.exit()
             if len(bytecode) < 4:
                 continue
 
-            list_of_functions = parse_abi_for_functions(abi)
-            sigs.signatures.update(sigs.get_sigs_from_functions(list_of_functions))
+            sigs.import_from_solidity_source(contractdata['sourcePath'])
             sigs.write()
 
             ethcontract = ETHContract(bytecode, name=name)
