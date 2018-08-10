@@ -230,7 +230,7 @@ class SignatureDb(object):
                 "Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")
         stdout = stdout.decode('unicode_escape').split('\n')
         for line in stdout:
-            if ":" in line:
+            if '(' in line and ')' in line and ":" in line:        # the ':' need not be checked but just to be sure
                 sigs["0x"+line.split(':')[0]] = [line.split(":")[1].strip()]
         logging.debug("Signatures: found %d signatures after parsing" % len(sigs))
         return sigs
