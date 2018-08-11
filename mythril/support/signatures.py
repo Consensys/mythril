@@ -2,13 +2,16 @@
 # -*- coding: UTF-8 -*-
 """mythril.py: Function Signature Database
 """
-import re
 import os
 import json
 import time
 import pathlib
 import logging
-from ethereum import utils
+
+from subprocess import Popen, PIPE
+from mythril.exceptions import CompilerError
+
+
 
 # todo: tintinweb - make this a normal requirement? (deps: eth-abi and requests, both already required by mythril)
 try:
@@ -179,13 +182,13 @@ class SignatureDb(object):
         """
         return self.get(sighash=item)
 
-    def import_from_solidity_source(self, code):
+    def import_from_solidity_source(self, file_path):
         """
         Import Function Signatures from solidity source files
-        :param code: solidity source code
+        :param file_path: solidity source code file path
         :return: self
         """
-        self.signatures.update(SignatureDb.parse_function_signatures_from_solidity_source(code))
+        self.signatures.update(SignatureDb.get_sigs_from_file(file_path))
         return self
 
     @staticmethod
@@ -208,45 +211,26 @@ class SignatureDb(object):
                                                                                        proxies=proxies))
 
     @staticmethod
-    def parse_function_signatures_from_solidity_source(code):
+    def get_sigs_from_file(file_name):
         """
-        Parse solidity sourcecode for function signatures and return the signature hash and function signature
-        :param code: solidity source code
-        :return: dictionary {sighash: function_signature}
-        """
-
-        funcs = re.findall(r'function[\s]+(.*?\))', code, re.DOTALL)
-        return SignatureDb.get_sigs_from_functions(funcs)
-
-    @staticmethod
-    def get_sigs_from_functions(funcs):
-        """
-        :param funcs: accepts a list of functions
+        :param file_name: accepts a filename
         :return: their signature mappings
         """
         sigs = {}
-        for f in funcs:
-            f = re.sub(r'[\n]', '', f)
-            m = re.search(r'^([A-Za-z0-9_]+)', f)
+        cmd = ["solc", "--hashes", file_name]
+        try:
+            p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+            stdout, stderr = p.communicate()
+            ret = p.returncode
 
-            if m:
-                signature = m.group(1)
-                m = re.search(r'\((.*)\)', f)
-                _args = m.group(1).split(",")
-                types = []
-
-                for arg in _args:
-                    _type = arg.lstrip().split(" ")[0]
-
-                    if _type == "uint":
-                        _type = "uint256"
-
-                    types.append(_type)
-
-                typelist = ",".join(types)
-                signature += "(" + typelist + ")"
-                signature = re.sub(r'\s', '', signature)
-                sigs["0x" + utils.sha3(signature)[:4].hex()] = signature
-
+            if ret != 0:
+                raise CompilerError("Solc experienced a fatal error (code %d).\n\n%s" % (ret, stderr.decode('UTF-8')))
+        except FileNotFoundError:
+            raise CompilerError(
+                "Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable.")
+        stdout = stdout.decode('unicode_escape').split('\n')
+        for line in stdout:
+            if '(' in line and ')' in line and ":" in line:        # the ':' need not be checked but just to be sure
+                sigs["0x"+line.split(':')[0]] = [line.split(":")[1].strip()]
         logging.debug("Signatures: found %d signatures after parsing" % len(sigs))
         return sigs

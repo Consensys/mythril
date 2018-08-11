@@ -330,8 +330,7 @@ class Mythril(object):
 
             try:
                 # import signatures from solidity source
-                with open(file, encoding="utf-8") as f:
-                    self.sigs.import_from_solidity_source(f.read())
+                self.sigs.import_from_solidity_source(file)
                 # Save updated function signatures
                 self.sigs.write()  # dump signatures to disk (previously opened file or default location)
 
