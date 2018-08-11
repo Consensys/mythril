@@ -110,13 +110,3 @@ def analyze_truffle_project(sigs, args):
                         print("# Analysis result for " + name + ":\n\n" + report.as_text())
                     elif args.outform == 'markdown':
                         print(report.as_markdown())
-
-
-def parse_abi_for_functions(abi):
-    funcs = []
-    for data in abi:
-        if data['type'] != 'function':
-            continue
-        args = '('+','.join([input['type'] for input in data['inputs']])+')'
-        funcs.append(data['name']+args)
-    return funcs
