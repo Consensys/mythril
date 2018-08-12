@@ -6,7 +6,7 @@
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 
 
-<img height="120px" align="right" src="/static/mythril.png"/>
+<img height="120px" align="right" src="https://github.com/ConsenSys/mythril/raw/master/static/mythril.png" alt="mythril" />
 
 Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities.
 
