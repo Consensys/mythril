@@ -122,7 +122,9 @@ setup(
 
     include_package_data=True,
 
-    scripts=['myth'],
+    entry_points={
+        'console_scripts': ["myth=mythril.interfaces.cli:main"],
+    },
 
     cmdclass={
         'verify': VerifyVersionCommand,
