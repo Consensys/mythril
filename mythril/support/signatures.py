@@ -91,8 +91,10 @@ class SignatureDb(object):
 
         with open(path, "r") as f:
             lock_file(f)
-            sigs = json.load(f)
-            unlock_file(f)
+            try:
+                sigs = json.load(f)
+            finally:
+                unlock_file(f)
 
         # normalize it to {sighash:list(signatures,...)}
         for sighash, funcsig in sigs.items():
@@ -118,16 +120,20 @@ class SignatureDb(object):
             # reload and save if file exists
             with open(path, "r") as f:
                 lock_file(f)
-                sigs = json.load(f)
-                unlock_file(f)
+                try:
+                    sigs = json.load(f)
+                finally:
+                    unlock_file(f)
 
             sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
             self.signatures = sigs
 
         with open(path, "r+") as f:
             lock_file(f, exclusive=True)
-            json.dump(self.signatures, f)
-            unlock_file(f)
+            try:
+                json.dump(self.signatures, f)
+            finally:
+                unlock_file(f)
 
         return self
 
