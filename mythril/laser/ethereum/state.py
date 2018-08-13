@@ -3,9 +3,36 @@ from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 
+
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
+
+
+class Storage:
+    """
+    Storage class represents the storage of an Account
+    """
+    def __init__(self, concrete=False):
+        """
+        Constructor for Storage
+        :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
+        """
+        self._storage = {}
+        self.concrete = concrete
+
+    def __getitem__(self, item):
+        try:
+            return self._storage[item]
+        except KeyError:
+            pass
+        if self.concrete:
+            return 0
+        self._storage[item] = BitVec("storage_" + str(item), 256)
+        return self._storage[item]
+
+    def __setitem__(self, key, value):
+        self._storage[key] = value
 
 
 class Account:
@@ -23,7 +50,7 @@ class Account:
         self.nonce = 0
         self.code = code
         self.balance = balance if balance else BitVec("balance", 256)
-        self.storage = {}
+        self.storage = Storage()
 
         # Metadata
         self.address = address
