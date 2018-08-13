@@ -791,6 +791,7 @@ class Instruction:
 
         try:
             jump_addr = util.get_concrete_int(op0)
+            # FIXME: to broad exception handler
         except:
             logging.debug("Skipping JUMPI to invalid destination.")
             return [global_state]
