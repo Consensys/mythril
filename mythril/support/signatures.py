@@ -24,46 +24,34 @@ except ImportError:
     FourByteDirectoryOnlineLookupError = Exception
 
 
-class SimpleFileLock(object):
-    # todo: replace with something more reliable. this is a quick shot on concurrency and might not work in all cases
+try:
+    # Posix based file locking (Linux, Ubuntu, MacOS, etc.)
+    import fcntl
 
-    def __init__(self, path):
-        self.path = path
-        self.lockfile = pathlib.Path("%s.lck" % path)
-        self.locked = False
+    def lock_file(f, exclusive=False):
+        if f.mode == 'r' and exclusive:
+            raise Exception('Please use non exclusive mode for reading')
+        flag = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
+        fcntl.lockf(f, flag)
 
-    def aquire(self, timeout=5):
-        if self.locked:
-            raise Exception("SimpleFileLock: lock already aquired")
+    def unlock_file(f):
+        return
 
-        t_end = time.time() + timeout
-        while time.time() < t_end:
-            # try to aquire lock
-            try:
-                self.lockfile.touch(mode=0o0000, exist_ok=False)  # touch the lockfile
-                # lockfile does not exist. we have a lock now
-                self.locked = True
-                return
-            except FileExistsError as fee:
-                # check if lockfile date exceeds age and cleanup lock
-                if time.time() > self.lockfile.stat().st_mtime + 60 * 5:
-                    self.release(force=True)  # cleanup old lockfile > 5mins
+except ImportError:
+    # Windows file locking
+    # TODO: confirm the existence or non existence of shared locks in windows msvcrt and make changes based on that
+    import msvcrt
 
-                time.sleep(0.5)  # busywait is evil
-                continue
+    def file_size(f):
+        return os.path.getsize(os.path.realpath(f.name))
 
-        raise Exception("SimpleFileLock: timeout hit. failed to aquire lock: %s" % (time.time() - self.lockfile.stat().st_mtime))
+    def lock_file(f, exclusive=False):
+        if f.mode == 'r' and exclusive:
+            raise Exception('Please use non exclusive mode for reading')
+        msvcrt.locking(f.fileno(), msvcrt.LK_RLCK, file_size(f))
 
-    def release(self, force=False):
-        if not force and not self.locked:
-            raise Exception("SimpleFileLock: aquire lock first")
-
-        try:
-            self.lockfile.unlink()  # might throw if we force unlock and the file gets removed in the meantime. TOCTOU
-        except FileNotFoundError as fnfe:
-            logging.warning("SimpleFileLock: release(force=%s) on unavailable file. race? %r" % (force, fnfe))
-
-        self.locked = False
+    def unlock_file(f):
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, file_size(f))
 
 
 class SignatureDb(object):
@@ -101,13 +89,10 @@ class SignatureDb(object):
             logging.debug("Signatures: file not found: %s" % path)
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
 
-        self.signatures_file_lock = self.signatures_file_lock or SimpleFileLock(self.signatures_file)  # lock file to prevent concurrency issues
-        self.signatures_file_lock.aquire()  # try to aquire it within the next 10s
-
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
+            lock_file(f)
             sigs = json.load(f)
-
-        self.signatures_file_lock.release()  # release lock
+            unlock_file(f)
 
         # normalize it to {sighash:list(signatures,...)}
         for sighash, funcsig in sigs.items():
@@ -128,21 +113,22 @@ class SignatureDb(object):
         :return: self
         """
         path = path or self.signatures_file
-        self.signatures_file_lock = self.signatures_file_lock or SimpleFileLock(path)  # lock file to prevent concurrency issues
-        self.signatures_file_lock.aquire()  # try to aquire it within the next 10s
 
         if sync and os.path.exists(path):
             # reload and save if file exists
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
+                lock_file(f)
                 sigs = json.load(f)
+                unlock_file(f)
 
             sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
             self.signatures = sigs
 
-        with open(path, 'w') as f:
+        with open(path, "r+") as f:
+            lock_file(f, exclusive=True)
             json.dump(self.signatures, f)
+            unlock_file(f)
 
-        self.signatures_file_lock.release()
         return self
 
     def get(self, sighash, timeout=2):
