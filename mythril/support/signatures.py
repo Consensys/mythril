@@ -5,12 +5,10 @@
 import os
 import json
 import time
-import pathlib
 import logging
 
 from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
-
 
 
 # todo: tintinweb - make this a normal requirement? (deps: eth-abi and requests, both already required by mythril)
