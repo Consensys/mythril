@@ -39,18 +39,19 @@ class Account:
     """
     Account class representing ethereum accounts
     """
-    def __init__(self, address, code=None, contract_name="unknown", balance=None):
+    def __init__(self, address, code=None, contract_name="unknown", balance=None, concrete_storage=False):
         """
         Constructor for account
         :param address: Address of the account
         :param code: The contract code of the account
         :param contract_name: The name associated with the account
         :param balance: The balance for the account
+        :param concrete_storage: Interpret storage as concrete
         """
         self.nonce = 0
         self.code = code
         self.balance = balance if balance else BitVec("balance", 256)
-        self.storage = Storage()
+        self.storage = Storage(concrete_storage)
 
         # Metadata
         self.address = address
@@ -213,15 +214,16 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None):
+    def create_account(self, balance=0, address=None, concrete_storage=False):
         """
         Create non-contract account
         :param address: The account's address
         :param balance: Initial balance for the account
+        :param concrete_storage: Interpret account storage as concrete
         :return: The new account
         """
         address = address if address else self._generate_new_address()
-        new_account = Account(address, balance=balance)
+        new_account = Account(address, balance=balance, concrete_storage=concrete_storage)
         self._put_account(new_account)
         return new_account
 

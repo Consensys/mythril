@@ -266,7 +266,7 @@ class LaserEVM:
         open_states = self.open_states[:]
         del self.open_states[:]
 
-        new_account = self.world_state.create_account(0)
+        new_account = self.world_state.create_account(0, concrete_storage=True)
 
         for open_world_state in open_states:
             transaction = ContractCreationTransaction(
