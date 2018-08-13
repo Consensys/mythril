@@ -545,7 +545,7 @@ class Instruction:
                     BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
             return [global_state]
 
-        bytecode = global_state.environment.active_account.code.bytecode
+        bytecode = global_state.environment.code.bytecode
 
         for i in range(concrete_size):
             if 2 * (concrete_code_offset + i + 1) <= len(bytecode):

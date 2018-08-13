@@ -1,7 +1,7 @@
 from z3 import BitVec, BitVecVal
 from copy import copy, deepcopy
 from enum import Enum
-from random import random
+from random import randint
 
 class CalldataType(Enum):
     CONCRETE = 1
@@ -37,15 +37,6 @@ class Account:
 
     def add_balance(self, balance):
         self.balance += balance
-
-    # def get_storage(self, index):
-    #     return BitVec("storage_" + str(index), 256)
-    #     if index in self.storage.keys():
-    #         return self.storage[index]
-    #     else:
-    #         symbol = BitVec("storage_" + str(index), 256)
-    #         self.storage[index] = symbol
-    #         return symbol
 
     @property
     def as_dict(self):
@@ -104,7 +95,6 @@ class MachineState:
         self.pc = 0
         self.stack = []
         self.memory = []
-        self.memory_size = 0
         self.gas = gas
         self.constraints = []
         self.depth = 0
@@ -115,25 +105,14 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        if start < 4096 and size < 4096:
-
-            if size and start + size > len(self.memory):
-                n_append = start + size - len(self.memory)
-
-                while n_append > 0:
-                    self.memory.append(0)
-                    n_append -= 1
-
-                # FIXME: this does not seem right
-                self.memory_size = size
-
-        else:
-            # TODO: Specific exception
-            raise Exception
-            # TODO: Deduct gas for memory extension... not yet implemented
+        self.memory += [0] * max(0, start + size - self.memory_size)
 
     def __str__(self):
         return str(self.as_dict)
+
+    @property
+    def memory_size(self):
+        return len(self.memory)
 
     @property
     def as_dict(self):
@@ -169,6 +148,8 @@ class GlobalState:
     # TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
         """ Gets the current instruction for this GlobalState"""
+
+
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
 
@@ -205,13 +186,15 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0):
+    def create_account(self, balance=0, address=None):
         """
         Create non-contract account
+        :param address: The account's address
         :param balance: Initial balance for the account
         :return: The new account
         """
-        new_account = Account(self._generate_new_address(), balance=balance)
+        address = address if address else self._generate_new_address()
+        new_account = Account(address, balance=balance)
         self._put_account(new_account)
         return new_account
 
@@ -230,7 +213,7 @@ class WorldState:
     def _generate_new_address(self):
         """ Generates a new address for the global state"""
         while True:
-            address = '0x' + ''.join([str(hex(random(0, 16)))[-1] for _ in range(20)])
+            address = '0x' + ''.join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():
                 return address
 
