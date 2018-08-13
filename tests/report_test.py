@@ -23,6 +23,7 @@ def _fix_debug_data(json_str):
 
 
 def _generate_report(input_file):
+    os.environ['MYTHRIL_DIR'] = getattr(os.environ, 'MYTHRIL_DIR', '')
     contract = ETHContract(input_file.read_text())
     sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)), strategy="dfs")
     issues = fire_lasers(sym)
