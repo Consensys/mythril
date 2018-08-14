@@ -5,12 +5,10 @@
 import os
 import json
 import time
-import pathlib
 import logging
 
 from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
-
 
 
 # todo: tintinweb - make this a normal requirement? (deps: eth-abi and requests, both already required by mythril)
@@ -83,7 +81,6 @@ class SignatureDb(object):
             path = os.path.join(mythril_dir, 'signatures.json')
 
         self.signatures_file = path  # store early to allow error handling to access the place we tried to load the file
-
         if not os.path.exists(path):
             logging.debug("Signatures: file not found: %s" % path)
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
@@ -91,10 +88,7 @@ class SignatureDb(object):
         with open(path, "r") as f:
             lock_file(f)
             try:
-                if not os.stat(path).st_size == 0:
-                    sigs = json.load(f)
-                else:
-                    sigs = {}
+                sigs = json.load(f)
             finally:
                 unlock_file(f)
 
@@ -122,17 +116,17 @@ class SignatureDb(object):
             with open(path, "r") as f:
                 lock_file(f)
                 try:
-                    if not os.stat(path).st_size == 0:
-                        sigs = json.load(f)
-                    else:
-                        sigs = {}
+                    sigs = json.load(f)
                 finally:
                     unlock_file(f)
 
-            sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
-            self.signatures = sigs
+            if sigs:
+                sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
+                self.signatures = sigs
+        if not os.path.exists(path):
+            open(path, "w").close()
 
-        with open(path, "w") as f:
+        with open(path, "r+") as f:        # placing 'w+' here will result in race conditions
             lock_file(f, exclusive=True)
             try:
                 json.dump(self.signatures, f)
