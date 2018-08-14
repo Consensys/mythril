@@ -86,7 +86,7 @@ class SignatureDb(object):
 
         if not os.path.exists(path):
             logging.debug("Signatures: file not found: %s" % path)
-            open(self.sigs.signatures_file, 'r').close()
+            open(self.signatures_file, 'r').close()
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
 
         with open(path, "r") as f:
