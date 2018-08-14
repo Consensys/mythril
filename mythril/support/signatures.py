@@ -120,10 +120,10 @@ class SignatureDb(object):
                 finally:
                     unlock_file(f)
 
-            if sigs:
-                sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
-                self.signatures = sigs
-        if not os.path.exists(path):
+            sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
+            self.signatures = sigs
+        
+        if not os.path.exists(path):       # creates signatures.json file if it doesn't exist
             open(path, "w").close()
 
         with open(path, "r+") as f:        # placing 'w+' here will result in race conditions
