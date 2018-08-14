@@ -39,6 +39,7 @@ class LaserEVM:
 
         self.nodes = {}
         self.edges = []
+        self.coverage = {}
 
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
@@ -73,12 +74,18 @@ class LaserEVM:
             created_account = self.execute_contract_creation(creation_code)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
 
+            # Reset code coverage
+            self.coverage = {}
+
             self.time = datetime.now()
             logging.info("Starting message call transaction")
             self.execute_message_call(created_account.address)
 
         logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
+        for code, coverage in self.coverage.items():
+            cov = reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1]) / float(coverage[0]) * 100
+            logging.info("Achieved {} coverage for code: {}".format(cov, code))
 
     def exec(self, create=False):
         for global_state in self.strategy:
@@ -106,6 +113,7 @@ class LaserEVM:
 
         self._execute_pre_hook(op_code, global_state)
         try:
+            self._measure_coverage(global_state)
             new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
 
         except TransactionStartSignal as e:
@@ -149,6 +157,16 @@ class LaserEVM:
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
+
+    def _measure_coverage(self, global_state):
+        code = global_state.environment.code.bytecode
+        number_of_instructions = len(global_state.environment.code.instruction_list)
+        instruction_index = global_state.mstate.pc
+
+        if code not in self.coverage.keys():
+            self.coverage[code] = [number_of_instructions, [False]*number_of_instructions]
+
+        self.coverage[code][1][instruction_index] = True
 
     def manage_cfg(self, opcode, new_states):
         if opcode == "JUMP":
