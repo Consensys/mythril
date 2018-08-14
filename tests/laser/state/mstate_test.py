@@ -42,13 +42,13 @@ def test_stack_pop_too_many(initial_size, overflow):
 
 
 stack_pop_test_data = [
-    ([1, 2, 3], 2),
-    ([1, 3, 4, 7, 7, 1, 2], 5)
+    ([1, 2, 3], 2, [3, 2]),
+    ([1, 3, 4, 7, 7, 1, 2], 5, [2, 1, 7, 7, 4])
 ]
 
 
-@pytest.mark.parametrize("initial_stack,amount", stack_pop_test_data)
-def test_stack_multiple_pop(initial_stack, amount):
+@pytest.mark.parametrize("initial_stack,amount,expected", stack_pop_test_data)
+def test_stack_multiple_pop(initial_stack, amount, expected):
     # Arrange
     machine_state = MachineState(0)
     machine_state.stack = initial_stack[:]
@@ -57,8 +57,22 @@ def test_stack_multiple_pop(initial_stack, amount):
     results = machine_state.pop(amount)
 
     # Assert
-    assert results == initial_stack[-amount:]
+    assert results == initial_stack[-amount:][::-1]
+    assert results == expected
     assert len(machine_state.stack) == len(initial_stack) - amount
+
+
+def test_stack_multiple_pop_():
+    # Arrange
+    machine_state = MachineState(0)
+    machine_state.stack = [1, 2, 3]
+
+    # Act
+    a, b = machine_state.pop(2)
+
+    # Assert
+    assert a == 3
+    assert b == 2
 
 
 def test_stack_single_pop():

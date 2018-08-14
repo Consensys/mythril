@@ -139,7 +139,7 @@ class MachineState:
         """ Pops amount elements from the stack"""
         if amount >= len(self.stack):
             raise IndexError()
-        values = self.stack[-amount:]
+        values = self.stack[-amount:][::-1]
         del self.stack[-amount:]
 
         return values[0] if amount == 1 else values
