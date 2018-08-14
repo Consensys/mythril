@@ -63,7 +63,6 @@ class SignatureDb(object):
         """
         self.signatures = {}  # signatures in-mem cache
         self.signatures_file = None
-        self.signatures_file_lock = None
         self.enable_online_lookup = enable_online_lookup  # enable online funcsig resolving
         self.online_lookup_miss = set()  # temporarily track misses from onlinedb to avoid requesting the same non-existent sighash multiple times
         self.online_directory_unavailable_until = 0  # flag the online directory as unavailable for some time
@@ -86,7 +85,9 @@ class SignatureDb(object):
         self.signatures_file = path  # store early to allow error handling to access the place we tried to load the file
 
         if not os.path.exists(path):
+
             logging.debug("Signatures: file not found: %s" % path)
+            open(self.sigs.signatures_file, 'r').close()
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
 
         with open(path, "r") as f:
