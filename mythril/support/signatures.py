@@ -86,13 +86,15 @@ class SignatureDb(object):
 
         if not os.path.exists(path):
             logging.debug("Signatures: file not found: %s" % path)
-            open(self.signatures_file, 'r').close()
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
 
         with open(path, "r") as f:
             lock_file(f)
             try:
-                sigs = json.load(f)
+                if not os.stat(path).st_size == 0:
+                    sigs = json.load(f)
+                else:
+                    sigs = {}
             finally:
                 unlock_file(f)
 
@@ -115,20 +117,22 @@ class SignatureDb(object):
         :return: self
         """
         path = path or self.signatures_file
-
         if sync and os.path.exists(path):
             # reload and save if file exists
             with open(path, "r") as f:
                 lock_file(f)
                 try:
-                    sigs = json.load(f)
+                    if not os.stat(path).st_size == 0:
+                        sigs = json.load(f)
+                    else:
+                        sigs = {}
                 finally:
                     unlock_file(f)
 
             sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
             self.signatures = sigs
 
-        with open(path, "r+") as f:
+        with open(path, "w") as f:
             lock_file(f, exclusive=True)
             try:
                 json.dump(self.signatures, f)
