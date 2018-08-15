@@ -1,5 +1,5 @@
-from mythril import ether
 from mythril.laser.ethereum import svm
+from mythril.laser.ethereum.state import Account
 from mythril.ether.soliditycontract import SolidityContract
 import copy
 import logging
@@ -22,7 +22,7 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        account = svm.Account(address, contract.disassembly, contract_name=contract.name)
+        account = Account(address, contract.disassembly, contract_name=contract.name)
 
         self.accounts = {address: account}
 

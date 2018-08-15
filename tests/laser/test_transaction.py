@@ -1,5 +1,6 @@
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum import svm
+from mythril.laser.ethereum.state import Account
 import mythril.laser.ethereum.cfg as cfg
 
 
@@ -13,8 +14,8 @@ def test_intercontract_call():
     callee_code = Disassembly("608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806389627e13146044575b600080fd5b348015604f57600080fd5b506082600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506084565b005b8073ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051600060405180830381858888f1935050505015801560e0573d6000803e3d6000fd5b50505600a165627a7a72305820a6b1335d6f994632bc9a7092d0eaa425de3dea05e015af8a94ad70b3969e117a0029")
     callee_address = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 
-    caller_account = svm.Account(caller_address, caller_code, contract_name="Caller")
-    callee_account = svm.Account(callee_address, callee_code, contract_name="Callee")
+    caller_account = Account(caller_address, caller_code, contract_name="Caller")
+    callee_account = Account(callee_address, callee_code, contract_name="Callee")
 
     accounts = {
         caller_address: caller_account,

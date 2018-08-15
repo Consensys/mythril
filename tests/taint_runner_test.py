@@ -2,9 +2,9 @@ import mock
 import pytest
 from pytest_mock import mocker
 from mythril.laser.ethereum.taint_analysis import *
-from mythril.laser.ethereum.svm import GlobalState, Node, Edge, LaserEVM
-from mythril.laser.ethereum.state import MachineState, Account, Environment
-
+from mythril.laser.ethereum.cfg import Node, Edge
+from mythril.laser.ethereum.state import MachineState, Account, Environment, GlobalState
+from mythril.laser.ethereum.svm import LaserEVM
 
 def test_execute_state(mocker):
     record = TaintRecord()

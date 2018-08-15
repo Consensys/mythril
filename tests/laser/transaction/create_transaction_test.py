@@ -1,4 +1,4 @@
-import mythril.laser.ethereum.transaction as transaction
+from mythril.laser.ethereum.transaction import execute_contract_creation
 from mythril.ether import util
 import mythril.laser.ethereum.svm as svm
 from mythril.disassembler.disassembly import Disassembly
@@ -15,7 +15,7 @@ def test_create():
     laser_evm = svm.LaserEVM({})
 
     laser_evm.time = datetime.now()
-    laser_evm.execute_contract_creation(contract.creation_code)
+    execute_contract_creation(laser_evm, contract.creation_code)
 
     resulting_final_state = laser_evm.open_states[0]
 
