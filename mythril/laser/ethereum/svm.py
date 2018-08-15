@@ -73,12 +73,18 @@ class LaserEVM:
             logging.info("Starting contract creation transaction")
             created_account = self.execute_contract_creation(creation_code)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
+            if len(self.open_states) == 0:
+                print("No contract was created during the execution of contract creation"
+                      "Try to increase the resouces for creation exection (max-depth or create_timeout)")
 
             # Reset code coverage
             self.coverage = {}
 
             self.time = datetime.now()
             logging.info("Starting message call transaction")
+            self.execute_message_call(created_account.address)
+
+            self.time = datetime.now()
             self.execute_message_call(created_account.address)
 
         logging.info("Finished symbolic execution")
