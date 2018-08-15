@@ -1,0 +1,68 @@
+from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction
+from z3 import BitVec
+from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
+from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.ethereum.cfg import Node, Edge
+
+
+def execute_message_call(laser_evm, callee_address):
+    """ Executes a message call transaction from all open states """
+    open_states = laser_evm.open_states[:]
+    del laser_evm.open_states[:]
+
+    for open_world_state in open_states:
+        transaction = MessageCallTransaction(
+            open_world_state,
+            open_world_state[callee_address],
+            BitVec("caller", 256),
+            [],
+            BitVec("gas_price", 256),
+            BitVec("call_value", 256),
+            BitVec("origin", 256),
+            CalldataType.SYMBOLIC,
+        )
+        _setup_global_state_for_execution(transaction)
+
+    laser_evm.exec()
+
+
+def execute_contract_creation(laser_evm, contract_initialization_code):
+    """ Executes a contract creation transaction from all open states"""
+    open_states = laser_evm.open_states[:]
+    del laser_evm.open_states[:]
+
+    new_account = laser_evm.world_state.create_account(0, concrete_storage=True)
+
+    for open_world_state in open_states:
+        transaction = ContractCreationTransaction(
+            open_world_state,
+            BitVec("caller", 256),
+            new_account,
+            Disassembly(contract_initialization_code),
+            [],
+            BitVec("gas_price", 256),
+            BitVec("call_value", 256),
+            BitVec("origin", 256),
+            CalldataType.SYMBOLIC
+        )
+
+        _setup_global_state_for_execution(transaction)
+    laser_evm.exec(True)
+
+    return new_account
+
+
+def _setup_global_state_for_execution(self, transaction):
+    """ Sets up global state and cfg for a transactions execution"""
+    global_state = transaction.initial_global_state()
+    global_state.transaction_stack.append((transaction, None))
+
+    new_node = Node(global_state.environment.active_account.contract_name)
+
+    self.nodes[new_node.uid] = new_node
+    if transaction.world_state.node:
+        self.edges.append(Edge(transaction.world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
+                               condition=None))
+    global_state.node = new_node
+    new_node.states.append(global_state)
+    self.work_list.append(global_state)
