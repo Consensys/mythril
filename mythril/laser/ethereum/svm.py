@@ -7,6 +7,7 @@ from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from copy import copy
+from functools import reduce
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 
 TT256 = 2 ** 256
@@ -83,7 +84,7 @@ class LaserEVM:
             execute_message_call(self, created_account.address)
 
             self.time = datetime.now()
-            self.execute_message_call(created_account.address)
+            execute_message_call(self, created_account.address)
 
         logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
