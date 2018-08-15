@@ -5,12 +5,10 @@
 import os
 import json
 import time
-import pathlib
 import logging
 
 from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
-
 
 
 # todo: tintinweb - make this a normal requirement? (deps: eth-abi and requests, both already required by mythril)
@@ -63,7 +61,6 @@ class SignatureDb(object):
         """
         self.signatures = {}  # signatures in-mem cache
         self.signatures_file = None
-        self.signatures_file_lock = None
         self.enable_online_lookup = enable_online_lookup  # enable online funcsig resolving
         self.online_lookup_miss = set()  # temporarily track misses from onlinedb to avoid requesting the same non-existent sighash multiple times
         self.online_directory_unavailable_until = 0  # flag the online directory as unavailable for some time
@@ -84,7 +81,6 @@ class SignatureDb(object):
             path = os.path.join(mythril_dir, 'signatures.json')
 
         self.signatures_file = path  # store early to allow error handling to access the place we tried to load the file
-
         if not os.path.exists(path):
             logging.debug("Signatures: file not found: %s" % path)
             raise FileNotFoundError("Missing function signature file. Resolving of function names disabled.")
@@ -115,7 +111,6 @@ class SignatureDb(object):
         :return: self
         """
         path = path or self.signatures_file
-
         if sync and os.path.exists(path):
             # reload and save if file exists
             with open(path, "r") as f:
@@ -127,8 +122,11 @@ class SignatureDb(object):
 
             sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
             self.signatures = sigs
+        
+        if not os.path.exists(path):       # creates signatures.json file if it doesn't exist
+            open(path, "w").close()
 
-        with open(path, "r+") as f:
+        with open(path, "r+") as f:        # placing 'w+' here will result in race conditions
             lock_file(f, exclusive=True)
             try:
                 json.dump(self.signatures, f)
