@@ -31,10 +31,12 @@ def test_execute_message_call(mocked_setup: MagicMock):
     execute_message_call(laser_evm, "address")
 
     # Assert
-    laser_evm.exec.assert_called_once()
+    # laser_evm.exec.assert_called_once()
+    assert laser_evm.exec.call_count == 1
+    # mocked_setup.assert_called_once()
+    assert mocked_setup.call_count == 1
 
     assert len(laser_evm.open_states) == 0
-    mocked_setup.assert_called_once()
 
 
 @mock.patch("mythril.laser.ethereum.transaction.symbolic._setup_global_state_for_execution")
@@ -50,8 +52,9 @@ def test_execute_contract_creation(mocked_setup: MagicMock):
     new_account = execute_contract_creation(laser_evm, "606000")
 
     # Assert
-    laser_evm.exec.assert_called_once()
-
+    # mocked_setup.assert_called()
+    assert mocked_setup.call_count >= 1
+    # laser_evm.exec.assert_called_once()
+    assert laser_evm.exec.call_count == 1
     assert len(laser_evm.open_states) == 0
-    mocked_setup.assert_called()
 
