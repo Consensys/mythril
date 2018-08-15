@@ -2,7 +2,7 @@ from mythril.laser.ethereum.transaction.transaction_models import MessageCallTra
 from z3 import BitVec
 from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.cfg import Node, Edge
+from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 
 
 def execute_message_call(laser_evm, callee_address):
@@ -21,7 +21,7 @@ def execute_message_call(laser_evm, callee_address):
             BitVec("origin", 256),
             CalldataType.SYMBOLIC,
         )
-        _setup_global_state_for_execution(transaction)
+        _setup_global_state_for_execution(laser_evm, transaction)
 
     laser_evm.exec()
 
@@ -46,23 +46,23 @@ def execute_contract_creation(laser_evm, contract_initialization_code):
             CalldataType.SYMBOLIC
         )
 
-        _setup_global_state_for_execution(transaction)
+        _setup_global_state_for_execution(laser_evm, transaction)
     laser_evm.exec(True)
 
     return new_account
 
 
-def _setup_global_state_for_execution(self, transaction):
+def _setup_global_state_for_execution(laser_evm, transaction):
     """ Sets up global state and cfg for a transactions execution"""
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 
     new_node = Node(global_state.environment.active_account.contract_name)
 
-    self.nodes[new_node.uid] = new_node
+    laser_evm.nodes[new_node.uid] = new_node
     if transaction.world_state.node:
-        self.edges.append(Edge(transaction.world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
+        laser_evm.edges.append(Edge(transaction.world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
                                condition=None))
     global_state.node = new_node
     new_node.states.append(global_state)
-    self.work_list.append(global_state)
+    laser_evm.work_list.append(global_state)
