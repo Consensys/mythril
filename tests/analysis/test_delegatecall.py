@@ -160,7 +160,7 @@ def test_symbolic_call_calldata_to(mocker):
                                 'Be aware that the called contract gets unrestricted access to this contract\'s state.'
 
 
-@patch('mythril.laser.ethereum.svm.GlobalState.get_current_instruction')
+@patch('mythril.laser.ethereum.state.GlobalState.get_current_instruction')
 @patch('mythril.analysis.modules.delegatecall._concrete_call')
 @patch('mythril.analysis.modules.delegatecall._symbolic_call')
 def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
