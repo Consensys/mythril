@@ -46,7 +46,8 @@ def analyze_truffle_project(sigs, args):
             ethcontract = ETHContract(bytecode, name=name)
 
             address = util.get_indexed_address(0)
-            sym = SymExecWrapper(ethcontract, address, args.strategy, max_depth=args.max_depth)
+            sym = SymExecWrapper(ethcontract, address, args.strategy, max_depth=args.max_depth,
+                                 create_timeout=args.create_timeout, execution_timeout=args.execution_timeout)
             issues = fire_lasers(sym)
 
             if not len(issues):

@@ -8,6 +8,7 @@ from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from copy import copy
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
+from functools import reduce
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -72,7 +73,7 @@ class LaserEVM:
             created_account = execute_contract_creation(self, creation_code)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
-                print("No contract was created during the execution of contract creation"
+                print("No contract was created during the execution of contract creation "
                       "Try to increase the resouces for creation exection (max-depth or create_timeout)")
 
             # Reset code coverage
@@ -83,7 +84,7 @@ class LaserEVM:
             execute_message_call(self, created_account.address)
 
             self.time = datetime.now()
-            self.execute_message_call(created_account.address)
+            execute_message_call(self, created_account.address)
 
         logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
