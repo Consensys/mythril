@@ -135,6 +135,15 @@ class MachineState:
         """
         self.memory += [0] * max(0, start + size - self.memory_size)
 
+    def pop(self, amount=1):
+        """ Pops amount elements from the stack"""
+        if amount >= len(self.stack):
+            raise IndexError()
+        values = self.stack[-amount:][::-1]
+        del self.stack[-amount:]
+
+        return values[0] if amount == 1 else values
+
     def __str__(self):
         return str(self.as_dict)
 
