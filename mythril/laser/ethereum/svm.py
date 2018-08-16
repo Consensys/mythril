@@ -7,7 +7,6 @@ from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from copy import copy
-from functools import reduce
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 from functools import reduce
 
@@ -75,7 +74,7 @@ class LaserEVM:
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
                 print("No contract was created during the execution of contract creation "
-                      "Try to increase the resouces for creation exection (max-depth or create_timeout)")
+                      "Try to increase the resources for creation exection (max-depth or create_timeout)")
 
             # Reset code coverage
             self.coverage = {}
@@ -263,3 +262,4 @@ class LaserEVM:
             return function
 
         return hook_decorator
+
