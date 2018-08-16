@@ -27,14 +27,11 @@ class Storage:
         try:
             return self._storage[item]
         except KeyError:
-            '''
-            if int(self.address[2:], 16) != 0 and self.dynld:
+            if self.address and int(self.address[2:], 16) != 0 and self.dynld:
                 try:
-                    return self.dynld.read_storage(contract_address=self.address, index=int(item))
+                    return int(self.dynld.read_storage(contract_address=self.address, index=int(item)), 16)
                 except ValueError:
                     pass
-            '''
-            pass
         if self.concrete:
             return 0
         self._storage[item] = BitVec("storage_" + str(item), 256)
