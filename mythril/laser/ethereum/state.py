@@ -233,16 +233,17 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None, concrete_storage=False):
+    def create_account(self, balance=0, address=None, concrete_storage=False, dynamic_loader=None):
         """
         Create non-contract account
         :param address: The account's address
         :param balance: Initial balance for the account
         :param concrete_storage: Interpret account storage as concrete
+        :param dynamic_loader: used for dynamically loading storage from the block chain
         :return: The new account
         """
         address = address if address else self._generate_new_address()
-        new_account = Account(address, balance=balance, concrete_storage=concrete_storage)
+        new_account = Account(address, balance=balance, dynamic_loader=dynamic_loader, concrete_storage=concrete_storage)
         self._put_account(new_account)
         return new_account
 
