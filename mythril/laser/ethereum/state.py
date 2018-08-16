@@ -29,7 +29,8 @@ class Storage:
         except KeyError:
             if self.address and int(self.address[2:], 16) != 0 and self.dynld:
                 try:
-                    return int(self.dynld.read_storage(contract_address=self.address, index=int(item)), 16)
+                    self._storage[item] = int(self.dynld.read_storage(contract_address=self.address, index=int(item)), 16)
+                    return self._storage[item]
                 except ValueError:
                     pass
         if self.concrete:
