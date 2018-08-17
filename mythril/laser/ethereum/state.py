@@ -135,6 +135,15 @@ class MachineState:
         """
         self.memory += [0] * max(0, start + size - self.memory_size)
 
+    def memory_write(self, offset, data):
+        """ Writes data to memory starting at offset """
+        self.mem_extend(offset, len(data))
+        for memory_index, data_index in zip(
+            range(offset, offset + len(data)),
+            range(len(data))
+        ):
+            self.memory[memory_index] = data[data_index]
+
     def pop(self, amount=1):
         """ Pops amount elements from the stack"""
         if amount >= len(self.stack):
