@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef, URem
+    is_false, is_expr, ExprRef, URem, SRem
 from z3 import BitVecVal, If, BoolRef
 
 import mythril.laser.ethereum.util as helper
@@ -204,7 +204,7 @@ class Instruction:
     @instruction
     def smod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else s0 % s1)
+        global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
         return [global_state]
 
     @instruction
