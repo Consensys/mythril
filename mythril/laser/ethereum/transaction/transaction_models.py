@@ -52,7 +52,7 @@ class MessageCallTransaction:
             self.gas_price,
             self.call_value,
             self.origin,
-            code=self.callee_account.code if self.code is None else self.code,
+            code=self.code if self.code else self.callee_account.code,
             calldata_type=self.call_data_type,
         )
 
