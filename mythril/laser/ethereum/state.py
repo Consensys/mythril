@@ -197,6 +197,10 @@ class GlobalState:
         except IndexError:
             return None
 
+    @property
+    def instruction(self):
+        return self.get_current_instruction()
+
 
 class WorldState:
     """

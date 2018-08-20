@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef
+    is_false, is_expr, ExprRef, URem, SRem
 from z3 import BitVecVal, If, BoolRef
 
 import mythril.laser.ethereum.util as helper
@@ -185,34 +185,47 @@ class Instruction:
 
     @instruction
     def div_(self, global_state):
-        global_state.mstate.stack.append(
-            UDiv(util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)))
+        op0, op1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        if op1 == 0:
+            global_state.mstate.stack.append(BitVecVal(0, 256))
+        else:
+            global_state.mstate.stack.append(UDiv(op0, op1))
         return [global_state]
 
     @instruction
     def sdiv_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(s0 / s1)
+        if s1 == 0:
+            global_state.mstate.stack.append(BitVecVal(0, 256))
+        else:
+            global_state.mstate.stack.append(s0 / s1)
+        return [global_state]
+
+    @instruction
+    def mod_(self, global_state):
+        s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
+        global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
         return [global_state]
 
     @instruction
     def smod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else s0 % s1)
+        global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
         return [global_state]
 
     @instruction
     def addmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
-        global_state.mstate.stack.append((s0 + s1) % s2)
+        global_state.mstate.stack.append(URem(URem(s0, s2) + URem(s1, s2), s2))
         return [global_state]
 
     @instruction
     def mulmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
-        global_state.mstate.stack.append((s0 * s1) % s2 if s2 else 0)
+        global_state.mstate.stack.append(URem(URem(s0, s2) * URem(s1, s2), s2))
+        return [global_state]
 
     @instruction
     def exp_(self, global_state):

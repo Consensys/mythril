@@ -1,0 +1,52 @@
+{
+    "expPowerOf256_25": {
+        "_info": {
+            "comment": "",
+            "filledwith": "testeth 1.4.0.dev0-56+commit.71414ae3",
+            "lllcversion": "Version: 0.4.25-develop.2018.5.30+commit.0a1a8bfb.Linux.g++",
+            "source": "src/VMTestsFiller/vmArithmeticTest/expPowerOf256_25Filler.json",
+            "sourceHash": "2be606687455e2c91c144dee314eb4a9b58d6d8fb20cdc3a2a5e249d343bff20"
+        },
+        "callcreates": [],
+        "env": {
+            "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+            "currentDifficulty": "0x0100",
+            "currentGasLimit": "0x0f4240",
+            "currentNumber": "0x00",
+            "currentTimestamp": "0x01"
+        },
+        "exec": {
+            "address": "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6",
+            "caller": "0xcd1722f2947def4cf144679da39c4c32bdc35681",
+            "code": "0x60196101000a600055601960ff0a60015560196101010a600255",
+            "data": "0x",
+            "gas": "0x0186a0",
+            "gasPrice": "0x5af3107a4000",
+            "origin": "0xcd1722f2947def4cf144679da39c4c32bdc35681",
+            "value": "0x0de0b6b3a7640000"
+        },
+        "gas": "0x9be9",
+        "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+        "out": "0x",
+        "post": {
+            "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6": {
+                "balance": "0x0de0b6b3a7640000",
+                "code": "0x60196101000a600055601960ff0a60015560196101010a600255",
+                "nonce": "0x00",
+                "storage": {
+                    "0x00": "0x0100000000000000000000000000000000000000000000000000",
+                    "0x01": "0xe823349d2286a5ec3de3529625f683e56c0903589efad418ff",
+                    "0x02": "0x011a352e3c45325c4583eb6149e1b7d4e73f709bbb72fd2c1901"
+                }
+            }
+        },
+        "pre": {
+            "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6": {
+                "balance": "0x0de0b6b3a7640000",
+                "code": "0x60196101000a600055601960ff0a60015560196101010a600255",
+                "nonce": "0x00",
+                "storage": {}
+            }
+        }
+    }
+}
