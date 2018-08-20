@@ -16,6 +16,11 @@ def load_test_data(designation):
     return_data = []
 
     for file_reference in (evm_test_dir / designation).iterdir():
+        if file_reference.name.startswith('expPower'):
+            continue
+        if file_reference.name != "mulmod2_1.json":
+            continue
+        print("Reading: {}".format(file_reference.name))
         with file_reference.open() as file:
             top_level = json.load(file)
 
@@ -70,4 +75,5 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
         assert account.code.bytecode == details['code'][2:]
 
         for index, value in details['storage'].items():
+
             assert get_concrete_int(account.storage[int(index, 16)]) == int(value, 16)

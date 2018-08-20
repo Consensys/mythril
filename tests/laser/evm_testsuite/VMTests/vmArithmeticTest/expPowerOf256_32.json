@@ -1,0 +1,51 @@
+{
+    "expPowerOf256_32": {
+        "_info": {
+            "comment": "",
+            "filledwith": "testeth 1.4.0.dev0-56+commit.71414ae3",
+            "lllcversion": "Version: 0.4.25-develop.2018.5.30+commit.0a1a8bfb.Linux.g++",
+            "source": "src/VMTestsFiller/vmArithmeticTest/expPowerOf256_32Filler.json",
+            "sourceHash": "974decf621c77d7ff79be3bc89ae8deecb63c5766ea8fd5a83b2dfd3b1f2058c"
+        },
+        "callcreates": [],
+        "env": {
+            "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+            "currentDifficulty": "0x0100",
+            "currentGasLimit": "0x0f4240",
+            "currentNumber": "0x00",
+            "currentTimestamp": "0x01"
+        },
+        "exec": {
+            "address": "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6",
+            "caller": "0xcd1722f2947def4cf144679da39c4c32bdc35681",
+            "code": "0x60206101000a600055602060ff0a60015560206101010a600255",
+            "data": "0x",
+            "gas": "0x0186a0",
+            "gasPrice": "0x5af3107a4000",
+            "origin": "0xcd1722f2947def4cf144679da39c4c32bdc35681",
+            "value": "0x0de0b6b3a7640000"
+        },
+        "gas": "0xd681",
+        "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+        "out": "0x",
+        "post": {
+            "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6": {
+                "balance": "0x0de0b6b3a7640000",
+                "code": "0x60206101000a600055602060ff0a60015560206101010a600255",
+                "nonce": "0x00",
+                "storage": {
+                    "0x01": "0xe1dd29730112f6ef1d8edabfd4c3c60c823d865cd592abcdf0bdec64a1efe001",
+                    "0x02": "0x2203ef98a7ce0ef9bf3c04038583f6b2ab4d27e3ed8e5285b6e32c8b61f02001"
+                }
+            }
+        },
+        "pre": {
+            "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6": {
+                "balance": "0x0de0b6b3a7640000",
+                "code": "0x60206101000a600055602060ff0a60015560206101010a600255",
+                "nonce": "0x00",
+                "storage": {}
+            }
+        }
+    }
+}
