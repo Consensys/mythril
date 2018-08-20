@@ -121,7 +121,7 @@ def main():
             mythril.set_api_from_config_path()
 
         if args.address:
-            # Establish RPC/IPC connection if necessary
+            # Establish RPC connection if necessary
             if args.i:
                 mythril.set_api_rpc_infura()
             elif args.rpc:

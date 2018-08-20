@@ -21,7 +21,6 @@ from mythril.ether import util
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.rpc.client import EthJsonRpc
-from mythril.ipc.client import EthIpc
 from mythril.rpc.exceptions import ConnectionError
 from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
@@ -51,7 +50,6 @@ class Mythril(object):
 
         # (optional) other API adapters
         mythril.set_api_rpc(args)
-        mythril.set_api_ipc()
         mythril.set_api_rpc_localhost()
         mythril.set_api_leveldb(path)
 
@@ -173,7 +171,6 @@ class Mythril(object):
     @staticmethod
     def _add_dynamic_loading_option(config):
         config.set('defaults', '#– To connect to Infura use dynamic_loading: infura')
-        config.set('defaults', '#– To connect to Ipc use dynamic_loading: ipc')
         config.set('defaults', '#– To connect to Rpc use '
                                'dynamic_loading: HOST:PORT / ganache / infura-[network_name]')
         config.set('defaults', '#– To connect to local host use dynamic_loading: localhost')
@@ -241,14 +238,6 @@ class Mythril(object):
         else:
             raise CriticalError("Invalid RPC settings, check help for details.")
 
-    def set_api_ipc(self):
-        try:
-            self.eth = EthIpc()
-        except Exception as e:
-            raise CriticalError(
-                "IPC initialization failed. Please verify that your local Ethereum node is running, or use the -i flag to connect to INFURA. \n" + str(
-                    e))
-
     def set_api_rpc_localhost(self):
         self.eth = EthJsonRpc('localhost', 8545)
         logging.info("Using default RPC settings: http://localhost:8545")
@@ -261,9 +250,7 @@ class Mythril(object):
             dynamic_loading = config.get('defaults', 'dynamic_loading')
         else:
             dynamic_loading = 'infura'
-        if dynamic_loading == 'ipc':
-            self.set_api_ipc()
-        elif dynamic_loading == 'infura':
+        if dynamic_loading == 'infura':
             self.set_api_rpc_infura()
         elif dynamic_loading == 'localhost':
             self.set_api_rpc_localhost()
