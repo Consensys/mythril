@@ -56,8 +56,7 @@ Please modify for your setup
 - Mythril version: output from  `myth --version` or `pip show mythril`
 - Solidity compiler and version: `solc --version`
 - Python version: `python -V`
-- OS: [e.g. iOS]
-- OS Version [e.g. 22]
+- OS and Version: [e.g. Mac OS High Sierra]
 
 ## Additional Environment or Context
 
