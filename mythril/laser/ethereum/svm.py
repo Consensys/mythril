@@ -1,15 +1,14 @@
-from z3 import BitVec
 import logging
-from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
-from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, TransactionEndSignal, \
+from mythril.laser.ethereum.state import WorldState
+from mythril.laser.ethereum.transaction import TransactionStartSignal, TransactionEndSignal, \
     ContractCreationTransaction
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
-from functools import reduce
 from copy import copy
+from functools import reduce
+from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -39,6 +38,7 @@ class LaserEVM:
 
         self.nodes = {}
         self.edges = []
+        self.coverage = {}
 
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
@@ -67,18 +67,30 @@ class LaserEVM:
 
         if main_address:
             logging.info("Starting message call transaction to {}".format(main_address))
-            self.execute_message_call(main_address)
+            execute_message_call(self, main_address)
         elif creation_code:
             logging.info("Starting contract creation transaction")
-            created_account = self.execute_contract_creation(creation_code)
+            created_account = execute_contract_creation(self, creation_code)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
+            if len(self.open_states) == 0:
+                print("No contract was created during the execution of contract creation "
+                      "Try to increase the resouces for creation exection (max-depth or create_timeout)")
+
+            # Reset code coverage
+            self.coverage = {}
 
             self.time = datetime.now()
             logging.info("Starting message call transaction")
-            self.execute_message_call(created_account.address)
+            execute_message_call(self, created_account.address)
+
+            self.time = datetime.now()
+            execute_message_call(self, created_account.address)
 
         logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
+        for code, coverage in self.coverage.items():
+            cov = reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1]) / float(coverage[0]) * 100
+            logging.info("Achieved {} coverage for code: {}".format(cov, code))
 
     def exec(self, create=False):
         for global_state in self.strategy:
@@ -106,6 +118,7 @@ class LaserEVM:
 
         self._execute_pre_hook(op_code, global_state)
         try:
+            self._measure_coverage(global_state)
             new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
 
         except TransactionStartSignal as e:
@@ -149,6 +162,16 @@ class LaserEVM:
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
+
+    def _measure_coverage(self, global_state):
+        code = global_state.environment.code.bytecode
+        number_of_instructions = len(global_state.environment.code.instruction_list)
+        instruction_index = global_state.mstate.pc
+
+        if code not in self.coverage.keys():
+            self.coverage[code] = [number_of_instructions, [False]*number_of_instructions]
+
+        self.coverage[code][1][instruction_index] = True
 
     def manage_cfg(self, opcode, new_states):
         if opcode == "JUMP":
@@ -239,64 +262,3 @@ class LaserEVM:
             return function
 
         return hook_decorator
-
-    def execute_message_call(self, callee_address):
-        """ Executes a message call transaction from all open states """
-        open_states = self.open_states[:]
-        del self.open_states[:]
-
-        for open_world_state in open_states:
-
-            transaction = MessageCallTransaction(
-                open_world_state,
-                open_world_state[callee_address],
-                BitVec("caller", 256),
-                [],
-                BitVec("gas_price", 256),
-                BitVec("call_value", 256),
-                BitVec("origin", 256),
-                CalldataType.SYMBOLIC,
-            )
-            self._setup_global_state_for_execution(transaction)
-
-        self.exec()
-
-    def execute_contract_creation(self, contract_initialization_code):
-        """ Executes a contract creation transaction from all open states"""
-        open_states = self.open_states[:]
-        del self.open_states[:]
-
-        new_account = self.world_state.create_account(0)
-
-        for open_world_state in open_states:
-            transaction = ContractCreationTransaction(
-                open_world_state,
-                BitVec("caller", 256),
-                new_account,
-                Disassembly(contract_initialization_code),
-                [],
-                BitVec("gas_price", 256),
-                BitVec("call_value", 256),
-                BitVec("origin", 256),
-                CalldataType.SYMBOLIC
-            )
-
-            self._setup_global_state_for_execution(transaction)
-        self.exec(True)
-
-        return new_account
-
-    def _setup_global_state_for_execution(self, transaction):
-        """ Sets up global state and cfg for a transactions execution"""
-        global_state = transaction.initial_global_state()
-        global_state.transaction_stack.append((transaction, None))
-
-        new_node = Node(global_state.environment.active_account.contract_name)
-
-        self.nodes[new_node.uid] = new_node
-        if transaction.world_state.node:
-            self.edges.append(Edge(transaction.world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
-                                   condition=None))
-        global_state.node = new_node
-        new_node.states.append(global_state)
-        self.work_list.append(global_state)

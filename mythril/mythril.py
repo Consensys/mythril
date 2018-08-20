@@ -354,29 +354,31 @@ class Mythril(object):
 
         return address, contracts
 
-    def dump_statespace(self, strategy, contract, address=None, max_depth=12):
+    def dump_statespace(self, strategy, contract, address=None, max_depth=None,
+                        execution_timeout=None, create_timeout=None):
 
         sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
-                             max_depth=max_depth)
+                             max_depth=max_depth, execution_timeout=execution_timeout, create_timeout=create_timeout)
 
         return get_serializable_statespace(sym)
 
-    def graph_html(self, strategy, contract, address, max_depth=12, enable_physics=False, phrackify=False, execution_timeout=None):
+    def graph_html(self, strategy, contract, address, max_depth=None, enable_physics=False,
+                   phrackify=False, execution_timeout=None, create_timeout=None):
         sym = SymExecWrapper(contract, address, strategy,
                              dynloader=DynLoader(self.eth) if self.dynld else None,
-                             max_depth=max_depth, execution_timeout=execution_timeout)
+                             max_depth=max_depth, execution_timeout=execution_timeout, create_timeout=create_timeout)
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
     def fire_lasers(self, strategy, contracts=None, address=None,
-                    modules=None,
-                    verbose_report=False, max_depth=None, execution_timeout=None, ):
+                    modules=None, verbose_report=False, max_depth=None, execution_timeout=None, create_timeout=None):
 
         all_issues = []
         for contract in (contracts or self.contracts):
             sym = SymExecWrapper(contract, address, strategy,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
-                                 max_depth=max_depth, execution_timeout=execution_timeout)
+                                 max_depth=max_depth, execution_timeout=execution_timeout,
+                                 create_timeout=create_timeout)
 
             issues = fire_lasers(sym, modules)
 

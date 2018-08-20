@@ -791,30 +791,10 @@ class Instruction:
 
         try:
             jump_addr = util.get_concrete_int(op0)
-        # FIXME: to broad exception handler
+            # FIXME: to broad exception handler
         except:
             logging.debug("Skipping JUMPI to invalid destination.")
             return [global_state]
-
-        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
-
-        if not index:
-            logging.debug("Invalid jump destination: " + str(jump_addr))
-            return [global_state]
-        instr = disassembly.instruction_list[index]
-
-        # True case
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
-        if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
-                new_state = copy(global_state)
-                new_state.mstate.pc = index
-                new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
-
-                states.append(new_state)
-            else:
-                logging.debug("Pruned unreachable states.")
 
         # False case
         negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
@@ -826,6 +806,28 @@ class Instruction:
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
+
+        # True case
+
+        # Get jump destination
+        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
+        if not index:
+            logging.debug("Invalid jump destination: " + str(jump_addr))
+            return states
+
+        instr = disassembly.instruction_list[index]
+
+        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
+        if instr['opcode'] == "JUMPDEST":
+            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
+                new_state = copy(global_state)
+                new_state.mstate.pc = index
+                new_state.mstate.depth += 1
+                new_state.mstate.constraints.append(condi)
+
+                states.append(new_state)
+            else:
+                logging.debug("Pruned unreachable states.")
 
         return states
 

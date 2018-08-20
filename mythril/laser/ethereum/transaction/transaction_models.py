@@ -1,14 +1,15 @@
 import logging
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, WorldState
-from mythril.laser.ethereum.cfg import Node, Edge, JumpType
+from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
 from z3 import BitVec
 import array
+
 
 class TransactionEndSignal(Exception):
     """ Exception raised when a transaction is finalized"""
     def __init__(self, global_state):
         self.global_state = global_state
+
 
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
@@ -16,9 +17,6 @@ class TransactionStartSignal(Exception):
         self.transaction = transaction
         self.op_code = op_code
 
-    @property
-    def has_ran(self):
-        return self.open_states is not None
 
 class MessageCallTransaction:
     """ Transaction object models an transaction"""
@@ -85,7 +83,7 @@ class ContractCreationTransaction:
 
         self.world_state = world_state
         # TODO: set correct balance for new account
-        self.callee_account = callee_account if callee_account else world_state.create_account(0)
+        self.callee_account = callee_account if callee_account else world_state.create_account(0, concrete_storage=True)
 
         self.caller = caller
         self.call_data = call_data

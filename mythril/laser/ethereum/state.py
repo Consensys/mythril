@@ -3,27 +3,55 @@ from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 
+
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
+
+
+class Storage:
+    """
+    Storage class represents the storage of an Account
+    """
+    def __init__(self, concrete=False):
+        """
+        Constructor for Storage
+        :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
+        """
+        self._storage = {}
+        self.concrete = concrete
+
+    def __getitem__(self, item):
+        try:
+            return self._storage[item]
+        except KeyError:
+            pass
+        if self.concrete:
+            return 0
+        self._storage[item] = BitVec("storage_" + str(item), 256)
+        return self._storage[item]
+
+    def __setitem__(self, key, value):
+        self._storage[key] = value
 
 
 class Account:
     """
     Account class representing ethereum accounts
     """
-    def __init__(self, address, code=None, contract_name="unknown", balance=None):
+    def __init__(self, address, code=None, contract_name="unknown", balance=None, concrete_storage=False):
         """
         Constructor for account
         :param address: Address of the account
         :param code: The contract code of the account
         :param contract_name: The name associated with the account
         :param balance: The balance for the account
+        :param concrete_storage: Interpret storage as concrete
         """
         self.nonce = 0
         self.code = code
         self.balance = balance if balance else BitVec("balance", 256)
-        self.storage = {}
+        self.storage = Storage(concrete_storage)
 
         # Metadata
         self.address = address
@@ -107,6 +135,15 @@ class MachineState:
         """
         self.memory += [0] * max(0, start + size - self.memory_size)
 
+    def pop(self, amount=1):
+        """ Pops amount elements from the stack"""
+        if amount >= len(self.stack):
+            raise IndexError()
+        values = self.stack[-amount:][::-1]
+        del self.stack[-amount:]
+
+        return values[0] if amount == 1 else values
+
     def __str__(self):
         return str(self.as_dict)
 
@@ -186,15 +223,16 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None):
+    def create_account(self, balance=0, address=None, concrete_storage=False):
         """
         Create non-contract account
         :param address: The account's address
         :param balance: Initial balance for the account
+        :param concrete_storage: Interpret account storage as concrete
         :return: The new account
         """
         address = address if address else self._generate_new_address()
-        new_account = Account(address, balance=balance)
+        new_account = Account(address, balance=balance, concrete_storage=concrete_storage)
         self._put_account(new_account)
         return new_account
 

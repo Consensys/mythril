@@ -1,7 +1,8 @@
 import logging
-from z3 import BitVec, simplify
+from z3 import simplify
 import mythril.laser.ethereum.util as util
-from mythril.laser.ethereum.state import Account, CalldataType
+from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
+from mythril.support.loader import DynLoader
 import re
 
 """
@@ -10,7 +11,7 @@ to get the necessary elements from the stack and determine the parameters for th
 """
 
 
-def get_call_parameters(global_state, dynamic_loader, with_value=False):
+def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, with_value=False):
     """
     Gets call parameters from global state
     Pops the values from the stack and determines output parameters
@@ -19,45 +20,39 @@ def get_call_parameters(global_state, dynamic_loader, with_value=False):
     :param with_value: whether to pop the value argument from the stack
     :return: callee_account, call_data, value, call_data_type, gas
     """
-    state = global_state.mstate
-    instr = global_state.get_current_instruction()
-
-    if with_value:
-        gas, to, value, meminstart, meminsz, memory_out_offset, memory_out_size = \
-            state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
-    else:
-        gas, to, meminstart, meminsz, memory_out_offset, memory_out_size = \
-            state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
-        value = None
+    gas, to = global_state.mstate.pop(2)
+    value = global_state.mstate.pop() if with_value else 0
+    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(4)
 
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
     callee_account = None
-    call_data, call_data_type = get_call_data(global_state, meminstart, meminsz, False)
+    call_data, call_data_type = get_call_data(global_state, memory_input_offset, memory_input_size, False)
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
-        call_data, call_data_type = get_call_data(global_state, meminstart, meminsz)
+        call_data, call_data_type = get_call_data(global_state, memory_input_offset, memory_input_size)
         callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
 
     return callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size
 
 
-def get_callee_address(global_state, dynamic_loader, to):
+def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symbolic_to_address):
     """
     Gets the address of the callee
     :param global_state: state to look in
     :param dynamic_loader:  dynamic loader to use
+    :param symbolic_to_address: The (symbolic) callee address
     :return: Address of the callee
     """
     environment = global_state.environment
 
     try:
-        callee_address = hex(util.get_concrete_int(to))
+        callee_address = hex(util.get_concrete_int(symbolic_to_address))
     except AttributeError:
         logging.info("Symbolic call encountered")
 
-        match = re.search(r'storage_(\d+)', str(simplify(to)))
-        logging.debug("CALL to: " + str(simplify(to)))
+        match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
+        logging.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
             raise ValueError()
@@ -66,7 +61,6 @@ def get_callee_address(global_state, dynamic_loader, to):
         logging.info("Dynamic contract address at storage index {}".format(index))
 
         # attempt to read the contract address from instance storage
-        # TODO: we need to do this correctly using multi transactional analysis
         try:
             callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
         except:
