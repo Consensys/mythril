@@ -212,7 +212,8 @@ class Instruction:
     def mulmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
-        global_state.mstate.stack.append((s0 * s1) % s2 if s2 else 0)
+        global_state.mstate.stack.append((s0 * s1) % s2)
+        return [global_state]
 
     @instruction
     def exp_(self, global_state):
