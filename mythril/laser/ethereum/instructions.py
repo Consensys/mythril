@@ -211,14 +211,14 @@ class Instruction:
     def addmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
-        global_state.mstate.stack.append(URem(s0, s2) + URem(s1, s2))
+        global_state.mstate.stack.append(URem(URem(s0, s2) + URem(s1, s2), s2))
         return [global_state]
 
     @instruction
     def mulmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
-        global_state.mstate.stack.append(URem(s0, s2) * URem(s1, s2))
+        global_state.mstate.stack.append(URem(URem(s0, s2) * URem(s1, s2), s2))
         return [global_state]
 
     @instruction
