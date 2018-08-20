@@ -190,13 +190,15 @@ class Instruction:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(UDiv(op0, op1))
-
         return [global_state]
 
     @instruction
     def sdiv_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(s0 / s1)
+        if s1 == 0:
+            global_state.mstate.stack.append(BitVecVal(0, 256))
+        else:
+            global_state.mstate.stack.append(s0 / s1)
         return [global_state]
 
     @instruction
