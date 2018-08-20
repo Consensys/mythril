@@ -69,12 +69,19 @@ def pop_bitvec(state):
 
 
 def get_concrete_int(item):
+    item = simplify(item)
 
-    if (type(item) == int):
+    if isinstance(item, int):
         return item
-
-    if (type(item) == BitVecNumRef):
+    elif isinstance(item, BitVecNumRef):
         return item.as_long()
+    elif isinstance(item, BoolRef):
+        if is_false(item):
+            return 0
+        elif is_true(item):
+            return 1
+        else:
+            raise ValueError("Symbolic boolref encountered")
 
     return simplify(item).as_long()
 
