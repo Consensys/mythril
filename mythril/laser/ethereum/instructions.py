@@ -196,7 +196,7 @@ class Instruction:
         return [global_state]
 
     @instruction
-    def smod_(self, global_state):
+    def mod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         global_state.mstate.stack.append(0 if s1 == 0 else s0 % s1)
         return [global_state]
