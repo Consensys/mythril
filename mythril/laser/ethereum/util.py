@@ -74,9 +74,10 @@ def get_concrete_int(item):
     elif isinstance(item, BitVecNumRef):
         return item.as_long()
     elif isinstance(item, BoolRef):
-        if is_false(item):
+        simplified = simplify(item)
+        if is_false(simplified):
             return 0
-        elif is_true(item):
+        elif is_true(simplified):
             return 1
         else:
             raise ValueError("Symbolic boolref encountered")
