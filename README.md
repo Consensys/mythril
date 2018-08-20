@@ -28,12 +28,9 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Please visit the [Wiki page](https://github.com/ConsenSys/mythril/wiki) and [Gitter channel](https://gitter.im/ConsenSys/mythril) for documentation and technical support.
+Instructions for using the 'myth' tool are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
 
-Also, don't forget to join the Mythril community for the latest news, announcements and discussions:
-
-- [Mythril on Twitter](https://twitter.com/mythril_tool)
-- [Mythril Community Telegram group](https://t.me/mythril_tool)
+For support or general discussions please join the Mythril community on [Discord](https://discord.gg/dFHQGrE).
 
 ## Presentations, papers and videos
 
