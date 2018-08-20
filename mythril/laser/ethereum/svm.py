@@ -114,7 +114,11 @@ class LaserEVM:
 
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
-        op_code = instructions[global_state.mstate.pc]['opcode']
+        try:
+            op_code = instructions[global_state.mstate.pc]['opcode']
+        except IndexError:
+            self.open_states.append(global_state.world_state)
+            return [], None
 
         self._execute_pre_hook(op_code, global_state)
         try:
