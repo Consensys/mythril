@@ -10,6 +10,8 @@
 
 Mythril is a security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities.
 
+**Special Announcement**: The Mythril community is moving to [Discord](https://discord.gg/dFHQGrE). Our Gitter channels and Telegram groups will be closed shortly. Whether you want to contribute, need support, or want to learn what we have cooking for the future, out [Discord server](https://discord.gg/dFHQGrE) will serve your needs!
+
 ## Installation and setup
 
 Get it with [Docker](https://www.docker.com):
