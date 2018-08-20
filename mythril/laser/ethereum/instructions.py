@@ -13,7 +13,7 @@ from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
 import mythril.laser.ethereum.natives as natives
-from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionEndSignal, TransactionStartSignal
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionEndSignal, TransactionStartSignal, ContractCreationTransaction
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -559,6 +559,13 @@ class Instruction:
             return [global_state]
 
         bytecode = global_state.environment.code.bytecode
+
+        if concrete_size == 0 and isinstance(global_state.current_transaction, ContractCreationTransaction):
+            if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
+                global_state.mstate.mem_extend(concrete_memory_offset, 1)
+                global_state.mstate.memory[concrete_memory_offset] = \
+                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+                return [global_state]
 
         for i in range(concrete_size):
             if 2 * (concrete_code_offset + i + 1) <= len(bytecode):

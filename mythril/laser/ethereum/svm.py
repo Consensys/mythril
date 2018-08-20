@@ -73,7 +73,7 @@ class LaserEVM:
             created_account = execute_contract_creation(self, creation_code)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
-                print("No contract was created during the execution of contract creation"
+                print("No contract was created during the execution of contract creation "
                       "Try to increase the resouces for creation exection (max-depth or create_timeout)")
 
             # Reset code coverage

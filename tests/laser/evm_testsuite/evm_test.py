@@ -3,7 +3,6 @@ from mythril.laser.ethereum.state import Account
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from datetime import datetime
-from z3 import is_true, simplify
 from mythril.laser.ethereum.util import get_concrete_int
 import json
 from pathlib import Path

@@ -1,6 +1,6 @@
 import logging, copy
 import mythril.laser.ethereum.util as helper
-
+from mythril.laser.ethereum.cfg import JumpType
 
 class TaintRecord:
     """
@@ -115,7 +115,7 @@ class TaintRunner:
 
     @staticmethod
     def children(node, statespace, environment):
-        direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+        direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid and edge.type != JumpType.Transaction]
         children = []
         for child in direct_children:
             if len(child.states[0].transaction_stack) == len(node.states[0].transaction_stack):
