@@ -26,12 +26,15 @@ def execute_message_call(laser_evm, callee_address):
     laser_evm.exec()
 
 
-def execute_contract_creation(laser_evm, contract_initialization_code):
+def execute_contract_creation(laser_evm, contract_initialization_code, contract_name=None):
     """ Executes a contract creation transaction from all open states"""
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
     new_account = laser_evm.world_state.create_account(0, concrete_storage=True)
+    if contract_name:
+        new_account.contract_name = contract_name
+
 
     for open_world_state in open_states:
         transaction = ContractCreationTransaction(

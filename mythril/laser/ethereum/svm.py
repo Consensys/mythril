@@ -61,7 +61,7 @@ class LaserEVM:
     def accounts(self):
         return self.world_state.accounts
 
-    def sym_exec(self, main_address=None, creation_code=None):
+    def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
@@ -70,7 +70,7 @@ class LaserEVM:
             execute_message_call(self, main_address)
         elif creation_code:
             logging.info("Starting contract creation transaction")
-            created_account = execute_contract_creation(self, creation_code)
+            created_account = execute_contract_creation(self, creation_code, contract_name)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
                 print("No contract was created during the execution of contract creation "
