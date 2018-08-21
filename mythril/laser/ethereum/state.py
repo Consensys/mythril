@@ -13,19 +13,26 @@ class Storage:
     """
     Storage class represents the storage of an Account
     """
-    def __init__(self, concrete=False):
+    def __init__(self, concrete=False, address=None, dynamic_loader=None):
         """
         Constructor for Storage
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
         self._storage = {}
         self.concrete = concrete
+        self.dynld = dynamic_loader
+        self.address = address
 
     def __getitem__(self, item):
         try:
             return self._storage[item]
         except KeyError:
-            pass
+            if self.address and int(self.address[2:], 16) != 0 and self.dynld:
+                try:
+                    self._storage[item] = int(self.dynld.read_storage(contract_address=self.address, index=int(item)), 16)
+                    return self._storage[item]
+                except ValueError:
+                    pass
         if self.concrete:
             return 0
         self._storage[item] = BitVec("storage_" + str(item), 256)
@@ -39,7 +46,8 @@ class Account:
     """
     Account class representing ethereum accounts
     """
-    def __init__(self, address, code=None, contract_name="unknown", balance=None, concrete_storage=False):
+    def __init__(self, address, code=None, contract_name="unknown", balance=None, concrete_storage=False,
+                 dynamic_loader=None):
         """
         Constructor for account
         :param address: Address of the account
@@ -51,7 +59,7 @@ class Account:
         self.nonce = 0
         self.code = code
         self.balance = balance if balance else BitVec("balance", 256)
-        self.storage = Storage(concrete_storage)
+        self.storage = Storage(concrete_storage, address=address, dynamic_loader=dynamic_loader)
 
         # Metadata
         self.address = address
@@ -227,16 +235,17 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None, concrete_storage=False):
+    def create_account(self, balance=0, address=None, concrete_storage=False, dynamic_loader=None):
         """
         Create non-contract account
         :param address: The account's address
         :param balance: Initial balance for the account
         :param concrete_storage: Interpret account storage as concrete
+        :param dynamic_loader: used for dynamically loading storage from the block chain
         :return: The new account
         """
         address = address if address else self._generate_new_address()
-        new_account = Account(address, balance=balance, concrete_storage=concrete_storage)
+        new_account = Account(address, balance=balance, dynamic_loader=dynamic_loader, concrete_storage=concrete_storage)
         self._put_account(new_account)
         return new_account
 

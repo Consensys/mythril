@@ -106,7 +106,7 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
         raise ValueError()
     logging.info("Dependency loaded: " + callee_address)
 
-    callee_account = Account(callee_address, code, callee_address)
+    callee_account = Account(callee_address, code, callee_address, dynamic_loader=dynamic_loader)
     accounts[callee_address] = callee_account
 
     return callee_account
