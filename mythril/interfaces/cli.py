@@ -43,6 +43,8 @@ def main():
 
     inputs = parser.add_argument_group('input arguments')
     inputs.add_argument('-c', '--code', help='hex-encoded bytecode string ("6060604052...")', metavar='BYTECODE')
+    inputs.add_argument('-f', '--codefile', help='file containing hex-encoded bytecode string', 
+            metavar='BYTECODEFILE', type=argparse.FileType('r'))
     inputs.add_argument('-a', '--address', help='pull contract from the blockchain', metavar='CONTRACT_ADDRESS')
     inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies from the blockchain')
 
@@ -156,6 +158,9 @@ def main():
         if args.code:
             # Load from bytecode
             address, _ = mythril.load_from_bytecode(args.code)
+        elif args.codefile:
+            bytecode = ''.join([l.strip() for l in args.codefile if len(l.strip()) > 0])
+            address, _ = mythril.load_from_bytecode(bytecode)
         elif args.address:
             # Get bytecode from a contract address
             address, _ = mythril.load_from_address(args.address)
