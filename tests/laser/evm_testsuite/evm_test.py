@@ -15,8 +15,6 @@ def load_test_data(designation):
     return_data = []
 
     for file_reference in (evm_test_dir / designation).iterdir():
-        if file_reference.name.startswith('exp'):
-            continue
 
         with file_reference.open() as file:
             top_level = json.load(file)
