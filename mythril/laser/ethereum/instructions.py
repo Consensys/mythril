@@ -234,11 +234,6 @@ class Instruction:
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
             state.stack.append(BitVec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
-        elif base.as_long() == 2:
-            if exponent.as_long() == 0:
-                state.stack.append(BitVecVal(1, 256))
-            else:
-                state.stack.append(base << (exponent - 1))
         else:
             state.stack.append(pow(base.as_long(), exponent.as_long(), 2**256))
 
