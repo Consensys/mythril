@@ -240,7 +240,7 @@ class Instruction:
             else:
                 state.stack.append(base << (exponent - 1))
         else:
-            state.stack.append(base.as_long() ** exponent.as_long())
+            state.stack.append(pow(base.as_long(), exponent.as_long(), 2**256))
 
         return [global_state]
 
