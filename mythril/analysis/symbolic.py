@@ -24,7 +24,7 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        account = Account(address, contract.disassembly, contract_name=contract.name)
+        account = Account(address, contract.disassembly, dynamic_loader=dynloader, contract_name=contract.name)
 
         self.accounts = {address: account}
 

@@ -1,6 +1,6 @@
 from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction
 from z3 import BitVec
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
+from mythril.laser.ethereum.state import CalldataType
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 
@@ -31,10 +31,9 @@ def execute_contract_creation(laser_evm, contract_initialization_code, contract_
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
-    new_account = laser_evm.world_state.create_account(0, concrete_storage=True)
+    new_account = laser_evm.world_state.create_account(0, concrete_storage=True, dynamic_loader=None)
     if contract_name:
         new_account.contract_name = contract_name
-
 
     for open_world_state in open_states:
         transaction = ContractCreationTransaction(
