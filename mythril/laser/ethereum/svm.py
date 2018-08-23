@@ -73,8 +73,8 @@ class LaserEVM:
             created_account = execute_contract_creation(self, creation_code, contract_name)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
-                print("No contract was created during the execution of contract creation "
-                      "Try to increase the resources for creation exection (max-depth or create_timeout)")
+                logging.warning("No contract was created during the execution of contract creation "
+                                "Increase the resources for creation execution (--max-depth or --create_timeout)")
 
             # Reset code coverage
             self.coverage = {}
@@ -219,7 +219,7 @@ class LaserEVM:
             except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
-        
+
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:
@@ -266,4 +266,3 @@ class LaserEVM:
             return function
 
         return hook_decorator
-
