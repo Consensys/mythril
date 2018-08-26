@@ -17,7 +17,8 @@ class ETHContract(persistent.Persistent):
         code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
 
         self.code = code
-        self.disassembly = Disassembly(self.code, enable_online_lookup=enable_online_lookup)
+        self.disassembly = Disassembly(code, enable_online_lookup=enable_online_lookup)
+        self.creation_disassemble = Disassembly(creation_code, enable_online_lookup=enable_online_lookup)
 
     def as_dict(self):
 
