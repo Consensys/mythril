@@ -92,7 +92,7 @@ class TaintRunner:
         :return: TaintResult object containing analysis results
         """
         result = TaintResult()
-
+        transaction_stack_length = len(node.states[0].transaction_stack)
         # Build initial current_node
         init_record = TaintRecord()
         init_record.stack = initial_stack
@@ -108,20 +108,20 @@ class TaintRunner:
 
             result.add_records(records)
 
-            children = TaintRunner.children(node, statespace, environment)
+            children = TaintRunner.children(node, statespace, environment, transaction_stack_length)
             for child in children:
-                    current_nodes.append((child, records[-1], 0))
+                current_nodes.append((child, records[-1], 0))
         return result
 
     @staticmethod
-    def children(node, statespace, environment):
+    def children(node, statespace, environment, transaction_stack_length):
         direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid and edge.type != JumpType.Transaction]
         children = []
         for child in direct_children:
-            if len(child.states[0].transaction_stack) == len(node.states[0].transaction_stack):
+            if all(len(state.transaction_stack) == transaction_stack_length for state in child.states):
                 children.append(child)
-            else:
-                children += TaintRunner.children(child, statespace, environment)
+            elif all(len(state.transaction_stack) > transaction_stack_length for state in child.states):
+                children += TaintRunner.children(child, statespace, environment, transaction_stack_length)
         return children
 
     @staticmethod
