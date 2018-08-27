@@ -4,6 +4,7 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from datetime import datetime
 from mythril.laser.ethereum.util import get_concrete_int
+import binascii
 import json
 from pathlib import Path
 import pytest
@@ -15,8 +16,6 @@ def load_test_data(designation):
     return_data = []
 
     for file_reference in (evm_test_dir / designation).iterdir():
-        if file_reference.name.startswith('exp'):
-            continue
 
         with file_reference.open() as file:
             top_level = json.load(file)
@@ -36,6 +35,7 @@ def load_test_data(designation):
 @pytest.mark.parametrize("test_name, pre_condition, action, post_condition", load_test_data('vmArithmeticTest'))
 def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_condition: dict) -> None:
     # Arrange
+
     accounts = {}
     for address, details in pre_condition.items():
         account = Account(address)
@@ -56,7 +56,7 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
         origin_address=action['origin'],
         code=action['code'][2:],
         gas=action['gas'],
-        data=(),
+        data=binascii.a2b_hex(action['data'][2:]),
         gas_price=int(action['gasPrice'], 16),
         value=int(action['value'], 16)
     )
