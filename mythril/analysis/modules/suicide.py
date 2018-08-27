@@ -1,9 +1,7 @@
-from z3 import *
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
-import re
 import logging
 
 
@@ -15,86 +13,61 @@ Check for SUICIDE instructions that either can be reached by anyone, or where ms
 '''
 
 
-def execute(statespace):
+def execute(state_space):
 
     logging.debug("Executing module: UNCHECKED_SUICIDE")
 
     issues = []
 
-    for k in statespace.nodes:
-        node = statespace.nodes[k]
+    for k in state_space.nodes:
+        node = state_space.nodes[k]
 
         for state in node.states:
+            issues += _analyze_state(state, node)
 
-            instruction = state.get_current_instruction()
+    return issues
 
-            if(instruction['opcode'] == "SUICIDE"):
 
-                logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
+def _analyze_state(state, node):
+    issues = []
+    instruction = state.get_current_instruction()
 
-                description = "The function `" + node.function_name + "` executes the SUICIDE instruction. "
+    if instruction['opcode'] != "SUICIDE":
+        return []
 
-                stack = copy.deepcopy(state.mstate.stack)
-                to = stack.pop()
+    to = state.mstate.stack[-1]
 
-                if ("caller" in str(to)):
-                    description += "The remaining Ether is sent to the caller's address.\n"
-                elif ("storage" in str(to)):
-                    description += "The remaining Ether is sent to a stored address.\n"
-                elif ("calldata" in str(to)):
-                    description += "The remaining Ether is sent to an address provided as a function argument.\n"
-                elif (type(to) == BitVecNumRef):
-                    description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
-                else:
-                    description += "The remaining Ether is sent to: " + str(to) + "\n"
+    logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
+    description = "The function `" + node.function_name + "` executes the SUICIDE instruction. "
 
-                constrained = False
-                can_solve = True
+    if "caller" in str(to):
+        description += "The remaining Ether is sent to the caller's address.\n"
+    elif "storage" in str(to):
+        description += "The remaining Ether is sent to a stored address.\n"
+    elif "calldata" in str(to):
+        description += "The remaining Ether is sent to an address provided as a function argument.\n"
+    elif type(to) == BitVecNumRef:
+        description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
+    else:
+        description += "The remaining Ether is sent to: " + str(to) + "\n"
 
-                index = 0
+    not_creator_constraints = []
+    if len(state.world_state.transaction_sequence) > 1:
+        try:
+            creator = state.world_state.transaction_sequence[0].caller
+            for transaction in state.world_state.transaction_sequence[1:]:
+                not_creator_constraints.append(Not(Extract(159, 0, transaction.caller) == Extract(159, 0, creator)))
+        except IndexError:
+            return []
 
-                while(can_solve and index < len(node.constraints)):
+    try:
+        model = solver.get_model(node.constraints + not_creator_constraints)
 
-                    constraint = node.constraints[index]
-                    index += 1
+        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 
-                    m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
-
-                    if (m):
-                        constrained = True
-                        idx = m.group(1)
-
-                        logging.debug("STORAGE CONSTRAINT FOUND: " + idx)
-
-                        func = statespace.find_storage_write(state.environment.active_account.address, idx)
-
-                        if func:
-                            description += "\nThere is a check on storage index " + str(idx) + ". This storage index can be written to by calling the function `" + func + "`."
-                            break
-                        else:
-                            logging.debug("[UNCHECKED_SUICIDE] No storage writes to index " + str(idx))
-                            can_solve = False
-                            break
-
-                    elif (re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint))):
-                        can_solve = False
-                        break
-
-                if not constrained:
-                    description += "\nIt seems that this function can be called without restrictions."
-
-                if can_solve:
-
-                    try:
-
-                        model = solver.get_model(node.constraints)
-
-                        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
-
-                        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description, debug)
-                        issues.append(issue)
-
-                    except UnsatError:
-                            logging.debug("[UNCHECKED_SUICIDE] no model found")
+        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description, debug)
+        issues.append(issue)
+    except UnsatError:
+            logging.debug("[UNCHECKED_SUICIDE] no model found")
 
     return issues
