@@ -1,8 +1,9 @@
-from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction
 from z3 import BitVec
-from mythril.laser.ethereum.state import CalldataType
+
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
+from mythril.laser.ethereum.state import CalldataType
+from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction
 
 
 def execute_message_call(laser_evm, callee_address):
@@ -38,7 +39,7 @@ def execute_contract_creation(laser_evm, contract_initialization_code, contract_
     for open_world_state in open_states:
         transaction = ContractCreationTransaction(
             open_world_state,
-            BitVec("caller", 256),
+            BitVec("creator", 256),
             new_account,
             Disassembly(contract_initialization_code),
             [],
@@ -69,6 +70,7 @@ def _setup_global_state_for_execution(laser_evm, transaction):
         global_state.mstate.constraints = transaction.world_state.node.constraints
         new_node.constraints = global_state.mstate.constraints
 
+    global_state.world_state.transaction_sequence.append(transaction)
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
