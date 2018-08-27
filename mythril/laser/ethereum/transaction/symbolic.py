@@ -65,6 +65,10 @@ def _setup_global_state_for_execution(laser_evm, transaction):
     if transaction.world_state.node:
         laser_evm.edges.append(Edge(transaction.world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
                                condition=None))
+
+        global_state.mstate.constraints = transaction.world_state.node.constraints
+        new_node.constraints = global_state.mstate.constraints
+
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
