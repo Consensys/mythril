@@ -92,10 +92,9 @@ class SolidityContract(ETHContract):
         super().__init__(code, creation_code, name=name)
 
     def get_source_info(self, address, constructor=False):
-        disassembly = self.creation_disassemble if constructor else self.disassembly
+        disassembly = self.creation_disassembly if constructor else self.disassembly
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
-
         solidity_file = self.solidity_files[mappings[index].solidity_file_idx]
 
         filename = solidity_file.filename

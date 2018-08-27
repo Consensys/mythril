@@ -18,7 +18,7 @@ class ETHContract(persistent.Persistent):
 
         self.code = code
         self.disassembly = Disassembly(code, enable_online_lookup=enable_online_lookup)
-        self.creation_disassemble = Disassembly(creation_code, enable_online_lookup=enable_online_lookup)
+        self.creation_disassembly = Disassembly(creation_code, enable_online_lookup=enable_online_lookup)
 
     def as_dict(self):
 
