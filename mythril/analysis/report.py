@@ -2,6 +2,8 @@ import hashlib
 import json
 import operator
 from jinja2 import PackageLoader, Environment
+from mythril.version import VERSION
+
 
 class Issue:
 
@@ -63,7 +65,7 @@ class Report:
         return template.render(filename=name, issues=self.sorted_issues(), verbose=self.verbose)
 
     def as_json(self):
-        result = {'success': True, 'error': None, 'issues': self.sorted_issues()}
+        result = {'success': True, 'error': None, 'issues': self.sorted_issues(), 'version': VERSION}
         return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):
