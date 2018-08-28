@@ -762,7 +762,7 @@ class Instruction:
             global_state.accounts[
                 global_state.environment.active_account.address] = global_state.environment.active_account
 
-            global_state.environment.active_account.storage[index] = simplify(value)
+            global_state.environment.active_account.storage[index] = value
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
         return [global_state]
