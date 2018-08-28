@@ -962,11 +962,11 @@ class Instruction:
         transaction = MessageCallTransaction(global_state.world_state,
                                              callee_account,
                                              BitVecVal(int(environment.active_account.address, 16), 256),
-                                             call_data,
-                                             environment.gasprice,
-                                             value,
-                                             environment.origin,
-                                             call_data_type)
+                                             call_data=call_data,
+                                             gas_price=environment.gasprice,
+                                             call_value=value,
+                                             origin=environment.origin,
+                                             call_data_type=call_data_type)
         raise TransactionStartSignal(transaction, self.op_code)
 
     @instruction
@@ -1028,12 +1028,12 @@ class Instruction:
         transaction = MessageCallTransaction(global_state.world_state,
                                              environment.active_account,
                                              environment.address,
-                                             call_data,
-                                             environment.gasprice,
-                                             value,
-                                             environment.origin,
-                                             call_data_type,
-                                             callee_account.code
+                                             call_data=call_data,
+                                             gas_price=environment.gasprice,
+                                             call_value=value,
+                                             origin=environment.origin,
+                                             call_data_type=call_data_type,
+                                             code=callee_account.code
                                              )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1098,11 +1098,11 @@ class Instruction:
                                              environment.active_account,
                                              environment.sender,
                                              call_data,
-                                             environment.gasprice,
-                                             environment.callvalue,
-                                             environment.origin,
-                                             call_data_type,
-                                             callee_account.code
+                                             gas_price=environment.gasprice,
+                                             call_value=environment.callvalue,
+                                             origin=environment.origin,
+                                             call_data_type=call_data_type,
+                                             code=callee_account.code
                                              )
         raise TransactionStartSignal(transaction, self.op_code)
 

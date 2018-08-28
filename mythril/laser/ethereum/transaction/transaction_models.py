@@ -4,6 +4,13 @@ from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
 from z3 import BitVec
 import array
 
+_next_transaction_id = 0
+
+
+def get_next_transaction_id():
+    global _next_transaction_id
+    _next_transaction_id += 1
+    return _next_transaction_id
 
 class TransactionEndSignal(Exception):
     """ Exception raised when a transaction is finalized"""
@@ -21,11 +28,11 @@ class TransactionStartSignal(Exception):
 class MessageCallTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
-                 identifier,
                  world_state,
                  callee_account,
                  caller,
                  call_data=(),
+                 identifier=None,
                  gas_price=None,
                  call_value=None,
                  origin=None,
@@ -33,7 +40,7 @@ class MessageCallTransaction:
                  code=None
                  ):
         assert isinstance(world_state, WorldState)
-        self.id = identifier
+        self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
         self.callee_account = callee_account
         self.caller = caller
@@ -71,9 +78,9 @@ class MessageCallTransaction:
 class ContractCreationTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
-                 identifier,
                  world_state,
                  caller,
+                 identifier=None,
                  callee_account=None,
                  code=None,
                  call_data=(),
@@ -83,7 +90,7 @@ class ContractCreationTransaction:
                  call_data_type=None,
                  ):
         assert isinstance(world_state, WorldState)
-        self.id = identifier
+        self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
         # TODO: set correct balance for new account
         self.callee_account = callee_account if callee_account else world_state.create_account(0, concrete_storage=True)
