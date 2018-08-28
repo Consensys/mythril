@@ -16,7 +16,7 @@ def execute_message_call(laser_evm, callee_address, caller_address, origin_addre
     for open_world_state in open_states:
         next_transaction_id += 1
         transaction = MessageCallTransaction(
-            next_transaction_id,
+            identifier=next_transaction_id,
             world_state=open_world_state,
             callee_account=open_world_state[callee_address],
             caller=caller_address,
