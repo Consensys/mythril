@@ -21,25 +21,27 @@ class TransactionStartSignal(Exception):
 class MessageCallTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
+                 identifier,
                  world_state,
                  callee_account,
                  caller,
                  call_data=(),
-                 gas_price=BitVec("gasprice", 256),
-                 call_value=BitVec("callvalue", 256),
-                 origin=BitVec("origin", 256),
-                 call_data_type=BitVec("call_data_type", 256),
+                 gas_price=None,
+                 call_value=None,
+                 origin=None,
+                 call_data_type=None,
                  code=None
                  ):
         assert isinstance(world_state, WorldState)
+        self.id = identifier
         self.world_state = world_state
         self.callee_account = callee_account
         self.caller = caller
         self.call_data = call_data
-        self.gas_price = gas_price
-        self.call_value = call_value
-        self.origin = origin
-        self.call_data_type = call_data_type
+        self.gas_price = BitVec("gasprice{}".format(identifier), 256) if gas_price is None else gas_price
+        self.call_value = BitVec("callvalue{}".format(identifier), 256) if call_value is None else call_value
+        self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin
+        self.call_data_type = BitVec("call_data_type{}".format(identifier), 256) if call_data_type is None else call_data_type
         self.code = code
         self.return_data = None
 
@@ -69,29 +71,32 @@ class MessageCallTransaction:
 class ContractCreationTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
+                 identifier,
                  world_state,
                  caller,
                  callee_account=None,
                  code=None,
                  call_data=(),
-                 gas_price=BitVec("gasprice", 256),
-                 call_value=BitVec("callvalue", 256),
-                 origin=BitVec("origin", 256),
-                 call_data_type=BitVec("call_data_type", 256),
+                 gas_price=None,
+                 call_value=None,
+                 origin=None,
+                 call_data_type=None,
                  ):
         assert isinstance(world_state, WorldState)
-
+        self.id = identifier
         self.world_state = world_state
         # TODO: set correct balance for new account
         self.callee_account = callee_account if callee_account else world_state.create_account(0, concrete_storage=True)
 
         self.caller = caller
-        self.call_data = call_data
-        self.gas_price = gas_price
-        self.call_value = call_value
 
+        self.gas_price = BitVec("gasprice{}".format(identifier), 256) if gas_price is None else gas_price
+        self.call_value = BitVec("callvalue{}".format(identifier), 256) if call_value is None else call_value
+        self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin
+        self.call_data_type = BitVec("call_data_type{}".format(identifier), 256) if call_data_type is None else call_data_type
+
+        self.call_data = call_data
         self.origin = origin
-        self.call_data_type = call_data_type
         self.code = code
         self.return_data = None
 

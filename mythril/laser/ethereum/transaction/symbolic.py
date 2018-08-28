@@ -1,25 +1,30 @@
-from z3 import BitVec
+from z3 import BitVec, Extract, Not
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.ethereum.state import CalldataType
 from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction
 
+next_transaction_id = 0
+
 
 def execute_message_call(laser_evm, callee_address):
     """ Executes a message call transaction from all open states """
+    global next_transaction_id
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
     for open_world_state in open_states:
+        next_transaction_id += 1
         transaction = MessageCallTransaction(
+            next_transaction_id,
             open_world_state,
             open_world_state[callee_address],
-            BitVec("caller", 256),
+            BitVec("caller{}".format(next_transaction_id), 256),
             [],
-            BitVec("gas_price", 256),
-            BitVec("call_value", 256),
-            BitVec("origin", 256),
+            BitVec("gas_price{}".format(next_transaction_id), 256),
+            BitVec("call_value{}".format(next_transaction_id), 256),
+            BitVec("origin{}".format(next_transaction_id), 256),
             CalldataType.SYMBOLIC,
         )
         _setup_global_state_for_execution(laser_evm, transaction)
@@ -29,6 +34,7 @@ def execute_message_call(laser_evm, callee_address):
 
 def execute_contract_creation(laser_evm, contract_initialization_code, contract_name=None):
     """ Executes a contract creation transaction from all open states"""
+    global next_transaction_id
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -37,18 +43,19 @@ def execute_contract_creation(laser_evm, contract_initialization_code, contract_
         new_account.contract_name = contract_name
 
     for open_world_state in open_states:
+        next_transaction_id += 1
         transaction = ContractCreationTransaction(
+            next_transaction_id,
             open_world_state,
-            BitVec("creator", 256),
+            BitVec("creator{}".format(next_transaction_id), 256),
             new_account,
             Disassembly(contract_initialization_code),
             [],
-            BitVec("gas_price", 256),
-            BitVec("call_value", 256),
-            BitVec("origin", 256),
+            BitVec("gas_price{}".format(next_transaction_id), 256),
+            BitVec("call_value{}".format(next_transaction_id), 256),
+            BitVec("origin{}".format(next_transaction_id), 256),
             CalldataType.SYMBOLIC
         )
-
         _setup_global_state_for_execution(laser_evm, transaction)
     laser_evm.exec(True)
 
