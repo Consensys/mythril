@@ -30,6 +30,10 @@ contract Rubixi {
                 init();
         }
 
+  function kill(address addr) onlyowner {
+    selfdestruct(addr);
+  }
+
         //init function run on fallback
         function init() private {
                 //Ensures only tx with value of 1 ether or greater are processed and added to pyramid
@@ -45,7 +49,7 @@ contract Rubixi {
                 addPayout(_fee);
         }
 
-        //Function called for valid tx to the contract 
+        //Function called for valid tx to the contract
         function addPayout(uint _fee) private {
                 //Adds new address to participant array
                 participants.push(Participant(msg.sender, (msg.value * pyramidMultiplier) / 100));

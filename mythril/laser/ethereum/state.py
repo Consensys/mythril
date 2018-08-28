@@ -214,6 +214,11 @@ class GlobalState:
     def instruction(self):
         return self.get_current_instruction()
 
+    def new_bitvec(self, name):
+        transaction_id = self.current_transaction.id
+        node_id = self.current_transaction.uid
+
+        return BitVec("{}_{}_{}".format(transaction_id, node_id, name))
 
 class WorldState:
     """

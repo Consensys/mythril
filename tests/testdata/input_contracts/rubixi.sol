@@ -30,6 +30,10 @@ contract Rubixi {
                 init();
         }
 
+  function kill(address addr) onlyowner {
+    selfdestruct(addr);
+  }
+
         //init function run on fallback
         function init() private {
                 //Ensures only tx with value of 1 ether or greater are processed and added to pyramid
