@@ -7,8 +7,8 @@ from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from copy import copy
-from functools import reduce
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
+from functools import reduce
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -61,7 +61,7 @@ class LaserEVM:
     def accounts(self):
         return self.world_state.accounts
 
-    def sym_exec(self, main_address=None, creation_code=None):
+    def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
@@ -70,11 +70,11 @@ class LaserEVM:
             execute_message_call(self, main_address)
         elif creation_code:
             logging.info("Starting contract creation transaction")
-            created_account = execute_contract_creation(self, creation_code)
+            created_account = execute_contract_creation(self, creation_code, contract_name)
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
-                print("No contract was created during the execution of contract creation "
-                      "Try to increase the resouces for creation exection (max-depth or create_timeout)")
+                logging.warning("No contract was created during the execution of contract creation "
+                                "Increase the resources for creation execution (--max-depth or --create_timeout)")
 
             # Reset code coverage
             self.coverage = {}
@@ -114,7 +114,11 @@ class LaserEVM:
 
     def execute_state(self, global_state):
         instructions = global_state.environment.code.instruction_list
-        op_code = instructions[global_state.mstate.pc]['opcode']
+        try:
+            op_code = instructions[global_state.mstate.pc]['opcode']
+        except IndexError:
+            self.open_states.append(global_state.world_state)
+            return [], None
 
         self._execute_pre_hook(op_code, global_state)
         try:
@@ -215,7 +219,7 @@ class LaserEVM:
             except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
-        
+
         environment = state.environment
         disassembly = environment.code
         if address in state.environment.code.addr_to_func:

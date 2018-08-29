@@ -85,3 +85,24 @@ def test_stack_single_pop():
 
     # Assert
     assert isinstance(result, int)
+
+
+memory_write_test_data = [
+    (5, 10, [1, 2, 3]),
+    (0, 0, [3, 4]),
+    (20, 1, [2, 4, 10])
+]
+
+
+@pytest.mark.parametrize("initial_size, memory_offset, data", memory_write_test_data)
+def test_memory_write(initial_size, memory_offset, data):
+    # Arrange
+    machine_state = MachineState(0)
+    machine_state.memory = [0]*initial_size
+
+    # Act
+    machine_state.memory_write(memory_offset, data)
+
+    # Assert
+    assert len(machine_state.memory) == max(initial_size, memory_offset+len(data))
+    assert machine_state.memory[memory_offset:memory_offset+len(data)] == data

@@ -24,7 +24,7 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        account = Account(address, contract.disassembly, contract_name=contract.name)
+        account = Account(address, contract.disassembly, dynamic_loader=dynloader, contract_name=contract.name)
 
         self.accounts = {address: account}
 
@@ -33,7 +33,7 @@ class SymExecWrapper:
                                   create_timeout=create_timeout)
 
         if isinstance(contract, SolidityContract):
-            self.laser.sym_exec(creation_code=contract.creation_code)
+            self.laser.sym_exec(creation_code=contract.creation_code, contract_name=contract.name)
         else:
             self.laser.sym_exec(address)
 
