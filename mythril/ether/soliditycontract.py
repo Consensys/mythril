@@ -106,7 +106,7 @@ class SolidityContract(ETHContract):
             # File index for instruction address not found. But is there only *one* source file?
             file_idx_set = {m.solidity_file_idx for m in self.mappings}
             if len(file_idx_set) == 1:
-                # Yes, so use the since file mentioned.
+                # Yes, so use the single file mentioned.
                 index = file_idx_set.pop()
 
         solidity_file = self.solidity_files[self.mappings[index].solidity_file_idx]
