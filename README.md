@@ -7,7 +7,7 @@
 
 <img height="120px" align="right" src="https://github.com/ConsenSys/mythril/raw/master/static/mythril.png" alt="mythril" />
 
-Mythril OSS is a classic security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
+Mythril OSS is the classic security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/dFHQGrE) will serve your needs!
 
