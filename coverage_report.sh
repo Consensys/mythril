@@ -12,4 +12,5 @@ rm -rf coverage_html_report
 py.test \
     --cov=mythril \
     --cov-config=tox.ini \
-    --cov-report=html:coverage_html_report \
+    --cov-report=html:coverage_reports/coverage_html_report \
+    --cov-report=xml:coverage_reports/coverage_xml_report.xml
