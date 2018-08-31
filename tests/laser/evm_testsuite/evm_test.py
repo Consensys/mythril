@@ -11,28 +11,30 @@ import pytest
 
 evm_test_dir = Path(__file__).parent / 'VMTests'
 
+test_types = ['vmArithmeticTest', 'vmBitwiseLogicOperation']
 
-def load_test_data(designation):
+
+def load_test_data(designations):
     return_data = []
+    for designation in designations:
+        for file_reference in (evm_test_dir / designation).iterdir():
 
-    for file_reference in (evm_test_dir / designation).iterdir():
+            with file_reference.open() as file:
+                top_level = json.load(file)
 
-        with file_reference.open() as file:
-            top_level = json.load(file)
+                for test_name, data in top_level.items():
+                    pre_condition = data['pre']
 
-            for test_name, data in top_level.items():
-                pre_condition = data['pre']
+                    action = data['exec']
 
-                action = data['exec']
+                    post_condition = data['post']
 
-                post_condition = data['post']
-
-                return_data.append((test_name, pre_condition, action, post_condition))
+                    return_data.append((test_name, pre_condition, action, post_condition))
 
     return return_data
 
 
-@pytest.mark.parametrize("test_name, pre_condition, action, post_condition", load_test_data('vmArithmeticTest'))
+@pytest.mark.parametrize("test_name, pre_condition, action, post_condition", load_test_data(test_types))
 def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_condition: dict) -> None:
     # Arrange
 
