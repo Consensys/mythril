@@ -2,6 +2,7 @@ from z3 import BitVec, BitVecVal
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
+from mythril.laser.ethereum.exceptions import VmException
 
 
 class CalldataType(Enum):
@@ -141,8 +142,15 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        self.memory += [0] * max(0, start + size - self.memory_size)
-
+        if self.memory_size > start + size:
+            return
+        m_extend = (start + size - self.memory_size)
+        try:
+            self.memory.extend(bytearray(m_extend))
+        except MemoryError:
+            raise VmException('error extending memory')
+        return True
+        
     def memory_write(self, offset, data):
         """ Writes data to memory starting at offset """
         self.mem_extend(offset, len(data))

@@ -2,7 +2,6 @@ import binascii
 import logging
 from copy import copy, deepcopy
 
-import ethereum.opcodes as opcodes
 from ethereum import utils
 from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
     is_false, is_expr, ExprRef, URem, SRem
@@ -11,20 +10,14 @@ from z3 import BitVecVal, If, BoolRef
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
-from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
+from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
-from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionEndSignal, TransactionStartSignal, ContractCreationTransaction
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
+    ContractCreationTransaction
+from mythril.laser.ethereum.exceptions import VmException
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
-
-
-class StackUnderflowException(Exception):
-    pass
-
-
-class StopSignal(Exception):
-    pass
 
 
 def instruction(func):
@@ -75,14 +68,20 @@ class Instruction:
 
     @instruction
     def push_(self, global_state):
-        value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
+        try:
+            value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
+        except ValueError:
+            raise VmException('Invalid Argument for PUSH')
         global_state.mstate.stack.append(value)
         return [global_state]
 
     @instruction
     def dup_(self, global_state):
         value = int(global_state.get_current_instruction()['opcode'][3:], 10)
-        global_state.mstate.stack.append(global_state.mstate.stack[-value])
+        try:
+            global_state.mstate.stack.append(global_state.mstate.stack[-value])
+        except IndexError:
+            raise VmException('Trying to duplicate out of bounds stack elements')
         return [global_state]
 
     @instruction
@@ -92,7 +91,7 @@ class Instruction:
             stack = global_state.mstate.stack
             stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         except IndexError:
-            raise StackUnderflowException()
+            raise VmException('Stack underflow exception')
         return [global_state]
 
     @instruction
@@ -100,7 +99,7 @@ class Instruction:
         try:
             global_state.mstate.stack.pop()
         except IndexError:
-            raise StackUnderflowException()
+            raise VmException('Stack underflow exception')
         return [global_state]
 
     @instruction
@@ -115,7 +114,7 @@ class Instruction:
 
             stack.append(op1 & op2)
         except IndexError:
-            raise StackUnderflowException()
+            raise VmException('Stack underflow exception')
         return [global_state]
 
     @instruction
@@ -132,7 +131,7 @@ class Instruction:
 
             stack.append(op1 | op2)
         except IndexError:  # Stack underflow
-            raise StackUnderflowException()
+            raise VmException('Stack underflow exception')
         return [global_state]
 
     @instruction
@@ -500,13 +499,12 @@ class Instruction:
             return [global_state]
 
         try:
-            data = b''
+            state.mem_extend(index, length)
+            data = b''.join([util.get_concrete_int(i).to_bytes(1, byteorder='big')
+                             for i in state.memory[index: index + length]])
 
-            for i in range(index, index + length):
-                data += util.get_concrete_int(state.memory[i]).to_bytes(1, byteorder='big')
-                i += 1
             # FIXME: broad exception catch
-        except:
+        except AttributeError:
 
             svar = str(state.memory[index])
 
@@ -680,7 +678,7 @@ class Instruction:
         try:
             op0, value = state.stack.pop(), state.stack.pop()
         except IndexError:
-            raise StackUnderflowException()
+            raise VmException('Stack underflow exception')
 
         try:
             mstart = util.get_concrete_int(op0)
@@ -916,6 +914,7 @@ class Instruction:
 
     @instruction
     def call_(self, global_state):
+
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
