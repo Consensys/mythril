@@ -2,7 +2,6 @@ from z3 import BitVec, BitVecVal
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
-from mythril.laser.ethereum.exceptions import VmException
 
 
 class CalldataType(Enum):
@@ -145,10 +144,7 @@ class MachineState:
         if self.memory_size > start + size:
             return
         m_extend = (start + size - self.memory_size)
-        try:
-            self.memory.extend(bytearray(m_extend))
-        except MemoryError:
-            raise VmException('error extending memory')
+        self.memory.extend(bytearray(m_extend))
         return True
         
     def memory_write(self, offset, data):

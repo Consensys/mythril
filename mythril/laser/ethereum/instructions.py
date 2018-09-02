@@ -503,7 +503,6 @@ class Instruction:
             data = b''.join([util.get_concrete_int(i).to_bytes(1, byteorder='big')
                              for i in state.memory[index: index + length]])
 
-            # FIXME: broad exception catch
         except AttributeError:
 
             svar = str(state.memory[index])
