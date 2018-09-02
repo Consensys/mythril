@@ -145,7 +145,6 @@ class MachineState:
             return
         m_extend = (start + size - self.memory_size)
         self.memory.extend(bytearray(m_extend))
-        return True
         
     def memory_write(self, offset, data):
         """ Writes data to memory starting at offset """
