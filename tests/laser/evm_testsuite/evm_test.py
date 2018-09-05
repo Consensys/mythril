@@ -64,8 +64,11 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
             gas_price=int(action['gasPrice'], 16),
             value=int(action['value'], 16)
         )
-    except VmException:
-        return
+    except VmException as e:
+        if post_condition == {}:
+            return
+        else:
+            raise e
 
     # Assert
     if 'Suicide' not in test_name:
@@ -85,5 +88,4 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
         for index, value in details['storage'].items():
             expected = int(value, 16)
             actual = get_concrete_int(account.storage[int(index, 16)])
-            print(actual, expected)
             assert actual == expected

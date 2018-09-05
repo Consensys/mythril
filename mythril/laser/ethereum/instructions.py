@@ -14,7 +14,7 @@ from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
-from mythril.laser.ethereum.exceptions import VmException
+from mythril.laser.ethereum.exceptions import VmException, StackUnderflowException
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -68,10 +68,17 @@ class Instruction:
 
     @instruction
     def push_(self, global_state):
+        push_instruction = global_state.get_current_instruction()
+        push_value = push_instruction['argument'][2:]
         try:
-            value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
+            no_of_bytes = int(push_instruction['opcode'][4:])
         except ValueError:
-            raise VmException('Invalid Argument for PUSH')
+            raise VmException('Invalid Push instruction')
+        if len(push_value) < 2*no_of_bytes:
+            push_value = push_value + "0" * (2*no_of_bytes - len(push_value))
+        push_value = push_value[:64]
+        value = BitVecVal(int(push_value, 16), 256)
+        assert(len(push_value) == 2*no_of_bytes)
         global_state.mstate.stack.append(value)
         return [global_state]
 
@@ -91,7 +98,7 @@ class Instruction:
             stack = global_state.mstate.stack
             stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         except IndexError:
-            raise VmException('Stack underflow exception')
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -99,7 +106,7 @@ class Instruction:
         try:
             global_state.mstate.stack.pop()
         except IndexError:
-            raise VmException('Stack underflow exception')
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -114,7 +121,7 @@ class Instruction:
 
             stack.append(op1 & op2)
         except IndexError:
-            raise VmException('Stack underflow exception')
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -131,7 +138,7 @@ class Instruction:
 
             stack.append(op1 | op2)
         except IndexError:  # Stack underflow
-            raise VmException('Stack underflow exception')
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
