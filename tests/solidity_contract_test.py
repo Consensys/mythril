@@ -26,3 +26,14 @@ class SolidityContractTest(BaseTestCase):
         self.assertEqual(code_info.filename, str(input_file))
         self.assertEqual(code_info.lineno, 6)
         self.assertEqual(code_info.code, "msg.sender.transfer(1 ether)")
+
+    def test_get_source_info_with_contract_name_specified_constructor(self):
+        input_file = TEST_FILES / "constructor_assert.sol"
+        contract = SolidityContract(str(input_file), name="AssertFail")
+
+        code_info = contract.get_source_info(62, constructor=True)
+
+        self.assertEqual(code_info.filename, str(input_file))
+        self.assertEqual(code_info.lineno, 6)
+        self.assertEqual(code_info.code, "assert(var1>0)")
+
