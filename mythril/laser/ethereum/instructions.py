@@ -70,16 +70,14 @@ class Instruction:
     def push_(self, global_state):
         push_instruction = global_state.get_current_instruction()
         push_value = push_instruction['argument'][2:]
+
         try:
-            no_of_bytes = int(push_instruction['opcode'][4:])
+            length_of_value = 2*int(push_instruction['opcode'][4:])
         except ValueError:
             raise VmException('Invalid Push instruction')
-        if len(push_value) < 2*no_of_bytes:
-            push_value = push_value + "0" * (2*no_of_bytes - len(push_value))
-        push_value = push_value[:64]
-        value = BitVecVal(int(push_value, 16), 256)
-        assert(len(push_value) == 2*no_of_bytes)
-        global_state.mstate.stack.append(value)
+
+        push_value = push_value + "0" * max(length_of_value - len(push_value), 0)
+        global_state.mstate.stack.append(BitVecVal(int(push_value, 16), 256))
         return [global_state]
 
     @instruction
