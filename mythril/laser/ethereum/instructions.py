@@ -27,16 +27,21 @@ class StopSignal(Exception):
     pass
 
 
-def instruction(func):
+class PCMutator(object):
     """ Wrapper that handles copy and original return """
 
-    def wrapper(self, global_state):
-        global_state_copy = copy(global_state)
-        new_global_states = func(self, global_state_copy)
-        for state in new_global_states:
-            state.mstate.pc += 1
-        return new_global_states
-    return wrapper
+    def __init__(self, auto_increment=True):
+        self.auto_increment = auto_increment
+
+    def __call__(self, func):
+        def wrapper(obj, global_state):
+            global_state_copy = copy(global_state)
+            new_global_states = func(obj, global_state_copy)
+            if self.auto_increment:
+                for state in new_global_states:
+                    state.mstate.pc += 1
+            return new_global_states
+        return wrapper
 
 
 class Instruction:
@@ -69,23 +74,23 @@ class Instruction:
 
         return instruction_mutator(global_state)
 
-    @instruction
+    @PCMutator()
     def jumpdest_(self, global_state):
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def push_(self, global_state):
         value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
         global_state.mstate.stack.append(value)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def dup_(self, global_state):
         value = int(global_state.get_current_instruction()['opcode'][3:], 10)
         global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def swap_(self, global_state):
         depth = int(self.op_code[4:])
         try:
@@ -95,7 +100,7 @@ class Instruction:
             raise StackUnderflowException()
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def pop_(self, global_state):
         try:
             global_state.mstate.stack.pop()
@@ -103,7 +108,7 @@ class Instruction:
             raise StackUnderflowException()
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def and_(self, global_state):
         try:
             stack = global_state.mstate.stack
@@ -118,7 +123,7 @@ class Instruction:
             raise StackUnderflowException()
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def or_(self, global_state):
         stack = global_state.mstate.stack
         try:
@@ -135,19 +140,19 @@ class Instruction:
             raise StackUnderflowException()
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def xor_(self, global_state):
         mstate = global_state.mstate
         mstate.stack.append(mstate.stack.pop() ^ mstate.stack.pop())
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def not_(self, global_state: GlobalState):
         mstate = global_state.mstate
         mstate.stack.append(TT256M1 - mstate.stack.pop())
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def byte_(self, global_state):
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
@@ -168,25 +173,25 @@ class Instruction:
         return [global_state]
 
     # Arithmetic
-    @instruction
+    @PCMutator()
     def add_(self, global_state):
         global_state.mstate.stack.append(
             (helper.pop_bitvec(global_state.mstate) + helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def sub_(self, global_state):
         global_state.mstate.stack.append(
             (helper.pop_bitvec(global_state.mstate) - helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def mul_(self, global_state):
         global_state.mstate.stack.append(
             (helper.pop_bitvec(global_state.mstate) * helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def div_(self, global_state):
         op0, op1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         if op1 == 0:
@@ -195,7 +200,7 @@ class Instruction:
             global_state.mstate.stack.append(UDiv(op0, op1))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def sdiv_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         if s1 == 0:
@@ -204,33 +209,33 @@ class Instruction:
             global_state.mstate.stack.append(s0 / s1)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def mod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def smod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def addmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
         global_state.mstate.stack.append(URem(URem(s0, s2) + URem(s1, s2), s2))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def mulmod_(self, global_state):
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
         global_state.mstate.stack.append(URem(URem(s0, s2) * URem(s1, s2), s2))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def exp_(self, global_state):
         state = global_state.mstate
 
@@ -242,7 +247,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def signextend_(self, global_state):
         state = global_state.mstate
         s0, s1 = state.stack.pop(), state.stack.pop()
@@ -266,28 +271,28 @@ class Instruction:
         return [global_state]
 
     # Comparisons
-    @instruction
+    @PCMutator()
     def lt_(self, global_state):
         state = global_state.mstate
         exp = ULT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def gt_(self, global_state):
         state = global_state.mstate
         exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def slt_(self, global_state):
         state = global_state.mstate
         exp = util.pop_bitvec(state) < util.pop_bitvec(state)
         state.stack.append(exp)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def sgt_(self, global_state):
         state = global_state.mstate
 
@@ -295,7 +300,7 @@ class Instruction:
         state.stack.append(exp)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def eq_(self, global_state):
         state = global_state.mstate
 
@@ -313,7 +318,7 @@ class Instruction:
         state.stack.append(exp)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def iszero_(self, global_state):
         state = global_state.mstate
 
@@ -324,7 +329,7 @@ class Instruction:
         return [global_state]
 
     # Call data
-    @instruction
+    @PCMutator()
     def callvalue_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
@@ -332,7 +337,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def calldataload_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
@@ -372,7 +377,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def calldatasize_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
@@ -382,7 +387,7 @@ class Instruction:
             state.stack.append(BitVecVal(len(environment.calldata), 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def calldatacopy_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
@@ -447,35 +452,35 @@ class Instruction:
         return [global_state]
 
     # Environment
-    @instruction
+    @PCMutator()
     def address_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.address)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def balance_(self, global_state):
         state = global_state.mstate
         address = state.stack.pop()
         state.stack.append(BitVec("balance_at_" + str(address), 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def origin_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.origin)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def caller_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.sender)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def codesize_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
@@ -483,7 +488,7 @@ class Instruction:
         state.stack.append(len(disassembly.bytecode) // 2)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def sha3_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
@@ -521,12 +526,12 @@ class Instruction:
         state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccac, 0), 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def gasprice_(self, global_state):
         global_state.mstate.stack.append(BitVec("gasprice", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def codecopy_(self, global_state):
         memory_offset, code_offset, size = global_state.mstate.stack.pop(), global_state.mstate.stack.pop(), global_state.mstate.stack.pop()
 
@@ -575,7 +580,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def extcodesize_(self, global_state):
         state = global_state.mstate
         addr = state.stack.pop()
@@ -601,7 +606,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def extcodecopy_(self, global_state):
         # FIXME: not implemented
         state = global_state.mstate
@@ -609,45 +614,45 @@ class Instruction:
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def returndatasize_(self, global_state):
         global_state.mstate.stack.append(BitVec("returndatasize", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def blockhash_(self, global_state):
         state = global_state.mstate
         blocknumber = state.stack.pop()
         state.stack.append(BitVec("blockhash_block_" + str(blocknumber), 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def coinbase_(self, global_state):
         global_state.mstate.stack.append(BitVec("coinbase", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def timestamp_(self, global_state):
         global_state.mstate.stack.append(BitVec("timestamp", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def number_(self, global_state):
         global_state.mstate.stack.append(BitVec("block_number", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def difficulty_(self, global_state):
         global_state.mstate.stack.append(BitVec("block_difficulty", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def gaslimit_(self, global_state):
         global_state.mstate.stack.append(BitVec("block_gaslimit", 256))
         return [global_state]
 
     # Memory operations
-    @instruction
+    @PCMutator()
     def mload_(self, global_state):
         state = global_state.mstate
         op0 = state.stack.pop()
@@ -674,7 +679,7 @@ class Instruction:
         state.stack.append(data)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def mstore_(self, global_state):
         state = global_state.mstate
         try:
@@ -712,7 +717,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def mstore8_(self, global_state):
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
@@ -728,7 +733,7 @@ class Instruction:
         state.memory[offset] = value % 256
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def sload_(self, global_state):
         state = global_state.mstate
         index = state.stack.pop()
@@ -748,7 +753,7 @@ class Instruction:
         state.stack.append(data)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def sstore_(self, global_state):
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
@@ -770,7 +775,7 @@ class Instruction:
             logging.debug("Error writing to storage: Invalid index")
         return [global_state]
 
-    @instruction
+    @PCMutator(auto_increment=False)
     def jump_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
@@ -799,7 +804,7 @@ class Instruction:
 
         return [new_state]
 
-    @instruction
+    @PCMutator(auto_increment=False)
     def jumpi_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
@@ -812,6 +817,7 @@ class Instruction:
             # FIXME: to broad exception handler
         except:
             logging.debug("Skipping JUMPI to invalid destination.")
+            global_state.mstate.pc += 1
             return [global_state]
 
         # False case
@@ -820,6 +826,7 @@ class Instruction:
         if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
+            new_state.mstate.pc += 1
             new_state.mstate.constraints.append(negated)
             states.append(new_state)
         else:
@@ -842,29 +849,27 @@ class Instruction:
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
                 new_state.mstate.constraints.append(condi)
-
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
-
         return states
 
-    @instruction
+    @PCMutator()
     def pc_(self, global_state):
         global_state.mstate.stack.append(global_state.mstate.pc - 1)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def msize_(self, global_state):
         global_state.mstate.stack.append(BitVec("msize", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def gas_(self, global_state):
         global_state.mstate.stack.append(BitVec("gas", 256))
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def log_(self, global_state):
         # TODO: implement me
         state = global_state.mstate
@@ -874,7 +879,7 @@ class Instruction:
         # Not supported
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def create_(self, global_state):
         # TODO: implement me
         state = global_state.mstate
@@ -883,7 +888,7 @@ class Instruction:
         state.stack.append(0)
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def return_(self, global_state):
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
@@ -894,27 +899,27 @@ class Instruction:
             logging.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
 
-    @instruction
+    @PCMutator()
     def suicide_(self, global_state):
         return []
 
-    @instruction
+    @PCMutator()
     def revert_(self, global_state):
         return []
 
-    @instruction
+    @PCMutator()
     def assert_fail_(self, global_state):
         return []
 
-    @instruction
+    @PCMutator()
     def invalid_(self, global_state):
         return []
 
-    @instruction
+    @PCMutator()
     def stop_(self, global_state):
         global_state.current_transaction.end(global_state)
 
-    @instruction
+    @PCMutator()
     def call_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
@@ -972,7 +977,7 @@ class Instruction:
                                              call_data_type)
         raise TransactionStartSignal(transaction, self.op_code)
 
-    @instruction
+    @PCMutator()
     def call_post(self, global_state):
         instr = global_state.get_current_instruction()
 
@@ -1013,7 +1018,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def callcode_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
@@ -1040,7 +1045,7 @@ class Instruction:
                                              )
         raise TransactionStartSignal(transaction, self.op_code)
 
-    @instruction
+    @PCMutator()
     def callcode_post(self, global_state):
         instr = global_state.get_current_instruction()
 
@@ -1082,7 +1087,7 @@ class Instruction:
         return [global_state]
 
 
-    @instruction
+    @PCMutator()
     def delegatecall_(self, global_state):
         instr = global_state.get_current_instruction()
         environment = global_state.environment
@@ -1110,7 +1115,7 @@ class Instruction:
         raise TransactionStartSignal(transaction, self.op_code)
 
 
-    @instruction
+    @PCMutator()
     def delegatecall_post(self, global_state):
         instr = global_state.get_current_instruction()
 
@@ -1154,7 +1159,7 @@ class Instruction:
 
         return [global_state]
 
-    @instruction
+    @PCMutator()
     def staticcall_(self, global_state):
         # TODO: implement me
         instr = global_state.get_current_instruction()
