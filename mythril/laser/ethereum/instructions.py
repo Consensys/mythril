@@ -76,7 +76,7 @@ class Instruction:
         except ValueError:
             raise VmException('Invalid Push instruction')
 
-        push_value = push_value + "0" * max(length_of_value - len(push_value), 0)
+        push_value += "0" * max(length_of_value - len(push_value), 0)
         global_state.mstate.stack.append(BitVecVal(int(push_value, 16), 256))
         return [global_state]
 
