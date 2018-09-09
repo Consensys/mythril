@@ -22,4 +22,6 @@ RUN apt-get update \
   && pip3 install -r requirements.txt \
   && python setup.py install
 
+ENV PYTHONIOENCODING=UTF-8
+
 ENTRYPOINT ["/usr/local/bin/myth"]
