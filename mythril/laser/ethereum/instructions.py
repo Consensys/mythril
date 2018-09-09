@@ -18,7 +18,7 @@ from mythril.laser.ethereum.keccak import KeccakFunctionManager
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
-keccak_function_manager: KeccakFunctionManager = KeccakFunctionManager()
+keccak_function_manager = KeccakFunctionManager()
 
 
 class StackUnderflowException(Exception):
