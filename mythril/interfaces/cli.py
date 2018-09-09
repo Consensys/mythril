@@ -221,7 +221,7 @@ def main():
                     'text': report.as_text(),
                     'markdown': report.as_markdown()
                 }
-                print(outputs[args.outform])
+                print(outputs[args.outform].encode('utf-8'))
 
         elif args.statespace_json:
 
