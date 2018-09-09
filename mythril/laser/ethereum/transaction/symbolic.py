@@ -3,8 +3,8 @@ from z3 import BitVec, Extract, Not
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.ethereum.state import CalldataType
-from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction, get_next_transaction_id
-
+from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction,\
+    get_next_transaction_id
 
 
 def execute_message_call(laser_evm, callee_address):

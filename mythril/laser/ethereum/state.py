@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal
+from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
@@ -41,6 +41,8 @@ class Storage:
     def __setitem__(self, key, value):
         self._storage[key] = value
 
+    def keys(self):
+        return self._storage.keys()
 
 class Account:
     """
@@ -218,7 +220,7 @@ class GlobalState:
         transaction_id = self.current_transaction.id
         node_id = self.node.uid
 
-        return BitVec("{}_{}_{}".format(transaction_id, node_id, name), size)
+        return BitVec("{}_{}".format(transaction_id, name), size)
 
 class WorldState:
     """
