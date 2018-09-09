@@ -30,17 +30,28 @@ class StopSignal(Exception):
 class PCMutator(object):
     """ Wrapper that handles copy and original return """
 
-    def __init__(self, auto_increment=True):
-        self.auto_increment = auto_increment
+    def __init__(self, increment_pc=True):
+        self.increment_pc = increment_pc
+
+    @staticmethod
+    def call_on_state_copy(func, func_obj, state):
+        global_state_copy = copy(state)
+        return func(func_obj, global_state_copy)
+
+    def increment_states_pc(self, states):
+        if self.increment_pc:
+            for state in states:
+                state.mstate.pc += 1
+        return states
 
     def __call__(self, func):
-        def wrapper(obj, global_state):
-            global_state_copy = copy(global_state)
-            new_global_states = func(obj, global_state_copy)
-            if self.auto_increment:
-                for state in new_global_states:
-                    state.mstate.pc += 1
-            return new_global_states
+        def wrapper(func_obj, global_state):
+            new_global_states = self.call_on_state_copy(
+                func,
+                func_obj,
+                global_state
+            )
+            return self.increment_states_pc(new_global_states)
         return wrapper
 
 
@@ -775,7 +786,7 @@ class Instruction:
             logging.debug("Error writing to storage: Invalid index")
         return [global_state]
 
-    @PCMutator(auto_increment=False)
+    @PCMutator(increment_pc=False)
     def jump_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
@@ -804,7 +815,7 @@ class Instruction:
 
         return [new_state]
 
-    @PCMutator(auto_increment=False)
+    @PCMutator(increment_pc=False)
     def jumpi_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
