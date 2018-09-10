@@ -1,5 +1,6 @@
 import pytest
 from mythril.laser.ethereum.state import MachineState
+from mythril.laser.ethereum.exceptions import StackUnderflowException
 
 memory_extension_test_data = [
     (0, 0, 10),
@@ -37,7 +38,7 @@ def test_stack_pop_too_many(initial_size, overflow):
     machine_state.stack = [42] * initial_size
 
     # Act + Assert
-    with pytest.raises(IndexError):
+    with pytest.raises(StackUnderflowException):
         machine_state.pop(initial_size + overflow)
 
 

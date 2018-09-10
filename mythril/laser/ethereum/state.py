@@ -129,24 +129,31 @@ class Environment:
 class MachineStack(list):
 
     def __init__(self):
-        super(MachineStack, self).__init__([])
+        super(MachineStack, self).__init__()
 
     def append(self, element):
         if super(MachineStack, self).__len__() >= STACK_LIMIT:
-            raise StackOverflowException
+            raise StackOverflowException("Reached the EVM stack limit of {}, you can't append more "
+                                         "elements".format(STACK_LIMIT))
         super(MachineStack, self).append(element)
 
-    def pop(self):
+    def pop(self, index=-1):
         try:
-            return super(MachineStack, self).pop()
+            return super(MachineStack, self).pop(index)
         except IndexError:
-            raise StackUnderflowException
+            raise StackUnderflowException("Trying to pop from an empty stack")
 
     def __getitem__(self, item):
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
-            raise StackUnderflowException
+            raise StackUnderflowException("Trying to access a stack element which doesn't exist")
+
+    def __add__(self, other):
+        raise Exception('Implement this if needed')
+
+    def __iadd__(self, other):
+        raise Exception('Implement this if needed')
 
 
 class MachineState:
@@ -181,7 +188,7 @@ class MachineState:
     def pop(self, amount=1):
         """ Pops amount elements from the stack"""
         if amount >= len(self.stack):
-            raise IndexError()
+            raise StackUnderflowException
         values = self.stack[-amount:][::-1]
         del self.stack[-amount:]
 

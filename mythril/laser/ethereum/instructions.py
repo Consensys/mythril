@@ -11,6 +11,7 @@ import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.state import GlobalState, CalldataType
+from mythril.laser.ethereum.exceptions import StackUnderflowException
 import mythril.laser.ethereum.natives as natives
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
@@ -83,10 +84,7 @@ class Instruction:
     @instruction
     def dup_(self, global_state):
         value = int(global_state.get_current_instruction()['opcode'][3:], 10)
-        try:
-            global_state.mstate.stack.append(global_state.mstate.stack[-value])
-        except IndexError:
-            raise VmException('Trying to duplicate out of bounds stack elements')
+        global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
     @instruction
@@ -669,10 +667,7 @@ class Instruction:
     @instruction
     def mstore_(self, global_state):
         state = global_state.mstate
-        try:
-            op0, value = state.stack.pop(), state.stack.pop()
-        except IndexError:
-            raise VmException('Stack underflow exception')
+        op0, value = state.stack.pop(), state.stack.pop()
 
         try:
             mstart = util.get_concrete_int(op0)
@@ -771,7 +766,7 @@ class Instruction:
         except AttributeError:
             logging.debug("Invalid jump argument (symbolic address)")
             return []
-        except IndexError:  # Stack Underflow
+        except StackUnderflowException:
             return []
 
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
