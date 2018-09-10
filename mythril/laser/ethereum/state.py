@@ -3,6 +3,10 @@ from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 
+from mythril.laser.ethereum.exceptions import StackOverflowException, StackUnderflowException
+
+STACK_LIMIT = 1024
+
 
 class CalldataType(Enum):
     CONCRETE = 1
@@ -122,6 +126,29 @@ class Environment:
                     calldata_type=self.calldata_type)
 
 
+class MachineStack(list):
+
+    def __init__(self):
+        super(MachineStack, self).__init__([])
+
+    def append(self, element):
+        if super(MachineStack, self).__len__() >= STACK_LIMIT:
+            raise StackOverflowException
+        super(MachineStack, self).append(element)
+
+    def pop(self):
+        try:
+            return super(MachineStack, self).pop()
+        except IndexError:
+            raise StackUnderflowException
+
+    def __getitem__(self, item):
+        try:
+            return super(MachineStack, self).__getitem__(item)
+        except IndexError:
+            raise StackUnderflowException
+
+
 class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
@@ -129,7 +156,7 @@ class MachineState:
     def __init__(self, gas):
         """ Constructor for machineState """
         self.pc = 0
-        self.stack = []
+        self.stack = MachineStack()
         self.memory = []
         self.gas = gas
         self.constraints = []

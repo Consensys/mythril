@@ -14,7 +14,7 @@ from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
-from mythril.laser.ethereum.exceptions import VmException, StackUnderflowException
+from mythril.laser.ethereum.exceptions import VmException
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -92,51 +92,41 @@ class Instruction:
     @instruction
     def swap_(self, global_state):
         depth = int(self.op_code[4:])
-        try:
-            stack = global_state.mstate.stack
-            stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
-        except IndexError:
-            raise StackUnderflowException
+        stack = global_state.mstate.stack
+        stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         return [global_state]
 
     @instruction
     def pop_(self, global_state):
-        try:
-            global_state.mstate.stack.pop()
-        except IndexError:
-            raise StackUnderflowException
+        global_state.mstate.stack.pop()
         return [global_state]
 
     @instruction
     def and_(self, global_state):
-        try:
-            stack = global_state.mstate.stack
-            op1, op2 = stack.pop(), stack.pop()
-            if type(op1) == BoolRef:
-                op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
-            if type(op2) == BoolRef:
-                op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        stack = global_state.mstate.stack
+        op1, op2 = stack.pop(), stack.pop()
+        if type(op1) == BoolRef:
+            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+        if type(op2) == BoolRef:
+            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
-            stack.append(op1 & op2)
-        except IndexError:
-            raise StackUnderflowException
+        stack.append(op1 & op2)
+
         return [global_state]
 
     @instruction
     def or_(self, global_state):
         stack = global_state.mstate.stack
-        try:
-            op1, op2 = stack.pop(), stack.pop()
+        op1, op2 = stack.pop(), stack.pop()
 
-            if type(op1) == BoolRef:
-                op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+        if type(op1) == BoolRef:
+            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-            if type(op2) == BoolRef:
-                op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        if type(op2) == BoolRef:
+            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
-            stack.append(op1 | op2)
-        except IndexError:  # Stack underflow
-            raise StackUnderflowException
+        stack.append(op1 | op2)
+
         return [global_state]
 
     @instruction
