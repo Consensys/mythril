@@ -185,6 +185,10 @@ class LaserEVM:
         elif opcode == "JUMPI":
             for state in new_states:
                 self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
+        elif opcode in ("SLOAD", "SSTORE") and len(new_states) > 1:
+            for state in new_states:
+                self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
+
         elif opcode in ("CALL", 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
             assert len(new_states) <= 1
             for state in new_states:

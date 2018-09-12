@@ -2,21 +2,23 @@ import binascii
 import logging
 from copy import copy, deepcopy
 
-import ethereum.opcodes as opcodes
 from ethereum import utils
-from z3 import BitVec, Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef, URem, SRem
-from z3 import BitVecVal, If, BoolRef
+from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
+    is_false, is_expr, ExprRef, URem, SRem, BitVec, Solver, is_true, BitVecVal, If, BoolRef, Or
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
-from mythril.laser.ethereum.state import GlobalState, MachineState, Environment, CalldataType
+from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
-from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionEndSignal, TransactionStartSignal, ContractCreationTransaction
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, ContractCreationTransaction
+from mythril.laser.ethereum.keccak import KeccakFunctionManager
+
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
+
+keccak_function_manager = KeccakFunctionManager()
 
 
 class StackUnderflowException(Exception):
@@ -162,7 +164,7 @@ class Instruction:
                 result = 0
         except AttributeError:
             logging.debug("BYTE: Unsupported symbolic byte offset")
-            result = BitVec(str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256)
+            result = global_state.new_bitvec(str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256)
 
         mstate.stack.append(result)
         return [global_state]
@@ -236,7 +238,7 @@ class Instruction:
 
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
-            state.stack.append(BitVec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
+            state.stack.append(global_state.new_bitvec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
         else:
             state.stack.append(pow(base.as_long(), exponent.as_long(), 2**256))
 
@@ -343,12 +345,12 @@ class Instruction:
             b = environment.calldata[offset]
         except AttributeError:
             logging.debug("CALLDATALOAD: Unsupported symbolic index")
-            state.stack.append(BitVec(
+            state.stack.append(global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
             return [global_state]
         except IndexError:
             logging.debug("Calldata not set, using symbolic variable instead")
-            state.stack.append(BitVec(
+            state.stack.append(global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
             return [global_state]
 
@@ -363,11 +365,11 @@ class Instruction:
                 state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
             # FIXME: broad exception catch
             except:
-                state.stack.append(BitVec(
+                state.stack.append(global_state.new_bitvec(
                     "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
         else:
             # symbolic variable
-            state.stack.append(BitVec(
+            state.stack.append(global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
 
         return [global_state]
@@ -377,7 +379,7 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         if environment.calldata_type == CalldataType.SYMBOLIC:
-            state.stack.append(BitVec("calldatasize_" + environment.active_account.contract_name, 256))
+            state.stack.append(global_state.new_bitvec("calldatasize_" + environment.active_account.contract_name, 256))
         else:
             state.stack.append(BitVecVal(len(environment.calldata), 256))
         return [global_state]
@@ -415,7 +417,7 @@ class Instruction:
 
         if dstart_sym or size_sym:
             state.mem_extend(mstart, 1)
-            state.memory[mstart] = BitVec(
+            state.memory[mstart] = global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
                     size) + "]", 256)
             return [global_state]
@@ -427,7 +429,7 @@ class Instruction:
             except:
                 logging.debug("Memory allocation error: mstart = " + str(mstart) + ", size = " + str(size))
                 state.mem_extend(mstart, 1)
-                state.memory[mstart] = BitVec(
+                state.memory[mstart] = global_state.new_bitvec(
                     "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
                         size) + "]", 256)
                 return [global_state]
@@ -441,7 +443,7 @@ class Instruction:
             except:
                 logging.debug("Exception copying calldata to memory")
 
-                state.memory[mstart] = BitVec(
+                state.memory[mstart] = global_state.new_bitvec(
                     "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
                         size) + "]", 256)
         return [global_state]
@@ -458,7 +460,7 @@ class Instruction:
     def balance_(self, global_state):
         state = global_state.mstate
         address = state.stack.pop()
-        state.stack.append(BitVec("balance_at_" + str(address), 256))
+        state.stack.append(global_state.new_bitvec("balance_at_" + str(address), 256))
         return [global_state]
 
     @instruction
@@ -485,6 +487,8 @@ class Instruction:
 
     @instruction
     def sha3_(self, global_state):
+        global keccak_function_manager
+
         state = global_state.mstate
         environment = global_state.environment
         op0, op1 = state.stack.pop(), state.stack.pop()
@@ -507,23 +511,22 @@ class Instruction:
                 i += 1
             # FIXME: broad exception catch
         except:
+            argument = str(state.memory[index]).replace(" ", "_")
 
-            svar = str(state.memory[index])
-
-            svar = svar.replace(" ", "_")
-
-            state.stack.append(BitVec("keccac_" + svar, 256))
+            result = BitVec("KECCAC[{}]".format(argument), 256)
+            keccak_function_manager.add_keccak(result, state.memory[index])
+            state.stack.append(result)
             return [global_state]
 
-        keccac = utils.sha3(utils.bytearray_to_bytestr(data))
-        logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccac)))
+        keccak = utils.sha3(utils.bytearray_to_bytestr(data))
+        logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
-        state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccac, 0), 256))
+        state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
         return [global_state]
 
     @instruction
     def gasprice_(self, global_state):
-        global_state.mstate.stack.append(BitVec("gasprice", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
         return [global_state]
 
     @instruction
@@ -543,7 +546,7 @@ class Instruction:
             # except both attribute error and Exception
             global_state.mstate.mem_extend(concrete_memory_offset, 1)
             global_state.mstate.memory[concrete_memory_offset] = \
-                BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+                global_state.new_bitvec("code({})".format(global_state.environment.active_account.contract_name), 256)
             return [global_state]
 
         try:
@@ -553,7 +556,7 @@ class Instruction:
             global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
             for i in range(concrete_size):
                 global_state.mstate.memory[concrete_memory_offset + i] = \
-                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+                    global_state.new_bitvec("code({})".format(global_state.environment.active_account.contract_name), 256)
             return [global_state]
 
         bytecode = global_state.environment.code.bytecode
@@ -562,7 +565,7 @@ class Instruction:
             if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
                 global_state.mstate.mem_extend(concrete_memory_offset, 1)
                 global_state.mstate.memory[concrete_memory_offset] = \
-                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+                    global_state.new_bitvec("code({})".format(global_state.environment.active_account.contract_name), 256)
                 return [global_state]
 
         for i in range(concrete_size):
@@ -571,7 +574,7 @@ class Instruction:
                     int(bytecode[2*(concrete_code_offset + i): 2*(concrete_code_offset + i + 1)], 16)
             else:
                 global_state.mstate.memory[concrete_memory_offset + i] = \
-                    BitVec("code({})".format(global_state.environment.active_account.contract_name), 256)
+                    global_state.new_bitvec("code({})".format(global_state.environment.active_account.contract_name), 256)
 
         return [global_state]
 
@@ -584,14 +587,14 @@ class Instruction:
             addr = hex(helper.get_concrete_int(addr))
         except AttributeError:
             logging.info("unsupported symbolic address for EXTCODESIZE")
-            state.stack.append(BitVec("extcodesize_" + str(addr), 256))
+            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
         try:
             code = self.dynamic_loader.dynld(environment.active_account.address, addr)
         except Exception as e:
             logging.info("error accessing contract storage due to: " + str(e))
-            state.stack.append(BitVec("extcodesize_" + str(addr), 256))
+            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
         if code is None:
@@ -611,39 +614,39 @@ class Instruction:
 
     @instruction
     def returndatasize_(self, global_state):
-        global_state.mstate.stack.append(BitVec("returndatasize", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("returndatasize", 256))
         return [global_state]
 
     @instruction
     def blockhash_(self, global_state):
         state = global_state.mstate
         blocknumber = state.stack.pop()
-        state.stack.append(BitVec("blockhash_block_" + str(blocknumber), 256))
+        state.stack.append(global_state.new_bitvec("blockhash_block_" + str(blocknumber), 256))
         return [global_state]
 
     @instruction
     def coinbase_(self, global_state):
-        global_state.mstate.stack.append(BitVec("coinbase", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("coinbase", 256))
         return [global_state]
 
     @instruction
     def timestamp_(self, global_state):
-        global_state.mstate.stack.append(BitVec("timestamp", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("timestamp", 256))
         return [global_state]
 
     @instruction
     def number_(self, global_state):
-        global_state.mstate.stack.append(BitVec("block_number", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
         return [global_state]
 
     @instruction
     def difficulty_(self, global_state):
-        global_state.mstate.stack.append(BitVec("block_difficulty", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("block_difficulty", 256))
         return [global_state]
 
     @instruction
     def gaslimit_(self, global_state):
-        global_state.mstate.stack.append(BitVec("block_gaslimit", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("block_gaslimit", 256))
         return [global_state]
 
     # Memory operations
@@ -658,14 +661,14 @@ class Instruction:
             offset = util.get_concrete_int(op0)
         except AttributeError:
             logging.debug("Can't MLOAD from symbolic index")
-            data = BitVec("mem[" + str(simplify(op0)) + "]", 256)
+            data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
             return [global_state]
 
         try:
             data = util.concrete_int_from_bytes(state.memory, offset)
         except IndexError:  # Memory slot not allocated
-            data = BitVec("mem[" + str(offset) + "]", 256)
+            data = global_state.new_bitvec("mem[" + str(offset) + "]", 256)
         except TypeError:  # Symbolic memory
             data = state.memory[offset]
 
@@ -730,26 +733,68 @@ class Instruction:
 
     @instruction
     def sload_(self, global_state):
+        global keccak_function_manager
+        
         state = global_state.mstate
         index = state.stack.pop()
         logging.debug("Storage access at index " + str(index))
 
         try:
             index = util.get_concrete_int(index)
-        except AttributeError:
-            index = str(index)
+            return self._sload_helper(global_state, index)
 
+        except AttributeError:
+            if not keccak_function_manager.is_keccak(index):
+                return self._sload_helper(global_state, str(index))
+
+            storage_keys = global_state.environment.active_account.storage.keys()
+            keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
+
+            results = []
+            constraints = []
+
+            for keccak_key in keccak_keys:
+                key_argument = keccak_function_manager.get_argument(keccak_key)
+                index_argument = keccak_function_manager.get_argument(index)
+                constraints.append((keccak_key, key_argument == index_argument))
+
+            for (keccak_key, constraint) in constraints:
+                if constraint in state.constraints:
+                    results += self._sload_helper(global_state, keccak_key, [constraint])
+            if len(results) > 0:
+                return results
+
+            for (keccak_key, constraint) in constraints:
+                results += self._sload_helper(copy(global_state), keccak_key, [constraint])
+            if len(results) > 0:
+                return results
+            
+            return self._sload_helper(global_state, str(index))
+
+    def _sload_helper(self, global_state, index, constraints=None):
         try:
             data = global_state.environment.active_account.storage[index]
         except KeyError:
-            data = BitVec("storage_" + str(index), 256)
+            data = global_state.new_bitvec("storage_" + str(index), 256)
             global_state.environment.active_account.storage[index] = data
 
-        state.stack.append(data)
+        if constraints is not None:
+            global_state.mstate.constraints += constraints
+
+        global_state.mstate.stack.append(data)
         return [global_state]
+
+    def _get_constraints(self, keccak_keys, this_key, argument):
+        global keccak_function_manager
+        for keccak_key in keccak_keys:
+            if keccak_key == this_key:
+                continue
+            keccak_argument = keccak_function_manager.get_argument(keccak_key)
+            yield keccak_argument != argument
 
     @instruction
     def sstore_(self, global_state):
+        global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
 
@@ -757,17 +802,52 @@ class Instruction:
 
         try:
             index = util.get_concrete_int(index)
+            return self._sstore_helper(global_state, index, value)
         except AttributeError:
-            index = str(index)
+            is_keccak = keccak_function_manager.is_keccak(index)
+            if not is_keccak:
+                return self._sstore_helper(global_state, str(index), value)
 
+            storage_keys = global_state.environment.active_account.storage.keys()
+            keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
+
+            solver = Solver()
+            solver.set(timeout=1000)
+
+            results = []
+            new = False
+
+            for keccak_key in keccak_keys:
+                key_argument = keccak_function_manager.get_argument(keccak_key)
+                index_argument = keccak_function_manager.get_argument(index)
+
+                if is_true(key_argument == index_argument):
+                    return self._sstore_helper(copy(global_state), keccak_key, value, key_argument == index_argument)
+
+                results += self._sstore_helper(copy(global_state), keccak_key, value, key_argument == index_argument)
+
+                new = Or(new, key_argument != index_argument)
+
+            if len(results) > 0:
+                results += self._sstore_helper(copy(global_state), str(index), value, new)
+                return results
+
+            return self._sstore_helper(global_state, str(index), value)
+
+    def _sstore_helper(self, global_state, index, value, constraint=None):
         try:
             global_state.environment.active_account = deepcopy(global_state.environment.active_account)
             global_state.accounts[
                 global_state.environment.active_account.address] = global_state.environment.active_account
 
-            global_state.environment.active_account.storage[index] = value
+            global_state.environment.active_account.storage[index] =\
+                value if not isinstance(value, ExprRef) else simplify(value)
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
+
+        if constraint is not None:
+            global_state.mstate.constraints.append(constraint)
+
         return [global_state]
 
     @instruction
@@ -856,12 +936,12 @@ class Instruction:
 
     @instruction
     def msize_(self, global_state):
-        global_state.mstate.stack.append(BitVec("msize", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
         return [global_state]
 
     @instruction
     def gas_(self, global_state):
-        global_state.mstate.stack.append(BitVec("gas", 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
     @instruction
@@ -887,7 +967,7 @@ class Instruction:
     def return_(self, global_state):
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [BitVec("return_data", 256)]
+        return_data = [global_state.new_bitvec("return_data", 256)]
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
         except AttributeError:
@@ -927,9 +1007,9 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
 
         if 0 < int(callee_address, 16) < 5:
             logging.info("Native contract called: " + callee_address)
@@ -951,7 +1031,7 @@ class Instruction:
             except natives.NativeContractException:
                 contract_list = ['ecerecover', 'sha256', 'ripemd160', 'identity']
                 for i in range(mem_out_sz):
-                    global_state.mstate.memory[mem_out_start + i] = BitVec(contract_list[call_address_int - 1] +
+                    global_state.mstate.memory[mem_out_start + i] = global_state.new_bitvec(contract_list[call_address_int - 1] +
                                                                            "(" + str(call_data) + ")", 256)
 
                 return [global_state]
@@ -965,11 +1045,11 @@ class Instruction:
         transaction = MessageCallTransaction(global_state.world_state,
                                              callee_account,
                                              BitVecVal(int(environment.active_account.address, 16), 256),
-                                             call_data,
-                                             environment.gasprice,
-                                             value,
-                                             environment.origin,
-                                             call_data_type)
+                                             call_data=call_data,
+                                             gas_price=environment.gasprice,
+                                             call_value=value,
+                                             origin=environment.origin,
+                                             call_data_type=call_data_type)
         raise TransactionStartSignal(transaction, self.op_code)
 
     @instruction
@@ -983,12 +1063,12 @@ class Instruction:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         if global_state.last_return_data is None:
             # Put return value on stack
-            return_value = BitVec("retval_" + str(instr['address']), 256)
+            return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
@@ -998,7 +1078,7 @@ class Instruction:
             memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
             memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
         except AttributeError:
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         # Copy memory
@@ -1007,7 +1087,7 @@ class Instruction:
             global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
 
         # Put return value on stack
-        return_value = BitVec("retval_" + str(instr['address']), 256)
+        return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
 
@@ -1025,18 +1105,18 @@ class Instruction:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         transaction = MessageCallTransaction(global_state.world_state,
                                              environment.active_account,
                                              environment.address,
-                                             call_data,
-                                             environment.gasprice,
-                                             value,
-                                             environment.origin,
-                                             call_data_type,
-                                             callee_account.code
+                                             call_data=call_data,
+                                             gas_price=environment.gasprice,
+                                             call_value=value,
+                                             origin=environment.origin,
+                                             call_data_type=call_data_type,
+                                             code=callee_account.code
                                              )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1051,12 +1131,12 @@ class Instruction:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         if global_state.last_return_data is None:
             # Put return value on stack
-            return_value = BitVec("retval_" + str(instr['address']), 256)
+            return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
@@ -1066,7 +1146,7 @@ class Instruction:
             memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
             memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
         except AttributeError:
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         # Copy memory
@@ -1075,7 +1155,7 @@ class Instruction:
             global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
 
         # Put return value on stack
-        return_value = BitVec("retval_" + str(instr['address']), 256)
+        return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
 
@@ -1094,18 +1174,18 @@ class Instruction:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         transaction = MessageCallTransaction(global_state.world_state,
                                              environment.active_account,
                                              environment.sender,
                                              call_data,
-                                             environment.gasprice,
-                                             environment.callvalue,
-                                             environment.origin,
-                                             call_data_type,
-                                             callee_account.code
+                                             gas_price=environment.gasprice,
+                                             call_value=environment.callvalue,
+                                             origin=environment.origin,
+                                             call_data_type=call_data_type,
+                                             code=callee_account.code
                                              )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1121,12 +1201,12 @@ class Instruction:
             logging.info(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
         if global_state.last_return_data is None:
             # Put return value on stack
-            return_value = BitVec("retval_" + str(instr['address']), 256)
+            return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
@@ -1138,7 +1218,7 @@ class Instruction:
             memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size,
                                                                                    ExprRef) else memory_out_size
         except AttributeError:
-            global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+            global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
             # Copy memory
@@ -1148,7 +1228,7 @@ class Instruction:
             global_state.mstate.memory[i + memory_out_offset] = global_state.last_return_data[i]
 
         # Put return value on stack
-        return_value = BitVec("retval_" + str(instr['address']), 256)
+        return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
 
@@ -1158,5 +1238,6 @@ class Instruction:
     def staticcall_(self, global_state):
         # TODO: implement me
         instr = global_state.get_current_instruction()
-        global_state.mstate.stack.append(BitVec("retval_" + str(instr['address']), 256))
+        global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
         return [global_state]
+
