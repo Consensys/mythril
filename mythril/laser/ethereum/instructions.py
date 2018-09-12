@@ -158,12 +158,15 @@ class Instruction:
         try:
             index = util.get_concrete_int(op0)
             offset = (31 - index) * 8
-            result = Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1))
+            if offset >= 0:
+                result = simplify(Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1)))
+            else:
+                result = 0
         except AttributeError:
             logging.debug("BYTE: Unsupported symbolic byte offset")
             result = global_state.new_bitvec(str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256)
 
-        mstate.stack.append(simplify(result))
+        mstate.stack.append(result)
         return [global_state]
 
     # Arithmetic
