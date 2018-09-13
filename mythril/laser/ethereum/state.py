@@ -143,7 +143,10 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        self.memory += [0] * max(0, start + size - self.memory_size)
+        if self.memory_size > start + size:
+            return
+        m_extend = (start + size - self.memory_size)
+        self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset, data):
         """ Writes data to memory starting at offset """

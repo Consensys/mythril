@@ -11,22 +11,15 @@ from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
-from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, ContractCreationTransaction
+from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
+    ContractCreationTransaction
+from mythril.laser.ethereum.exceptions import VmException, StackUnderflowException
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
 keccak_function_manager = KeccakFunctionManager()
-
-
-class StackUnderflowException(Exception):
-    pass
-
-
-class StopSignal(Exception):
-    pass
 
 
 def instruction(func):
@@ -77,14 +70,25 @@ class Instruction:
 
     @instruction
     def push_(self, global_state):
-        value = BitVecVal(int(global_state.get_current_instruction()['argument'][2:], 16), 256)
-        global_state.mstate.stack.append(value)
+        push_instruction = global_state.get_current_instruction()
+        push_value = push_instruction['argument'][2:]
+
+        try:
+            length_of_value = 2*int(push_instruction['opcode'][4:])
+        except ValueError:
+            raise VmException('Invalid Push instruction')
+
+        push_value += "0" * max(length_of_value - len(push_value), 0)
+        global_state.mstate.stack.append(BitVecVal(int(push_value, 16), 256))
         return [global_state]
 
     @instruction
     def dup_(self, global_state):
         value = int(global_state.get_current_instruction()['opcode'][3:], 10)
-        global_state.mstate.stack.append(global_state.mstate.stack[-value])
+        try:
+            global_state.mstate.stack.append(global_state.mstate.stack[-value])
+        except IndexError:
+            raise VmException('Trying to duplicate out of bounds stack elements')
         return [global_state]
 
     @instruction
@@ -94,7 +98,7 @@ class Instruction:
             stack = global_state.mstate.stack
             stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         except IndexError:
-            raise StackUnderflowException()
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -102,7 +106,7 @@ class Instruction:
         try:
             global_state.mstate.stack.pop()
         except IndexError:
-            raise StackUnderflowException()
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -117,7 +121,7 @@ class Instruction:
 
             stack.append(op1 & op2)
         except IndexError:
-            raise StackUnderflowException()
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -134,7 +138,7 @@ class Instruction:
 
             stack.append(op1 | op2)
         except IndexError:  # Stack underflow
-            raise StackUnderflowException()
+            raise StackUnderflowException
         return [global_state]
 
     @instruction
@@ -504,13 +508,11 @@ class Instruction:
             return [global_state]
 
         try:
-            data = b''
+            state.mem_extend(index, length)
+            data = b''.join([util.get_concrete_int(i).to_bytes(1, byteorder='big')
+                             for i in state.memory[index: index + length]])
 
-            for i in range(index, index + length):
-                data += util.get_concrete_int(state.memory[i]).to_bytes(1, byteorder='big')
-                i += 1
-            # FIXME: broad exception catch
-        except:
+        except AttributeError:
             argument = str(state.memory[index]).replace(" ", "_")
 
             result = BitVec("KECCAC[{}]".format(argument), 256)
@@ -683,7 +685,7 @@ class Instruction:
         try:
             op0, value = state.stack.pop(), state.stack.pop()
         except IndexError:
-            raise StackUnderflowException()
+            raise VmException('Stack underflow exception')
 
         try:
             mstart = util.get_concrete_int(op0)
@@ -996,6 +998,7 @@ class Instruction:
 
     @instruction
     def call_(self, global_state):
+
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
