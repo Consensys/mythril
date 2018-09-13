@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal
+from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
@@ -41,6 +41,8 @@ class Storage:
     def __setitem__(self, key, value):
         self._storage[key] = value
 
+    def keys(self):
+        return self._storage.keys()
 
 class Account:
     """
@@ -217,17 +219,23 @@ class GlobalState:
     def instruction(self):
         return self.get_current_instruction()
 
+    def new_bitvec(self, name, size=256):
+        transaction_id = self.current_transaction.id
+        node_id = self.node.uid
+
+        return BitVec("{}_{}".format(transaction_id, name), size)
 
 class WorldState:
     """
     The WorldState class represents the world state as described in the yellow paper
     """
-    def __init__(self):
+    def __init__(self, transaction_sequence=None):
         """
         Constructor for the world state. Initializes the accounts record
         """
         self.accounts = {}
         self.node = None
+        self.transaction_sequence = transaction_sequence or []
 
     def __getitem__(self, item):
         """
@@ -238,7 +246,7 @@ class WorldState:
         return self.accounts[item]
 
     def __copy__(self):
-        new_world_state = WorldState()
+        new_world_state = WorldState(transaction_sequence=self.transaction_sequence[:])
         new_world_state.accounts = copy(self.accounts)
         new_world_state.node = self.node
         return new_world_state
