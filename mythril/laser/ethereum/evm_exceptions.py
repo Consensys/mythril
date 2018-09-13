@@ -10,5 +10,4 @@ class StackOverflowException(VmException):
     pass
 
 
-class StopSignal(Exception):
-    pass
+

@@ -52,7 +52,8 @@ class SolidityContract(ETHContract):
         has_contract = False
 
         # If a contract name has been specified, find the bytecode of that specific contract
-
+        srcmap_constructor = []
+        srcmap = []
         if name:
             for key, contract in sorted(data['contracts'].items()):
                 filename, _name = key.split(":")
@@ -61,6 +62,7 @@ class SolidityContract(ETHContract):
                     code = contract['bin-runtime']
                     creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
+                    srcmap_constructor = contract['srcmap'].split(";")
                     has_contract = True
                     break
 
@@ -74,6 +76,7 @@ class SolidityContract(ETHContract):
                     code = contract['bin-runtime']
                     creation_code = contract['bin']
                     srcmap = contract['srcmap-runtime'].split(";")
+                    srcmap_constructor = contract['srcmap'].split(";")
                     has_contract = True
 
         if not has_contract:
@@ -81,6 +84,31 @@ class SolidityContract(ETHContract):
 
         self.mappings = []
 
+        self.constructor_mappings = []
+
+        self._get_solc_mappings(srcmap)
+        self._get_solc_mappings(srcmap_constructor, constructor=True)
+
+        super().__init__(code, creation_code, name=name)
+
+    def get_source_info(self, address, constructor=False):
+        disassembly = self.creation_disassembly if constructor else self.disassembly
+        mappings = self.constructor_mappings if constructor else self.mappings
+        index = helper.get_instruction_index(disassembly.instruction_list, address)
+        solidity_file = self.solidity_files[mappings[index].solidity_file_idx]
+
+        filename = solidity_file.filename
+
+        offset = mappings[index].offset
+        length = mappings[index].length
+
+        code = solidity_file.data.encode('utf-8')[offset:offset + length].decode('utf-8', errors="ignore")
+        lineno = mappings[index].lineno
+
+        return SourceCodeInfo(filename, lineno, code)
+
+    def _get_solc_mappings(self, srcmap, constructor=False):
+        mappings = self.constructor_mappings if constructor else self.mappings
         for item in srcmap:
             mapping = item.split(":")
 
@@ -94,22 +122,4 @@ class SolidityContract(ETHContract):
                 idx = int(mapping[2])
             lineno = self.solidity_files[idx].data.encode('utf-8')[0:offset].count('\n'.encode('utf-8')) + 1
 
-            self.mappings.append(SourceMapping(idx, offset, length, lineno))
-
-        super().__init__(code, creation_code, name=name)
-
-    def get_source_info(self, address):
-
-        index = helper.get_instruction_index(self.disassembly.instruction_list, address)
-
-        solidity_file = self.solidity_files[self.mappings[index].solidity_file_idx]
-
-        filename = solidity_file.filename
-
-        offset = self.mappings[index].offset
-        length = self.mappings[index].length
-
-        code = solidity_file.data.encode('utf-8')[offset:offset + length].decode('utf-8')
-        lineno = self.mappings[index].lineno
-
-        return SourceCodeInfo(filename, lineno, code)
+            mappings.append(SourceMapping(idx, offset, length, lineno))

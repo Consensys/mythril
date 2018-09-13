@@ -8,6 +8,7 @@
     {% if not phrackify %}
     <style type="text/css">
         #mynetwork {
+          height: 100%;
             background-color: #232625;
         }
         body {
@@ -15,10 +16,14 @@
             color: #ffffff;
             font-size: 10px;
         }
+        html, body {
+          height: 95%;
+        }
     </style>
     {% else %}
     <style type="text/css">
         #mynetwork {
+            height: 100%;
             background-color: #ffffff;
         }
         body {
@@ -26,6 +31,9 @@
             color: #000000;
             font-size: 10px;
             font-family: "courier new";
+        }
+        html, body {
+          height: 95%;
         }
     </style>
     {% endif %}
@@ -38,7 +46,7 @@
 </head>
 <body>
 <p>{{ title }}</p>
-<p><div id="mynetwork"></div><br/></p>
+<div id="mynetwork"></div>
 <script type="text/javascript">
     var container = document.getElementById('mynetwork');
 

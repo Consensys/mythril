@@ -1,8 +1,8 @@
 pragma solidity ^0.4.17;
 
-contract metaCoin {
+contract MetaCoin {
 	mapping (address => uint) public balances;
-	function metaCoin() public {
+	function MetaCoin() public {
 		balances[msg.sender] = 10000;
 	}
 	

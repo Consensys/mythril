@@ -1,6 +1,6 @@
 import pytest
 from mythril.laser.ethereum.state import MachineState
-from mythril.laser.ethereum.exceptions import StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 
 memory_extension_test_data = [
     (0, 0, 10),

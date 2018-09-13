@@ -2,7 +2,7 @@ import logging
 from mythril.laser.ethereum.state import WorldState
 from mythril.laser.ethereum.transaction import TransactionStartSignal, TransactionEndSignal, \
     ContractCreationTransaction
-from mythril.laser.ethereum.exceptions import StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -182,6 +182,10 @@ class LaserEVM:
         elif opcode == "JUMPI":
             for state in new_states:
                 self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
+        elif opcode in ("SLOAD", "SSTORE") and len(new_states) > 1:
+            for state in new_states:
+                self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
+
         elif opcode in ("CALL", 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
             assert len(new_states) <= 1
             for state in new_states:

@@ -1,11 +1,9 @@
-from z3 import BitVec, BitVecVal
+from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 
-from mythril.laser.ethereum.exceptions import StackOverflowException, StackUnderflowException
-
-STACK_LIMIT = 1024
+from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
 
 
 class CalldataType(Enum):
@@ -45,6 +43,8 @@ class Storage:
     def __setitem__(self, key, value):
         self._storage[key] = value
 
+    def keys(self):
+        return self._storage.keys()
 
 class Account:
     """
@@ -127,17 +127,31 @@ class Environment:
 
 
 class MachineStack(list):
+    """
+    Defines EVM stack, overrides the default list to handle overflows
+    """
+    STACK_LIMIT = 1024
 
-    def __init__(self):
-        super(MachineStack, self).__init__()
+    def __init__(self, default_list=[]):
+        super(MachineStack, self).__init__(default_list)
 
     def append(self, element):
-        if super(MachineStack, self).__len__() >= STACK_LIMIT:
+        """
+        :param element: element to be appended to the list
+        :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
+        """
+        if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
             raise StackOverflowException("Reached the EVM stack limit of {}, you can't append more "
-                                         "elements".format(STACK_LIMIT))
+                                         "elements".format(self.STACK_LIMIT))
         super(MachineStack, self).append(element)
 
     def pop(self, index=-1):
+        """
+        :param index:index to be popped, same as the list() class.
+        :returns popped value
+        :function: same as list() class but throws StackUnderflowException for popping from an empty list
+        """
+
         try:
             return super(MachineStack, self).pop(index)
         except IndexError:
@@ -150,10 +164,16 @@ class MachineStack(list):
             raise StackUnderflowException("Trying to access a stack element which doesn't exist")
 
     def __add__(self, other):
-        raise Exception('Implement this if needed')
+        """
+        Implement list concatenation if needed
+        """
+        raise NotImplementedError('Implement this if needed')
 
     def __iadd__(self, other):
-        raise Exception('Implement this if needed')
+        """
+        Implement list concatenation if needed
+        """
+        raise NotImplementedError('Implement this if needed')
 
 
 class MachineState:
@@ -163,7 +183,7 @@ class MachineState:
     def __init__(self, gas):
         """ Constructor for machineState """
         self.pc = 0
-        self.stack = MachineStack()
+        self.stack = MachineStack([])
         self.memory = []
         self.gas = gas
         self.constraints = []
@@ -251,17 +271,23 @@ class GlobalState:
     def instruction(self):
         return self.get_current_instruction()
 
+    def new_bitvec(self, name, size=256):
+        transaction_id = self.current_transaction.id
+        node_id = self.node.uid
+
+        return BitVec("{}_{}".format(transaction_id, name), size)
 
 class WorldState:
     """
     The WorldState class represents the world state as described in the yellow paper
     """
-    def __init__(self):
+    def __init__(self, transaction_sequence=None):
         """
         Constructor for the world state. Initializes the accounts record
         """
         self.accounts = {}
         self.node = None
+        self.transaction_sequence = transaction_sequence or []
 
     def __getitem__(self, item):
         """
@@ -272,7 +298,7 @@ class WorldState:
         return self.accounts[item]
 
     def __copy__(self):
-        new_world_state = WorldState()
+        new_world_state = WorldState(transaction_sequence=self.transaction_sequence[:])
         new_world_state.accounts = copy(self.accounts)
         new_world_state.node = self.node
         return new_world_state

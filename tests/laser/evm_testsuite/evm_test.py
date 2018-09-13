@@ -1,4 +1,4 @@
-from mythril.laser.ethereum.exceptions import VmException
+from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state import Account
 from mythril.disassembler.disassembly import Disassembly
