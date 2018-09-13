@@ -21,9 +21,6 @@ TT256M1 = 2 ** 256 - 1
 
 keccak_function_manager = KeccakFunctionManager()
 
-class StopSignal(Exception):
-    pass
-
 
 def instruction(func):
     """ Wrapper that handles copy and original return """
