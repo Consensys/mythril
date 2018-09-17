@@ -60,7 +60,7 @@ class Account:
         :param concrete_storage: Interpret storage as concrete
         """
         self.nonce = 0
-        self.code = code if code is not None else Disassembly("")
+        self.code = code or Disassembly("")
         self.balance = balance if balance else BitVec("balance", 256)
         self.storage = Storage(concrete_storage, address=address, dynamic_loader=dynamic_loader)
 
