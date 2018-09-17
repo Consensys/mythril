@@ -183,7 +183,7 @@ class MachineState:
     def __init__(self, gas):
         """ Constructor for machineState """
         self.pc = 0
-        self.stack = MachineStack([])
+        self.stack = MachineStack()
         self.memory = []
         self.gas = gas
         self.constraints = []

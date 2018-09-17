@@ -1,3 +1,5 @@
+import pytest
+
 from mythril.laser.ethereum.state import MachineStack
 from mythril.laser.ethereum.evm_exceptions import *
 from tests import BaseTestCase
@@ -10,59 +12,45 @@ class MachineStackTest(BaseTestCase):
         mstack = MachineStack([1, 2])
         assert(mstack == [1, 2])
 
-        mstack = MachineStack([])
-        assert(mstack == [])
-
     @staticmethod
-    def test_mstack_append():
-        mstack = MachineStack([])
+    def test_mstack_append_single_element():
+        mstack = MachineStack()
+
         mstack.append(0)
+
         assert(mstack == [0])
 
-        for i in range(mstack.STACK_LIMIT-1):
+    @staticmethod
+    def test_mstack_append_multiple_elements():
+
+        mstack = MachineStack()
+
+        for i in range(mstack.STACK_LIMIT):
             mstack.append(1)
 
-        try:
+        with pytest.raises(StackOverflowException):
             mstack.append(1000)
-        except StackOverflowException:
-            return
-
-        assert False
 
     @staticmethod
     def test_mstack_pop():
-        mstack = MachineStack([0])
+        mstack = MachineStack([2])
 
-        mstack.append(110)
-        assert mstack.pop() == 110
+        assert mstack.pop() == 2
 
-        mstack.append(111)
-        assert mstack.pop(0) == 0
-
-        assert mstack.pop() == 111
-
-        try:
+        with pytest.raises(StackUnderflowException):
             mstack.pop()
-        except StackUnderflowException:
-            return
-
-        assert False
 
     @staticmethod
-    def test_mstack_no_support():
+    def test_mstack_no_support_add():
         mstack = MachineStack([0, 1])
-        success = False
-        try:
-            mstack += [0]
-        except NotImplementedError:
-            success = True
 
-        assert success
+        with pytest.raises(NotImplementedError):
+            mstack = mstack + [2]
 
-        try:
-            mstack = mstack + [0]
-        except NotImplementedError:
-            return
+    @staticmethod
+    def test_mstack_no_support_iadd():
+        mstack = MachineStack()
 
-        assert False
+        with pytest.raises(NotImplementedError):
+            mstack += mstack
 

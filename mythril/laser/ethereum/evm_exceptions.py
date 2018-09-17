@@ -2,7 +2,7 @@ class VmException(Exception):
     pass
 
 
-class StackUnderflowException(VmException):
+class StackUnderflowException(IndexError, VmException):
     pass
 
 
