@@ -52,29 +52,24 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
 
     # Act
     laser_evm.time = datetime.now()
-    try:
-        execute_message_call(
-            laser_evm,
-            callee_address=action['address'],
-            caller_address=action['caller'],
-            origin_address=action['origin'],
-            code=action['code'][2:],
-            gas=action['gas'],
-            data=binascii.a2b_hex(action['data'][2:]),
-            gas_price=int(action['gasPrice'], 16),
-            value=int(action['value'], 16)
-        )
-    except VmException as e:
-        if post_condition == {}:
-            return
-        else:
-            raise e
+    execute_message_call(
+        laser_evm,
+        callee_address=action['address'],
+        caller_address=action['caller'],
+        origin_address=action['origin'],
+        code=action['code'][2:],
+        gas=action['gas'],
+        data=binascii.a2b_hex(action['data'][2:]),
+        gas_price=int(action['gasPrice'], 16),
+        value=int(action['value'], 16)
+    )
 
     # Assert
-    if 'Suicide' not in test_name:
+    if 'Suicide' not in test_name and post_condition != {}:
         assert len(laser_evm.open_states) == 1
     else:
-        assert len(laser_evm.open_states) == 0
+        if 'Suicide' in test_name:
+            assert 0 == len(laser_evm.open_states)
         return
 
     world_state = laser_evm.open_states[0]
