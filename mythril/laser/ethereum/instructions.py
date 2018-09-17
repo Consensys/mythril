@@ -982,11 +982,13 @@ class Instruction:
 
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
+        if isinstance(target, BitVecNumRef):
+            target = '0x' + hex(target.as_long())[-40:]
         if isinstance(target, str):
             try:
                 global_state.world_state[target].balance += global_state.environment.active_account.balance
             except KeyError:
-                pass
+                global_state.world_state.create_account(address=target, balance=global_state.environment.active_account.balance)
 
         global_state.environment.active_account.balance = 0
         global_state.environment.active_account.deleted = True
