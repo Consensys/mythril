@@ -35,7 +35,7 @@ class Issue:
 
     def add_code_info(self, contract):
         if self.address:
-            codeinfo = contract.get_source_info(self.address)
+            codeinfo = contract.get_source_info(self.address, constructor=(self.function == 'constructor'))
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
