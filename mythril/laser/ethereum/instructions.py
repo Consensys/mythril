@@ -980,6 +980,8 @@ class Instruction:
     def suicide_(self, global_state):
         target = global_state.mstate.stack.pop()
 
+        # Often the target of the suicide instruction will be symbolic
+        # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, str):
             try:
                 global_state.world_state[target].balance += global_state.environment.active_account.balance
