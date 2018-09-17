@@ -978,7 +978,18 @@ class Instruction:
 
     @instruction
     def suicide_(self, global_state):
-        return []
+        target = global_state.mstate.stack.pop()
+
+        if isinstance(target, str):
+            try:
+                global_state.world_state[target].balance += global_state.environment.active_account.balance
+            except KeyError:
+                pass
+
+        global_state.environment.active_account.balance = 0
+        global_state.environment.active_account.deleted = True
+
+        global_state.current_transaction.end(global_state)
 
     @instruction
     def revert_(self, global_state):

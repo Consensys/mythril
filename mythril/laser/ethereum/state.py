@@ -67,6 +67,8 @@ class Account:
         self.address = address
         self.contract_name = contract_name
 
+        self.deleted = False
+
     def __str__(self):
         return str(self.as_dict)
 
