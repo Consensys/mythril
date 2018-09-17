@@ -13,7 +13,7 @@ from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
-from mythril.laser.ethereum.exceptions import VmException, StackUnderflowException
+from mythril.laser.ethereum.exceptions import VmException, StackUnderflowException, InvalidJumpDestination
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
 
 TT256 = 2 ** 256
@@ -859,21 +859,18 @@ class Instruction:
         try:
             jump_addr = util.get_concrete_int(state.stack.pop())
         except AttributeError:
-            logging.debug("Invalid jump argument (symbolic address)")
-            return []
-        except IndexError:  # Stack Underflow
-            return []
+            raise InvalidJumpDestination("Invalid jump argument (symbolic address)")
+        except IndexError:
+            raise StackUnderflowException()
 
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
         if index is None:
-            logging.debug("JUMP to invalid address")
-            return []
+            raise InvalidJumpDestination("JUMP to invalid address")
 
         op_code = disassembly.instruction_list[index]['opcode']
 
         if op_code != "JUMPDEST":
-            logging.debug("Skipping JUMP to invalid destination (not JUMPDEST): " + str(jump_addr))
-            return []
+            raise InvalidJumpDestination("Skipping JUMP to invalid destination (not JUMPDEST): " + str(jump_addr))
 
         new_state = copy(global_state)
         new_state.mstate.pc = index

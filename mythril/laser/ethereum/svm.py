@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from copy import copy
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 from functools import reduce
+from mythril.laser.ethereum.exceptions import VmException
 
 
 class SVMError(Exception):
@@ -120,6 +121,10 @@ class LaserEVM:
         try:
             self._measure_coverage(global_state)
             new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+
+        except VmException as e:
+            logging.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
+            new_global_states = []
 
         except TransactionStartSignal as e:
             # Setup new global state
