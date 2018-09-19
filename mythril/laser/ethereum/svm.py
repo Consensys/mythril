@@ -218,7 +218,7 @@ class LaserEVM:
                     new_node.flags |= NodeFlags.FUNC_ENTRY
             except IndexError:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
-        address = state.environment.code.instruction_list[state.mstate.pc - 1]['address']
+        address = state.environment.code.instruction_list[state.mstate.pc]['address']
 
         environment = state.environment
         disassembly = environment.code
