@@ -1,4 +1,5 @@
 from mythril.analysis.report import Issue
+from mythril.laser.ethereum.cfg import JumpType
 """
 MODULE DESCRIPTION:
 
@@ -50,7 +51,8 @@ def _explore_states(call, statespace):
 
 def _child_nodes(statespace, node):
     result = []
-    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid
+                and edge.type != JumpType.Transaction]
 
     for child in children:
         result.append(child)

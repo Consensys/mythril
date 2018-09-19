@@ -1,4 +1,5 @@
-from z3 import BitVec, BitVecVal
+from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
+from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
@@ -41,6 +42,8 @@ class Storage:
     def __setitem__(self, key, value):
         self._storage[key] = value
 
+    def keys(self):
+        return self._storage.keys()
 
 class Account:
     """
@@ -57,13 +60,15 @@ class Account:
         :param concrete_storage: Interpret storage as concrete
         """
         self.nonce = 0
-        self.code = code
+        self.code = code or Disassembly("")
         self.balance = balance if balance else BitVec("balance", 256)
         self.storage = Storage(concrete_storage, address=address, dynamic_loader=dynamic_loader)
 
         # Metadata
         self.address = address
         self.contract_name = contract_name
+
+        self.deleted = False
 
     def __str__(self):
         return str(self.as_dict)
@@ -141,7 +146,10 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        self.memory += [0] * max(0, start + size - self.memory_size)
+        if self.memory_size > start + size:
+            return
+        m_extend = (start + size - self.memory_size)
+        self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset, data):
         """ Writes data to memory starting at offset """
@@ -214,17 +222,23 @@ class GlobalState:
     def instruction(self):
         return self.get_current_instruction()
 
+    def new_bitvec(self, name, size=256):
+        transaction_id = self.current_transaction.id
+        node_id = self.node.uid
+
+        return BitVec("{}_{}".format(transaction_id, name), size)
 
 class WorldState:
     """
     The WorldState class represents the world state as described in the yellow paper
     """
-    def __init__(self):
+    def __init__(self, transaction_sequence=None):
         """
         Constructor for the world state. Initializes the accounts record
         """
         self.accounts = {}
         self.node = None
+        self.transaction_sequence = transaction_sequence or []
 
     def __getitem__(self, item):
         """
@@ -235,7 +249,7 @@ class WorldState:
         return self.accounts[item]
 
     def __copy__(self):
-        new_world_state = WorldState()
+        new_world_state = WorldState(transaction_sequence=self.transaction_sequence[:])
         new_world_state.accounts = copy(self.accounts)
         new_world_state.node = self.node
         return new_world_state

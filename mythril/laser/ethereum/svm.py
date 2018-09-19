@@ -10,9 +10,6 @@ from copy import copy
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 from functools import reduce
 
-TT256 = 2 ** 256
-TT256M1 = 2 ** 256 - 1
-
 
 class SVMError(Exception):
     pass
@@ -78,7 +75,6 @@ class LaserEVM:
 
             # Reset code coverage
             self.coverage = {}
-
             self.time = datetime.now()
             logging.info("Starting message call transaction")
             execute_message_call(self, created_account.address)
@@ -185,6 +181,10 @@ class LaserEVM:
         elif opcode == "JUMPI":
             for state in new_states:
                 self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
+        elif opcode in ("SLOAD", "SSTORE") and len(new_states) > 1:
+            for state in new_states:
+                self._new_node_state(state, JumpType.CONDITIONAL, state.mstate.constraints[-1])
+
         elif opcode in ("CALL", 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
             assert len(new_states) <= 1
             for state in new_states:

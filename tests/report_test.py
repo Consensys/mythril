@@ -24,7 +24,7 @@ def _fix_debug_data(json_str):
 
 def _generate_report(input_file):
     contract = ETHContract(input_file.read_text())
-    sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)), strategy="dfs")
+    sym = SymExecWrapper(contract, address=(util.get_indexed_address(0)), strategy="dfs", execution_timeout=30)
     issues = fire_lasers(sym)
 
     report = Report()

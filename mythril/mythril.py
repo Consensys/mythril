@@ -220,7 +220,7 @@ class Mythril(object):
 
     def set_api_rpc(self, rpc=None, rpctls=False):
         if rpc == 'ganache':
-            rpcconfig = ('localhost', 7545, False)
+            rpcconfig = ('localhost', 8545, False)
         else:
             m = re.match(r'infura-(.*)', rpc)
             if m and m.group(1) in ['mainnet', 'rinkeby', 'kovan', 'ropsten']:
