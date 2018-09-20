@@ -930,6 +930,8 @@ class Instruction:
             global_state.mstate.pc += 1
             return [global_state]
 
+        # False case
+
         # Prune constraints which aren't possible
         if type(condition) == BoolRef:
             negated = is_possible(state.constraints, simplify(Not(condition)))
