@@ -942,7 +942,7 @@ class Instruction:
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(simplify(Not(condition)))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
@@ -968,7 +968,7 @@ class Instruction:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
+                new_state.mstate.constraints.append(simplify(condition))
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
