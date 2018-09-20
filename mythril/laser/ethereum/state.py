@@ -1,4 +1,5 @@
 from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
+from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
@@ -59,7 +60,7 @@ class Account:
         :param concrete_storage: Interpret storage as concrete
         """
         self.nonce = 0
-        self.code = code
+        self.code = code or Disassembly("")
         self.balance = balance if balance else BitVec("balance", 256)
         self.storage = Storage(concrete_storage, address=address, dynamic_loader=dynamic_loader)
 
