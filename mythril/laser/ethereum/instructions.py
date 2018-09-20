@@ -932,8 +932,7 @@ class Instruction:
 
         # Prune constraints which aren't possible
         if type(condition) == BoolRef:
-            negated = simplify(Not(condition))
-            negated = is_possible(state.constraints, negated)
+            negated = is_possible(state.constraints, simplify(Not(condition)))
         else:
             negated = (condition == 0)
 
@@ -959,8 +958,7 @@ class Instruction:
 
             # Prune infeasible constraints
             if type(condition) == BoolRef:
-                condition = simplify(condition)
-                condi = is_possible(state.constraints, condition)
+                condi = is_possible(state.constraints, simplify(condition))
             else:
                 condi = (condition != 0)
 
