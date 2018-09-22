@@ -9,7 +9,7 @@
 
 Mythril OSS is the classic security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
 
-Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/dFHQGrE) will serve your needs!
+Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs!
 
 Oh and by the way, we're now building a whole security tools ecosystem with [Mythril Platform API](https://mythril.ai). You should definitely check that out as well.
 
@@ -33,7 +33,7 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 Instructions for using the 'myth' tool are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
 
-For support or general discussions please join the Mythril community on [Discord](https://discord.gg/dFHQGrE).
+For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
 ## Presentations, papers and videos
 
