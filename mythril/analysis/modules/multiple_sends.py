@@ -22,7 +22,7 @@ def execute(statespace):
             instruction = call.state.get_current_instruction()
             issue = Issue(node.contract_name, node.function_name, instruction['address'],
                           "Multiple Calls",
-                          "Information")
+                          "Informational")
 
             issue.description = \
                 "Multiple sends exist in one transaction, try to isolate each external call into its own transaction." \
