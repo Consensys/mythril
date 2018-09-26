@@ -10,4 +10,5 @@ class StackOverflowException(VmException):
     pass
 
 
-
+class InvalidJumpDestination(VmException):
+    pass
