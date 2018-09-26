@@ -147,6 +147,7 @@ class Constraints(list):
     def append(self, constraint):
         self.__possibility = None
         super(Constraints, self).append(constraint)
+        self.solver = copy(self.solver)
         self.solver.add(constraint)
 
     def pop(self, index=-1):
@@ -154,19 +155,18 @@ class Constraints(list):
 
     def __copy__(self):
         constraint_list = super(Constraints, self).copy()
-        solver = self.solver.translate(self.solver.ctx)
-        return Constraints(constraint_list, solver, self.__possibility)
+        return Constraints(constraint_list, self.solver, self.__possibility)
 
     def __deepcopy__(self, memodict={}):
         constraint_list = super(Constraints, self).copy()
-        solver = self.solver.translate(self.solver.ctx)
-        return Constraints(constraint_list, solver)
+        return Constraints(constraint_list, self.solver, self.__possibility)
 
     def __add__(self, constraints):
-        """
-        Implement constraint concatenation if needed
-        """
-        raise NotImplementedError
+        constraints_list = super(Constraints, self).__add__(constraints)
+        new_solver = copy(self.solver)
+        for constraint in constraints:
+            new_solver.add(constraint)
+        return Constraints(constraint_list=constraints_list, solver=new_solver)
 
     def __iadd__(self, other):
         """

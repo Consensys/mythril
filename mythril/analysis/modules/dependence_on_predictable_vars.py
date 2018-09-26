@@ -48,7 +48,7 @@ def execute(statespace):
 
         found = []
         for var in vars:
-            for constraint in call.node.constraints + [call.to]:
+            for constraint in call.node.constraints[:] + [call.to]:
                 if var in str(constraint):
                     found.append(var)
 
