@@ -2,15 +2,13 @@ from z3 import Solver, simplify, sat, unknown
 from mythril.exceptions import UnsatError
 import logging
 
-def get_model(constraints):
-    s = Solver()
-    s.set("timeout", 100000)
 
-    for constraint in constraints:
-        s.add(constraint)
-    result = s.check()
+def get_model(constraints):
+
+    constraints.solver.set("timeout", 10000)
+    result = constraints.solver.check()
     if result == sat:
-        return s.model()
+        return constraints.solver.model()
     elif result == unknown:
         logging.info("Timeout encountered while solving expression using z3")
     raise UnsatError

@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
+from z3 import BitVec, BitVecVal, Solver, ExprRef, sat, unsat
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
@@ -127,18 +127,64 @@ class Environment:
                     calldata_type=self.calldata_type)
 
 
+class Constraints(list):
+    def __init__(self, constraint_list=[], solver=None, possibility=None):
+        super(Constraints, self).__init__(constraint_list)
+        self.solver = solver or Solver()
+        self.solver.set("timeout", 1)
+        self.__possibility = possibility
+        if solver is None:
+            for constraint in constraint_list:
+                self.solver.add(constraint)
+
+    def check_possibility(self):
+        if self.__possibility is None:
+            self.__possibility = (self.solver.check() != unsat)
+        return self.__possibility
+
+    def append(self, constraint):
+        self.__possibility = None
+        super(Constraints, self).append(constraint)
+        self.solver.add(constraint)
+
+    def pop(self, index=-1):
+        raise NotImplementedError
+
+    def __copy__(self):
+        constraint_list = super(Constraints, self).copy()
+        solver = self.solver.translate(self.solver.ctx)
+        return Constraints(constraint_list, solver, self.__possibility)
+
+    def __deepcopy__(self, memodict={}):
+        constraint_list = super(Constraints, self).copy()
+        solver = self.solver.translate(self.solver.ctx)
+        return Constraints(constraint_list, solver)
+
+    def __add__(self, constraints):
+        """
+        Implement constraint concatenation if needed
+        """
+        raise NotImplementedError
+
+    def __iadd__(self, other):
+        """
+        Implement constraint concatenation if needed
+        """
+        raise NotImplementedError
+
+
 class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
     """
-    def __init__(self, gas):
+    def __init__(self, gas, pc=0, stack=[], memory=[], constraints=None, depth=0):
         """ Constructor for machineState """
-        self.pc = 0
-        self.stack = []
-        self.memory = []
+        self.pc = pc
+        self.stack = stack
+        self.memory = memory
         self.gas = gas
-        self.constraints = []
-        self.depth = 0
+        self.constraints = constraints or Constraints()
+        self.depth = depth
 
     def mem_extend(self, start, size):
         """
@@ -164,6 +210,10 @@ class MachineState:
         del self.stack[-amount:]
 
         return values[0] if amount == 1 else values
+
+    def __deepcopy__(self, memodict={}):
+        return MachineState(gas=self.gas, pc=self.pc, stack=copy(self.stack), memory=copy(self.memory),
+                            constraints=copy(self.constraints), depth=self.depth)
 
     def __str__(self):
         return str(self.as_dict)
