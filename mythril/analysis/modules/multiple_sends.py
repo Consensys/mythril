@@ -1,4 +1,5 @@
 from mythril.analysis.report import Issue
+from mythril.laser.ethereum.cfg import JumpType
 """
 MODULE DESCRIPTION:
 
@@ -21,7 +22,7 @@ def execute(statespace):
             instruction = call.state.get_current_instruction()
             issue = Issue(node.contract_name, node.function_name, instruction['address'],
                           "Multiple Calls",
-                          "Information")
+                          "Informational")
 
             issue.description = \
                 "Multiple sends exist in one transaction, try to isolate each external call into its own transaction." \
@@ -50,7 +51,8 @@ def _explore_states(call, statespace):
 
 def _child_nodes(statespace, node):
     result = []
-    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid]
+    children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid
+                and edge.type != JumpType.Transaction]
 
     for child in children:
         result.append(child)

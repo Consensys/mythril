@@ -65,6 +65,7 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
     )
 
     # Assert
+
     if 'Suicide' not in test_name and post_condition != {}:
         assert len(laser_evm.open_states) == 1
     else:
