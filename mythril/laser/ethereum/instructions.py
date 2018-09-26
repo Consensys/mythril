@@ -13,7 +13,7 @@ from mythril.laser.ethereum.state import GlobalState, CalldataType
 import mythril.laser.ethereum.natives as natives
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
-from mythril.laser.ethereum.exceptions import VmException, StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import VmException, StackUnderflowException, InvalidJumpDestination
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
 
 TT256 = 2 ** 256
@@ -106,60 +106,47 @@ class Instruction:
     @StateTransition()
     def dup_(self, global_state):
         value = int(global_state.get_current_instruction()['opcode'][3:], 10)
-        try:
-            global_state.mstate.stack.append(global_state.mstate.stack[-value])
-        except IndexError:
-            raise VmException('Trying to duplicate out of bounds stack elements')
+        global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
     @StateTransition()
     def swap_(self, global_state):
         depth = int(self.op_code[4:])
-        try:
-            stack = global_state.mstate.stack
-            stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
-        except IndexError:
-            raise StackUnderflowException
+        stack = global_state.mstate.stack
+        stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         return [global_state]
 
     @StateTransition()
     def pop_(self, global_state):
-        try:
-            global_state.mstate.stack.pop()
-        except IndexError:
-            raise StackUnderflowException
+        global_state.mstate.stack.pop()
         return [global_state]
 
     @StateTransition()
     def and_(self, global_state):
-        try:
-            stack = global_state.mstate.stack
-            op1, op2 = stack.pop(), stack.pop()
-            if type(op1) == BoolRef:
-                op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
-            if type(op2) == BoolRef:
-                op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        stack = global_state.mstate.stack
+        op1, op2 = stack.pop(), stack.pop()
+        if type(op1) == BoolRef:
+            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+        if type(op2) == BoolRef:
+            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
-            stack.append(op1 & op2)
-        except IndexError:
-            raise StackUnderflowException
+        stack.append(op1 & op2)
+
         return [global_state]
 
     @StateTransition()
     def or_(self, global_state):
         stack = global_state.mstate.stack
-        try:
-            op1, op2 = stack.pop(), stack.pop()
+        op1, op2 = stack.pop(), stack.pop()
 
-            if type(op1) == BoolRef:
-                op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+        if type(op1) == BoolRef:
+            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-            if type(op2) == BoolRef:
-                op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        if type(op2) == BoolRef:
+            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
-            stack.append(op1 | op2)
-        except IndexError:  # Stack underflow
-            raise StackUnderflowException
+        stack.append(op1 | op2)
+
         return [global_state]
 
     @StateTransition()
@@ -703,10 +690,7 @@ class Instruction:
     @StateTransition()
     def mstore_(self, global_state):
         state = global_state.mstate
-        try:
-            op0, value = state.stack.pop(), state.stack.pop()
-        except IndexError:
-            raise VmException('Stack underflow exception')
+        op0, value = state.stack.pop(), state.stack.pop()
 
         try:
             mstart = util.get_concrete_int(op0)
@@ -881,21 +865,18 @@ class Instruction:
         try:
             jump_addr = util.get_concrete_int(state.stack.pop())
         except AttributeError:
-            logging.debug("Invalid jump argument (symbolic address)")
-            return []
-        except IndexError:  # Stack Underflow
-            return []
+            raise InvalidJumpDestination("Invalid jump argument (symbolic address)")
+        except IndexError:
+            raise StackUnderflowException()
 
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
         if index is None:
-            logging.debug("JUMP to invalid address")
-            return []
+            raise InvalidJumpDestination("JUMP to invalid address")
 
         op_code = disassembly.instruction_list[index]['opcode']
 
         if op_code != "JUMPDEST":
-            logging.debug("Skipping JUMP to invalid destination (not JUMPDEST): " + str(jump_addr))
-            return []
+            raise InvalidJumpDestination("Skipping JUMP to invalid destination (not JUMPDEST): " + str(jump_addr))
 
         new_state = copy(global_state)
         new_state.mstate.pc = index

@@ -4,6 +4,8 @@ from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 
+from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
+
 
 class CalldataType(Enum):
     CONCRETE = 1
@@ -173,6 +175,56 @@ class Constraints(list):
         raise NotImplementedError
 
 
+class MachineStack(list):
+    """
+    Defines EVM stack, overrides the default list to handle overflows
+    """
+    STACK_LIMIT = 1024
+
+    def __init__(self, default_list=[]):
+        super(MachineStack, self).__init__(default_list)
+
+    def append(self, element):
+        """
+        :param element: element to be appended to the list
+        :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
+        """
+        if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
+            raise StackOverflowException("Reached the EVM stack limit of {}, you can't append more "
+                                         "elements".format(self.STACK_LIMIT))
+        super(MachineStack, self).append(element)
+
+    def pop(self, index=-1):
+        """
+        :param index:index to be popped, same as the list() class.
+        :returns popped value
+        :function: same as list() class but throws StackUnderflowException for popping from an empty list
+        """
+
+        try:
+            return super(MachineStack, self).pop(index)
+        except IndexError:
+            raise StackUnderflowException("Trying to pop from an empty stack")
+
+    def __getitem__(self, item):
+        try:
+            return super(MachineStack, self).__getitem__(item)
+        except IndexError:
+            raise StackUnderflowException("Trying to access a stack element which doesn't exist")
+
+    def __add__(self, other):
+        """
+        Implement list concatenation if needed
+        """
+        raise NotImplementedError('Implement this if needed')
+
+    def __iadd__(self, other):
+        """
+        Implement list concatenation if needed
+        """
+        raise NotImplementedError('Implement this if needed')
+
+
 class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
@@ -180,7 +232,7 @@ class MachineState:
     def __init__(self, gas, pc=0, stack=[], memory=[], constraints=None, depth=0):
         """ Constructor for machineState """
         self.pc = pc
-        self.stack = stack
+        self.stack = MachineStack(stack)
         self.memory = memory
         self.gas = gas
         self.constraints = constraints or Constraints()
@@ -205,7 +257,7 @@ class MachineState:
     def pop(self, amount=1):
         """ Pops amount elements from the stack"""
         if amount >= len(self.stack):
-            raise IndexError()
+            raise StackUnderflowException
         values = self.stack[-amount:][::-1]
         del self.stack[-amount:]
 
@@ -277,6 +329,7 @@ class GlobalState:
         node_id = self.node.uid
 
         return BitVec("{}_{}".format(transaction_id, name), size)
+
 
 class WorldState:
     """

@@ -2,6 +2,7 @@ import logging
 from mythril.laser.ethereum.state import WorldState
 from mythril.laser.ethereum.transaction import TransactionStartSignal, TransactionEndSignal, \
     ContractCreationTransaction
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta
 from copy import copy
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 from functools import reduce
+from mythril.laser.ethereum.evm_exceptions import VmException
 
 
 class SVMError(Exception):
@@ -121,6 +123,10 @@ class LaserEVM:
             self._measure_coverage(global_state)
             new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
 
+        except VmException as e:
+            logging.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
+            new_global_states = []
+
         except TransactionStartSignal as e:
             # Setup new global state
             new_global_state = e.transaction.initial_global_state()
@@ -216,7 +222,7 @@ class LaserEVM:
                     new_node.flags |= NodeFlags.CALL_RETURN
                 else:
                     new_node.flags |= NodeFlags.FUNC_ENTRY
-            except IndexError:
+            except StackUnderflowException:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
         address = state.environment.code.instruction_list[state.mstate.pc]['address']
 
