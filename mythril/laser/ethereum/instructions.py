@@ -4,7 +4,7 @@ from copy import copy, deepcopy
 
 from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef, URem, SRem, BitVec, Solver, is_true, BitVecVal, If, BoolRef, Or
+     is_expr, ExprRef, URem, SRem, BitVec, Solver, unsat, is_true, BitVecVal, If, BoolRef, Or
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
@@ -20,6 +20,17 @@ TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
 keccak_function_manager = KeccakFunctionManager()
+
+
+def is_possible(constraints, new_constraint):
+    s = Solver()
+    s.set("timeout", 10)
+
+    s.add(new_constraint)
+    for constraint in constraints:
+        s.add(constraint)
+    result = s.check()
+    return result != unsat
 
 
 class StateTransition(object):
@@ -901,19 +912,23 @@ class Instruction:
             return [global_state]
 
         # False case
-        negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
 
-        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
+        # Prune constraints which aren't possible
+        if type(condition) == BoolRef:
+            negated = is_possible(state.constraints, simplify(Not(condition)))
+        else:
+            negated = (condition == 0)
+
+        if negated:
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(simplify(Not(condition)))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
 
         # True case
-
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
         if not index:
@@ -922,13 +937,19 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
+
+            # Prune infeasible constraints
+            if type(condition) == BoolRef:
+                condi = is_possible(state.constraints, simplify(condition))
+            else:
+                condi = (condition != 0)
+
+            if condi:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
+                new_state.mstate.constraints.append(simplify(condition))
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
