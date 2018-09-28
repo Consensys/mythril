@@ -1,4 +1,5 @@
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import *
 from mythril.laser.ethereum.cfg import JumpType
 """
 MODULE DESCRIPTION:
@@ -20,9 +21,8 @@ def execute(statespace):
         if len(findings) > 0:
             node = call.node
             instruction = call.state.get_current_instruction()
-            issue = Issue(node.contract_name, node.function_name, instruction['address'],
-                          "Multiple Calls",
-                          "Informational")
+            issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
+                          swc_id=MULTIPLE_SENDS, title="Multiple Calls", _type="Informational")
 
             issue.description = \
                 "Multiple sends exist in one transaction, try to isolate each external call into its own transaction." \

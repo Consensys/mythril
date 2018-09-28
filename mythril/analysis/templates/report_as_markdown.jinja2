@@ -3,7 +3,7 @@
 {% for issue in issues %}
 
 ## {{ issue.title }}
-
+- SWC ID: {{ issue.swc_id }}
 - Type: {{ issue.type }}
 - Contract: {{ issue.contract | default("Unknown") }}
 - Function name: `{{ issue.function }}`

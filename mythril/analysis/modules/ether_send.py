@@ -2,6 +2,7 @@ from z3 import *
 from mythril.analysis.ops import *
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 import re
 import logging
@@ -115,8 +116,9 @@ def execute(statespace):
 
                     debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 
-                    issue = Issue(call.node.contract_name, call.node.function_name, address, "Ether send", "Warning",
-                                  description, debug)
+                    issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
+                                  title="Ether send", _type="Warning", swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
+                                  description=description, debug=debug)
                     issues.append(issue)
 
                 except UnsatError:

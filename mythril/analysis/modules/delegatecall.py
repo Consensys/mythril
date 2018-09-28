@@ -1,4 +1,5 @@
 import re
+from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
 from mythril.analysis.ops import get_variable, VarType
 from mythril.analysis.report import Issue
 import logging
@@ -43,8 +44,9 @@ def _concrete_call(call, state, address, meminstart):
     if not re.search(r'calldata.*_0', str(state.mstate.memory[meminstart.val])):
         return []
 
-    issue = Issue(call.node.contract_name, call.node.function_name, address,
-                  "Call data forwarded with delegatecall()", "Informational")
+    issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
+                  swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT, title="Call data forwarded with delegatecall()",
+                  _type="Informational")
 
     issue.description = \
         "This contract forwards its call data via DELEGATECALL in its fallback function. " \
@@ -58,7 +60,8 @@ def _concrete_call(call, state, address, meminstart):
 
 
 def _symbolic_call(call, state, address, statespace):
-    issue = Issue(call.node.contract_name, call.node.function_name, address, call.type + " to a user-supplied address")
+    issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
+                  swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT, title=call.type + " to a user-supplied address")
 
     if "calldata" in str(call.to):
         issue.description = \

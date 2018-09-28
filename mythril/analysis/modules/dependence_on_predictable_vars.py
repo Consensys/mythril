@@ -3,6 +3,7 @@ from z3 import *
 from mythril.analysis.ops import VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import *
 from mythril.exceptions import UnsatError
 import logging
 
@@ -27,15 +28,14 @@ def execute(statespace):
 
     for call in statespace.calls:
 
-        if ("callvalue" in str(call.value)):
+        if "callvalue" in str(call.value):
             logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function")
             continue
 
         # We're only interested in calls that send Ether
 
-        if call.value.type == VarType.CONCRETE:
-            if call.value.val == 0:
-                continue
+        if call.value.type == VarType.CONCRETE and call.value.val == 0:
+            continue
 
         address = call.state.get_current_instruction()['address']
 
@@ -56,8 +56,9 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
-                issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable environment variable", "Warning",
-                              description)
+                issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
+                              swc_id=SHADOWING_STATE_VARIABLES, title="Dependence on predictable environment variable",
+                              _type="Warning", description=description)
                 issues.append(issue)
 
         # Second check: blockhash
