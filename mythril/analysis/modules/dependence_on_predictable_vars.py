@@ -87,7 +87,7 @@ def execute(statespace):
 
                         issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
                                       address=address, title="Dependence on predictable variable",
-                                      _type="Warning", description=description)
+                                      _type="Warning", description=description, swc_id=TIMESTAMP_DEPENDENCE)
                         issues.append(issue)
                         break
                 else:
