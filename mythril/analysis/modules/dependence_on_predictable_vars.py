@@ -3,7 +3,7 @@ from z3 import *
 from mythril.analysis.ops import VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
-from mythril.analysis.swc_data import *
+from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE
 from mythril.exceptions import UnsatError
 import logging
 
@@ -57,7 +57,7 @@ def execute(statespace):
                 description += "- block.{}\n".format(item)
             if solve(call):
                 issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
-                              swc_id=SHADOWING_STATE_VARIABLES, title="Dependence on predictable environment variable",
+                              swc_id=TIMESTAMP_DEPENDENCE, title="Dependence on predictable environment variable",
                               _type="Warning", description=description)
                 issues.append(issue)
 
@@ -85,8 +85,9 @@ def execute(statespace):
                                            " is used to determine Ether recipient"
                             description += ", this expression will always be equal to zero."
 
-                        issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable variable",
-                                      "Warning", description)
+                        issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
+                                      address=address, title="Dependence on predictable variable",
+                                      _type="Warning", description=description)
                         issues.append(issue)
                         break
                 else:
@@ -105,8 +106,9 @@ def execute(statespace):
                         if index and solve(call):
                             description += 'block.blockhash() is calculated using a value from storage ' \
                                            'at index {}'.format(index)
-                            issue = Issue(call.node.contract_name, call.node.function_name, address, "Dependence on predictable variable",
-                                          "Informational", description)
+                            issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
+                                          address=address, title="Dependence on predictable variable",
+                                          _type="Informational", description=description, swc_id=TIMESTAMP_DEPENDENCE)
                             issues.append(issue)
                             break
     return issues
