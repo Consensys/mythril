@@ -1,4 +1,6 @@
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import UNCHECKED_RET_VAL
+
 from mythril.laser.ethereum.svm import NodeFlags
 import logging
 import re
@@ -41,17 +43,19 @@ def execute(statespace):
 
                 instr = state.get_current_instruction()
 
-                if (instr['opcode'] == 'ISZERO' and re.search(r'retval', str(state.mstate.stack[-1]))):
+                if instr['opcode'] == 'ISZERO' and re.search(r'retval', str(state.mstate.stack[-1])):
                     retval_checked = True
                     break
 
             if not retval_checked:
 
                 address = state.get_current_instruction()['address']
-                issue = Issue(node.contract_name, node.function_name, address, "Unchecked CALL return value")
+                issue = Issue(contract=node.contract_name, function=node.function_name, address=address,
+                              title="Unchecked CALL return value", swc_id=UNCHECKED_RET_VAL)
 
                 issue.description = \
-                    "The return value of an external call is not checked. Note that execution continue even if the called contract throws."
+                    "The return value of an external call is not checked. " \
+                    "Note that execution continue even if the called contract throws."
 
                 issues.append(issue)
 
@@ -64,7 +68,7 @@ def execute(statespace):
                 state = node.states[idx]
                 instr = state.get_current_instruction()
 
-                if (instr['opcode'] == 'CALL'):
+                if instr['opcode'] == 'CALL':
 
                     retval_checked = False
 
@@ -74,7 +78,7 @@ def execute(statespace):
                             _state = node.states[_idx]
                             _instr = _state.get_current_instruction()
 
-                            if (_instr['opcode'] == 'ISZERO' and re.search(r'retval', str(_state .mstate.stack[-1]))):
+                            if _instr['opcode'] == 'ISZERO' and re.search(r'retval', str(_state .mstate.stack[-1])):
                                 retval_checked = True
                                 break
 
@@ -84,10 +88,12 @@ def execute(statespace):
                     if not retval_checked:
 
                         address = instr['address']
-                        issue = Issue(node.contract_name, node.function_name, address, "Unchecked CALL return value")
+                        issue = Issue(contract=node.contract_name, function=node.function_name,
+                                      address=address, title="Unchecked CALL return value", swc_id=UNCHECKED_RET_VAL)
 
                         issue.description = \
-                            "The return value of an external call is not checked. Note that execution continue even if the called contract throws."
+                            "The return value of an external call is not checked. " \
+                            "Note that execution continue even if the called contract throws."
 
                         issues.append(issue)
 

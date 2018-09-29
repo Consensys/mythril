@@ -1,7 +1,7 @@
 # Analysis results for test-filename.sol
 
 ## Ether send
-
+- SWC ID: 105
 - Type: Warning
 - Contract: Unknown
 - Function name: `_function_0x8a4068dd`

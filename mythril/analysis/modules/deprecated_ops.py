@@ -1,4 +1,5 @@
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import TX_ORIGIN_USAGE
 import logging
 
 
@@ -22,12 +23,14 @@ def execute(statespace):
 
             instruction = state.get_current_instruction()
 
-            if(instruction['opcode'] == "ORIGIN"):
+            if instruction['opcode'] == "ORIGIN":
+                description = "Function %s retrieves the transaction origin (tx.origin) using the ORIGIN opcode. " \
+                              "Use msg.sender instead.\nSee also: " \
+                              "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin".format(node.function_name)
 
-                issue = Issue(node.contract_name, node.function_name, instruction['address'], "Use of tx.origin", "Warning",
-                    "Function " + node.function_name + " retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.\nSee also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin"
-                )
-
+                issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
+                              title="Use of tx.origin", _type="Warning", swc_id=TX_ORIGIN_USAGE,
+                              description=description)
                 issues.append(issue)
 
     return issues

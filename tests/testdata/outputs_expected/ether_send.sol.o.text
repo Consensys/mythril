@@ -1,4 +1,5 @@
 ==== Ether send ====
+SWC ID: 105
 Type: Warning
 Contract: Unknown
 Function name: withdrawfunds()
@@ -9,6 +10,7 @@ There is a check on storage index 1. This storage slot can be written to by call
 --------------------
 
 ==== Integer Overflow ====
+SWC ID: 101
 Type: Warning
 Contract: Unknown
 Function name: invest()

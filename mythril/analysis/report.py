@@ -3,9 +3,10 @@ import json
 import operator
 from jinja2 import PackageLoader, Environment
 
+
 class Issue:
 
-    def __init__(self, contract, function, address, title, _type="Informational", description="", debug=""):
+    def __init__(self, contract, function, address, swc_id, title, _type="Informational", description="", debug=""):
 
         self.title = title
         self.contract = contract
@@ -14,6 +15,7 @@ class Issue:
         self.description = description
         self.type = _type
         self.debug = debug
+        self.swc_id = swc_id
         self.filename = None
         self.code = None
         self.lineno = None
@@ -22,7 +24,8 @@ class Issue:
     @property
     def as_dict(self):
 
-        issue = {'title': self.title, 'contract': self.contract, 'description': self.description, 'function': self.function, 'type': self.type, 'address': self.address, 'debug': self.debug}
+        issue = {'title': self.title, 'swc_id': self.swc_id, 'contract': self.contract, 'description': self.description,
+                 'function': self.function, 'type': self.type, 'address': self.address, 'debug': self.debug}
 
         if self.filename and self.lineno:
             issue['filename'] = self.filename
@@ -39,6 +42,7 @@ class Issue:
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
+
 
 class Report:
     environment = Environment(loader=PackageLoader('mythril.analysis'), trim_blocks=True)
