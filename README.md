@@ -11,7 +11,7 @@ Mythril OSS is the classic security analysis tool for Ethereum smart contracts. 
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs!
 
-Oh and by the way, we're now building a whole security tools ecosystem with [Mythril Platform API](https://mythril.ai). You should definitely check that out as well.
+Oh and by the way, we're now building a whole security tools ecosystem with [Mythril Platform](https://mythril.ai). You should definitely check that out as well.
 
 ## Installation and setup
 
