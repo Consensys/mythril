@@ -56,10 +56,7 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
-                if item == 'timestamp':
-                    swc_type = TIMESTAMP_DEPENDENCE
-                else:
-                    swc_type = PREDICTABLE_VARS_DEPENDENCE
+                swc_type = TIMESTAMP_DEPENDENCE if item == 'timestamp' else PREDICTABLE_VARS_DEPENDENCE
                 issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
                               swc_id=swc_type, title="Dependence on predictable environment variable",
                               _type="Warning", description=description)
