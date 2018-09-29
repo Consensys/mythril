@@ -124,6 +124,9 @@ class LaserEVM:
             new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
 
         except VmException as e:
+            # In this case we don't put an unmodified world state in the open_states list
+            # Since in the case of an exceptional halt all changes should be discarded, and this world state would not
+            # provide us with a previously unseen world state
             logging.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
             new_global_states = []
 
