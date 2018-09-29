@@ -1004,7 +1004,8 @@ class Instruction:
 
     @StateTransition()
     def assert_fail_(self, global_state):
-        return []
+        # 0xfe: designated invalid opcode
+        raise InvalidJumpDestination
 
     @StateTransition()
     def invalid_(self, global_state):
