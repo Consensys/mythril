@@ -167,8 +167,12 @@ class Constraints(list):
             new_solver.add(constraint)
         return Constraints(constraint_list=constraints_list, solver=new_solver)
 
-    def __iadd__(self, other):
-        return self.__add__(other)
+    def __iadd__(self, constraints):
+        super(Constraints, self).__iadd__(constraints)
+        self.solver = copy(self.solver)
+        for constraint in constraints:
+            self.solver.add(constraint)
+        return self
 
 
 class MachineStack(list):
