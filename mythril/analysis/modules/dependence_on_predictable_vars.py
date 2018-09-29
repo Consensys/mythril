@@ -3,7 +3,7 @@ from z3 import *
 from mythril.analysis.ops import VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
-from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE
+from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE
 from mythril.exceptions import UnsatError
 import logging
 
@@ -56,8 +56,9 @@ def execute(statespace):
             for item in found:
                 description += "- block.{}\n".format(item)
             if solve(call):
+                swc_type = TIMESTAMP_DEPENDENCE if item == 'timestamp' else PREDICTABLE_VARS_DEPENDENCE
                 issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
-                              swc_id=TIMESTAMP_DEPENDENCE, title="Dependence on predictable environment variable",
+                              swc_id=swc_type, title="Dependence on predictable environment variable",
                               _type="Warning", description=description)
                 issues.append(issue)
 
@@ -87,7 +88,7 @@ def execute(statespace):
 
                         issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
                                       address=address, title="Dependence on predictable variable",
-                                      _type="Warning", description=description, swc_id=TIMESTAMP_DEPENDENCE)
+                                      _type="Warning", description=description, swc_id=PREDICTABLE_VARS_DEPENDENCE)
                         issues.append(issue)
                         break
                 else:
@@ -108,7 +109,7 @@ def execute(statespace):
                                            'at index {}'.format(index)
                             issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
                                           address=address, title="Dependence on predictable variable",
-                                          _type="Informational", description=description, swc_id=TIMESTAMP_DEPENDENCE)
+                                          _type="Informational", description=description, swc_id=PREDICTABLE_VARS_DEPENDENCE)
                             issues.append(issue)
                             break
     return issues
