@@ -5,7 +5,7 @@ import logging
 
 def get_model(constraints):
 
-    constraints.solver.set("timeout", 10000)
+    constraints.solver.set("timeout", 100000)
     result = constraints.solver.check()
     if result == sat:
         return constraints.solver.model()

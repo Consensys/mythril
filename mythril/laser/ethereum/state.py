@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal, Solver, ExprRef, sat, unsat
+from z3 import BitVec, BitVecVal, Solver, unsat, unknown
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
@@ -140,9 +140,9 @@ class Constraints(list):
                 self.solver.add(constraint)
 
     def check_possibility(self):
-        if self.__possibility is None:
-            self.__possibility = (self.solver.check() != unsat)
-        return self.__possibility
+        if self.__possibility in (None, unknown):
+            self.__possibility = self.solver.check()
+        return self.__possibility != unsat
 
     def append(self, constraint):
         self.__possibility = None
@@ -158,8 +158,7 @@ class Constraints(list):
         return Constraints(constraint_list, self.solver, self.__possibility)
 
     def __deepcopy__(self, memodict={}):
-        constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, self.solver, self.__possibility)
+        return self.__copy__()
 
     def __add__(self, constraints):
         constraints_list = super(Constraints, self).__add__(constraints)
@@ -169,10 +168,7 @@ class Constraints(list):
         return Constraints(constraint_list=constraints_list, solver=new_solver)
 
     def __iadd__(self, other):
-        """
-        Implement constraint concatenation if needed
-        """
-        raise NotImplementedError
+        return self.__add__(other)
 
 
 class MachineStack(list):
