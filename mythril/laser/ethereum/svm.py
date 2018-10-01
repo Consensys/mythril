@@ -135,7 +135,8 @@ class LaserEVM:
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [global_state])
-                new_global_states = self._end_message_call(return_global_state, transaction, global_state, revert_changes=True)
+                new_global_states = self._end_message_call(return_global_state, transaction, global_state,
+                                                           revert_changes=True, return_data=0)
 
         except TransactionStartSignal as e:
             # Setup new global state
@@ -159,18 +160,19 @@ class LaserEVM:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [e.global_state])
 
-                new_global_states = self._end_message_call(return_global_state, transaction, global_state, revert_changes=False)
+                new_global_states = self._end_message_call(return_global_state, transaction, global_state,
+                                                           revert_changes=False, return_data=transaction.return_data)
 
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
 
-    def _end_message_call(self, return_global_state, transaction, global_state, revert_changes=False):
+    def _end_message_call(self, return_global_state, global_state, revert_changes=False, return_data=0):
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[return_global_state.mstate.pc]['opcode']
 
         # Set execution result in the return_state
-        return_global_state.last_return_data = transaction.return_data
+        return_global_state.last_return_data = return_data
         if not revert_changes:
             return_global_state.world_state = copy(global_state.world_state)
             return_global_state.environment.active_account = \
