@@ -10,7 +10,8 @@ import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
-from mythril.laser.ethereum.evm_exceptions import VmException, StackUnderflowException, InvalidJumpDestination
+from mythril.laser.ethereum.evm_exceptions import VmException, StackUnderflowException, InvalidJumpDestination, \
+    InvalidInstruction
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
@@ -1005,11 +1006,11 @@ class Instruction:
     @StateTransition()
     def assert_fail_(self, global_state):
         # 0xfe: designated invalid opcode
-        raise InvalidJumpDestination
+        raise InvalidInstruction
 
     @StateTransition()
     def invalid_(self, global_state):
-        raise InvalidJumpDestination
+        raise InvalidInstruction
 
     @StateTransition()
     def stop_(self, global_state):
