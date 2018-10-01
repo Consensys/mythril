@@ -135,7 +135,7 @@ class LaserEVM:
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [global_state])
-                new_global_states = self._end_message_call(return_global_state, transaction, global_state,
+                new_global_states = self._end_message_call(return_global_state, global_state,
                                                            revert_changes=True, return_data=0)
 
         except TransactionStartSignal as e:
@@ -160,7 +160,7 @@ class LaserEVM:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [e.global_state])
 
-                new_global_states = self._end_message_call(return_global_state, transaction, global_state,
+                new_global_states = self._end_message_call(return_global_state, global_state,
                                                            revert_changes=False, return_data=transaction.return_data)
 
         self._execute_post_hook(op_code, new_global_states)
