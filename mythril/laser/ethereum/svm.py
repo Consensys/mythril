@@ -124,11 +124,31 @@ class LaserEVM:
             new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
 
         except VmException as e:
-            # In this case we don't put an unmodified world state in the open_states list
-            # Since in the case of an exceptional halt all changes should be discarded, and this world state would not
-            # provide us with a previously unseen world state
-            logging.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
             new_global_states = []
+            # transaction, return_global_state = global_state.transaction_stack.pop()
+            #
+            # if return_global_state is None:
+            #     # In this case we don't put an unmodified world state in the open_states list Since in the case of an
+            #     #  exceptional halt all changes should be discarded, and this world state would not provide us with a
+            #     #  previously unseen world state
+            #     logging.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
+            #     new_global_states = []
+            # else:
+            #     # First execute the post hook for the transaction ending instruction
+            #     self._execute_post_hook(op_code, [global_state])
+            #
+            #     # Resume execution of the transaction initializing instruction
+            #     op_code = return_global_state.environment.code.instruction_list[return_global_state.mstate.pc]['opcode']
+            #
+            #     # Set execution result in the return_state
+            #     return_global_state.last_return_data = 0
+            #
+            #     # Execute the post instruction handler
+            #     new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(return_global_state, True)
+            #
+            #     # In order to get a nice call graph we need to set the nodes here
+            #     for state in new_global_states:
+            #         state.node = global_state.node
 
         except TransactionStartSignal as e:
             # Setup new global state
