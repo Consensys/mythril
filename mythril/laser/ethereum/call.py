@@ -63,6 +63,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
         # attempt to read the contract address from instance storage
         try:
             callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
+        # TODO: verify whether this happens or not
         except:
             logging.debug("Error accessing contract storage.")
             raise ValueError

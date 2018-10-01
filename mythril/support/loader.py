@@ -47,7 +47,7 @@ class DynLoader:
 
         code = self.eth.eth_getCode(dependency_address)
 
-        if (code == "0x"):
+        if code == "0x":
             return None
         else:
             return Disassembly(code)
