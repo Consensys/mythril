@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal, Solver, unsat, unknown
+from z3 import BitVec, BitVecVal
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
@@ -132,48 +132,31 @@ class Environment:
 class Constraints(list):
     def __init__(self, constraint_list=[], solver=None, possibility=None):
         super(Constraints, self).__init__(constraint_list)
-        self.solver = solver or Solver()
-        self.solver.set("timeout", 1)
+        self.solver = solver
         self.__possibility = possibility
-        if solver is None:
-            for constraint in constraint_list:
-                self.solver.add(constraint)
 
     def check_possibility(self):
-        if self.__possibility in (None, unknown):
-            self.__possibility = self.solver.check()
-        return self.__possibility != unsat
+        return True
 
     def append(self, constraint):
-        self.__possibility = None
         super(Constraints, self).append(constraint)
-        self.solver = self.solver.translate(self.solver.ctx)
-        self.solver.add(constraint)
 
     def pop(self, index=-1):
         raise NotImplementedError
 
     def __copy__(self):
         constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, self.solver, self.__possibility)
+        return Constraints(constraint_list)
 
     def __deepcopy__(self, memodict={}):
         return self.__copy__()
 
     def __add__(self, constraints):
         constraints_list = super(Constraints, self).__add__(constraints)
-        new_solver = self.solver.translate(self.solver.ctx)
-
-        for constraint in constraints:
-            new_solver.add(constraint)
-        return Constraints(constraint_list=constraints_list, solver=new_solver)
+        return Constraints(constraint_list=constraints_list)
 
     def __iadd__(self, constraints):
         super(Constraints, self).__iadd__(constraints)
-        self.solver = self.solver.translate(self.solver.ctx)
-
-        for constraint in constraints:
-            self.solver.add(constraint)
         return self
 
 
