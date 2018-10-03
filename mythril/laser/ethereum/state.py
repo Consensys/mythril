@@ -147,7 +147,7 @@ class Constraints(list):
     def append(self, constraint):
         self.__possibility = None
         super(Constraints, self).append(constraint)
-        self.solver = copy(self.solver)
+        self.solver = self.solver.translate(self.solver.ctx)
         self.solver.add(constraint)
 
     def pop(self, index=-1):
@@ -162,14 +162,16 @@ class Constraints(list):
 
     def __add__(self, constraints):
         constraints_list = super(Constraints, self).__add__(constraints)
-        new_solver = copy(self.solver)
+        new_solver = self.solver.translate(self.solver.ctx)
+
         for constraint in constraints:
             new_solver.add(constraint)
         return Constraints(constraint_list=constraints_list, solver=new_solver)
 
     def __iadd__(self, constraints):
         super(Constraints, self).__iadd__(constraints)
-        self.solver = copy(self.solver)
+        self.solver = self.solver.translate(self.solver.ctx)
+
         for constraint in constraints:
             self.solver.add(constraint)
         return self
