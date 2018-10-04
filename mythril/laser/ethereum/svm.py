@@ -136,7 +136,7 @@ class LaserEVM:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [global_state])
                 new_global_states = self._end_message_call(return_global_state, global_state,
-                                                           revert_changes=True, return_data=0)
+                                                           revert_changes=True, return_data=None)
 
         except TransactionStartSignal as e:
             # Setup new global state
@@ -167,7 +167,7 @@ class LaserEVM:
 
         return new_global_states, op_code
 
-    def _end_message_call(self, return_global_state, global_state, revert_changes=False, return_data=0):
+    def _end_message_call(self, return_global_state, global_state, revert_changes=False, return_data=None):
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[return_global_state.mstate.pc]['opcode']
 
