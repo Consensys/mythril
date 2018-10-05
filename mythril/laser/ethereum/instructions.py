@@ -6,15 +6,16 @@ from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
     is_false, is_expr, ExprRef, URem, SRem, BitVec, Solver, is_true, BitVecVal, If, BoolRef, Or
 
+import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters
+from mythril.laser.ethereum.evm_exceptions import VmException, StackUnderflowException, InvalidJumpDestination, \
+    InvalidInstruction
+from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType
-import mythril.laser.ethereum.natives as natives
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
-from mythril.laser.ethereum.evm_exceptions import VmException, StackUnderflowException, InvalidJumpDestination
-from mythril.laser.ethereum.keccak import KeccakFunctionManager
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -1004,11 +1005,12 @@ class Instruction:
 
     @StateTransition()
     def assert_fail_(self, global_state):
-        return []
+        # 0xfe: designated invalid opcode
+        raise InvalidInstruction
 
     @StateTransition()
     def invalid_(self, global_state):
-        return []
+        raise InvalidInstruction
 
     @StateTransition()
     def stop_(self, global_state):
