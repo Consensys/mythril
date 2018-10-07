@@ -45,7 +45,7 @@ class Issue:
 
 
 class Report:
-    environment = Environment(loader=PackageLoader('mythril.analysis'), trim_blocks=True)
+    environment = Environment(loader=PackageLoader('mythril.analysis'), trim_blocks=True, autoescape=True)
 
     def __init__(self, verbose=False):
         self.issues = {}
