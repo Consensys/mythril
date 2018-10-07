@@ -125,7 +125,7 @@ class SignatureDb(object):
             sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
             self.signatures = sigs
 
-        if not os.path.exists(directory):
+        if directory and not os.path.exists(directory):
             os.makedirs(directory)         # create folder structure if not existS
 
         if not os.path.exists(path):       # creates signatures.json file if it doesn't exist
