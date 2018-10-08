@@ -517,7 +517,7 @@ class Instruction:
             return [global_state]
 
         try:
-            state.mem_extend(index, length)
+            # state.mem_extend(index, length)
             data = b''.join([util.get_concrete_int(i).to_bytes(1, byteorder='big')
                              for i in state.memory[index: index + length]])
 

@@ -179,6 +179,16 @@ class MachineStack(list):
         raise NotImplementedError('Implement this if needed')
 
 
+class Memory(list):
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            return [self[i] for i in range(item.start, item.stop, item.step or 1)]
+        try:
+            super(Memory, self).__getitem__(item)
+        except IndexError:
+            return 0
+
+
 class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
@@ -187,7 +197,7 @@ class MachineState:
         """ Constructor for machineState """
         self.pc = 0
         self.stack = MachineStack()
-        self.memory = []
+        self.memory = Memory()
         self.gas = gas
         self.constraints = []
         self.depth = 0

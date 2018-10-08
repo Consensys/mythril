@@ -13,13 +13,14 @@ import pytest
 evm_test_dir = Path(__file__).parent / 'VMTests'
 
 test_types = ['vmArithmeticTest', 'vmBitwiseLogicOperation', 'vmPushDupSwapTest']
-
+test_types = ['vmSha3Test']
 
 def load_test_data(designations):
     return_data = []
     for designation in designations:
         for file_reference in (evm_test_dir / designation).iterdir():
-
+            if str(file_reference).endswith(".ignored"):
+                continue
             with file_reference.open() as file:
                 top_level = json.load(file)
 
