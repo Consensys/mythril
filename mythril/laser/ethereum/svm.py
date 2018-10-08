@@ -152,7 +152,7 @@ class LaserEVM:
             transaction, return_global_state = e.global_state.transaction_stack.pop()
 
             if return_global_state is None:
-                if not isinstance(transaction, ContractCreationTransaction) or transaction.return_data:
+                if (not isinstance(transaction, ContractCreationTransaction) or transaction.return_data) and not e.revert:
                     e.global_state.world_state.node = global_state.node
                     self.open_states.append(e.global_state.world_state)
                 new_global_states = []
@@ -161,7 +161,8 @@ class LaserEVM:
                 self._execute_post_hook(op_code, [e.global_state])
 
                 new_global_states = self._end_message_call(return_global_state, global_state,
-                                                           revert_changes=False, return_data=transaction.return_data)
+                                                           revert_changes=False or e.revert,
+                                                           return_data=transaction.return_data)
 
         self._execute_post_hook(op_code, new_global_states)
 
