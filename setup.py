@@ -104,7 +104,8 @@ setup(
         'py-flags',
         'mock',
         'configparser>=3.5.0',
-        'persistent>=4.2.0'
+        'persistent>=4.2.0',
+        'pysmt>=0.7.5'
     ],
 
     tests_require=[

@@ -19,7 +19,8 @@ from mythril.laser.ethereum.smt_wrapper import \
     get_concrete_value, \
     Eq, Neq, Or, Not, SLT, SGT, SDiv, \
     simplify, BitVec, BitVecVal, If, is_bool, is_expr, Concat, Extract, \
-    is_bv_value, ULT, UGT, is_true, is_false, UDiv, URem, SRem
+    is_bv_value, ULT, UGT, is_true, is_false, UDiv, URem, SRem, \
+    formula_to_string
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -263,7 +264,13 @@ class Instruction:
     @StateTransition()
     def div_(self, global_state):
         op0, op1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        if op1 == 0:
+
+        try:
+            is_op1_zero = util.get_concrete_int(op1) == 0
+        except TypeError:
+            is_op1_zero = False
+
+        if is_op1_zero:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(UDiv(op0, op1))
@@ -272,7 +279,13 @@ class Instruction:
     @StateTransition()
     def sdiv_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        if s1 == 0:
+
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except TypeError:
+            is_s1_zero = False
+
+        if is_s1_zero:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(SDiv(s0, s1))
@@ -281,13 +294,21 @@ class Instruction:
     @StateTransition()
     def mod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except TypeError:
+            is_s1_zero = False
+        global_state.mstate.stack.append(0 if is_s1_zero else URem(s0, s1))
         return [global_state]
 
     @StateTransition()
     def smod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except TypeError:
+            is_s1_zero = False
+        global_state.mstate.stack.append(0 if is_s1_zero else SRem(s0, s1))
         return [global_state]
 
     @StateTransition()
@@ -817,7 +838,7 @@ class Instruction:
                 constraints.append((keccak_key, Eq(key_argument, index_argument)))
 
             for (keccak_key, constraint) in constraints:
-                if constraint in state.constraints:
+                if self._check_constraint_existence(constraint, state.constraints):
                     results += self._sload_helper(global_state, keccak_key, [constraint])
             if len(results) > 0:
                 return results
@@ -828,6 +849,18 @@ class Instruction:
                 return results
             
             return self._sload_helper(global_state, str(index))
+
+    @staticmethod
+    def _check_constraint_existence(tgt_constraint, constraints) -> bool:
+        if tgt_constraint in constraints:
+            return True
+
+        # It's possible that two pySMT formulae which are literally
+        # the same are not __eq__().
+        for constraint in constraints:
+            if formula_to_string(tgt_constraint) == formula_to_string(constraint.serialize()):
+                return True
+        return False
 
     @staticmethod
     def _sload_helper(global_state, index, constraints=None):
@@ -878,7 +911,9 @@ class Instruction:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
 
-                if is_true(key_argument == index_argument):
+                # pySMT does not evaluate obviously equal expressions
+                # (e.g., BitVec("x", 256) == BitVec("x", 256)) to True.
+                if formula_to_string(key_argument) == formula_to_string(index_argument):
                     return self._sstore_helper(copy(global_state), keccak_key, value, Eq(key_argument, index_argument))
 
                 results += self._sstore_helper(copy(global_state), keccak_key, value, Eq(key_argument, index_argument))
@@ -949,19 +984,30 @@ class Instruction:
             global_state.mstate.pc += 1
             return [global_state]
 
-        # False case
-        negated = simplify(Not(condition)) if is_bool(condition) else Eq(condition, 0)
+        must_take = False
+        must_skip = False
+        condi = simplify(condition if is_bool(condition) else Neq(condition, 0))
+        must_take = is_true(condi)
+        if not must_take:
+            must_skip = is_false(condi)
 
-        if (type(negated) == bool and negated) or (is_bool(negated) and not is_false(negated)):
+        assert (not (must_take and must_skip))
+
+        # False case
+        if not must_take:
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(Not(condi))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
 
         # True case
+
+        if must_skip:
+            logging.debug("Pruned unreachable states.")
+            return states
 
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
@@ -971,16 +1017,13 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if is_bool(condition) else Neq(condition, 0)
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (is_bool(condi) and not is_false(condi)):
-                new_state = copy(global_state)
-                new_state.mstate.pc = index
-                new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
-                states.append(new_state)
-            else:
-                logging.debug("Pruned unreachable states.")
+            new_state = copy(global_state)
+            new_state.mstate.pc = index
+            new_state.mstate.depth += 1
+            new_state.mstate.constraints.append(condi)
+            states.append(new_state)
+
         return states
 
     @StateTransition()

@@ -120,8 +120,8 @@ def solve(call):
         model = solver.get_model(call.node.constraints)
         logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
 
-        for d in model.decls():
-            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x" % (d.name(), get_concrete_value(model[d])))
+        for (name, value) in model:
+            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x" % (name, get_concrete_value(value)))
         return True
 
     except UnsatError:

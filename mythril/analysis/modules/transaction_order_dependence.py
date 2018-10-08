@@ -6,7 +6,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
-from mythril.laser.ethereum.smt_wrapper import Neq, simplify
+from mythril.laser.ethereum.smt_wrapper import Neq, simplify, get_concrete_value
 from mythril.exceptions import UnsatError
 
 '''
@@ -82,9 +82,9 @@ def _can_change(constraints, variable):
     except UnsatError:
         return False
     try:
-        initial_value = int(str(model.eval(variable, model_completion=True)))
+        initial_value = get_concrete_value(model.get_value(variable))
         return _try_constraints(constraints, [Neq(variable, initial_value)]) is not None
-    except AttributeError:
+    except TypeError:
         return False
 
 def _get_influencing_storages(call):
