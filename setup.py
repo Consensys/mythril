@@ -107,6 +107,10 @@ setup(
         'persistent>=4.2.0'
     ],
 
+    dependency_links=[
+        'git+https://github.com/hzzhang/pysmt.git@hzzhang/props#egg=pysmt',
+    ],
+
     tests_require=[
         'pytest>=3.6.0',
         'pytest_mock',
