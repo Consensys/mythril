@@ -82,7 +82,7 @@ class TaintRunner:
     """
 
     @staticmethod
-    def execute(statespace, node, state, initial_stack=[]):
+    def execute(statespace, node, state, initial_stack=None):
         """
         Runs taint analysis on the statespace
         :param statespace: symbolic statespace to run taint analysis on
@@ -91,6 +91,8 @@ class TaintRunner:
         :param stack_indexes: stack indexes to introduce taint
         :return: TaintResult object containing analysis results
         """
+        if initial_stack is None:
+            initial_stack = []
         result = TaintResult()
         transaction_stack_length = len(node.states[0].transaction_stack)
         # Build initial current_node

@@ -382,7 +382,9 @@ class Mythril(object):
 
         return report
 
-    def get_state_variable_from_storage(self, address, params=[]):
+    def get_state_variable_from_storage(self, address, params=None):
+        if params is None:
+            params = []
         (position, length, mappings) = (0, 1, [])
         try:
             if params[0] == "mapping":
