@@ -27,7 +27,7 @@ def trace(code, calldata=""):
     ret = output.getvalue()
     lines = ret.split("\n")
 
-    trace = []
+    state_trace = []
     for line in lines:
         m = re.search(r'pc=b\'(\d+)\'.*op=([A-Z0-9]+)', line)
         if m:
@@ -51,8 +51,8 @@ def trace(code, calldata=""):
             if re.match(r'^PUSH.*', op):
                 val = re.search(r'pushvalue=(\d+)', line).group(1)
                 pushvalue = hex(int(val))
-                trace.append({'pc': pc, 'op': op, 'stack': stack, 'pushvalue': pushvalue})
+                state_trace.append({'pc': pc, 'op': op, 'stack': stack, 'pushvalue': pushvalue})
             else:
-                trace.append({'pc': pc, 'op': op, 'stack': stack})
+                state_trace.append({'pc': pc, 'op': op, 'stack': stack})
 
-    return trace
+    return state_trace

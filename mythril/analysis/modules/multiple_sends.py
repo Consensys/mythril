@@ -38,7 +38,7 @@ def execute(statespace):
 
 def _explore_nodes(call, statespace):
     children = _child_nodes(statespace, call.node)
-    sending_children = list(filter(lambda call: call.node in children, statespace.calls))
+    sending_children = list(filter(lambda c: c.node in children, statespace.calls))
     return sending_children
 
 

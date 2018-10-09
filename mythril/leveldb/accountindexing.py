@@ -63,11 +63,11 @@ class AccountIndexer(object):
 
     def get_contract_by_hash(self, contract_hash):
         '''
-        get mapped address by its hash, if not found try indexing
+        get mapped contract_address by its hash, if not found try indexing
         '''
-        address = self.db.reader._get_address_by_hash(contract_hash)
-        if address is not None:
-            return address
+        contract_address = self.db.reader._get_address_by_hash(contract_hash)
+        if contract_address is not None:
+            return contract_address
         else:
             raise AddressNotFoundError
 
