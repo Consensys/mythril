@@ -71,8 +71,6 @@ class AccountIndexer(object):
         else:
             raise AddressNotFoundError
 
-        return self.db.reader._get_address_by_hash(contract_hash)
-
     def _process(self, startblock):
         '''
         Processesing method
