@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
+from z3 import BitVec, BitVecVal, Solver, ExprRef, Concat, sat, simplify
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
@@ -6,11 +6,35 @@ from random import randint
 
 from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
 
-
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
 
+class SymbolicCalldata:
+    def __init__(self, tx_id: int):
+        self.tx_id = tx_id
+        self._calldata = {}
+
+    def get_word_at(self, index: int):
+        return self[index:index+32]
+
+    def __getitem__(self, item: int):
+        if isinstance(item, slice):
+            if item.step != None \
+            or item.start > item.stop \
+            or item.start < 0 \
+            or item.stop < 0: raise IndexError("Invalid Calldata Slice")
+
+            dataparts = []
+            for i in range(item.start, item.stop):
+                dataparts.append(self[i])
+            return simplify(Concat(dataparts))
+        else:
+            try:
+                return self._calldata[item]
+            except KeyError:
+                self._calldata[item] = BitVec(str(self.tx_id)+'_calldata['+str(item)+']', 8)
+                return self._calldata[item]
 
 class Storage:
     """
