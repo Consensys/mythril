@@ -7,13 +7,13 @@ from mythril.laser.ethereum.state import MachineState, Account, Environment, Glo
 from mythril.laser.ethereum.svm import LaserEVM
 
 
-def test_execute_state(state_mocker):
+def test_execute_state(mocker):
     record = TaintRecord()
     record.stack = [True, False, True]
 
     state = GlobalState(None, None, None)
     state.mstate.stack = [1, 2, 3]
-    state_mocker.patch.object(state, 'get_current_instruction')
+    mocker.patch.object(state, 'get_current_instruction')
     state.get_current_instruction.return_value = {"opcode": "ADD"}
 
     # Act
@@ -24,19 +24,19 @@ def test_execute_state(state_mocker):
     assert record.stack == [True, False, True]
 
 
-def test_execute_node(node_mocker):
+def test_execute_node(mocker):
     record = TaintRecord()
     record.stack = [True, True, False, False]
 
     state_1 = GlobalState(None, None, None)
     state_1.mstate.stack = [1, 2, 3, 1]
     state_1.mstate.pc = 1
-    node_mocker.patch.object(state_1, 'get_current_instruction')
+    mocker.patch.object(state_1, 'get_current_instruction')
     state_1.get_current_instruction.return_value = {"opcode": "SWAP1"}
 
     state_2 = GlobalState(None, 1, None)
     state_2.mstate.stack = [1, 2, 4, 1]
-    node_mocker.patch.object(state_2, 'get_current_instruction')
+    mocker.patch.object(state_2, 'get_current_instruction')
     state_2.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node = Node("Test contract")
@@ -55,17 +55,17 @@ def test_execute_node(node_mocker):
     assert state_1 in record.states
 
 
-def test_execute(state_mocker):
+def test_execute(mocker):
     active_account = Account('0x00')
     environment = Environment(active_account, None, None, None, None, None)
     state_1 = GlobalState(None, environment, None, MachineState(gas=10000000))
     state_1.mstate.stack = [1, 2]
-    state_mocker.patch.object(state_1, 'get_current_instruction')
+    mocker.patch.object(state_1, 'get_current_instruction')
     state_1.get_current_instruction.return_value = {"opcode": "PUSH"}
 
     state_2 = GlobalState(None, environment, None, MachineState(gas=10000000))
     state_2.mstate.stack = [1, 2, 3]
-    state_mocker.patch.object(state_2, 'get_current_instruction')
+    mocker.patch.object(state_2, 'get_current_instruction')
     state_2.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node_1 = Node("Test contract")
@@ -73,7 +73,7 @@ def test_execute(state_mocker):
 
     state_3 = GlobalState(None, environment, None, MachineState(gas=10000000))
     state_3.mstate.stack = [1, 2]
-    state_mocker.patch.object(state_3, 'get_current_instruction')
+    mocker.patch.object(state_3, 'get_current_instruction')
     state_3.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node_2 = Node("Test contract")
