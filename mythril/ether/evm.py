@@ -26,7 +26,7 @@ def trace(code, calldata=""):
 
     message = vm.Message(addr, addr, 0, 21000, calldata)
 
-    res, gas, dat = vm.vm_execute(ext, message, util.safe_decode(code))
+    vm.vm_execute(ext, message, util.safe_decode(code))
 
     stream_handler.flush()
 
