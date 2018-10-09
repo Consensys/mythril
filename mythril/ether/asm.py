@@ -42,9 +42,7 @@ def easm_to_instruction_list(easm):
             # Invalid code line
             continue
 
-        instruction = {}
-
-        instruction['opcode'] = m.group(1)
+        instruction = {'opcode': m.group(1)}
 
         if m.group(2):
             instruction['argument'] = m.group(2)[2:]
@@ -101,9 +99,7 @@ def disassemble(bytecode):
 
     while addr < length:
 
-        instruction = {}
-
-        instruction['address'] = addr
+        instruction = {'address': addr}
 
         try:
             if (sys.version_info > (3, 0)):
