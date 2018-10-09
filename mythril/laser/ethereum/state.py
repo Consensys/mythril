@@ -11,9 +11,13 @@ class CalldataType(Enum):
     SYMBOLIC = 2
 
 class SymbolicCalldata:
-    def __init__(self, tx_id: int):
+    def __init__(self, tx_id: int, starting_calldata: bytes=None):
         self.tx_id = tx_id
         self._calldata = {}
+
+        if starting_calldata:
+            for i in range(len(starting_calldata)):
+                self._calldata[i] = BitVecVal(starting_calldata[i], 8)
 
     def get_word_at(self, index: int):
         return self[index:index+32]

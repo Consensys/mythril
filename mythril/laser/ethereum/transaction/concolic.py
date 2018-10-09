@@ -1,6 +1,6 @@
 from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction, get_next_transaction_id
 from z3 import BitVec
-from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState
+from mythril.laser.ethereum.state import GlobalState, Environment, CalldataType, Account, WorldState, SymbolicCalldata
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 
@@ -10,13 +10,14 @@ def execute_message_call(laser_evm, callee_address, caller_address, origin_addre
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
+    next_transaction_id = get_next_transaction_id()
     for open_world_state in open_states:
         transaction = MessageCallTransaction(
-            identifier=get_next_transaction_id(),
+            identifier=next_transaction_id,
             world_state=open_world_state,
             callee_account=open_world_state[callee_address],
             caller=caller_address,
-            call_data=data,
+            call_data=SymbolicCalldata(next_transaction_id, data),
             gas_price=gas_price,
             call_value=value,
             origin=origin_address,
