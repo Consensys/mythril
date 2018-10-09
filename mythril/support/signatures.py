@@ -183,7 +183,7 @@ class SignatureDb(object):
         :param file_path: solidity source code file path
         :return: self
         """
-        self.signatures.update(SignatureDb.get_sigs_from_file(file_path, solc_binary, solc_args))
+        self.signatures.update(SignatureDb.get_sigs_from_file(file_path, solc_binary=solc_binary, solc_args=solc_args))
         return self
 
     @staticmethod
@@ -214,7 +214,7 @@ class SignatureDb(object):
         sigs = {}
         cmd = [solc_binary, "--hashes", file_name]
         if solc_args:
-            cmd.extend([i for i in solc_args.split(" ") if i != ""])
+            cmd.extend(solc_args.split())
         try:
             p = Popen(cmd, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
