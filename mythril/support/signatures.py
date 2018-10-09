@@ -177,13 +177,13 @@ class SignatureDb(object):
         """
         return self.get(sighash=item)
 
-    def import_from_solidity_source(self, file_path):
+    def import_from_solidity_source(self, file_path, solc_binary="solc", solc_args=None):
         """
         Import Function Signatures from solidity source files
         :param file_path: solidity source code file path
         :return: self
         """
-        self.signatures.update(SignatureDb.get_sigs_from_file(file_path))
+        self.signatures.update(SignatureDb.get_sigs_from_file(file_path, solc_binary, solc_args))
         return self
 
     @staticmethod
@@ -206,13 +206,15 @@ class SignatureDb(object):
                                                                                        proxies=proxies))
 
     @staticmethod
-    def get_sigs_from_file(file_name):
+    def get_sigs_from_file(file_name, solc_binary="solc", solc_args=None):
         """
         :param file_name: accepts a filename
         :return: their signature mappings
         """
         sigs = {}
-        cmd = ["solc", "--hashes", file_name]
+        cmd = [solc_binary, "--hashes", file_name]
+        if solc_args:
+            cmd.extend([i for i in solc_args.split(" ") if i != ""])
         try:
             p = Popen(cmd, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
