@@ -98,7 +98,7 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
 
     try:
         code = dynamic_loader.dynld(environment.active_account.address, callee_address)
-    except Exception as e:
+    except Exception:
         logging.info("Unable to execute dynamic loader.")
         raise ValueError()
     if code is None:
