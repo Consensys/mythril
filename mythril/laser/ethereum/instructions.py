@@ -709,10 +709,8 @@ class Instruction:
             # Attempt to concretize value
             _bytes = util.concrete_int_to_bytes(value)
 
-            i = 0
-            for b in _bytes:
-                state.memory[mstart + i] = _bytes[i]
-                i += 1
+            for i, b in enumerate(_bytes):
+                state.memory[mstart + i] = b
         except:
             try:
                 state.memory[mstart] = value
