@@ -4,7 +4,7 @@ from copy import copy, deepcopy
 
 from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef, URem, SRem, BitVec, Solver, is_true, BitVecVal, If, BoolRef, Or
+    is_false, is_expr, ExprRef, URem, SRem, BitVec, is_true, BitVecVal, If, BoolRef, Or
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -820,9 +820,6 @@ class Instruction:
 
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
-
-            solver = Solver()
-            solver.set(timeout=1000)
 
             results = []
             new = False
