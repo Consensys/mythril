@@ -37,7 +37,7 @@ For support or general discussions please join the Mythril community on [Discord
 
 ## Vulnerability Remediation
 
-Visit the [Smart Contract Vulnerability Classification Registry](https://smartcontractsecurity.github.io/SWC-registry/) to find detailed information and remediation guidance about the vulnerabilities reported.
+Visit the [Smart Contract Vulnerability Classification Registry](https://smartcontractsecurity.github.io/SWC-registry/) to find detailed information and remediation guidance for the vulnerabilities reported.
 
 ## Presentations, papers and articles
 
