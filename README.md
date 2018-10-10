@@ -25,7 +25,7 @@ Install from Pypi:
 
 ```bash
 $ pip3 install mythril
-```now
+```
 
 See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup) for more detailed instructions. 
 
