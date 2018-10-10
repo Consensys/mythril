@@ -6,13 +6,13 @@ from mythril.laser.ethereum import svm
 from tests import *
 
 
-SHA256_TEST = [ (0,False) for i in range(6)]
+SHA256_TEST = [(0, False) for _ in range(6)]
 
-RIPEMD160_TEST = [ (0,False) for i in range(6)]
+RIPEMD160_TEST = [(0, False) for _ in range(6)]
 
-ECRECOVER_TEST = [ (0,False) for i in range(9)]
+ECRECOVER_TEST = [(0, False) for _ in range(9)]
 
-IDENTITY_TEST = [ (0, False) for i in range(4)]
+IDENTITY_TEST = [(0, False) for _ in range(4)]
 
 SHA256_TEST[0] = (5555555555555555, True)     #These are Random numbers to check whether the 'if condition' is entered or not(True means entered)
 SHA256_TEST[1] = (323232325445454546, True)
