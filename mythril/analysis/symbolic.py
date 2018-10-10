@@ -9,9 +9,9 @@ from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, Brea
 
 class SymExecWrapper:
 
-    '''
+    """
     Wrapper class for the LASER Symbolic virtual machine. Symbolically executes the code and does a bit of pre-analysis for convenience.
-    '''
+    """
 
     def __init__(self, contract, address, strategy, dynloader=None, max_depth=22,
                  execution_timeout=None, create_timeout=None):
