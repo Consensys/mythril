@@ -80,7 +80,7 @@ def find_opcode_sequence(pattern, instruction_list):
                     matched = False
                     break
 
-            if (matched):
+            if matched:
                 match_indexes.append(i)
 
     return match_indexes
@@ -102,7 +102,7 @@ def disassemble(bytecode):
         instruction = {'address': addr}
 
         try:
-            if (sys.version_info > (3, 0)):
+            if sys.version_info > (3, 0):
                 opcode = opcodes[bytecode[addr]]
             else:
                 opcode = opcodes[ord(bytecode[addr])]

@@ -67,7 +67,7 @@ class SymExecWrapper:
                                 # ignore prebuilts
                                 continue
 
-                        if (meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE):
+                        if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:
                             self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val * 4]))
                         else:
                             self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value))
@@ -105,7 +105,7 @@ class SymExecWrapper:
                 taint = True
 
                 for constraint in s.node.constraints:
-                    if ("caller" in str(constraint)):
+                    if "caller" in str(constraint):
                         taint = False
                         break
 

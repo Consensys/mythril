@@ -47,13 +47,13 @@ def trace(code, calldata = ""):
 
 			m = re.match(r'.*stack=(\[.*?\])', line)
 				
-			if (m):
+			if m:
 
 				stackitems = re.findall(r'b\'(\d+)\'', m.group(1))
 
 				stack = "[";
 
-				if (len(stackitems)): 
+				if len(stackitems):
 
 					for i in range(0, len(stackitems) - 1):
 						stack += hex(int(stackitems[i]))	+ ", "
@@ -65,7 +65,7 @@ def trace(code, calldata = ""):
 			else:
 				stack = "[]"
 
-			if (re.match(r'^PUSH.*', op)):
+			if re.match(r'^PUSH.*', op):
 				val = re.search(r'pushvalue=(\d+)', line).group(1)
 				pushvalue = hex(int(val))
 				trace.append({'pc': pc, 'op': op, 'stack': stack, 'pushvalue': pushvalue})

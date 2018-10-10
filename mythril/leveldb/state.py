@@ -88,7 +88,7 @@ class Account(rlp.Serializable):
         '''
         return self.nonce == 0 and self.balance == 0 and self.code_hash == BLANK_HASH
 
-class State():
+class State:
     '''
     adjusted state from ethereum.state
     '''

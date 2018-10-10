@@ -128,7 +128,7 @@ class AccountIndexer(object):
         count = 0
         processed = 0
 
-        while (blockNum <= self.lastBlock):
+        while blockNum <= self.lastBlock:
             # leveldb cannot be accessed on multiple processes (not even readonly)
             # multithread version performs significantly worse than serial
             try:
