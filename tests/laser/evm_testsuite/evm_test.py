@@ -12,7 +12,7 @@ import pytest
 
 evm_test_dir = Path(__file__).parent / 'VMTests'
 
-test_types = ['vmArithmeticTest', 'vmBitwiseLogicOperation', 'vmPushDupSwapTest']
+test_types = ['vmArithmeticTest', 'vmBitwiseLogicOperation', 'vmPushDupSwapTest', 'vmTests']
 
 
 def load_test_data(designations):
