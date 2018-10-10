@@ -51,7 +51,7 @@ def trace(code, calldata = ""):
 
 				stackitems = re.findall(r'b\'(\d+)\'', m.group(1))
 
-				stack = "[";
+				stack = "["
 
 				if len(stackitems):
 
