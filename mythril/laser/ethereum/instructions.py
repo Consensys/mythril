@@ -779,7 +779,8 @@ class Instruction:
             
             return self._sload_helper(global_state, str(index))
 
-    def _sload_helper(self, global_state, index, constraints=None):
+    @staticmethod
+    def _sload_helper(global_state, index, constraints=None):
         try:
             data = global_state.environment.active_account.storage[index]
         except KeyError:
@@ -792,8 +793,8 @@ class Instruction:
         global_state.mstate.stack.append(data)
         return [global_state]
 
-
-    def _get_constraints(self, keccak_keys, this_key, argument):
+    @staticmethod
+    def _get_constraints(keccak_keys, this_key, argument):
         global keccak_function_manager
         for keccak_key in keccak_keys:
             if keccak_key == this_key:
@@ -843,7 +844,8 @@ class Instruction:
 
             return self._sstore_helper(global_state, str(index), value)
 
-    def _sstore_helper(self, global_state, index, value, constraint=None):
+    @staticmethod
+    def _sstore_helper(global_state, index, value, constraint=None):
         try:
             global_state.environment.active_account = deepcopy(global_state.environment.active_account)
             global_state.accounts[

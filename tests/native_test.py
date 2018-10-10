@@ -98,9 +98,9 @@ def _test_natives(laser_info, test_list, test_name):
     assert(success == len(test_list))
 
 
-
 class NativeTests(BaseTestCase):
-    def runTest(self):
+    @staticmethod
+    def runTest():
         disassembly = SolidityContract('./tests/native_tests.sol').disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
         accounts = {account.address: account}
