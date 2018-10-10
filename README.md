@@ -4,7 +4,7 @@
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril.svg?columns=all)](https://waffle.io/ConsenSys/mythril)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
-
+[![PyPI Statistics](https://pypistats.com/badge/mythril.svg)](https://pypistats.com/package/mythril)
 <img height="120px" align="right" src="https://github.com/ConsenSys/mythril/raw/master/static/mythril.png" alt="mythril" />
 
 Mythril OSS is the classic security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
