@@ -5,6 +5,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
+from mythril.laser.ethereum.smt_wrapper import Neq
 import re
 import copy
 import logging
@@ -79,7 +80,7 @@ def _check_integer_overflow(statespace, state, node):
         expr = op1 * op0
 
     # Check satisfiable
-    constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
+    constraint = Or(And(ULT(expr, op0), Neq(op1, 0)), And(ULT(expr, op1), Neq(op0, 0)))
     model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
