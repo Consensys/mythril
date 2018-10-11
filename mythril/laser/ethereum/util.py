@@ -16,7 +16,7 @@ def sha3(seed):
 
 def safe_decode(hex_encoded_string):
 
-    if (hex_encoded_string.startswith("0x")):
+    if hex_encoded_string.startswith("0x"):
         return bytes.fromhex(hex_encoded_string[2:])
     else:
         return bytes.fromhex(hex_encoded_string)
@@ -99,7 +99,7 @@ def concrete_int_to_bytes(val):
 
     # logging.debug("concrete_int_to_bytes " + str(val))
 
-    if (type(val) == int):
+    if type(val) == int:
         return val.to_bytes(32, byteorder='big')
 
     return (simplify(val).as_long()).to_bytes(32, byteorder='big')
