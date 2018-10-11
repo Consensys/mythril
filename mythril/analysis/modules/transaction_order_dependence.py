@@ -6,6 +6,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
+from mythril.laser.ethereum.smt_wrapper import NotConcreteValueError
 from mythril.exceptions import UnsatError
 
 '''
@@ -113,7 +114,7 @@ def _get_influencing_sstores(statespace, interesting_storages):
         index, value = sstore_state.mstate.stack[-1], sstore_state.mstate.stack[-2]
         try:
             index = util.get_concrete_int(index)
-        except AttributeError:
+        except NotConcreteValueError:
             index = str(index)
         if "storage_{}".format(index) not in interesting_storages:
             continue

@@ -2,6 +2,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
+from mythril.laser.ethereum.smt_wrapper import get_concrete_value
 from mythril.exceptions import UnsatError
 import logging
 
@@ -48,7 +49,7 @@ def _analyze_state(state, node):
     elif "calldata" in str(to):
         description += "The remaining Ether is sent to an address provided as a function argument.\n"
     elif type(to) == BitVecNumRef:
-        description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
+        description += "The remaining Ether is sent to: " + hex(get_concrete_value(to)) + "\n"
     else:
         description += "The remaining Ether is sent to: " + str(to) + "\n"
 

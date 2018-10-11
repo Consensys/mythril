@@ -3,6 +3,7 @@ from mythril.analysis.ops import *
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
+from mythril.laser.ethereum.smt_wrapper import get_concrete_value
 from mythril.exceptions import UnsatError
 import re
 import logging
@@ -112,7 +113,7 @@ def execute(statespace):
                     model = solver.get_model(node.constraints)
 
                     for d in model.decls():
-                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), get_concrete_value(model[d])))
 
                     debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 

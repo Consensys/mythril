@@ -2,6 +2,7 @@ import logging
 from z3 import simplify
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
+from mythril.laser.ethereum.smt_wrapper import NotConcreteValueError
 from mythril.support.loader import DynLoader
 import re
 
@@ -48,7 +49,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
 
     try:
         callee_address = hex(util.get_concrete_int(symbolic_to_address))
-    except AttributeError:
+    except NotConcreteValueError:
         logging.debug("Symbolic call encountered")
 
         match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
@@ -130,7 +131,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
             call_data += [0] * (32 - len(call_data))
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
-    except AttributeError:
+    except NotConcreteValueError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = []

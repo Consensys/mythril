@@ -1,5 +1,7 @@
 from z3 import Solver, simplify, sat, unknown
 from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.smt_wrapper import \
+    NotConcreteValueError, get_concrete_value
 import logging
 
 def get_model(constraints):
@@ -23,8 +25,8 @@ def pretty_print_model(model):
     for d in model.decls():
 
         try:
-            condition = "0x%x" % model[d].as_long()
-        except:
+            condition = "0x%x" % get_concrete_value(model[d])
+        except NotConcreteValueError:
             condition = str(simplify(model[d]))
 
         ret += ("%s: %s\n" % (d.name(), condition))

@@ -4,6 +4,8 @@ import logging
 
 import sha3 as _sha3
 
+from mythril.laser.ethereum.smt_wrapper import get_concrete_value
+
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -72,7 +74,7 @@ def get_concrete_int(item):
     if isinstance(item, int):
         return item
     elif isinstance(item, BitVecNumRef):
-        return item.as_long()
+        return get_concrete_value(item)
     elif isinstance(item, BoolRef):
         simplified = simplify(item)
         if is_false(simplified):
@@ -82,7 +84,7 @@ def get_concrete_int(item):
         else:
             raise ValueError("Symbolic boolref encountered")
 
-    return simplify(item).as_long()
+    return get_concrete_value(simplify(item))
 
 
 def concrete_int_from_bytes(_bytes, start_index):
@@ -102,7 +104,7 @@ def concrete_int_to_bytes(val):
     if type(val) == int:
         return val.to_bytes(32, byteorder='big')
 
-    return (simplify(val).as_long()).to_bytes(32, byteorder='big')
+    return get_concrete_value(simplify(val)).to_bytes(32, byteorder='big')
 
 
 def bytearray_to_int(arr):

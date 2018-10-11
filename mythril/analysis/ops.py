@@ -1,6 +1,7 @@
 from z3 import *
 from enum import Enum
 from mythril.laser.ethereum import util
+from mythril.laser.ethereum.smt_wrapper import NotConcreteValueError
 
 
 class VarType(Enum):
@@ -21,7 +22,7 @@ class Variable:
 def get_variable(i):
     try:
         return Variable(util.get_concrete_int(i), VarType.CONCRETE)
-    except AttributeError:
+    except NotConcreteValueError:
         return Variable(simplify(i), VarType.SYMBOLIC)
 
 

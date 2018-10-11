@@ -1,6 +1,7 @@
 import logging, copy
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum.cfg import JumpType
+from mythril.laser.ethereum.smt_wrapper import NotConcreteValueError
 
 class TaintRecord:
     """
@@ -213,7 +214,7 @@ class TaintRunner:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
@@ -225,7 +226,7 @@ class TaintRunner:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Can't mstore taint track symbolically")
             return
 
@@ -236,7 +237,7 @@ class TaintRunner:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
@@ -248,7 +249,7 @@ class TaintRunner:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Can't mstore taint track symbolically")
             return
 
