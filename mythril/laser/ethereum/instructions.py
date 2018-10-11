@@ -4,9 +4,9 @@ from copy import copy, deepcopy
 from datetime import datetime
 
 from ethereum import utils
-from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
+from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, Not, \
     is_false, is_expr, ExprRef, URem, SRem, BitVec, is_true, BitVecVal, If, Or, \
-    is_bool
+    is_bool, is_bv_value
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -309,7 +309,7 @@ class Instruction:
         state = global_state.mstate
 
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
-        if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
+        if (not is_bv_value(base)) or (not is_bv_value(exponent)):
             state.stack.append(global_state.new_bitvec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
         else:
             state.stack.append(pow(get_concrete_value(base), get_concrete_value(exponent), 2**256))
@@ -1034,7 +1034,7 @@ class Instruction:
 
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, BitVecNumRef):
+        if is_bv_value(target):
             target = '0x' + hex(get_concrete_value(target))[-40:]
         if isinstance(target, str):
             try:

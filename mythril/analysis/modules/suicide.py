@@ -1,3 +1,4 @@
+from z3 import is_bv_value
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
@@ -48,7 +49,7 @@ def _analyze_state(state, node):
         description += "The remaining Ether is sent to a stored address.\n"
     elif "calldata" in str(to):
         description += "The remaining Ether is sent to an address provided as a function argument.\n"
-    elif type(to) == BitVecNumRef:
+    elif is_bv_value(to):
         description += "The remaining Ether is sent to: " + hex(get_concrete_value(to)) + "\n"
     else:
         description += "The remaining Ether is sent to: " + str(to) + "\n"
