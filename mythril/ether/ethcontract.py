@@ -7,7 +7,8 @@ import re
 class ETHContract(persistent.Persistent):
 
     def __init__(self, code, creation_code="", name="Unknown", enable_online_lookup=True):
-
+        
+        creation_code = re.sub(r'(_+.*_+)', 'aa' * 20, creation_code)
         self.creation_code = creation_code
         self.name = name
 
