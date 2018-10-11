@@ -1,10 +1,11 @@
 import re
-from z3 import *
 import logging
 
 import sha3 as _sha3
 
-from mythril.laser.ethereum.smt_wrapper import get_concrete_value, simplify
+from mythril.laser.ethereum.smt_wrapper import \
+    get_concrete_value, simplify, is_bool, is_bv_value, is_true, is_false, \
+    If, BitVecVal
 
 
 TT256 = 2 ** 256

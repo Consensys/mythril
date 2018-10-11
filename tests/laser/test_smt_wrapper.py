@@ -1,9 +1,12 @@
 import pytest
-from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value, is_expr
+from z3 import BoolVal, IntVal
 from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value, \
-    Eq, Neq, SLT, SGT, SDiv, \
-    SimplificationError
+    BitVec, BitVecVal, Concat, Extract, \
+    Eq, Neq, SLT, SGT, ULT, UGT, UDiv, SDiv, URem, SRem, \
+    Not, And, Or, \
+    SimplificationError, \
+    is_expr, is_bv_value, is_bv, is_bool, is_true, is_false
 from mythril.laser.ethereum.smt_wrapper import simplify as simplify_wrapper
 
 
@@ -126,3 +129,139 @@ def test_simplify():
 def test_simplify_error():
     with pytest.raises(SimplificationError):
         simplify_wrapper(1 + 1 == 2)
+
+
+def test_is_bv():
+    assert (is_bv(BitVec("x", 256)))
+    assert (is_bv(BitVecVal(0x100, 256)))
+    assert (is_bv(BitVec("x", 256) + BitVecVal(0x100, 256)))
+    assert (is_bv(BitVec("x", 256) + 0x100))
+    assert (not is_bv(IntVal(0x100)))
+    assert (not is_bv(BoolVal(False)))
+    assert (not is_bv(0x100))
+    assert (not is_bv(False))
+
+
+def test_is_true():
+    assert (is_true(BoolVal(True)))
+    assert (not is_true(True))
+
+
+def test_is_false():
+    assert (is_false(BoolVal(False)))
+    assert (not is_false(False))
+
+
+def test_Not():
+    Not(BoolVal(False))
+    Not(False)
+
+
+def test_Concat():
+    bv0 = BitVecVal(0xffff, 16)
+    bv1 = BitVecVal(0xeeee, 16)
+    bv = Concat(bv0, bv1)
+    assert (get_concrete_value(simplify_wrapper(bv)) == 0xffffeeee)
+
+
+def test_Extract():
+    bv0 = BitVecVal(0xffffeeee, 32)
+    bv = Extract(31, 16, bv0)
+    assert (get_concrete_value(simplify_wrapper(bv)) == 0xffff)
+
+
+def test_And():
+    operands = [BoolVal(True), True]
+    for lhs, rhs in zip(operands, operands):
+        And(lhs, rhs)
+
+
+def test_Or():
+    operands = [BoolVal(True), True]
+    for lhs, rhs in zip(operands, operands):
+        Or(lhs, rhs)
+
+
+def test_ULT():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    lhs = operands[0]
+    for rhs in operands:
+        ULT(lhs, rhs)
+
+    rhs = operands[0]
+    for lhs in operands:
+        ULT(lhs, rhs)
+
+
+def test_ULT_type_error():
+    with pytest.raises(TypeError):
+        ULT(0x2, 0x1)
+
+
+def test_UGT():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    lhs = operands[0]
+    for rhs in operands:
+        UGT(lhs, rhs)
+
+    rhs = operands[0]
+    for lhs in operands:
+        UGT(lhs, rhs)
+
+
+def test_UGT_type_error():
+    with pytest.raises(TypeError):
+        UGT(0x2, 0x1)
+
+
+def test_UDiv():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    dividend = operands[0]
+    for divisor in operands:
+        UDiv(dividend, divisor)
+
+    divisor = operands[0]
+    for dividend in operands:
+        UDiv(dividend, divisor)
+
+
+def test_UDiv_type_error():
+    with pytest.raises(TypeError):
+        UDiv(0x1, 0x2)
+
+
+def test_URem():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    dividend = operands[0]
+    for divisor in operands:
+        URem(dividend, divisor)
+
+    divisor = operands[0]
+    for dividend in operands:
+        URem(dividend, divisor)
+
+
+def test_URem_type_error():
+    with pytest.raises(TypeError):
+        URem(0x1, 0x2)
+
+
+def test_SRem():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    dividend = operands[0]
+    for divisor in operands:
+        SRem(dividend, divisor)
+
+    divisor = operands[0]
+    for dividend in operands:
+        SRem(dividend, divisor)
+
+
+def test_SRem_type_error():
+    with pytest.raises(TypeError):
+        SRem(0x1, 0x2)

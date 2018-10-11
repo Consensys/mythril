@@ -1,11 +1,11 @@
-from z3 import *
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
-from mythril.laser.ethereum.smt_wrapper import Neq
+from mythril.laser.ethereum.smt_wrapper import \
+    Neq, Not, ULT, UGT, And, Or, is_bv, BitVecVal
 import re
 import copy
 import logging

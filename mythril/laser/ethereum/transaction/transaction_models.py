@@ -1,7 +1,7 @@
 import logging
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
-from z3 import BitVec
+from mythril.laser.ethereum.smt_wrapper import BitVec
 import array
 
 _next_transaction_id = 0
