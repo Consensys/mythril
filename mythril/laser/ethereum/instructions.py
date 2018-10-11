@@ -130,7 +130,6 @@ class Instruction:
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
         if type(op2) == BoolRef:
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
-
         stack.append(op1 & op2)
 
         return [global_state]
@@ -353,43 +352,7 @@ class Instruction:
         environment = global_state.environment
         op0 = state.stack.pop()
 
-        if environment.calldata_type == CalldataType.CONCRETE:
-            try:
-                offset = util.get_concrete_int(simplify(op0))
-                b = environment.calldata[offset]
-            except AttributeError:
-                logging.debug("CALLDATALOAD: Unsupported symbolic index")
-                state.stack.append(global_state.new_bitvec(
-                    "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
-                return [global_state]
-            except IndexError:
-                logging.debug("Calldata not set, using symbolic variable instead")
-                state.stack.append(global_state.new_bitvec(
-                    "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
-                return [global_state]
-
-            if type(b) == int:
-                val = b''
-
-                try:
-                    for i in range(offset, offset + 32):
-                        val += environment.calldata[i].to_bytes(1, byteorder='big')
-
-                    logging.debug("Final value: " + str(int.from_bytes(val, byteorder='big')))
-                    state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
-                # FIXME: broad exception catch
-                except:
-                    state.stack.append(global_state.new_bitvec(
-                        "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
-        else:
-            # symbolic calldata
-            try:
-                state.stack.append(environment.calldata.get_word_at(util.get_concrete_int(op0)))
-            except AttributeError:
-                logging.debug("CALLDATALOAD: Unsupported symbolic index")
-                state.stack.append(global_state.new_bitvec(
-                    "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
-
+        state.stack.append(environment.calldata.get_word_at(op0))
         return [global_state]
 
     @StateTransition()
@@ -420,7 +383,6 @@ class Instruction:
             dstart = util.get_concrete_int(op1)
             # FIXME: broad exception catch
         except:
-            logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
             dstart_sym = True
 
@@ -433,7 +395,7 @@ class Instruction:
             size = simplify(op2)
             size_sym = True
 
-        if dstart_sym or size_sym:
+        if size_sym:
             state.mem_extend(mstart, 1)
             state.memory[mstart] = global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(dstart) + ": + " + str(
@@ -455,9 +417,13 @@ class Instruction:
             try:
                 i_data = dstart
 
+                new_memory = []
                 for i in range(mstart, mstart + size):
-                    state.memory[i] = environment.calldata[i_data]
-                    i_data += 1
+                    new_memory.append(environment.calldata[i_data])
+                    i_data = simplify(i_data + 1)
+
+                for i in range(0, len(new_memory), 32):
+                    state.memory[i+mstart] = simplify(Concat(new_memory[i:i+32]))
             except:
                 logging.debug("Exception copying calldata to memory")
 

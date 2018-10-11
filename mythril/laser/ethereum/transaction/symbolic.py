@@ -3,7 +3,7 @@ from logging import debug
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
-from mythril.laser.ethereum.state import CalldataType, SymbolicCalldata
+from mythril.laser.ethereum.state import CalldataType, Calldata
 from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction,\
     get_next_transaction_id
 
@@ -23,7 +23,7 @@ def execute_message_call(laser_evm, callee_address):
             callee_account=open_world_state[callee_address],
             caller=BitVec("caller{}".format(next_transaction_id), 256),
             identifier=next_transaction_id,
-            call_data=SymbolicCalldata(next_transaction_id),
+            call_data=Calldata(next_transaction_id),
             gas_price=BitVec("gas_price{}".format(next_transaction_id), 256),
             call_value=BitVec("call_value{}".format(next_transaction_id), 256),
             origin=BitVec("origin{}".format(next_transaction_id), 256),

@@ -1,4 +1,5 @@
-from z3 import BitVec, BitVecVal, Solver, ExprRef, Concat, sat, simplify
+from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array
+from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
@@ -10,35 +11,46 @@ class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
 
-class SymbolicCalldata:
+class Calldata:
     def __init__(self, tx_id: int, starting_calldata: bytes=None):
         self.tx_id = tx_id
-        self._calldata = {}
+        self._calldata = Array('{}_calldata'.format(self.tx_id), BitVecSort(256), BitVecSort(8))
 
         if starting_calldata:
             for i in range(len(starting_calldata)):
-                self._calldata[i] = BitVecVal(starting_calldata[i], 8)
+                self._calldata[BitVecVal(i, 256)] = BitVecVal(starting_calldata[i], 8)
 
     def get_word_at(self, index: int):
         return self[index:index+32]
 
+    def concretized(self, model):
+        concrete_calldata = model[self._calldata].as_list()
+        concrete_calldata.sort(key=lambda x: x[0].as_long() if type(x) == list else -1)
+        result = []
+        arr_index = 1
+        for i in range(0, concrete_calldata[len(concrete_calldata)-1][0].as_long()+1):
+            if concrete_calldata[arr_index][0].as_long() == i:
+                result.append(concrete_calldata[arr_index][1].as_long())
+                arr_index += 1
+            else:
+                # Default value
+                result.append(concrete_calldata[0].as_long())
+        return result
+
     def __getitem__(self, item: int):
         if isinstance(item, slice):
-            if item.step != None \
-            or item.start > item.stop \
-            or item.start < 0 \
-            or item.stop < 0: raise IndexError("Invalid Calldata Slice")
+            try:
+                current_index = item.start if type(item.start) in [BitVecRef, BitVecNumRef] else BitVecVal(item.start, 256)
+                dataparts = []
+                while simplify(current_index != item.stop):
+                    dataparts.append(self[current_index])
+                    current_index = simplify(current_index + 1)
+            except Z3Exception:
+                raise IndexError("Invalid Calldata Slice")
 
-            dataparts = []
-            for i in range(item.start, item.stop):
-                dataparts.append(self[i])
             return simplify(Concat(dataparts))
         else:
-            try:
-                return self._calldata[item]
-            except KeyError:
-                self._calldata[item] = BitVec(str(self.tx_id)+'_calldata['+str(item)+']', 8)
-                return self._calldata[item]
+            return self._calldata[item] if type(item) != BitVecVal else self._calldata[BitVecVal(item, 256)]
 
 class Storage:
     """
