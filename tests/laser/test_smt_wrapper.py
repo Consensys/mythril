@@ -1,5 +1,5 @@
 import pytest
-from z3 import BitVec, BitVecVal
+from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool
 from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value
 
@@ -19,3 +19,11 @@ def test_get_concrete_value_of_bv():
 def test_get_concrete_value_of_int():
     with pytest.raises(NotConcreteValueError):
         get_concrete_value(10)
+
+
+def test_is_bool():
+    assert (is_bool(BoolVal(False)))
+    assert (not is_bool(BitVec("x", 256)))
+    assert (not is_bool(IntVal(1)))
+    assert (not is_bool(True))
+    assert (not is_bool(1))

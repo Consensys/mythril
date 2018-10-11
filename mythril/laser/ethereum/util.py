@@ -57,7 +57,7 @@ def pop_bitvec(state):
 
     item = state.stack.pop()
 
-    if type(item) == BoolRef:
+    if is_bool(item):
         return If(item, BitVecVal(1, 256), BitVecVal(0, 256))
     elif type(item) == bool:
         if item:
@@ -75,7 +75,7 @@ def get_concrete_int(item):
         return item
     elif isinstance(item, BitVecNumRef):
         return get_concrete_value(item)
-    elif isinstance(item, BoolRef):
+    elif is_bool(item):
         simplified = simplify(item)
         if is_false(simplified):
             return 0

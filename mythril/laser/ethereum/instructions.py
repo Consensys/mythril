@@ -4,7 +4,8 @@ from copy import copy, deepcopy
 
 from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef, URem, SRem, BitVec, is_true, BitVecVal, If, BoolRef, Or
+    is_false, is_expr, ExprRef, URem, SRem, BitVec, is_true, BitVecVal, If, Or, \
+    is_bool
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -128,9 +129,9 @@ class Instruction:
     def and_(self, global_state):
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
-        if type(op1) == BoolRef:
+        if is_bool(op1):
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
-        if type(op2) == BoolRef:
+        if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
         stack.append(op1 & op2)
@@ -142,10 +143,10 @@ class Instruction:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
-        if type(op1) == BoolRef:
+        if is_bool(op1):
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-        if type(op2) == BoolRef:
+        if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
         stack.append(op1 | op2)
@@ -319,10 +320,10 @@ class Instruction:
         op1 = state.stack.pop()
         op2 = state.stack.pop()
 
-        if type(op1) == BoolRef:
+        if is_bool(op1):
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-        if type(op2) == BoolRef:
+        if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
         exp = op1 == op2
@@ -335,7 +336,7 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = val == False if type(val) == BoolRef else val == 0
+        exp = val == False if is_bool(val) else val == 0
         state.stack.append(exp)
 
         return [global_state]
@@ -903,9 +904,9 @@ class Instruction:
             return [global_state]
 
         # False case
-        negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
+        negated = simplify(Not(condition)) if is_bool(condition) else condition == 0
 
-        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
+        if (type(negated) == bool and negated) or (is_bool(negated) and not is_false(negated)):
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
@@ -924,9 +925,9 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
+        condi = simplify(condition) if is_bool(condition) else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
+            if (type(condi) == bool and condi) or (is_bool(condi) and not is_false(condi)):
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
