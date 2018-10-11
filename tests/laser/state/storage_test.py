@@ -1,6 +1,6 @@
 import pytest
 from mythril.laser.ethereum.state import Storage
-from z3 import is_expr
+from mythril.laser.ethereum.smt_wrapper import is_expr
 
 storage_uninitialized_test_data = [
     ({}, 1),

@@ -1,9 +1,10 @@
-from z3 import is_bv_value
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
-from mythril.laser.ethereum.smt_wrapper import get_concrete_value, Eq
+from mythril.laser.ethereum.smt_wrapper import \
+    get_concrete_value, Eq, \
+    is_bv_value, Extract, Not
 from mythril.exceptions import UnsatError
 import logging
 

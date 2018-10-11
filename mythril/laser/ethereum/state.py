@@ -1,10 +1,10 @@
-from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 
 from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
+from mythril.laser.ethereum.smt_wrapper import BitVec, BitVecVal
 
 
 class CalldataType(Enum):
