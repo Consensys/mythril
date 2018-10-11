@@ -1,5 +1,5 @@
 import pytest
-from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value
+from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value, is_expr
 from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value
 
@@ -34,3 +34,9 @@ def test_is_bv_value():
     assert (not is_bv_value(BitVec("x", 256)))
     assert (not is_bv_value(IntVal(0x100)))
     assert (not is_bv_value(0x100))
+
+
+def test_is_expr():
+    assert (is_expr(BitVecVal(0x100, 256)))
+    assert (is_expr(BitVec("x", 256)))
+    assert (not is_expr(0x100))
