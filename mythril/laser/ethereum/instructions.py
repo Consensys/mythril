@@ -5,7 +5,7 @@ from datetime import datetime
 
 from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, Not, \
-    is_false, is_expr, ExprRef, URem, SRem, BitVec, is_true, BitVecVal, If, Or, \
+    is_false, is_expr, URem, SRem, BitVec, is_true, BitVecVal, If, Or, \
     is_bool, is_bv_value
 
 import mythril.laser.ethereum.natives as natives
@@ -225,7 +225,7 @@ class Instruction:
     def byte_(self, global_state):
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
-        if not isinstance(op1, ExprRef):
+        if not is_expr(op1):
             op1 = BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
@@ -899,7 +899,7 @@ class Instruction:
                 global_state.environment.active_account.address] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] =\
-                value if not isinstance(value, ExprRef) else simplify(value)
+                value if not is_expr(value) else simplify(value)
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
 
@@ -1153,8 +1153,8 @@ class Instruction:
             return [global_state]
 
         try:
-            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
-            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if is_expr(memory_out_offset) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if is_expr(memory_out_size) else memory_out_size
         except TypeError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
@@ -1221,8 +1221,8 @@ class Instruction:
             return [global_state]
 
         try:
-            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
-            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if is_expr(memory_out_offset) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if is_expr(memory_out_size) else memory_out_size
         except TypeError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
@@ -1291,10 +1291,8 @@ class Instruction:
             return [global_state]
 
         try:
-            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset,
-                                                                                       ExprRef) else memory_out_offset
-            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size,
-                                                                                   ExprRef) else memory_out_size
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if is_expr(memory_out_offset) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if is_expr(memory_out_size) else memory_out_size
         except TypeError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
