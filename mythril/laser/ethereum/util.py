@@ -4,7 +4,7 @@ import logging
 
 import sha3 as _sha3
 
-from mythril.laser.ethereum.smt_wrapper import get_concrete_value
+from mythril.laser.ethereum.smt_wrapper import get_concrete_value, simplify
 
 
 TT256 = 2 ** 256

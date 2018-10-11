@@ -6,7 +6,8 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
-from mythril.laser.ethereum.smt_wrapper import NotConcreteValueError, Neq
+from mythril.laser.ethereum.smt_wrapper import \
+    NotConcreteValueError, Neq, simplify
 from mythril.exceptions import UnsatError
 
 '''

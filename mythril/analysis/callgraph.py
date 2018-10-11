@@ -2,7 +2,7 @@ import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 from mythril.laser.ethereum.svm import NodeFlags
-import z3
+from mythril.laser.ethereum.smt_wrapper import simplify, SimplificationError
 
 default_opts = {
     'autoResize': True,
@@ -127,8 +127,8 @@ def extract_edges(statespace):
             label = ""
         else:
             try:
-                label = str(z3.simplify(edge.condition)).replace("\n", "")
-            except z3.Z3Exception:
+                label = str(simplify(edge.condition)).replace("\n", "")
+            except SimplificationError:
                 label = str(edge.condition).replace("\n", "")
 
         label = re.sub(r'([^_])([\d]{2}\d+)', lambda m: m.group(1) + hex(int(m.group(2))), label)
