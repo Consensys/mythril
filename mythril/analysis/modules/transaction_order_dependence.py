@@ -6,6 +6,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
+from mythril.laser.ethereum.smt_wrapper import Neq
 from mythril.exceptions import UnsatError
 
 '''
@@ -82,7 +83,7 @@ def _can_change(constraints, variable):
         return False
     try:
         initial_value = int(str(model.eval(variable, model_completion=True)))
-        return _try_constraints(constraints, [variable != initial_value]) is not None
+        return _try_constraints(constraints, [Neq(variable, initial_value)]) is not None
     except AttributeError:
         return False
 

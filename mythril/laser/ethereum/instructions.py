@@ -19,7 +19,8 @@ from mythril.laser.ethereum.state import GlobalState, CalldataType
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
 from mythril.laser.ethereum.smt_wrapper import \
-    get_concrete_value
+    get_concrete_value, \
+    Eq, Neq
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -381,7 +382,7 @@ class Instruction:
         if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
-        exp = op1 == op2
+        exp = Eq(op1, op2)
 
         state.stack.append(exp)
         return [global_state]
@@ -391,7 +392,7 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = val == False if is_bool(val) else val == 0
+        exp = Eq(val, False) if is_bool(val) else Eq(val, 0)
         state.stack.append(exp)
 
         return [global_state]
@@ -814,7 +815,7 @@ class Instruction:
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
-                constraints.append((keccak_key, key_argument == index_argument))
+                constraints.append((keccak_key, Eq(key_argument, index_argument)))
 
             for (keccak_key, constraint) in constraints:
                 if constraint in state.constraints:
@@ -850,7 +851,7 @@ class Instruction:
             if keccak_key == this_key:
                 continue
             keccak_argument = keccak_function_manager.get_argument(keccak_key)
-            yield keccak_argument != argument
+            yield Neq(keccak_argument, argument)
 
     @StateTransition()
     def sstore_(self, global_state):
@@ -879,11 +880,11 @@ class Instruction:
                 index_argument = keccak_function_manager.get_argument(index)
 
                 if is_true(key_argument == index_argument):
-                    return self._sstore_helper(copy(global_state), keccak_key, value, key_argument == index_argument)
+                    return self._sstore_helper(copy(global_state), keccak_key, value, Eq(key_argument, index_argument))
 
-                results += self._sstore_helper(copy(global_state), keccak_key, value, key_argument == index_argument)
+                results += self._sstore_helper(copy(global_state), keccak_key, value, Eq(key_argument, index_argument))
 
-                new = Or(new, key_argument != index_argument)
+                new = Or(new, Neq(key_argument, index_argument))
 
             if len(results) > 0:
                 results += self._sstore_helper(copy(global_state), str(index), value, new)
@@ -950,7 +951,7 @@ class Instruction:
             return [global_state]
 
         # False case
-        negated = simplify(Not(condition)) if is_bool(condition) else condition == 0
+        negated = simplify(Not(condition)) if is_bool(condition) else Eq(condition, 0)
 
         if (type(negated) == bool and negated) or (is_bool(negated) and not is_false(negated)):
             new_state = copy(global_state)
@@ -971,7 +972,7 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if is_bool(condition) else condition != 0
+        condi = simplify(condition) if is_bool(condition) else Neq(condition, 0)
         if instr['opcode'] == "JUMPDEST":
             if (type(condi) == bool and condi) or (is_bool(condi) and not is_false(condi)):
                 new_state = copy(global_state)
@@ -1148,7 +1149,7 @@ class Instruction:
             # Put return value on stack
             return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.mstate.constraints.append(Eq(return_value, 0))
 
             return [global_state]
 
@@ -1167,7 +1168,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.mstate.constraints.append(Eq(return_value, 1))
 
         return [global_state]
 
@@ -1216,7 +1217,7 @@ class Instruction:
             # Put return value on stack
             return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.mstate.constraints.append(Eq(return_value, 0))
 
             return [global_state]
 
@@ -1235,7 +1236,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.mstate.constraints.append(Eq(return_value, 1))
 
         return [global_state]
 
@@ -1286,7 +1287,7 @@ class Instruction:
             # Put return value on stack
             return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.mstate.constraints.append(Eq(return_value, 0))
 
             return [global_state]
 
@@ -1306,7 +1307,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.mstate.constraints.append(Eq(return_value, 1))
 
         return [global_state]
 

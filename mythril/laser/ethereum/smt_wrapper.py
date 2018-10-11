@@ -1,4 +1,3 @@
-from typing import Any
 from z3 import ExprRef
 
 
@@ -22,3 +21,27 @@ def get_concrete_value(expr: Types.Expr):
     except AttributeError:
         pass
     raise TypeError("{} is not concrete value".format(expr))
+
+
+def Eq(lhs, rhs) -> Types.Expr:
+    """
+    Make an equation formula `lhs == rhs`
+
+    :param lhs: the left side of the equation formula
+    :param rhs: the right side of the equation formula
+
+    :return: a formula `lhs == rhs`
+    """
+    return lhs == rhs
+
+
+def Neq(lhs, rhs) -> Types.Expr:
+    """
+    Make an inequation formula `lhs <> rhs`
+
+    :param lhs: the left side of the inequation formula
+    :param rhs: the right side of the inequation formula
+
+    :return: a formula `lhs <> rhs`
+    """
+    return lhs != rhs

@@ -3,7 +3,7 @@ from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
-from mythril.laser.ethereum.smt_wrapper import get_concrete_value
+from mythril.laser.ethereum.smt_wrapper import get_concrete_value, Eq
 from mythril.exceptions import UnsatError
 import logging
 
@@ -58,8 +58,8 @@ def _analyze_state(state, node):
     if len(state.world_state.transaction_sequence) > 1:
         creator = state.world_state.transaction_sequence[0].caller
         for transaction in state.world_state.transaction_sequence[1:]:
-            not_creator_constraints.append(Not(Extract(159, 0, transaction.caller) == Extract(159, 0, creator)))
-            not_creator_constraints.append(Not(Extract(159, 0, transaction.caller) == 0))
+            not_creator_constraints.append(Not(Eq(Extract(159, 0, transaction.caller), Extract(159, 0, creator))))
+            not_creator_constraints.append(Not(Eq(Extract(159, 0, transaction.caller), 0)))
 
     try:
         model = solver.get_model(node.constraints + not_creator_constraints)

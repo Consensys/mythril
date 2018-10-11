@@ -1,7 +1,8 @@
 import pytest
 from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value, is_expr
 from mythril.laser.ethereum.smt_wrapper import \
-    get_concrete_value
+    get_concrete_value, \
+    Eq, Neq
 
 
 def test_get_concrete_value_succ():
@@ -40,3 +41,25 @@ def test_is_expr():
     assert (is_expr(BitVecVal(0x100, 256)))
     assert (is_expr(BitVec("x", 256)))
     assert (not is_expr(0x100))
+
+
+def test_Eq():
+    operands = [BitVecVal(0x1, 256), IntVal(0x1), BoolVal(False), 0x1, True]
+    for lhs, rhs in zip(operands, operands):
+        Eq(lhs, rhs)
+
+
+def test_Eq_type_error():
+    with pytest.raises(Exception):
+        Eq(BitVecVal(0x1, 256), "x")
+
+
+def test_Neq():
+    operands = [BitVecVal(0x1, 256), IntVal(0x1), BoolVal(False), 0x1, True]
+    for lhs, rhs in zip(operands, operands):
+        Neq(lhs, rhs)
+
+
+def test_Neq_type_error():
+    with pytest.raises(Exception):
+        Neq(BitVecVal(0x1, 256), "x")
