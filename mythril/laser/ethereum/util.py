@@ -73,7 +73,7 @@ def pop_bitvec(state):
 def get_concrete_int(item):
     if isinstance(item, int):
         return item
-    elif isinstance(item, BitVecNumRef):
+    elif is_bv_value(item):
         return get_concrete_value(item)
     elif is_bool(item):
         simplified = simplify(item)

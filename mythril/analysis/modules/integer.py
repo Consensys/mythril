@@ -38,6 +38,10 @@ def execute(statespace):
     return issues
 
 
+def _is_allowed_type(op) -> bool:
+    return isinstance(op, int) or is_bv(op)
+
+
 def _check_integer_overflow(statespace, state, node):
     """
     Checks for integer overflow
@@ -59,8 +63,7 @@ def _check_integer_overflow(statespace, state, node):
 
     # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
     # Do a type check
-    allowed_types = [int, BitVecRef, BitVecNumRef]
-    if not (type(op0) in allowed_types and type(op1) in allowed_types):
+    if not (_is_allowed_type(op0) and _is_allowed_type(op1)):
         return issues
 
     # Change ints to BitVec
@@ -159,9 +162,7 @@ def _check_integer_underflow(statespace, state, node):
 
         logging.debug("[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(str(op0), str(op1),
                                                                                         str(instruction['address'])))
-        allowed_types = [int, BitVecRef, BitVecNumRef]
-
-        if type(op0) in allowed_types and type(op1) in allowed_types:
+        if _is_allowed_type(op0) and _is_allowed_type(op1):
             constraints.append(UGT(op1, op0))
 
             try:
