@@ -1,6 +1,7 @@
 from z3 import *
 from enum import Enum
 from mythril.laser.ethereum import util
+from mythril.laser.ethereum.smt_wrapper import simplify
 
 
 class VarType(Enum):

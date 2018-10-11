@@ -1,7 +1,7 @@
 import logging
-from z3 import simplify
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
+from mythril.laser.ethereum.smt_wrapper import simplify
 from mythril.support.loader import DynLoader
 import re
 

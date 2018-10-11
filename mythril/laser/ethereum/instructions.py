@@ -4,7 +4,7 @@ from copy import copy, deepcopy
 from datetime import datetime
 
 from ethereum import utils
-from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, Not, \
+from z3 import Extract, UDiv, Concat, ULT, UGT, Not, \
     is_false, is_expr, URem, SRem, BitVec, is_true, BitVecVal, If, Or, \
     is_bool, is_bv_value
 
@@ -20,7 +20,8 @@ from mythril.laser.ethereum.transaction import MessageCallTransaction, Transacti
     ContractCreationTransaction
 from mythril.laser.ethereum.smt_wrapper import \
     get_concrete_value, \
-    Eq, Neq, SLT, SGT, SDiv
+    Eq, Neq, SLT, SGT, SDiv, \
+    simplify
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1

@@ -1,5 +1,5 @@
-from z3 import Z3Exception, simplify
 from mythril.laser.ethereum.svm import NodeFlags
+from mythril.laser.ethereum.smt_wrapper import simplify, SimplificationError
 import re
 
 colors = [
@@ -87,7 +87,7 @@ def get_serializable_statespace(statespace):
 
             try:
                 label = str(simplify(edge.condition)).replace("\n", "")
-            except Z3Exception:
+            except SimplificationError:
                 label = str(edge.condition).replace("\n", "")
 
         label = re.sub("([^_])([\d]{2}\d+)", lambda m: m.group(1) + hex(int(m.group(2))), label)

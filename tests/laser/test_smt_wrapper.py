@@ -2,7 +2,9 @@ import pytest
 from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value, is_expr
 from mythril.laser.ethereum.smt_wrapper import \
     get_concrete_value, \
-    Eq, Neq, SLT, SGT, SDiv
+    Eq, Neq, SLT, SGT, SDiv, \
+    SimplificationError
+from mythril.laser.ethereum.smt_wrapper import simplify as simplify_wrapper
 
 
 def test_get_concrete_value_succ():
@@ -114,3 +116,13 @@ def test_SDiv():
 def test_SDiv_type_error():
     with pytest.raises(TypeError):
         SDiv(0x1, 0x2)
+
+
+def test_simplify():
+    simpl = simplify_wrapper(BitVecVal(0x10, 256) + BitVecVal(0x20, 256))
+    assert (get_concrete_value(simpl) == 0x30)
+
+
+def test_simplify_error():
+    with pytest.raises(SimplificationError):
+        simplify_wrapper(1 + 1 == 2)

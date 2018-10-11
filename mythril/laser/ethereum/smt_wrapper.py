@@ -1,4 +1,5 @@
 from z3 import ExprRef, is_bv
+from z3 import simplify as z3_simplify
 
 
 class Types:
@@ -100,3 +101,30 @@ def SDiv(dividend, divisor) -> Types.Expr:
         raise TypeError
 
     return dividend / divisor
+
+
+class SimplificationError(Exception):
+    """
+    Raise if the simplification fails.
+    """
+
+    def __init__(self, reason):
+        self.reason = reason
+
+
+def simplify(expr: Types.Expr) -> Types.Expr:
+    """
+    Simplify the constrain expression `expr`.
+
+    :param expr: the expression to be simplified
+
+    :return: the simplified form of `expr`
+
+    :raise SimplificationError: if any error occurs
+    """
+
+    try:
+        return z3_simplify(expr)
+    except Exception as e:
+        reason = str(e)
+    raise SimplificationError(reason)

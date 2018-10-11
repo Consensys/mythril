@@ -1,7 +1,7 @@
-from z3 import Solver, simplify, sat, unknown
+from z3 import Solver, sat, unknown
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.smt_wrapper import \
-    get_concrete_value
+    get_concrete_value, simplify
 import logging
 
 def get_model(constraints):
