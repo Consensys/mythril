@@ -4,6 +4,7 @@ from mythril.analysis.ops import VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE
+from mythril.laser.ethereum.smt_wrapper import get_concrete_value
 from mythril.exceptions import UnsatError
 import logging
 
@@ -121,7 +122,7 @@ def solve(call):
         logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
 
         for d in model.decls():
-            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x" % (d.name(), get_concrete_value(model[d])))
         return True
 
     except UnsatError:

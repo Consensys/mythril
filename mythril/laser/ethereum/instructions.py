@@ -17,6 +17,8 @@ from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
+from mythril.laser.ethereum.smt_wrapper import \
+    get_concrete_value
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -309,7 +311,7 @@ class Instruction:
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
             state.stack.append(global_state.new_bitvec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
         else:
-            state.stack.append(pow(base.as_long(), exponent.as_long(), 2**256))
+            state.stack.append(pow(get_concrete_value(base), get_concrete_value(exponent), 2**256))
 
         return [global_state]
 
@@ -1032,7 +1034,7 @@ class Instruction:
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, BitVecNumRef):
-            target = '0x' + hex(target.as_long())[-40:]
+            target = '0x' + hex(get_concrete_value(target))[-40:]
         if isinstance(target, str):
             try:
                 global_state.world_state[target].balance += global_state.environment.active_account.balance
@@ -1094,7 +1096,7 @@ class Instruction:
 
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = memory_out_size.as_long()
+                mem_out_sz = get_concrete_value(memory_out_size)
             except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
