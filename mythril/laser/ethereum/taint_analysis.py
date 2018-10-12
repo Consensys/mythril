@@ -109,7 +109,8 @@ class TaintRunner:
             records = TaintRunner.execute_node(node, record, index)
 
             result.add_records(records)
-
+            if len(records) == 0:          # continue if there is no record to work on
+                continue
             children = TaintRunner.children(node, statespace, environment, transaction_stack_length)
             for child in children:
                 current_nodes.append((child, records[-1], 0))

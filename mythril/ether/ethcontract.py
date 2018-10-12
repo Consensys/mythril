@@ -50,7 +50,7 @@ class ETHContract(persistent.Persistent):
 
             m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
 
-            if (m):
+            if m:
                 if easm_code is None:
                     easm_code = self.get_easm()
 
@@ -60,7 +60,7 @@ class ETHContract(persistent.Persistent):
 
             m = re.match(r'^func#([a-zA-Z0-9\s_,(\\)\[\]]+)#$', token)
 
-            if (m):
+            if m:
 
                 sign_hash = "0x" + utils.sha3(m.group(1))[:4].hex()
 
