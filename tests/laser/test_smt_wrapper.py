@@ -2,7 +2,7 @@ import pytest
 from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value, is_expr
 from mythril.laser.ethereum.smt_wrapper import \
     get_concrete_value, \
-    Eq, Neq, SLT, SGT
+    Eq, Neq, SLT, SGT, SDiv
 
 
 def test_get_concrete_value_succ():
@@ -97,3 +97,20 @@ def test_SGT():
 def test_SGT_type_error():
     with pytest.raises(TypeError):
         SGT(0x0, 0x1)
+
+
+def test_SDiv():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    dividend = operands[0]
+    for divisor in operands:
+        SDiv(dividend, divisor)
+
+    divisor = operands[0]
+    for dividend in operands:
+        SDiv(dividend, divisor)
+
+
+def test_SDiv_type_error():
+    with pytest.raises(TypeError):
+        SDiv(0x1, 0x2)
