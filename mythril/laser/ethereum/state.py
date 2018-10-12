@@ -20,7 +20,7 @@ class Calldata:
     def set_global_state(self, state):
         self.state = state
         for i in range(len(self.starting_calldata)):
-            self.state.mstate.constraints.append(self._calldata[BitVecVal(i, 256)] == BitVecVal(starting_calldata[i], 8))
+            self.state.mstate.constraints.append(self._calldata[BitVecVal(i, 256)] == BitVecVal(self.starting_calldata[i], 8))
 
     def concretized(self, model):
         concrete_calldata = model[self._calldata].as_list()
@@ -41,12 +41,16 @@ class Calldata:
 
     def __getitem__(self, item: int):
         if isinstance(item, slice):
+            MAX_SLICE = 1024
             try:
                 current_index = item.start if type(item.start) in [BitVecRef, BitVecNumRef] else BitVecVal(item.start, 256)
                 dataparts = []
+                i = 0
                 while simplify(current_index != item.stop):
                     dataparts.append(self[current_index])
                     current_index = simplify(current_index + 1)
+                    i += 1
+                    if i == MAX_SLICE: raise IndexError("Invalid Calldata Slice")
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
 

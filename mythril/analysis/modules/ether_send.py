@@ -111,10 +111,10 @@ def execute(statespace):
                 try:
                     model = solver.get_model(node.constraints)
 
-                    for d in model.decls():
-                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                    pretty_model = solver.pretty_print_model(model)
+                    logging.debug(pretty_model)
 
-                    debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
+                    debug = "SOLVER OUTPUT:\n" + pretty_model
 
                     issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
                                   title="Ether send", _type="Warning", swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
