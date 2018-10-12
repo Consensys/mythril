@@ -91,3 +91,21 @@ def SGT(lhs, rhs) -> Types.Expr:
         raise TypeError
 
     return lhs > rhs
+
+
+def SDiv(dividend, divisor) -> Types.Expr:
+    """
+    Make a signed division `dividend / divisor`.
+
+    :param dividend: the dividend
+    :param divisor: the divisor
+
+    :return: a signed division `dividend / divisor`
+
+    :raise TypeError: if none of `dividend` or `divisor` is the bit vector
+    """
+
+    if not (is_bv(dividend) or is_bv(divisor)):
+        raise TypeError
+
+    return dividend / divisor

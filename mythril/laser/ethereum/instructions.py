@@ -19,7 +19,7 @@ from mythril.laser.ethereum.transaction import MessageCallTransaction, Transacti
     ContractCreationTransaction
 from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value, \
-    Eq, Neq, SLT, SGT
+    Eq, Neq, SLT, SGT, SDiv
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -220,7 +220,7 @@ class Instruction:
         if s1 == 0:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
-            global_state.mstate.stack.append(s0 / s1)
+            global_state.mstate.stack.append(SDiv(s0, s1))
         return [global_state]
 
     @StateTransition()
