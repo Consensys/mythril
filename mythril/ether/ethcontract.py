@@ -8,15 +8,15 @@ class ETHContract(persistent.Persistent):
 
     def __init__(self, code, creation_code="", name="Unknown", enable_online_lookup=True):
         
-        creation_code = re.sub(r'(_+.*_+)', 'aa' * 20, creation_code)
-        self.creation_code = creation_code
-        self.name = name
-
         # Workaround: We currently do not support compile-time linking.
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
+        # Apply this for creation_code & code
 
+        creation_code = re.sub(r'(_+.*_+)', 'aa' * 20, creation_code)
         code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
 
+        self.creation_code = creation_code
+        self.name = name
         self.code = code
         self.disassembly = Disassembly(code, enable_online_lookup=enable_online_lookup)
         self.creation_disassembly = Disassembly(creation_code, enable_online_lookup=enable_online_lookup)
