@@ -12,16 +12,15 @@ class CalldataType(Enum):
     SYMBOLIC = 2
 
 class Calldata:
-    def __init__(self, tx_id: int, starting_calldata: bytes=None):
+    def __init__(self, tx_id, starting_calldata: bytes=None):
         self.tx_id = tx_id
         self._calldata = Array('{}_calldata'.format(self.tx_id), BitVecSort(256), BitVecSort(8))
+        self.starting_calldata = starting_calldata if starting_calldata else []
 
-        if starting_calldata:
-            for i in range(len(starting_calldata)):
-                self._calldata[BitVecVal(i, 256)] = BitVecVal(starting_calldata[i], 8)
-
-    def get_word_at(self, index: int):
-        return self[index:index+32]
+    def set_global_state(self, state):
+        self.state = state
+        for i in range(len(self.starting_calldata)):
+            self.state.mstate.constraints.append(self._calldata[BitVecVal(i, 256)] == BitVecVal(starting_calldata[i], 8))
 
     def concretized(self, model):
         concrete_calldata = model[self._calldata].as_list()
@@ -36,6 +35,9 @@ class Calldata:
                 # Default value
                 result.append(concrete_calldata[0].as_long())
         return result
+
+    def get_word_at(self, index: int):
+        return self[index:index+32]
 
     def __getitem__(self, item: int):
         if isinstance(item, slice):
