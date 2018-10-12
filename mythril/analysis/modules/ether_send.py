@@ -112,7 +112,7 @@ def execute(statespace):
                     model = solver.get_model(node.constraints)
 
                     pretty_model = solver.pretty_print_model(model)
-                    logging.debug(pretty_model)
+                    logging.debug('[ETHER_SEND]\n' + pretty_model)
 
                     debug = "SOLVER OUTPUT:\n" + pretty_model
 

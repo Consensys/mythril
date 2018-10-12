@@ -27,7 +27,7 @@ class Calldata:
         concrete_calldata.sort(key=lambda x: x[0].as_long() if type(x) == list else -1)
         result = []
         arr_index = 1
-        for i in range(0, concrete_calldata[len(concrete_calldata)-1][0].as_long()+1):
+        for i in range(concrete_calldata[len(concrete_calldata)-1][0].as_long()+1):
             if concrete_calldata[arr_index][0].as_long() == i:
                 result.append(concrete_calldata[arr_index][1].as_long())
                 arr_index += 1

@@ -13,7 +13,7 @@ from mythril.laser.ethereum.call import get_call_parameters
 from mythril.laser.ethereum.evm_exceptions import VmException, StackUnderflowException, InvalidJumpDestination, \
     InvalidInstruction
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state import GlobalState, CalldataType
+from mythril.laser.ethereum.state import GlobalState, CalldataType, Calldata
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
 
@@ -1030,8 +1030,17 @@ class Instruction:
 
                 return [global_state]
 
-            for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
-                global_state.mstate.memory[mem_out_start + i] = data[i]
+            if type(data) == Calldata: # identity() returns calldata
+                new_memory = []
+                for i in range(mem_out_sz):
+                    new_memory.append(data[i])
+
+                for i in range(0, len(new_memory), 32):
+                    global_state.mstate.memory[mem_out_start + i] = simplify(Concat(new_memory[i:i+32]))
+
+            else:
+                for i in range(min(len(data), mem_out_sz)):  # If more data is used then it's chopped off
+                    global_state.mstate.memory[mem_out_start + i] = data[i]
 
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
