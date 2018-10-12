@@ -83,7 +83,7 @@ def _can_change(constraints, variable):
     except UnsatError:
         return False
     try:
-        initial_value = int(str(model.eval(variable, model_completion=True)))
+        initial_value = int(str(model.get_value(variable, model_completion=True)))
         return _try_constraints(constraints, [Neq(variable, initial_value)]) is not None
     except AttributeError:
         return False

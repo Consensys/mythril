@@ -207,7 +207,13 @@ class Instruction:
     @StateTransition()
     def div_(self, global_state):
         op0, op1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        if op1 == 0:
+
+        try:
+            is_op1_zero = util.get_concrete_int(op1) == 0
+        except NotConcreteValueError:
+            is_op1_zero = False
+
+        if is_op1_zero:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(UDiv(op0, op1))
@@ -216,7 +222,13 @@ class Instruction:
     @StateTransition()
     def sdiv_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        if s1 == 0:
+
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except NotConcreteValueError:
+            is_s1_zero = False
+
+        if is_s1_zero:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(SDiv(s0, s1))
@@ -225,13 +237,21 @@ class Instruction:
     @StateTransition()
     def mod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except NotConcreteValueError:
+            is_s1_zero = False
+        global_state.mstate.stack.append(0 if is_s1_zero else URem(s0, s1))
         return [global_state]
 
     @StateTransition()
     def smod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except NotConcreteValueError:
+            is_s1_zero = False
+        global_state.mstate.stack.append(0 if is_s1_zero else SRem(s0, s1))
         return [global_state]
 
     @StateTransition()
