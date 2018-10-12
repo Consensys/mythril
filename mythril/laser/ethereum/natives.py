@@ -70,7 +70,7 @@ def ripemd160(data):
 
 
 def identity(data):
-    return copy.copy(data)
+    return copy.copy(data.starting_calldata)
 
 
 def native_contracts(address, data):
