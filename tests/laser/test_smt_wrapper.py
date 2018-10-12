@@ -2,7 +2,7 @@ import pytest
 from z3 import BitVec, BitVecVal, BoolVal, IntVal, is_bool, is_bv_value, is_expr
 from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value, \
-    Eq, Neq
+    Eq, Neq, SLT, SGT
 
 
 def test_get_concrete_value_succ():
@@ -63,3 +63,37 @@ def test_Neq():
 def test_Neq_type_error():
     with pytest.raises(Exception):
         Neq(BitVecVal(0x1, 256), "x")
+
+
+def test_SLT():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    lhs = operands[0]
+    for rhs in operands:
+        SLT(lhs, rhs)
+
+    rhs = operands[0]
+    for lhs in operands:
+        SLT(lhs, rhs)
+
+
+def test_SLT_type_error():
+    with pytest.raises(TypeError):
+        SLT(0x0, 0x1)
+
+
+def test_SGT():
+    operands = [BitVecVal(0x1, 256), 0x1, True]
+
+    lhs = operands[0]
+    for rhs in operands:
+        SGT(lhs, rhs)
+
+    rhs = operands[0]
+    for lhs in operands:
+        SGT(lhs, rhs)
+
+
+def test_SGT_type_error():
+    with pytest.raises(TypeError):
+        SGT(0x0, 0x1)

@@ -1,4 +1,4 @@
-from z3 import ExprRef
+from z3 import ExprRef, is_bv
 
 
 class Types:
@@ -11,7 +11,7 @@ class NotConcreteValueError(Exception):
     Raise if no concrete value can be got.
     """
 
-    def __init__(self, expr: Any):
+    def __init__(self, expr):
         self.expr = expr
 
 
@@ -54,3 +54,40 @@ def Neq(lhs, rhs) -> Types.Expr:
     :return: a formula `lhs <> rhs`
     """
     return lhs != rhs
+
+
+def SLT(lhs, rhs) -> Types.Expr:
+    """
+    Make a signed less-than comparison `lhs < rhs`
+
+    :param lhs: the left side of the comparison
+    :param rhs: the right side of the comparison
+
+    :return: a signed less-than comparison `lhs < rhs`
+
+    :raise TypeError: if none of them is the bit vector
+    """
+
+    if not (is_bv(lhs) or is_bv(rhs)):
+        raise TypeError
+
+    return lhs < rhs
+
+
+def SGT(lhs, rhs) -> Types.Expr:
+    """
+    Make a signed greater-than comparison `lhs > rhs`, or a shortcut formula
+    True or False.
+
+    :param lhs: the left side of the comparison
+    :param rhs: the right side of the comparison
+
+    :return: a signed greater-than comparison `lhs > rhs`
+
+    :raise TypeError: if none of them is the bit vector
+    """
+
+    if not (is_bv(lhs) or is_bv(rhs)):
+        raise TypeError
+
+    return lhs > rhs

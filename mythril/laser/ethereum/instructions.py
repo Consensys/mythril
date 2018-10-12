@@ -19,7 +19,7 @@ from mythril.laser.ethereum.transaction import MessageCallTransaction, Transacti
     ContractCreationTransaction
 from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value, \
-    Eq, Neq
+    Eq, Neq, SLT, SGT
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -302,7 +302,7 @@ class Instruction:
     @StateTransition()
     def slt_(self, global_state):
         state = global_state.mstate
-        exp = util.pop_bitvec(state) < util.pop_bitvec(state)
+        exp = SLT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
@@ -310,7 +310,7 @@ class Instruction:
     def sgt_(self, global_state):
         state = global_state.mstate
 
-        exp = util.pop_bitvec(state) > util.pop_bitvec(state)
+        exp = SGT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
