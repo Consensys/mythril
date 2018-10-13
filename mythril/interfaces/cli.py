@@ -5,7 +5,7 @@
    http://www.github.com/ConsenSys/mythril
 """
 
-import logging
+import logging, coloredlogs
 import json
 import sys
 import argparse
@@ -103,7 +103,10 @@ def main():
 
     if args.v:
         if 0 <= args.v < 3:
-            logging.basicConfig(level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
+            coloredlogs.install(
+                fmt='%(name)s[%(process)d] %(levelname)s %(message)s',
+                level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v]
+            )
         else:
             exit_with_error(args.outform, "Invalid -v value, you can find valid values in usage")
 

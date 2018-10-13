@@ -34,9 +34,9 @@ class CountableList(object):
 
 
 class ReceiptForStorage(rlp.Serializable):
-    '''
+    """
     Receipt format stored in levelDB
-    '''
+    """
 
     fields = [
         ('state_root', binary),
@@ -50,9 +50,9 @@ class ReceiptForStorage(rlp.Serializable):
 
 
 class AccountIndexer(object):
-    '''
+    """
     Updates address index
-    '''
+    """
 
     def __init__(self, ethDB):
         self.db = ethDB
@@ -62,19 +62,20 @@ class AccountIndexer(object):
         self.updateIfNeeded()
 
     def get_contract_by_hash(self, contract_hash):
-        '''
+        """
         get mapped contract_address by its hash, if not found try indexing
-        '''
+        """
         contract_address = self.db.reader._get_address_by_hash(contract_hash)
         if contract_address is not None:
             return contract_address
+
         else:
             raise AddressNotFoundError
 
     def _process(self, startblock):
-        '''
+        """
         Processesing method
-        '''
+        """
         logging.debug("Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE))
 
         addresses = []
@@ -94,9 +95,9 @@ class AccountIndexer(object):
         return addresses
 
     def updateIfNeeded(self):
-        '''
+        """
         update address index
-        '''
+        """
         headBlock = self.db.reader._get_head_block()
         if headBlock is not None:
             # avoid restarting search if head block is same & we already initialized
@@ -126,7 +127,7 @@ class AccountIndexer(object):
         count = 0
         processed = 0
 
-        while (blockNum <= self.lastBlock):
+        while blockNum <= self.lastBlock:
             # leveldb cannot be accessed on multiple processes (not even readonly)
             # multithread version performs significantly worse than serial
             try:

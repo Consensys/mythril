@@ -37,7 +37,7 @@ def trace(code, calldata=""):
 
             if m:
                 stackitems = re.findall(r'b\'(\d+)\'', m.group(1))
-                stack = "[";
+                stack = "["
 
                 if len(stackitems):
                     for i in range(0, len(stackitems) - 1):

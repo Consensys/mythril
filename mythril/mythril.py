@@ -103,7 +103,8 @@ class Mythril(object):
 
         self.contracts = []  # loaded contracts
 
-    def _init_mythril_dir(self):
+    @staticmethod
+    def _init_mythril_dir():
         try:
             mythril_dir = os.environ['MYTHRIL_DIR']
         except KeyError:
@@ -179,7 +180,8 @@ class Mythril(object):
     def analyze_truffle_project(self, *args, **kwargs):
         return analyze_truffle_project(self.sigs, *args, **kwargs)  # just passthru by passing signatures for now
 
-    def _init_solc_binary(self, version):
+    @staticmethod
+    def _init_solc_binary(version):
         # Figure out solc binary and version
         # Only proper versions are supported. No nightlies, commits etc (such as available in remix)
 
@@ -434,7 +436,8 @@ class Mythril(object):
             raise CriticalError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
         return '\n'.join(outtxt)
 
-    def disassemble(self, contract):
+    @staticmethod
+    def disassemble(contract):
         return contract.get_easm()
 
     @staticmethod
