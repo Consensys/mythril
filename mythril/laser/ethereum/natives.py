@@ -70,7 +70,7 @@ def ripemd160(data):
 
 
 def identity(data):
-    return copy.copy(data.starting_calldata)
+    return copy.copy(data)
 
 
 def native_contracts(address, data):
@@ -79,4 +79,4 @@ def native_contracts(address, data):
     """
 
     functions = (ecrecover, sha256, ripemd160, identity)
-    return functions[address-1](data)
+    return functions[address-1](data.starting_calldata)
