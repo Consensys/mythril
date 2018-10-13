@@ -2,6 +2,7 @@ from z3 import *
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
 import re
@@ -15,6 +16,7 @@ Check for integer underflows.
 For every SUB instruction, check if there's a possible state where op1 > op0.
 For every ADD, MUL instruction, check if there's a possible state where op1 + op0 > 2^32 - 1
 '''
+
 
 def execute(statespace):
     """
@@ -85,7 +87,8 @@ def _check_integer_overflow(statespace, state, node):
         return issues
 
     # Build issue
-    issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Overflow", "Warning")
+    issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
+                  swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW, title="Integer Overflow", _type="Warning")
 
     issue.description = "A possible integer overflow exists in the function `{}`.\n" \
                         "The addition or multiplication may result in a value higher than the maximum representable integer.".format(
@@ -173,8 +176,8 @@ def _check_integer_underflow(statespace, state, node):
                 if len(interesting_usages) == 0:
                     return issues
 
-                issue = Issue(node.contract_name, node.function_name, instruction['address'], "Integer Underflow",
-                              "Warning")
+                issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
+                              swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW, title="Integer Underflow", _type="Warning")
 
                 issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
                                                                                                                    "The subtraction may result in a value < 0."
@@ -211,7 +214,7 @@ def _check_sstore(state, taint_result):
     return taint_result.check(state, -2)
 
 
-def _search_children(statespace, node, expression, taint_result=None, constraint=[], index=0, depth=0, max_depth=64):
+def _search_children(statespace, node, expression, taint_result=None, constraint=None, index=0, depth=0, max_depth=64):
     """
     Checks the statespace for children states, with JUMPI or SSTORE instuctions,
     for dependency on expression
@@ -224,6 +227,9 @@ def _search_children(statespace, node, expression, taint_result=None, constraint
     :param max_depth: Max depth to explore
     :return: List of states that match the opcodes and are dependent on expression
     """
+    if constraint is None:
+        constraint = []
+
     logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
 
     if taint_result is None:

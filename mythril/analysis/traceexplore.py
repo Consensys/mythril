@@ -81,7 +81,7 @@ def get_serializable_statespace(statespace):
 
     for edge in statespace.edges:
 
-        if (edge.condition is None):
+        if edge.condition is None:
             label = ""
         else:
 

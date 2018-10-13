@@ -1,6 +1,7 @@
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
 import logging
 
@@ -63,7 +64,9 @@ def _analyze_state(state, node):
 
         debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 
-        issue = Issue(node.contract_name, node.function_name, instruction['address'], "Unchecked SUICIDE", "Warning", description, debug)
+        issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
+                      swc_id=UNPROTECTED_SELFDESTRUCT, title="Unchecked SUICIDE", _type="Warning",
+                      description=description, debug=debug)
         issues.append(issue)
     except UnsatError:
             logging.debug("[UNCHECKED_SUICIDE] no model found")

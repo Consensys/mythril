@@ -135,7 +135,9 @@ class MachineStack(list):
     """
     STACK_LIMIT = 1024
 
-    def __init__(self, default_list=[]):
+    def __init__(self, default_list=None):
+        if default_list is None:
+            default_list = []
         super(MachineStack, self).__init__(default_list)
 
     def append(self, element):

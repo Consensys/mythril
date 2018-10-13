@@ -4,6 +4,7 @@ import re
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
 from mythril.exceptions import UnsatError
 
 '''
@@ -29,9 +30,8 @@ def execute(statespace):
         if len(changing_sstores) > 0:
             node = call.node
             instruction = call.state.get_current_instruction()
-            issue = Issue(node.contract_name, node.function_name, instruction['address'],
-                          "Transaction order dependence",
-                          "Warning")
+            issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
+                          title="Transaction order dependence", swc_id=TX_ORDER_DEPENDENCE, _type="Warning")
 
             issue.description = \
                 "A possible transaction order dependence vulnerability exists in function {}. The value or " \

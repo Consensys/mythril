@@ -17,9 +17,9 @@ JSON_MEDIA_TYPE = 'application/json'
 This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
 '''
 class EthJsonRpc(BaseClient):
-    '''
+    """
     Ethereum JSON-RPC client class
-    '''
+    """
 
     def __init__(self, host='localhost', port=GETH_DEFAULT_RPC_PORT, tls=False):
         self.host = host
