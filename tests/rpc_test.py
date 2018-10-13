@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from mythril.rpc.client import EthJsonRpc
+from mythril.ethereum.interface.rpc.client import EthJsonRpc
 
 class RpcTest(TestCase):
     client = None
