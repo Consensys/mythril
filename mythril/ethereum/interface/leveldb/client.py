@@ -5,7 +5,7 @@ from mythril.ethereum.interface.leveldb.accountindexing import ReceiptForStorage
 import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
-from mythril.ethereum.interface.leveldb import State
+from mythril.ethereum.interface.leveldb.state import State
 from mythril.ethereum.interface.leveldb.eth_db import ETH_DB
 from mythril.ether.ethcontract import ETHContract
 from mythril.exceptions import AddressNotFoundError
