@@ -5,6 +5,8 @@ import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, BreadthFirstSearchStrategy
+from mythril.laser.ethereum.smt_wrapper import \
+    BitVecVal, is_bv_value, get_concrete_value
 
 
 class SymExecWrapper:
@@ -102,19 +104,45 @@ class SymExecWrapper:
 
         # Find an SSTOR not constrained by caller that writes to storage index "index"
 
-        try:
-            for s in self.sstors[address][index]:
-
-                taint = True
-
-                for constraint in s.node.constraints:
-                    if "caller" in str(constraint):
-                        taint = False
-                        break
-
-                if taint:
-                    return s.node.function_name
-
+        if address not in self.sstors:
             return None
-        except KeyError:
+
+        index = self.__lookup_storage_index(self.sstors[address], index)
+        if index is None:
             return None
+
+        for s in self.sstors[address][index]:
+            taint = True
+
+            for constraint in s.node.constraints:
+                if "caller" in str(constraint):
+                    taint = False
+                    break
+
+            if taint:
+                return s.node.function_name
+
+        return None
+
+
+    def __lookup_storage_index(self, storage, index):
+        if index in storage:
+            return index
+
+        if isinstance(index, str):
+            try:
+                index = int(index, 0)
+            except:
+                return None
+            if index in storage:
+                return index
+
+        if isinstance(index, int):
+            index = BitVecVal(int(index), 256)
+        elif is_bv_value(index):
+            index = get_concrete_value(index)
+        else:
+            return None
+        index = str(index)
+
+        return index if index in storage else None
