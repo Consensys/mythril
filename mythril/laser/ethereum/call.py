@@ -1,5 +1,5 @@
 import logging
-from z3 import simplify
+from z3 import simplify, Extract
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
 from mythril.support.loader import DynLoader
@@ -126,9 +126,22 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
+        calldata_from_mem = state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
+        i = 0
+        starting_calldata = []
+        while i < len(calldata_from_mem):
+            elem = calldata_from_mem[i]
+            if type(elem) == int:
+                starting_calldata.append(elem)
+                i += 1
+            else: #BitVec
+                for j in range(0, elem.size(), 8):
+                    starting_calldata.append(Extract(j+7, j, elem))
+                    i += 1
+
         call_data = Calldata(
             transaction_id,
-            state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
+            starting_calldata
         )
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))

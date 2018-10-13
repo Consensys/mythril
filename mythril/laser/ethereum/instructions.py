@@ -362,7 +362,7 @@ class Instruction:
         if environment.calldata_type == CalldataType.SYMBOLIC:
             state.stack.append(global_state.new_bitvec("calldatasize_" + environment.active_account.contract_name, 256))
         else:
-            state.stack.append(BitVecVal(len(environment.calldata), 256))
+            state.stack.append(BitVecVal(len(environment.calldata.starting_calldata), 256))
         return [global_state]
 
     @StateTransition()

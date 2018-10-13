@@ -20,7 +20,7 @@ class Calldata:
     def set_global_state(self, state):
         self.state = state
         for i in range(len(self.starting_calldata)):
-            self.state.mstate.constraints.append(self._calldata[BitVecVal(i, 256)] == BitVecVal(self.starting_calldata[i], 8))
+            self.state.mstate.constraints.append(self._calldata[BitVecVal(i, 256)] == self.starting_calldata[i])
 
     def concretized(self, model):
         concrete_calldata = model[self._calldata].as_list()
