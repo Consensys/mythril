@@ -1,12 +1,12 @@
 import binascii
 import rlp
-from mythril.leveldb.accountindexing import CountableList
-from mythril.leveldb.accountindexing import ReceiptForStorage, AccountIndexer
+from mythril.ethereum.interface.leveldb.accountindexing import CountableList
+from mythril.ethereum.interface.leveldb.accountindexing import ReceiptForStorage, AccountIndexer
 import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
-from mythril.leveldb.state import State
-from mythril.leveldb.eth_db import ETH_DB
+from mythril.ethereum.interface.leveldb.state import State
+from mythril.ethereum.interface.leveldb.eth_db import ETH_DB
 from mythril.ether.ethcontract import ETHContract
 from mythril.exceptions import AddressNotFoundError
 
