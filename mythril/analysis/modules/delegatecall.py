@@ -2,6 +2,7 @@ import re
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
 from mythril.analysis.ops import get_variable, VarType
 from mythril.analysis.report import Issue
+from mythril.laser.ethereum.smt_wrapper import formula_to_string
 import logging
 
 
@@ -41,7 +42,7 @@ def execute(statespace):
 
 
 def _concrete_call(call, state, address, meminstart):
-    if not re.search(r'calldata.*_0', str(state.mstate.memory[meminstart.val])):
+    if not re.search(r'calldata.*_0', formula_to_string(state.mstate.memory[meminstart.val])):
         return []
 
     issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
@@ -68,7 +69,7 @@ def _symbolic_call(call, state, address, statespace):
             "This contract delegates execution to a contract address obtained from calldata. "
 
     else:
-        m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
+        m = re.search(r'storage_([a-z0-9_&^]+)', formula_to_string(call.to))
 
         if m:
             idx = m.group(1)

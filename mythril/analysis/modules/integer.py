@@ -5,7 +5,7 @@ from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.laser.ethereum.smt_wrapper import \
-    Neq, Not, ULT, UGT, And, Or, is_bv, BitVecVal
+    Neq, Not, ULT, UGT, And, Or, is_bv, BitVecVal, formula_to_string
 import re
 import copy
 import logging
@@ -154,11 +154,13 @@ def _check_integer_underflow(statespace, state, node):
         # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
         if type(op0) == int and type(op1) == int:
             return []
-        if re.search(r'calldatasize_', str(op0)):
+        if re.search(r'calldatasize_', formula_to_string(op0)):
             return []
-        if re.search(r'256\*.*If\(1', str(op0), re.DOTALL) or re.search(r'256\*.*If\(1', str(op1), re.DOTALL):
+        if re.search(r'256\*.*If\(1', formula_to_string(op0), re.DOTALL) or \
+           re.search(r'256\*.*If\(1', formula_to_string(op1), re.DOTALL):
             return []
-        if re.search(r'32 \+.*calldata', str(op0), re.DOTALL) or re.search(r'32 \+.*calldata', str(op1), re.DOTALL):
+        if re.search(r'32 \+.*calldata', formula_to_string(op0), re.DOTALL) or \
+           re.search(r'32 \+.*calldata', formula_to_string(op1), re.DOTALL):
             return []
 
         logging.debug("[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(str(op0), str(op1),

@@ -542,3 +542,22 @@ def solve(s: SolverType, assumptions=None):
         return Result.sat if result else Result.unsat
     except SolverReturnedUnknownResultError:
         return Result.unknown
+
+
+def formula_to_string(formula) -> str:
+    """
+    Get the stringified `formula`.
+
+    If `formula` is not a formula, the default string representation generated
+    by `__str__()` will be used.
+
+    Otherwise, a serialized string representation will be used. We do not use
+    the default `__str__()`, because it may omit some part of the formula, which
+    in turn may cause issues when pattern matching the stringified formula.
+
+    :param formula: the formula
+
+    :return: the stringified `formula`
+    """
+
+    return formula.serialize() if is_expr(formula) else str(formula)
