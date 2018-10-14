@@ -552,3 +552,39 @@ def solve(s: SolverType, assumptions=None):
         return Result.sat if result else Result.unsat
     except SolverReturnedUnknownResultError:
         return Result.unknown
+
+
+def is_always_true(formula, timeout=10000) -> bool:
+    """
+    Check whether `formula` always holds.
+
+    :param formula: the formula to be checked
+    :param timeout: the time limitation milliseconds of constraint solving.
+                    The default value is 10 s.
+
+    :return: True if `formula` always holds; False, otherwise (including the
+             unknown and timeout cases).
+    """
+
+    try:
+        return Solver(timeout=timeout).is_unsat(Not(formula))
+    except SolverReturnedUnknownResultError:
+        return False
+
+
+def is_always_false(formula, timeout=10000) -> bool:
+    """
+    Check whether `formula` never holds.
+
+    :param formula: the formula to be checked
+    :param timeout: the time limitation milliseconds of constraint solving.
+                    The default value is 10 s.
+
+    :return: True if `formula` never holds; False, otherwise (including the
+             unknown and timeout cases).
+    """
+
+    try:
+        return Solver(timeout=timeout).is_unsat(formula)
+    except SolverReturnedUnknownResultError:
+        return False

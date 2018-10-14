@@ -18,7 +18,8 @@ from mythril.laser.ethereum.smt_wrapper import \
     NotConcreteValueError, get_concrete_value, \
     Eq, Neq, Or, Not, SLT, SGT, SDiv, \
     simplify, BitVec, BitVecVal, If, is_bool, is_expr, Concat, Extract, \
-    is_bv_value, ULT, UGT, is_true, is_false, UDiv, URem, SRem
+    is_bv_value, ULT, UGT, is_true, is_false, UDiv, URem, SRem, \
+    is_always_true, is_always_false
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -923,14 +924,16 @@ class Instruction:
             global_state.mstate.pc += 1
             return [global_state]
 
-        # False case
-        negated = simplify(Not(condition)) if is_bool(condition) else Eq(condition, 0)
+        condi = simplify(condition if is_bool(condition) else Neq(condition, 0))
+        must_take = is_always_true(condi)
+        must_skip = is_always_false(condi)
 
-        if (type(negated) == bool and negated) or (is_bool(negated) and not is_false(negated)):
+        # False case
+        if not must_take:
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(Not(condi))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
@@ -945,9 +948,8 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if is_bool(condition) else Neq(condition, 0)
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (is_bool(condi) and not is_false(condi)):
+            if not must_skip:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
