@@ -149,30 +149,31 @@ class LaserEVM:
                 new_global_states = self._end_message_call(return_global_state, global_state,
                                                            revert_changes=True, return_data=None)
 
-        except TransactionStartSignal as e:
+        except TransactionStartSignal as start_signal:
             # Setup new global state
-            new_global_state = e.transaction.initial_global_state()
+            new_global_state = start_signal.transaction.initial_global_state()
 
-            new_global_state.transaction_stack = copy(global_state.transaction_stack) + [(e.transaction, global_state)]
+            new_global_state.transaction_stack = copy(global_state.transaction_stack) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
             new_global_state.mstate.constraints = global_state.mstate.constraints
 
             return [new_global_state], op_code
 
-        except TransactionEndSignal as e:
-            transaction, return_global_state = e.global_state.transaction_stack.pop()
+        except TransactionEndSignal as end_signal:
+            transaction, return_global_state = end_signal.global_state.transaction_stack.pop()
 
             if return_global_state is None:
-                if not isinstance(transaction, ContractCreationTransaction) or transaction.return_data:
-                    e.global_state.world_state.node = global_state.node
-                    self.open_states.append(e.global_state.world_state)
+                if (not isinstance(transaction, ContractCreationTransaction) or transaction.return_data) and not end_signal.revert:
+                    end_signal.global_state.world_state.node = global_state.node
+                    self.open_states.append(end_signal.global_state.world_state)
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
-                self._execute_post_hook(op_code, [e.global_state])
+                self._execute_post_hook(op_code, [end_signal.global_state])
 
                 new_global_states = self._end_message_call(return_global_state, global_state,
-                                                           revert_changes=False, return_data=transaction.return_data)
+                                                           revert_changes=False or end_signal.revert,
+                                                           return_data=transaction.return_data)
 
         self._execute_post_hook(op_code, new_global_states)
 
