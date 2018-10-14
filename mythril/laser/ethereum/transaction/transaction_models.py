@@ -7,20 +7,22 @@ import array
 _next_transaction_id = 0
 
 
-def get_next_transaction_id():
+def get_next_transaction_id() -> int:
     global _next_transaction_id
     _next_transaction_id += 1
     return _next_transaction_id
 
+
 class TransactionEndSignal(Exception):
     """ Exception raised when a transaction is finalized"""
-    def __init__(self, global_state):
+    def __init__(self, global_state: GlobalState):
         self.global_state = global_state
 
 
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
-    def __init__(self, transaction, op_code):
+    # TODO: Add type hints
+    def __init__(self, transaction, op_code: str):
         self.transaction = transaction
         self.op_code = op_code
 
@@ -39,6 +41,7 @@ class MessageCallTransaction:
                  call_data_type=None,
                  code=None
                  ):
+        # TODO: Add type hints
         assert isinstance(world_state, WorldState)
         self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
@@ -52,8 +55,8 @@ class MessageCallTransaction:
         self.code = code
         self.return_data = None
 
-    def initial_global_state(self):
-        # Initialize the execution environment
+    def initial_global_state(self) -> GlobalState:
+        """Initialize the execution environment"""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -70,7 +73,7 @@ class MessageCallTransaction:
 
         return global_state
 
-    def end(self, global_state, return_data=None):
+    def end(self, global_state: GlobalState, return_data=None) -> None:
         self.return_data = return_data
         raise TransactionEndSignal(global_state)
 
@@ -89,6 +92,7 @@ class ContractCreationTransaction:
                  origin=None,
                  call_data_type=None,
                  ):
+        # TODO: Add type hints
         assert isinstance(world_state, WorldState)
         self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
@@ -107,8 +111,8 @@ class ContractCreationTransaction:
         self.code = code
         self.return_data = None
 
-    def initial_global_state(self):
-        # Initialize the execution environment
+    def initial_global_state(self) -> GlobalState:
+        """Initialize the execution environment"""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -125,8 +129,8 @@ class ContractCreationTransaction:
 
         return global_state
 
-    def end(self, global_state, return_data=None):
-
+    def end(self, global_state: GlobalState, return_data=None) -> None:
+        # TODO: Add type hints
         if not all([isinstance(element, int) for element in return_data]):
             self.return_data = None
             raise TransactionEndSignal(global_state)

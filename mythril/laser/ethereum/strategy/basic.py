@@ -1,6 +1,8 @@
 """
 This module implements basic symbolic execution search strategies
 """
+from ..state import GlobalState
+from typing import List
 
 
 class DepthFirstSearchStrategy:
@@ -8,14 +10,14 @@ class DepthFirstSearchStrategy:
     Implements a depth first search strategy
     I.E. Follow one path to a leaf, and then continue to the next one
     """
-    def __init__(self, work_list, max_depth):
+    def __init__(self, work_list: List[GlobalState], max_depth: float):
         self.work_list = work_list
         self.max_depth = max_depth
 
     def __iter__(self):
         return self
 
-    def __next__(self):
+    def __next__(self) -> GlobalState:
         """ Picks the next state to execute """
         try:
             # This strategies assumes that new states are appended at the end of the work_list
@@ -33,14 +35,14 @@ class BreadthFirstSearchStrategy:
     Implements a breadth first search strategy
     I.E. Execute all states of a "level" before continuing
     """
-    def __init__(self, work_list, max_depth):
+    def __init__(self, work_list: List[GlobalState], max_depth: float):
         self.work_list = work_list
         self.max_depth = max_depth
 
-    def __iter__(self):
+    def __iter__(self) -> "BreadthFirstSearchStrategy":
         return self
 
-    def __next__(self):
+    def __next__(self) -> GlobalState:
         """ Picks the next state to execute """
         try:
             # This strategies assumes that new states are appended at the end of the work_list

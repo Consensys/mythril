@@ -1,5 +1,5 @@
 import logging
-from z3 import simplify
+from z3 import simplify, BitVecRef
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
 from mythril.support.loader import DynLoader
@@ -36,7 +36,7 @@ def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, wi
     return callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size
 
 
-def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symbolic_to_address):
+def get_callee_address(global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: BitVecRef):
     """
     Gets the address of the callee
     :param global_state: state to look in
@@ -74,7 +74,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
     return callee_address
 
 
-def get_callee_account(global_state, callee_address, dynamic_loader):
+def get_callee_account(global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader):
     """
     Gets the callees account from the global_state
     :param global_state: state to look in
@@ -112,8 +112,7 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     return callee_account
 
 
-
-def get_call_data(global_state, memory_start, memory_size, pad=True):
+def get_call_data(global_state: GlobalState, memory_start, memory_size, pad=True):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
@@ -121,6 +120,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
     :param memory_size: Size
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
+    # TODO: Add type hints
     state = global_state.mstate
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.

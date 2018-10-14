@@ -15,7 +15,7 @@ class NativeContractException(Exception):
     pass
 
 
-def int_to_32bytes(i):   # used because int can't fit as bytes function's input
+def int_to_32bytes(i: int) -> bytes:   # used because int can't fit as bytes function's input
     o = [0] * 32
     for x in range(32):
         o[31 - x] = i & 0xff
@@ -23,7 +23,7 @@ def int_to_32bytes(i):   # used because int can't fit as bytes function's input
     return bytes(o)
 
 
-def extract32(data, i):
+def extract32(data: bytearray, i: int) -> int:
     if i >= len(data):
         return 0
     o = data[i: min(i + 32, len(data))]
@@ -32,7 +32,7 @@ def extract32(data, i):
 
 
 def ecrecover(data):
-
+    # TODO: Add type hints
     try:
         data = bytearray(data)
         v = extract32(data, 32)
@@ -54,6 +54,7 @@ def ecrecover(data):
 
 
 def sha256(data):
+    # TODO: Add type hints
     try:
         data = bytes(data)
     except TypeError:
@@ -62,14 +63,16 @@ def sha256(data):
 
 
 def ripemd160(data):
+    # TODO: Add type hints
     try:
         data = bytes(data)
     except TypeError:
         raise NativeContractException
-    return 12*[0]+[i for i in hashlib.new('ripemd160', data).digest()]
+    return 12 * [0] + [i for i in hashlib.new('ripemd160', data).digest()]
 
 
 def identity(data):
+    # TODO: Add type hints
     return copy.copy(data)
 
 
@@ -77,6 +80,6 @@ def native_contracts(address, data):
     """
     takes integer address 1, 2, 3, 4
     """
-
+    # TODO: Add type hints
     functions = (ecrecover, sha256, ripemd160, identity)
     return functions[address-1](data)

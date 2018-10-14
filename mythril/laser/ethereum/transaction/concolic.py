@@ -5,8 +5,9 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 
 
-def execute_message_call(laser_evm, callee_address, caller_address, origin_address, code, data, gas, gas_price, value):
+def execute_message_call(laser_evm, callee_address, caller_address, origin_address, code, data, gas, gas_price, value) -> None:
     """ Executes a message call transaction from all open states """
+    # TODO: Add type hints
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -29,8 +30,9 @@ def execute_message_call(laser_evm, callee_address, caller_address, origin_addre
     laser_evm.exec()
 
 
-def _setup_global_state_for_execution(laser_evm, transaction):
+def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     """ Sets up global state and cfg for a transactions execution"""
+    # TODO: Add type hints
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 

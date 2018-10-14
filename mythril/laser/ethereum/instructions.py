@@ -1,6 +1,7 @@
 import binascii
 import logging
 from copy import copy, deepcopy
+from typing import Callable, List
 
 from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
@@ -16,6 +17,7 @@ from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
+from mythril.support.loader import DynLoader
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -35,18 +37,18 @@ class StateTransition(object):
         self.increment_pc = increment_pc
 
     @staticmethod
-    def call_on_state_copy(func, func_obj, state):
+    def call_on_state_copy(func: Callable, func_obj: "Instruction", state: GlobalState):
         global_state_copy = copy(state)
         return func(func_obj, global_state_copy)
 
-    def increment_states_pc(self, states):
+    def increment_states_pc(self, states: List[GlobalState]) -> List[GlobalState]:
         if self.increment_pc:
             for state in states:
                 state.mstate.pc += 1
         return states
 
-    def __call__(self, func):
-        def wrapper(func_obj, global_state):
+    def __call__(self, func: Callable) -> Callable:
+        def wrapper(func_obj: "Instruction", global_state: GlobalState) -> List[GlobalState]:
             new_global_states = self.call_on_state_copy(
                 func,
                 func_obj,
@@ -61,11 +63,11 @@ class Instruction:
     Instruction class is used to mutate a state according to the current instruction
     """
 
-    def __init__(self, op_code, dynamic_loader):
+    def __init__(self, op_code: str, dynamic_loader: DynLoader):
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code
 
-    def evaluate(self, global_state, post=False):
+    def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
         # Generalize some ops
         logging.debug("Evaluating {}".format(self.op_code))
@@ -87,11 +89,11 @@ class Instruction:
         return instruction_mutator(global_state)
 
     @StateTransition()
-    def jumpdest_(self, global_state):
+    def jumpdest_(self, global_state: GlobalState) -> List[GlobalState]:
         return [global_state]
 
     @StateTransition()
-    def push_(self, global_state):
+    def push_(self, global_state: GlobalState) -> List[GlobalState]:
         push_instruction = global_state.get_current_instruction()
         push_value = push_instruction['argument'][2:]
 
@@ -105,25 +107,25 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def dup_(self, global_state):
+    def dup_(self, global_state: GlobalState) -> List[GlobalState]:
         value = int(global_state.get_current_instruction()['opcode'][3:], 10)
         global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
     @StateTransition()
-    def swap_(self, global_state):
+    def swap_(self, global_state: GlobalState) -> List[GlobalState]:
         depth = int(self.op_code[4:])
         stack = global_state.mstate.stack
         stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
         return [global_state]
 
     @StateTransition()
-    def pop_(self, global_state):
+    def pop_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.pop()
         return [global_state]
 
     @StateTransition()
-    def and_(self, global_state):
+    def and_(self, global_state: GlobalState) -> List[GlobalState]:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
         if type(op1) == BoolRef:
@@ -136,7 +138,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def or_(self, global_state):
+    def or_(self, global_state: GlobalState) -> List[GlobalState]:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
@@ -151,7 +153,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def xor_(self, global_state):
+    def xor_(self, global_state: GlobalState) -> List[GlobalState]:
         mstate = global_state.mstate
         mstate.stack.append(mstate.stack.pop() ^ mstate.stack.pop())
         return [global_state]
@@ -163,7 +165,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def byte_(self, global_state):
+    def byte_(self, global_state: GlobalState) -> List[GlobalState]:
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
         if not isinstance(op1, ExprRef):
@@ -184,25 +186,25 @@ class Instruction:
 
     # Arithmetic
     @StateTransition()
-    def add_(self, global_state):
+    def add_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(
             (helper.pop_bitvec(global_state.mstate) + helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @StateTransition()
-    def sub_(self, global_state):
+    def sub_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(
             (helper.pop_bitvec(global_state.mstate) - helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @StateTransition()
-    def mul_(self, global_state):
+    def mul_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(
             (helper.pop_bitvec(global_state.mstate) * helper.pop_bitvec(global_state.mstate)))
         return [global_state]
 
     @StateTransition()
-    def div_(self, global_state):
+    def div_(self, global_state: GlobalState) -> List[GlobalState]:
         op0, op1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         if op1 == 0:
             global_state.mstate.stack.append(BitVecVal(0, 256))
@@ -211,7 +213,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def sdiv_(self, global_state):
+    def sdiv_(self, global_state: GlobalState) -> List[GlobalState]:
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         if s1 == 0:
             global_state.mstate.stack.append(BitVecVal(0, 256))
@@ -220,33 +222,33 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def mod_(self, global_state):
+    def mod_(self, global_state: GlobalState) -> List[GlobalState]:
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
         return [global_state]
 
     @StateTransition()
-    def smod_(self, global_state):
+    def smod_(self, global_state: GlobalState) -> List[GlobalState]:
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
         global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
         return [global_state]
 
     @StateTransition()
-    def addmod_(self, global_state):
+    def addmod_(self, global_state: GlobalState) -> List[GlobalState]:
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
         global_state.mstate.stack.append(URem(URem(s0, s2) + URem(s1, s2), s2))
         return [global_state]
 
     @StateTransition()
-    def mulmod_(self, global_state):
+    def mulmod_(self, global_state: GlobalState) -> List[GlobalState]:
         s0, s1, s2 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate), util.pop_bitvec(
             global_state.mstate)
         global_state.mstate.stack.append(URem(URem(s0, s2) * URem(s1, s2), s2))
         return [global_state]
 
     @StateTransition()
-    def exp_(self, global_state):
+    def exp_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
 
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
@@ -258,7 +260,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def signextend_(self, global_state):
+    def signextend_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         s0, s1 = state.stack.pop(), state.stack.pop()
 
@@ -282,28 +284,28 @@ class Instruction:
 
     # Comparisons
     @StateTransition()
-    def lt_(self, global_state):
+    def lt_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         exp = ULT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
     @StateTransition()
-    def gt_(self, global_state):
+    def gt_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
     @StateTransition()
-    def slt_(self, global_state):
+    def slt_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         exp = util.pop_bitvec(state) < util.pop_bitvec(state)
         state.stack.append(exp)
         return [global_state]
 
     @StateTransition()
-    def sgt_(self, global_state):
+    def sgt_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
 
         exp = util.pop_bitvec(state) > util.pop_bitvec(state)
@@ -311,7 +313,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def eq_(self, global_state):
+    def eq_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
 
         op1 = state.stack.pop()
@@ -329,7 +331,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def iszero_(self, global_state):
+    def iszero_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
 
         val = state.stack.pop()
@@ -340,7 +342,7 @@ class Instruction:
 
     # Call data
     @StateTransition()
-    def callvalue_(self, global_state):
+    def callvalue_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.callvalue)
@@ -348,7 +350,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def calldataload_(self, global_state):
+    def calldataload_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         op0 = state.stack.pop()
@@ -388,7 +390,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def calldatasize_(self, global_state):
+    def calldatasize_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         if environment.calldata_type == CalldataType.SYMBOLIC:
@@ -398,7 +400,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def calldatacopy_(self, global_state):
+    def calldatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -463,35 +465,35 @@ class Instruction:
 
     # Environment
     @StateTransition()
-    def address_(self, global_state):
+    def address_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.address)
         return [global_state]
 
     @StateTransition()
-    def balance_(self, global_state):
+    def balance_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         address = state.stack.pop()
         state.stack.append(global_state.new_bitvec("balance_at_" + str(address), 256))
         return [global_state]
 
     @StateTransition()
-    def origin_(self, global_state):
+    def origin_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.origin)
         return [global_state]
 
     @StateTransition()
-    def caller_(self, global_state):
+    def caller_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.sender)
         return [global_state]
 
     @StateTransition()
-    def codesize_(self, global_state):
+    def codesize_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
@@ -499,7 +501,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def sha3_(self, global_state):
+    def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
         global keccak_function_manager
 
         state = global_state.mstate
@@ -536,12 +538,12 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def gasprice_(self, global_state):
+    def gasprice_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
         return [global_state]
 
     @StateTransition()
-    def codecopy_(self, global_state):
+    def codecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         memory_offset, code_offset, size = global_state.mstate.stack.pop(), global_state.mstate.stack.pop(), global_state.mstate.stack.pop()
 
         try:
@@ -590,7 +592,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def extcodesize_(self, global_state):
+    def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         addr = state.stack.pop()
         environment = global_state.environment
@@ -616,7 +618,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def extcodecopy_(self, global_state):
+    def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         # FIXME: not implemented
         state = global_state.mstate
         addr = state.stack.pop()
@@ -624,45 +626,45 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def returndatasize_(self, global_state):
+    def returndatasize_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("returndatasize", 256))
         return [global_state]
 
     @StateTransition()
-    def blockhash_(self, global_state):
+    def blockhash_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         blocknumber = state.stack.pop()
         state.stack.append(global_state.new_bitvec("blockhash_block_" + str(blocknumber), 256))
         return [global_state]
 
     @StateTransition()
-    def coinbase_(self, global_state):
+    def coinbase_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("coinbase", 256))
         return [global_state]
 
     @StateTransition()
-    def timestamp_(self, global_state):
+    def timestamp_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("timestamp", 256))
         return [global_state]
 
     @StateTransition()
-    def number_(self, global_state):
+    def number_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
         return [global_state]
 
     @StateTransition()
-    def difficulty_(self, global_state):
+    def difficulty_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("block_difficulty", 256))
         return [global_state]
 
     @StateTransition()
-    def gaslimit_(self, global_state):
+    def gaslimit_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("block_gaslimit", 256))
         return [global_state]
 
     # Memory operations
     @StateTransition()
-    def mload_(self, global_state):
+    def mload_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         op0 = state.stack.pop()
 
@@ -689,7 +691,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def mstore_(self, global_state):
+    def mstore_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -724,7 +726,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def mstore8_(self, global_state):
+    def mstore8_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -740,7 +742,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def sload_(self, global_state):
+    def sload_(self, global_state: GlobalState) -> List[GlobalState]:
         global keccak_function_manager
         
         state = global_state.mstate
@@ -803,7 +805,7 @@ class Instruction:
             yield keccak_argument != argument
 
     @StateTransition()
-    def sstore_(self, global_state):
+    def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
         global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
@@ -862,7 +864,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition(increment_pc=False)
-    def jump_(self, global_state):
+    def jump_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         disassembly = global_state.environment.code
         try:
@@ -888,7 +890,7 @@ class Instruction:
         return [new_state]
 
     @StateTransition(increment_pc=False)
-    def jumpi_(self, global_state):
+    def jumpi_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         disassembly = global_state.environment.code
         states = []
@@ -938,22 +940,22 @@ class Instruction:
         return states
 
     @StateTransition()
-    def pc_(self, global_state):
+    def pc_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.mstate.pc - 1)
         return [global_state]
 
     @StateTransition()
-    def msize_(self, global_state):
+    def msize_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
         return [global_state]
 
     @StateTransition()
-    def gas_(self, global_state):
+    def gas_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
     @StateTransition()
-    def log_(self, global_state):
+    def log_(self, global_state: GlobalState) -> List[GlobalState]:
         # TODO: implement me
         state = global_state.mstate
         dpth = int(self.op_code[3:])
@@ -963,7 +965,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def create_(self, global_state):
+    def create_(self, global_state: GlobalState) -> List[GlobalState]:
         # TODO: implement me
         state = global_state.mstate
         state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -972,7 +974,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def return_(self, global_state):
+    def return_(self, global_state: GlobalState):
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 256)]
@@ -983,7 +985,7 @@ class Instruction:
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition()
-    def suicide_(self, global_state):
+    def suicide_(self, global_state: GlobalState):
         target = global_state.mstate.stack.pop()
 
         # Often the target of the suicide instruction will be symbolic
@@ -994,7 +996,10 @@ class Instruction:
             try:
                 global_state.world_state[target].balance += global_state.environment.active_account.balance
             except KeyError:
-                global_state.world_state.create_account(address=target, balance=global_state.environment.active_account.balance)
+                global_state.world_state.create_account(
+                    address=target,
+                    balance=global_state.environment.active_account.balance
+                )
 
         global_state.environment.active_account.balance = 0
         global_state.environment.active_account.deleted = True
@@ -1002,24 +1007,24 @@ class Instruction:
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
-    def revert_(self, global_state):
+    def revert_(self, global_state: GlobalState) -> List:
         return []
 
     @StateTransition()
-    def assert_fail_(self, global_state):
+    def assert_fail_(self, global_state: GlobalState):
         # 0xfe: designated invalid opcode
         raise InvalidInstruction
 
     @StateTransition()
-    def invalid_(self, global_state):
+    def invalid_(self, global_state: GlobalState):
         raise InvalidInstruction
 
     @StateTransition()
-    def stop_(self, global_state):
+    def stop_(self, global_state: GlobalState):
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
-    def call_(self, global_state):
+    def call_(self, global_state: GlobalState) -> List[GlobalState]:
 
         instr = global_state.get_current_instruction()
         environment = global_state.environment
@@ -1078,7 +1083,7 @@ class Instruction:
         raise TransactionStartSignal(transaction, self.op_code)
 
     @StateTransition()
-    def call_post(self, global_state):
+    def call_post(self, global_state: GlobalState) -> List[GlobalState]:
         instr = global_state.get_current_instruction()
 
         try:
@@ -1119,7 +1124,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def callcode_(self, global_state):
+    def callcode_(self, global_state: GlobalState) -> List[GlobalState]:
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
@@ -1146,7 +1151,7 @@ class Instruction:
         raise TransactionStartSignal(transaction, self.op_code)
 
     @StateTransition()
-    def callcode_post(self, global_state):
+    def callcode_post(self, global_state: GlobalState) -> List[GlobalState]:
         instr = global_state.get_current_instruction()
 
         try:
@@ -1188,7 +1193,7 @@ class Instruction:
 
 
     @StateTransition()
-    def delegatecall_(self, global_state):
+    def delegatecall_(self, global_state: GlobalState) -> List[GlobalState]:
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
@@ -1216,7 +1221,7 @@ class Instruction:
 
 
     @StateTransition()
-    def delegatecall_post(self, global_state):
+    def delegatecall_post(self, global_state: GlobalState) -> List[GlobalState]:
         instr = global_state.get_current_instruction()
 
         try:
@@ -1260,7 +1265,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def staticcall_(self, global_state):
+    def staticcall_(self, global_state: GlobalState) -> List[GlobalState]:
         # TODO: implement me
         instr = global_state.get_current_instruction()
         global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
