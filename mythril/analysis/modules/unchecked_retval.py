@@ -2,6 +2,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
 
 from mythril.laser.ethereum.svm import NodeFlags
+from mythril.laser.ethereum.smt_wrapper import formula_to_string
 import logging
 import re
 
@@ -43,7 +44,8 @@ def execute(statespace):
 
                 instr = state.get_current_instruction()
 
-                if instr['opcode'] == 'ISZERO' and re.search(r'retval', str(state.mstate.stack[-1])):
+                if instr['opcode'] == 'ISZERO' and \
+                   re.search(r'retval', formula_to_string(state.mstate.stack[-1])):
                     retval_checked = True
                     break
 
@@ -78,7 +80,8 @@ def execute(statespace):
                             _state = node.states[_idx]
                             _instr = _state.get_current_instruction()
 
-                            if _instr['opcode'] == 'ISZERO' and re.search(r'retval', str(_state .mstate.stack[-1])):
+                            if _instr['opcode'] == 'ISZERO' and \
+                               re.search(r'retval', formula_to_string(_state .mstate.stack[-1])):
                                 retval_checked = True
                                 break
 

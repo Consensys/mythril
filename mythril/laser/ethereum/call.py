@@ -1,7 +1,8 @@
 import logging
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
-from mythril.laser.ethereum.smt_wrapper import NotConcreteValueError, simplify
+from mythril.laser.ethereum.smt_wrapper import \
+    NotConcreteValueError, simplify, formula_to_string
 from mythril.support.loader import DynLoader
 import re
 
@@ -51,8 +52,8 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
     except NotConcreteValueError:
         logging.debug("Symbolic call encountered")
 
-        match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
-        logging.debug("CALL to: " + str(simplify(symbolic_to_address)))
+        match = re.search(r'storage_(\d+)', formula_to_string(simplify(symbolic_to_address)))
+        logging.debug("CALL to: " + formula_to_string(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
             raise ValueError()
