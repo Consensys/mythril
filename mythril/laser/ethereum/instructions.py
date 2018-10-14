@@ -1033,7 +1033,7 @@ class Instruction:
             callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True)
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
