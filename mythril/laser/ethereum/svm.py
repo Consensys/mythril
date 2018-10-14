@@ -60,7 +60,7 @@ class LaserEVM:
     def accounts(self):
         return self.world_state.accounts
 
-    def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
+    def sym_exec(self, main_address=None, creation_code=None, contract_name=None, max_transactions=3):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
@@ -77,18 +77,29 @@ class LaserEVM:
 
             # Reset code coverage
             self.coverage = {}
-            self.time = datetime.now()
-            logging.info("Starting message call transaction")
-            execute_message_call(self, created_account.address)
+            for i in range(max_transactions):
+                initial_coverage = self._get_covered_instructions()
 
-            self.time = datetime.now()
-            execute_message_call(self, created_account.address)
+                self.time = datetime.now()
+                logging.info("Starting message call transaction, iteration: {}".format(i))
+                execute_message_call(self, created_account.address)
+
+                end_coverage = self._get_covered_instructions()
+                if end_coverage == initial_coverage:
+                    break
 
         logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
         for code, coverage in self.coverage.items():
             cov = reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1]) / float(coverage[0]) * 100
             logging.info("Achieved {} coverage for code: {}".format(cov, code))
+
+    def _get_covered_instructions(self) -> int:
+        """ Gets the total number of covered instructions for all accounts in the svm"""
+        total_covered_instructions = 0
+        for _, cv in self.coverage.items():
+            total_covered_instructions += reduce(lambda sum_, val: sum_ + 1 if val else sum_, cv[1])
+        return total_covered_instructions
 
     def exec(self, create=False):
         for global_state in self.strategy:
@@ -252,7 +263,7 @@ class LaserEVM:
             environment.active_function_name = disassembly.addr_to_func[address]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            logging.info(
+            logging.debug(
                 "- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
         elif address == 0:
             environment.active_function_name = "fallback"
