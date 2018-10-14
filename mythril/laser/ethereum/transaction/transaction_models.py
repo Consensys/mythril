@@ -1,7 +1,8 @@
 import logging
+from typing import Union
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
-from z3 import BitVec
+from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Account
+from z3 import BitVec, BitVecNumRef
 import array
 
 _next_transaction_id = 0
@@ -21,8 +22,11 @@ class TransactionEndSignal(Exception):
 
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
-    # TODO: Add type hints
-    def __init__(self, transaction, op_code: str):
+    def __init__(
+        self,
+        transaction: Union["MessageCallTransaction", "ContractCreationTransaction"],
+        op_code: str
+    ):
         self.transaction = transaction
         self.op_code = op_code
 
@@ -30,9 +34,9 @@ class TransactionStartSignal(Exception):
 class MessageCallTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
-                 world_state,
-                 callee_account,
-                 caller,
+                 world_state: WorldState,
+                 callee_account: Account,
+                 caller: BitVecNumRef,
                  call_data=(),
                  identifier=None,
                  gas_price=None,
@@ -41,7 +45,6 @@ class MessageCallTransaction:
                  call_data_type=None,
                  code=None
                  ):
-        # TODO: Add type hints
         assert isinstance(world_state, WorldState)
         self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
@@ -81,8 +84,8 @@ class MessageCallTransaction:
 class ContractCreationTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
-                 world_state,
-                 caller,
+                 world_state: WorldState,
+                 caller: BitVecNumRef,
                  identifier=None,
                  callee_account=None,
                  code=None,
@@ -92,7 +95,6 @@ class ContractCreationTransaction:
                  origin=None,
                  call_data_type=None,
                  ):
-        # TODO: Add type hints
         assert isinstance(world_state, WorldState)
         self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
@@ -130,7 +132,6 @@ class ContractCreationTransaction:
         return global_state
 
     def end(self, global_state: GlobalState, return_data=None) -> None:
-        # TODO: Add type hints
         if not all([isinstance(element, int) for element in return_data]):
             self.return_data = None
             raise TransactionEndSignal(global_state)

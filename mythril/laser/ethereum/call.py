@@ -1,5 +1,6 @@
 import logging
-from z3 import simplify, BitVecRef
+from typing import Union
+from z3 import simplify, BitVecRef, BitVecNumRef, BoolRef
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
 from mythril.support.loader import DynLoader
@@ -112,15 +113,20 @@ def get_callee_account(global_state: GlobalState, callee_address: str, dynamic_l
     return callee_account
 
 
-def get_call_data(global_state: GlobalState, memory_start, memory_size, pad=True):
+def get_call_data(
+    global_state: GlobalState,
+    memory_start: Union[int, BitVecNumRef, BoolRef],
+    memory_size: Union[int, BitVecNumRef, BoolRef],
+    pad=True
+):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
     :param memory_start: Start index
     :param memory_size: Size
+    :param pad: Enable zero padding before the call data
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
-    # TODO: Add type hints
     state = global_state.mstate
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.

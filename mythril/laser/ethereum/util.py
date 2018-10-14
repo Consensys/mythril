@@ -12,8 +12,7 @@ TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
 
 
-def sha3(seed: str):
-    # TODO: Add type hints
+def sha3(seed: str) -> bytes:
     return _sha3.keccak_256(bytes(seed)).digest()
 
 

@@ -4,8 +4,7 @@ from mythril.laser.ethereum.cfg import Node
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
-from typing import KeysView, Dict, List, Union
-
+from typing import KeysView, Dict, List, Union, Any
 from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
 
 
@@ -78,12 +77,10 @@ class Account:
     def __str__(self) -> str:
         return str(self.as_dict)
 
-    def set_balance(self, balance) -> None:
-        # TODO: Add type hints
+    def set_balance(self, balance: BitVecRef) -> None:
         self.balance = balance
 
-    def add_balance(self, balance) -> None:
-        # TODO: Add type hints
+    def add_balance(self, balance: BitVecRef) -> None:
         self.balance += balance
 
     @property
@@ -166,8 +163,7 @@ class MachineStack(list):
         except IndexError:
             raise StackUnderflowException("Trying to pop from an empty stack")
 
-    def __getitem__(self, item: int):
-        # TODO: Add type hints
+    def __getitem__(self, item: int) -> Any:
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
@@ -210,9 +206,8 @@ class MachineState:
         m_extend = (start + size - self.memory_size)
         self.memory.extend(bytearray(m_extend))
 
-    def memory_write(self, offset, data) -> None:
+    def memory_write(self, offset: int, data: List[int]) -> None:
         """ Writes data to memory starting at offset """
-        # TODO: Add type hints
         self.mem_extend(offset, len(data))
         self.memory[offset:offset+len(data)] = data
 
@@ -279,8 +274,8 @@ class GlobalState:
         return instructions[self.mstate.pc]
 
     @property
-    def current_transaction(self):
-        # TODO: Add type hints
+    def current_transaction(self) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
+        # TODO: Remove circular to transaction package to import Transaction classes
         try:
             return self.transaction_stack[-1][0]
         except IndexError:
@@ -351,7 +346,6 @@ class WorldState:
 
     def _generate_new_address(self) -> str:
         """ Generates a new address for the global state"""
-        # TODO: Add type hints
         while True:
             address = '0x' + ''.join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():

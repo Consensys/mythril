@@ -8,9 +8,9 @@ from mythril.laser.ethereum.transaction.transaction_models import MessageCallTra
     get_next_transaction_id
 
 
-def execute_message_call(laser_evm, callee_address) -> None:
+def execute_message_call(laser_evm, callee_address: str) -> None:
     """ Executes a message call transaction from all open states """
-    # TODO: Add type hints
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -38,7 +38,7 @@ def execute_message_call(laser_evm, callee_address) -> None:
 
 def execute_contract_creation(laser_evm, contract_initialization_code, contract_name=None) -> Account:
     """ Executes a contract creation transaction from all open states"""
-    # TODO: Add type hints
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -68,7 +68,7 @@ def execute_contract_creation(laser_evm, contract_initialization_code, contract_
 
 def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     """ Sets up global state and cfg for a transactions execution"""
-    # TODO: Add type hints
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 

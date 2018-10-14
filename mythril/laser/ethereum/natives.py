@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import logging
+from typing import List, Union
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
@@ -31,7 +32,7 @@ def extract32(data: bytearray, i: int) -> int:
     return bytearray_to_int(o)
 
 
-def ecrecover(data):
+def ecrecover(data: str) -> List:
     # TODO: Add type hints
     try:
         data = bytearray(data)
@@ -53,8 +54,7 @@ def ecrecover(data):
     return o
 
 
-def sha256(data):
-    # TODO: Add type hints
+def sha256(data: Union[bytes, str]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
@@ -62,8 +62,7 @@ def sha256(data):
     return hashlib.sha256(data).digest()
 
 
-def ripemd160(data):
-    # TODO: Add type hints
+def ripemd160(data: Union[bytes, str]) -> List:
     try:
         data = bytes(data)
     except TypeError:
@@ -72,14 +71,12 @@ def ripemd160(data):
 
 
 def identity(data):
-    # TODO: Add type hints
     return copy.copy(data)
 
 
-def native_contracts(address, data):
+def native_contracts(address: int, data: List):
     """
     takes integer address 1, 2, 3, 4
     """
-    # TODO: Add type hints
     functions = (ecrecover, sha256, ripemd160, identity)
     return functions[address-1](data)
