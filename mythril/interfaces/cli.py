@@ -5,7 +5,7 @@
    http://www.github.com/ConsenSys/mythril
 """
 
-import logging
+import logging, coloredlogs
 import json
 import sys
 import argparse
@@ -69,6 +69,7 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
+    options.add_argument('--max-transaction-count', type=int, default=3, help='Maximum number of transactions issued by laser')
     options.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs', help='Symbolic execution strategy')
     options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on symbolic execution")
     options.add_argument('--create-timeout', type=int, default=10, help="The amount of seconds to spend on "
@@ -103,7 +104,10 @@ def main():
 
     if args.v:
         if 0 <= args.v < 3:
-            logging.basicConfig(level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
+            coloredlogs.install(
+                fmt='%(name)s[%(process)d] %(levelname)s %(message)s',
+                level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v]
+            )
         else:
             exit_with_error(args.outform, "Invalid -v value, you can find valid values in usage")
 
@@ -215,7 +219,8 @@ def main():
                                              modules=[m.strip() for m in args.modules.strip().split(",")] if args.modules else [],
                                              verbose_report=args.verbose_report,
                                              max_depth=args.max_depth, execution_timeout=args.execution_timeout,
-                                             create_timeout=args.create_timeout)
+                                             create_timeout=args.create_timeout,
+                                             max_transaction_count=args.max_transaction_count)
                 outputs = {
                     'json': report.as_json(),
                     'text': report.as_text(),

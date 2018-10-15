@@ -20,8 +20,8 @@ import platform
 from mythril.ether import util
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
-from mythril.rpc.client import EthJsonRpc
-from mythril.rpc.exceptions import ConnectionError
+from mythril.ethereum.interface.rpc.client import EthJsonRpc
+from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
@@ -31,7 +31,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
-from mythril.leveldb.client import EthLevelDB
+from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -360,14 +360,16 @@ class Mythril(object):
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
     def fire_lasers(self, strategy, contracts=None, address=None,
-                    modules=None, verbose_report=False, max_depth=None, execution_timeout=None, create_timeout=None):
+                    modules=None, verbose_report=False, max_depth=None, execution_timeout=None, create_timeout=None,
+                    max_transaction_count=None):
 
         all_issues = []
         for contract in (contracts or self.contracts):
             sym = SymExecWrapper(contract, address, strategy,
                                  dynloader=DynLoader(self.eth) if self.dynld else None,
                                  max_depth=max_depth, execution_timeout=execution_timeout,
-                                 create_timeout=create_timeout)
+                                 create_timeout=create_timeout,
+                                 max_transaction_count=max_transaction_count)
 
             issues = fire_lasers(sym, modules)
 
