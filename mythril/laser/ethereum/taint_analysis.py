@@ -82,7 +82,7 @@ class TaintRunner:
     """
 
     @staticmethod
-    def execute(statespace, node, state, initial_stack=[]):
+    def execute(statespace, node, state, initial_stack=None):
         """
         Runs taint analysis on the statespace
         :param statespace: symbolic statespace to run taint analysis on
@@ -91,6 +91,8 @@ class TaintRunner:
         :param stack_indexes: stack indexes to introduce taint
         :return: TaintResult object containing analysis results
         """
+        if initial_stack is None:
+            initial_stack = []
         result = TaintResult()
         transaction_stack_length = len(node.states[0].transaction_stack)
         # Build initial current_node
@@ -107,7 +109,8 @@ class TaintRunner:
             records = TaintRunner.execute_node(node, record, index)
 
             result.add_records(records)
-
+            if len(records) == 0:          # continue if there is no record to work on
+                continue
             children = TaintRunner.children(node, statespace, environment, transaction_stack_length)
             for child in children:
                 current_nodes.append((child, records[-1], 0))

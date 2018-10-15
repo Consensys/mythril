@@ -16,8 +16,9 @@ Check for call.value()() to external addresses
 MAX_SEARCH_DEPTH = 64
 
 
-def search_children(statespace, node, start_index=0, depth=0, results=[]):
-
+def search_children(statespace, node, start_index=0, depth=0, results=None):
+    if results is None:
+        results = []
     logging.debug("SEARCHING NODE %d", node.uid)
 
     if depth < MAX_SEARCH_DEPTH:
