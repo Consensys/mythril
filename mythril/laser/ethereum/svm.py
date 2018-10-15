@@ -60,7 +60,7 @@ class LaserEVM:
     def accounts(self):
         return self.world_state.accounts
 
-    def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
+    def sym_exec(self, main_address=None, creation_code=None, contract_name=None, max_transactions=3):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
@@ -77,18 +77,29 @@ class LaserEVM:
 
             # Reset code coverage
             self.coverage = {}
-            self.time = datetime.now()
-            logging.info("Starting message call transaction")
-            execute_message_call(self, created_account.address)
+            for i in range(max_transactions):
+                initial_coverage = self._get_covered_instructions()
 
-            self.time = datetime.now()
-            execute_message_call(self, created_account.address)
+                self.time = datetime.now()
+                logging.info("Starting message call transaction, iteration: {}".format(i))
+                execute_message_call(self, created_account.address)
+
+                end_coverage = self._get_covered_instructions()
+                if end_coverage == initial_coverage:
+                    break
 
         logging.info("Finished symbolic execution")
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
         for code, coverage in self.coverage.items():
             cov = reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1]) / float(coverage[0]) * 100
             logging.info("Achieved {} coverage for code: {}".format(cov, code))
+
+    def _get_covered_instructions(self) -> int:
+        """ Gets the total number of covered instructions for all accounts in the svm"""
+        total_covered_instructions = 0
+        for _, cv in self.coverage.items():
+            total_covered_instructions += reduce(lambda sum_, val: sum_ + 1 if val else sum_, cv[1])
+        return total_covered_instructions
 
     def exec(self, create=False):
         for global_state in self.strategy:
@@ -138,30 +149,31 @@ class LaserEVM:
                 new_global_states = self._end_message_call(return_global_state, global_state,
                                                            revert_changes=True, return_data=None)
 
-        except TransactionStartSignal as e:
+        except TransactionStartSignal as start_signal:
             # Setup new global state
-            new_global_state = e.transaction.initial_global_state()
+            new_global_state = start_signal.transaction.initial_global_state()
 
-            new_global_state.transaction_stack = copy(global_state.transaction_stack) + [(e.transaction, global_state)]
+            new_global_state.transaction_stack = copy(global_state.transaction_stack) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
             new_global_state.mstate.constraints = global_state.mstate.constraints
 
             return [new_global_state], op_code
 
-        except TransactionEndSignal as e:
-            transaction, return_global_state = e.global_state.transaction_stack.pop()
+        except TransactionEndSignal as end_signal:
+            transaction, return_global_state = end_signal.global_state.transaction_stack.pop()
 
             if return_global_state is None:
-                if not isinstance(transaction, ContractCreationTransaction) or transaction.return_data:
-                    e.global_state.world_state.node = global_state.node
-                    self.open_states.append(e.global_state.world_state)
+                if (not isinstance(transaction, ContractCreationTransaction) or transaction.return_data) and not end_signal.revert:
+                    end_signal.global_state.world_state.node = global_state.node
+                    self.open_states.append(end_signal.global_state.world_state)
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
-                self._execute_post_hook(op_code, [e.global_state])
+                self._execute_post_hook(op_code, [end_signal.global_state])
 
                 new_global_states = self._end_message_call(return_global_state, global_state,
-                                                           revert_changes=False, return_data=transaction.return_data)
+                                                           revert_changes=False or end_signal.revert,
+                                                           return_data=transaction.return_data)
 
         self._execute_post_hook(op_code, new_global_states)
 
@@ -252,7 +264,7 @@ class LaserEVM:
             environment.active_function_name = disassembly.addr_to_func[address]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            logging.info(
+            logging.debug(
                 "- Entering function " + environment.active_account.contract_name + ":" + new_node.function_name)
         elif address == 0:
             environment.active_function_name = "fallback"

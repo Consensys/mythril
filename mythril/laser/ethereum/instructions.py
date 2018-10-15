@@ -1003,7 +1003,14 @@ class Instruction:
 
     @StateTransition()
     def revert_(self, global_state):
-        return []
+        state = global_state.mstate
+        offset, length = state.stack.pop(), state.stack.pop()
+        return_data = [global_state.new_bitvec("return_data", 256)]
+        try:
+            return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
+        except AttributeError:
+            logging.debug("Return with symbolic length or offset. Not supported")
+        global_state.current_transaction.end(global_state, return_data=return_data, revert=True)
 
     @StateTransition()
     def assert_fail_(self, global_state):
@@ -1028,7 +1035,7 @@ class Instruction:
             callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True)
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(e)
             )
             # TODO: decide what to do in this case
