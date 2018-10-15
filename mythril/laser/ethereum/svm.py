@@ -36,7 +36,8 @@ class LaserEVM:
         max_depth=float('inf'),
         execution_timeout=60,
         create_timeout=10,
-        strategy=DepthFirstSearchStrategy
+        strategy=DepthFirstSearchStrategy,
+        max_transaction_count=3
     ):
         world_state = WorldState()
         world_state.accounts = accounts
@@ -54,6 +55,7 @@ class LaserEVM:
         self.work_list = []
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
+        self.max_transaction_count = max_transaction_count
 
         self.execution_timeout = execution_timeout
         self.create_timeout = create_timeout
@@ -68,7 +70,6 @@ class LaserEVM:
     @property
     def accounts(self) -> List[Account]:
         return self.world_state.accounts
-
 
     def sym_exec(self, main_address=None, creation_code=None, contract_name=None, max_transactions=3) -> None:
         logging.debug("Starting LASER execution")
@@ -87,7 +88,7 @@ class LaserEVM:
 
             # Reset code coverage
             self.coverage = {}
-            for i in range(max_transactions):
+            for i in range(self.max_transaction_count):
                 initial_coverage = self._get_covered_instructions()
 
                 self.time = datetime.now()
