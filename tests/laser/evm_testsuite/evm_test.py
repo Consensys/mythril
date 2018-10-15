@@ -72,7 +72,7 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
         return
 
     world_state = laser_evm.open_states[0]
-    model = get_model(laser_evm.nodes[0].states[0].mstate.constraints)
+    model = get_model(next(iter(laser_evm.nodes.values())).states[0].mstate.constraints)
 
     for address, details in post_condition.items():
         account = world_state[address]
@@ -82,5 +82,9 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
 
         for index, value in details['storage'].items():
             expected = int(value, 16)
-            actual = model.eval(account.storage[int(index,16)])
+            if type(account.storage[int(index,16)]) != int:
+                actual = model.eval(account.storage[int(index,16)])
+                actual = 1 if actual == True else 0 if actual == False else actual
+            else:
+                actual = account.storage[int(index,16)]
             assert actual == expected
