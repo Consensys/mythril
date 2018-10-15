@@ -14,7 +14,7 @@ class SymExecWrapper:
     """
 
     def __init__(self, contract, address, strategy, dynloader=None, max_depth=22,
-                 execution_timeout=None, create_timeout=None):
+                 execution_timeout=None, create_timeout=None, max_transaction_count=3):
 
         s_strategy = None
         if strategy == 'dfs':
@@ -30,7 +30,8 @@ class SymExecWrapper:
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth,
                                   execution_timeout=execution_timeout, strategy=s_strategy,
-                                  create_timeout=create_timeout)
+                                  create_timeout=create_timeout,
+                                  max_transaction_count=max_transaction_count)
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(creation_code=contract.creation_code, contract_name=contract.name)
