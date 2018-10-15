@@ -12,3 +12,7 @@ class StackOverflowException(VmException):
 
 class InvalidJumpDestination(VmException):
     pass
+
+
+class InvalidInstruction(VmException):
+    pass

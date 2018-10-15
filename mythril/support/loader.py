@@ -37,7 +37,7 @@ class DynLoader:
 
         m = re.match(r'^(0x[0-9a-fA-F]{40})$', dependency_address)
 
-        if (m):
+        if m:
             dependency_address = m.group(1)
 
         else:

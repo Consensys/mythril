@@ -104,10 +104,10 @@ def concrete_int_to_bytes(val):
 
     # logging.debug("concrete_int_to_bytes " + str(val))
 
-    try:
-        return (simplify(val).as_long()).to_bytes(32, byteorder='big')
-    except Z3Exception:
+    if type(val) == int:
         return val.to_bytes(32, byteorder='big')
+
+    return (simplify(val).as_long()).to_bytes(32, byteorder='big')
 
 
 def bytearray_to_int(arr):

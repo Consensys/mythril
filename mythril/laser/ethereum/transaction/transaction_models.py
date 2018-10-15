@@ -12,10 +12,12 @@ def get_next_transaction_id():
     _next_transaction_id += 1
     return _next_transaction_id
 
+
 class TransactionEndSignal(Exception):
     """ Exception raised when a transaction is finalized"""
-    def __init__(self, global_state):
+    def __init__(self, global_state, revert=False):
         self.global_state = global_state
+        self.revert = revert
 
 
 class TransactionStartSignal(Exception):
@@ -70,9 +72,9 @@ class MessageCallTransaction:
 
         return global_state
 
-    def end(self, global_state, return_data=None):
+    def end(self, global_state, return_data=None, revert=False):
         self.return_data = return_data
-        raise TransactionEndSignal(global_state)
+        raise TransactionEndSignal(global_state, revert)
 
 
 class ContractCreationTransaction:
@@ -125,7 +127,7 @@ class ContractCreationTransaction:
 
         return global_state
 
-    def end(self, global_state, return_data=None):
+    def end(self, global_state, return_data=None, revert=False):
 
         if not all([isinstance(element, int) for element in return_data]):
             self.return_data = None
@@ -136,4 +138,6 @@ class ContractCreationTransaction:
         global_state.environment.active_account.code = Disassembly(contract_code)
         self.return_data = global_state.environment.active_account.address
 
-        raise TransactionEndSignal(global_state)
+        raise TransactionEndSignal(global_state, revert=revert)
+
+

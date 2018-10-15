@@ -42,9 +42,7 @@ def easm_to_instruction_list(easm):
             # Invalid code line
             continue
 
-        instruction = {}
-
-        instruction['opcode'] = m.group(1)
+        instruction = {'opcode': m.group(1)}
 
         if m.group(2):
             instruction['argument'] = m.group(2)[2:]
@@ -82,7 +80,7 @@ def find_opcode_sequence(pattern, instruction_list):
                     matched = False
                     break
 
-            if (matched):
+            if matched:
                 match_indexes.append(i)
 
     return match_indexes
@@ -101,12 +99,10 @@ def disassemble(bytecode):
 
     while addr < length:
 
-        instruction = {}
-
-        instruction['address'] = addr
+        instruction = {'address': addr}
 
         try:
-            if (sys.version_info > (3, 0)):
+            if sys.version_info > (3, 0):
                 opcode = opcodes[bytecode[addr]]
             else:
                 opcode = opcodes[ord(bytecode[addr])]

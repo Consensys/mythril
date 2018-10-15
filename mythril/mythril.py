@@ -20,8 +20,8 @@ import platform
 from mythril.ether import util
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
-from mythril.rpc.client import EthJsonRpc
-from mythril.rpc.exceptions import ConnectionError
+from mythril.ethereum.interface.rpc.client import EthJsonRpc
+from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
@@ -31,7 +31,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
-from mythril.leveldb.client import EthLevelDB
+from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -103,7 +103,8 @@ class Mythril(object):
 
         self.contracts = []  # loaded contracts
 
-    def _init_mythril_dir(self):
+    @staticmethod
+    def _init_mythril_dir():
         try:
             mythril_dir = os.environ['MYTHRIL_DIR']
         except KeyError:
@@ -179,7 +180,8 @@ class Mythril(object):
     def analyze_truffle_project(self, *args, **kwargs):
         return analyze_truffle_project(self.sigs, *args, **kwargs)  # just passthru by passing signatures for now
 
-    def _init_solc_binary(self, version):
+    @staticmethod
+    def _init_solc_binary(version):
         # Figure out solc binary and version
         # Only proper versions are supported. No nightlies, commits etc (such as available in remix)
 
@@ -317,7 +319,7 @@ class Mythril(object):
 
             try:
                 # import signatures from solidity source
-                self.sigs.import_from_solidity_source(file)
+                self.sigs.import_from_solidity_source(file, solc_binary=self.solc_binary, solc_args=self.solc_args)
                 # Save updated function signatures
                 self.sigs.write()  # dump signatures to disk (previously opened file or default location)
 
@@ -382,7 +384,9 @@ class Mythril(object):
 
         return report
 
-    def get_state_variable_from_storage(self, address, params=[]):
+    def get_state_variable_from_storage(self, address, params=None):
+        if params is None:
+            params = []
         (position, length, mappings) = (0, 1, [])
         try:
             if params[0] == "mapping":
@@ -433,7 +437,8 @@ class Mythril(object):
             raise CriticalError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
         return '\n'.join(outtxt)
 
-    def disassemble(self, contract):
+    @staticmethod
+    def disassemble(contract):
         return contract.get_easm()
 
     @staticmethod

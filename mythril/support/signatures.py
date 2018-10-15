@@ -111,6 +111,8 @@ class SignatureDb(object):
         :return: self
         """
         path = path or self.signatures_file
+        directory = os.path.split(path)[0]
+
         if sync and os.path.exists(path):
             # reload and save if file exists
             with open(path, "r") as f:
@@ -122,7 +124,10 @@ class SignatureDb(object):
 
             sigs.update(self.signatures)  # reload file and merge cached sigs into what we load from file
             self.signatures = sigs
-        
+
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)         # create folder structure if not existS
+
         if not os.path.exists(path):       # creates signatures.json file if it doesn't exist
             open(path, "w").close()
 
@@ -172,13 +177,13 @@ class SignatureDb(object):
         """
         return self.get(sighash=item)
 
-    def import_from_solidity_source(self, file_path):
+    def import_from_solidity_source(self, file_path, solc_binary="solc", solc_args=None):
         """
         Import Function Signatures from solidity source files
         :param file_path: solidity source code file path
         :return: self
         """
-        self.signatures.update(SignatureDb.get_sigs_from_file(file_path))
+        self.signatures.update(SignatureDb.get_sigs_from_file(file_path, solc_binary=solc_binary, solc_args=solc_args))
         return self
 
     @staticmethod
@@ -201,13 +206,15 @@ class SignatureDb(object):
                                                                                        proxies=proxies))
 
     @staticmethod
-    def get_sigs_from_file(file_name):
+    def get_sigs_from_file(file_name, solc_binary="solc", solc_args=None):
         """
         :param file_name: accepts a filename
         :return: their signature mappings
         """
         sigs = {}
-        cmd = ["solc", "--hashes", file_name]
+        cmd = [solc_binary, "--hashes", file_name]
+        if solc_args:
+            cmd.extend(solc_args.split())
         try:
             p = Popen(cmd, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()

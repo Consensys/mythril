@@ -7,15 +7,16 @@ import re
 class ETHContract(persistent.Persistent):
 
     def __init__(self, code, creation_code="", name="Unknown", enable_online_lookup=True):
+        
+        # Workaround: We currently do not support compile-time linking.
+        # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
+        # Apply this for creation_code & code
+
+        creation_code = re.sub(r'(_+.*_+)', 'aa' * 20, creation_code)
+        code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
 
         self.creation_code = creation_code
         self.name = name
-
-        # Workaround: We currently do not support compile-time linking.
-        # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
-
-        code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
-
         self.code = code
         self.disassembly = Disassembly(code, enable_online_lookup=enable_online_lookup)
         self.creation_disassembly = Disassembly(creation_code, enable_online_lookup=enable_online_lookup)
@@ -49,7 +50,7 @@ class ETHContract(persistent.Persistent):
 
             m = re.match(r'^code#([a-zA-Z0-9\s,\[\]]+)#', token)
 
-            if (m):
+            if m:
                 if easm_code is None:
                     easm_code = self.get_easm()
 
@@ -59,7 +60,7 @@ class ETHContract(persistent.Persistent):
 
             m = re.match(r'^func#([a-zA-Z0-9\s_,(\\)\[\]]+)#$', token)
 
-            if (m):
+            if m:
 
                 sign_hash = "0x" + utils.sha3(m.group(1))[:4].hex()
 
