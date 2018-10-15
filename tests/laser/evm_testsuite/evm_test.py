@@ -3,8 +3,8 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state import Account
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
+from mythril.analysis.solver import get_model
 from datetime import datetime
-from mythril.laser.ethereum.util import get_concrete_int
 import binascii
 import json
 from pathlib import Path
@@ -72,6 +72,7 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
         return
 
     world_state = laser_evm.open_states[0]
+    model = get_model(laser_evm.nodes[0].states[0].mstate.constraints)
 
     for address, details in post_condition.items():
         account = world_state[address]
@@ -81,5 +82,5 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
 
         for index, value in details['storage'].items():
             expected = int(value, 16)
-            actual = get_concrete_int(account.storage[int(index, 16)])
+            actual = model.eval(account.storage[int(index,16)])
             assert actual == expected
