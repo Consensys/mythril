@@ -72,7 +72,11 @@ def ripemd160(data: Union[bytes, str]) -> bytes:
     return bytes(padded)
 
 
-def identity(data):
+def identity(data: Union[bytes, str]) -> bytes:
+    try:
+        data = bytes(data)
+    except TypeError:
+        raise NativeContractException
     return copy.copy(data)
 
 
