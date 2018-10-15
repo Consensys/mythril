@@ -20,10 +20,16 @@ class Disassembly(object):
 
         # Parse jump table & resolve function names
 
-        jmptable_indices = asm.find_opcode_sequence(["PUSH4", "EQ"], self.instruction_list)
+        # Take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
+        jmptable_indices = asm.find_opcode_sequence([("PUSH1", "PUSH2", "PUSH3", "PUSH4"), ("EQ",)],
+                                                    self.instruction_list)
 
         for i in jmptable_indices:
             func_hash = self.instruction_list[i]['argument']
+
+            # Append with missing 0s at the beginning
+            func_hash = "0x" + func_hash[2:].rjust(8, "0")
+
             self.func_hashes.append(func_hash)
             try:
                 # tries local cache, file and optional online lookup
