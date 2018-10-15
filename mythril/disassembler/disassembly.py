@@ -20,7 +20,7 @@ class Disassembly(object):
 
         # Parse jump table & resolve function names
 
-        # Take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
+        # Need to take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
         jmptable_indices = asm.find_opcode_sequence([("PUSH1", "PUSH2", "PUSH3", "PUSH4"), ("EQ",)],
                                                     self.instruction_list)
 
