@@ -1007,8 +1007,15 @@ class Instruction:
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
-    def revert_(self, global_state: GlobalState) -> List:
-        return []
+    def revert_(self, global_state: GlobalState) -> None:
+        state = global_state.mstate
+        offset, length = state.stack.pop(), state.stack.pop()
+        return_data = [global_state.new_bitvec("return_data", 256)]
+        try:
+            return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
+        except AttributeError:
+            logging.debug("Return with symbolic length or offset. Not supported")
+        global_state.current_transaction.end(global_state, return_data=return_data, revert=True)
 
     @StateTransition()
     def assert_fail_(self, global_state: GlobalState):
