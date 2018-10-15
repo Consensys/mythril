@@ -62,12 +62,14 @@ def sha256(data: Union[bytes, str]) -> bytes:
     return hashlib.sha256(data).digest()
 
 
-def ripemd160(data: Union[bytes, str]) -> List:
+def ripemd160(data: Union[bytes, str]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
         raise NativeContractException
-    return 12 * [0] + [i for i in hashlib.new('ripemd160', data).digest()]
+    digest = hashlib.new('ripemd160', data).digest()
+    padded = 12 * [0] + list(digest)
+    return bytes(padded)
 
 
 def identity(data):
