@@ -374,7 +374,7 @@ class Instruction:
                 logging.debug("Final value: " + str(int.from_bytes(val, byteorder='big')))
                 state.stack.append(BitVecVal(int.from_bytes(val, byteorder='big'), 256))
 
-            except (util.ConcreteIntException, AttributeError):
+            except (TypeError, AttributeError):
                 state.stack.append(global_state.new_bitvec(
                     "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
         else:
@@ -402,14 +402,14 @@ class Instruction:
 
         try:
             mstart = util.get_concrete_int(op0)
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
         dstart_sym = False
         try:
             dstart = util.get_concrete_int(op1)
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
             dstart_sym = True
@@ -417,7 +417,7 @@ class Instruction:
         size_sym = False
         try:
             size = util.get_concrete_int(op2)
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("Unsupported symbolic size in CALLDATACOPY")
             size = simplify(op2)
             size_sym = True
@@ -501,7 +501,7 @@ class Instruction:
 
         try:
             index, length = util.get_concrete_int(op0), util.get_concrete_int(op1)
-        except util.ConcreteIntException:
+        except TypeError:
             # Can't access symbolic memory offsets
             if is_expr(op0):
                 op0 = simplify(op0)
@@ -545,7 +545,7 @@ class Instruction:
         try:
             concrete_size = helper.get_concrete_int(size)
             global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
-        except (util.ConcreteIntException, TypeError):
+        except TypeError:
             # except both attribute error and Exception
             global_state.mstate.mem_extend(concrete_memory_offset, 1)
             global_state.mstate.memory[concrete_memory_offset] = \
@@ -687,7 +687,7 @@ class Instruction:
 
         try:
             mstart = util.get_concrete_int(op0)
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
@@ -720,7 +720,7 @@ class Instruction:
 
         try:
             offset = util.get_concrete_int(op0)
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
@@ -741,7 +741,7 @@ class Instruction:
             index = util.get_concrete_int(index)
             return self._sload_helper(global_state, index)
 
-        except util.ConcreteIntException:
+        except TypeError:
             if not keccak_function_manager.is_keccak(index):
                 return self._sload_helper(global_state, str(index))
 
@@ -802,7 +802,7 @@ class Instruction:
         try:
             index = util.get_concrete_int(index)
             return self._sstore_helper(global_state, index, value)
-        except util.ConcreteIntException:
+        except TypeError:
             is_keccak = keccak_function_manager.is_keccak(index)
             if not is_keccak:
                 return self._sstore_helper(global_state, str(index), value)
@@ -855,7 +855,7 @@ class Instruction:
         disassembly = global_state.environment.code
         try:
             jump_addr = util.get_concrete_int(state.stack.pop())
-        except util.ConcreteIntException:
+        except TypeError:
             raise InvalidJumpDestination("Invalid jump argument (symbolic address)")
         except IndexError:
             raise StackUnderflowException()
@@ -885,7 +885,7 @@ class Instruction:
 
         try:
             jump_addr = util.get_concrete_int(op0)
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("Skipping JUMPI to invalid destination.")
             global_state.mstate.pc += 1
             return [global_state]
@@ -965,7 +965,7 @@ class Instruction:
         return_data = [global_state.new_bitvec("return_data", 256)]
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
-        except util.ConcreteIntException:
+        except TypeError:
             logging.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
 
@@ -1088,7 +1088,7 @@ class Instruction:
         try:
             memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
             memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
-        except util.ConcreteIntException:
+        except TypeError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
@@ -1156,7 +1156,7 @@ class Instruction:
         try:
             memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
             memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
-        except util.ConcreteIntException:
+        except TypeError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
@@ -1228,7 +1228,7 @@ class Instruction:
                                                                                        ExprRef) else memory_out_offset
             memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size,
                                                                                    ExprRef) else memory_out_size
-        except util.ConcreteIntException:
+        except TypeError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 

@@ -10,8 +10,6 @@ TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
 
 
-class ConcreteIntException(AttributeError):
-    pass
 
 
 def sha3(seed):
@@ -20,7 +18,7 @@ def sha3(seed):
 
 def safe_decode(hex_encoded_string):
 
-    if (hex_encoded_string.startswith("0x")):
+    if hex_encoded_string.startswith("0x"):
         return bytes.fromhex(hex_encoded_string[2:])
     else:
         return bytes.fromhex(hex_encoded_string)
@@ -84,12 +82,13 @@ def get_concrete_int(item):
         elif is_true(simplified):
             return 1
         else:
-            raise ConcreteIntException("Symbolic boolref encountered")
+            raise TypeError("Symbolic boolref encountered")
 
     try:
         return simplify(item).as_long()
     except AttributeError:
-        raise ConcreteIntException("Got a symbolic BitVecRef")
+        raise TypeError("Got a symbolic BitVecRef")
+
 
 def concrete_int_from_bytes(_bytes, start_index):
 
@@ -105,10 +104,10 @@ def concrete_int_to_bytes(val):
 
     # logging.debug("concrete_int_to_bytes " + str(val))
 
-    if (type(val) == int):
+    try:
+        return (simplify(val).as_long()).to_bytes(32, byteorder='big')
+    except Z3Exception:
         return val.to_bytes(32, byteorder='big')
-
-    return (simplify(val).as_long()).to_bytes(32, byteorder='big')
 
 
 def bytearray_to_int(arr):
