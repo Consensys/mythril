@@ -213,7 +213,7 @@ class TaintRunner:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
@@ -225,7 +225,7 @@ class TaintRunner:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't mstore taint track symbolically")
             return
 
@@ -236,7 +236,7 @@ class TaintRunner:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
@@ -248,7 +248,7 @@ class TaintRunner:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't mstore taint track symbolically")
             return
 

@@ -175,7 +175,7 @@ class Instruction:
                 result = simplify(Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1)))
             else:
                 result = 0
-        except AttributeError:
+        except TypeError:
             logging.debug("BYTE: Unsupported symbolic byte offset")
             result = global_state.new_bitvec(str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256)
 
@@ -265,7 +265,7 @@ class Instruction:
         try:
             s0 = util.get_concrete_int(s0)
             s1 = util.get_concrete_int(s1)
-        except ValueError:
+        except TypeError:
             return []
 
         if s0 <= 31:
@@ -355,7 +355,7 @@ class Instruction:
         try:
             offset = util.get_concrete_int(simplify(op0))
             b = environment.calldata[offset]
-        except AttributeError:
+        except TypeError:
             logging.debug("CALLDATALOAD: Unsupported symbolic index")
             state.stack.append(global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
@@ -514,7 +514,7 @@ class Instruction:
             data = b''.join([util.get_concrete_int(i).to_bytes(1, byteorder='big')
                              for i in state.memory[index: index + length]])
 
-        except util.ConcreteIntException:
+        except TypeError:
             argument = str(state.memory[index]).replace(" ", "_")
 
             result = BitVec("KECCAC[{}]".format(argument), 256)
@@ -539,7 +539,7 @@ class Instruction:
 
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
-        except AttributeError:
+        except TypeError:
             logging.debug("Unsupported symbolic memory offset in CODECOPY")
             return [global_state]
 
@@ -555,7 +555,7 @@ class Instruction:
 
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
-        except AttributeError:
+        except TypeError:
             logging.debug("Unsupported symbolic code offset in CODECOPY")
             global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
             for i in range(concrete_size):
@@ -589,7 +589,7 @@ class Instruction:
         environment = global_state.environment
         try:
             addr = hex(helper.get_concrete_int(addr))
-        except AttributeError:
+        except TypeError:
             logging.info("unsupported symbolic address for EXTCODESIZE")
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
@@ -663,7 +663,7 @@ class Instruction:
 
         try:
             offset = util.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't MLOAD from symbolic index")
             data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
@@ -998,7 +998,7 @@ class Instruction:
         return_data = [global_state.new_bitvec("return_data", 256)]
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
-        except AttributeError:
+        except TypeError:
             logging.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data=return_data, revert=True)
 
@@ -1042,7 +1042,7 @@ class Instruction:
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
                 mem_out_sz = memory_out_size.as_long()
-            except AttributeError:
+            except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
 

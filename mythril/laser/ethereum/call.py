@@ -48,7 +48,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
 
     try:
         callee_address = hex(util.get_concrete_int(symbolic_to_address))
-    except AttributeError:
+    except TypeError:
         logging.debug("Symbolic call encountered")
 
         match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
@@ -113,7 +113,6 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     return callee_account
 
 
-
 def get_call_data(global_state, memory_start, memory_size, pad=True):
     """
     Gets call_data from the global_state
@@ -131,7 +130,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
             call_data += [0] * (32 - len(call_data))
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
-    except AttributeError:
+    except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = []
