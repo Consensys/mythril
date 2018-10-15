@@ -2,7 +2,22 @@
 This module implements basic symbolic execution search strategies
 """
 from abc import ABC, abstractmethod
-from random import choices, randrange
+from random import randrange
+
+try:
+    from random import choices
+except ImportError:
+
+    from itertools import accumulate
+    from random import random
+    from bisect import bisect
+
+    def choices(population, weights=None):
+        if weights is None:
+            return [population[int(random() * len(population))]]
+        cum_weights = accumulate(weights)
+        return [population[bisect(cum_weights, random()*cum_weights[-1], 0, len(population)-1)]]
+
 
 class BasicStrategy(ABC):
     __slots__ = 'work_list', 'max_depth', 'open_states'
