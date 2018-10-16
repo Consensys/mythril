@@ -1,6 +1,6 @@
 import logging
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
+from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Calldata
 from z3 import BitVec
 import array
 
@@ -31,7 +31,7 @@ class MessageCallTransaction:
                  world_state,
                  callee_account,
                  caller,
-                 call_data=(),
+                 call_data=None,
                  identifier=None,
                  gas_price=None,
                  call_value=None,
@@ -44,7 +44,7 @@ class MessageCallTransaction:
         self.world_state = world_state
         self.callee_account = callee_account
         self.caller = caller
-        self.call_data = call_data
+        self.call_data = Calldata(self.id) if call_data is None else Calldata(self.id, call_data) if type(call_data) == list else call_data
         self.gas_price = BitVec("gasprice{}".format(identifier), 256) if gas_price is None else gas_price
         self.call_value = BitVec("callvalue{}".format(identifier), 256) if call_value is None else call_value
         self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin
@@ -84,7 +84,7 @@ class ContractCreationTransaction:
                  identifier=None,
                  callee_account=None,
                  code=None,
-                 call_data=(),
+                 call_data=None,
                  gas_price=None,
                  call_value=None,
                  origin=None,
@@ -103,7 +103,7 @@ class ContractCreationTransaction:
         self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin
         self.call_data_type = BitVec("call_data_type{}".format(identifier), 256) if call_data_type is None else call_data_type
 
-        self.call_data = call_data
+        self.call_data = Calldata(self.id) if call_data is None else Calldata(self.id, call_data) if type(call_data) == list else call_data
         self.origin = origin
         self.code = code
         self.return_data = None
