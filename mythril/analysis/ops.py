@@ -21,7 +21,7 @@ class Variable:
 def get_variable(i):
     try:
         return Variable(util.get_concrete_int(i), VarType.CONCRETE)
-    except AttributeError:
+    except TypeError:
         return Variable(simplify(i), VarType.SYMBOLIC)
 
 
