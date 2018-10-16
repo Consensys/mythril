@@ -54,7 +54,7 @@ jobs:
 
       - run:
           name: Type testing
-          command: pip3 install mypy; mypy .
+          command: sudo apt-get install mypy;pip3 install -r requirements.txt; mypy .
           working_directory: /home/mythril
 
       - run:
