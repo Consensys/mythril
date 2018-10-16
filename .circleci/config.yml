@@ -53,6 +53,11 @@ jobs:
           path: /home/mythril/.tox/output
 
       - run:
+          name: Type testing
+          command: mypy .
+          working_directory: /home/mythril
+
+      - run:
           name: Ensuring that setup script is functional
           command: python3 setup.py install
           working_directory: /home/mythril
