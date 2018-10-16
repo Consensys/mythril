@@ -1,5 +1,6 @@
 import logging
 import re
+import copy
 
 from mythril.analysis import solver
 from mythril.analysis.ops import *
