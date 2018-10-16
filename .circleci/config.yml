@@ -54,7 +54,7 @@ jobs:
 
       - run:
           name: Type testing
-          command: mypy .
+          command: pip3 install mypy; mypy .
           working_directory: /home/mythril
 
       - run:
