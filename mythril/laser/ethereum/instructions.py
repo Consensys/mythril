@@ -248,8 +248,12 @@ class Instruction:
     @StateTransition()
     def exp_(self, global_state):
         state = global_state.mstate
-        model = get_model(state.constraints)
-        base, exponent = model.eval(util.pop_bitvec(state)), model.eval(util.pop_bitvec(state))
+        if global_state.environment.calldata.concrete:
+            model = get_model(state.constraints)
+            base, exponent = model.eval(util.pop_bitvec(state)), model.eval(util.pop_bitvec(state))
+        else:
+            base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
+
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
             state.stack.append(global_state.new_bitvec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
         else:

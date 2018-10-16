@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array
+from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array, ForAll, Or
 from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
@@ -15,12 +15,26 @@ class Calldata:
     def __init__(self, tx_id, starting_calldata: bytes=None):
         self.tx_id = tx_id
         self._calldata = Array('{}_calldata'.format(self.tx_id), BitVecSort(256), BitVecSort(8))
+        if starting_calldata:
+            self.calldatasize = BitVecVal(len(starting_calldata), 256)
+            self.concrete = True
+        else:
+            self.calldatasize = BitVec('{}_calldatasize'.format(self.tx_id), 256)
+            self.concrete = False
+
         self.starting_calldata = starting_calldata if starting_calldata else []
 
     def set_global_state(self, state):
         self.state = state
+        constraints = []
+
+        x = BitVec('x', 256)
+        constraints.append(ForAll(x,  Or(self._calldata[x] == 0, x < self.calldatasize)))
+
         for i in range(len(self.starting_calldata)):
-            self.state.mstate.constraints.append(self._calldata[BitVecVal(i, 256)] == self.starting_calldata[i])
+            constraints.append(self._calldata[BitVecVal(i, 256)] == self.starting_calldata[i])
+
+        self.state.mstate.constraints.extend(constraints)
 
     def concretized(self, model):
         concrete_calldata = model[self._calldata].as_list()
