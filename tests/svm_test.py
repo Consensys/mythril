@@ -11,8 +11,6 @@ from tests import *
 
 class LaserEncoder(json.JSONEncoder):
     def default(self, o):
-        if getattr(o, "__module__", None) == "z3.z3":
-            return str(o)
         return str(o)
 
 

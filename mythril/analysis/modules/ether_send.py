@@ -1,8 +1,9 @@
-from z3 import *
 from mythril.analysis.ops import *
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
+from mythril.laser.ethereum.smt_wrapper import \
+    get_concrete_value, formula_to_string
 from mythril.exceptions import UnsatError
 import re
 import logging
@@ -41,16 +42,16 @@ def execute(statespace):
 
         description = "In the function `" + call.node.function_name + "` "
 
-        if re.search(r'caller', str(call.to)):
+        if re.search(r'caller', formula_to_string(call.to)):
             description += "a non-zero amount of Ether is sent to msg.sender.\n"
             interesting = True
 
-        elif re.search(r'calldata', str(call.to)):
+        elif re.search(r'calldata', formula_to_string(call.to)):
             description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
             interesting = True
 
         else:
-            m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
+            m = re.search(r'storage_([a-z0-9_&^]+)', formula_to_string(call.to))
 
             if m:
                 idx = m.group(1)
@@ -78,9 +79,9 @@ def execute(statespace):
 
                 constraint = node.constraints[index]
                 index += 1
-                logging.debug("[ETHER_SEND] Constraint: " + str(constraint))
+                logging.debug("[ETHER_SEND] Constraint: " + formula_to_string(constraint))
 
-                m = re.search(r'storage_([a-z0-9_&^]+)', str(constraint))
+                m = re.search(r'storage_([a-z0-9_&^]+)', formula_to_string(constraint))
 
                 if m:
 
@@ -98,7 +99,8 @@ def execute(statespace):
 
                 # CALLER may also be constrained to hardcoded address. I.e. 'caller' and some integer
 
-                elif re.search(r"caller", str(constraint)) and re.search(r'[0-9]{20}', str(constraint)):
+                elif re.search(r"caller", formula_to_string(constraint)) and \
+                     re.search(r'[0-9]{20}', formula_to_string(constraint)):
                     constrained = True
                     can_solve = False
                     break
@@ -111,8 +113,8 @@ def execute(statespace):
                 try:
                     model = solver.get_model(node.constraints)
 
-                    for d in model.decls():
-                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                    for (name, value )in model:
+                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (name, get_concrete_value(value)))
 
                     debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 

@@ -3,8 +3,6 @@ import logging
 from copy import copy, deepcopy
 
 from ethereum import utils
-from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
-    is_false, is_expr, ExprRef, URem, SRem, BitVec, Solver, is_true, BitVecVal, If, BoolRef, Or
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -16,6 +14,12 @@ from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
+from mythril.laser.ethereum.smt_wrapper import \
+    NotConcreteValueError, get_concrete_value, \
+    Eq, Neq, Or, Not, SLT, SGT, SDiv, \
+    simplify, BitVec, BitVecVal, If, is_bool, is_expr, Concat, Extract, \
+    is_bv_value, ULT, UGT, is_true, is_false, UDiv, URem, SRem, \
+    is_always_true, is_always_false
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -126,9 +130,9 @@ class Instruction:
     def and_(self, global_state):
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
-        if type(op1) == BoolRef:
+        if is_bool(op1):
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
-        if type(op2) == BoolRef:
+        if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
         stack.append(op1 & op2)
@@ -140,10 +144,10 @@ class Instruction:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
-        if type(op1) == BoolRef:
+        if is_bool(op1):
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-        if type(op2) == BoolRef:
+        if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
         stack.append(op1 | op2)
@@ -166,7 +170,7 @@ class Instruction:
     def byte_(self, global_state):
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
-        if not isinstance(op1, ExprRef):
+        if not is_expr(op1):
             op1 = BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
@@ -175,7 +179,7 @@ class Instruction:
                 result = simplify(Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1)))
             else:
                 result = 0
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("BYTE: Unsupported symbolic byte offset")
             result = global_state.new_bitvec(str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256)
 
@@ -204,7 +208,13 @@ class Instruction:
     @StateTransition()
     def div_(self, global_state):
         op0, op1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        if op1 == 0:
+
+        try:
+            is_op1_zero = util.get_concrete_int(op1) == 0
+        except NotConcreteValueError:
+            is_op1_zero = False
+
+        if is_op1_zero:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(UDiv(op0, op1))
@@ -213,22 +223,36 @@ class Instruction:
     @StateTransition()
     def sdiv_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        if s1 == 0:
+
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except NotConcreteValueError:
+            is_s1_zero = False
+
+        if is_s1_zero:
             global_state.mstate.stack.append(BitVecVal(0, 256))
         else:
-            global_state.mstate.stack.append(s0 / s1)
+            global_state.mstate.stack.append(SDiv(s0, s1))
         return [global_state]
 
     @StateTransition()
     def mod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except NotConcreteValueError:
+            is_s1_zero = False
+        global_state.mstate.stack.append(0 if is_s1_zero else URem(s0, s1))
         return [global_state]
 
     @StateTransition()
     def smod_(self, global_state):
         s0, s1 = util.pop_bitvec(global_state.mstate), util.pop_bitvec(global_state.mstate)
-        global_state.mstate.stack.append(0 if s1 == 0 else SRem(s0, s1))
+        try:
+            is_s1_zero = util.get_concrete_int(s1) == 0
+        except NotConcreteValueError:
+            is_s1_zero = False
+        global_state.mstate.stack.append(0 if is_s1_zero else SRem(s0, s1))
         return [global_state]
 
     @StateTransition()
@@ -250,10 +274,10 @@ class Instruction:
         state = global_state.mstate
 
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
-        if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
+        if (not is_bv_value(base)) or (not is_bv_value(exponent)):
             state.stack.append(global_state.new_bitvec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
         else:
-            state.stack.append(pow(base.as_long(), exponent.as_long(), 2**256))
+            state.stack.append(pow(get_concrete_value(base), get_concrete_value(exponent), 2**256))
 
         return [global_state]
 
@@ -298,7 +322,7 @@ class Instruction:
     @StateTransition()
     def slt_(self, global_state):
         state = global_state.mstate
-        exp = util.pop_bitvec(state) < util.pop_bitvec(state)
+        exp = SLT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
@@ -306,7 +330,7 @@ class Instruction:
     def sgt_(self, global_state):
         state = global_state.mstate
 
-        exp = util.pop_bitvec(state) > util.pop_bitvec(state)
+        exp = SGT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
         return [global_state]
 
@@ -317,13 +341,13 @@ class Instruction:
         op1 = state.stack.pop()
         op2 = state.stack.pop()
 
-        if type(op1) == BoolRef:
+        if is_bool(op1):
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
 
-        if type(op2) == BoolRef:
+        if is_bool(op2):
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
 
-        exp = op1 == op2
+        exp = Eq(op1, op2)
 
         state.stack.append(exp)
         return [global_state]
@@ -333,7 +357,7 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = val == False if type(val) == BoolRef else val == 0
+        exp = Eq(val, False) if is_bool(val) else Eq(val, 0)
         state.stack.append(exp)
 
         return [global_state]
@@ -356,7 +380,7 @@ class Instruction:
         try:
             offset = util.get_concrete_int(simplify(op0))
             b = environment.calldata[offset]
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("CALLDATALOAD: Unsupported symbolic index")
             state.stack.append(global_state.new_bitvec(
                 "calldata_" + str(environment.active_account.contract_name) + "[" + str(simplify(op0)) + "]", 256))
@@ -521,7 +545,7 @@ class Instruction:
             data = b''.join([util.get_concrete_int(i).to_bytes(1, byteorder='big')
                              for i in state.memory[index: index + length]])
 
-        except AttributeError:
+        except NotConcreteValueError:
             argument = str(state.memory[index]).replace(" ", "_")
 
             result = BitVec("KECCAC[{}]".format(argument), 256)
@@ -546,7 +570,7 @@ class Instruction:
 
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Unsupported symbolic memory offset in CODECOPY")
             return [global_state]
 
@@ -562,7 +586,7 @@ class Instruction:
 
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Unsupported symbolic code offset in CODECOPY")
             global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
             for i in range(concrete_size):
@@ -596,7 +620,7 @@ class Instruction:
         environment = global_state.environment
         try:
             addr = hex(helper.get_concrete_int(addr))
-        except AttributeError:
+        except NotConcreteValueError:
             logging.info("unsupported symbolic address for EXTCODESIZE")
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
@@ -670,7 +694,7 @@ class Instruction:
 
         try:
             offset = util.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Can't MLOAD from symbolic index")
             data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
@@ -695,7 +719,7 @@ class Instruction:
 
         try:
             mstart = util.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
@@ -730,7 +754,7 @@ class Instruction:
 
         try:
             offset = util.get_concrete_int(op0)
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
@@ -751,7 +775,7 @@ class Instruction:
             index = util.get_concrete_int(index)
             return self._sload_helper(global_state, index)
 
-        except AttributeError:
+        except NotConcreteValueError:
             if not keccak_function_manager.is_keccak(index):
                 return self._sload_helper(global_state, str(index))
 
@@ -764,7 +788,7 @@ class Instruction:
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
-                constraints.append((keccak_key, key_argument == index_argument))
+                constraints.append((keccak_key, Eq(key_argument, index_argument)))
 
             for (keccak_key, constraint) in constraints:
                 if constraint in state.constraints:
@@ -800,7 +824,7 @@ class Instruction:
             if keccak_key == this_key:
                 continue
             keccak_argument = keccak_function_manager.get_argument(keccak_key)
-            yield keccak_argument != argument
+            yield Neq(keccak_argument, argument)
 
     @StateTransition()
     def sstore_(self, global_state):
@@ -813,16 +837,13 @@ class Instruction:
         try:
             index = util.get_concrete_int(index)
             return self._sstore_helper(global_state, index, value)
-        except AttributeError:
+        except NotConcreteValueError:
             is_keccak = keccak_function_manager.is_keccak(index)
             if not is_keccak:
                 return self._sstore_helper(global_state, str(index), value)
 
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
-
-            solver = Solver()
-            solver.set(timeout=1000)
 
             results = []
             new = False
@@ -832,11 +853,11 @@ class Instruction:
                 index_argument = keccak_function_manager.get_argument(index)
 
                 if is_true(key_argument == index_argument):
-                    return self._sstore_helper(copy(global_state), keccak_key, value, key_argument == index_argument)
+                    return self._sstore_helper(copy(global_state), keccak_key, value, Eq(key_argument, index_argument))
 
-                results += self._sstore_helper(copy(global_state), keccak_key, value, key_argument == index_argument)
+                results += self._sstore_helper(copy(global_state), keccak_key, value, Eq(key_argument, index_argument))
 
-                new = Or(new, key_argument != index_argument)
+                new = Or(new, Neq(key_argument, index_argument))
 
             if len(results) > 0:
                 results += self._sstore_helper(copy(global_state), str(index), value, new)
@@ -852,7 +873,7 @@ class Instruction:
                 global_state.environment.active_account.address] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] =\
-                value if not isinstance(value, ExprRef) else simplify(value)
+                value if not is_expr(value) else simplify(value)
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
 
@@ -867,7 +888,7 @@ class Instruction:
         disassembly = global_state.environment.code
         try:
             jump_addr = util.get_concrete_int(state.stack.pop())
-        except AttributeError:
+        except NotConcreteValueError:
             raise InvalidJumpDestination("Invalid jump argument (symbolic address)")
         except IndexError:
             raise StackUnderflowException()
@@ -903,14 +924,16 @@ class Instruction:
             global_state.mstate.pc += 1
             return [global_state]
 
-        # False case
-        negated = simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
+        condi = simplify(condition if is_bool(condition) else Neq(condition, 0))
+        must_take = is_always_true(condi)
+        must_skip = is_always_false(condi)
 
-        if (type(negated) == bool and negated) or (type(negated) == BoolRef and not is_false(negated)):
+        # False case
+        if not must_take:
             new_state = copy(global_state)
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.mstate.constraints.append(Not(condi))
             states.append(new_state)
         else:
             logging.debug("Pruned unreachable states.")
@@ -925,9 +948,8 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
         if instr['opcode'] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (type(condi) == BoolRef and not is_false(condi)):
+            if not must_skip:
                 new_state = copy(global_state)
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
@@ -978,7 +1000,7 @@ class Instruction:
         return_data = [global_state.new_bitvec("return_data", 256)]
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
 
@@ -988,8 +1010,8 @@ class Instruction:
 
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, BitVecNumRef):
-            target = '0x' + hex(target.as_long())[-40:]
+        if is_bv_value(target):
+            target = '0x' + hex(get_concrete_value(target))[-40:]
         if isinstance(target, str):
             try:
                 global_state.world_state[target].balance += global_state.environment.active_account.balance
@@ -1008,7 +1030,7 @@ class Instruction:
         return_data = [global_state.new_bitvec("return_data", 256)]
         try:
             return_data = state.memory[util.get_concrete_int(offset):util.get_concrete_int(offset + length)]
-        except AttributeError:
+        except NotConcreteValueError:
             logging.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data=return_data, revert=True)
 
@@ -1051,8 +1073,8 @@ class Instruction:
 
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = memory_out_size.as_long()
-            except AttributeError:
+                mem_out_sz = get_concrete_value(memory_out_size)
+            except NotConcreteValueError:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
 
@@ -1102,14 +1124,14 @@ class Instruction:
             # Put return value on stack
             return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.mstate.constraints.append(Eq(return_value, 0))
 
             return [global_state]
 
         try:
-            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
-            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
-        except AttributeError:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if is_expr(memory_out_offset) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if is_expr(memory_out_size) else memory_out_size
+        except NotConcreteValueError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
@@ -1121,7 +1143,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.mstate.constraints.append(Eq(return_value, 1))
 
         return [global_state]
 
@@ -1170,14 +1192,14 @@ class Instruction:
             # Put return value on stack
             return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.mstate.constraints.append(Eq(return_value, 0))
 
             return [global_state]
 
         try:
-            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset, ExprRef) else memory_out_offset
-            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size, ExprRef) else memory_out_size
-        except AttributeError:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if is_expr(memory_out_offset) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if is_expr(memory_out_size) else memory_out_size
+        except NotConcreteValueError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
@@ -1189,7 +1211,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.mstate.constraints.append(Eq(return_value, 1))
 
         return [global_state]
 
@@ -1240,16 +1262,14 @@ class Instruction:
             # Put return value on stack
             return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.mstate.constraints.append(Eq(return_value, 0))
 
             return [global_state]
 
         try:
-            memory_out_offset = util.get_concrete_int(memory_out_offset) if isinstance(memory_out_offset,
-                                                                                       ExprRef) else memory_out_offset
-            memory_out_size = util.get_concrete_int(memory_out_size) if isinstance(memory_out_size,
-                                                                                   ExprRef) else memory_out_size
-        except AttributeError:
+            memory_out_offset = util.get_concrete_int(memory_out_offset) if is_expr(memory_out_offset) else memory_out_offset
+            memory_out_size = util.get_concrete_int(memory_out_size) if is_expr(memory_out_size) else memory_out_size
+        except NotConcreteValueError:
             global_state.mstate.stack.append(global_state.new_bitvec("retval_" + str(instr['address']), 256))
             return [global_state]
 
@@ -1262,7 +1282,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr['address']), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.mstate.constraints.append(Eq(return_value, 1))
 
         return [global_state]
 

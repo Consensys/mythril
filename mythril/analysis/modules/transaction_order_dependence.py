@@ -1,10 +1,13 @@
 import logging
 import re
+import copy
 
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
+from mythril.laser.ethereum.smt_wrapper import \
+    NotConcreteValueError, Neq, simplify, formula_to_string
 from mythril.exceptions import UnsatError
 
 '''
@@ -65,7 +68,7 @@ def _get_storage_variable(storage, state):
     :param state: state to retrieve the variable from
     :return: z3 object representing storage
     """
-    index = int(re.search('[0-9]+', storage).group())
+    index = int(re.search('[0-9]+', formula_to_string(storage)).group())
     try:
         return state.environment.active_account.storage[index]
     except KeyError:
@@ -80,8 +83,8 @@ def _can_change(constraints, variable):
     except UnsatError:
         return False
     try:
-        initial_value = int(str(model.eval(variable, model_completion=True)))
-        return _try_constraints(constraints, [variable != initial_value]) is not None
+        initial_value = int(str(model.get_value(variable, model_completion=True)))
+        return _try_constraints(constraints, [Neq(variable, initial_value)]) is not None
     except AttributeError:
         return False
 
@@ -112,7 +115,7 @@ def _get_influencing_sstores(statespace, interesting_storages):
         index, value = sstore_state.mstate.stack[-1], sstore_state.mstate.stack[-2]
         try:
             index = util.get_concrete_int(index)
-        except AttributeError:
+        except NotConcreteValueError:
             index = str(index)
         if "storage_{}".format(index) not in interesting_storages:
             continue

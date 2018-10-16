@@ -1,8 +1,8 @@
-from z3 import *
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
+from mythril.laser.ethereum.smt_wrapper import formula_to_string
 import re
 import logging
 
@@ -76,7 +76,7 @@ def execute(statespace):
 
                     user_supplied = True
                 else:
-                    m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
+                    m = re.search(r'storage_([a-z0-9_&^]+)', formula_to_string(call.to))
 
                     if m:
                         idx = m.group(1)

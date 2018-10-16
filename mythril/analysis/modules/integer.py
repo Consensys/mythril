@@ -1,10 +1,11 @@
-from z3 import *
 from mythril.analysis import solver
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
+from mythril.laser.ethereum.smt_wrapper import \
+    Neq, Not, ULT, UGT, And, Or, is_bv, BitVecVal, formula_to_string
 import re
 import copy
 import logging
@@ -38,6 +39,10 @@ def execute(statespace):
     return issues
 
 
+def _is_allowed_type(op) -> bool:
+    return isinstance(op, int) or is_bv(op)
+
+
 def _check_integer_overflow(statespace, state, node):
     """
     Checks for integer overflow
@@ -59,8 +64,7 @@ def _check_integer_overflow(statespace, state, node):
 
     # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
     # Do a type check
-    allowed_types = [int, BitVecRef, BitVecNumRef]
-    if not (type(op0) in allowed_types and type(op1) in allowed_types):
+    if not (_is_allowed_type(op0) and _is_allowed_type(op1)):
         return issues
 
     # Change ints to BitVec
@@ -76,7 +80,7 @@ def _check_integer_overflow(statespace, state, node):
         expr = op1 * op0
 
     # Check satisfiable
-    constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
+    constraint = Or(And(ULT(expr, op0), Neq(op1, 0)), And(ULT(expr, op1), Neq(op0, 0)))
     model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
@@ -150,18 +154,18 @@ def _check_integer_underflow(statespace, state, node):
         # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
         if type(op0) == int and type(op1) == int:
             return []
-        if re.search(r'calldatasize_', str(op0)):
+        if re.search(r'calldatasize_', formula_to_string(op0)):
             return []
-        if re.search(r'256\*.*If\(1', str(op0), re.DOTALL) or re.search(r'256\*.*If\(1', str(op1), re.DOTALL):
+        if re.search(r'256\*.*If\(1', formula_to_string(op0), re.DOTALL) or \
+           re.search(r'256\*.*If\(1', formula_to_string(op1), re.DOTALL):
             return []
-        if re.search(r'32 \+.*calldata', str(op0), re.DOTALL) or re.search(r'32 \+.*calldata', str(op1), re.DOTALL):
+        if re.search(r'32 \+.*calldata', formula_to_string(op0), re.DOTALL) or \
+           re.search(r'32 \+.*calldata', formula_to_string(op1), re.DOTALL):
             return []
 
         logging.debug("[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(str(op0), str(op1),
                                                                                         str(instruction['address'])))
-        allowed_types = [int, BitVecRef, BitVecNumRef]
-
-        if type(op0) in allowed_types and type(op1) in allowed_types:
+        if _is_allowed_type(op0) and _is_allowed_type(op1):
             constraints.append(UGT(op1, op0))
 
             try:

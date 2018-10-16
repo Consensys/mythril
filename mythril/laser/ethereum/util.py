@@ -1,8 +1,11 @@
 import re
-from z3 import *
 import logging
 
 import sha3 as _sha3
+
+from mythril.laser.ethereum.smt_wrapper import \
+    get_concrete_value, simplify, is_bool, is_bv_value, is_true, is_false, \
+    If, BitVecVal
 
 
 TT256 = 2 ** 256
@@ -55,7 +58,7 @@ def pop_bitvec(state):
 
     item = state.stack.pop()
 
-    if type(item) == BoolRef:
+    if is_bool(item):
         return If(item, BitVecVal(1, 256), BitVecVal(0, 256))
     elif type(item) == bool:
         if item:
@@ -71,9 +74,9 @@ def pop_bitvec(state):
 def get_concrete_int(item):
     if isinstance(item, int):
         return item
-    elif isinstance(item, BitVecNumRef):
-        return item.as_long()
-    elif isinstance(item, BoolRef):
+    elif is_bv_value(item):
+        return get_concrete_value(item)
+    elif is_bool(item):
         simplified = simplify(item)
         if is_false(simplified):
             return 0
@@ -82,7 +85,7 @@ def get_concrete_int(item):
         else:
             raise ValueError("Symbolic boolref encountered")
 
-    return simplify(item).as_long()
+    return get_concrete_value(simplify(item))
 
 
 def concrete_int_from_bytes(_bytes, start_index):
@@ -102,7 +105,7 @@ def concrete_int_to_bytes(val):
     if type(val) == int:
         return val.to_bytes(32, byteorder='big')
 
-    return (simplify(val).as_long()).to_bytes(32, byteorder='big')
+    return get_concrete_value(simplify(val)).to_bytes(32, byteorder='big')
 
 
 def bytearray_to_int(arr):
