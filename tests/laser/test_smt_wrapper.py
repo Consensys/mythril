@@ -81,7 +81,7 @@ def test_Neq_type_error(reset_pysmt_env):
 
 
 def test_SLT(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     lhs = operands[0]
     for rhs in operands:
@@ -98,7 +98,7 @@ def test_SLT_type_error(reset_pysmt_env):
 
 
 def test_SGT(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     lhs = operands[0]
     for rhs in operands:
@@ -115,7 +115,7 @@ def test_SGT_type_error(reset_pysmt_env):
 
 
 def test_SDiv(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     dividend = operands[0]
     for divisor in operands:
@@ -193,7 +193,7 @@ def test_Or(reset_pysmt_env):
 
 
 def test_ULT(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     lhs = operands[0]
     for rhs in operands:
@@ -210,7 +210,7 @@ def test_ULT_type_error(reset_pysmt_env):
 
 
 def test_UGT(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     lhs = operands[0]
     for rhs in operands:
@@ -227,7 +227,7 @@ def test_UGT_type_error(reset_pysmt_env):
 
 
 def test_UDiv(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     dividend = operands[0]
     for divisor in operands:
@@ -244,7 +244,7 @@ def test_UDiv_type_error(reset_pysmt_env):
 
 
 def test_URem(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     dividend = operands[0]
     for divisor in operands:
@@ -261,7 +261,7 @@ def test_URem_type_error(reset_pysmt_env):
 
 
 def test_SRem(reset_pysmt_env):
-    operands = [BitVecVal(0x1, 256), 0x1, True]
+    operands = [BitVecVal(0x1, 256), Int(0x1), 0x1, Bool(True), True]
 
     dividend = operands[0]
     for divisor in operands:
