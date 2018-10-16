@@ -16,6 +16,7 @@ from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType, Calldata
 from mythril.laser.ethereum.transaction import MessageCallTransaction, TransactionStartSignal, \
     ContractCreationTransaction
+from mythril.analysis.solver import get_model
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -247,8 +248,8 @@ class Instruction:
     @StateTransition()
     def exp_(self, global_state):
         state = global_state.mstate
-
-        base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
+        model = get_model(state.constraints)
+        base, exponent = model.eval(util.pop_bitvec(state)), model.eval(util.pop_bitvec(state))
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
             state.stack.append(global_state.new_bitvec("(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")", 256))
         else:
