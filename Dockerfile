@@ -19,6 +19,7 @@ RUN apt-get update \
   && ln -s /usr/bin/python3 /usr/local/bin/python
 
 COPY ./setup.py /opt/mythril/setup.py
+COPY ./mythril/version.py /opt/mythril/mythril/version.py
 COPY ./requirements.txt /opt/mythril/requirements.txt
 
 RUN cd /opt/mythril \
