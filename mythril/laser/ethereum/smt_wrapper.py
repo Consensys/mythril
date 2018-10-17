@@ -12,6 +12,8 @@ from pysmt.typing import BOOL, BVType, INT
 from pysmt.solvers.solver import Solver as SolverType
 from pysmt.exceptions import SolverReturnedUnknownResultError
 
+from mythril.laser.ethereum.symbol_manager import sym_get
+
 
 class Types:
     #: Constraints, formulas and items are constraint expressions.
@@ -334,7 +336,7 @@ def BitVec(name: str, width: int) -> Types.Expr:
     :return: a bit vector symbol
     """
 
-    return Symbol(name, BVType(width))
+    return sym_get(name, BVType(width)).get_raw()
 
 
 def BitVecVal(val: int, width: int) -> Types.Expr:

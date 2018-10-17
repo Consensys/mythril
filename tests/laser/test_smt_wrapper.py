@@ -12,12 +12,12 @@ from mythril.laser.ethereum.smt_wrapper import \
     is_expr, is_bv_value, is_bv, is_bool, is_true, is_false, \
     Result, solve, Solver
 from mythril.laser.ethereum.smt_wrapper import simplify as simplify_wrapper
+from mythril.laser.ethereum.symbol_manager import factory
 
 
 @pytest.fixture
 def reset_pysmt_env():
-    reset_env()
-    get_env().enable_infix_notation = True
+    factory.reset()
 
 
 def test_get_concrete_value_succ(reset_pysmt_env):
