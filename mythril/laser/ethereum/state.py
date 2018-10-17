@@ -34,7 +34,10 @@ class Calldata:
 
         if self.concrete:
             for i in range(len(self.starting_calldata)):
-                self._calldata.append(BitVecVal(self.starting_calldata[i], 8))
+                if type(self.starting_calldata[i]) == int:
+                    self._calldata.append(BitVecVal(self.starting_calldata[i], 8))
+                else:
+                    self._calldata.append(self.starting_calldata[i])
             constraints.append(self.calldatasize == len(self.starting_calldata))
         else:
             x = BitVec('x', 256)
