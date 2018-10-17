@@ -1,9 +1,10 @@
-from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array, ForAll, Or
+from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array, ForAll, Or, Solver
 from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
+from mythril.laser.ethereum.util import get_concrete_int
 
 from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
 
@@ -12,13 +13,15 @@ class CalldataType(Enum):
     SYMBOLIC = 2
 
 class Calldata:
+
     def __init__(self, tx_id, starting_calldata: bytes=None):
         self.tx_id = tx_id
-        self._calldata = Array('{}_calldata'.format(self.tx_id), BitVecSort(256), BitVecSort(8))
         if starting_calldata:
+            self._calldata = []
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
             self.concrete = True
         else:
+            self._calldata = Array('{}_calldata'.format(self.tx_id), BitVecSort(256), BitVecSort(8))
             self.calldatasize = BitVec('{}_calldatasize'.format(self.tx_id), 256)
             self.concrete = False
 
@@ -28,11 +31,14 @@ class Calldata:
         self.state = state
         constraints = []
 
-        x = BitVec('x', 256)
-        constraints.append(ForAll(x,  Or(self._calldata[x] == 0, x < self.calldatasize)))
 
-        for i in range(len(self.starting_calldata)):
-            constraints.append(self._calldata[BitVecVal(i, 256)] == self.starting_calldata[i])
+        if self.concrete:
+            for i in range(len(self.starting_calldata)):
+                self._calldata.append(BitVecVal(self.starting_calldata[i], 8))
+            constraints.append(self.calldatasize == len(self.starting_calldata))
+        else:
+            x = BitVec('x', 256)
+            constraints.append(ForAll(x,  Or(self[x] == 0, x < self.calldatasize)))
 
         self.state.mstate.constraints.extend(constraints)
 
@@ -53,7 +59,7 @@ class Calldata:
     def get_word_at(self, index: int):
         return self[index:index+32]
 
-    def __getitem__(self, item: int):
+    def __getitem__(self, item):
         if isinstance(item, slice):
             MAX_SLICE = 1024
             try:
@@ -70,7 +76,10 @@ class Calldata:
 
             return simplify(Concat(dataparts))
         else:
-            return self._calldata[item] if type(item) != BitVecVal else self._calldata[BitVecVal(item, 256)]
+            if self.concrete:
+                return self._calldata[get_concrete_int(item)]
+            else:
+                return self._calldata[item]
 
 class Storage:
     """
