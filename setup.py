@@ -108,6 +108,7 @@ setup(
     ],
 
     tests_require=[
+        'mypy',
         'pytest>=3.6.0',
         'pytest_mock',
         'pytest-cov'
