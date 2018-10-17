@@ -38,7 +38,7 @@ def _generate_report(input_file):
 def reports():
     """ Fixture that analyses all reports"""
     pool = Pool(cpu_count())
-    input_files = sorted([f for f in TESTDATA_INPUTS.iterdir()])
+    input_files = sorted([f for f in TESTDATA_INPUTS.iterdir() if f.name != 'environments.sol.o'])
     results = pool.map(_generate_report, input_files)
 
     return results
