@@ -53,11 +53,6 @@ jobs:
           path: /home/mythril/.tox/output
 
       - run:
-          name: Type testing
-          command: apt-get install mypy;pip3 install -r requirements.txt; mypy .
-          working_directory: /home/mythril
-
-      - run:
           name: Ensuring that setup script is functional
           command: python3 setup.py install
           working_directory: /home/mythril
