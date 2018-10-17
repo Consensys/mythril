@@ -15,6 +15,7 @@ import argparse
 from mythril.exceptions import CriticalError, AddressNotFoundError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
+import mythril.support.signatures as sigs
 
 
 def exit_with_error(format, message):
@@ -78,6 +79,7 @@ def main():
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
     options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
+    options.add_argument('-q', '--query-signature', action='store_true', help='Lookup function signatures through www.4byte.directory')
 
     rpc = parser.add_argument_group('RPC options')
     rpc.add_argument('-i', action='store_true', help='Preset: Infura Node service (Mainnet)')
@@ -102,6 +104,7 @@ def main():
         parser.print_help()
         sys.exit()
 
+
     if args.v:
         if 0 <= args.v < 3:
             coloredlogs.install(
@@ -110,6 +113,12 @@ def main():
             )
         else:
             exit_with_error(args.outform, "Invalid -v value, you can find valid values in usage")
+
+    if args.query_signature:
+        if sigs.ethereum_input_decoder == None:
+            exit_with_error(args.outform, "The --query-signature function requires the python package ethereum-input-decoder")
+    else:
+        sigs.ethereum_input_decoder = None
 
     # -- commands --
     if args.hash:
