@@ -111,7 +111,7 @@ setup(
         'mypy',
         'pytest>=3.6.0',
         'pytest_mock',
-        'pytest-cov'
+        'pytest-cov',
     ],
 
     python_requires='>=3.5',
