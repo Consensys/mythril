@@ -11,7 +11,6 @@ from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
 
-# todo: tintinweb - make this a normal requirement? (deps: eth-abi and requests, both already required by mythril)
 try:
     # load if available but do not fail
     import ethereum_input_decoder
