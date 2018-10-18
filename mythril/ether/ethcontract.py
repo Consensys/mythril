@@ -12,8 +12,8 @@ class ETHContract(persistent.Persistent):
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
         # Apply this for creation_code & code
 
-        creation_code = re.sub(r'(_+.*_+)', 'aa' * 20, creation_code)
-        code = re.sub(r'(_+.*_+)', 'aa' * 20, code)
+        creation_code = re.sub(r'(_{2}.{38})', 'aa' * 20, creation_code)
+        code = re.sub(r'(_{2}.{38})', 'aa' * 20, code)
 
         self.creation_code = creation_code
         self.name = name

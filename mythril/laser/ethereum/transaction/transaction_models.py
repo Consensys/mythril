@@ -1,13 +1,14 @@
 import logging
+from typing import Union
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
-from z3 import BitVec
+from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Account
+from z3 import BitVec, BitVecNumRef
 import array
 
 _next_transaction_id = 0
 
 
-def get_next_transaction_id():
+def get_next_transaction_id() -> int:
     global _next_transaction_id
     _next_transaction_id += 1
     return _next_transaction_id
@@ -15,14 +16,18 @@ def get_next_transaction_id():
 
 class TransactionEndSignal(Exception):
     """ Exception raised when a transaction is finalized"""
-    def __init__(self, global_state, revert=False):
+    def __init__(self, global_state: GlobalState, revert=False):
         self.global_state = global_state
         self.revert = revert
 
 
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
-    def __init__(self, transaction, op_code):
+    def __init__(
+        self,
+        transaction: Union["MessageCallTransaction", "ContractCreationTransaction"],
+        op_code: str
+    ):
         self.transaction = transaction
         self.op_code = op_code
 
@@ -30,9 +35,9 @@ class TransactionStartSignal(Exception):
 class MessageCallTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
-                 world_state,
-                 callee_account,
-                 caller,
+                 world_state: WorldState,
+                 callee_account: Account,
+                 caller: BitVecNumRef,
                  call_data=(),
                  identifier=None,
                  gas_price=None,
@@ -54,8 +59,8 @@ class MessageCallTransaction:
         self.code = code
         self.return_data = None
 
-    def initial_global_state(self):
-        # Initialize the execution environment
+    def initial_global_state(self) -> GlobalState:
+        """Initialize the execution environment"""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -72,7 +77,7 @@ class MessageCallTransaction:
 
         return global_state
 
-    def end(self, global_state, return_data=None, revert=False):
+    def end(self, global_state: GlobalState, return_data=None, revert=False) -> None:
         self.return_data = return_data
         raise TransactionEndSignal(global_state, revert)
 
@@ -80,8 +85,8 @@ class MessageCallTransaction:
 class ContractCreationTransaction:
     """ Transaction object models an transaction"""
     def __init__(self,
-                 world_state,
-                 caller,
+                 world_state: WorldState,
+                 caller: BitVecNumRef,
                  identifier=None,
                  callee_account=None,
                  code=None,
@@ -109,8 +114,8 @@ class ContractCreationTransaction:
         self.code = code
         self.return_data = None
 
-    def initial_global_state(self):
-        # Initialize the execution environment
+    def initial_global_state(self) -> GlobalState:
+        """Initialize the execution environment"""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -127,9 +132,8 @@ class ContractCreationTransaction:
 
         return global_state
 
-    def end(self, global_state, return_data=None, revert=False):
-
-        if not all([isinstance(element, int) for element in return_data]):
+    def end(self, global_state: GlobalState, return_data=None, revert=False) -> None:
+        if not all([isinstance(element, int) for element in return_data]) or len(return_data) == 0:
             self.return_data = None
             raise TransactionEndSignal(global_state)
 
@@ -137,7 +141,6 @@ class ContractCreationTransaction:
 
         global_state.environment.active_account.code = Disassembly(contract_code)
         self.return_data = global_state.environment.active_account.address
+        assert global_state.environment.active_account.code.instruction_list != []
 
         raise TransactionEndSignal(global_state, revert=revert)
-
-

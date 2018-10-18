@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import logging
+from typing import List, Union
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
@@ -15,7 +16,7 @@ class NativeContractException(Exception):
     pass
 
 
-def int_to_32bytes(i):   # used because int can't fit as bytes function's input
+def int_to_32bytes(i: int) -> bytes:   # used because int can't fit as bytes function's input
     o = [0] * 32
     for x in range(32):
         o[31 - x] = i & 0xff
@@ -23,7 +24,7 @@ def int_to_32bytes(i):   # used because int can't fit as bytes function's input
     return bytes(o)
 
 
-def extract32(data, i):
+def extract32(data: bytearray, i: int) -> int:
     if i >= len(data):
         return 0
     o = data[i: min(i + 32, len(data))]
@@ -31,8 +32,8 @@ def extract32(data, i):
     return bytearray_to_int(o)
 
 
-def ecrecover(data):
-
+def ecrecover(data: str) -> List:
+    # TODO: Add type hints
     try:
         data = bytearray(data)
         v = extract32(data, 32)
@@ -53,7 +54,7 @@ def ecrecover(data):
     return o
 
 
-def sha256(data):
+def sha256(data: Union[bytes, str]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
@@ -61,22 +62,27 @@ def sha256(data):
     return hashlib.sha256(data).digest()
 
 
-def ripemd160(data):
+def ripemd160(data: Union[bytes, str]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
         raise NativeContractException
-    return 12*[0]+[i for i in hashlib.new('ripemd160', data).digest()]
+    digest = hashlib.new('ripemd160', data).digest()
+    padded = 12 * [0] + list(digest)
+    return bytes(padded)
 
 
-def identity(data):
+def identity(data: Union[bytes, str]) -> bytes:
+    try:
+        data = bytes(data)
+    except TypeError:
+        raise NativeContractException
     return copy.copy(data)
 
 
-def native_contracts(address, data):
+def native_contracts(address: int, data: List):
     """
     takes integer address 1, 2, 3, 4
     """
-
     functions = (ecrecover, sha256, ripemd160, identity)
     return functions[address-1](data)

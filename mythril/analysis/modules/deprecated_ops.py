@@ -24,7 +24,7 @@ def execute(statespace):
             instruction = state.get_current_instruction()
 
             if instruction['opcode'] == "ORIGIN":
-                description = "Function %s retrieves the transaction origin (tx.origin) using the ORIGIN opcode. " \
+                description = "The function `{}` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. " \
                               "Use msg.sender instead.\nSee also: " \
                               "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin".format(node.function_name)
 

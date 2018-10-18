@@ -1,9 +1,10 @@
-from z3 import BitVec, BitVecVal, Solver, ExprRef, sat
+from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, Solver, ExprRef, sat
 from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.ethereum.cfg import Node
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
-
+from typing import KeysView, Dict, List, Union, Any
 from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
 
 
@@ -26,7 +27,7 @@ class Storage:
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> int:
         try:
             return self._storage[item]
         except KeyError:
@@ -41,17 +42,18 @@ class Storage:
         self._storage[item] = BitVec("storage_" + str(item), 256)
         return self._storage[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: BitVecRef) -> None:
         self._storage[key] = value
 
-    def keys(self):
+    def keys(self) -> KeysView:
         return self._storage.keys()
+
 
 class Account:
     """
     Account class representing ethereum accounts
     """
-    def __init__(self, address, code=None, contract_name="unknown", balance=None, concrete_storage=False,
+    def __init__(self, address: str, code=None, contract_name="unknown", balance=None, concrete_storage=False,
                  dynamic_loader=None):
         """
         Constructor for account
@@ -72,17 +74,17 @@ class Account:
 
         self.deleted = False
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.as_dict)
 
-    def set_balance(self, balance):
+    def set_balance(self, balance: BitVecRef) -> None:
         self.balance = balance
 
-    def add_balance(self, balance):
+    def add_balance(self, balance: BitVecRef) -> None:
         self.balance += balance
 
     @property
-    def as_dict(self):
+    def as_dict(self) -> Dict:
         return {'nonce': self.nonce, 'code': self.code, 'balance': self.balance, 'storage': self.storage}
 
 
@@ -92,12 +94,12 @@ class Environment:
     """
     def __init__(
         self,
-        active_account,
-        sender,
-        calldata,
-        gasprice,
-        callvalue,
-        origin,
+        active_account: Account,
+        sender: BitVecRef,
+        calldata: List,
+        gasprice: BitVecRef,
+        callvalue: BitVecRef,
+        origin: BitVecRef,
         code=None,
         calldata_type=CalldataType.SYMBOLIC,
     ):
@@ -118,12 +120,11 @@ class Environment:
         self.origin = origin
         self.callvalue = callvalue
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.as_dict)
 
-
     @property
-    def as_dict(self):
+    def as_dict(self) -> Dict:
         return dict(active_account=self.active_account, sender=self.sender, calldata=self.calldata,
                     gasprice=self.gasprice, callvalue=self.callvalue, origin=self.origin,
                     calldata_type=self.calldata_type)
@@ -140,7 +141,7 @@ class MachineStack(list):
             default_list = []
         super(MachineStack, self).__init__(default_list)
 
-    def append(self, element):
+    def append(self, element: BitVecNumRef) -> None:
         """
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
@@ -150,7 +151,7 @@ class MachineStack(list):
                                          "elements".format(self.STACK_LIMIT))
         super(MachineStack, self).append(element)
 
-    def pop(self, index=-1):
+    def pop(self, index=-1) -> BitVecNumRef:
         """
         :param index:index to be popped, same as the list() class.
         :returns popped value
@@ -162,7 +163,7 @@ class MachineStack(list):
         except IndexError:
             raise StackUnderflowException("Trying to pop from an empty stack")
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> Any:
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
@@ -185,7 +186,7 @@ class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
     """
-    def __init__(self, gas):
+    def __init__(self, gas: int):
         """ Constructor for machineState """
         self.pc = 0
         self.stack = MachineStack()
@@ -194,7 +195,7 @@ class MachineState:
         self.constraints = []
         self.depth = 0
 
-    def mem_extend(self, start, size):
+    def mem_extend(self, start: int, size: int) -> None:
         """
         Extends the memory of this machine state
         :param start: Start of memory extension
@@ -205,12 +206,12 @@ class MachineState:
         m_extend = (start + size - self.memory_size)
         self.memory.extend(bytearray(m_extend))
 
-    def memory_write(self, offset, data):
+    def memory_write(self, offset: int, data: List[int]) -> None:
         """ Writes data to memory starting at offset """
         self.mem_extend(offset, len(data))
         self.memory[offset:offset+len(data)] = data
 
-    def pop(self, amount=1):
+    def pop(self, amount=1) -> Union[BitVecRef, List[BitVecRef]]:
         """ Pops amount elements from the stack"""
         if amount >= len(self.stack):
             raise StackUnderflowException
@@ -219,15 +220,15 @@ class MachineState:
 
         return values[0] if amount == 1 else values
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.as_dict)
 
     @property
-    def memory_size(self):
+    def memory_size(self) -> int:
         return len(self.memory)
 
     @property
-    def as_dict(self):
+    def as_dict(self) -> Dict:
         return dict(pc=self.pc, stack=self.stack, memory=self.memory, memsize=self.memory_size, gas=self.gas)
 
 
@@ -235,7 +236,15 @@ class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, world_state, environment, node, machine_state=None, transaction_stack=None, last_return_data=None):
+    def __init__(
+        self,
+        world_state: "WorldState",
+        environment: Environment,
+        node: Node,
+        machine_state=None,
+        transaction_stack=None,
+        last_return_data=None
+    ):
         """ Constructor for GlobalState"""
         self.node = node
         self.world_state = world_state
@@ -245,7 +254,7 @@ class GlobalState:
         self.op_code = ""
         self.last_return_data = last_return_data
 
-    def __copy__(self):
+    def __copy__(self) -> "GlobalState":
         world_state = copy(self.world_state)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
@@ -254,33 +263,33 @@ class GlobalState:
                            last_return_data=self.last_return_data)
 
     @property
-    def accounts(self):
+    def accounts(self) -> Dict:
         return self.world_state.accounts
 
     # TODO: remove this, as two instructions are confusing
-    def get_current_instruction(self):
+    def get_current_instruction(self) -> Dict:
         """ Gets the current instruction for this GlobalState"""
-
 
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
 
     @property
-    def current_transaction(self):
+    def current_transaction(self) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
+        # TODO: Remove circular to transaction package to import Transaction classes
         try:
             return self.transaction_stack[-1][0]
         except IndexError:
             return None
 
     @property
-    def instruction(self):
+    def instruction(self) -> Dict:
         return self.get_current_instruction()
 
-    def new_bitvec(self, name, size=256):
+    def new_bitvec(self, name: str, size=256) -> BitVec:
         transaction_id = self.current_transaction.id
         node_id = self.node.uid
-
         return BitVec("{}_{}".format(transaction_id, name), size)
+
 
 class WorldState:
     """
@@ -294,7 +303,7 @@ class WorldState:
         self.node = None
         self.transaction_sequence = transaction_sequence or []
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Account:
         """
         Gets an account from the worldstate using item as key
         :param item: Address of the account to get
@@ -302,13 +311,13 @@ class WorldState:
         """
         return self.accounts[item]
 
-    def __copy__(self):
+    def __copy__(self) -> "WorldState":
         new_world_state = WorldState(transaction_sequence=self.transaction_sequence[:])
         new_world_state.accounts = copy(self.accounts)
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None, concrete_storage=False, dynamic_loader=None):
+    def create_account(self, balance=0, address=None, concrete_storage=False, dynamic_loader=None) -> Account:
         """
         Create non-contract account
         :param address: The account's address
@@ -322,7 +331,7 @@ class WorldState:
         self._put_account(new_account)
         return new_account
 
-    def create_initialized_contract_account(self, contract_code, storage):
+    def create_initialized_contract_account(self, contract_code, storage) -> None:
         """
         Creates a new contract account, based on the contract code and storage provided
         The contract code only includes the runtime contract bytecode
@@ -330,16 +339,17 @@ class WorldState:
         :param storage: Initial storage for the contract
         :return: The new account
         """
+        # TODO: Add type hints
         new_account = Account(self._generate_new_address(), code=contract_code, balance=0)
         new_account.storage = storage
         self._put_account(new_account)
 
-    def _generate_new_address(self):
+    def _generate_new_address(self) -> str:
         """ Generates a new address for the global state"""
         while True:
             address = '0x' + ''.join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():
                 return address
 
-    def _put_account(self, account):
+    def _put_account(self, account: Account) -> None:
         self.accounts[account.address] = account

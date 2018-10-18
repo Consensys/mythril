@@ -1,5 +1,6 @@
 import logging
-from z3 import simplify
+from typing import Union
+from z3 import simplify, BitVecRef, BitVecNumRef, BoolRef
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
 from mythril.support.loader import DynLoader
@@ -36,7 +37,7 @@ def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, wi
     return callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size
 
 
-def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symbolic_to_address):
+def get_callee_address(global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: BitVecRef):
     """
     Gets the address of the callee
     :param global_state: state to look in
@@ -48,7 +49,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
 
     try:
         callee_address = hex(util.get_concrete_int(symbolic_to_address))
-    except AttributeError:
+    except TypeError:
         logging.debug("Symbolic call encountered")
 
         match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
@@ -63,6 +64,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
         # attempt to read the contract address from instance storage
         try:
             callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
+        # TODO: verify whether this happens or not
         except:
             logging.debug("Error accessing contract storage.")
             raise ValueError
@@ -74,7 +76,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
     return callee_address
 
 
-def get_callee_account(global_state, callee_address, dynamic_loader):
+def get_callee_account(global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader):
     """
     Gets the callees account from the global_state
     :param global_state: state to look in
@@ -112,13 +114,18 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     return callee_account
 
 
-
-def get_call_data(global_state, memory_start, memory_size, pad=True):
+def get_call_data(
+    global_state: GlobalState,
+    memory_start: Union[int, BitVecNumRef, BoolRef],
+    memory_size: Union[int, BitVecNumRef, BoolRef],
+    pad=True
+):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
     :param memory_start: Start index
     :param memory_size: Size
+    :param pad: Enable zero padding before the call data
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
     state = global_state.mstate
@@ -130,7 +137,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
             call_data += [0] * (32 - len(call_data))
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
-    except AttributeError:
+    except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = []
