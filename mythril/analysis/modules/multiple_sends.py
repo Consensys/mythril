@@ -25,8 +25,8 @@ def execute(statespace):
                           swc_id=MULTIPLE_SENDS, title="Multiple Calls", _type="Informational")
 
             issue.description = \
-                "Multiple sends exist in one transaction, try to isolate each external call into its own transaction." \
-                " As external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
+                "Multiple sends exist in one transaction. Try to isolate each external call into its own transaction," \
+                " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
 
             for finding in findings:
                 issue.description += \

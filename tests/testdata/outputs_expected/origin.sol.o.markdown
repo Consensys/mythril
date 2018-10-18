@@ -9,5 +9,5 @@
 
 ### Description
 
-Function %s retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.
+The function `transferOwnership(address)` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.
 See also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin
