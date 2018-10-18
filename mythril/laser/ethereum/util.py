@@ -74,9 +74,12 @@ def get_concrete_int(item: Union[int, BitVecNumRef, BoolRef]) -> int:
         elif is_true(simplified):
             return 1
         else:
-            raise ValueError("Symbolic boolref encountered")
+            raise TypeError("Symbolic boolref encountered")
 
-    return simplify(item).as_long()
+    try:
+        return simplify(item).as_long()
+    except AttributeError:
+        raise TypeError("Got a symbolic BitVecRef")
 
 
 def concrete_int_from_bytes(_bytes: bytes, start_index: int) -> int:
