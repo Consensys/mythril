@@ -111,8 +111,8 @@ def execute(statespace):
                 try:
                     model = solver.get_model(node.constraints)
 
-                    for d in model.decls():
-                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (d.name(), model[d].as_long()))
+                    for decl in model.decls():
+                        logging.debug("[ETHER_SEND] main model: %s = 0x%x" % (decl.name(), model[decl].as_long()))
 
                     debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
 

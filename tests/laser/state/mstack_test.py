@@ -45,7 +45,7 @@ class MachineStackTest(BaseTestCase):
         mstack = MachineStack([0, 1])
 
         with pytest.raises(NotImplementedError):
-            mstack = mstack + [2]
+            mstack + [2]
 
     @staticmethod
     def test_mstack_no_support_iadd():

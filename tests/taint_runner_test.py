@@ -6,6 +6,7 @@ from mythril.laser.ethereum.cfg import Node, Edge
 from mythril.laser.ethereum.state import MachineState, Account, Environment, GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
 
+
 def test_execute_state(mocker):
     record = TaintRecord()
     record.stack = [True, False, True]
@@ -52,8 +53,6 @@ def test_execute_node(mocker):
 
     assert state_2 in records[0].states
     assert state_1 in record.states
-
-
 
 
 def test_execute(mocker):

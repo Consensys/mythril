@@ -497,7 +497,6 @@ class Instruction:
         global keccak_function_manager
 
         state = global_state.mstate
-        environment = global_state.environment
         op0, op1 = state.stack.pop(), state.stack.pop()
 
         try:
@@ -701,12 +700,9 @@ class Instruction:
 
         try:
             # Attempt to concretize value
-
             _bytes = util.concrete_int_to_bytes(value)
-
-            state.memory[mstart:mstart+len(_bytes)] = _bytes
-
-        except (AttributeError, TypeError):
+            state.memory[mstart: mstart + len(_bytes)] = _bytes
+        except:
             try:
                 state.memory[mstart] = value
             except TypeError:
@@ -948,7 +944,7 @@ class Instruction:
         state = global_state.mstate
         dpth = int(self.op_code[3:])
         state.stack.pop(), state.stack.pop()
-        [state.stack.pop() for x in range(dpth)]
+        [state.stack.pop() for _ in range(dpth)]
         # Not supported
         return [global_state]
 
