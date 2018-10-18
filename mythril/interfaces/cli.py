@@ -117,8 +117,6 @@ def main():
     if args.query_signature:
         if sigs.ethereum_input_decoder == None:
             exit_with_error(args.outform, "The --query-signature function requires the python package ethereum-input-decoder")
-    else:
-        sigs.ethereum_input_decoder = None
 
     # -- commands --
     if args.hash:
@@ -131,7 +129,8 @@ def main():
         # solc_args = None, dynld = None, max_recursion_depth = 12):
 
         mythril = Mythril(solv=args.solv, dynld=args.dynld,
-                          solc_args=args.solc_args)
+                          solc_args=args.solc_args,
+                          enable_online_lookup=args.query_signature)
         if args.dynld and not (args.rpc or args.i):
             mythril.set_api_from_config_path()
 
