@@ -5,7 +5,7 @@ import logging
 
 class Disassembly(object):
 
-    def __init__(self, code, enable_online_lookup=True):
+    def __init__(self, code, enable_online_lookup=False):
         self.instruction_list = asm.disassemble(util.safe_decode(code))
         self.func_hashes = []
         self.func_to_addr = {}

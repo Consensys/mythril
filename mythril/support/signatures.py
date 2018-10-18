@@ -54,7 +54,7 @@ except ImportError:
 
 class SignatureDb(object):
 
-    def __init__(self, enable_online_lookup=True):
+    def __init__(self, enable_online_lookup=False):
         """
         Constr
         :param enable_online_lookup: enable onlien signature hash lookup
