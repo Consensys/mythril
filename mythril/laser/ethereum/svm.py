@@ -93,7 +93,7 @@ class LaserEVM:
         logging.info("%d nodes, %d edges, %d total states", len(self.nodes), len(self.edges), self.total_states)
         for code, coverage in self.coverage.items():
             cov = reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1]) / float(coverage[0]) * 100
-            logging.info("Achieved {} coverage for code: {}".format(cov, code))
+            logging.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""

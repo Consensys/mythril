@@ -277,9 +277,13 @@ class Mythril(object):
 
         print(self.eth_db.contract_hash_to_address(hash))
 
-    def load_from_bytecode(self, code):
+    def load_from_bytecode(self, code, is_contract_creation=False):
         address = util.get_indexed_address(0)
-        self.contracts.append(ETHContract(code, name="MAIN"))
+        if (is_contract_creation):
+            self.contracts.append(ETHContract(creation_code=code, name="MAIN"))
+        else:
+            self.contracts.append(ETHContract(code=code, name="MAIN"))
+        print(self.contracts)
         return address, self.contracts[-1]  # return address and contract object
 
     def load_from_address(self, address):

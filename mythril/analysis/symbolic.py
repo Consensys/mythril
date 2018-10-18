@@ -1,6 +1,6 @@
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state import Account
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.ether.soliditycontract import SolidityContract, ETHContract
 import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType
@@ -34,6 +34,8 @@ class SymExecWrapper:
                                   max_transaction_count=max_transaction_count)
 
         if isinstance(contract, SolidityContract):
+            self.laser.sym_exec(creation_code=contract.creation_code, contract_name=contract.name)
+        elif isinstance(contract, ETHContract) and contract.creation_code:
             self.laser.sym_exec(creation_code=contract.creation_code, contract_name=contract.name)
         else:
             self.laser.sym_exec(address)

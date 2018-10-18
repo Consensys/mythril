@@ -6,8 +6,8 @@ import re
 
 class ETHContract(persistent.Persistent):
 
-    def __init__(self, code, creation_code="", name="Unknown", enable_online_lookup=True):
-        
+    def __init__(self, code="", creation_code="", name="Unknown", enable_online_lookup=True):
+
         # Workaround: We currently do not support compile-time linking.
         # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
         # Apply this for creation_code & code
@@ -24,7 +24,6 @@ class ETHContract(persistent.Persistent):
     def as_dict(self):
 
         return {
-            'address': self.address,
             'name': self.name,
             'code': self.code,
             'creation_code': self.creation_code,
