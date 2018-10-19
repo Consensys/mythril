@@ -1,4 +1,4 @@
-from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array, ForAll, Or, Solver
+from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array, ForAll, Solver, UGT, Implies
 from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
@@ -33,15 +33,15 @@ class Calldata:
 
 
         if self.concrete:
-            for i in range(len(self.starting_calldata)):
-                if type(self.starting_calldata[i]) == int:
-                    self._calldata.append(BitVecVal(self.starting_calldata[i], 8))
+            for cd_byte in self.starting_calldata:
+                if type(cd_byte) == int:
+                    self._calldata.append(BitVecVal(cd_byte, 8))
                 else:
-                    self._calldata.append(self.starting_calldata[i])
+                    self._calldata.append(cd_byte)
             constraints.append(self.calldatasize == len(self.starting_calldata))
         else:
             x = BitVec('x', 256)
-            constraints.append(ForAll(x,  Or(self[x] == 0, x < self.calldatasize)))
+            constraints.append(ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x))))
 
         self.state.mstate.constraints.extend(constraints)
 
