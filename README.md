@@ -15,7 +15,9 @@ Mythril Classic is an open-source security analysis tool for Ethereum smart cont
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs!
 
-Oh and by the way, we're building an easy-to-use SaaS solution and tools ecosystem for Ethereum developers called [Mythril Platform](https://mythril.ai). You should definitely check that out as well.
+Oh and by the way, we're also building an easy-to-use security analysis platform (a.k.a. "the INFURA for smart contract security") that anybody can use to create purpose-built security tools. It's called [Mythril Platform](https://mythril.ai) and you should definitely [check it out](https://media.consensys.net/mythril-platform-api-is-upping-the-smart-contract-security-game-eee1d2642488).
+
+
 
 ## Installation and setup
 
