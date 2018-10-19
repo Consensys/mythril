@@ -6,8 +6,8 @@
 
 [![Discord](https://img.shields.io/discord/481002907366588416.svg)](https://discord.gg/E3YrVtG)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
-![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril)
+![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril-classic/master.svg)
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril-classic/)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 [![PyPI Statistics](https://pypistats.com/badge/mythril.svg)](https://pypistats.com/package/mythril)
 
@@ -37,7 +37,7 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Instructions for using the 'myth' tool are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
+Instructions for using the 'myth' tool are found on the [Wiki](https://github.com/ConsenSys/mythril-classic/wiki). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
