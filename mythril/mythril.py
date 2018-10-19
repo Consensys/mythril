@@ -87,7 +87,7 @@ class Mythril(object):
         self.sigs = signatures.SignatureDb()
         try:
             self.sigs.open()  # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
-        except FileNotFoundError as fnfe:
+        except FileNotFoundError:
             logging.info(
                 "No signature database found. Creating database if sigs are loaded in: " + self.sigs.signatures_file + "\n" +
                 "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json")
@@ -261,8 +261,7 @@ class Mythril(object):
 
     def search_db(self, search):
 
-        def search_callback(contract, address, balance):
-
+        def search_callback(_, address, balance):
             print("Address: " + address + ", balance: " + str(balance))
 
         try:
@@ -290,10 +289,10 @@ class Mythril(object):
             code = self.eth.eth_getCode(address)
         except FileNotFoundError as e:
              raise CriticalError("IPC error: " + str(e))
-        except ConnectionError as e:
+        except ConnectionError:
             raise CriticalError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
         except Exception as e:
-             raise CriticalError("IPC / RPC error: " + str(e))
+            raise CriticalError("IPC / RPC error: " + str(e))
         else:
             if code == "0x" or code == "0x0":
                  raise CriticalError("Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain.")
@@ -435,7 +434,7 @@ class Mythril(object):
                         outtxt.append("{}: {}".format(hex(i), self.eth.eth_getStorageAt(address, i)))
         except FileNotFoundError as e:
              raise CriticalError("IPC error: " + str(e))
-        except ConnectionError as e:
+        except ConnectionError:
             raise CriticalError("Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly.")
         return '\n'.join(outtxt)
 

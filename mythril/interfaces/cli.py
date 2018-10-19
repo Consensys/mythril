@@ -17,8 +17,8 @@ from mythril.mythril import Mythril
 from mythril.version import VERSION
 
 
-def exit_with_error(format, message):
-    if format == 'text' or format == 'markdown':
+def exit_with_error(format_, message):
+    if format_ == 'text' or format_ == 'markdown':
         print(message)
     else:
         result = {'success': False, 'error': str(message), 'issues': []}
