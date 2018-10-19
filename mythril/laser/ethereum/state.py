@@ -194,6 +194,15 @@ class MachineState:
         self.constraints = []
         self.depth = 0
 
+    def __deepcopy__(self, memo={}):
+        new_mstate = self.__class__(self.gas)
+        new_mstate.pc = self.pc
+        new_mstate.stack = deepcopy(self.stack)
+        new_mstate.memory = list(self.memory)
+        new_mstate.constraints = list(self.constraints)
+        new_mstate.depth = self.depth
+        return new_mstate
+
     def mem_extend(self, start, size):
         """
         Extends the memory of this machine state
