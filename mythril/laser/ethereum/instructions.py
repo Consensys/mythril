@@ -360,10 +360,7 @@ class Instruction:
     def calldatasize_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
-        if environment.calldata_type == CalldataType.SYMBOLIC:
-            state.stack.append(global_state.new_bitvec("calldatasize_" + environment.active_account.contract_name, 256))
-        else:
-            state.stack.append(BitVecVal(len(environment.calldata.starting_calldata), 256))
+        state.stack.append(environment.calldata.calldatasize)
         return [global_state]
 
     @StateTransition()

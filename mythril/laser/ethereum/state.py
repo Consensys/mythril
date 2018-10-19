@@ -31,7 +31,6 @@ class Calldata:
         self.state = state
         constraints = []
 
-
         if self.concrete:
             for cd_byte in self.starting_calldata:
                 if type(cd_byte) == int:
@@ -46,17 +45,10 @@ class Calldata:
         self.state.mstate.constraints.extend(constraints)
 
     def concretized(self, model):
-        concrete_calldata = model[self._calldata].as_list()
-        concrete_calldata.sort(key=lambda x: x[0].as_long() if type(x) == list else -1)
         result = []
-        arr_index = 1
-        for i in range(concrete_calldata[len(concrete_calldata)-1][0].as_long()+1):
-            if concrete_calldata[arr_index][0].as_long() == i:
-                result.append(concrete_calldata[arr_index][1].as_long())
-                arr_index += 1
-            else:
-                # Default value
-                result.append(concrete_calldata[0].as_long())
+        for i in range(get_concrete_int(model.eval(self.calldatasize, model_completion=True))):
+            result.append(get_concrete_int(model.eval(self[i], model_completion=True)))
+
         return result
 
     def get_word_at(self, index: int):
