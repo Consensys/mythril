@@ -1061,8 +1061,8 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(global_state.world_state,
-                                             callee_account,
-                                             BitVecVal(int(environment.active_account.address, 16), 256),
+                                             callee_account=callee_account,
+                                             caller=BitVecVal(int(environment.active_account.address, 16), 256),
                                              call_data=call_data,
                                              gas_price=environment.gasprice,
                                              call_value=value,

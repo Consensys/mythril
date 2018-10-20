@@ -1,4 +1,3 @@
-import logging
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state import GlobalState, Environment, WorldState
 from z3 import BitVec
@@ -27,12 +26,12 @@ class TransactionStartSignal(Exception):
         self.op_code = op_code
 
 
-class MessageCallTransaction:
-    """ Transaction object models an transaction"""
+class ContractTransaction:
+    """A base transaction directed at a smart contract."""
     def __init__(self,
                  world_state,
-                 callee_account,
                  caller,
+                 callee_account=None,
                  call_data=(),
                  identifier=None,
                  gas_price=None,
@@ -41,7 +40,7 @@ class MessageCallTransaction:
                  call_data_type=None,
                  code=None
                  ):
-        assert isinstance(world_state, WorldState)
+        assert(isinstance(world_state, WorldState))
         self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
         self.callee_account = callee_account
@@ -53,6 +52,12 @@ class MessageCallTransaction:
         self.call_data_type = BitVec("call_data_type{}".format(identifier), 256) if call_data_type is None else call_data_type
         self.code = code
         self.return_data = None
+
+
+class MessageCallTransaction(ContractTransaction):
+    """A transaction calling an already existing contract."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def initial_global_state(self):
         # Initialize the execution environment
@@ -77,37 +82,13 @@ class MessageCallTransaction:
         raise TransactionEndSignal(global_state, revert)
 
 
-class ContractCreationTransaction:
-    """ Transaction object models an transaction"""
-    def __init__(self,
-                 world_state,
-                 caller,
-                 identifier=None,
-                 callee_account=None,
-                 code=None,
-                 call_data=(),
-                 gas_price=None,
-                 call_value=None,
-                 origin=None,
-                 call_data_type=None,
-                 ):
-        assert isinstance(world_state, WorldState)
-        self.id = identifier or get_next_transaction_id()
-        self.world_state = world_state
+class ContractCreationTransaction(ContractTransaction):
+    """A transaction creating a new contract."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # TODO: set correct balance for new account
-        self.callee_account = callee_account if callee_account else world_state.create_account(0, concrete_storage=True)
-
-        self.caller = caller
-
-        self.gas_price = BitVec("gasprice{}".format(identifier), 256) if gas_price is None else gas_price
-        self.call_value = BitVec("callvalue{}".format(identifier), 256) if call_value is None else call_value
-        self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin
-        self.call_data_type = BitVec("call_data_type{}".format(identifier), 256) if call_data_type is None else call_data_type
-
-        self.call_data = call_data
-        self.origin = origin
-        self.code = code
-        self.return_data = None
+        if self.callee_account is None:
+            self.callee_account = self.world_state.create_account(0, concrete_storage=True)
 
     def initial_global_state(self):
         # Initialize the execution environment
