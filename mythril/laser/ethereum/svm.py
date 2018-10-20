@@ -74,7 +74,7 @@ class LaserEVM:
             logging.info("Finished contract creation, found {} open states".format(len(self.open_states)))
             if len(self.open_states) == 0:
                 logging.warning("No contract was created during the execution of contract creation "
-                                "Increase the resources for creation execution (--max-depth or --create_timeout)")
+                                "Increase the resources for creation execution (--max-depth or --create-timeout)")
 
             # Reset code coverage
             self.coverage = {}
