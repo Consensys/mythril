@@ -56,25 +56,27 @@ class Calldata:
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            MAX_SLICE = 1024
+            stop = item.stop
+            if self.concrete and type(stop) == int:
+                calldatasize = get_concrete_int(self.calldatasize)
+                if stop > calldatasize:
+                    stop = calldatasize
+
             try:
                 current_index = item.start if type(item.start) in [BitVecRef, BitVecNumRef] else BitVecVal(item.start, 256)
                 dataparts = []
-                i = 0
-                while simplify(current_index != item.stop):
+                while simplify(current_index != stop):
                     dataparts.append(self[current_index])
                     current_index = simplify(current_index + 1)
-                    i += 1
-                    if i == MAX_SLICE: raise IndexError("Invalid Calldata Slice")
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
 
             return simplify(Concat(dataparts))
+
+        if self.concrete:
+            return self._calldata[get_concrete_int(item)]
         else:
-            if self.concrete:
-                return self._calldata[get_concrete_int(item)]
-            else:
-                return self._calldata[item]
+            return self._calldata[item]
 
 class Storage:
     """
