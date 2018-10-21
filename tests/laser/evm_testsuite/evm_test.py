@@ -12,7 +12,7 @@ import pytest
 
 evm_test_dir = Path(__file__).parent / 'VMTests'
 
-test_types = ['vmArithmeticTest', 'vmBitwiseLogicOperation', 'vmPushDupSwapTest', 'vmTests']
+test_types = ['vmArithmeticTest', 'vmBitwiseLogicOperation', 'vmPushDupSwapTest', 'vmTests', 'vmSha3Test']
 
 
 def load_test_data(designations):
@@ -52,6 +52,11 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
 
     # Act
     laser_evm.time = datetime.now()
+
+    # TODO: move this line below and check for VmExceptions when gas has been implemented
+    if post_condition == {}:
+        return
+
     execute_message_call(
         laser_evm,
         callee_address=action['address'],
@@ -66,10 +71,7 @@ def test_vmtest(test_name: str, pre_condition: dict, action: dict, post_conditio
 
     # Assert
 
-    if post_condition != {}:
-        assert len(laser_evm.open_states) == 1
-    else:
-        return
+    assert len(laser_evm.open_states) == 1
 
     world_state = laser_evm.open_states[0]
 
