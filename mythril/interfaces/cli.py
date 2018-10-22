@@ -210,6 +210,9 @@ def main():
         action="store_true",
         help="Lookup function signatures through www.4byte.directory",
     )
+    options.add_argument(
+        "--enable-iprof", action="store_true", help="enable the instruction profiler"
+    )
 
     rpc = parser.add_argument_group("RPC options")
 
@@ -281,6 +284,18 @@ def main():
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
+            )
+
+    if args.enable_iprof:
+        if args.v < 4:
+            exit_with_error(
+                args.outform,
+                "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
+            )
+        elif not (args.graph or args.fire_lasers or args.statespace_json):
+            exit_with_error(
+                args.outform,
+                "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
             )
 
     # -- commands --
@@ -407,6 +422,7 @@ def main():
                     max_depth=args.max_depth,
                     execution_timeout=args.execution_timeout,
                     create_timeout=args.create_timeout,
+                    enable_iprof=args.enable_iprof,
                 )
 
                 try:
@@ -428,6 +444,7 @@ def main():
                         execution_timeout=args.execution_timeout,
                         create_timeout=args.create_timeout,
                         transaction_count=args.transaction_count,
+                        enable_iprof=args.enable_iprof,
                     )
                     outputs = {
                         "json": report.as_json(),
@@ -454,6 +471,7 @@ def main():
                 max_depth=args.max_depth,
                 execution_timeout=args.execution_timeout,
                 create_timeout=args.create_timeout,
+                enable_iprof=args.enable_iprof,
             )
 
             try:
