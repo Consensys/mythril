@@ -1,6 +1,7 @@
 import binascii
 import logging
 from copy import copy, deepcopy
+from datetime import datetime
 
 from ethereum import utils
 from z3 import Extract, UDiv, simplify, Concat, ULT, UGT, BitVecNumRef, Not, \
@@ -56,13 +57,60 @@ class StateTransition(object):
         return wrapper
 
 
+class InstructionsProfiler:
+    """Performance profile for the execution of each instruction.
+    """
+
+    def __init__(self):
+        self.profile = dict() # opcode -> a list of time spent on each execution
+
+    def record(self, op, time):
+        try:
+            self.profile[op].append(time)
+        except:
+            self.profile[op] = [time]
+
+    def __str__(self):
+        total = 0
+        ops_total = dict()
+        ops_nr = dict()
+        ops_max = dict()
+        ops_min = dict()
+
+        for _, (op, times) in enumerate(self.profile.items()):
+            nr = len(times)
+            op_total = sum(times)
+
+            ops_nr[op] = nr
+            ops_total[op] = op_total
+            ops_max[op] = max(times)
+            ops_min[op] = min(times)
+
+            total += op_total
+
+        profile_str = "Total: {} s\n".format(total)
+
+        for _, (op, op_total) in enumerate(ops_total.items()):
+            profile_str += "[{:12s}] {:>8.4f} %,  nr {:>6},  total {:>8.4f} s,  avg {:>8.4f} s,  min {:>8.4f} s,  max {:>8.4f} s\n".format(
+                op,
+                op_total * 100 / total,
+                ops_nr[op],
+                op_total,
+                op_total / ops_nr[op],
+                ops_min[op],
+                ops_max[op])
+
+        return profile_str
+
+
 class Instruction:
     """
     Instruction class is used to mutate a state according to the current instruction
     """
 
-    def __init__(self, op_code, dynamic_loader):
+    def __init__(self, op_code, dynamic_loader, instr_profiler=None):
         self.dynamic_loader = dynamic_loader
+        self.instr_profiler = instr_profiler
         self.op_code = op_code
 
     def evaluate(self, global_state, post=False):
@@ -84,7 +132,15 @@ class Instruction:
         if instruction_mutator is None:
             raise NotImplementedError
 
-        return instruction_mutator(global_state)
+        if self.instr_profiler is None:
+            result = instruction_mutator(global_state)
+        else:
+            start_time = datetime.now()
+            result = instruction_mutator(global_state)
+            end_time = datetime.now()
+            self.instr_profiler.record(op, end_time.timestamp() - start_time.timestamp())
+
+        return result
 
     @StateTransition()
     def jumpdest_(self, global_state):

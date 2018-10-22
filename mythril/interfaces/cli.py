@@ -77,6 +77,9 @@ def main():
     options.add_argument('--solc-args', help='Extra arguments for solc')
     options.add_argument('--phrack', action='store_true', help='Phrack-style call graph')
     options.add_argument('--enable-physics', action='store_true', help='enable graph physics simulation')
+    options.add_argument('--enable-instructions-profiler',
+                         action='store_true',
+                         help='enable instruction profiler')
     options.add_argument('-v', type=int, help='log level (0-2)', metavar='LOG_LEVEL')
 
     rpc = parser.add_argument_group('RPC options')
@@ -206,7 +209,8 @@ def main():
                 html = mythril.graph_html(strategy=args.strategy, contract=mythril.contracts[0], address=address,
                                           enable_physics=args.enable_physics, phrackify=args.phrack,
                                           max_depth=args.max_depth, execution_timeout=args.execution_timeout,
-                                          create_timeout=args.create_timeout)
+                                          create_timeout=args.create_timeout,
+                                          enable_profiler=args.enable_instructions_profiler)
 
                 try:
                     with open(args.graph, "w") as f:
@@ -220,7 +224,8 @@ def main():
                                              verbose_report=args.verbose_report,
                                              max_depth=args.max_depth, execution_timeout=args.execution_timeout,
                                              create_timeout=args.create_timeout,
-                                             max_transaction_count=args.max_transaction_count)
+                                             max_transaction_count=args.max_transaction_count,
+                                             enable_profiler=args.enable_instructions_profiler)
                 outputs = {
                     'json': report.as_json(),
                     'text': report.as_text(),

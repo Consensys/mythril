@@ -3,7 +3,7 @@ from mythril.laser.ethereum.state import WorldState
 from mythril.laser.ethereum.transaction import TransactionStartSignal, TransactionEndSignal, \
     ContractCreationTransaction
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
-from mythril.laser.ethereum.instructions import Instruction
+from mythril.laser.ethereum.instructions import Instruction, InstructionsProfiler
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
@@ -28,7 +28,7 @@ class LaserEVM:
     """
 
     def __init__(self, accounts, dynamic_loader=None, max_depth=float('inf'), execution_timeout=60, create_timeout=10,
-                 strategy=DepthFirstSearchStrategy, max_transaction_count=3):
+                 strategy=DepthFirstSearchStrategy, max_transaction_count=3, enable_profiler=False):
         world_state = WorldState()
         world_state.accounts = accounts
         # this sets the initial world state
@@ -54,6 +54,8 @@ class LaserEVM:
 
         self.pre_hooks = {}
         self.post_hooks = {}
+
+        self.instr_profiler = InstructionsProfiler() if enable_profiler else None
 
         logging.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -95,6 +97,9 @@ class LaserEVM:
             cov = reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1]) / float(coverage[0]) * 100
             logging.info("Achieved {} coverage for code: {}".format(cov, code))
 
+        if self.instr_profiler is not None:
+            logging.info("Instructions Profile:\n" + str(self.instr_profiler))
+
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""
         total_covered_instructions = 0
@@ -133,7 +138,7 @@ class LaserEVM:
         self._execute_pre_hook(op_code, global_state)
         try:
             self._measure_coverage(global_state)
-            new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(global_state)
+            new_global_states = Instruction(op_code, self.dynamic_loader, self.instr_profiler).evaluate(global_state)
 
         except VmException as e:
             transaction, return_global_state = global_state.transaction_stack.pop()
@@ -192,7 +197,7 @@ class LaserEVM:
                 global_state.accounts[return_global_state.environment.active_account.address]
 
         # Execute the post instruction handler
-        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(return_global_state, True)
+        new_global_states = Instruction(op_code, self.dynamic_loader, self.instr_profiler).evaluate(return_global_state, True)
 
         # In order to get a nice call graph we need to set the nodes here
         for state in new_global_states:
