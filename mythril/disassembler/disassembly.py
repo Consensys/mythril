@@ -1,4 +1,5 @@
-from mythril.ether import asm, util
+from mythril.ether import util
+from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDb
 import logging
 
