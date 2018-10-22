@@ -65,7 +65,10 @@ def is_sequence_match(pattern: list, instruction_list, index: int) -> bool:
     :return: Pattern matched
     """
     for index, pattern_slot in enumerate(pattern, start=index):
-        if not instruction_list[index] in pattern_slot:
+        try:
+            if not instruction_list[index]['opcode'] in pattern_slot:
+                return False
+        except IndexError:
             return False
     return True
 
