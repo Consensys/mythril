@@ -64,7 +64,7 @@ class Calldata:
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            stop = item.stop
+            stop = get_concrete_int(item.stop)
             if self.concrete and isinstance(stop, int):
                 calldatasize = get_concrete_int(self.calldatasize)
                 if stop > calldatasize:
