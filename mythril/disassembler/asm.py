@@ -1,4 +1,5 @@
 import re
+from collections import Generator
 
 from ethereum.opcodes import opcodes
 
@@ -41,7 +42,7 @@ def get_opcode_from_name(operation_name):
     raise RuntimeError("Unknown opcode")
 
 
-def find_op_code_sequence(pattern, instruction_list):
+def find_op_code_sequence(pattern, instruction_list) -> Generator[int, None, None]:
     """
     Returns all indices in instruction_list that point to instruction sequences following a pattern
     :param pattern: The pattern to look for.
