@@ -34,6 +34,12 @@ jobs:
             - /root/.cache/pip/wheels/
 
       - run:
+          name: Black style check
+          command: |
+            pip3 install --user black
+            python3 -m black --check .
+
+      - run:
           background: true
           name: Launch of background geth instance
           command: geth --syncmode full --rpc --shh
