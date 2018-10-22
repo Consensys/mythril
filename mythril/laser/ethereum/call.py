@@ -131,7 +131,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
         starting_calldata = []
         while i < len(calldata_from_mem):
             elem = calldata_from_mem[i]
-            if type(elem) == int:
+            if isinstance(elem, int):
                 starting_calldata.append(elem)
                 i += 1
             else: #BitVec

@@ -416,9 +416,9 @@ class Instruction:
                 i_data = dstart
 
                 new_memory = []
-                for i in range(mstart, mstart + size):
+                for i in range(size):
                     new_memory.append(environment.calldata[i_data])
-                    i_data = simplify(i_data + 1)
+                    i_data = i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
 
                 for i in range(0, len(new_memory), 32):
                     state.memory[i+mstart] = simplify(Concat(new_memory[i:i+32]))

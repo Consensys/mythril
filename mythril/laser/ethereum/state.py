@@ -13,8 +13,16 @@ class CalldataType(Enum):
     SYMBOLIC = 2
 
 class Calldata:
+    """
+    Calldata class representing the calldata of a transaction
+    """
 
     def __init__(self, tx_id, starting_calldata: bytes=None):
+        """
+        Constructor for Calldata
+        :param tx_id: unique value representing the transaction the calldata is for
+        :param starting_calldata: byte array representing the concrete calldata of a transaction
+        """
         self.tx_id = tx_id
         if starting_calldata:
             self._calldata = []
@@ -25,24 +33,24 @@ class Calldata:
             self.calldatasize = BitVec('{}_calldatasize'.format(self.tx_id), 256)
             self.concrete = False
 
-        self.starting_calldata = starting_calldata if starting_calldata else []
+        self.starting_calldata = starting_calldata or []
 
-    def set_global_state(self, state):
-        self.state = state
+    @property
+    def constraints(self):
         constraints = []
 
         if self.concrete:
-            for cd_byte in self.starting_calldata:
-                if type(cd_byte) == int:
-                    self._calldata.append(BitVecVal(cd_byte, 8))
+            for calldata_byte in self.starting_calldata:
+                if type(calldata_byte) == int:
+                    self._calldata.append(BitVecVal(calldata_byte, 8))
                 else:
-                    self._calldata.append(cd_byte)
+                    self._calldata.append(calldata_byte)
             constraints.append(self.calldatasize == len(self.starting_calldata))
         else:
             x = BitVec('x', 256)
             constraints.append(ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x))))
 
-        self.state.mstate.constraints.extend(constraints)
+        return constraints
 
     def concretized(self, model):
         result = []
@@ -57,13 +65,13 @@ class Calldata:
     def __getitem__(self, item):
         if isinstance(item, slice):
             stop = item.stop
-            if self.concrete and type(stop) == int:
+            if self.concrete and isinstance(stop, int):
                 calldatasize = get_concrete_int(self.calldatasize)
                 if stop > calldatasize:
                     stop = calldatasize
 
             try:
-                current_index = item.start if type(item.start) in [BitVecRef, BitVecNumRef] else BitVecVal(item.start, 256)
+                current_index = item.start if isinstance(item.start, BitVecRef) else BitVecVal(item.start, 256)
                 dataparts = []
                 while simplify(current_index != stop):
                     dataparts.append(self[current_index])
@@ -74,7 +82,10 @@ class Calldata:
             return simplify(Concat(dataparts))
 
         if self.concrete:
-            return self._calldata[get_concrete_int(item)]
+            try:
+                return self._calldata[get_concrete_int(item)]
+            except IndexError:
+                return BitVecVal(0, 8)
         else:
             return self._calldata[item]
 
