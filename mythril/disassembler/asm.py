@@ -24,29 +24,6 @@ def instruction_list_to_easm(instruction_list):
     return result
 
 
-def easm_to_instruction_list(evm_assembly):
-    regex_CODELINE: Pattern[str] = re.compile("^([A-Z0-9]+)(?:\s+([0-9a-fA-Fx]+))?$")
-
-    instruction_list = []
-
-    for line in evm_assembly.split("\n"):
-
-        match: Match[str] = re.search(regex_CODELINE, line)
-
-        if not match:
-            # Invalid code line
-            continue
-
-        instruction = {"opcode": match.group(1)}
-
-        if match.group(2):
-            instruction["argument"] = match.group(2)[2:]
-
-        instruction_list.append(instruction)
-
-    return instruction_list
-
-
 def get_opcode_from_name(name):
 
     for opcode, value in opcodes.items():
