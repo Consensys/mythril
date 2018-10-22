@@ -1,15 +1,25 @@
-import sys
 import re
-from typing import Pattern, Match
 
 from ethereum.opcodes import opcodes
-from mythril.ether import util
-
 
 regex_PUSH = re.compile("^PUSH(\d*)$")
 
 # Additional mnemonic to catch failed assertions
 opcodes[254] = ["ASSERT_FAIL", 0, 0, 0]
+
+
+class EvmInstruction:
+    """ Model to hold the information of the disassembly """
+    def __init__(self, address, op_code, argument=None):
+        self.address = address
+        self.op_code = op_code
+        self.argument = argument
+
+    def to_dict(self):
+        result = {"address": self.address, "opcode": self.op_code}
+        if self.argument:
+            result["argument"] = self.argument
+        return result
 
 
 def instruction_list_to_easm(instruction_list):
@@ -44,7 +54,7 @@ def find_opcode_sequence(pattern, instruction_list):
             yield i
 
 
-def is_sequence_match(pattern, instruction_list, index):
+def is_sequence_match(pattern: list, instruction_list, index: int) -> bool:
     """
     Checks if the instructions starting at index follow a pattern
     :param pattern: List of lists describing a pattern.
@@ -59,66 +69,34 @@ def is_sequence_match(pattern, instruction_list, index):
     return True
 
 
-def disassemble(bytecode):
-
+def disassemble(bytecode: str) -> list:
+    """Disassembles evm bytecode and returns a list of instructions"""
     instruction_list = []
-    addr = 0
-
+    address = 0
     length = len(bytecode)
-
     if "bzzr" in str(bytecode[-43:]):
         # ignore swarm hash
         length -= 43
 
-    while addr < length:
-
-        instruction = {"address": addr}
-
+    while address < length:
         try:
-            if sys.version_info > (3, 0):
-                opcode = opcodes[bytecode[addr]]
-            else:
-                opcode = opcodes[ord(bytecode[addr])]
-
+            op_code = opcodes[bytecode[address]]
         except KeyError:
-
-            # invalid opcode
-            instruction_list.append({"address": addr, "opcode": "INVALID"})
-            addr += 1
+            instruction_list.append(EvmInstruction(address, "INVALID"))
+            address += 1
             continue
 
-        instruction["opcode"] = opcode[0]
+        op_code_name = op_code[0]
+        current_instruction = EvmInstruction(address, op_code_name)
 
-        m = re.search(regex_PUSH, opcode[0])
+        match = re.search(regex_PUSH, op_code_name)
+        if match:
+            argument_bytes: bytes = bytecode[address + 1: address + 1 + int(match.group(1))]
+            current_instruction.argument = "0x" + argument_bytes.hex()
+            address += int(match.group(1))
 
-        if m:
-            argument = bytecode[addr + 1 : addr + 1 + int(m.group(1))]
-            instruction["argument"] = "0x" + argument.hex()
-
-            addr += int(m.group(1))
-
-        instruction_list.append(instruction)
-
-        addr += 1
+        # We use a to_dict() here for compatibility reasons
+        instruction_list.append(current_instruction.to_dict())
+        address += 1
 
     return instruction_list
-
-
-def assemble(instruction_list):
-
-    bytecode = b""
-
-    for instruction in instruction_list:
-
-        try:
-            opcode = get_opcode_from_name(instruction["opcode"])
-        except RuntimeError:
-            opcode = 0xBB
-
-        bytecode += opcode.to_bytes(1, byteorder="big")
-
-        if "argument" in instruction:
-
-            bytecode += util.safe_decode(instruction["argument"])
-
-    return bytecode
