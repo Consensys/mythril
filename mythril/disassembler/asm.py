@@ -24,38 +24,39 @@ def instruction_list_to_easm(instruction_list):
     return result
 
 
-def get_opcode_from_name(name):
-
-    for opcode, value in opcodes.items():
-
-        if name == value[0]:
-
-            return opcode
-
+def get_opcode_from_name(operation_name):
+    for op_code, value in opcodes.items():
+        if operation_name == value[0]:
+            return op_code
     raise RuntimeError("Unknown opcode")
 
 
 def find_opcode_sequence(pattern, instruction_list):
-    match_indexes = []
+    """
+    Returns all indices in instruction_list that point to instruction sequences following a pattern
+    :param pattern: The pattern to look for.
+        Example:  [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies the pattern
+    :param instruction_list: List of instructions to look in
+    :return: Indices to the instruction sequences
+    """
+    for i in range(0, len(instruction_list) - len(pattern) + 1):
+        if is_sequence_match(pattern, instruction_list, i):
+            yield i
 
-    pattern_length = len(pattern)
 
-    for i in range(0, len(instruction_list) - pattern_length + 1):
-
-        if instruction_list[i]["opcode"] in pattern[0]:
-
-            matched = True
-
-            for j in range(1, len(pattern)):
-
-                if not (instruction_list[i + j]["opcode"] in pattern[j]):
-                    matched = False
-                    break
-
-            if matched:
-                match_indexes.append(i)
-
-    return match_indexes
+def is_sequence_match(pattern, instruction_list, index):
+    """
+    Checks if the instructions starting at index follow a pattern
+    :param pattern: List of lists describing a pattern.
+        Example:  [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies the pattern
+    :param instruction_list: List of instructions
+    :param index: Index to check for
+    :return: Pattern matched
+    """
+    for index, pattern_slot in enumerate(pattern, start=index):
+        if not instruction_list[index] in pattern_slot:
+            return False
+    return True
 
 
 def disassemble(bytecode):
