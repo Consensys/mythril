@@ -37,7 +37,7 @@ jobs:
           name: Black style check
           command: |
             pip3 install --user black
-            python3 -m black --check .
+            python3 -m black --check /home/mythril/
 
       - run:
           background: true
