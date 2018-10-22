@@ -5,8 +5,8 @@ from tests import BaseTestCase
 
 TEST_FILES = Path(__file__).parent / "testdata/input_contracts"
 
-class SolidityContractTest(BaseTestCase):
 
+class SolidityContractTest(BaseTestCase):
     def test_get_source_info_without_name_gets_latest_contract_info(self):
         input_file = TEST_FILES / "multi_contracts.sol"
         contract = SolidityContract(str(input_file))
@@ -36,4 +36,3 @@ class SolidityContractTest(BaseTestCase):
         self.assertEqual(code_info.filename, str(input_file))
         self.assertEqual(code_info.lineno, 6)
         self.assertEqual(code_info.code, "assert(var1>0)")
-

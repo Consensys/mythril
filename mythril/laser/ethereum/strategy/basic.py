@@ -8,6 +8,7 @@ class DepthFirstSearchStrategy:
     Implements a depth first search strategy
     I.E. Follow one path to a leaf, and then continue to the next one
     """
+
     def __init__(self, work_list, max_depth):
         self.work_list = work_list
         self.max_depth = max_depth
@@ -33,6 +34,7 @@ class BreadthFirstSearchStrategy:
     Implements a breadth first search strategy
     I.E. Execute all states of a "level" before continuing
     """
+
     def __init__(self, work_list, max_depth):
         self.work_list = work_list
         self.max_depth = max_depth
@@ -51,4 +53,3 @@ class BreadthFirstSearchStrategy:
             return global_state
         except IndexError:
             raise StopIteration()
-
