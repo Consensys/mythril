@@ -215,7 +215,7 @@ class SignatureDb(object):
         cmd = ["solc", "--hashes"]
 
         if solc_args:
-            cmd.extend(solc_args.split(" "))
+            cmd.extend(solc_args.split())
         cmd.append(file_name)
 
         try:
