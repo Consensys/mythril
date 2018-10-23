@@ -148,18 +148,20 @@ def main():
         default=22,
         help="Maximum recursion depth for symbolic execution",
     )
+
+    options.add_argument(
+        "--strategy",
+        choices=["dfs", "bfs", "naive-random", "weighted-random"],
+        default="dfs",
+        help="Symbolic execution strategy",
+    )
     options.add_argument(
         "--max-transaction-count",
         type=int,
         default=3,
         help="Maximum number of transactions issued by laser",
     )
-    options.add_argument(
-        "--strategy",
-        choices=["dfs", "bfs"],
-        default="dfs",
-        help="Symbolic execution strategy",
-    )
+
     options.add_argument(
         "--execution-timeout",
         type=int,

@@ -17,6 +17,7 @@ test_types = [
     "vmBitwiseLogicOperation",
     "vmPushDupSwapTest",
     "vmTests",
+    "vmSha3Test",
 ]
 
 
@@ -63,6 +64,11 @@ def test_vmtest(
 
     # Act
     laser_evm.time = datetime.now()
+
+    # TODO: move this line below and check for VmExceptions when gas has been implemented
+    if post_condition == {}:
+        return
+
     execute_message_call(
         laser_evm,
         callee_address=action["address"],
@@ -77,10 +83,7 @@ def test_vmtest(
 
     # Assert
 
-    if post_condition != {}:
-        assert len(laser_evm.open_states) == 1
-    else:
-        return
+    assert len(laser_evm.open_states) == 1
 
     world_state = laser_evm.open_states[0]
 
