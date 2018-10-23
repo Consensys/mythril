@@ -259,7 +259,7 @@ class LaserEVM:
         address = state.environment.code.instruction_list[state.mstate.pc]['address']
 
         environment = state.environment
-        disassembly: Disassembly = environment.code
+        disassembly = environment.code
         if address in disassembly.address_to_function_name:
             # Enter a new function
             environment.active_function_name = disassembly.address_to_function_name[address]
