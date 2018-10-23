@@ -37,7 +37,7 @@ class Disassembly(object):
         )
 
         for index in jump_table_indices:
-            function_hash, jump_target, function_name = _get_function_info(
+            function_hash, jump_target, function_name = get_function_info(
                 index, self.instruction_list, signatures
             )
             self.func_hashes.append(function_hash)
@@ -52,7 +52,7 @@ class Disassembly(object):
         return asm.instruction_list_to_easm(self.instruction_list)
 
 
-def _get_function_info(index: int, instruction_list: list, signature_database: SignatureDb) -> (str, int, str):
+def get_function_info(index: int, instruction_list: list, signature_database: SignatureDb) -> (str, int, str):
     """
     Finds the function information for a call table entry
     Solidity uses the first 4 bytes of the calldata to indicate which function the message call should execute
