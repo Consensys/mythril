@@ -211,9 +211,13 @@ class SignatureDb(object):
         :return: their signature mappings
         """
         sigs = {}
-        cmd = [solc_binary, "--hashes", file_name]
+
+        cmd = ["solc", "--hashes"]
+
         if solc_args:
-            cmd.extend(solc_args.split())
+            cmd.extend(solc_args.split(" "))
+        cmd.append(file_name)
+
         try:
             p = Popen(cmd, stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
