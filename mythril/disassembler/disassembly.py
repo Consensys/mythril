@@ -88,7 +88,7 @@ def get_function_info(index: int, instruction_list: list, signature_database: Si
     try:
         offset = instruction_list[index + 2]["argument"]
         entry_point = int(offset, 16)
-    except IndexError:
+    except (KeyError, IndexError):
         return function_hash, None, None
 
     return function_hash, entry_point, function_name
