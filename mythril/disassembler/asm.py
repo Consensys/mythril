@@ -42,7 +42,7 @@ def get_opcode_from_name(operation_name):
     raise RuntimeError("Unknown opcode")
 
 
-def find_op_code_sequence(pattern, instruction_list):
+def find_op_code_sequence(pattern: list, instruction_list: list):
     """
     Returns all indices in instruction_list that point to instruction sequences following a pattern
     :param pattern: The pattern to look for.
@@ -55,7 +55,7 @@ def find_op_code_sequence(pattern, instruction_list):
             yield i
 
 
-def is_sequence_match(pattern: list, instruction_list, index: int) -> bool:
+def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool:
     """
     Checks if the instructions starting at index follow a pattern
     :param pattern: List of lists describing a pattern.
@@ -95,7 +95,7 @@ def disassemble(bytecode: str) -> list:
 
         match = re.search(regex_PUSH, op_code_name)
         if match:
-            argument_bytes: bytes = bytecode[address + 1: address + 1 + int(match.group(1))]
+            argument_bytes = bytecode[address + 1: address + 1 + int(match.group(1))]
             current_instruction.argument = "0x" + argument_bytes.hex()
             address += int(match.group(1))
 
