@@ -103,7 +103,7 @@ class ContractCreationTransaction:
         self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin
         self.call_data_type = BitVec("call_data_type{}".format(identifier), 256) if call_data_type is None else call_data_type
 
-        self.call_data = Calldata(self.id) if call_data is None else Calldata(self.id, call_data) if type(call_data) == list else call_data
+        self.call_data = Calldata(self.id, call_data) if not isinstance(call_data, Calldata) else call_data
         self.origin = origin
         self.code = code
         self.return_data = None
