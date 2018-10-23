@@ -130,8 +130,13 @@ class Environment:
 
 
 class Constraints(list):
-    def __init__(self, constraint_list=[], solver=None, possibility=None):
-        super(Constraints, self).__init__(constraint_list)
+    """
+    This class should maintain a solver and it's constraints, This class tries to make the Constraints() object
+    as a simple list of constraints with some background processing.
+    TODO: add the solver to this class after callback refactor
+    """
+    def __init__(self, constraint_list=None, solver=None, possibility=None):
+        super(Constraints, self).__init__(constraint_list or [])
         self.solver = solver
         self.__possibility = possibility
 
@@ -148,7 +153,7 @@ class Constraints(list):
         constraint_list = super(Constraints, self).copy()
         return Constraints(constraint_list)
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict=None):
         return self.__copy__()
 
     def __add__(self, constraints):
