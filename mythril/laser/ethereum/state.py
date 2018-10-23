@@ -17,7 +17,7 @@ class Calldata:
     Calldata class representing the calldata of a transaction
     """
 
-    def __init__(self, tx_id, starting_calldata: bytes=None):
+    def __init__(self, tx_id, starting_calldata=None):
         """
         Constructor for Calldata
         :param tx_id: unique value representing the transaction the calldata is for
@@ -65,19 +65,9 @@ class Calldata:
     def __getitem__(self, item):
         if isinstance(item, slice):
             try:
-                stop = get_concrete_int(item.stop)
-            except AttributeError:
-                stop = item.stop
-
-            if self.concrete and isinstance(stop, int):
-                calldatasize = get_concrete_int(self.calldatasize)
-                if stop > calldatasize:
-                    stop = calldatasize
-
-            try:
                 current_index = item.start if isinstance(item.start, BitVecRef) else BitVecVal(item.start, 256)
                 dataparts = []
-                while simplify(current_index != stop):
+                while simplify(current_index != item.stop):
                     dataparts.append(self[current_index])
                     current_index = simplify(current_index + 1)
             except Z3Exception:

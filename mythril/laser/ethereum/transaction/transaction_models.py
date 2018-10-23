@@ -44,7 +44,7 @@ class MessageCallTransaction:
         self.world_state = world_state
         self.callee_account = callee_account
         self.caller = caller
-        self.call_data = Calldata(self.id) if call_data is None else Calldata(self.id, call_data) if type(call_data) == list else call_data
+        self.call_data = Calldata(self.id, call_data) if not isinstance(call_data, Calldata) else call_data
         self.gas_price = BitVec("gasprice{}".format(identifier), 256) if gas_price is None else gas_price
         self.call_value = BitVec("callvalue{}".format(identifier), 256) if call_value is None else call_value
         self.origin = BitVec("origin{}".format(identifier), 256) if origin is None else origin

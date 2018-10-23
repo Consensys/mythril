@@ -6,27 +6,29 @@ from z3.z3types import Z3Exception
 
 
 uninitialized_test_data = [
-    (None), # Symbolic calldata
     ([]), # Empty concrete calldata
     ([1,4,5,3,4,72,230,53]) # Concrete calldata
 ]
 @pytest.mark.parametrize("starting_calldata", uninitialized_test_data)
-def test_calldata_uninitialized_index(starting_calldata):
+def test_concrete_calldata_uninitialized_index(starting_calldata):
     # Arrange
     calldata = Calldata(0, starting_calldata)
     solver = Solver()
 
     # Act
     value = calldata[100]
+    value2 = calldata.get_word_at(200)
 
     solver.add(calldata.constraints)
     solver.check()
     model = solver.model()
 
     value = model.eval(value)
+    value2 = model.eval(value2)
 
     # Assert
     assert value == 0
+    assert value2 == 0
 
 def test_concrete_calldata_calldatasize():
     # Arrange
@@ -74,6 +76,22 @@ def test_concrete_calldata_constrain_index():
     constraint = calldata[2] == 3
 
     solver.add(calldata.constraints + [constraint])
+    result = solver.check()
+
+    # Assert
+    assert str(result) == 'unsat'
+
+def test_concrete_calldata_constrain_index():
+    # Arrange
+    calldata = Calldata(0)
+    solver = Solver()
+
+    # Act
+    constraints = []
+    constraints.append(calldata[51] == 1)
+    constraints.append(calldata.calldatasize == 50)
+
+    solver.add(calldata.constraints + constraints)
     result = solver.check()
 
     # Assert
