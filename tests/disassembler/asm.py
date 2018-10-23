@@ -58,3 +58,13 @@ def test_find_op_code_sequence(pattern, instruction_list, expected_result):
 
     # Assert
     assert return_value == expected_result
+
+
+def test_disassemble():
+    # Act
+    instruction_list = disassemble(b"\x00\x16\x06")
+
+    # Assert
+    assert instruction_list[0]["opcode"] == "STOP"
+    assert instruction_list[1]["opcode"] == "AND"
+    assert instruction_list[2]["opcode"] == "MOD"

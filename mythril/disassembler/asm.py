@@ -99,8 +99,8 @@ def disassemble(bytecode: str) -> list:
             current_instruction.argument = "0x" + argument_bytes.hex()
             address += int(match.group(1))
 
-        # We use a to_dict() here for compatibility reasons
-        instruction_list.append(current_instruction.to_dict())
+        instruction_list.append(current_instruction)
         address += 1
 
-    return instruction_list
+    # We use a to_dict() here for compatibility reasons
+    return list(map(lambda element: element.to_dict(), instruction_list))
