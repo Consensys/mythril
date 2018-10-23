@@ -278,9 +278,9 @@ class GlobalState:
 
     def new_bitvec(self, name, size=256):
         transaction_id = self.current_transaction.id
-        node_id = self.node.uid
 
         return BitVec("{}_{}".format(transaction_id, name), size)
+
 
 class WorldState:
     """

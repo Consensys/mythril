@@ -16,7 +16,6 @@ class SymExecWrapper:
     def __init__(self, contract, address, strategy, dynloader=None, max_depth=22,
                  execution_timeout=None, create_timeout=None, max_transaction_count=3):
 
-        s_strategy = None
         if strategy == 'dfs':
             s_strategy = DepthFirstSearchStrategy
         elif strategy == 'bfs':

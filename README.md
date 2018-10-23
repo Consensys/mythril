@@ -1,17 +1,23 @@
-# Mythril OSS [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Mythril%20-%20Security%20Analyzer%20for%20Ethereum%20Smart%20Contracts&url=https://www.github.com/ConsenSys/mythril)
+# Mythril Classic
+
+<p align="center">
+	<img src="/static/mythril_new.png" height="320px"/>
+</p>
+
 [![Discord](https://img.shields.io/discord/481002907366588416.svg)](https://discord.gg/E3YrVtG)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
-![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril)
+![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril-classic/master.svg)
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril-classic.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril-classic/)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 [![PyPI Statistics](https://pypistats.com/badge/mythril.svg)](https://pypistats.com/package/mythril)
-<img height="120px" align="right" src="https://github.com/ConsenSys/mythril/raw/master/static/mythril.png" alt="mythril" />
 
-Mythril OSS is the classic security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
+Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs!
 
-Oh and by the way, we're building an easy-to-use SaaS solution and tools ecosystem for Ethereum developers called [Mythril Platform](https://mythril.ai). You should definitely check that out as well.
+Oh and by the way, we're also building an easy-to-use security analysis platform (a.k.a. "the INFURA for smart contract security") that anybody can use to create purpose-built security tools. It's called [Mythril Platform](https://mythril.ai) and you should definitely [check it out](https://media.consensys.net/mythril-platform-api-is-upping-the-smart-contract-security-game-eee1d2642488).
+
+
 
 ## Installation and setup
 
@@ -31,7 +37,7 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Instructions for using the 'myth' tool are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
+Instructions for using the 'myth' tool are found on the [Wiki](https://github.com/ConsenSys/mythril-classic/wiki). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
