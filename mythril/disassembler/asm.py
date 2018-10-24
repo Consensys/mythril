@@ -16,14 +16,14 @@ class EvmInstruction:
         self.op_code = op_code
         self.argument = argument
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         result = {"address": self.address, "opcode": self.op_code}
         if self.argument:
             result["argument"] = self.argument
         return result
 
 
-def instruction_list_to_easm(instruction_list):
+def instruction_list_to_easm(instruction_list: dict) -> str:
     result = ""
 
     for instruction in instruction_list:
@@ -35,14 +35,14 @@ def instruction_list_to_easm(instruction_list):
     return result
 
 
-def get_opcode_from_name(operation_name):
+def get_opcode_from_name(operation_name: str) -> int:
     for op_code, value in opcodes.items():
         if operation_name == value[0]:
             return op_code
     raise RuntimeError("Unknown opcode")
 
 
-def find_op_code_sequence(pattern, instruction_list):
+def find_op_code_sequence(pattern: list, instruction_list: list) -> Generator:
     """
     Returns all indices in instruction_list that point to instruction sequences following a pattern
     :param pattern: The pattern to look for.
