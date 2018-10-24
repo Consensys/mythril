@@ -55,7 +55,7 @@ def _analyze_state(state, node):
         issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
                       swc_id=UNPROTECTED_ETHER_WITHDRAWAL, title="Ether send", _type="Warning",
                       description="It seems that an attacker is able to execute an call instruction,"
-                                  " this can mean that the attacker is able is able to extract funds "
+                                  " this can mean that the attacker is able to extract funds "
                                   "out of the contract.".format(target), debug=debug)
         issues.append(issue)
     except UnsatError:

@@ -9,4 +9,4 @@
 
 ### Description
 
-It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able is able to extract funds out of the contract.
+It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.
