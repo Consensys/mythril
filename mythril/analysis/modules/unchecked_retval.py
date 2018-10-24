@@ -56,6 +56,7 @@ def execute(statespace):
                     contract=node.contract_name,
                     function_name=node.function_name,
                     address=address,
+                    bytecode=state.environment.code.bytecode,
                     title="Unchecked CALL return value",
                     swc_id=UNCHECKED_RET_VAL,
                 )
