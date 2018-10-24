@@ -103,4 +103,4 @@ def disassemble(bytecode: str) -> list:
         address += 1
 
     # We use a to_dict() here for compatibility reasons
-    return list(map(lambda element: element.to_dict(), instruction_list))
+    return [element.to_dict() for element in instruction_list]
