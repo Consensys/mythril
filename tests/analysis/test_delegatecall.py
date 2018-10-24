@@ -1,6 +1,7 @@
 from mythril.analysis.modules.delegatecall import execute, _concrete_call, _symbolic_call
 from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.symbolic import SymExecWrapper
+from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state import GlobalState, Environment, Account
 import pytest
@@ -11,8 +12,11 @@ import pytest_mock
 def test_concrete_call():
     # arrange
     address = "0x10"
+    active_account = Account(address)
+    active_account.code = Disassembly("00")
+    environment = Environment(active_account, None, None, None, None, None)
 
-    state = GlobalState(None, None, None)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
     node = Node("example")
@@ -43,7 +47,10 @@ def test_concrete_call_symbolic_to():
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None, None)
+    active_account = Account(address)
+    active_account.code = Disassembly("00")
+    environment = Environment(active_account, None, None, None, None, None)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
     node = Node("example")
@@ -88,6 +95,7 @@ def test_symbolic_call_storage_to(mocker):
     address = "0x10"
 
     active_account = Account(address)
+    active_account.code = Disassembly("00")
     environment = Environment(active_account, None, None, None, None, None)
     state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
@@ -127,7 +135,10 @@ def test_symbolic_call_calldata_to(mocker):
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None, None)
+    active_account = Account(address)
+    active_account.code = Disassembly("00")
+    environment = Environment(active_account, None, None, None, None, None)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
 
@@ -172,6 +183,8 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     curr_instruction.return_value = {'address': '0x10'}
 
     active_account = Account('0x10')
+    active_account.code = Disassembly("00")
+
     environment = Environment(active_account, None, None, None, None, None)
     state = GlobalState(None, environment, Node)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
