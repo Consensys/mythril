@@ -50,7 +50,7 @@ def main():
     inputs.add_argument('-l', '--dynld', action='store_true', help='auto-load dependencies from the blockchain')
 
     outputs = parser.add_argument_group('output formats')
-    outputs.add_argument('-o', '--outform', choices=['text', 'markdown', 'json'], default='text',
+    outputs.add_argument('-o', '--outform', choices=['text', 'markdown', 'json', 'swc-standard'], default='text',
                          help='report output format', metavar='<text/markdown/json>')
     outputs.add_argument('--verbose-report', action='store_true', help='Include debugging information in report')
 
@@ -233,6 +233,7 @@ def main():
                                              create_timeout=args.create_timeout,
                                              max_transaction_count=args.max_transaction_count)
                 outputs = {
+                    'swc-standard': report.as_swc_standard_format(),
                     'json': report.as_json(),
                     'text': report.as_text(),
                     'markdown': report.as_markdown()
