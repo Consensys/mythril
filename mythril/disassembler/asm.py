@@ -55,7 +55,7 @@ def find_op_code_sequence(pattern: list, instruction_list: list) -> Generator:
             yield i
 
 
-def is_sequence_match(pattern: list, instruction_list, index: int) -> bool:
+def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool:
     """
     Checks if the instructions starting at index follow a pattern
     :param pattern: List of lists describing a pattern.
@@ -95,12 +95,12 @@ def disassemble(bytecode: str) -> list:
 
         match = re.search(regex_PUSH, op_code_name)
         if match:
-            argument_bytes: bytes = bytecode[address + 1: address + 1 + int(match.group(1))]
+            argument_bytes = bytecode[address + 1: address + 1 + int(match.group(1))]
             current_instruction.argument = "0x" + argument_bytes.hex()
             address += int(match.group(1))
 
-        # We use a to_dict() here for compatibility reasons
-        instruction_list.append(current_instruction.to_dict())
+        instruction_list.append(current_instruction)
         address += 1
 
-    return instruction_list
+    # We use a to_dict() here for compatibility reasons
+    return list(map(lambda element: element.to_dict(), instruction_list))

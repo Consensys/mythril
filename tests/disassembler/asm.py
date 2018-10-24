@@ -42,3 +42,29 @@ def test_is_sequence_match(pattern, instruction_list, index, expected_result):
     return_value = is_sequence_match(pattern, instruction_list, index)
     # Assert
     assert return_value == expected_result
+
+find_sequence_match_test_data = [
+    # Normal no match
+    ((["PUSH1"], ["EQ"]), [{"opcode": "PUSH1"}, {"opcode": "PUSH3"}, {"opcode": "EQ"}], []),
+    # Normal match
+    ((["PUSH1"], ["EQ"]), [{"opcode": "PUSH1"}, {"opcode": "PUSH1"}, {"opcode": "EQ"}, {"opcode": "PUSH1"}, {"opcode": "EQ"}], [1, 3]),
+]
+
+
+@pytest.mark.parametrize("pattern, instruction_list, expected_result", find_sequence_match_test_data)
+def test_find_op_code_sequence(pattern, instruction_list, expected_result):
+    # Act
+    return_value = list(find_op_code_sequence(pattern, instruction_list))
+
+    # Assert
+    assert return_value == expected_result
+
+
+def test_disassemble():
+    # Act
+    instruction_list = disassemble(b"\x00\x16\x06")
+
+    # Assert
+    assert instruction_list[0]["opcode"] == "STOP"
+    assert instruction_list[1]["opcode"] == "AND"
+    assert instruction_list[2]["opcode"] == "MOD"
