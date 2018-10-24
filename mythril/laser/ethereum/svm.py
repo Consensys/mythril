@@ -340,7 +340,9 @@ class LaserEVM:
         disassembly = environment.code
         if address in disassembly.address_to_function_name:
             # Enter a new function
-            environment.active_function_name = disassembly.address_to_function_name[address]
+            environment.active_function_name = disassembly.address_to_function_name[
+                address
+            ]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
             logging.debug(

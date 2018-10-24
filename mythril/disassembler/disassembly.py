@@ -13,7 +13,8 @@ class Disassembly(object):
      - function name to entry point mapping
      - function entry point to function name mapping
     """
-    def __init__(self, code: str, enable_online_lookup: bool=False):
+
+    def __init__(self, code: str, enable_online_lookup: bool = False):
         self.bytecode = code
         self.instruction_list = asm.disassemble(util.safe_decode(code))
 
@@ -52,7 +53,9 @@ class Disassembly(object):
         return asm.instruction_list_to_easm(self.instruction_list)
 
 
-def get_function_info(index: int, instruction_list: list, signature_database: SignatureDb) -> (str, int, str):
+def get_function_info(
+    index: int, instruction_list: list, signature_database: SignatureDb
+) -> (str, int, str):
     """
     Finds the function information for a call table entry
     Solidity uses the first 4 bytes of the calldata to indicate which function the message call should execute
@@ -77,9 +80,7 @@ def get_function_info(index: int, instruction_list: list, signature_database: Si
     function_names = signature_database.get(function_hash)
     if len(function_names) > 1:
         # In this case there was an ambiguous result
-        function_name = (
-            "**ambiguous** {}".format(function_names[0])
-        )
+        function_name = "**ambiguous** {}".format(function_names[0])
     elif len(function_names) == 1:
         function_name = function_names[0]
     else:
