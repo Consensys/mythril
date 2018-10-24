@@ -2,8 +2,8 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
+import sha3
 import hashlib
-
 
 class Issue:
     def __init__(
@@ -32,9 +32,9 @@ class Issue:
         self.lineno = None
 
         try:
-            s = hashlib.sha3_256()
-            s.update(bytes.fromhex(bytecode))
-            self.bytecode_hash = "0x" + s.hexdigest()
+            keccak = sha3.keccak_256()
+            keccak.update(bytes.fromhex(bytecode))
+            self.bytecode_hash = "0x" + keccak.hexdigest()
         except ValueError:
             logging.debug("Unable to change the bytecode to bytes. Bytecode: {}".format(bytecode))
             self.bytecode_hash = ""
