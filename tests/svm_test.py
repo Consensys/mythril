@@ -21,7 +21,7 @@ def _all_info(laser):
     for address, _account in laser.world_state.accounts.items():
         account = _account.as_dict
         account["code"] = account["code"].instruction_list
-        account['balance'] = str(account['balance'])
+        account["balance"] = str(account["balance"])
         accounts[address] = account
 
     nodes = {}
@@ -33,35 +33,36 @@ def _all_info(laser):
             elif isinstance(state, GlobalState):
                 environment = state.environment.as_dict
                 environment["active_account"] = environment["active_account"].address
-                states.append({
-                    'accounts': state.accounts.keys(),
-                    'environment': environment,
-                    'mstate': state.mstate.as_dict
-                })
+                states.append(
+                    {
+                        "accounts": state.accounts.keys(),
+                        "environment": environment,
+                        "mstate": state.mstate.as_dict,
+                    }
+                )
 
         nodes[uid] = {
-            'uid': node.uid,
-            'contract_name': node.contract_name,
-            'start_addr': node.start_addr,
-            'states': states,
-            'constraints': node.constraints,
-            'function_name': node.function_name,
-            'flags': str(node.flags)
+            "uid": node.uid,
+            "contract_name": node.contract_name,
+            "start_addr": node.start_addr,
+            "states": states,
+            "constraints": node.constraints,
+            "function_name": node.function_name,
+            "flags": str(node.flags),
         }
 
     edges = [edge.as_dict for edge in laser.edges]
 
     return {
-        'accounts': accounts,
-        'nodes': nodes,
-        'edges': edges,
-        'total_states': laser.total_states,
-        'max_depth': laser.max_depth
+        "accounts": accounts,
+        "nodes": nodes,
+        "edges": edges,
+        "total_states": laser.total_states,
+        "max_depth": laser.max_depth,
     }
 
 
 class SVMTestCase(BaseTestCase):
-
     def setUp(self):
         super(SVMTestCase, self).setUp()
         svm.gbl_next_uid = 0
@@ -70,8 +71,12 @@ class SVMTestCase(BaseTestCase):
         for input_file in TESTDATA_INPUTS_CONTRACTS.iterdir():
             if input_file.name == "weak_random.sol":
                 continue
-            output_expected = TESTDATA_OUTPUTS_EXPECTED_LASER_RESULT / (input_file.name + ".json")
-            output_current = TESTDATA_OUTPUTS_CURRENT_LASER_RESULT / (input_file.name + ".json")
+            output_expected = TESTDATA_OUTPUTS_EXPECTED_LASER_RESULT / (
+                input_file.name + ".json"
+            )
+            output_current = TESTDATA_OUTPUTS_CURRENT_LASER_RESULT / (
+                input_file.name + ".json"
+            )
 
             disassembly = SolidityContract(str(input_file)).disassembly
             account = Account("0x0000000000000000000000000000000000000000", disassembly)
@@ -81,7 +86,9 @@ class SVMTestCase(BaseTestCase):
             laser.sym_exec(account.address)
             laser_info = _all_info(laser)
 
-            output_current.write_text(json.dumps(laser_info, cls=LaserEncoder, indent=4))
+            output_current.write_text(
+                json.dumps(laser_info, cls=LaserEncoder, indent=4)
+            )
 
             if not (output_expected.read_text() == output_expected.read_text()):
                 self.found_changed_files(input_file, output_expected, output_current)
