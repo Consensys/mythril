@@ -79,4 +79,4 @@ def native_contracts(address, data):
     """
 
     functions = (ecrecover, sha256, ripemd160, identity)
-    return functions[address - 1](data)
+    return functions[address - 1](data.starting_calldata)

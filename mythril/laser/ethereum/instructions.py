@@ -37,12 +37,13 @@ from mythril.laser.ethereum.evm_exceptions import (
     InvalidInstruction,
 )
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state import GlobalState, CalldataType
+from mythril.laser.ethereum.state import GlobalState, CalldataType, Calldata
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
     TransactionStartSignal,
     ContractCreationTransaction,
 )
+from mythril.analysis.solver import get_model
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -158,7 +159,6 @@ class Instruction:
             op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
         if type(op2) == BoolRef:
             op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
-
         stack.append(op1 & op2)
 
         return [global_state]
@@ -310,8 +310,8 @@ class Instruction:
     @StateTransition()
     def exp_(self, global_state):
         state = global_state.mstate
-
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
+
         if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
             state.stack.append(
                 global_state.new_bitvec(
@@ -419,89 +419,14 @@ class Instruction:
         environment = global_state.environment
         op0 = state.stack.pop()
 
-        try:
-            offset = util.get_concrete_int(simplify(op0))
-            b = environment.calldata[offset]
-        except TypeError:
-            logging.debug("CALLDATALOAD: Unsupported symbolic index")
-            state.stack.append(
-                global_state.new_bitvec(
-                    "calldata_"
-                    + str(environment.active_account.contract_name)
-                    + "["
-                    + str(simplify(op0))
-                    + "]",
-                    256,
-                )
-            )
-            return [global_state]
-        except IndexError:
-            logging.debug("Calldata not set, using symbolic variable instead")
-            state.stack.append(
-                global_state.new_bitvec(
-                    "calldata_"
-                    + str(environment.active_account.contract_name)
-                    + "["
-                    + str(simplify(op0))
-                    + "]",
-                    256,
-                )
-            )
-            return [global_state]
-
-        if type(b) == int:
-
-            try:
-                val = b"".join(
-                    [
-                        calldata.to_bytes(1, byteorder="big")
-                        for calldata in environment.calldata[offset : offset + 32]
-                    ]
-                )
-
-                logging.debug(
-                    "Final value: " + str(int.from_bytes(val, byteorder="big"))
-                )
-                state.stack.append(BitVecVal(int.from_bytes(val, byteorder="big"), 256))
-
-            except (TypeError, AttributeError):
-                state.stack.append(
-                    global_state.new_bitvec(
-                        "calldata_"
-                        + str(environment.active_account.contract_name)
-                        + "["
-                        + str(simplify(op0))
-                        + "]",
-                        256,
-                    )
-                )
-        else:
-            # symbolic variable
-            state.stack.append(
-                global_state.new_bitvec(
-                    "calldata_"
-                    + str(environment.active_account.contract_name)
-                    + "["
-                    + str(simplify(op0))
-                    + "]",
-                    256,
-                )
-            )
-
+        state.stack.append(environment.calldata.get_word_at(op0))
         return [global_state]
 
     @StateTransition()
     def calldatasize_(self, global_state):
         state = global_state.mstate
         environment = global_state.environment
-        if environment.calldata_type == CalldataType.SYMBOLIC:
-            state.stack.append(
-                global_state.new_bitvec(
-                    "calldatasize_" + environment.active_account.contract_name, 256
-                )
-            )
-        else:
-            state.stack.append(BitVecVal(len(environment.calldata), 256))
+        state.stack.append(environment.calldata.calldatasize)
         return [global_state]
 
     @StateTransition()
@@ -532,7 +457,7 @@ class Instruction:
             size = simplify(op2)
             size_sym = True
 
-        if dstart_sym or size_sym:
+        if size_sym:
             state.mem_extend(mstart, 1)
             state.memory[mstart] = global_state.new_bitvec(
                 "calldata_"
@@ -570,11 +495,17 @@ class Instruction:
                 return [global_state]
 
             try:
-                i_data = environment.calldata[dstart]
+                i_data = dstart
 
-                for i in range(mstart, mstart + size):
-                    state.memory[i] = environment.calldata[i_data]
-                    i_data += 1
+                new_memory = []
+                for i in range(size):
+                    new_memory.append(environment.calldata[i_data])
+                    i_data = (
+                        i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
+                    )
+
+                for i in range(0, len(new_memory), 32):
+                    state.memory[i + mstart] = simplify(Concat(new_memory[i : i + 32]))
             except IndexError:
                 logging.debug("Exception copying calldata to memory")
 

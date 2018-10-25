@@ -10,6 +10,7 @@ from mythril.laser.ethereum.state import (
     CalldataType,
     Account,
     WorldState,
+    Calldata,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
@@ -31,12 +32,13 @@ def execute_message_call(
     del laser_evm.open_states[:]
 
     for open_world_state in open_states:
+        next_transaction_id = get_next_transaction_id()
         transaction = MessageCallTransaction(
-            identifier=get_next_transaction_id(),
+            identifier=next_transaction_id,
             world_state=open_world_state,
             callee_account=open_world_state[callee_address],
             caller=caller_address,
-            call_data=data,
+            call_data=Calldata(next_transaction_id, data),
             gas_price=gas_price,
             call_value=value,
             origin=origin_address,

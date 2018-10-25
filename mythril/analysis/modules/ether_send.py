@@ -137,13 +137,10 @@ def execute(statespace):
                 try:
                     model = solver.get_model(node.constraints)
 
-                    for decl in model.decls():
-                        logging.debug(
-                            "[ETHER_SEND] main model: %s = 0x%x"
-                            % (decl.name(), model[decl].as_long())
-                        )
+                    pretty_model = solver.pretty_print_model(model)
+                    logging.debug("[ETHER_SEND]\n" + pretty_model)
 
-                    debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
+                    debug = "SOLVER OUTPUT:\n" + pretty_model
 
                     issue = Issue(
                         contract=call.node.contract_name,
