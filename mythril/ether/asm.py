@@ -70,17 +70,17 @@ def find_opcode_sequence(pattern, instruction_list):
 
     for i in range(0, len(instruction_list) - pattern_length + 1):
 
-        if instruction_list[i]['opcode'] == pattern[0]:
+        if instruction_list[i]['opcode'] in pattern[0]:
 
             matched = True
 
             for j in range(1, len(pattern)):
 
-                if not (instruction_list[i + j]['opcode'] == pattern[j]):
+                if not (instruction_list[i + j]['opcode'] in pattern[j]):
                     matched = False
                     break
 
-            if (matched):
+            if matched:
                 match_indexes.append(i)
 
     return match_indexes
@@ -102,7 +102,7 @@ def disassemble(bytecode):
         instruction = {'address': addr}
 
         try:
-            if (sys.version_info > (3, 0)):
+            if sys.version_info > (3, 0):
                 opcode = opcodes[bytecode[addr]]
             else:
                 opcode = opcodes[ord(bytecode[addr])]

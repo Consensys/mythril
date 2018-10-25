@@ -82,6 +82,7 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
     install_requires=[
+        'coloredlogs>=10.0',
         'ethereum>=2.3.2',
         'z3-solver>=4.5',
         'requests',
@@ -103,7 +104,8 @@ setup(
         'py-flags',
         'mock',
         'configparser>=3.5.0',
-        'persistent>=4.2.0'
+        'persistent>=4.2.0',
+        'ethereum-input-decoder>=0.2.2'
     ],
 
     tests_require=[

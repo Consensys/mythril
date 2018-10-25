@@ -10,13 +10,15 @@ TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
 
 
+
+
 def sha3(seed):
     return _sha3.keccak_256(bytes(seed)).digest()
 
 
 def safe_decode(hex_encoded_string):
 
-    if (hex_encoded_string.startswith("0x")):
+    if hex_encoded_string.startswith("0x"):
         return bytes.fromhex(hex_encoded_string[2:])
     else:
         return bytes.fromhex(hex_encoded_string)
@@ -80,9 +82,12 @@ def get_concrete_int(item):
         elif is_true(simplified):
             return 1
         else:
-            raise ValueError("Symbolic boolref encountered")
+            raise TypeError("Symbolic boolref encountered")
 
-    return simplify(item).as_long()
+    try:
+        return simplify(item).as_long()
+    except AttributeError:
+        raise TypeError("Got a symbolic BitVecRef")
 
 
 def concrete_int_from_bytes(_bytes, start_index):
@@ -99,7 +104,7 @@ def concrete_int_to_bytes(val):
 
     # logging.debug("concrete_int_to_bytes " + str(val))
 
-    if (type(val) == int):
+    if type(val) == int:
         return val.to_bytes(32, byteorder='big')
 
     return (simplify(val).as_long()).to_bytes(32, byteorder='big')

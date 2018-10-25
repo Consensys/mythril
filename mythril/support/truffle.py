@@ -40,7 +40,7 @@ def analyze_truffle_project(sigs, args):
             if len(bytecode) < 4:
                 continue
 
-            sigs.import_from_solidity_source(contractdata['sourcePath'])
+            sigs.import_from_solidity_source(contractdata['sourcePath'], solc_args=args.solc_args)
             sigs.write()
 
             ethcontract = ETHContract(bytecode, name=name)

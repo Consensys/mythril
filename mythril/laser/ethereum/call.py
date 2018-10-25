@@ -48,8 +48,8 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
 
     try:
         callee_address = hex(util.get_concrete_int(symbolic_to_address))
-    except AttributeError:
-        logging.info("Symbolic call encountered")
+    except TypeError:
+        logging.debug("Symbolic call encountered")
 
         match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
         logging.debug("CALL to: " + str(simplify(symbolic_to_address)))
@@ -58,11 +58,12 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
             raise ValueError()
 
         index = int(match.group(1))
-        logging.info("Dynamic contract address at storage index {}".format(index))
+        logging.debug("Dynamic contract address at storage index {}".format(index))
 
         # attempt to read the contract address from instance storage
         try:
             callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
+        # TODO: verify whether this happens or not
         except:
             logging.debug("Error accessing contract storage.")
             raise ValueError
@@ -89,28 +90,27 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
         return global_state.accounts[callee_address]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
-        logging.info("Module with address " + callee_address + " not loaded.")
+        logging.debug("Module with address " + callee_address + " not loaded.")
 
     if dynamic_loader is None:
         raise ValueError()
 
-    logging.info("Attempting to load dependency")
+    logging.debug("Attempting to load dependency")
 
     try:
         code = dynamic_loader.dynld(environment.active_account.address, callee_address)
-    except Exception as e:
-        logging.info("Unable to execute dynamic loader.")
+    except Exception:
+        logging.debug("Unable to execute dynamic loader.")
         raise ValueError()
     if code is None:
-        logging.info("No code returned, not a contract account?")
+        logging.debug("No code returned, not a contract account?")
         raise ValueError()
-    logging.info("Dependency loaded: " + callee_address)
+    logging.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(callee_address, code, callee_address, dynamic_loader=dynamic_loader)
     accounts[callee_address] = callee_account
 
     return callee_account
-
 
 
 def get_call_data(global_state, memory_start, memory_size, pad=True):
@@ -145,7 +145,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
         )
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
-    except AttributeError:
+    except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = Calldata('{}_internalcall'.format(transaction_id))

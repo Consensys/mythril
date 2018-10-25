@@ -4,23 +4,27 @@ from mythril.ether.soliditycontract import SolidityContract
 import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType
-from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, BreadthFirstSearchStrategy
+from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, BreadthFirstSearchStrategy, \
+    ReturnRandomNaivelyStrategy, ReturnWeightedRandomStrategy
 
 
 class SymExecWrapper:
 
-    '''
+    """
     Wrapper class for the LASER Symbolic virtual machine. Symbolically executes the code and does a bit of pre-analysis for convenience.
-    '''
+    """
 
     def __init__(self, contract, address, strategy, dynloader=None, max_depth=22,
-                 execution_timeout=None, create_timeout=None):
+                 execution_timeout=None, create_timeout=None, max_transaction_count=3):
 
-        s_strategy = None
         if strategy == 'dfs':
             s_strategy = DepthFirstSearchStrategy
         elif strategy == 'bfs':
             s_strategy = BreadthFirstSearchStrategy
+        elif strategy == 'naive-random':
+            s_strategy = ReturnRandomNaivelyStrategy
+        elif strategy == 'weighted-random':
+            s_strategy = ReturnWeightedRandomStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
 
@@ -30,7 +34,8 @@ class SymExecWrapper:
 
         self.laser = svm.LaserEVM(self.accounts, dynamic_loader=dynloader, max_depth=max_depth,
                                   execution_timeout=execution_timeout, strategy=s_strategy,
-                                  create_timeout=create_timeout)
+                                  create_timeout=create_timeout,
+                                  max_transaction_count=max_transaction_count)
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(creation_code=contract.creation_code, contract_name=contract.name)
@@ -67,7 +72,7 @@ class SymExecWrapper:
                                 # ignore prebuilts
                                 continue
 
-                        if (meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE):
+                        if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:
                             self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value, state.mstate.memory[meminstart.val:meminsz.val * 4]))
                         else:
                             self.calls.append(Call(self.nodes[key], state, state_index, op, to, gas, value))
@@ -105,7 +110,7 @@ class SymExecWrapper:
                 taint = True
 
                 for constraint in s.node.constraints:
-                    if ("caller" in str(constraint)):
+                    if "caller" in str(constraint):
                         taint = False
                         break
 
