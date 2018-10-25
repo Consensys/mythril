@@ -4,11 +4,12 @@ from z3 import Solver, simplify
 from z3.z3types import Z3Exception
 
 
-
 uninitialized_test_data = [
-    ([]), # Empty concrete calldata
-    ([1,4,5,3,4,72,230,53]) # Concrete calldata
+    ([]),  # Empty concrete calldata
+    ([1, 4, 5, 3, 4, 72, 230, 53]),  # Concrete calldata
 ]
+
+
 @pytest.mark.parametrize("starting_calldata", uninitialized_test_data)
 def test_concrete_calldata_uninitialized_index(starting_calldata):
     # Arrange
@@ -30,9 +31,10 @@ def test_concrete_calldata_uninitialized_index(starting_calldata):
     assert value == 0
     assert value2 == 0
 
+
 def test_concrete_calldata_calldatasize():
     # Arrange
-    calldata = Calldata(0, [1,4,7,3,7,2,9])
+    calldata = Calldata(0, [1, 4, 7, 3, 7, 2, 9])
     solver = Solver()
 
     # Act
@@ -67,9 +69,10 @@ def test_symbolic_calldata_constrain_index():
     assert value == 50
     assert simplify(calldatasize >= 100)
 
+
 def test_concrete_calldata_constrain_index():
     # Arrange
-    calldata = Calldata(0, [1,4,7,3,7,2,9])
+    calldata = Calldata(0, [1, 4, 7, 3, 7, 2, 9])
     solver = Solver()
 
     # Act
@@ -79,7 +82,8 @@ def test_concrete_calldata_constrain_index():
     result = solver.check()
 
     # Assert
-    assert str(result) == 'unsat'
+    assert str(result) == "unsat"
+
 
 def test_concrete_calldata_constrain_index():
     # Arrange
@@ -95,4 +99,4 @@ def test_concrete_calldata_constrain_index():
     result = solver.check()
 
     # Assert
-    assert str(result) == 'unsat'
+    assert str(result) == "unsat"

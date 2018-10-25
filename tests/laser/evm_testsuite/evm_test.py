@@ -93,9 +93,9 @@ def test_vmtest(
 
         for index, value in details["storage"].items():
             expected = int(value, 16)
-            if type(account.storage[int(index,16)]) != int:
-                actual = model.eval(account.storage[int(index,16)])
+            if type(account.storage[int(index, 16)]) != int:
+                actual = model.eval(account.storage[int(index, 16)])
                 actual = 1 if actual == True else 0 if actual == False else actual
             else:
-                actual = account.storage[int(index,16)]
+                actual = account.storage[int(index, 16)]
             assert actual == expected
