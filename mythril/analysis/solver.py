@@ -24,7 +24,7 @@ def pretty_print_model(model):
     for d in model.decls():
         if type(model[d]) == FuncInterp:
             condition = model[d].as_list()
-            ret += ("%s: %s\n" % (d.name(), condition))
+            ret += "%s: %s\n" % (d.name(), condition)
             continue
 
         try:

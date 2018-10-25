@@ -31,18 +31,19 @@ class TransactionStartSignal(Exception):
 
 class MessageCallTransaction:
     """ Transaction object models an transaction"""
+
     def __init__(
         self,
-         world_state,
-         callee_account,
-         caller,
-         call_data=None,
-         identifier=None,
-         gas_price=None,
-         call_value=None,
-         origin=None,
-         call_data_type=None,
-         code=None
+        world_state,
+        callee_account,
+        caller,
+        call_data=None,
+        identifier=None,
+        gas_price=None,
+        call_value=None,
+        origin=None,
+        call_data_type=None,
+        code=None,
     ):
         assert isinstance(world_state, WorldState)
         self.id = identifier or get_next_transaction_id()
@@ -90,7 +91,9 @@ class MessageCallTransaction:
 
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = "fallback"
-        global_state.mstate.constraints.extend(global_state.environment.calldata.constraints)
+        global_state.mstate.constraints.extend(
+            global_state.environment.calldata.constraints
+        )
 
         return global_state
 
@@ -101,6 +104,7 @@ class MessageCallTransaction:
 
 class ContractCreationTransaction:
     """ Transaction object models an transaction"""
+
     def __init__(
         self,
         world_state,
@@ -145,7 +149,11 @@ class ContractCreationTransaction:
             else call_data_type
         )
 
-        self.call_data = Calldata(self.id, call_data) if not isinstance(call_data, Calldata) else call_data
+        self.call_data = (
+            Calldata(self.id, call_data)
+            if not isinstance(call_data, Calldata)
+            else call_data
+        )
         self.origin = origin
         self.code = code
         self.return_data = None

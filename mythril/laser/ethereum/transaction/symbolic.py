@@ -10,6 +10,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     get_next_transaction_id,
 )
 
+
 def execute_message_call(laser_evm, callee_address):
     """ Executes a message call transaction from all open states """
     open_states = laser_evm.open_states[:]

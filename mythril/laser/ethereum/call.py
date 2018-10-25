@@ -147,11 +147,15 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
     state = global_state.mstate
-    transaction_id = '{}_internalcall'.format(global_state.current_transaction.id)
+    transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
-        calldata_from_mem = state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
+        calldata_from_mem = state.memory[
+            util.get_concrete_int(memory_start) : util.get_concrete_int(
+                memory_start + memory_size
+            )
+        ]
         i = 0
         starting_calldata = []
         while i < len(calldata_from_mem):
@@ -159,20 +163,17 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
             if isinstance(elem, int):
                 starting_calldata.append(elem)
                 i += 1
-            else: #BitVec
+            else:  # BitVec
                 for j in range(0, elem.size(), 8):
-                    starting_calldata.append(Extract(j+7, j, elem))
+                    starting_calldata.append(Extract(j + 7, j, elem))
                     i += 1
 
-        call_data = Calldata(
-            transaction_id,
-            starting_calldata
-        )
+        call_data = Calldata(transaction_id, starting_calldata)
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
-        call_data = Calldata('{}_internalcall'.format(transaction_id))
+        call_data = Calldata("{}_internalcall".format(transaction_id))
 
     return call_data, call_data_type

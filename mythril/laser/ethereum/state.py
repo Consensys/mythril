@@ -1,4 +1,20 @@
-from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, BitVecSort, Solver, ExprRef, Concat, sat, simplify, Array, ForAll, Solver, UGT, Implies
+from z3 import (
+    BitVec,
+    BitVecVal,
+    BitVecRef,
+    BitVecNumRef,
+    BitVecSort,
+    Solver,
+    ExprRef,
+    Concat,
+    sat,
+    simplify,
+    Array,
+    ForAll,
+    Solver,
+    UGT,
+    Implies,
+)
 from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
@@ -11,9 +27,11 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackUnderflowException,
 )
 
+
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
+
 
 class Calldata:
     """
@@ -32,8 +50,10 @@ class Calldata:
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
             self.concrete = True
         else:
-            self._calldata = Array('{}_calldata'.format(self.tx_id), BitVecSort(256), BitVecSort(8))
-            self.calldatasize = BitVec('{}_calldatasize'.format(self.tx_id), 256)
+            self._calldata = Array(
+                "{}_calldata".format(self.tx_id), BitVecSort(256), BitVecSort(8)
+            )
+            self.calldatasize = BitVec("{}_calldatasize".format(self.tx_id), 256)
             self.concrete = False
 
         self.starting_calldata = starting_calldata or []
@@ -50,25 +70,33 @@ class Calldata:
                     self._calldata.append(calldata_byte)
             constraints.append(self.calldatasize == len(self.starting_calldata))
         else:
-            x = BitVec('x', 256)
-            constraints.append(ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x))))
+            x = BitVec("x", 256)
+            constraints.append(
+                ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
+            )
 
         return constraints
 
     def concretized(self, model):
         result = []
-        for i in range(get_concrete_int(model.eval(self.calldatasize, model_completion=True))):
+        for i in range(
+            get_concrete_int(model.eval(self.calldatasize, model_completion=True))
+        ):
             result.append(get_concrete_int(model.eval(self[i], model_completion=True)))
 
         return result
 
     def get_word_at(self, index: int):
-        return self[index:index+32]
+        return self[index : index + 32]
 
     def __getitem__(self, item):
         if isinstance(item, slice):
             try:
-                current_index = item.start if isinstance(item.start, BitVecRef) else BitVecVal(item.start, 256)
+                current_index = (
+                    item.start
+                    if isinstance(item.start, BitVecRef)
+                    else BitVecVal(item.start, 256)
+                )
                 dataparts = []
                 while simplify(current_index != item.stop):
                     dataparts.append(self[current_index])
@@ -85,6 +113,7 @@ class Calldata:
                 return BitVecVal(0, 8)
         else:
             return self._calldata[item]
+
 
 class Storage:
     """

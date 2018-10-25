@@ -10,7 +10,7 @@ from mythril.laser.ethereum.state import (
     CalldataType,
     Account,
     WorldState,
-    Calldata
+    Calldata,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
