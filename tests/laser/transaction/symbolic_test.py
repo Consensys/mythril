@@ -77,14 +77,18 @@ def test_calldata_constraints_in_transaction():
     laser_evm = LaserEVM({})
     world_state = WorldState()
 
+    correct_constraints = [MagicMock(), MagicMock(), MagicMock()]
+
     transaction = MessageCallTransaction(
         world_state, Account("ca11ee"), Account("ca114")
     )
+    transaction.call_data = MagicMock()
+    transaction.call_data.constraints = correct_constraints
 
     # Act
     _setup_global_state_for_execution(laser_evm, transaction)
 
     # Assert
     state = laser_evm.work_list[0]
-    for constraint in state.environment.calldata.constraints:
-        assert constraint in state.mstate.constraints
+    for constraint in correct_constraints:
+        assert constraint in state.environment.calldata.constraints
