@@ -39,9 +39,7 @@ def _analyze_state(state, node):
     to = state.mstate.stack[-1]
 
     logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
-    description = (
-        "A reachable SUICIDE instruction was detected. "
-    )
+    description = "A reachable SUICIDE instruction was detected. "
 
     if "caller" in str(to):
         description += "The remaining Ether is sent to the caller's address.\n"

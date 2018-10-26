@@ -206,7 +206,9 @@ def _check_integer_underflow(statespace, state, node):
                     _type="Warning",
                 )
 
-                issue.description = "The substraction can result in an integer underflow.\n"
+                issue.description = (
+                    "The substraction can result in an integer underflow.\n"
+                )
 
                 issue.debug = solver.pretty_print_model(model)
                 issues.append(issue)
