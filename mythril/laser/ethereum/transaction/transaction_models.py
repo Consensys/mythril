@@ -129,7 +129,7 @@ class ContractCreationTransaction:
 
     def end(self, global_state, return_data=None, revert=False):
 
-        if not all([isinstance(element, int) for element in return_data]):
+        if not all([isinstance(element, int) for element in return_data]) or len(return_data) == 0:
             self.return_data = None
             raise TransactionEndSignal(global_state)
 
@@ -137,6 +137,7 @@ class ContractCreationTransaction:
 
         global_state.environment.active_account.code = Disassembly(contract_code)
         self.return_data = global_state.environment.active_account.address
+        assert global_state.environment.active_account.code.instruction_list != []
 
         raise TransactionEndSignal(global_state, revert=revert)
 

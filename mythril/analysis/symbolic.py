@@ -4,7 +4,8 @@ from mythril.ether.soliditycontract import SolidityContract
 import copy
 import logging
 from .ops import get_variable, SStore, Call, VarType
-from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, BreadthFirstSearchStrategy
+from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy, BreadthFirstSearchStrategy, \
+    ReturnRandomNaivelyStrategy, ReturnWeightedRandomStrategy
 
 
 class SymExecWrapper:
@@ -16,11 +17,14 @@ class SymExecWrapper:
     def __init__(self, contract, address, strategy, dynloader=None, max_depth=22,
                  execution_timeout=None, create_timeout=None, max_transaction_count=3):
 
-        s_strategy = None
         if strategy == 'dfs':
             s_strategy = DepthFirstSearchStrategy
         elif strategy == 'bfs':
             s_strategy = BreadthFirstSearchStrategy
+        elif strategy == 'naive-random':
+            s_strategy = ReturnRandomNaivelyStrategy
+        elif strategy == 'weighted-random':
+            s_strategy = ReturnWeightedRandomStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
 

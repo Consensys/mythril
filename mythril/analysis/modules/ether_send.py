@@ -10,8 +10,7 @@ import logging
 MODULE DESCRIPTION:
 
 Check for CALLs that send >0 Ether to either the transaction sender, or to an address provided as a function argument.
-If msg.sender is checked against a value in storage, check whether that storage index is tainted (i.e. there's an unconstrained write
-to that index).
+Returns an issue if the state can be reached if msg.sender != creator.
 '''
 
 
@@ -26,8 +25,6 @@ def execute(state_space):
 
         for state in node.states:
             issues += _analyze_state(state, node)
-
-    return issues
 
 
 def _analyze_state(state, node):
@@ -54,11 +51,9 @@ def _analyze_state(state, node):
 
         issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
                       swc_id=UNPROTECTED_ETHER_WITHDRAWAL, title="Ether send", _type="Warning",
-                      description="It seems that an attacker is able to execute an call instruction,"
-                                  " this can mean that the attacker is able to extract funds "
-                                  "out of the contract.".format(target), debug=debug)
+                      description="Ether can be extracted from the contract by addresses other than the contract creator.".format(target), debug=debug)
         issues.append(issue)
     except UnsatError:
-        logging.debug("[UNCHECKED_SUICIDE] no model found")
+        logging.debug("[UNCHECKED_ETHER] no model found")
 
     return issues
