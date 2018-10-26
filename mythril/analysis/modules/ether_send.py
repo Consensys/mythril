@@ -25,6 +25,8 @@ def execute(state_space):
 
         for state in node.states:
             issues += _analyze_state(state, node)
+            
+        return issues
 
 
 def _analyze_state(state, node):
