@@ -73,8 +73,6 @@ class Calldata:
             constraints.append(
                 ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
             )
-            #  10000 > calldatasize, prevents impossibly large calldatasizes
-            constraints.append(UGT(10000, self.calldatasize))
         return constraints
 
     def concretized(self, model):
