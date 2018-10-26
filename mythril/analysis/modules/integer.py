@@ -98,12 +98,8 @@ def _check_integer_overflow(statespace, state, node):
         _type="Warning",
     )
 
-    issue.description = (
-        "A possible integer overflow exists in the function `{}`.\n"
-        "The addition or multiplication may result in a value higher than the maximum representable integer.".format(
-            node.function_name
-        )
-    )
+    issue.description = "The arithmetic operation can result in integer overflow.\n"
+
     issue.debug = solver.pretty_print_model(model)
     issues.append(issue)
 
@@ -210,12 +206,7 @@ def _check_integer_underflow(statespace, state, node):
                     _type="Warning",
                 )
 
-                issue.description = (
-                    "A possible integer underflow exists in the function `"
-                    + node.function_name
-                    + "`.\n"
-                    "The subtraction may result in a value < 0."
-                )
+                issue.description = "The substraction can result in an integer underflow.\n"
 
                 issue.debug = solver.pretty_print_model(model)
                 issues.append(issue)
