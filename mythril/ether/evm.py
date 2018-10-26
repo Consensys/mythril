@@ -8,7 +8,12 @@ import re
 
 
 def trace(code, calldata=""):
-    log_handlers = ['eth.vm.op', 'eth.vm.op.stack', 'eth.vm.op.memory', 'eth.vm.op.storage']
+    log_handlers = [
+        "eth.vm.op",
+        "eth.vm.op.stack",
+        "eth.vm.op.memory",
+        "eth.vm.op.storage",
+    ]
     output = StringIO()
     stream_handler = StreamHandler(output)
 
@@ -17,7 +22,7 @@ def trace(code, calldata=""):
         log_vm_op.setLevel("TRACE")
         log_vm_op.addHandler(stream_handler)
 
-    addr = bytes.fromhex('0123456789ABCDEF0123456789ABCDEF01234567')
+    addr = bytes.fromhex("0123456789ABCDEF0123456789ABCDEF01234567")
     state = State()
 
     ext = messages.VMExt(state, transactions.Transaction(0, 0, 21000, addr, 0, addr))
@@ -29,14 +34,14 @@ def trace(code, calldata=""):
 
     state_trace = []
     for line in lines:
-        m = re.search(r'pc=b\'(\d+)\'.*op=([A-Z0-9]+)', line)
+        m = re.search(r"pc=b\'(\d+)\'.*op=([A-Z0-9]+)", line)
         if m:
             pc = m.group(1)
             op = m.group(2)
-            m = re.match(r'.*stack=(\[.*?\])', line)
+            m = re.match(r".*stack=(\[.*?\])", line)
 
             if m:
-                stackitems = re.findall(r'b\'(\d+)\'', m.group(1))
+                stackitems = re.findall(r"b\'(\d+)\'", m.group(1))
                 stack = "["
 
                 if len(stackitems):
@@ -48,11 +53,13 @@ def trace(code, calldata=""):
             else:
                 stack = "[]"
 
-            if re.match(r'^PUSH.*', op):
-                val = re.search(r'pushvalue=(\d+)', line).group(1)
+            if re.match(r"^PUSH.*", op):
+                val = re.search(r"pushvalue=(\d+)", line).group(1)
                 pushvalue = hex(int(val))
-                state_trace.append({'pc': pc, 'op': op, 'stack': stack, 'pushvalue': pushvalue})
+                state_trace.append(
+                    {"pc": pc, "op": op, "stack": stack, "pushvalue": pushvalue}
+                )
             else:
-                state_trace.append({'pc': pc, 'op': op, 'stack': stack})
+                state_trace.append({"pc": pc, "op": op, "stack": stack})
 
     return state_trace

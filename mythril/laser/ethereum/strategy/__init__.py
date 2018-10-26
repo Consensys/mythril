@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class BasicSearchStrategy(ABC):
-    __slots__ = 'work_list', 'max_depth'
+    __slots__ = "work_list", "max_depth"
 
     def __init__(self, work_list, max_depth):
         self.work_list = work_list

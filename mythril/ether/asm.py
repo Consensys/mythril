@@ -4,11 +4,11 @@ from ethereum.opcodes import opcodes
 from mythril.ether import util
 
 
-regex_PUSH = re.compile('^PUSH(\d*)$')
+regex_PUSH = re.compile("^PUSH(\d*)$")
 
 # Additional mnemonic to catch failed assertions
 
-opcodes[254] = ['ASSERT_FAIL', 0, 0, 0]
+opcodes[254] = ["ASSERT_FAIL", 0, 0, 0]
 
 
 def instruction_list_to_easm(instruction_list):
@@ -16,10 +16,10 @@ def instruction_list_to_easm(instruction_list):
 
     for instruction in instruction_list:
 
-        easm += str(instruction['address']) + " " + instruction['opcode']
+        easm += str(instruction["address"]) + " " + instruction["opcode"]
 
-        if 'argument' in instruction:
-            easm += " " + instruction['argument']
+        if "argument" in instruction:
+            easm += " " + instruction["argument"]
 
         easm += "\n"
 
@@ -28,11 +28,11 @@ def instruction_list_to_easm(instruction_list):
 
 def easm_to_instruction_list(easm):
 
-    regex_CODELINE = re.compile('^([A-Z0-9]+)(?:\s+([0-9a-fA-Fx]+))?$')
+    regex_CODELINE = re.compile("^([A-Z0-9]+)(?:\s+([0-9a-fA-Fx]+))?$")
 
     instruction_list = []
 
-    codelines = easm.split('\n')
+    codelines = easm.split("\n")
 
     for line in codelines:
 
@@ -42,10 +42,10 @@ def easm_to_instruction_list(easm):
             # Invalid code line
             continue
 
-        instruction = {'opcode': m.group(1)}
+        instruction = {"opcode": m.group(1)}
 
         if m.group(2):
-            instruction['argument'] = m.group(2)[2:]
+            instruction["argument"] = m.group(2)[2:]
 
         instruction_list.append(instruction)
 
@@ -70,13 +70,13 @@ def find_opcode_sequence(pattern, instruction_list):
 
     for i in range(0, len(instruction_list) - pattern_length + 1):
 
-        if instruction_list[i]['opcode'] in pattern[0]:
+        if instruction_list[i]["opcode"] in pattern[0]:
 
             matched = True
 
             for j in range(1, len(pattern)):
 
-                if not (instruction_list[i + j]['opcode'] in pattern[j]):
+                if not (instruction_list[i + j]["opcode"] in pattern[j]):
                     matched = False
                     break
 
@@ -99,7 +99,7 @@ def disassemble(bytecode):
 
     while addr < length:
 
-        instruction = {'address': addr}
+        instruction = {"address": addr}
 
         try:
             if sys.version_info > (3, 0):
@@ -110,20 +110,19 @@ def disassemble(bytecode):
         except KeyError:
 
             # invalid opcode
-            instruction_list.append({'address': addr, 'opcode': "INVALID"})
+            instruction_list.append({"address": addr, "opcode": "INVALID"})
             addr += 1
             continue
 
-        instruction['opcode'] = opcode[0]
+        instruction["opcode"] = opcode[0]
 
         m = re.search(regex_PUSH, opcode[0])
 
         if m:
-            argument = bytecode[addr+1:addr+1+int(m.group(1))]
-            instruction['argument'] = "0x" + argument.hex()
+            argument = bytecode[addr + 1 : addr + 1 + int(m.group(1))]
+            instruction["argument"] = "0x" + argument.hex()
 
             addr += int(m.group(1))
-
 
         instruction_list.append(instruction)
 
@@ -139,14 +138,14 @@ def assemble(instruction_list):
     for instruction in instruction_list:
 
         try:
-            opcode = get_opcode_from_name(instruction['opcode'])
+            opcode = get_opcode_from_name(instruction["opcode"])
         except RuntimeError:
-            opcode = 0xbb
+            opcode = 0xBB
 
-        bytecode += opcode.to_bytes(1, byteorder='big')
+        bytecode += opcode.to_bytes(1, byteorder="big")
 
-        if 'argument' in instruction:
+        if "argument" in instruction:
 
-            bytecode += util.safe_decode(instruction['argument'])
+            bytecode += util.safe_decode(instruction["argument"])
 
     return bytecode

@@ -9,7 +9,6 @@ class VarType(Enum):
 
 
 class Variable:
-
     def __init__(self, val, _type):
         self.val = val
         self.type = _type
@@ -26,7 +25,6 @@ def get_variable(i):
 
 
 class Op:
-
     def __init__(self, node, state, state_index):
         self.node = node
         self.state = state
@@ -34,8 +32,17 @@ class Op:
 
 
 class Call(Op):
-
-    def __init__(self, node, state, state_index, _type, to, gas, value=Variable(0, VarType.CONCRETE), data=None):
+    def __init__(
+        self,
+        node,
+        state,
+        state_index,
+        _type,
+        to,
+        gas,
+        value=Variable(0, VarType.CONCRETE),
+        data=None,
+    ):
 
         super().__init__(node, state, state_index)
         self.to = to
@@ -46,7 +53,6 @@ class Call(Op):
 
 
 class SStore(Op):
-
     def __init__(self, node, state, state_index, value):
         super().__init__(node, state, state_index)
         self.value = value

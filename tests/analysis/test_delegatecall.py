@@ -1,4 +1,8 @@
-from mythril.analysis.modules.delegatecall import execute, _concrete_call, _symbolic_call
+from mythril.analysis.modules.delegatecall import (
+    execute,
+    _concrete_call,
+    _symbolic_call,
+)
 from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.ethereum.cfg import Node
@@ -32,11 +36,14 @@ def test_concrete_call():
     assert issue.contract == node.contract_name
     assert issue.function == node.function_name
     assert issue.title == "Call data forwarded with delegatecall()"
-    assert issue.type == 'Informational'
-    assert issue.description == "This contract forwards its call data via DELEGATECALL in its fallback function." \
-                                " This means that any function in the called contract can be executed." \
-                                " Note that the callee contract will have access to the storage of the " \
-                                "calling contract.\n DELEGATECALL target: 0x1"
+    assert issue.type == "Informational"
+    assert (
+        issue.description
+        == "This contract forwards its call data via DELEGATECALL in its fallback function."
+        " This means that any function in the called contract can be executed."
+        " Note that the callee contract will have access to the storage of the "
+        "calling contract.\n DELEGATECALL target: 0x1"
+    )
 
 
 def test_concrete_call_symbolic_to():
@@ -63,11 +70,14 @@ def test_concrete_call_symbolic_to():
     assert issue.contract == node.contract_name
     assert issue.function == node.function_name
     assert issue.title == "Call data forwarded with delegatecall()"
-    assert issue.type == 'Informational'
-    assert issue.description == "This contract forwards its call data via DELEGATECALL in its fallback function." \
-                                " This means that any function in the called contract can be executed." \
-                                " Note that the callee contract will have access to the storage of the " \
-                                "calling contract.\n DELEGATECALL target: calldata_3"
+    assert issue.type == "Informational"
+    assert (
+        issue.description
+        == "This contract forwards its call data via DELEGATECALL in its fallback function."
+        " This means that any function in the called contract can be executed."
+        " Note that the callee contract will have access to the storage of the "
+        "calling contract.\n DELEGATECALL target: calldata_3"
+    )
 
 
 def test_concrete_call_not_calldata():
@@ -92,7 +102,6 @@ def test_symbolic_call_storage_to(mocker):
     state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
-
     node = Node("example")
     node.contract_name = "the contract name"
     node.function_name = "the function name"
@@ -100,13 +109,11 @@ def test_symbolic_call_storage_to(mocker):
     to = Variable("storage_1", VarType.SYMBOLIC)
     call = Call(node, state, None, "Type: ", to, None)
 
-
     mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
     statespace = SymExecWrapper(1)
 
-    mocker.patch.object(statespace, 'find_storage_write')
+    mocker.patch.object(statespace, "find_storage_write")
     statespace.find_storage_write.return_value = "Function name"
-
 
     # act
     issues = _symbolic_call(call, state, address, statespace)
@@ -116,11 +123,14 @@ def test_symbolic_call_storage_to(mocker):
     assert issue.address == address
     assert issue.contract == node.contract_name
     assert issue.function == node.function_name
-    assert issue.title == 'Type:  to a user-supplied address'
-    assert issue.type == 'Informational'
-    assert issue.description == 'This contract delegates execution to a contract address in storage slot 1.' \
-                                ' This storage slot can be written to by calling the function `Function name`. ' \
-                                'Be aware that the called contract gets unrestricted access to this contract\'s state.'
+    assert issue.title == "Type:  to a user-supplied address"
+    assert issue.type == "Informational"
+    assert (
+        issue.description
+        == "This contract delegates execution to a contract address in storage slot 1."
+        " This storage slot can be written to by calling the function `Function name`. "
+        "Be aware that the called contract gets unrestricted access to this contract's state."
+    )
 
 
 def test_symbolic_call_calldata_to(mocker):
@@ -130,7 +140,6 @@ def test_symbolic_call_calldata_to(mocker):
     state = GlobalState(None, None, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
-
     node = Node("example")
     node.contract_name = "the contract name"
     node.function_name = "the function name"
@@ -138,13 +147,11 @@ def test_symbolic_call_calldata_to(mocker):
     to = Variable("calldata", VarType.SYMBOLIC)
     call = Call(node, state, None, "Type: ", to, None)
 
-
     mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
     statespace = SymExecWrapper(1)
 
-    mocker.patch.object(statespace, 'find_storage_write')
+    mocker.patch.object(statespace, "find_storage_write")
     statespace.find_storage_write.return_value = "Function name"
-
 
     # act
     issues = _symbolic_call(call, state, address, statespace)
@@ -154,29 +161,32 @@ def test_symbolic_call_calldata_to(mocker):
     assert issue.address == address
     assert issue.contract == node.contract_name
     assert issue.function == node.function_name
-    assert issue.title == 'Type:  to a user-supplied address'
-    assert issue.type == 'Informational'
-    assert issue.description == 'This contract delegates execution to a contract address obtained from calldata. ' \
-                                'Be aware that the called contract gets unrestricted access to this contract\'s state.'
+    assert issue.title == "Type:  to a user-supplied address"
+    assert issue.type == "Informational"
+    assert (
+        issue.description
+        == "This contract delegates execution to a contract address obtained from calldata. "
+        "Be aware that the called contract gets unrestricted access to this contract's state."
+    )
 
 
-@patch('mythril.laser.ethereum.state.GlobalState.get_current_instruction')
-@patch('mythril.analysis.modules.delegatecall._concrete_call')
-@patch('mythril.analysis.modules.delegatecall._symbolic_call')
+@patch("mythril.laser.ethereum.state.GlobalState.get_current_instruction")
+@patch("mythril.analysis.modules.delegatecall._concrete_call")
+@patch("mythril.analysis.modules.delegatecall._symbolic_call")
 def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     # arrange
     # sym_mock = mocker.patch.object(delegatecall, "_symbolic_call")
     # concrete_mock = mocker.patch.object(delegatecall, "_concrete_call")
     sym_mock.return_value = []
     concrete_mock.return_value = []
-    curr_instruction.return_value = {'address': '0x10'}
+    curr_instruction.return_value = {"address": "0x10"}
 
-    active_account = Account('0x10')
+    active_account = Account("0x10")
     environment = Environment(active_account, None, None, None, None, None)
     state = GlobalState(None, environment, Node)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
     state.mstate.stack = [1, 2, 3]
-    assert state.get_current_instruction() == {'address': '0x10'}
+    assert state.get_current_instruction() == {"address": "0x10"}
 
     node = Node("example")
     node.contract_name = "the contract name"
@@ -196,8 +206,8 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     assert sym_mock.call_count == 1
 
 
-@patch('mythril.analysis.modules.delegatecall._concrete_call')
-@patch('mythril.analysis.modules.delegatecall._symbolic_call')
+@patch("mythril.analysis.modules.delegatecall._concrete_call")
+@patch("mythril.analysis.modules.delegatecall._symbolic_call")
 def test_delegate_call_not_delegate(sym_mock, concrete_mock):
     # arrange
     # sym_mock = mocker.patch.object(delegatecall, "_symbolic_call")
@@ -223,8 +233,8 @@ def test_delegate_call_not_delegate(sym_mock, concrete_mock):
     assert sym_mock.call_count == 0
 
 
-@patch('mythril.analysis.modules.delegatecall._concrete_call')
-@patch('mythril.analysis.modules.delegatecall._symbolic_call')
+@patch("mythril.analysis.modules.delegatecall._concrete_call")
+@patch("mythril.analysis.modules.delegatecall._symbolic_call")
 def test_delegate_call_not_fallback(sym_mock, concrete_mock):
     # arrange
     # sym_mock = mocker.patch.object(delegatecall, "_symbolic_call")
