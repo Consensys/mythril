@@ -83,7 +83,13 @@ def test_vmtest(
         return
 
     world_state = laser_evm.open_states[0]
-    model = get_model(next(iter(laser_evm.nodes.values())).states[0].mstate.constraints)
+
+    node = next(iter(laser_evm.nodes.values()))
+    constraints = node.states[0].mstate.constraints
+    for constraint in node.states[0].environment.calldata.constraints:
+        assert constraint in constraints
+
+    model = get_model(constraints)
 
     for address, details in post_condition.items():
         account = world_state[address]
