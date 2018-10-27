@@ -32,7 +32,8 @@ def execute(statespace):
             )
 
             issue.description = (
-                "Multiple sends exist in one transaction. Try to isolate each external call into its own transaction,"
+                "Multiple sends are executed in a single transaction. "
+                "Try to isolate each external call into its own transaction," 
                 " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
             )
 
