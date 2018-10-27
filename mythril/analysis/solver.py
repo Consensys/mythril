@@ -80,7 +80,9 @@ def get_transaction_sequence(
             # Constrain callvalue
             max_calldatasize = 5000
             if max_calldatasize != None:
-                tx_constraints.append(UGE(max_calldatasize, transaction.call_data.calldatasize))
+                tx_constraints.append(
+                    UGE(max_calldatasize, transaction.call_data.calldatasize)
+                )
 
             txs[tx_id] = tx_template.copy()
 
@@ -93,7 +95,12 @@ def get_transaction_sequence(
         if not isinstance(transaction, ContractCreationTransaction):
             tx_id = str(transaction.id)
 
-            txs[tx_id]["calldata"] = '0x'+''.join([hex(b)[2:] if len(hex(b)) % 2 == 0 else '0'+hex(b)[2:] for b in transaction.call_data.concretized(model)])
+            txs[tx_id]["calldata"] = "0x" + "".join(
+                [
+                    hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
+                    for b in transaction.call_data.concretized(model)
+                ]
+            )
 
     for d in model.decls():
         name = d.name()
