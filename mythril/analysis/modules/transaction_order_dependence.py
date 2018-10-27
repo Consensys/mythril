@@ -7,12 +7,12 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
 from mythril.exceptions import UnsatError
 
-'''
+"""
 MODULE DESCRIPTION:
 This module finds the existance of transaction order dependence vulnerabilities.
 The following webpage contains an extensive description of the vulnerability: 
 https://consensys.github.io/smart-contract-best-practices/known_attacks/#transaction-ordering-dependence-tod-front-running
-'''
+"""
 
 
 def execute(statespace):
@@ -24,19 +24,30 @@ def execute(statespace):
     for call in statespace.calls:
         # Do analysis
         interesting_storages = list(_get_influencing_storages(call))
-        changing_sstores = list(_get_influencing_sstores(statespace, interesting_storages))
+        changing_sstores = list(
+            _get_influencing_sstores(statespace, interesting_storages)
+        )
 
         # Build issue if necessary
         if len(changing_sstores) > 0:
             node = call.node
             instruction = call.state.get_current_instruction()
-            issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
-                          title="Transaction order dependence", swc_id=TX_ORDER_DEPENDENCE, _type="Warning")
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=instruction["address"],
+                title="Transaction order dependence",
+                bytecode=call.state.environment.code.bytecode,
+                swc_id=TX_ORDER_DEPENDENCE,
+                _type="Warning",
+            )
 
-            issue.description = \
-                "A possible transaction order dependence vulnerability exists in function {}. The value or " \
-                "direction of the call statement is determined from a tainted storage location"\
-                .format(node.function_name)
+            issue.description = (
+                "A possible transaction order dependence vulnerability exists in function {}. The value or "
+                "direction of the call statement is determined from a tainted storage location".format(
+                    node.function_name
+                )
+            )
             issues.append(issue)
 
     return issues
@@ -65,7 +76,7 @@ def _get_storage_variable(storage, state):
     :param state: state to retrieve the variable from
     :return: z3 object representing storage
     """
-    index = int(re.search('[0-9]+', storage).group())
+    index = int(re.search("[0-9]+", storage).group())
     try:
         return state.environment.active_account.storage[index]
     except KeyError:
@@ -84,6 +95,7 @@ def _can_change(constraints, variable):
         return _try_constraints(constraints, [variable != initial_value]) is not None
     except AttributeError:
         return False
+
 
 def _get_influencing_storages(call):
     """ Examines a Call object and returns an iterator of all storages that influence the call value or direction"""
@@ -108,7 +120,7 @@ def _get_influencing_storages(call):
 
 def _get_influencing_sstores(statespace, interesting_storages):
     """ Gets sstore (state, node) tuples that write to interesting_storages"""
-    for sstore_state, node in _get_states_with_opcode(statespace, 'SSTORE'):
+    for sstore_state, node in _get_states_with_opcode(statespace, "SSTORE"):
         index, value = sstore_state.mstate.stack[-1], sstore_state.mstate.stack[-2]
         try:
             index = util.get_concrete_int(index)
