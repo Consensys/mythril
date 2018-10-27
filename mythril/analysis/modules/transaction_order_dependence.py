@@ -43,10 +43,8 @@ def execute(statespace):
             )
 
             issue.description = (
-                "A possible transaction order dependence vulnerability exists in function {}. The value or "
-                "direction of the call statement is determined from a tainted storage location".format(
-                    node.function_name
-                )
+                "Possible transaction order dependence vulnerability: The value or " 
+                "direction of the call statement is determined from a tainted storage location"
             )
             issues.append(issue)
 
