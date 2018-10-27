@@ -4,7 +4,7 @@
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
-- Function name: `callchecked()`
+- Function name: `_function_0x633ab5e0`
 - PC address: 196
 
 ### Description
@@ -15,7 +15,7 @@ This contract executes a message call to to another contract. Make sure that the
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
-- Function name: `callnotchecked()`
+- Function name: `_function_0xe3bea282`
 - PC address: 285
 
 ### Description
@@ -26,7 +26,7 @@ This contract executes a message call to to another contract. Make sure that the
 - SWC ID: 104
 - Type: Informational
 - Contract: Unknown
-- Function name: `callnotchecked()`
+- Function name: `_function_0xe3bea282`
 - PC address: 290
 
 ### Description

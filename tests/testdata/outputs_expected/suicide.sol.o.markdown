@@ -4,7 +4,7 @@
 - SWC ID: 106
 - Type: Warning
 - Contract: Unknown
-- Function name: `kill(address)`
+- Function name: `_function_0xcbf0b0c0`
 - PC address: 146
 
 ### Description
