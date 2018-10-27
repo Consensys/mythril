@@ -51,7 +51,7 @@ def main():
     inputs.add_argument('--bin-runtime', action='store_true', help='Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.')
 
     outputs = parser.add_argument_group('output formats')
-    outputs.add_argument('-o', '--outform', choices=['text', 'markdown', 'json'], default='text',
+    outputs.add_argument('-o', '--outform', choices=['text', 'markdown', 'json', 'swc-standard'], default='text',
                          help='report output format', metavar='<text/markdown/json>')
     outputs.add_argument('--verbose-report', action='store_true', help='Include debugging information in report')
 
@@ -71,8 +71,11 @@ def main():
     options = parser.add_argument_group('options')
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
+
+    options.add_argument('--strategy', choices=['dfs', 'bfs', 'naive-random', 'weighted-random'],
+                         default='dfs', help='Symbolic execution strategy')
     options.add_argument('--max-transaction-count', type=int, default=3, help='Maximum number of transactions issued by laser')
-    options.add_argument('--strategy', choices=['dfs', 'bfs'], default='dfs', help='Symbolic execution strategy')
+
     options.add_argument('--execution-timeout', type=int, default=600, help="The amount of seconds to spend on symbolic execution")
     options.add_argument('--create-timeout', type=int, default=10, help="The amount of seconds to spend on "
                                                                         "the initial contract creation")
@@ -231,6 +234,7 @@ def main():
                                              create_timeout=args.create_timeout,
                                              max_transaction_count=args.max_transaction_count)
                 outputs = {
+                    'swc-standard': report.as_swc_standard_format(),
                     'json': report.as_json(),
                     'text': report.as_text(),
                     'markdown': report.as_markdown()

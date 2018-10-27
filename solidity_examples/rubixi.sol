@@ -26,7 +26,7 @@ contract Rubixi {
         Participant[] private participants;
 
         //Fallback function
-        function() {
+        function() payable {
                 init();
         }
 
