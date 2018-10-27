@@ -39,14 +39,14 @@ def execute(statespace):
 
         interesting = False
 
-        description = "In the function `" + call.node.function_name + "` "
+        description = "A non-zero amount of Ether is sent to a user-supplied address."
 
         if re.search(r"caller", str(call.to)):
-            description += "a non-zero amount of Ether is sent to msg.sender.\n"
+            description += " The target address is msg.sender.\n"
             interesting = True
 
         elif re.search(r"calldata", str(call.to)):
-            description += "a non-zero amount of Ether is sent to an address taken from function arguments.\n"
+            description += " The target address is taken from function arguments.\n"
             interesting = True
 
         else:
@@ -56,7 +56,7 @@ def execute(statespace):
                 idx = m.group(1)
 
                 description += (
-                    "a non-zero amount of Ether is sent to an address taken from storage slot "
+                    " The target address is taken from storage slot "
                     + str(idx)
                     + ".\n"
                 )
