@@ -77,7 +77,7 @@ def get_transaction_sequence(
             if max_callvalue != None:
                 tx_constraints.append(UGE(max_callvalue, transaction.call_value))
 
-            # Constrain callvalue
+            # Constrain calldatasize
             max_calldatasize = 5000
             if max_calldatasize != None:
                 tx_constraints.append(
