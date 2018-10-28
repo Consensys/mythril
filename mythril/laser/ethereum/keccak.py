@@ -1,7 +1,6 @@
 from z3 import ExprRef, BitVecRef
 
 
-
 class KeccakFunctionManager:
     def __init__(self):
         self.keccak_expression_mapping = {}
