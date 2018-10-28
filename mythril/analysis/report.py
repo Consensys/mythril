@@ -1,17 +1,19 @@
-import hashlib
+import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-
+import sha3
+import hashlib
 
 class Issue:
     def __init__(
         self,
         contract,
-        function,
+        function_name,
         address,
         swc_id,
         title,
+        bytecode,
         _type="Informational",
         description="",
         debug="",
@@ -19,7 +21,7 @@ class Issue:
 
         self.title = title
         self.contract = contract
-        self.function = function
+        self.function = function_name
         self.address = address
         self.description = description
         self.type = _type
@@ -28,6 +30,14 @@ class Issue:
         self.filename = None
         self.code = None
         self.lineno = None
+
+        try:
+            keccak = sha3.keccak_256()
+            keccak.update(bytes.fromhex(bytecode))
+            self.bytecode_hash = "0x" + keccak.hexdigest()
+        except ValueError:
+            logging.debug("Unable to change the bytecode to bytes. Bytecode: {}".format(bytecode))
+            self.bytecode_hash = ""
 
     @property
     def as_dict(self):
@@ -90,6 +100,20 @@ class Report:
 
     def as_json(self):
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
+        return json.dumps(result, sort_keys=True)
+
+    def as_swc_standard_format(self):
+        """ Format defined for integration and correlation"""
+        result = {
+            "issues": [
+                {
+                    "swc-id": "SWC-{}".format(issue.swc_id),
+                    "bytecodeOffset": issue.address,
+                    "codeHash": issue.bytecode_hash,
+                }
+                for issue in self.issues.values()
+            ]
+        }
         return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):

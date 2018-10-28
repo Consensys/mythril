@@ -46,9 +46,10 @@ def _concrete_call(call, state, address, meminstart):
 
     issue = Issue(
         contract=call.node.contract_name,
-        function=call.node.function_name,
+        function_name=call.node.function_name,
         address=address,
         swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+        bytecode=state.environment.code.bytecode,
         title="Call data forwarded with delegatecall()",
         _type="Informational",
     )
@@ -68,9 +69,10 @@ def _concrete_call(call, state, address, meminstart):
 def _symbolic_call(call, state, address, statespace):
     issue = Issue(
         contract=call.node.contract_name,
-        function=call.node.function_name,
+        function_name=call.node.function_name,
         address=address,
         swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+        bytecode=state.environment.code.bytecode,
         title=call.type + " to a user-supplied address",
     )
 

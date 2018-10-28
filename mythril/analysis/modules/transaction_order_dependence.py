@@ -34,15 +34,16 @@ def execute(statespace):
             instruction = call.state.get_current_instruction()
             issue = Issue(
                 contract=node.contract_name,
-                function=node.function_name,
+                function_name=node.function_name,
                 address=instruction["address"],
                 title="Transaction order dependence",
+                bytecode=call.state.environment.code.bytecode,
                 swc_id=TX_ORDER_DEPENDENCE,
                 _type="Warning",
             )
 
             issue.description = (
-                "Possible transaction order dependence vulnerability: The value or "
+                "Possible transaction order dependence vulnerability: The value or " 
                 "direction of the call statement is determined from a tainted storage location"
             )
             issues.append(issue)

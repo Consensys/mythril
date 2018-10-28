@@ -91,9 +91,10 @@ def _check_integer_overflow(statespace, state, node):
     # Build issue
     issue = Issue(
         contract=node.contract_name,
-        function=node.function_name,
+        function_name=node.function_name,
         address=instruction["address"],
         swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
+        bytecode=state.environment.code.bytecode,
         title="Integer Overflow",
         _type="Warning",
     )
@@ -198,15 +199,16 @@ def _check_integer_underflow(statespace, state, node):
 
                 issue = Issue(
                     contract=node.contract_name,
-                    function=node.function_name,
+                    function_name=node.function_name,
                     address=instruction["address"],
                     swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
+                    bytecode=state.environment.code.bytecode,
                     title="Integer Underflow",
                     _type="Warning",
                 )
 
                 issue.description = (
-                    "The subtraction can result in an integer underflow.\n"
+                    "The substraction can result in an integer underflow.\n"
                 )
 
                 issue.debug = solver.pretty_print_model(model)

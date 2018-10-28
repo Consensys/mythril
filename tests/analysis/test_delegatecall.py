@@ -15,8 +15,11 @@ import pytest_mock
 def test_concrete_call():
     # arrange
     address = "0x10"
+    active_account = Account(address)
+    active_account.code = Disassembly("00")
+    environment = Environment(active_account, None, None, None, None, None)
 
-    state = GlobalState(None, None, None)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
     node = Node("example")
@@ -50,7 +53,10 @@ def test_concrete_call_symbolic_to():
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None, None)
+    active_account = Account(address)
+    active_account.code = Disassembly("00")
+    environment = Environment(active_account, None, None, None, None, None)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
     node = Node("example")
@@ -98,9 +104,11 @@ def test_symbolic_call_storage_to(mocker):
     address = "0x10"
 
     active_account = Account(address)
+    active_account.code = Disassembly("00")
     environment = Environment(active_account, None, None, None, None, None)
     state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
+
 
     node = Node("example")
     node.contract_name = "the contract name"
@@ -109,11 +117,13 @@ def test_symbolic_call_storage_to(mocker):
     to = Variable("storage_1", VarType.SYMBOLIC)
     call = Call(node, state, None, "Type: ", to, None)
 
+
     mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
     statespace = SymExecWrapper(1)
 
     mocker.patch.object(statespace, "find_storage_write")
     statespace.find_storage_write.return_value = "Function name"
+
 
     # act
     issues = _symbolic_call(call, state, address, statespace)
@@ -137,8 +147,12 @@ def test_symbolic_call_calldata_to(mocker):
     # arrange
     address = "0x10"
 
-    state = GlobalState(None, None, None)
+    active_account = Account(address)
+    active_account.code = Disassembly("00")
+    environment = Environment(active_account, None, None, None, None, None)
+    state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
+
 
     node = Node("example")
     node.contract_name = "the contract name"
@@ -147,11 +161,13 @@ def test_symbolic_call_calldata_to(mocker):
     to = Variable("calldata", VarType.SYMBOLIC)
     call = Call(node, state, None, "Type: ", to, None)
 
+
     mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
     statespace = SymExecWrapper(1)
 
-    mocker.patch.object(statespace, "find_storage_write")
+    mocker.patch.object(statespace, 'find_storage_write')
     statespace.find_storage_write.return_value = "Function name"
+
 
     # act
     issues = _symbolic_call(call, state, address, statespace)
@@ -182,6 +198,8 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     curr_instruction.return_value = {"address": "0x10"}
 
     active_account = Account("0x10")
+    active_account.code = Disassembly("00")
+
     environment = Environment(active_account, None, None, None, None, None)
     state = GlobalState(None, environment, Node)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]

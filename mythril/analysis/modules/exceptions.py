@@ -36,7 +36,7 @@ def execute(statespace):
                         "out-of-bounds array access, or assert violations. "
                     )
                     description += (
-                        "Note that explicit `assert()` should only be used to check invariants. "
+                        "Note that explicit `assert()` should only be used to check invariants. " 
                         "Use `require()` for regular input checking. "
                     )
 
@@ -49,12 +49,13 @@ def execute(statespace):
                     issues.append(
                         Issue(
                             contract=node.contract_name,
-                            function=node.function_name,
+                            function_name=node.function_name,
                             address=address,
                             swc_id=ASSERT_VIOLATION,
                             title="Exception state",
                             _type="Informational",
                             description=description,
+                            bytecode=state.environment.code.bytecode,
                             debug=debug,
                         )
                     )
