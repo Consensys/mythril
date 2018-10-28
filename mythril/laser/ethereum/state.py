@@ -61,7 +61,6 @@ class Calldata:
     @property
     def constraints(self):
         constraints = []
-
         if self.concrete:
             for calldata_byte in self.starting_calldata:
                 if type(calldata_byte) == int:
@@ -74,11 +73,11 @@ class Calldata:
             constraints.append(
                 ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
             )
-
         return constraints
 
     def concretized(self, model):
         result = []
+
         for i in range(
             get_concrete_int(model.eval(self.calldatasize, model_completion=True))
         ):

@@ -10,6 +10,9 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state import WorldState, Account
 import unittest.mock as mock
 from unittest.mock import MagicMock
+from mythril.laser.ethereum.transaction.symbolic import (
+    _setup_global_state_for_execution,
+)
 
 
 def _is_message_call(_, transaction):
@@ -67,3 +70,25 @@ def test_execute_contract_creation(mocked_setup: MagicMock):
     # laser_evm.exec.assert_called_once()
     assert laser_evm.exec.call_count == 1
     assert len(laser_evm.open_states) == 0
+
+
+def test_calldata_constraints_in_transaction():
+    # Arrange
+    laser_evm = LaserEVM({})
+    world_state = WorldState()
+
+    correct_constraints = [MagicMock(), MagicMock(), MagicMock()]
+
+    transaction = MessageCallTransaction(
+        world_state, Account("ca11ee"), Account("ca114")
+    )
+    transaction.call_data = MagicMock()
+    transaction.call_data.constraints = correct_constraints
+
+    # Act
+    _setup_global_state_for_execution(laser_evm, transaction)
+
+    # Assert
+    state = laser_evm.work_list[0]
+    for constraint in correct_constraints:
+        assert constraint in state.environment.calldata.constraints
