@@ -2,7 +2,7 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-import sha3
+import _pysha3 as sha3
 import hashlib
 
 class Issue:

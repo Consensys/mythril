@@ -23,7 +23,7 @@ class EvmInstruction:
         return result
 
 
-def instruction_list_to_easm(instruction_list: dict) -> str:
+def instruction_list_to_easm(instruction_list: list) -> str:
     result = ""
 
     for instruction in instruction_list:
