@@ -59,7 +59,7 @@ def test_execute_contract_creation(mocked_setup: MagicMock):
     mocked_setup.side_effect = _is_contract_creation
 
     # Act
-    new_account = execute_contract_creation(laser_evm, "606000")
+    execute_contract_creation(laser_evm, "606000")
 
     # Assert
     # mocked_setup.assert_called()

@@ -11,7 +11,6 @@ from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
 
-# todo: tintinweb - make this a normal requirement? (deps: eth-abi and requests, both already required by mythril)
 try:
     # load if available but do not fail
     import ethereum_input_decoder
@@ -54,7 +53,7 @@ except ImportError:
 
 
 class SignatureDb(object):
-    def __init__(self, enable_online_lookup=True):
+    def __init__(self, enable_online_lookup=False):
         """
         Constr
         :param enable_online_lookup: enable onlien signature hash lookup
@@ -191,9 +190,12 @@ class SignatureDb(object):
                     "online function signature lookup not available. will not try to lookup hash for the next 2 minutes. exception: %r"
                     % fbdole
                 )
+
+        if sighash not in self.signatures:
+            return []
         if type(self.signatures[sighash]) != list:
             return [self.signatures[sighash]]
-        return self.signatures[sighash]  # raise keyerror
+        return self.signatures[sighash]
 
     def __getitem__(self, item):
         """

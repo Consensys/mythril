@@ -96,6 +96,7 @@ setup(
         "mock",
         "configparser>=3.5.0",
         "persistent>=4.2.0",
+        "ethereum-input-decoder>=0.2.2",
     ],
     tests_require=["pytest>=3.6.0", "pytest_mock", "pytest-cov"],
     python_requires=">=3.5",

@@ -23,7 +23,7 @@ def _fix_debug_data(json_str):
 
 
 def _generate_report(input_file):
-    contract = ETHContract(input_file.read_text())
+    contract = ETHContract(input_file.read_text(), enable_online_lookup=False)
     sym = SymExecWrapper(
         contract,
         address=(util.get_indexed_address(0)),
@@ -43,7 +43,9 @@ def _generate_report(input_file):
 def reports():
     """ Fixture that analyses all reports"""
     pool = Pool(cpu_count())
-    input_files = sorted([f for f in TESTDATA_INPUTS.iterdir()])
+    input_files = sorted(
+        [f for f in TESTDATA_INPUTS.iterdir() if f.name != "environments.sol.o"]
+    )
     results = pool.map(_generate_report, input_files)
 
     return results

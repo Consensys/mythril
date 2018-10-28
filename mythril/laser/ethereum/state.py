@@ -1,10 +1,29 @@
-from z3 import BitVec, BitVecVal, BitVecRef, BitVecNumRef, Solver, ExprRef, sat
+from z3 import (
+    BitVec,
+    BitVecVal,
+    BitVecRef,
+    BitVecNumRef,
+    BitVecSort,
+    Solver,
+    ExprRef,
+    Concat,
+    sat,
+    simplify,
+    Array,
+    ForAll,
+    Solver,
+    UGT,
+    Implies,
+)
+from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 from typing import KeysView, Dict, List, Union, Any
+from mythril.laser.ethereum.util import get_concrete_int
+
 from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
@@ -14,6 +33,88 @@ from mythril.laser.ethereum.evm_exceptions import (
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
+
+
+class Calldata:
+    """
+    Calldata class representing the calldata of a transaction
+    """
+
+    def __init__(self, tx_id, starting_calldata=None):
+        """
+        Constructor for Calldata
+        :param tx_id: unique value representing the transaction the calldata is for
+        :param starting_calldata: byte array representing the concrete calldata of a transaction
+        """
+        self.tx_id = tx_id
+        if starting_calldata:
+            self._calldata = []
+            self.calldatasize = BitVecVal(len(starting_calldata), 256)
+            self.concrete = True
+        else:
+            self._calldata = Array(
+                "{}_calldata".format(self.tx_id), BitVecSort(256), BitVecSort(8)
+            )
+            self.calldatasize = BitVec("{}_calldatasize".format(self.tx_id), 256)
+            self.concrete = False
+
+        self.starting_calldata = starting_calldata or []
+
+    @property
+    def constraints(self):
+        constraints = []
+
+        if self.concrete:
+            for calldata_byte in self.starting_calldata:
+                if type(calldata_byte) == int:
+                    self._calldata.append(BitVecVal(calldata_byte, 8))
+                else:
+                    self._calldata.append(calldata_byte)
+            constraints.append(self.calldatasize == len(self.starting_calldata))
+        else:
+            x = BitVec("x", 256)
+            constraints.append(
+                ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
+            )
+
+        return constraints
+
+    def concretized(self, model):
+        result = []
+        for i in range(
+            get_concrete_int(model.eval(self.calldatasize, model_completion=True))
+        ):
+            result.append(get_concrete_int(model.eval(self[i], model_completion=True)))
+
+        return result
+
+    def get_word_at(self, index: int):
+        return self[index : index + 32]
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            try:
+                current_index = (
+                    item.start
+                    if isinstance(item.start, BitVecRef)
+                    else BitVecVal(item.start, 256)
+                )
+                dataparts = []
+                while simplify(current_index != item.stop):
+                    dataparts.append(self[current_index])
+                    current_index = simplify(current_index + 1)
+            except Z3Exception:
+                raise IndexError("Invalid Calldata Slice")
+
+            return simplify(Concat(dataparts))
+
+        if self.concrete:
+            try:
+                return self._calldata[get_concrete_int(item)]
+            except IndexError:
+                return BitVecVal(0, 8)
+        else:
+            return self._calldata[item]
 
 
 class Storage:
@@ -339,7 +440,6 @@ class GlobalState:
 
     def new_bitvec(self, name: str, size=256) -> BitVec:
         transaction_id = self.current_transaction.id
-        node_id = self.node.uid
         return BitVec("{}_{}".format(transaction_id, name), size)
 
 

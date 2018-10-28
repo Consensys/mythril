@@ -199,7 +199,7 @@ def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     statespace.calls = [call]
 
     # act
-    issues = execute(statespace)
+    execute(statespace)
 
     # assert
     assert concrete_mock.call_count == 1

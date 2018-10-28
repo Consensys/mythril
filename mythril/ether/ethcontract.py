@@ -6,7 +6,7 @@ import re
 
 class ETHContract(persistent.Persistent):
     def __init__(
-        self, code, creation_code="", name="Unknown", enable_online_lookup=True
+        self, code, creation_code="", name="Unknown", enable_online_lookup=False
     ):
 
         # Workaround: We currently do not support compile-time linking.

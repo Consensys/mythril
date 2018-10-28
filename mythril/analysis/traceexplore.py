@@ -47,7 +47,6 @@ colors = [
 
 
 def get_serializable_statespace(statespace):
-
     nodes = []
     edges = []
 
@@ -77,10 +76,10 @@ def get_serializable_statespace(statespace):
 
         color = color_map[node.get_cfg_dict()["contract_name"]]
 
-        def get_state_accounts(state):
+        def get_state_accounts(node_state):
             state_accounts = []
-            for key in state.accounts:
-                account = state.accounts[key].as_dict
+            for key in node_state.accounts:
+                account = node_state.accounts[key].as_dict
                 account.pop("code", None)
                 account["balance"] = str(account["balance"])
 

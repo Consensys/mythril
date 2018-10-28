@@ -77,18 +77,23 @@ class Mythril(object):
 
     """
 
-    def __init__(self, solv=None, solc_args=None, dynld=False):
+    def __init__(
+        self, solv=None, solc_args=None, dynld=False, enable_online_lookup=False
+    ):
 
         self.solv = solv
         self.solc_args = solc_args
         self.dynld = dynld
+        self.enable_online_lookup = enable_online_lookup
 
         self.mythril_dir = self._init_mythril_dir()
 
-        self.sigs = signatures.SignatureDb()
+        self.sigs = signatures.SignatureDb(
+            enable_online_lookup=self.enable_online_lookup
+        )
         try:
             self.sigs.open()  # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
-        except FileNotFoundError as fnfe:
+        except FileNotFoundError:
             logging.info(
                 "No signature database found. Creating database if sigs are loaded in: "
                 + self.sigs.signatures_file
@@ -291,8 +296,7 @@ class Mythril(object):
             self.set_api_rpc(dynamic_loading)
 
     def search_db(self, search):
-        def search_callback(contract, address, balance):
-
+        def search_callback(_, address, balance):
             print("Address: " + address + ", balance: " + str(balance))
 
         try:
@@ -309,7 +313,11 @@ class Mythril(object):
 
     def load_from_bytecode(self, code):
         address = util.get_indexed_address(0)
-        self.contracts.append(ETHContract(code, name="MAIN"))
+        self.contracts.append(
+            ETHContract(
+                code, name="MAIN", enable_online_lookup=self.enable_online_lookup
+            )
+        )
         return address, self.contracts[-1]  # return address and contract object
 
     def load_from_address(self, address):
@@ -320,7 +328,7 @@ class Mythril(object):
             code = self.eth.eth_getCode(address)
         except FileNotFoundError as e:
             raise CriticalError("IPC error: " + str(e))
-        except ConnectionError as e:
+        except ConnectionError:
             raise CriticalError(
                 "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly."
             )
@@ -332,7 +340,13 @@ class Mythril(object):
                     "Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain."
                 )
             else:
-                self.contracts.append(ETHContract(code, name=address))
+                self.contracts.append(
+                    ETHContract(
+                        code,
+                        name=address,
+                        enable_online_lookup=self.enable_online_lookup,
+                    )
+                )
         return address, self.contracts[-1]  # return address and contract object
 
     def load_from_solidity(self, solidity_files):
@@ -541,7 +555,7 @@ class Mythril(object):
                         )
         except FileNotFoundError as e:
             raise CriticalError("IPC error: " + str(e))
-        except ConnectionError as e:
+        except ConnectionError:
             raise CriticalError(
                 "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly."
             )

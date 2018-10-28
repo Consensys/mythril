@@ -84,55 +84,46 @@ class LevelDBReader(object):
         gets head block header
         """
         if not self.head_block_header:
-            hash = self.db.get(head_header_key)
-            num = self._get_block_number(hash)
-            self.head_block_header = self._get_block_header(hash, num)
+            block_hash = self.db.get(head_header_key)
+            num = self._get_block_number(block_hash)
+            self.head_block_header = self._get_block_header(block_hash, num)
             # find header with valid state
             while (
                 not self.db.get(self.head_block_header.state_root)
                 and self.head_block_header.prevhash is not None
             ):
-                hash = self.head_block_header.prevhash
-                num = self._get_block_number(hash)
-                self.head_block_header = self._get_block_header(hash, num)
+                block_hash = self.head_block_header.prevhash
+                num = self._get_block_number(block_hash)
+                self.head_block_header = self._get_block_header(block_hash, num)
 
         return self.head_block_header
 
-    def _get_block_number(self, hash):
-        """
-        gets block number by hash
-        """
-        number_key = block_hash_prefix + hash
+    def _get_block_number(self, block_hash):
+        """Get block number by its hash"""
+        number_key = block_hash_prefix + block_hash
         return self.db.get(number_key)
 
-    def _get_block_header(self, hash, num):
-        """
-        get block header by block header hash & number
-        """
-        header_key = header_prefix + num + hash
+    def _get_block_header(self, block_hash, num):
+        """Get block header by block header hash & number"""
+        header_key = header_prefix + num + block_hash
+
         block_header_data = self.db.get(header_key)
         header = rlp.decode(block_header_data, sedes=BlockHeader)
         return header
 
-    def _get_address_by_hash(self, hash):
-        """
-        get mapped address by its hash
-        """
-        address_key = address_prefix + hash
+    def _get_address_by_hash(self, block_hash):
+        """Get mapped address by its hash"""
+        address_key = address_prefix + block_hash
         return self.db.get(address_key)
 
     def _get_last_indexed_number(self):
-        """
-        latest indexed block number
-        """
+        """Get latest indexed block number"""
         return self.db.get(address_mapping_head_key)
 
-    def _get_block_receipts(self, hash, num):
-        """
-        get block transaction receipts by block header hash & number
-        """
+    def _get_block_receipts(self, block_hash, num):
+        """Get block transaction receipts by block header hash & number"""
         number = _format_block_number(num)
-        receipts_key = block_receipts_prefix + number + hash
+        receipts_key = block_receipts_prefix + number + block_hash
         receipts_data = self.db.get(receipts_key)
         receipts = rlp.decode(receipts_data, sedes=CountableList(ReceiptForStorage))
         return receipts
@@ -224,12 +215,10 @@ class EthLevelDB(object):
             if not cnt % 1000:
                 logging.info("Searched %d contracts" % cnt)
 
-    def contract_hash_to_address(self, hash):
-        """
-        tries to find corresponding account address
-        """
+    def contract_hash_to_address(self, contract_hash):
+        """Tries to find corresponding account address"""
 
-        address_hash = binascii.a2b_hex(utils.remove_0x_head(hash))
+        address_hash = binascii.a2b_hex(utils.remove_0x_head(contract_hash))
         indexer = AccountIndexer(self)
 
         return _encode_hex(indexer.get_contract_by_hash(address_hash))
@@ -238,9 +227,9 @@ class EthLevelDB(object):
         """
         gets block header by block number
         """
-        hash = self.reader._get_block_hash(number)
+        block_hash = self.reader._get_block_hash(number)
         block_number = _format_block_number(number)
-        return self.reader._get_block_header(hash, block_number)
+        return self.reader._get_block_header(block_hash, block_number)
 
     def eth_getBlockByNumber(self, number):
         """

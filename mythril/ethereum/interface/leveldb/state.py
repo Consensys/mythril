@@ -58,9 +58,9 @@ class Account(rlp.Serializable):
         ("code_hash", hash32),
     ]
 
-    def __init__(self, nonce, balance, storage, code_hash, db, address):
+    def __init__(self, nonce, balance, storage, code_hash, db, addr):
         self.db = db
-        self.address = address
+        self.address = addr
         super(Account, self).__init__(nonce, balance, storage, code_hash)
         self.storage_cache = {}
         self.storage_trie = SecureTrie(Trie(self.db))
@@ -89,12 +89,12 @@ class Account(rlp.Serializable):
         return self.storage_cache[key]
 
     @classmethod
-    def blank_account(cls, db, address, initial_nonce=0):
+    def blank_account(cls, db, addr, initial_nonce=0):
         """
         creates a blank account
         """
         db.put(BLANK_HASH, b"")
-        o = cls(initial_nonce, 0, trie.BLANK_ROOT, BLANK_HASH, db, address)
+        o = cls(initial_nonce, 0, trie.BLANK_ROOT, BLANK_HASH, db, addr)
         o.existent_at_start = False
         return o
 
@@ -117,22 +117,22 @@ class State:
         self.journal = []
         self.cache = {}
 
-    def get_and_cache_account(self, address):
-        """
-        gets and caches an account for an addres, creates blank if not found
-        """
-        if address in self.cache:
-            return self.cache[address]
-        rlpdata = self.secure_trie.get(address)
+    def get_and_cache_account(self, addr):
+        """Gets and caches an account for an addres, creates blank if not found"""
+
+        if addr in self.cache:
+            return self.cache[addr]
+        rlpdata = self.secure_trie.get(addr)
         if (
-            rlpdata == trie.BLANK_NODE and len(address) == 32
+            rlpdata == trie.BLANK_NODE and len(addr) == 32
         ):  # support for hashed addresses
-            rlpdata = self.trie.get(address)
+            rlpdata = self.trie.get(addr)
+
         if rlpdata != trie.BLANK_NODE:
-            o = rlp.decode(rlpdata, Account, db=self.db, address=address)
+            o = rlp.decode(rlpdata, Account, db=self.db, address=addr)
         else:
-            o = Account.blank_account(self.db, address, 0)
-        self.cache[address] = o
+            o = Account.blank_account(self.db, addr, 0)
+        self.cache[addr] = o
         o._mutable = True
         o._cached_rlp = None
         return o

@@ -38,9 +38,11 @@ class Node:
         code = ""
         for state in self.states:
             instruction = state.get_current_instruction()
+
             code += str(instruction["address"]) + " " + instruction["opcode"]
             if instruction["opcode"].startswith("PUSH"):
                 code += " " + instruction["argument"]
+
             code += "\\n"
 
         return dict(

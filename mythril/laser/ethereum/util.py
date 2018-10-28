@@ -2,7 +2,6 @@ import re
 from z3 import *
 import logging
 from typing import Union, List, Dict
-from mythril.laser.ethereum.state import MachineState
 
 import sha3 as _sha3
 
@@ -38,14 +37,14 @@ def get_instruction_index(
     return None
 
 
-def get_trace_line(instr: Dict, state: MachineState) -> str:
+def get_trace_line(instr: Dict, state: "MachineState") -> str:
     stack = str(state.stack[::-1])
     # stack = re.sub("(\d+)",   lambda m: hex(int(m.group(1))), stack)
     stack = re.sub("\n", "", stack)
     return str(instr["address"]) + " " + instr["opcode"] + "\tSTACK: " + stack
 
 
-def pop_bitvec(state: MachineState) -> BitVecVal:
+def pop_bitvec(state: "MachineState") -> BitVecVal:
     # pop one element from stack, converting boolean expressions and
     # concrete Python variables to BitVecVal
 
@@ -85,18 +84,20 @@ def get_concrete_int(item: Union[int, BitVecNumRef, BoolRef]) -> int:
 
 
 def concrete_int_from_bytes(_bytes: bytes, start_index: int) -> int:
+    # logging.debug("-- concrete_int_from_bytes: " + str(_bytes[start_index:start_index+32]))
     b = _bytes[start_index : start_index + 32]
     val = int.from_bytes(b, byteorder="big")
     return val
 
 
-def concrete_int_to_bytes(val: int) -> bytes:
-    if isinstance(val, int):
+def concrete_int_to_bytes(val):
+    # logging.debug("concrete_int_to_bytes " + str(val))
+    if type(val) == int:
         return val.to_bytes(32, byteorder="big")
     return (simplify(val).as_long()).to_bytes(32, byteorder="big")
 
 
-def bytearray_to_int(arr: bytearray) -> int:
+def bytearray_to_int(arr):
     o = 0
     for a in arr:
         o = (o << 8) + a

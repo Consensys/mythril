@@ -69,7 +69,7 @@ class SVMTestCase(BaseTestCase):
 
     def test_laser_result(self):
         for input_file in TESTDATA_INPUTS_CONTRACTS.iterdir():
-            if input_file.name == "weak_random.sol":
+            if input_file.name in ["weak_random.sol", "environments.sol"]:
                 continue
             output_expected = TESTDATA_OUTPUTS_EXPECTED_LASER_RESULT / (
                 input_file.name + ".json"

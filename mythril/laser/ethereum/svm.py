@@ -1,5 +1,6 @@
 import logging
 from typing import List, Tuple, Union, Callable
+from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state import WorldState, GlobalState
 from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
@@ -105,7 +106,7 @@ class LaserEVM:
             if len(self.open_states) == 0:
                 logging.warning(
                     "No contract was created during the execution of contract creation "
-                    "Increase the resources for creation execution (--max-depth or --create_timeout)"
+                    "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
 
             # Reset code coverage
@@ -353,10 +354,11 @@ class LaserEVM:
 
         environment = state.environment
         disassembly = environment.code
-        if address in state.environment.code.addr_to_func:
+        if address in disassembly.address_to_function_name:
             # Enter a new function
-
-            environment.active_function_name = disassembly.addr_to_func[address]
+            environment.active_function_name = disassembly.address_to_function_name[
+                address
+            ]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
             logging.debug(

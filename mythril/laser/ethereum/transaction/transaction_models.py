@@ -1,7 +1,7 @@
 import logging
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Account
+from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Account, Calldata
 from z3 import BitVec, BitVecNumRef
 import array
 
@@ -42,7 +42,7 @@ class MessageCallTransaction:
         world_state: WorldState,
         callee_account: Account,
         caller: BitVecNumRef,
-        call_data=(),
+        call_data=None,
         identifier=None,
         gas_price=None,
         call_value=None,
@@ -55,7 +55,11 @@ class MessageCallTransaction:
         self.world_state = world_state
         self.callee_account = callee_account
         self.caller = caller
-        self.call_data = call_data
+        self.call_data = (
+            Calldata(self.id, call_data)
+            if not isinstance(call_data, Calldata)
+            else call_data
+        )
         self.gas_price = (
             BitVec("gasprice{}".format(identifier), 256)
             if gas_price is None
@@ -92,6 +96,9 @@ class MessageCallTransaction:
 
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = "fallback"
+        global_state.mstate.constraints.extend(
+            global_state.environment.calldata.constraints
+        )
 
         return global_state
 
@@ -110,7 +117,7 @@ class ContractCreationTransaction:
         identifier=None,
         callee_account=None,
         code=None,
-        call_data=(),
+        call_data=None,
         gas_price=None,
         call_value=None,
         origin=None,
@@ -147,7 +154,11 @@ class ContractCreationTransaction:
             else call_data_type
         )
 
-        self.call_data = call_data
+        self.call_data = (
+            Calldata(self.id, call_data)
+            if not isinstance(call_data, Calldata)
+            else call_data
+        )
         self.origin = origin
         self.code = code
         self.return_data = None

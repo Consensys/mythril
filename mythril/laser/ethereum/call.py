@@ -1,8 +1,8 @@
 import logging
 from typing import Union
-from z3 import simplify, BitVecRef, BitVecNumRef, BoolRef
+from z3 import simplify, BitVecRef, BitVecNumRef, BoolRef, Extract
 import mythril.laser.ethereum.util as util
-from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
+from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
 from mythril.support.loader import DynLoader
 import re
 
@@ -125,7 +125,7 @@ def get_callee_account(
 
     try:
         code = dynamic_loader.dynld(environment.active_account.address, callee_address)
-    except Exception as e:
+    except Exception:
         logging.debug("Unable to execute dynamic loader.")
         raise ValueError()
     if code is None:
@@ -156,21 +156,33 @@ def get_call_data(
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
     state = global_state.mstate
+    transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
-        call_data = state.memory[
+        calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
                 memory_start + memory_size
             )
         ]
-        if len(call_data) < 32 and pad:
-            call_data += [0] * (32 - len(call_data))
+        i = 0
+        starting_calldata = []
+        while i < len(calldata_from_mem):
+            elem = calldata_from_mem[i]
+            if isinstance(elem, int):
+                starting_calldata.append(elem)
+                i += 1
+            else:  # BitVec
+                for j in range(0, elem.size(), 8):
+                    starting_calldata.append(Extract(j + 7, j, elem))
+                    i += 1
+
+        call_data = Calldata(transaction_id, starting_calldata)
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
-        call_data = []
+        call_data = Calldata("{}_internalcall".format(transaction_id))
 
     return call_data, call_data_type

@@ -63,15 +63,14 @@ class AccountIndexer(object):
 
     def get_contract_by_hash(self, contract_hash):
         """
-        get mapped address by its hash, if not found try indexing
+        get mapped contract_address by its hash, if not found try indexing
         """
-        address = self.db.reader._get_address_by_hash(contract_hash)
-        if address is not None:
-            return address
+        contract_address = self.db.reader._get_address_by_hash(contract_hash)
+        if contract_address is not None:
+            return contract_address
+
         else:
             raise AddressNotFoundError
-
-        return self.db.reader._get_address_by_hash(contract_hash)
 
     def _process(self, startblock):
         """
@@ -84,9 +83,9 @@ class AccountIndexer(object):
         addresses = []
 
         for blockNum in range(startblock, startblock + BATCH_SIZE):
-            hash = self.db.reader._get_block_hash(blockNum)
-            if hash is not None:
-                receipts = self.db.reader._get_block_receipts(hash, blockNum)
+            block_hash = self.db.reader._get_block_hash(blockNum)
+            if block_hash is not None:
+                receipts = self.db.reader._get_block_receipts(block_hash, blockNum)
 
                 for receipt in receipts:
                     if receipt.contractAddress is not None and not all(
