@@ -16,7 +16,9 @@ Check for call.value()() to external addresses
 MAX_SEARCH_DEPTH = 64
 
 
-def search_children(statespace, node, start_index=0, depth=0, results=None):
+def search_children(
+    statespace, node, transaction_id, start_index=0, depth=0, results=None
+):
     if results is None:
         results = []
     logging.debug("SEARCHING NODE %d", node.uid)
@@ -28,7 +30,10 @@ def search_children(statespace, node, start_index=0, depth=0, results=None):
         if n_states > start_index:
 
             for j in range(start_index, n_states):
-                if node.states[j].get_current_instruction()["opcode"] == "SSTORE":
+                if (
+                    node.states[j].get_current_instruction()["opcode"] == "SSTORE"
+                    and node.states[j].current_transaction.id == transaction_id
+                ):
                     results.append(node.states[j].get_current_instruction()["address"])
         children = []
 
@@ -39,7 +44,7 @@ def search_children(statespace, node, start_index=0, depth=0, results=None):
         if len(children):
             for node in children:
                 results += search_children(
-                    statespace, node, depth=depth + 1, results=results
+                    statespace, node, transaction_id, depth=depth + 1, results=results
                 )
 
     return results
@@ -149,7 +154,12 @@ def execute(statespace):
                     # Check for SSTORE in remaining instructions in current node & nodes down the CFG
 
                     state_change_addresses = search_children(
-                        statespace, call.node, call.state_index + 1, depth=0, results=[]
+                        statespace,
+                        call.node,
+                        call.state.current_transaction.id,
+                        call.state_index + 1,
+                        depth=0,
+                        results=[],
                     )
 
                     logging.debug(
