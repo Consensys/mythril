@@ -36,7 +36,7 @@ def execute(statespace):
                         "out-of-bounds array access, or assert violations. "
                     )
                     description += (
-                        "Note that explicit `assert()` should only be used to check invariants. " 
+                        "Note that explicit `assert()` should only be used to check invariants. "
                         "Use `require()` for regular input checking. "
                     )
 

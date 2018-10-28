@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest_mock
 from mythril.disassembler.disassembly import Disassembly
 
+
 def test_concrete_call():
     # arrange
     address = "0x10"
