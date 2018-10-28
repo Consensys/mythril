@@ -1,4 +1,4 @@
-from z3 import simplify, sat, unknown, FuncInterp, Extract, UGE, Optimize
+from z3 import Solver, simplify, sat, unknown, FuncInterp, Extract, UGE
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -6,17 +6,12 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 import logging
 
 
-def get_model(constraints, maximize=(), minimize=()):
-    s = Optimize()
+def get_model(constraints):
+    s = Solver()
     s.set("timeout", 100000)
 
     for constraint in constraints:
         s.add(constraint)
-    for objective in maximize:
-        s.maximize(objective)
-    for objective in minimize:
-        s.minimize(objective)
-
     result = s.check()
     if result == sat:
         return s.model()
@@ -68,7 +63,6 @@ def get_transaction_sequence(
     txs = {}
     creation_tx_ids = []
     tx_constraints = constraints.copy()
-    minimize = []
 
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
@@ -90,13 +84,12 @@ def get_transaction_sequence(
                     UGE(max_calldatasize, transaction.call_data.calldatasize)
                 )
 
-            minimize.append(transaction.call_data.calldatasize)
             txs[tx_id] = tx_template.copy()
 
         else:
             creation_tx_ids.append(tx_id)
 
-    model = get_model(tx_constraints, minimize=minimize)
+    model = get_model(tx_constraints)
 
     for transaction in transaction_sequence:
         if not isinstance(transaction, ContractCreationTransaction):
