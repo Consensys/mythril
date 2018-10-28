@@ -27,10 +27,12 @@ def to_signed(i: int) -> int:
     return i if i < TT255 else i - TT256
 
 
-def get_instruction_index(instruction_list: List[Dict], address: int) -> Union[int, None]:
+def get_instruction_index(
+    instruction_list: List[Dict], address: int
+) -> Union[int, None]:
     index = 0
     for instr in instruction_list:
-        if instr['address'] == address:
+        if instr["address"] == address:
             return index
         index += 1
     return None
@@ -40,7 +42,7 @@ def get_trace_line(instr: Dict, state: MachineState) -> str:
     stack = str(state.stack[::-1])
     # stack = re.sub("(\d+)",   lambda m: hex(int(m.group(1))), stack)
     stack = re.sub("\n", "", stack)
-    return str(instr['address']) + " " + instr['opcode'] + "\tSTACK: " + stack
+    return str(instr["address"]) + " " + instr["opcode"] + "\tSTACK: " + stack
 
 
 def pop_bitvec(state: MachineState) -> BitVecVal:
@@ -83,15 +85,15 @@ def get_concrete_int(item: Union[int, BitVecNumRef, BoolRef]) -> int:
 
 
 def concrete_int_from_bytes(_bytes: bytes, start_index: int) -> int:
-    b = _bytes[start_index:start_index+32]
-    val = int.from_bytes(b, byteorder='big')
+    b = _bytes[start_index : start_index + 32]
+    val = int.from_bytes(b, byteorder="big")
     return val
 
 
 def concrete_int_to_bytes(val: int) -> bytes:
     if isinstance(val, int):
-        return val.to_bytes(32, byteorder='big')
-    return (simplify(val).as_long()).to_bytes(32, byteorder='big')
+        return val.to_bytes(32, byteorder="big")
+    return (simplify(val).as_long()).to_bytes(32, byteorder="big")
 
 
 def bytearray_to_int(arr: bytearray) -> int:
@@ -99,4 +101,3 @@ def bytearray_to_int(arr: bytearray) -> int:
     for a in arr:
         o = (o << 8) + a
     return o
-

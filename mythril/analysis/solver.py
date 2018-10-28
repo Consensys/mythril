@@ -2,6 +2,7 @@ from z3 import Solver, simplify, sat, unknown
 from mythril.exceptions import UnsatError
 import logging
 
+
 def get_model(constraints):
     s = Solver()
     s.set("timeout", 100000)
@@ -27,6 +28,6 @@ def pretty_print_model(model):
         except:
             condition = str(simplify(model[d]))
 
-        ret += ("%s: %s\n" % (d.name(), condition))
+        ret += "%s: %s\n" % (d.name(), condition)
 
     return ret

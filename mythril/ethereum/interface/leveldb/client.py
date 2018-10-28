@@ -1,7 +1,10 @@
 import binascii
 import rlp
 from mythril.ethereum.interface.leveldb.accountindexing import CountableList
-from mythril.ethereum.interface.leveldb.accountindexing import ReceiptForStorage, AccountIndexer
+from mythril.ethereum.interface.leveldb.accountindexing import (
+    ReceiptForStorage,
+    AccountIndexer,
+)
 import logging
 from ethereum import utils
 from ethereum.block import BlockHeader, Block
@@ -12,17 +15,19 @@ from mythril.exceptions import AddressNotFoundError
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/rawdb/schema.go
 # prefixes and suffixes for keys in geth
-header_prefix = b'h'         # header_prefix + num (uint64 big endian) + hash -> header
-body_prefix = b'b'           # body_prefix + num (uint64 big endian) + hash -> block body
-num_suffix = b'n'            # header_prefix + num (uint64 big endian) + num_suffix -> hash
-block_hash_prefix = b'H'      # block_hash_prefix + hash -> num (uint64 big endian)
-block_receipts_prefix = b'r'  # block_receipts_prefix + num (uint64 big endian) + hash -> block receipts
+header_prefix = b"h"  # header_prefix + num (uint64 big endian) + hash -> header
+body_prefix = b"b"  # body_prefix + num (uint64 big endian) + hash -> block body
+num_suffix = b"n"  # header_prefix + num (uint64 big endian) + num_suffix -> hash
+block_hash_prefix = b"H"  # block_hash_prefix + hash -> num (uint64 big endian)
+block_receipts_prefix = (
+    b"r"
+)  # block_receipts_prefix + num (uint64 big endian) + hash -> block receipts
 # known geth keys
-head_header_key = b'LastBlock'  # head (latest) header hash
+head_header_key = b"LastBlock"  # head (latest) header hash
 # custom prefixes
-address_prefix = b'AM'       # address_prefix + hash -> address
+address_prefix = b"AM"  # address_prefix + hash -> address
 # custom keys
-address_mapping_head_key = b'accountMapping'  # head (latest) number of indexed block
+address_mapping_head_key = b"accountMapping"  # head (latest) number of indexed block
 
 
 def _format_block_number(number):
@@ -36,7 +41,7 @@ def _encode_hex(v):
     """
     encodes hash as hex
     """
-    return '0x' + utils.encode_hex(v)
+    return "0x" + utils.encode_hex(v)
 
 
 class LevelDBReader(object):
@@ -83,7 +88,10 @@ class LevelDBReader(object):
             num = self._get_block_number(hash)
             self.head_block_header = self._get_block_header(hash, num)
             # find header with valid state
-            while not self.db.get(self.head_block_header.state_root) and self.head_block_header.prevhash is not None:
+            while (
+                not self.db.get(self.head_block_header.state_root)
+                and self.head_block_header.prevhash is not None
+            ):
                 hash = self.head_block_header.prevhash
                 num = self._get_block_number(hash)
                 self.head_block_header = self._get_block_header(hash, num)
@@ -201,11 +209,11 @@ class EthLevelDB(object):
                 try:
                     address = _encode_hex(indexer.get_contract_by_hash(address_hash))
                 except AddressNotFoundError:
-                    '''
+                    """
                     The hash->address mapping does not exist in our index. If the index is up-to-date, this likely means
                     that the contract was created by an internal transaction. Skip this contract as right now we don't
                     have a good solution for this.
-                    '''
+                    """
 
                     continue
 
@@ -264,4 +272,6 @@ class EthLevelDB(object):
         gets account storage data at position
         """
         account = self.reader._get_account(address)
-        return _encode_hex(utils.zpad(utils.encode_int(account.get_storage_data(position)), 32))
+        return _encode_hex(
+            utils.zpad(utils.encode_int(account.get_storage_data(position)), 32)
+        )

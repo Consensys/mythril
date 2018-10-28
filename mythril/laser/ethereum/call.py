@@ -12,7 +12,9 @@ to get the necessary elements from the stack and determine the parameters for th
 """
 
 
-def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, with_value=False):
+def get_call_parameters(
+    global_state: GlobalState, dynamic_loader: DynLoader, with_value=False
+):
     """
     Gets call parameters from global state
     Pops the values from the stack and determines output parameters
@@ -23,21 +25,40 @@ def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, wi
     """
     gas, to = global_state.mstate.pop(2)
     value = global_state.mstate.pop() if with_value else 0
-    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(4)
+    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(
+        4
+    )
 
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
     callee_account = None
-    call_data, call_data_type = get_call_data(global_state, memory_input_offset, memory_input_size, False)
+    call_data, call_data_type = get_call_data(
+        global_state, memory_input_offset, memory_input_size, False
+    )
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
-        call_data, call_data_type = get_call_data(global_state, memory_input_offset, memory_input_size)
-        callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
+        call_data, call_data_type = get_call_data(
+            global_state, memory_input_offset, memory_input_size
+        )
+        callee_account = get_callee_account(
+            global_state, callee_address, dynamic_loader
+        )
 
-    return callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size
+    return (
+        callee_address,
+        callee_account,
+        call_data,
+        value,
+        call_data_type,
+        gas,
+        memory_out_offset,
+        memory_out_size,
+    )
 
 
-def get_callee_address(global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: BitVecRef):
+def get_callee_address(
+    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: BitVecRef
+):
     """
     Gets the address of the callee
     :param global_state: state to look in
@@ -52,7 +73,7 @@ def get_callee_address(global_state: GlobalState, dynamic_loader: DynLoader, sym
     except TypeError:
         logging.debug("Symbolic call encountered")
 
-        match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
+        match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
         logging.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
@@ -63,7 +84,9 @@ def get_callee_address(global_state: GlobalState, dynamic_loader: DynLoader, sym
 
         # attempt to read the contract address from instance storage
         try:
-            callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
+            callee_address = dynamic_loader.read_storage(
+                environment.active_account.address, index
+            )
         # TODO: verify whether this happens or not
         except:
             logging.debug("Error accessing contract storage.")
@@ -76,7 +99,9 @@ def get_callee_address(global_state: GlobalState, dynamic_loader: DynLoader, sym
     return callee_address
 
 
-def get_callee_account(global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader):
+def get_callee_account(
+    global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
+):
     """
     Gets the callees account from the global_state
     :param global_state: state to look in
@@ -108,7 +133,9 @@ def get_callee_account(global_state: GlobalState, callee_address: str, dynamic_l
         raise ValueError()
     logging.debug("Dependency loaded: " + callee_address)
 
-    callee_account = Account(callee_address, code, callee_address, dynamic_loader=dynamic_loader)
+    callee_account = Account(
+        callee_address, code, callee_address, dynamic_loader=dynamic_loader
+    )
     accounts[callee_address] = callee_account
 
     return callee_account
@@ -118,7 +145,7 @@ def get_call_data(
     global_state: GlobalState,
     memory_start: Union[int, BitVecNumRef, BoolRef],
     memory_size: Union[int, BitVecNumRef, BoolRef],
-    pad=True
+    pad=True,
 ):
     """
     Gets call_data from the global_state
@@ -132,7 +159,11 @@ def get_call_data(
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
-        call_data = state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
+        call_data = state.memory[
+            util.get_concrete_int(memory_start) : util.get_concrete_int(
+                memory_start + memory_size
+            )
+        ]
         if len(call_data) < 32 and pad:
             call_data += [0] * (32 - len(call_data))
         call_data_type = CalldataType.CONCRETE

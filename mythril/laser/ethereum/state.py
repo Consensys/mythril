@@ -5,7 +5,10 @@ from copy import copy, deepcopy
 from enum import Enum
 from random import randint
 from typing import KeysView, Dict, List, Union, Any
-from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import (
+    StackOverflowException,
+    StackUnderflowException,
+)
 
 
 class CalldataType(Enum):
@@ -17,6 +20,7 @@ class Storage:
     """
     Storage class represents the storage of an Account
     """
+
     def __init__(self, concrete=False, address=None, dynamic_loader=None):
         """
         Constructor for Storage
@@ -33,7 +37,12 @@ class Storage:
         except KeyError:
             if self.address and int(self.address[2:], 16) != 0 and self.dynld:
                 try:
-                    self._storage[item] = int(self.dynld.read_storage(contract_address=self.address, index=int(item)), 16)
+                    self._storage[item] = int(
+                        self.dynld.read_storage(
+                            contract_address=self.address, index=int(item)
+                        ),
+                        16,
+                    )
                     return self._storage[item]
                 except ValueError:
                     pass
@@ -53,8 +62,16 @@ class Account:
     """
     Account class representing ethereum accounts
     """
-    def __init__(self, address: str, code=None, contract_name="unknown", balance=None, concrete_storage=False,
-                 dynamic_loader=None):
+
+    def __init__(
+        self,
+        address: str,
+        code=None,
+        contract_name="unknown",
+        balance=None,
+        concrete_storage=False,
+        dynamic_loader=None,
+    ):
         """
         Constructor for account
         :param address: Address of the account
@@ -66,7 +83,9 @@ class Account:
         self.nonce = 0
         self.code = code or Disassembly("")
         self.balance = balance if balance else BitVec("balance", 256)
-        self.storage = Storage(concrete_storage, address=address, dynamic_loader=dynamic_loader)
+        self.storage = Storage(
+            concrete_storage, address=address, dynamic_loader=dynamic_loader
+        )
 
         # Metadata
         self.address = address
@@ -85,13 +104,19 @@ class Account:
 
     @property
     def as_dict(self) -> Dict:
-        return {'nonce': self.nonce, 'code': self.code, 'balance': self.balance, 'storage': self.storage}
+        return {
+            "nonce": self.nonce,
+            "code": self.code,
+            "balance": self.balance,
+            "storage": self.storage,
+        }
 
 
 class Environment:
     """
     The environment class represents the current execution environment for the symbolic executor
     """
+
     def __init__(
         self,
         active_account: Account,
@@ -125,15 +150,22 @@ class Environment:
 
     @property
     def as_dict(self) -> Dict:
-        return dict(active_account=self.active_account, sender=self.sender, calldata=self.calldata,
-                    gasprice=self.gasprice, callvalue=self.callvalue, origin=self.origin,
-                    calldata_type=self.calldata_type)
+        return dict(
+            active_account=self.active_account,
+            sender=self.sender,
+            calldata=self.calldata,
+            gasprice=self.gasprice,
+            callvalue=self.callvalue,
+            origin=self.origin,
+            calldata_type=self.calldata_type,
+        )
 
 
 class MachineStack(list):
     """
     Defines EVM stack, overrides the default list to handle overflows
     """
+
     STACK_LIMIT = 1024
 
     def __init__(self, default_list=None):
@@ -147,8 +179,10 @@ class MachineStack(list):
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
-            raise StackOverflowException("Reached the EVM stack limit of {}, you can't append more "
-                                         "elements".format(self.STACK_LIMIT))
+            raise StackOverflowException(
+                "Reached the EVM stack limit of {}, you can't append more "
+                "elements".format(self.STACK_LIMIT)
+            )
         super(MachineStack, self).append(element)
 
     def pop(self, index=-1) -> BitVecNumRef:
@@ -167,25 +201,28 @@ class MachineStack(list):
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
-            raise StackUnderflowException("Trying to access a stack element which doesn't exist")
+            raise StackUnderflowException(
+                "Trying to access a stack element which doesn't exist"
+            )
 
     def __add__(self, other):
         """
         Implement list concatenation if needed
         """
-        raise NotImplementedError('Implement this if needed')
+        raise NotImplementedError("Implement this if needed")
 
     def __iadd__(self, other):
         """
         Implement list concatenation if needed
         """
-        raise NotImplementedError('Implement this if needed')
+        raise NotImplementedError("Implement this if needed")
 
 
 class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
     """
+
     def __init__(self, gas: int):
         """ Constructor for machineState """
         self.pc = 0
@@ -203,13 +240,13 @@ class MachineState:
         """
         if self.memory_size > start + size:
             return
-        m_extend = (start + size - self.memory_size)
+        m_extend = start + size - self.memory_size
         self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset: int, data: List[int]) -> None:
         """ Writes data to memory starting at offset """
         self.mem_extend(offset, len(data))
-        self.memory[offset:offset+len(data)] = data
+        self.memory[offset : offset + len(data)] = data
 
     def pop(self, amount=1) -> Union[BitVecRef, List[BitVecRef]]:
         """ Pops amount elements from the stack"""
@@ -229,13 +266,20 @@ class MachineState:
 
     @property
     def as_dict(self) -> Dict:
-        return dict(pc=self.pc, stack=self.stack, memory=self.memory, memsize=self.memory_size, gas=self.gas)
+        return dict(
+            pc=self.pc,
+            stack=self.stack,
+            memory=self.memory,
+            memsize=self.memory_size,
+            gas=self.gas,
+        )
 
 
 class GlobalState:
     """
     GlobalState represents the current globalstate
     """
+
     def __init__(
         self,
         world_state: "WorldState",
@@ -243,7 +287,7 @@ class GlobalState:
         node: Node,
         machine_state=None,
         transaction_stack=None,
-        last_return_data=None
+        last_return_data=None,
     ):
         """ Constructor for GlobalState"""
         self.node = node
@@ -259,8 +303,14 @@ class GlobalState:
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         transaction_stack = copy(self.transaction_stack)
-        return GlobalState(world_state, environment, self.node, mstate, transaction_stack=transaction_stack,
-                           last_return_data=self.last_return_data)
+        return GlobalState(
+            world_state,
+            environment,
+            self.node,
+            mstate,
+            transaction_stack=transaction_stack,
+            last_return_data=self.last_return_data,
+        )
 
     @property
     def accounts(self) -> Dict:
@@ -274,7 +324,9 @@ class GlobalState:
         return instructions[self.mstate.pc]
 
     @property
-    def current_transaction(self) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
+    def current_transaction(
+        self
+    ) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
         # TODO: Remove circular to transaction package to import Transaction classes
         try:
             return self.transaction_stack[-1][0]
@@ -295,6 +347,7 @@ class WorldState:
     """
     The WorldState class represents the world state as described in the yellow paper
     """
+
     def __init__(self, transaction_sequence=None):
         """
         Constructor for the world state. Initializes the accounts record
@@ -317,7 +370,9 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None, concrete_storage=False, dynamic_loader=None) -> Account:
+    def create_account(
+        self, balance=0, address=None, concrete_storage=False, dynamic_loader=None
+    ) -> Account:
         """
         Create non-contract account
         :param address: The account's address
@@ -327,7 +382,12 @@ class WorldState:
         :return: The new account
         """
         address = address if address else self._generate_new_address()
-        new_account = Account(address, balance=balance, dynamic_loader=dynamic_loader, concrete_storage=concrete_storage)
+        new_account = Account(
+            address,
+            balance=balance,
+            dynamic_loader=dynamic_loader,
+            concrete_storage=concrete_storage,
+        )
         self._put_account(new_account)
         return new_account
 
@@ -340,14 +400,16 @@ class WorldState:
         :return: The new account
         """
         # TODO: Add type hints
-        new_account = Account(self._generate_new_address(), code=contract_code, balance=0)
+        new_account = Account(
+            self._generate_new_address(), code=contract_code, balance=0
+        )
         new_account.storage = storage
         self._put_account(new_account)
 
     def _generate_new_address(self) -> str:
         """ Generates a new address for the global state"""
         while True:
-            address = '0x' + ''.join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
+            address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():
                 return address
 

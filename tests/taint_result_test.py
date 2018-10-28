@@ -7,7 +7,7 @@ def test_result_state():
     taint_result = TaintResult()
     record = TaintRecord()
     state = GlobalState(2, None, None)
-    state.mstate.stack = [1,2,3]
+    state.mstate.stack = [1, 2, 3]
     record.add_state(state)
     record.stack = [False, False, False]
     # act
@@ -24,8 +24,7 @@ def test_result_no_state():
     taint_result = TaintResult()
     record = TaintRecord()
     state = GlobalState(2, None, None)
-    state.mstate.stack = [1,2,3]
-
+    state.mstate.stack = [1, 2, 3]
 
     # act
     taint_result.add_records([record])

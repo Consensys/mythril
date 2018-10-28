@@ -4,8 +4,11 @@ from logging import debug
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.ethereum.state import CalldataType, Account
-from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction,\
-    get_next_transaction_id
+from mythril.laser.ethereum.transaction.transaction_models import (
+    MessageCallTransaction,
+    ContractCreationTransaction,
+    get_next_transaction_id,
+)
 
 
 def execute_message_call(laser_evm, callee_address: str) -> None:
@@ -36,13 +39,17 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
     laser_evm.exec()
 
 
-def execute_contract_creation(laser_evm, contract_initialization_code, contract_name=None) -> Account:
+def execute_contract_creation(
+    laser_evm, contract_initialization_code, contract_name=None
+) -> Account:
     """ Executes a contract creation transaction from all open states"""
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
-    new_account = laser_evm.world_state.create_account(0, concrete_storage=True, dynamic_loader=None)
+    new_account = laser_evm.world_state.create_account(
+        0, concrete_storage=True, dynamic_loader=None
+    )
     if contract_name:
         new_account.contract_name = contract_name
 
@@ -58,7 +65,7 @@ def execute_contract_creation(laser_evm, contract_initialization_code, contract_
             BitVec("gas_price{}".format(next_transaction_id), 256),
             BitVec("call_value{}".format(next_transaction_id), 256),
             BitVec("origin{}".format(next_transaction_id), 256),
-            CalldataType.SYMBOLIC
+            CalldataType.SYMBOLIC,
         )
         _setup_global_state_for_execution(laser_evm, transaction)
     laser_evm.exec(True)
@@ -76,8 +83,14 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
 
     laser_evm.nodes[new_node.uid] = new_node
     if transaction.world_state.node:
-        laser_evm.edges.append(Edge(transaction.world_state.node.uid, new_node.uid, edge_type=JumpType.Transaction,
-                               condition=None))
+        laser_evm.edges.append(
+            Edge(
+                transaction.world_state.node.uid,
+                new_node.uid,
+                edge_type=JumpType.Transaction,
+                condition=None,
+            )
+        )
 
         global_state.mstate.constraints = transaction.world_state.node.constraints
         new_node.constraints = global_state.mstate.constraints

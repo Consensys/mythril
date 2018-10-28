@@ -6,11 +6,10 @@ from tests import BaseTestCase
 
 
 class MachineStackTest(BaseTestCase):
-
     @staticmethod
     def test_mstack_constructor():
         mstack = MachineStack([1, 2])
-        assert(mstack == [1, 2])
+        assert mstack == [1, 2]
 
     @staticmethod
     def test_mstack_append_single_element():
@@ -18,7 +17,7 @@ class MachineStackTest(BaseTestCase):
 
         mstack.append(0)
 
-        assert(mstack == [0])
+        assert mstack == [0]
 
     @staticmethod
     def test_mstack_append_multiple_elements():
@@ -53,4 +52,3 @@ class MachineStackTest(BaseTestCase):
 
         with pytest.raises(NotImplementedError):
             mstack += mstack
-

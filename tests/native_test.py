@@ -14,7 +14,10 @@ ECRECOVER_TEST = [(0, False) for _ in range(9)]
 
 IDENTITY_TEST = [(0, False) for _ in range(4)]
 
-SHA256_TEST[0] = (5555555555555555, True)     #These are Random numbers to check whether the 'if condition' is entered or not(True means entered)
+SHA256_TEST[0] = (
+    5555555555555555,
+    True,
+)  # These are Random numbers to check whether the 'if condition' is entered or not(True means entered)
 SHA256_TEST[1] = (323232325445454546, True)
 SHA256_TEST[2] = (34756834765834658, False)
 SHA256_TEST[3] = (8756476956956795876987, True)
@@ -45,12 +48,13 @@ IDENTITY_TEST[1] = (476934798798347, False)
 IDENTITY_TEST[2] = (7346948379483769, True)
 IDENTITY_TEST[3] = (83269476937987, False)
 
+
 def _all_info(laser):
     accounts = {}
     for address, _account in laser.world_state.accounts.items():
         account = _account.as_dict
         account["code"] = account["code"].instruction_list
-        account['balance'] = str(account['balance'])
+        account["balance"] = str(account["balance"])
         accounts[address] = account
 
     nodes = {}
@@ -62,31 +66,34 @@ def _all_info(laser):
             elif isinstance(state, GlobalState):
                 environment = state.environment.as_dict
                 environment["active_account"] = environment["active_account"].address
-                states.append({
-                    'accounts': state.accounts.keys(),
-                    'environment': environment,
-                    'mstate': state.mstate.as_dict
-                })
+                states.append(
+                    {
+                        "accounts": state.accounts.keys(),
+                        "environment": environment,
+                        "mstate": state.mstate.as_dict,
+                    }
+                )
 
         nodes[uid] = {
-            'uid': node.uid,
-            'contract_name': node.contract_name,
-            'start_addr': node.start_addr,
-            'states': states,
-            'constraints': node.constraints,
-            'function_name': node.function_name,
-            'flags': str(node.flags)
+            "uid": node.uid,
+            "contract_name": node.contract_name,
+            "start_addr": node.start_addr,
+            "states": states,
+            "constraints": node.constraints,
+            "function_name": node.function_name,
+            "flags": str(node.flags),
         }
 
     edges = [edge.as_dict for edge in laser.edges]
 
     return {
-        'accounts': accounts,
-        'nodes': nodes,
-        'edges': edges,
-        'total_states': laser.total_states,
-        'max_depth': laser.max_depth
+        "accounts": accounts,
+        "nodes": nodes,
+        "edges": edges,
+        "total_states": laser.total_states,
+        "max_depth": laser.max_depth,
     }
+
 
 def _test_natives(laser_info, test_list, test_name):
     success = 0
@@ -94,24 +101,23 @@ def _test_natives(laser_info, test_list, test_name):
         if (str(i) in laser_info) == j:
             success += 1
         else:
-            print("Failed: "+str(i)+" "+str(j))
-    assert(success == len(test_list))
+            print("Failed: " + str(i) + " " + str(j))
+    assert success == len(test_list)
 
 
 class NativeTests(BaseTestCase):
     @staticmethod
     def runTest():
-        disassembly = SolidityContract('./tests/native_tests.sol').disassembly
+        disassembly = SolidityContract("./tests/native_tests.sol").disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
         accounts = {account.address: account}
 
-        laser = svm.LaserEVM(accounts, max_depth = 100)
+        laser = svm.LaserEVM(accounts, max_depth=100)
         laser.sym_exec(account.address)
         laser_info = str(_all_info(laser))
-        print('\n')
+        print("\n")
 
-        _test_natives(laser_info, SHA256_TEST, 'SHA256')
-        _test_natives(laser_info, RIPEMD160_TEST, 'RIPEMD160')
-        _test_natives(laser_info, ECRECOVER_TEST, 'ECRECOVER')
-        _test_natives(laser_info, IDENTITY_TEST, 'IDENTITY')
-
+        _test_natives(laser_info, SHA256_TEST, "SHA256")
+        _test_natives(laser_info, RIPEMD160_TEST, "RIPEMD160")
+        _test_natives(laser_info, ECRECOVER_TEST, "ECRECOVER")
+        _test_natives(laser_info, IDENTITY_TEST, "IDENTITY")

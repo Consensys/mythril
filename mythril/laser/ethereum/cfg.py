@@ -38,21 +38,27 @@ class Node:
         code = ""
         for state in self.states:
             instruction = state.get_current_instruction()
-            code += str(instruction['address']) + " " + instruction['opcode']
-            if instruction['opcode'].startswith("PUSH"):
-                code += " " + instruction['argument']
+            code += str(instruction["address"]) + " " + instruction["opcode"]
+            if instruction["opcode"].startswith("PUSH"):
+                code += " " + instruction["argument"]
             code += "\\n"
 
         return dict(
             contract_name=self.contract_name,
             start_addr=self.start_addr,
             function_name=self.function_name,
-            code=code
+            code=code,
         )
 
 
 class Edge:
-    def __init__(self, node_from: int, node_to: int, edge_type=JumpType.UNCONDITIONAL, condition=None):
+    def __init__(
+        self,
+        node_from: int,
+        node_to: int,
+        edge_type=JumpType.UNCONDITIONAL,
+        condition=None,
+    ):
         self.node_from = node_from
         self.node_to = node_to
         self.type = edge_type
@@ -63,4 +69,4 @@ class Edge:
 
     @property
     def as_dict(self) -> Dict[str, int]:
-        return {"from": self.node_from, 'to': self.node_to}
+        return {"from": self.node_from, "to": self.node_to}
