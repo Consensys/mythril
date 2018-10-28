@@ -184,10 +184,14 @@ class ContractCreationTransaction:
 
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = "constructor"
+        global_state.mstate.constraints.extend(
+            global_state.environment.calldata.constraints
+        )
 
         return global_state
 
-    def end(self, global_state: GlobalState, return_data=None, revert=False) -> None:
+    def end(self, global_state: GlobalState, return_data=None, revert=False):
+
         if (
             not all([isinstance(element, int) for element in return_data])
             or len(return_data) == 0
