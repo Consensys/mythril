@@ -292,8 +292,6 @@ def _search_children(
             element = _check_usage(current_state, taint_result)
             if len(element) < 1:
                 continue
-            if _check_requires(element[0], node, statespace, constraint):
-                continue
             results += element
 
     # Recursively search children
@@ -315,24 +313,3 @@ def _search_children(
         )
 
     return results
-
-
-def _check_requires(state, node, statespace, constraint):
-    """Checks if usage of overflowed statement results in a revert statement"""
-    instruction = state.get_current_instruction()
-    if instruction["opcode"] is not "JUMPI":
-        return False
-    children = [
-        statespace.nodes[edge.node_to]
-        for edge in statespace.edges
-        if edge.node_from == node.uid
-    ]
-
-    for child in children:
-        opcodes = [s.get_current_instruction()["opcode"] for s in child.states]
-        if "REVERT" in opcodes or "ASSERT_FAIL" in opcodes:
-            return True
-    # I added the following case, bc of false positives if the max depth is not high enough
-    if len(children) == 0:
-        return True
-    return False
