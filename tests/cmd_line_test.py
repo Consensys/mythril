@@ -29,10 +29,7 @@ class TruffleTestCase(BaseTestCase):
         command = "cd {}; truffle compile; python3 {} --truffle".format(
             truffle_project_root, MYTH
         )
-        self.assertIn(
-            "In the function `withdrawfunds()` a non-zero amount of Ether is sent to msg.sender.",
-            output_of(command),
-        )
+        self.assertIn("=== Ether send ====", output_of(command))
 
 
 class InfuraTestCase(BaseTestCase):
