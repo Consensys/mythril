@@ -10,7 +10,7 @@ from mythril.laser.ethereum.state import GlobalState, Environment, Account
 import pytest
 from unittest.mock import MagicMock, patch
 import pytest_mock
-
+from mythril.disassembler.disassembly import Disassembly
 
 def test_concrete_call():
     # arrange
@@ -109,7 +109,6 @@ def test_symbolic_call_storage_to(mocker):
     state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
-
     node = Node("example")
     node.contract_name = "the contract name"
     node.function_name = "the function name"
@@ -117,13 +116,11 @@ def test_symbolic_call_storage_to(mocker):
     to = Variable("storage_1", VarType.SYMBOLIC)
     call = Call(node, state, None, "Type: ", to, None)
 
-
     mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
     statespace = SymExecWrapper(1)
 
     mocker.patch.object(statespace, "find_storage_write")
     statespace.find_storage_write.return_value = "Function name"
-
 
     # act
     issues = _symbolic_call(call, state, address, statespace)
@@ -153,7 +150,6 @@ def test_symbolic_call_calldata_to(mocker):
     state = GlobalState(None, environment, None)
     state.mstate.memory = ["placeholder", "calldata_bling_0"]
 
-
     node = Node("example")
     node.contract_name = "the contract name"
     node.function_name = "the function name"
@@ -161,13 +157,11 @@ def test_symbolic_call_calldata_to(mocker):
     to = Variable("calldata", VarType.SYMBOLIC)
     call = Call(node, state, None, "Type: ", to, None)
 
-
     mocker.patch.object(SymExecWrapper, "__init__", lambda x, y: None)
     statespace = SymExecWrapper(1)
 
-    mocker.patch.object(statespace, 'find_storage_write')
+    mocker.patch.object(statespace, "find_storage_write")
     statespace.find_storage_write.return_value = "Function name"
-
 
     # act
     issues = _symbolic_call(call, state, address, statespace)
