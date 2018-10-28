@@ -5,7 +5,7 @@ from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 import re
 import logging
-
+from mythril.laser.ethereum.cfg import JumpType
 
 """
 MODULE DESCRIPTION:
@@ -30,16 +30,15 @@ def search_children(statespace, node, start_index=0, depth=0, results=None):
             for j in range(start_index, n_states):
                 if node.states[j].get_current_instruction()["opcode"] == "SSTORE":
                     results.append(node.states[j].get_current_instruction()["address"])
-
         children = []
 
         for edge in statespace.edges:
-            if edge.node_from == node.uid:
+            if edge.node_from == node.uid and edge.type != JumpType.Transaction:
                 children.append(statespace.nodes[edge.node_to])
 
         if len(children):
             for node in children:
-                return search_children(
+                results += search_children(
                     statespace, node, depth=depth + 1, results=results
                 )
 
