@@ -32,7 +32,7 @@ class DepthFirstSearchStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self):
-        return self.work_list.pop()
+        return self.graph.work_list.pop()
 
 
 class BreadthFirstSearchStrategy(BasicSearchStrategy):
@@ -42,7 +42,7 @@ class BreadthFirstSearchStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self):
-        return self.work_list.pop(0)
+        return self.graph.work_list.pop(0)
 
 
 class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
@@ -50,8 +50,8 @@ class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
     chooses a random state from the worklist with equal likelihood
     """
     def get_strategic_global_state(self):
-        if len(self.work_list) > 0:
-            return self.work_list.pop(randrange(len(self.work_list)))
+        if len(self.graph.work_list) > 0:
+            return self.graph.work_list.pop(randrange(len(self.graph.work_list)))
         else:
             raise IndexError
 
@@ -62,6 +62,6 @@ class ReturnWeightedRandomStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self):
-        probability_distribution = [1/(global_state.mstate.depth+1) for global_state in self.work_list]
-        return self.work_list.pop(choices(range(len(self.work_list)), probability_distribution)[0])
+        probability_distribution = [1/(global_state.mstate.depth+1) for global_state in self.graph.work_list]
+        return self.graph.work_list.pop(choices(range(len(self.graph.work_list)), probability_distribution)[0])
 

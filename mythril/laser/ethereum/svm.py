@@ -6,11 +6,13 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from mythril.laser.ethereum.strategy import BasicSearchStrategy
 from datetime import datetime, timedelta
 from copy import copy
 from mythril.laser.ethereum.transaction import execute_contract_creation, execute_message_call
 from functools import reduce
 from mythril.laser.ethereum.evm_exceptions import VmException
+from mythril.laser.ethereum.graph import Graph, SimpleGraph
 
 
 class SVMError(Exception):
@@ -41,9 +43,8 @@ class LaserEVM:
 
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
-
-        self.work_list = []
-        self.strategy = strategy(self.work_list, max_depth)
+        self.graph = SimpleGraph() if issubclass(strategy, BasicSearchStrategy) else Graph()
+        self.strategy = strategy(self.graph, max_depth)
         self.max_depth = max_depth
         self.max_transaction_count = max_transaction_count
 
@@ -118,8 +119,8 @@ class LaserEVM:
                 continue
 
             self.manage_cfg(op_code, new_states)
+            self.graph.add_edges(global_state, new_states)
 
-            self.work_list += new_states
             self.total_states += len(new_states)
 
     def execute_state(self, global_state):

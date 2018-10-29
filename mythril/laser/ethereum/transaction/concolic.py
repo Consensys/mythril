@@ -42,4 +42,4 @@ def _setup_global_state_for_execution(laser_evm, transaction):
                                condition=None))
     global_state.node = new_node
     new_node.states.append(global_state)
-    laser_evm.work_list.append(global_state)
+    laser_evm.graph.add_vertex(global_state)

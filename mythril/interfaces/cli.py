@@ -71,7 +71,7 @@ def main():
     options.add_argument('-m', '--modules', help='Comma-separated list of security analysis modules', metavar='MODULES')
     options.add_argument('--max-depth', type=int, default=22, help='Maximum recursion depth for symbolic execution')
 
-    options.add_argument('--strategy', choices=['dfs', 'bfs', 'naive-random', 'weighted-random'],
+    options.add_argument('--strategy', choices=['dfs', 'bfs', 'naive-random', 'weighted-random', 'random-branch-dfs'],
                          default='dfs', help='Symbolic execution strategy')
     options.add_argument('--max-transaction-count', type=int, default=3, help='Maximum number of transactions issued by laser')
 
