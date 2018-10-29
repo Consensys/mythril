@@ -1,4 +1,4 @@
-from z3 import Solver, simplify, sat, unknown, FuncInterp, Extract, UGE
+from z3 import Solver, simplify, sat, unknown, FuncInterp, UGE
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -40,12 +40,7 @@ def pretty_print_model(model):
     return ret
 
 
-def get_transaction_sequence(
-    global_state,
-    constraints,
-    caller="0xCA11EDEADBEEFCA11EDEADBEEFCA11ED37E636E6",
-    max_callvalue=None,
-):
+def get_transaction_sequence(global_state, constraints):
     """
     Generate concrete transaction sequence
 
@@ -58,7 +53,11 @@ def get_transaction_sequence(
     transaction_sequence = global_state.world_state.transaction_sequence
 
     # gaslimit & gasprice don't exist yet
-    tx_template = {"calldata": None, "call_value": None, "caller": caller}
+    tx_template = {
+        "calldata": None,
+        "call_value": None,
+        "caller": "0xCA11EDEADBEEF37E636E6CA11EDEADBEEFCA11ED",
+    }
 
     txs = {}
     creation_tx_ids = []
@@ -67,15 +66,6 @@ def get_transaction_sequence(
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
-
-            # Constrain caller
-            tx_constraints.append(
-                (Extract(159, 0, transaction.caller) == int(caller[2:], 16))
-            )
-
-            # Constrain callvalue
-            if max_callvalue != None:
-                tx_constraints.append(UGE(max_callvalue, transaction.call_value))
 
             # Constrain calldatasize
             max_calldatasize = 5000
@@ -111,5 +101,12 @@ def get_transaction_sequence(
                 call_value = "0x%x" % model[d].as_long()
 
                 txs[tx_id]["call_value"] = call_value
+
+        if "caller" in name:
+            tx_id = name.replace("caller", "")
+            if not tx_id in creation_tx_ids:
+                caller = "0x" + ("%x" % model[d].as_long()).zfill(64)
+
+                txs[tx_id]["caller"] = caller
 
     return txs
