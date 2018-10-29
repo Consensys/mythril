@@ -133,8 +133,8 @@ workflows:
           filters:
             branches:
               only: develop
-          requires:
-            - test
+          # requires:
+          #  - test
       - dockerhub_release:
           filters:
             branches:
