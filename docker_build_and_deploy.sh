@@ -4,7 +4,7 @@ set -eo pipefail
 
 NAME=$1
 
-if [ -z $CIRCLE_TAG ];
+if [ ! -z $CIRCLE_TAG ];
 then
   VERSION=${CIRCLE_TAG#?}
 else
