@@ -25,7 +25,7 @@ class RandomBranchDepthFirstSearch(AdvancedSearchStrategy):
         try:
             edge_list: List = copy(self.graph.adjacency_list[self.graph.work_list[-1]])
         except KeyError:
-            edge_list: List = []
+            edge_list = []
         shuffle(edge_list)
         self.graph.work_list += edge_list
 

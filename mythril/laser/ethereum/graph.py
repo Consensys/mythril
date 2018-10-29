@@ -6,8 +6,8 @@ from mythril.laser.ethereum.state import GlobalState
 class Graph:
 
     def __init__(self):
-        self.adjacency_list: Dict = dict()
-        self.work_list: List = []
+        self.adjacency_list = dict()
+        self.work_list = []
 
     def add_vertex(self, global_state: GlobalState):
         self.work_list.append(global_state)
@@ -24,7 +24,7 @@ class Graph:
 class SimpleGraph:
 
     def __init__(self):
-        self.work_list: List = []
+        self.work_list = []
 
     def add_vertex(self, global_state: GlobalState):
         self.work_list.append(global_state)
