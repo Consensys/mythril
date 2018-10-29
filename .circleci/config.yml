@@ -90,6 +90,8 @@ jobs:
           command: twine upload dist/*
           working_directory: /home/mythril
 
+  # Release of the mainstream (current stable) version as mythril/myth
+  # container.
   dockerhub_release:
     docker:
       - image: docker:stable
@@ -98,7 +100,18 @@ jobs:
       - setup_remote_docker
       - run:
           name: Building Docker Image
-          command: ./docker_build_and_deploy.sh
+          command: ./docker_build_and_deploy.sh mythril/myth
+
+  # Release of the latest development version as mythril/myth-dev container.
+  dockerhub_dev_release:
+    docker:
+      - image: docker:stable
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Building Docker Image
+          command: ./docker_build_and_deploy.sh mythril/myth-dev
 
 workflows:
   version: 2
@@ -114,6 +127,12 @@ workflows:
               ignore: /.*/
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
+      - dockerhub_dev_release:
+          filters:
+            branches:
+              only: develop
           requires:
             - test
       - dockerhub_release:

@@ -1,7 +1,8 @@
 #!/bin/sh
+
 set -eo pipefail
 
-NAME=mythril/myth
+NAME=$1
 
 VERSION_TAG=${NAME}:${CIRCLE_TAG#?}
 LATEST_TAG=${NAME}:latest
