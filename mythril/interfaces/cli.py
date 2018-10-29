@@ -7,6 +7,7 @@
 
 import logging, coloredlogs
 import json
+import os
 import sys
 import argparse
 
@@ -200,10 +201,17 @@ def main():
     rpc.add_argument(
         "--rpctls", type=bool, default=False, help="RPC connection over TLS"
     )
+    parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
 
     # Get config values
 
     args = parser.parse_args()
+
+    if args.epic:
+        path = os.path.dirname(os.path.realpath(__file__))
+        sys.argv.remove("--epic")
+        os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
+        sys.exit()
 
     if args.version:
         if args.outform == "json":
