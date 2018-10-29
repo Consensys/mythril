@@ -23,7 +23,7 @@ class RandomBranchDepthFirstSearch(AdvancedSearchStrategy):
             raise IndexError
 
         try:
-            edge_list: List = copy(self.graph.adjacency_list[self.graph.work_list[-1]])
+            edge_list = copy(self.graph.adjacency_list[self.graph.work_list[-1]])
         except KeyError:
             edge_list = []
         shuffle(edge_list)
