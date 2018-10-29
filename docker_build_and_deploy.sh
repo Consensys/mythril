@@ -8,7 +8,7 @@ if [ -z $CIRCLE_TAG ];
 then
   VERSION=${CIRCLE_TAG#?}
 else
-  VERSION=${CRICLE_SHA1}
+  VERSION=${CIRCLE_SHA1}
 fi
 
 VERSION_TAG=${NAME}:${VERSION}
