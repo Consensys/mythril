@@ -94,6 +94,7 @@ def get_transaction_sequence(global_state, constraints):
 
     for d in model.decls():
         name = d.name()
+        logging.warn(d.name)
 
         if "call_value" in name:
             tx_id = name.replace("call_value", "")
@@ -103,10 +104,10 @@ def get_transaction_sequence(global_state, constraints):
                 txs[tx_id]["call_value"] = call_value
 
         if "caller" in name:
+            # caller is 'creator' for creation transactions
             tx_id = name.replace("caller", "")
-            if not tx_id in creation_tx_ids:
-                caller = "0x" + ("%x" % model[d].as_long()).zfill(64)
+            caller = "0x" + ("%x" % model[d].as_long()).zfill(64)
 
-                txs[tx_id]["caller"] = caller
+            txs[tx_id]["caller"] = caller
 
     return txs
