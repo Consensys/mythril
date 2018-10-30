@@ -80,7 +80,9 @@ def test_calldata_constraints_in_transaction():
     correct_constraints = [MagicMock(), MagicMock(), MagicMock()]
 
     transaction = MessageCallTransaction(
-        world_state, Account("ca11ee"), Account("ca114")
+        world_state=world_state,
+        callee_account=Account("ca11ee"),
+        caller=Account("ca114"),
     )
     transaction.call_data = MagicMock()
     transaction.call_data.constraints = correct_constraints

@@ -34,16 +34,16 @@ def execute_message_call(
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
         transaction = MessageCallTransaction(
-            identifier=next_transaction_id,
             world_state=open_world_state,
-            callee_account=open_world_state[callee_address],
-            caller=caller_address,
-            call_data=Calldata(next_transaction_id, data),
+            identifier=next_transaction_id,
             gas_price=gas_price,
-            call_value=value,
             origin=origin_address,
-            call_data_type=CalldataType.SYMBOLIC,
             code=Disassembly(code),
+            caller=caller_address,
+            callee_account=open_world_state[callee_address],
+            call_data=Calldata(next_transaction_id, data),
+            call_data_type=CalldataType.SYMBOLIC,
+            call_value=value,
         )
 
         _setup_global_state_for_execution(laser_evm, transaction)

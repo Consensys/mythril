@@ -1228,14 +1228,14 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(
-            global_state.world_state,
-            callee_account,
-            BitVecVal(int(environment.active_account.address, 16), 256),
-            call_data=call_data,
+            world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            call_value=value,
             origin=environment.origin,
+            caller=BitVecVal(int(environment.active_account.address, 16), 256),
+            callee_account=callee_account,
+            call_data=call_data,
             call_data_type=call_data_type,
+            call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1322,15 +1322,15 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(
-            global_state.world_state,
-            environment.active_account,
-            environment.address,
-            call_data=call_data,
+            world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            call_value=value,
             origin=environment.origin,
-            call_data_type=call_data_type,
             code=callee_account.code,
+            caller=environment.address,
+            callee_account=environment.active_account,
+            call_data=call_data,
+            call_data_type=call_data_type,
+            call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1417,15 +1417,15 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(
-            global_state.world_state,
-            environment.active_account,
-            environment.sender,
-            call_data,
+            world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            call_value=environment.callvalue,
             origin=environment.origin,
-            call_data_type=call_data_type,
             code=callee_account.code,
+            caller=environment.sender,
+            callee_account=environment.active_account,
+            call_data=call_data,
+            call_data_type=call_data_type,
+            call_value=environment.callvalue,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
