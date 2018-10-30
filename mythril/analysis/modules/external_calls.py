@@ -125,6 +125,7 @@ def execute(statespace):
                         _type="Warning",
                         description=description,
                         swc_id=REENTRANCY,
+                        gas_used=state.mstate.gas_used
                     )
 
                 else:
@@ -139,6 +140,7 @@ def execute(statespace):
                         _type="Informational",
                         description=description,
                         swc_id=REENTRANCY,
+                        gas_used=state.mstate.gas_used
                     )
 
                 issues.append(issue)
@@ -183,6 +185,7 @@ def execute(statespace):
                                 _type="Warning",
                                 description=description,
                                 swc_id=REENTRANCY,
+                                gas_used=state.mstate.gas_used
                             )
                             issues.append(issue)
 

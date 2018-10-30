@@ -39,6 +39,7 @@ def execute(statespace):
                 title="Transaction order dependence",
                 swc_id=TX_ORDER_DEPENDENCE,
                 _type="Warning",
+                gas_used=call.state.mstate.gas_used
             )
 
             issue.description = (

@@ -56,6 +56,7 @@ def execute(statespace):
                             _type="Informational",
                             description=description,
                             debug=debug,
+                            gas_used=state.mstate.gas_used
                         )
                     )
 

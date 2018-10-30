@@ -58,6 +58,7 @@ def execute(statespace):
                     address=address,
                     title="Unchecked CALL return value",
                     swc_id=UNCHECKED_RET_VAL,
+                    gas_used=state.mstate.gas_used
                 )
 
                 issue.description = (
@@ -106,6 +107,7 @@ def execute(statespace):
                             address=address,
                             title="Unchecked CALL return value",
                             swc_id=UNCHECKED_RET_VAL,
+                            gas_used=state.mstate.gas_used
                         )
 
                         issue.description = (

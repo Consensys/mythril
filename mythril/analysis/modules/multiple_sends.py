@@ -29,6 +29,7 @@ def execute(statespace):
                 swc_id=MULTIPLE_SENDS,
                 title="Multiple Calls",
                 _type="Informational",
+                gas_used=call.state.mstate.gas_used
             )
 
             issue.description = (

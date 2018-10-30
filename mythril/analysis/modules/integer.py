@@ -96,6 +96,7 @@ def _check_integer_overflow(statespace, state, node):
         swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
         title="Integer Overflow",
         _type="Warning",
+        gas_used=state.mstate.gas_used
     )
 
     issue.description = "The arithmetic operation can result in integer overflow.\n"
@@ -203,6 +204,7 @@ def _check_integer_underflow(statespace, state, node):
                     swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                     title="Integer Underflow",
                     _type="Warning",
+                    gas_used=state.mstate.gas_used
                 )
 
                 issue.description = (

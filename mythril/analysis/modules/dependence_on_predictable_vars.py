@@ -69,6 +69,7 @@ def execute(statespace):
                     title="Dependence on predictable environment variable",
                     _type="Warning",
                     description=description,
+                    gas_used=call.state.mstate.gas_used
                 )
                 issues.append(issue)
 
@@ -117,6 +118,7 @@ def execute(statespace):
                             _type="Warning",
                             description=description,
                             swc_id=PREDICTABLE_VARS_DEPENDENCE,
+                            gas_used=call.state.mstate.gas_used
                         )
                         issues.append(issue)
                         break
@@ -146,6 +148,7 @@ def execute(statespace):
                                 _type="Informational",
                                 description=description,
                                 swc_id=PREDICTABLE_VARS_DEPENDENCE,
+                                gas_used=call.state.mstate.gas_used
                             )
                             issues.append(issue)
                             break

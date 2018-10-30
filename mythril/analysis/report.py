@@ -12,6 +12,7 @@ class Issue:
         address,
         swc_id,
         title,
+        gas_used,
         _type="Informational",
         description="",
         debug="",
@@ -25,6 +26,7 @@ class Issue:
         self.type = _type
         self.debug = debug
         self.swc_id = swc_id
+        self.gas_used = gas_used
         self.filename = None
         self.code = None
         self.lineno = None
@@ -41,6 +43,7 @@ class Issue:
             "type": self.type,
             "address": self.address,
             "debug": self.debug,
+            "gas_used": self.gas_used
         }
 
         if self.filename and self.lineno:
