@@ -321,12 +321,13 @@ class MachineState:
     MachineState represents current machine state also referenced to as \mu
     """
 
-    def __init__(self, gas):
+    def __init__(self, gas_limit):
         """ Constructor for machineState """
         self.pc = 0
         self.stack = MachineStack()
         self.memory = []
-        self.gas = gas
+        self.gas_limit = gas_limit
+        self.gas_used = 0
         self.constraints = []
         self.depth = 0
 
@@ -369,7 +370,7 @@ class MachineState:
             stack=self.stack,
             memory=self.memory,
             memsize=self.memory_size,
-            gas=self.gas,
+            gas=self.gas_limit,
         )
 
 
@@ -391,7 +392,9 @@ class GlobalState:
         self.node = node
         self.world_state = world_state
         self.environment = environment
-        self.mstate = machine_state if machine_state else MachineState(gas=10000000)
+        self.mstate = (
+            machine_state if machine_state else MachineState(gas_limit=8000000)
+        )
         self.transaction_stack = transaction_stack if transaction_stack else []
         self.op_code = ""
         self.last_return_data = last_return_data
