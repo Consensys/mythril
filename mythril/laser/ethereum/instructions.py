@@ -701,8 +701,8 @@ class Instruction:
 
         try:
             code = self.dynamic_loader.dynld(environment.active_account.address, addr)
-        except ValueError as e:
-            logging.info("error accessing contract storage due to: " + str(e.message))
+        except (ValueError, AttributeError) as e:
+            logging.info("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
