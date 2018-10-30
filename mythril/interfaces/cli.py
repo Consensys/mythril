@@ -277,7 +277,11 @@ def main():
             solc_args=args.solc_args,
             enable_online_lookup=args.query_signature,
         )
-        if args.dynld or not args.no_onchain_storage_access and not (args.rpc or args.i):
+        if (
+            args.dynld
+            or not args.no_onchain_storage_access
+            and not (args.rpc or args.i)
+        ):
             mythril.set_api_from_config_path()
 
         if args.address:

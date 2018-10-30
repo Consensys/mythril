@@ -13,7 +13,9 @@ class DynLoader:
     def read_storage(self, contract_address, index):
 
         if not self.storage_loading:
-            raise Exception('Cannot load from the storage when the storage_loading flag is false')
+            raise Exception(
+                "Cannot load from the storage when the storage_loading flag is false"
+            )
 
         try:
             contract_ref = self.storage_cache[contract_address]
@@ -42,7 +44,7 @@ class DynLoader:
     def dynld(self, contract_address, dependency_address):
 
         if not self.contract_loading:
-            raise ValueError('Cannot load contract when contract_loading flag is false')
+            raise ValueError("Cannot load contract when contract_loading flag is false")
 
         logging.info(
             "Dynld at contract " + contract_address + ": " + dependency_address
