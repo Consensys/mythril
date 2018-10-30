@@ -133,7 +133,7 @@ class Storage:
         try:
             return self._storage[item]
         except KeyError:
-            if self.address and int(self.address[2:], 16) != 0 and self.dynld:
+            if self.address and int(self.address[2:], 16) != 0 and (self.dynld and self.dynld.storage_loading):
                 try:
                     self._storage[item] = int(
                         self.dynld.read_storage(
