@@ -94,7 +94,6 @@ def get_transaction_sequence(global_state, constraints):
 
     for d in model.decls():
         name = d.name()
-        logging.warn(d.name)
 
         if "call_value" in name:
             tx_id = name.replace("call_value", "")
