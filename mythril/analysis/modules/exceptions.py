@@ -40,11 +40,9 @@ def execute(statespace):
                         "Use `require()` for regular input checking. "
                     )
 
-                    debug = (
-                        "The exception is triggered under the following conditions:\n\n"
+                    debug = "Transaction Sequence: " + str(
+                        solver.get_transaction_sequence(state, node.constraints)
                     )
-
-                    debug += solver.pretty_print_model(model)
 
                     issues.append(
                         Issue(

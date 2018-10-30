@@ -99,7 +99,9 @@ def _check_integer_overflow(statespace, state, node):
     )
 
     issue.description = "The arithmetic operation can result in integer overflow.\n"
-    issue.debug = solver.pretty_print_model(model)
+    issue.debug = "Transaction Sequence: " + str(
+        solver.get_transaction_sequence(state, node.constraints)
+    )
     issues.append(issue)
 
     return issues
@@ -209,7 +211,9 @@ def _check_integer_underflow(statespace, state, node):
                     "The subtraction can result in an integer underflow.\n"
                 )
 
-                issue.debug = solver.pretty_print_model(model)
+                issue.debug = "Transaction Sequence: " + str(
+                    solver.get_transaction_sequence(state, node.constraints)
+                )
                 issues.append(issue)
 
             except UnsatError:
