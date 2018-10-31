@@ -30,7 +30,12 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
     for key, contract in data["contracts"].items():
         filename, name = key.split(":")
         if filename == input_file and len(contract["bin-runtime"]):
-            yield SolidityContract(input_file=input_file, name=name, solc_args=solc_args, solc_binary=solc_binary)
+            yield SolidityContract(
+                input_file=input_file,
+                name=name,
+                solc_args=solc_args,
+                solc_binary=solc_binary,
+            )
 
 
 class SolidityContract(ETHContract):

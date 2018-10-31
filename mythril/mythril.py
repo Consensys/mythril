@@ -378,7 +378,7 @@ class Mythril(object):
                         input_file=file,
                         name=contract_name,
                         solc_args=self.solc_args,
-                        solc_binary=self.solc_binary
+                        solc_binary=self.solc_binary,
                     )
                     self.contracts.append(contract)
                     contracts.append(contract)
@@ -386,7 +386,7 @@ class Mythril(object):
                     for contract in get_contracts_from_file(
                         input_file=file,
                         solc_args=self.solc_args,
-                        solc_binary=self.solc_binary
+                        solc_binary=self.solc_binary,
                     ):
                         self.contracts.append(contract)
                         contracts.append(contract)
