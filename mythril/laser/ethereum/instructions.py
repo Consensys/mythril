@@ -2,6 +2,7 @@ import binascii
 import logging
 from copy import copy, deepcopy
 from typing import List
+from math import log
 
 from ethereum import utils
 from z3 import (
@@ -51,6 +52,15 @@ TT256M1 = 2 ** 256 - 1
 
 keccak_function_manager = KeccakFunctionManager()
 
+
+def exp_cost(exp):
+    if not isinstance(exp, int):
+        # for symbolic values
+        return 10
+    else:
+        return int(10 + (10 * (1 + log(exp, 256))))
+
+
 OPCODE_COST_FUNCTIONS = {
     "STOP": lambda: 0,
     "ADD": lambda: 3,
@@ -62,7 +72,7 @@ OPCODE_COST_FUNCTIONS = {
     "SMOD": lambda: 5,
     "ADDMOD": lambda: 8,
     "MULMOD": lambda: 8,
-    "EXP": lambda: 10,
+    "EXP": exp_cost,
     "SIGNEXTEND": lambda: 5,
     "LT": lambda: 3,
     "GT": lambda: 3,
@@ -497,8 +507,6 @@ class Instruction:
 
     @StateTransition()
     def exp_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
@@ -510,8 +518,11 @@ class Instruction:
                 )
             )
         else:
+
             state.stack.append(pow(base.as_long(), exponent.as_long(), 2 ** 256))
 
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](exponent.as_long())
+        state.gas_used += gas
         return [global_state]
 
     @StateTransition()
