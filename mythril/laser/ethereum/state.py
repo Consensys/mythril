@@ -4,16 +4,15 @@ from z3 import (
     BitVecRef,
     BitVecNumRef,
     BitVecSort,
-    Solver,
     ExprRef,
     Concat,
     sat,
     simplify,
     Array,
     ForAll,
-    Solver,
-    UGT,
     Implies,
+    UGE,
+    UGT,
 )
 from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
@@ -45,6 +44,8 @@ class Calldata:
         :param starting_calldata: byte array representing the concrete calldata of a transaction
         """
         self.tx_id = tx_id
+        self._constraints = []
+        self._not_yet_added_constraints = []
         if starting_calldata:
             self._calldata = []
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
@@ -56,28 +57,29 @@ class Calldata:
             self.calldatasize = BitVec("{}_calldatasize".format(self.tx_id), 256)
             self.concrete = False
 
-        self.starting_calldata = starting_calldata or []
-
-    @property
-    def constraints(self):
-        constraints = []
         if self.concrete:
-            for calldata_byte in self.starting_calldata:
+            for calldata_byte in starting_calldata:
                 if type(calldata_byte) == int:
                     self._calldata.append(BitVecVal(calldata_byte, 8))
                 else:
                     self._calldata.append(calldata_byte)
-            constraints.append(self.calldatasize == len(self.starting_calldata))
-        else:
-            x = BitVec("x", 256)
-            constraints.append(
-                ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
-            )
-        return constraints
+
+    @property
+    def constraints(self):
+        return self._constraints
+
+    def update_constraints(self, mstate):
+        """
+        Update constraints of a mstate
+        :param mstate: mstate to add constraints to
+        """
+        mstate.constraints.extend(self._not_yet_added_constraints)
+
+        self._constraints += self._not_yet_added_constraints
+        self._not_yet_added_constraints = []
 
     def concretized(self, model):
         result = []
-
         for i in range(
             get_concrete_int(model.eval(self.calldatasize, model_completion=True))
         ):
@@ -111,6 +113,9 @@ class Calldata:
             except IndexError:
                 return BitVecVal(0, 8)
         else:
+            constraints = [Implies(item != 0, UGT(self.calldatasize, item))]
+            self._not_yet_added_constraints += constraints
+
             return self._calldata[item]
 
 

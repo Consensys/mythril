@@ -420,6 +420,7 @@ class Instruction:
         op0 = state.stack.pop()
 
         state.stack.append(environment.calldata.get_word_at(op0))
+        environment.calldata.update_constraints(state)
         return [global_state]
 
     @StateTransition()
@@ -503,6 +504,8 @@ class Instruction:
                     i_data = (
                         i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
                     )
+
+                    environment.calldata.update_constraints(state)
 
                 for i in range(0, len(new_memory), 32):
                     state.memory[i + mstart] = simplify(Concat(new_memory[i : i + 32]))
