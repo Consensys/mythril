@@ -2,7 +2,7 @@ import binascii
 import logging
 from copy import copy, deepcopy
 from typing import List
-from math import log
+from math import log, ceil
 
 from ethereum import utils
 from z3 import (
@@ -53,19 +53,26 @@ TT256M1 = 2 ** 256 - 1
 keccak_function_manager = KeccakFunctionManager()
 
 
-def exp_cost(exp):
+def exp_cost(exp=None):
     if not isinstance(exp, int):
         return 10
     else:
         return int(10 + (10 * (1 + log(exp, 256))))
 
 
-def sha3_cost(input_length):
+def sha3_cost(input_length=None):
     if not isinstance(input_length, int):
         return 30
     else:
         # 6 gas for each input word
-        return 30 + 6 * (input_length // 256)
+        return 30 + 6 * ceil(input_length / 256)
+
+
+def calldatacopy_codecopy_cost(data_length=None):
+    if not isinstance(data_length, int):
+        return 2
+    else:
+        return 2 + 3 * ceil(data_length / 256)
 
 
 OPCODE_COST_FUNCTIONS = {
@@ -100,9 +107,9 @@ OPCODE_COST_FUNCTIONS = {
     "CALLVALUE": lambda: 2,
     "CALLDATALOAD": lambda: 3,
     "CALLDATASIZE": lambda: 2,
-    "CALLDATACOPY": lambda: 3,
+    "CALLDATACOPY": calldatacopy_codecopy_cost,
     "CODESIZE": lambda: 2,
-    "CODECOPY": lambda: 3,
+    "CODECOPY": calldatacopy_codecopy_cost,
     "GASPRICE": lambda: 2,
     "EXTCODESIZE": lambda: 20,
     "EXTCODECOPY": lambda: 20,
@@ -659,8 +666,6 @@ class Instruction:
 
     @StateTransition()
     def calldatacopy_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -669,6 +674,8 @@ class Instruction:
             mstart = util.get_concrete_int(op0)
         except TypeError:
             logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
+            gas = OPCODE_COST_FUNCTIONS[self.op_code]()
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         dstart_sym = False
@@ -699,6 +706,8 @@ class Instruction:
                 + "]",
                 256,
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code]()
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         if size > 0:
@@ -722,6 +731,8 @@ class Instruction:
                     + "]",
                     256,
                 )
+                gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
+                global_state.mstate.gas_used += gas
                 return [global_state]
 
             try:
@@ -749,6 +760,8 @@ class Instruction:
                     + "]",
                     256,
                 )
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
+        global_state.mstate.gas_used += gas
         return [global_state]
 
     # Environment
@@ -850,8 +863,6 @@ class Instruction:
 
     @StateTransition()
     def codecopy_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         memory_offset, code_offset, size = (
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
@@ -865,8 +876,9 @@ class Instruction:
             return [global_state]
 
         try:
-            concrete_size = helper.get_concrete_int(size)
-            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+            size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, size)
+
         except TypeError:
             # except both attribute error and Exception
             global_state.mstate.mem_extend(concrete_memory_offset, 1)
@@ -878,14 +890,19 @@ class Instruction:
                 ),
                 256,
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
+            global_state.mstate.gas_used += gas
             return [global_state]
+
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
+        global_state.mstate.gas_used += gas
 
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
         except TypeError:
             logging.debug("Unsupported symbolic code offset in CODECOPY")
-            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
-            for i in range(concrete_size):
+            global_state.mstate.mem_extend(concrete_memory_offset, size)
+            for i in range(size):
                 global_state.mstate.memory[
                     concrete_memory_offset + i
                 ] = global_state.new_bitvec(
@@ -898,7 +915,7 @@ class Instruction:
 
         bytecode = global_state.environment.code.bytecode
 
-        if concrete_size == 0 and isinstance(
+        if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
             if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
@@ -913,7 +930,7 @@ class Instruction:
                 )
                 return [global_state]
 
-        for i in range(concrete_size):
+        for i in range(size):
             if 2 * (concrete_code_offset + i + 1) <= len(bytecode):
                 global_state.mstate.memory[concrete_memory_offset + i] = int(
                     bytecode[
