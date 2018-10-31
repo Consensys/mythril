@@ -47,12 +47,13 @@ def execute(statespace):
                     issues.append(
                         Issue(
                             contract=node.contract_name,
-                            function=node.function_name,
+                            function_name=node.function_name,
                             address=address,
                             swc_id=ASSERT_VIOLATION,
                             title="Exception state",
                             _type="Informational",
                             description=description,
+                            bytecode=state.environment.code.bytecode,
                             debug=debug,
                         )
                     )

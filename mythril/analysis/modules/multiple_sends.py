@@ -24,9 +24,10 @@ def execute(statespace):
             instruction = call.state.get_current_instruction()
             issue = Issue(
                 contract=node.contract_name,
-                function=node.function_name,
+                function_name=node.function_name,
                 address=instruction["address"],
                 swc_id=MULTIPLE_SENDS,
+                bytecode=call.state.environment.code.bytecode,
                 title="Multiple Calls",
                 _type="Informational",
             )

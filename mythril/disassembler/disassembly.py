@@ -1,4 +1,5 @@
-from mythril.ether import asm, util
+from mythril.ether import util
+from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDb
 import logging
 
@@ -33,7 +34,7 @@ class Disassembly(object):
             )
 
         # Need to take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
-        jump_table_indices = asm.find_opcode_sequence(
+        jump_table_indices = asm.find_op_code_sequence(
             [("PUSH1", "PUSH2", "PUSH3", "PUSH4"), ("EQ",)], self.instruction_list
         )
 
