@@ -9,4 +9,4 @@
 
 ### Description
 
-The function `_function_0xcbf0b0c0` executes the SUICIDE instruction. The remaining Ether is sent to an address provided as a function argument.
+A reachable SUICIDE instruction was detected. The remaining Ether is sent to an address provided as a function argument.

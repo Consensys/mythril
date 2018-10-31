@@ -42,7 +42,7 @@ This contract executes a message call to an address found at storage slot 1. Thi
 
 ### Description
 
-A possible transaction order dependence vulnerability exists in function _function_0xd24b08cc. The value or direction of the call statement is determined from a tainted storage location
+Possible transaction order dependence vulnerability: The value or direction of the call statement is determined from a tainted storage location
 
 ## Unchecked CALL return value
 - SWC ID: 104

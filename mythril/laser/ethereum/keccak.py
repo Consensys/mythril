@@ -1,5 +1,6 @@
 from z3 import ExprRef
 
+
 class KeccakFunctionManager:
     def __init__(self):
         self.keccak_expression_mapping = {}

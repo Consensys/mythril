@@ -22,7 +22,11 @@ except ImportError:
         if weights is None:
             return [population[int(random() * len(population))]]
         cum_weights = accumulate(weights)
-        return [population[bisect(cum_weights, random()*cum_weights[-1], 0, len(population)-1)]]
+        return [
+            population[
+                bisect(cum_weights, random() * cum_weights[-1], 0, len(population) - 1)
+            ]
+        ]
 
 
 class DepthFirstSearchStrategy(BasicSearchStrategy):
@@ -49,6 +53,7 @@ class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
     """
     chooses a random state from the worklist with equal likelihood
     """
+
     def get_strategic_global_state(self):
         if len(self.graph.work_list) > 0:
             return self.graph.work_list.pop(randrange(len(self.graph.work_list)))

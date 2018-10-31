@@ -39,13 +39,13 @@ class ReceiptForStorage(rlp.Serializable):
     """
 
     fields = [
-        ('state_root', binary),
-        ('cumulative_gas_used', big_endian_int),
-        ('bloom', int256),
-        ('tx_hash', hash32),
-        ('contractAddress', address),
-        ('logs', CountableList(Log)),
-        ('gas_used', big_endian_int)
+        ("state_root", binary),
+        ("cumulative_gas_used", big_endian_int),
+        ("bloom", int256),
+        ("tx_hash", hash32),
+        ("contractAddress", address),
+        ("logs", CountableList(Log)),
+        ("gas_used", big_endian_int),
     ]
 
 
@@ -76,7 +76,9 @@ class AccountIndexer(object):
         """
         Processesing method
         """
-        logging.debug("Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE))
+        logging.debug(
+            "Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE)
+        )
 
         addresses = []
 
@@ -86,7 +88,9 @@ class AccountIndexer(object):
                 receipts = self.db.reader._get_block_receipts(block_hash, blockNum)
 
                 for receipt in receipts:
-                    if receipt.contractAddress is not None and not all(b == 0 for b in receipt.contractAddress):
+                    if receipt.contractAddress is not None and not all(
+                        b == 0 for b in receipt.contractAddress
+                    ):
                         addresses.append(receipt.contractAddress)
             else:
                 if len(addresses) == 0:
@@ -112,15 +116,21 @@ class AccountIndexer(object):
 
         # in fast sync head block is at 0 (e.g. in fastSync), we can't use it to determine length
         if self.lastBlock is not None and self.lastBlock == 0:
-            self.lastBlock = 2e+9
+            self.lastBlock = 2e9
 
-        if self.lastBlock is None or (self.lastProcessedBlock is not None and self.lastBlock <= self.lastProcessedBlock):
+        if self.lastBlock is None or (
+            self.lastProcessedBlock is not None
+            and self.lastBlock <= self.lastProcessedBlock
+        ):
             return
 
         blockNum = 0
         if self.lastProcessedBlock is not None:
             blockNum = self.lastProcessedBlock + 1
-            print("Updating hash-to-address index from block " + str(self.lastProcessedBlock))
+            print(
+                "Updating hash-to-address index from block "
+                + str(self.lastProcessedBlock)
+            )
         else:
             print("Starting hash-to-address index")
 
@@ -147,7 +157,10 @@ class AccountIndexer(object):
             blockNum = min(blockNum + BATCH_SIZE, self.lastBlock + 1)
 
             cost_time = time.time() - ether.start_time
-            print("%d blocks processed (in %d seconds), %d unique addresses found, next block: %d" % (processed, cost_time, count, min(self.lastBlock, blockNum)))
+            print(
+                "%d blocks processed (in %d seconds), %d unique addresses found, next block: %d"
+                % (processed, cost_time, count, min(self.lastBlock, blockNum))
+            )
 
             self.lastProcessedBlock = blockNum - 1
             self.db.writer._set_last_indexed_number(self.lastProcessedBlock)
