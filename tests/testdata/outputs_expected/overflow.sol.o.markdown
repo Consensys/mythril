@@ -9,7 +9,7 @@
 
 ### Description
 
-The substraction can result in an integer underflow.
+The subtraction can result in an integer underflow.
 
 ## Integer Underflow
 - SWC ID: 101
@@ -20,7 +20,7 @@ The substraction can result in an integer underflow.
 
 ### Description
 
-The substraction can result in an integer underflow.
+The subtraction can result in an integer underflow.
 
 ## Integer Overflow
 - SWC ID: 101
