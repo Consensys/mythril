@@ -72,7 +72,7 @@ def _check_integer_overflow(statespace, state, node):
     # Formulate expression
     if instruction["opcode"] == "ADD":
         expr = op0 + op1
-        constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
+        constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
     else:
         expr = op1 * op0
         constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
