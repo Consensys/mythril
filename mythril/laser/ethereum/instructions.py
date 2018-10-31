@@ -82,6 +82,19 @@ def extcodecopy_cost(data_length=None):
         return 700 + 3 * ceil(data_length / 256)
 
 
+def sstore_cost(value, location):
+    if not isinstance(value, int) or not isinstance(location, int):
+        return 5_000
+    return 20_000 if value != 0 and location == 0 else 5_000
+
+
+def log_cost(level, data_length=None):
+    if not isinstance(data_length, int):
+        return (level + 1) * 375
+    else:
+        return 375 * (level + 1) + 8 * data_length
+
+
 OPCODE_COST_FUNCTIONS = {
     "STOP": lambda: 0,
     "ADD": lambda: 3,
@@ -133,7 +146,7 @@ OPCODE_COST_FUNCTIONS = {
     "MSTORE": lambda: 3,
     "MSTORE8": lambda: 3,
     "SLOAD": lambda: 50,
-    "SSTORE": lambda: 0,
+    "SSTORE": sstore_cost,
     "JUMP": lambda: 8,
     "JUMPI": lambda: 10,
     "PC": lambda: 2,
@@ -204,11 +217,7 @@ OPCODE_COST_FUNCTIONS = {
     "SWAP14": lambda: 3,
     "SWAP15": lambda: 3,
     "SWAP16": lambda: 3,
-    "LOG0": lambda: 375,
-    "LOG1": lambda: 750,
-    "LOG2": lambda: 1125,
-    "LOG3": lambda: 1500,
-    "LOG4": lambda: 1875,
+    "LOG": log_cost,
     "CREATE": lambda: 32000,
     "CALL": lambda: 40,
     "CALLCODE": lambda: 40,
@@ -1211,8 +1220,6 @@ class Instruction:
 
     @StateTransition()
     def sstore_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
@@ -1283,6 +1290,11 @@ class Instruction:
 
         if constraint is not None:
             global_state.mstate.constraints.append(constraint)
+
+        # We don't have to take refunds for freed storage into account as they're
+        # only provided at the end of the transaction and not relevant to OOG errors
+        gas = OPCODE_COST_FUNCTIONS["SSTORE"](value, index)
+        global_state.mstate.gas_used += gas
 
         return [global_state]
 
@@ -1396,13 +1408,13 @@ class Instruction:
 
     @StateTransition()
     def log_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         # TODO: implement me
         state = global_state.mstate
         dpth = int(self.op_code[3:])
         state.stack.pop(), state.stack.pop()
-        [state.stack.pop() for _ in range(dpth)]
+        log_data = [state.stack.pop() for _ in range(dpth)]
+        gas = OPCODE_COST_FUNCTIONS["LOG"](dpth, len(log_data))
+        global_state.mstate.gas_used += gas
         # Not supported
         return [global_state]
 
