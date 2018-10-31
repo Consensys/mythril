@@ -13,7 +13,7 @@ def test_execute_state(mocker):
 
     state = GlobalState(None, None, None)
     state.mstate.stack = [1, 2, 3]
-    mocker.patch.object(state, 'get_current_instruction')
+    mocker.patch.object(state, "get_current_instruction")
     state.get_current_instruction.return_value = {"opcode": "ADD"}
 
     # Act
@@ -31,12 +31,12 @@ def test_execute_node(mocker):
     state_1 = GlobalState(None, None, None)
     state_1.mstate.stack = [1, 2, 3, 1]
     state_1.mstate.pc = 1
-    mocker.patch.object(state_1, 'get_current_instruction')
+    mocker.patch.object(state_1, "get_current_instruction")
     state_1.get_current_instruction.return_value = {"opcode": "SWAP1"}
 
     state_2 = GlobalState(None, 1, None)
     state_2.mstate.stack = [1, 2, 4, 1]
-    mocker.patch.object(state_2, 'get_current_instruction')
+    mocker.patch.object(state_2, "get_current_instruction")
     state_2.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node = Node("Test contract")
@@ -56,16 +56,16 @@ def test_execute_node(mocker):
 
 
 def test_execute(mocker):
-    active_account = Account('0x00')
+    active_account = Account("0x00")
     environment = Environment(active_account, None, None, None, None, None)
     state_1 = GlobalState(None, environment, None, MachineState(gas=10000000))
     state_1.mstate.stack = [1, 2]
-    mocker.patch.object(state_1, 'get_current_instruction')
+    mocker.patch.object(state_1, "get_current_instruction")
     state_1.get_current_instruction.return_value = {"opcode": "PUSH"}
 
     state_2 = GlobalState(None, environment, None, MachineState(gas=10000000))
     state_2.mstate.stack = [1, 2, 3]
-    mocker.patch.object(state_2, 'get_current_instruction')
+    mocker.patch.object(state_2, "get_current_instruction")
     state_2.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node_1 = Node("Test contract")
@@ -73,7 +73,7 @@ def test_execute(mocker):
 
     state_3 = GlobalState(None, environment, None, MachineState(gas=10000000))
     state_3.mstate.stack = [1, 2]
-    mocker.patch.object(state_3, 'get_current_instruction')
+    mocker.patch.object(state_3, "get_current_instruction")
     state_3.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node_2 = Node("Test contract")

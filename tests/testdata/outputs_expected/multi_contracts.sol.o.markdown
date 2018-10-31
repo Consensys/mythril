@@ -9,5 +9,4 @@
 
 ### Description
 
-A non-zero amount of Ether is sent to a user-supplied address. The target address is msg.sender.
-It seems that this function can be called without restrictions.
+It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.

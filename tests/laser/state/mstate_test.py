@@ -2,14 +2,12 @@ import pytest
 from mythril.laser.ethereum.state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 
-memory_extension_test_data = [
-    (0, 0, 10),
-    (0, 30, 10),
-    (100, 22, 8)
-]
+memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
 
 
-@pytest.mark.parametrize("initial_size,start,extension_size", memory_extension_test_data)
+@pytest.mark.parametrize(
+    "initial_size,start,extension_size", memory_extension_test_data
+)
 def test_memory_extension(initial_size, start, extension_size):
     # Arrange
     machine_state = MachineState(0)
@@ -23,12 +21,7 @@ def test_memory_extension(initial_size, start, extension_size):
     assert machine_state.memory_size == max(initial_size, start + extension_size)
 
 
-stack_pop_too_many_test_data = [
-    (0, 1),
-    (0, 2),
-    (5, 1),
-    (5, 10)
-]
+stack_pop_too_many_test_data = [(0, 1), (0, 2), (5, 1), (5, 10)]
 
 
 @pytest.mark.parametrize("initial_size,overflow", stack_pop_too_many_test_data)
@@ -44,7 +37,7 @@ def test_stack_pop_too_many(initial_size, overflow):
 
 stack_pop_test_data = [
     ([1, 2, 3], 2, [3, 2]),
-    ([1, 3, 4, 7, 7, 1, 2], 5, [2, 1, 7, 7, 4])
+    ([1, 3, 4, 7, 7, 1, 2], 5, [2, 1, 7, 7, 4]),
 ]
 
 
@@ -79,7 +72,7 @@ def test_stack_multiple_pop_():
 def test_stack_single_pop():
     # Arrange
     machine_state = MachineState(0)
-    machine_state.stack = [1,2,3]
+    machine_state.stack = [1, 2, 3]
 
     # Act
     result = machine_state.pop()
@@ -88,22 +81,18 @@ def test_stack_single_pop():
     assert isinstance(result, int)
 
 
-memory_write_test_data = [
-    (5, 10, [1, 2, 3]),
-    (0, 0, [3, 4]),
-    (20, 1, [2, 4, 10])
-]
+memory_write_test_data = [(5, 10, [1, 2, 3]), (0, 0, [3, 4]), (20, 1, [2, 4, 10])]
 
 
 @pytest.mark.parametrize("initial_size, memory_offset, data", memory_write_test_data)
 def test_memory_write(initial_size, memory_offset, data):
     # Arrange
     machine_state = MachineState(0)
-    machine_state.memory = [0]*initial_size
+    machine_state.memory = [0] * initial_size
 
     # Act
     machine_state.memory_write(memory_offset, data)
 
     # Assert
-    assert len(machine_state.memory) == max(initial_size, memory_offset+len(data))
-    assert machine_state.memory[memory_offset:memory_offset+len(data)] == data
+    assert len(machine_state.memory) == max(initial_size, memory_offset + len(data))
+    assert machine_state.memory[memory_offset : memory_offset + len(data)] == data

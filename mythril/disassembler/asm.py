@@ -11,6 +11,7 @@ opcodes[254] = ["ASSERT_FAIL", 0, 0, 0]
 
 class EvmInstruction:
     """ Model to hold the information of the disassembly """
+
     def __init__(self, address, op_code, argument=None):
         self.address = address
         self.op_code = op_code
@@ -23,7 +24,7 @@ class EvmInstruction:
         return result
 
 
-def instruction_list_to_easm(instruction_list: dict) -> str:
+def instruction_list_to_easm(instruction_list: list) -> str:
     result = ""
 
     for instruction in instruction_list:
@@ -66,7 +67,7 @@ def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool
     """
     for index, pattern_slot in enumerate(pattern, start=index):
         try:
-            if not instruction_list[index]['opcode'] in pattern_slot:
+            if not instruction_list[index]["opcode"] in pattern_slot:
                 return False
         except IndexError:
             return False
@@ -95,7 +96,7 @@ def disassemble(bytecode: str) -> list:
 
         match = re.search(regex_PUSH, op_code_name)
         if match:
-            argument_bytes = bytecode[address + 1: address + 1 + int(match.group(1))]
+            argument_bytes = bytecode[address + 1 : address + 1 + int(match.group(1))]
             current_instruction.argument = "0x" + argument_bytes.hex()
             address += int(match.group(1))
 
