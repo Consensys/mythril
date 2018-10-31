@@ -54,7 +54,7 @@ keccak_function_manager = KeccakFunctionManager()
 
 
 def exp_cost(exp=None):
-    if not isinstance(exp, int):
+    if not isinstance(exp, int) or exp == 0:
         return 10
     else:
         return int(10 + (10 * (1 + log(exp, 256))))
@@ -93,6 +93,15 @@ def log_cost(level, data_length=None):
         return (level + 1) * 375
     else:
         return 375 * (level + 1) + 8 * data_length
+
+
+def call_cost(value, contract_created):
+    if not isinstance(value, int):
+        is_value_tx = False
+    else:
+        is_value_tx = True if value != 0 else False
+
+    return 700 + is_value_tx * 9_000 + contract_created * 25_000
 
 
 OPCODE_COST_FUNCTIONS = {
@@ -219,12 +228,11 @@ OPCODE_COST_FUNCTIONS = {
     "SWAP16": lambda: 3,
     "LOG": log_cost,
     "CREATE": lambda: 32000,
-    "CALL": lambda: 40,
-    "CALLCODE": lambda: 40,
+    "CALL": call_cost,
+    "CALLCODE": call_cost,
     "RETURN": lambda: 0,
-    "DELEGATECALL": lambda: 40,
-    "CALLBLACKBOX": lambda: 40,
-    "STATICCALL": lambda: 40,
+    "DELEGATECALL": call_cost,
+    "STATICCALL": call_cost,
     "REVERT": lambda: 0,
     "SUICIDE": lambda: 0,
 }
@@ -1504,9 +1512,6 @@ class Instruction:
 
     @StateTransition()
     def call_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
-
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
@@ -1524,6 +1529,9 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            # assume no value, no contract created
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
+            global_state.mstate.gas_used += gas
             return [global_state]
         global_state.mstate.stack.append(
             global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1533,6 +1541,11 @@ class Instruction:
             logging.info("Native contract called: " + callee_address)
             if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
                 logging.debug("CALL with symbolic data not supported")
+                gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                    value=value,
+                    contract_created=callee_address in global_state.world_state.accounts
+                )
+                global_state.mstate.gas_used += gas
                 return [global_state]
 
             try:
@@ -1540,6 +1553,11 @@ class Instruction:
                 mem_out_sz = memory_out_size.as_long()
             except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
+                gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                    value=value,
+                    contract_created=callee_address in global_state.world_state.accounts
+                )
+                global_state.mstate.gas_used += gas
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
@@ -1558,7 +1576,11 @@ class Instruction:
                         + ")",
                         256,
                     )
-
+                gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                    value=value,
+                    contract_created=callee_address in global_state.world_state.accounts
+                )
+                global_state.mstate.gas_used += gas
                 return [global_state]
 
             for i in range(
@@ -1566,6 +1588,11 @@ class Instruction:
             ):  # If more data is used then it's chopped off
                 global_state.mstate.memory[mem_out_start + i] = data[i]
 
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
 
@@ -1583,12 +1610,10 @@ class Instruction:
 
     @StateTransition()
     def call_post(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         instr = global_state.get_current_instruction()
 
         try:
-            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1600,6 +1625,8 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         if global_state.last_return_data is None:
@@ -1610,6 +1637,11 @@ class Instruction:
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         try:
@@ -1627,6 +1659,11 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         # Copy memory
@@ -1643,12 +1680,15 @@ class Instruction:
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
 
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](
+            value=value,
+            contract_created=callee_address in global_state.world_state.accounts
+        )
+        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
     def callcode_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
@@ -1665,6 +1705,8 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         transaction = MessageCallTransaction(
@@ -1687,7 +1729,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1699,6 +1741,8 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         if global_state.last_return_data is None:
@@ -1708,7 +1752,11 @@ class Instruction:
             )
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
-
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         try:
@@ -1726,6 +1774,11 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         # Copy memory
@@ -1741,18 +1794,20 @@ class Instruction:
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
-
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](
+            value=value,
+            contract_created=callee_address in global_state.world_state.accounts
+        )
+        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
     def delegatecall_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, _, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, call_data_type, _, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1764,6 +1819,8 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         transaction = MessageCallTransaction(
@@ -1781,12 +1838,10 @@ class Instruction:
 
     @StateTransition()
     def delegatecall_post(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         instr = global_state.get_current_instruction()
 
         try:
-            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1798,6 +1853,8 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         if global_state.last_return_data is None:
@@ -1808,6 +1865,11 @@ class Instruction:
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             return [global_state]
 
         try:
@@ -1825,6 +1887,11 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](
+                value=value,
+                contract_created=callee_address in global_state.world_state.accounts
+            )
+            global_state.mstate.gas_used += gas
             return [global_state]
 
             # Copy memory
@@ -1841,11 +1908,16 @@ class Instruction:
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
 
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](
+            value=value,
+            contract_created=callee_address in global_state.world_state.accounts
+        )
+        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
     def staticcall_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
         global_state.mstate.gas_used += gas
         # TODO: implement me
         instr = global_state.get_current_instruction()
