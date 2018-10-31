@@ -75,6 +75,13 @@ def calldatacopy_codecopy_cost(data_length=None):
         return 2 + 3 * ceil(data_length / 256)
 
 
+def extcodecopy_cost(data_length=None):
+    if not isinstance(data_length, int):
+        return 700
+    else:
+        return 700 + 3 * ceil(data_length / 256)
+
+
 OPCODE_COST_FUNCTIONS = {
     "STOP": lambda: 0,
     "ADD": lambda: 3,
@@ -112,7 +119,7 @@ OPCODE_COST_FUNCTIONS = {
     "CODECOPY": calldatacopy_codecopy_cost,
     "GASPRICE": lambda: 2,
     "EXTCODESIZE": lambda: 20,
-    "EXTCODECOPY": lambda: 20,
+    "EXTCODECOPY": extcodecopy_cost,
     "RETURNDATASIZE": lambda: 2,
     "RETURNDATACOPY": lambda: 3,
     "BLOCKHASH": lambda: 20,
@@ -982,12 +989,18 @@ class Instruction:
 
     @StateTransition()
     def extcodecopy_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         # FIXME: not implemented
         state = global_state.mstate
         addr = state.stack.pop()
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+        try:
+            size = util.get_concrete_int(size)
+        except TypeError:
+            gas = OPCODE_COST_FUNCTIONS[self.op_code]()
+        else:
+            gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
+        state.mstate.gas_used += gas
+
         return [global_state]
 
     @StateTransition()
