@@ -94,10 +94,10 @@ def get_transaction_sequence(global_state, constraints):
         )
 
         concrete_transactions[tx_id]["call_value"] = (
-            "0x%x" % model.eval(transaction.call_value).as_long()
+            "0x%x" % model.eval(transaction.call_value, model_completion=True).as_long()
         )
         concrete_transactions[tx_id]["caller"] = "0x" + (
-            "%x" % model.eval(transaction.caller).as_long()
+            "%x" % model.eval(transaction.caller, model_completion=True).as_long()
         ).zfill(40)
 
     return concrete_transactions
