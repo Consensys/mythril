@@ -67,7 +67,11 @@ def _analyze_state(state, node):
     try:
         model = solver.get_model(node.constraints + not_creator_constraints)
 
-        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
+        debug = "Transaction Sequence: " + str(
+            solver.get_transaction_sequence(
+                state, node.constraints + not_creator_constraints
+            )
+        )
 
         issue = Issue(
             contract=node.contract_name,

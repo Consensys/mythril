@@ -159,12 +159,11 @@ def solve(call):
     try:
         model = solver.get_model(call.node.constraints)
         logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
+        pretty_model = solver.pretty_print_model(model)
 
-        for decl in model.decls():
-            logging.debug(
-                "[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x"
-                % (decl.name(), model[decl].as_long())
-            )
+        logging.debug(
+            "[DEPENDENCE_ON_PREDICTABLE_VARS] main model: \n%s" % pretty_model
+        )
         return True
 
     except UnsatError:

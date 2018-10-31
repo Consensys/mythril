@@ -9,9 +9,7 @@
 
 ### Description
 
-A non-zero amount of Ether is sent to a user-supplied address. The target address is msg.sender.
-
-There is a check on storage index 1. This storage slot can be written to by calling the function `crowdfunding()`.
+It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.
 
 ## Integer Overflow
 - SWC ID: 101

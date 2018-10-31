@@ -2,11 +2,7 @@ import pytest
 from mythril.laser.ethereum.state import Storage
 from z3 import ExprRef
 
-storage_uninitialized_test_data = [
-    ({}, 1),
-    ({1: 5}, 2),
-    ({1: 5, 3: 10}, 2)
-]
+storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
 
 
 @pytest.mark.parametrize("initial_storage,key", storage_uninitialized_test_data)
