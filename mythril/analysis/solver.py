@@ -59,14 +59,16 @@ def get_transaction_sequence(global_state, constraints):
         "caller": "0xCA11EDEADBEEF37E636E6CA11EDEADBEEFCA11ED",
     }
 
-    txs = {}
+    concrete_transactions = {}
     creation_tx_ids = []
     tx_constraints = constraints.copy()
+
+    transactions = []
 
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
-
+            transactions.append(transaction)
             # Constrain calldatasize
             max_calldatasize = 5000
             if max_calldatasize != None:
@@ -74,39 +76,28 @@ def get_transaction_sequence(global_state, constraints):
                     UGE(max_calldatasize, transaction.call_data.calldatasize)
                 )
 
-            txs[tx_id] = tx_template.copy()
+            concrete_transactions[tx_id] = tx_template.copy()
 
         else:
             creation_tx_ids.append(tx_id)
 
     model = get_model(tx_constraints)
 
-    for transaction in transaction_sequence:
-        if not isinstance(transaction, ContractCreationTransaction):
-            tx_id = str(transaction.id)
+    for transaction in transactions:
+        tx_id = str(transaction.id)
 
-            txs[tx_id]["calldata"] = "0x" + "".join(
-                [
-                    hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
-                    for b in transaction.call_data.concretized(model)
-                ]
-            )
+        concrete_transactions[tx_id]["calldata"] = "0x" + "".join(
+            [
+                hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
+                for b in transaction.call_data.concretized(model)
+            ]
+        )
 
-    for d in model.decls():
-        name = d.name()
+        concrete_transactions[tx_id]["call_value"] = (
+            "0x%x" % model.eval(transaction.call_value).as_long()
+        )
+        concrete_transactions[tx_id]["caller"] = "0x" + (
+            "%x" % model.eval(transaction.caller).as_long()
+        ).zfill(40)
 
-        if "call_value" in name:
-            tx_id = name.replace("call_value", "")
-            if not tx_id in creation_tx_ids:
-                call_value = "0x%x" % model[d].as_long()
-
-                txs[tx_id]["call_value"] = call_value
-
-        if "caller" in name:
-            # caller is 'creator' for creation transactions
-            tx_id = name.replace("caller", "")
-            caller = "0x" + ("%x" % model[d].as_long()).zfill(64)
-
-            txs[tx_id]["caller"] = caller
-
-    return txs
+    return concrete_transactions
