@@ -207,7 +207,7 @@ def _check_integer_underflow(statespace, state, node):
                 )
 
                 issue.description = (
-                    "The substraction can result in an integer underflow.\n"
+                    "The subtraction can result in an integer underflow.\n"
                 )
 
                 issue.debug = "Transaction Sequence: " + str(
