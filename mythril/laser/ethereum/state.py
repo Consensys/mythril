@@ -46,7 +46,7 @@ class Calldata:
         self.tx_id = tx_id
         self._constraints = []
         self._not_yet_added_constraints = []
-        if starting_calldata:
+        if not starting_calldata is None:
             self._calldata = []
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
             self.concrete = True

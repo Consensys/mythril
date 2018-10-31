@@ -2,7 +2,7 @@ import pytest
 from mythril.laser.ethereum.state import Calldata
 from z3 import Solver, simplify
 from z3.z3types import Z3Exception
-
+from mock import MagicMock
 
 uninitialized_test_data = [
     ([]),  # Empty concrete calldata
@@ -14,13 +14,17 @@ uninitialized_test_data = [
 def test_concrete_calldata_uninitialized_index(starting_calldata):
     # Arrange
     calldata = Calldata(0, starting_calldata)
+    mstate = MagicMock()
+    mstate.constraints = []
     solver = Solver()
 
     # Act
     value = calldata[100]
     value2 = calldata.get_word_at(200)
 
-    solver.add(calldata.constraints)
+    calldata.update_constraints(mstate)
+    solver.add(mstate.constraints)
+
     solver.check()
     model = solver.model()
 
@@ -38,7 +42,6 @@ def test_concrete_calldata_calldatasize():
     solver = Solver()
 
     # Act
-    solver.add(calldata.constraints)
     solver.check()
     model = solver.model()
 
@@ -51,6 +54,8 @@ def test_concrete_calldata_calldatasize():
 def test_symbolic_calldata_constrain_index():
     # Arrange
     calldata = Calldata(0)
+    mstate = MagicMock()
+    mstate.constraints = []
     solver = Solver()
 
     # Act
@@ -58,7 +63,10 @@ def test_symbolic_calldata_constrain_index():
 
     value = calldata[100]
 
-    solver.add(calldata.constraints + [constraint])
+    calldata.update_constraints(mstate)
+    solver.add(mstate.constraints)
+    solver.add(constraint)
+
     solver.check()
     model = solver.model()
 
@@ -73,12 +81,16 @@ def test_symbolic_calldata_constrain_index():
 def test_concrete_calldata_constrain_index():
     # Arrange
     calldata = Calldata(0, [1, 4, 7, 3, 7, 2, 9])
+    mstate = MagicMock()
+    mstate.constraints = []
     solver = Solver()
 
     # Act
     constraint = calldata[2] == 3
 
-    solver.add(calldata.constraints + [constraint])
+    calldata.update_constraints(mstate)
+    solver.add(mstate.constraints)
+    solver.add(constraint)
     result = solver.check()
 
     # Assert
@@ -88,6 +100,8 @@ def test_concrete_calldata_constrain_index():
 def test_concrete_calldata_constrain_index():
     # Arrange
     calldata = Calldata(0)
+    mstate = MagicMock()
+    mstate.constraints = []
     solver = Solver()
 
     # Act
@@ -95,7 +109,10 @@ def test_concrete_calldata_constrain_index():
     constraints.append(calldata[51] == 1)
     constraints.append(calldata.calldatasize == 50)
 
-    solver.add(calldata.constraints + constraints)
+    calldata.update_constraints(mstate)
+    solver.add(mstate.constraints)
+    solver.add(constraints)
+
     result = solver.check()
 
     # Assert
