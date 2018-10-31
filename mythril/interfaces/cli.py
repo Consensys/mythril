@@ -202,7 +202,6 @@ def main():
         "--rpctls", type=bool, default=False, help="RPC connection over TLS"
     )
     parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
->>>>>>> 9e291734d6bc1e872f5e69dbcc33126b852f1983
 
     # Get config values
 

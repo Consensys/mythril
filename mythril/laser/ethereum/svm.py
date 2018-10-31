@@ -58,7 +58,9 @@ class LaserEVM:
 
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
-        self.graph = SimpleGraph() if issubclass(strategy, BasicSearchStrategy) else Graph()
+        self.graph = (
+            SimpleGraph() if issubclass(strategy, BasicSearchStrategy) else Graph()
+        )
         self.strategy = strategy(self.graph, max_depth)
         self.max_depth = max_depth
         self.max_transaction_count = max_transaction_count

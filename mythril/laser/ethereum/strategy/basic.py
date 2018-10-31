@@ -67,6 +67,9 @@ class ReturnWeightedRandomStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self):
-        probability_distribution = [1/(global_state.mstate.depth+1) for global_state in self.graph.work_list]
-        return self.graph.work_list.pop(choices(range(len(self.graph.work_list)), probability_distribution)[0])
-
+        probability_distribution = [
+            1 / (global_state.mstate.depth + 1) for global_state in self.graph.work_list
+        ]
+        return self.graph.work_list.pop(
+            choices(range(len(self.graph.work_list)), probability_distribution)[0]
+        )

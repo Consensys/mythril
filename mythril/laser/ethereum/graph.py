@@ -4,7 +4,6 @@ from mythril.laser.ethereum.state import GlobalState
 
 
 class Graph:
-
     def __init__(self):
         self.adjacency_list = dict()
         self.work_list = []
@@ -22,7 +21,6 @@ class Graph:
 
 
 class SimpleGraph:
-
     def __init__(self):
         self.work_list = []
 

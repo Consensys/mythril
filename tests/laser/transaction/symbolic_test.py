@@ -89,6 +89,6 @@ def test_calldata_constraints_in_transaction():
     _setup_global_state_for_execution(laser_evm, transaction)
 
     # Assert
-    state = laser_evm.work_list[0]
+    state = laser_evm.graph.work_list[0]
     for constraint in correct_constraints:
         assert constraint in state.environment.calldata.constraints

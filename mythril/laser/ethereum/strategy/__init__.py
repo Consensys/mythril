@@ -4,7 +4,7 @@ from mythril.laser.ethereum.graph import SimpleGraph, Graph
 
 
 class BasicSearchStrategy(ABC):
-    __slots__ = 'graph', 'max_depth'
+    __slots__ = "graph", "max_depth"
 
     def __init__(self, graph: SimpleGraph, max_depth: int):
         self.graph = graph
@@ -28,7 +28,7 @@ class BasicSearchStrategy(ABC):
 
 
 class AdvancedSearchStrategy(ABC):
-    __slots__ = 'graph', 'max_depth', 'current_vertex'
+    __slots__ = "graph", "max_depth", "current_vertex"
 
     def __init__(self, graph: Graph, max_depth: int):
         self.graph = graph

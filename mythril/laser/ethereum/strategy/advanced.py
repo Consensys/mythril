@@ -12,7 +12,8 @@ class RandomBranchDepthFirstSearch(AdvancedSearchStrategy):
     Implements a depth first search strategy with choice of branch randomly chosen
     I.E. Follow one path to a leaf, and then continue to the next one
     """
-    __slots__ = 'stack'
+
+    __slots__ = "stack"
 
     def __init__(self, graph: Graph, max_depth: int):
         super(RandomBranchDepthFirstSearch, self).__init__(graph, max_depth)
