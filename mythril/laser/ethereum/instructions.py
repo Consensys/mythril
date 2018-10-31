@@ -55,10 +55,17 @@ keccak_function_manager = KeccakFunctionManager()
 
 def exp_cost(exp):
     if not isinstance(exp, int):
-        # for symbolic values
         return 10
     else:
         return int(10 + (10 * (1 + log(exp, 256))))
+
+
+def sha3_cost(input_length):
+    if not isinstance(input_length, int):
+        return 30
+    else:
+        # 6 gas for each input word
+        return 30 + 6 * (input_length // 256)
 
 
 OPCODE_COST_FUNCTIONS = {
@@ -85,7 +92,7 @@ OPCODE_COST_FUNCTIONS = {
     "XOR": lambda: 3,
     "NOT": lambda: 3,
     "BYTE": lambda: 3,
-    "SHA3": lambda: 30,
+    "SHA3": sha3_cost,
     "ADDRESS": lambda: 2,
     "BALANCE": lambda: 20,
     "ORIGIN": lambda: 2,
@@ -793,8 +800,6 @@ class Instruction:
 
     @StateTransition()
     def sha3_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global keccak_function_manager
 
         state = global_state.mstate
@@ -808,6 +813,9 @@ class Instruction:
                 op0 = simplify(op0)
             state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
             return [global_state]
+
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](length)
+        state.gas_used += gas
 
         try:
             state.mem_extend(index, length)
@@ -830,6 +838,7 @@ class Instruction:
         logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
         state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
+
         return [global_state]
 
     @StateTransition()
