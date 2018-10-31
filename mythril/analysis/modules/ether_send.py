@@ -56,15 +56,20 @@ def _analyze_state(state, node):
             node.constraints + not_creator_constraints + [call_value > 0]
         )
 
-        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
+        debug = "Transaction Sequence: " + str(
+            solver.get_transaction_sequence(
+                state, node.constraints + not_creator_constraints + [call_value > 0]
+            )
+        )
 
         issue = Issue(
             contract=node.contract_name,
-            function=node.function_name,
+            function_name=node.function_name,
             address=instruction["address"],
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
             title="Ether send",
             _type="Warning",
+            bytecode=state.environment.code.bytecode,
             description="It seems that an attacker is able to execute an call instruction,"
             " this can mean that the attacker is able to extract funds "
             "out of the contract.".format(target),

@@ -40,21 +40,20 @@ def execute(statespace):
                         "Use `require()` for regular input checking. "
                     )
 
-                    debug = (
-                        "The exception is triggered under the following conditions:\n\n"
+                    debug = "Transaction Sequence: " + str(
+                        solver.get_transaction_sequence(state, node.constraints)
                     )
-
-                    debug += solver.pretty_print_model(model)
 
                     issues.append(
                         Issue(
                             contract=node.contract_name,
-                            function=node.function_name,
+                            function_name=node.function_name,
                             address=address,
                             swc_id=ASSERT_VIOLATION,
                             title="Exception state",
                             _type="Informational",
                             description=description,
+                            bytecode=state.environment.code.bytecode,
                             debug=debug,
                         )
                     )
