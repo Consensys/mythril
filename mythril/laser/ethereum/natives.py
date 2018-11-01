@@ -12,6 +12,7 @@ from rlp.utils import ALL_BYTES
 from mythril.laser.ethereum.util import bytearray_to_int, sha3
 from mythril.laser.ethereum.state import Calldata
 
+
 class NativeContractException(Exception):
     pass
 
