@@ -34,7 +34,7 @@ def extract32(data: bytearray, i: int) -> int:
     return bytearray_to_int(o)
 
 
-def ecrecover(data: str) -> List:
+def ecrecover(data: Union[bytes, str]) -> bytes:
     # TODO: Add type hints
     try:
         data = bytearray(data)
