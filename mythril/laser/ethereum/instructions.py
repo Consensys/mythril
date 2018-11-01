@@ -51,14 +51,14 @@ TT256M1 = 2 ** 256 - 1
 keccak_function_manager = KeccakFunctionManager()
 
 
-def exp_cost(exp=None):
+def exp_cost(exp: int = None):
     if not isinstance(exp, int) or exp == 0:
         return 10
     else:
         return int(10 + (10 * (1 + log(exp, 256))))
 
 
-def sha3_cost(input_length=None):
+def sha3_cost(input_length: int = None):
     if not isinstance(input_length, int):
         return 30
     else:
@@ -66,34 +66,34 @@ def sha3_cost(input_length=None):
         return 30 + 6 * ceil(input_length / 256)
 
 
-def calldatacopy_codecopy_cost(data_length=None):
+def calldatacopy_codecopy_cost(data_length: int = None):
     if not isinstance(data_length, int):
         return 2
     else:
         return 2 + 3 * ceil(data_length / 256)
 
 
-def extcodecopy_cost(data_length=None):
+def extcodecopy_cost(data_length: int = None):
     if not isinstance(data_length, int):
         return 700
     else:
         return 700 + 3 * ceil(data_length / 256)
 
 
-def sstore_cost(value, location):
+def sstore_cost(value: int, location: int):
     if not isinstance(value, int) or not isinstance(location, int):
         return 5000
     return 20000 if value != 0 and location == 0 else 5000
 
 
-def log_cost(level, data_length=None):
+def log_cost(level: int, data_length: int = None):
     if not isinstance(data_length, int):
         return (level + 1) * 375
     else:
         return 375 * (level + 1) + 8 * data_length
 
 
-def call_cost(value, contract_created):
+def call_cost(value: int, contract_created: bool):
     if not isinstance(value, int):
         is_value_tx = False
     else:
@@ -102,7 +102,7 @@ def call_cost(value, contract_created):
     return 700 + is_value_tx * 9000 + contract_created * 25000
 
 
-def suicide_cost(account_created):
+def suicide_cost(account_created: bool):
     return 5000 + account_created * 25000
 
 
