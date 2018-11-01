@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple, Union, Callable
+from typing import List, Tuple, Union, Callable, Dict
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state import WorldState, GlobalState
 from mythril.laser.ethereum.transaction import (
@@ -38,7 +38,7 @@ class LaserEVM:
 
     def __init__(
         self,
-        accounts: List[Account],
+        accounts: Dict[str, Account],
         dynamic_loader=None,
         max_depth=float("inf"),
         execution_timeout=60,
