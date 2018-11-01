@@ -272,7 +272,7 @@ class MachineStack(list):
             default_list = []
         super(MachineStack, self).__init__(default_list)
 
-    def append(self, element: BitVecNumRef) -> None:
+    def append(self, element: BitVec) -> None:
         """
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
@@ -284,7 +284,7 @@ class MachineStack(list):
             )
         super(MachineStack, self).append(element)
 
-    def pop(self, index=-1) -> BitVecNumRef:
+    def pop(self, index=-1) -> BitVec:
         """
         :param index:index to be popped, same as the list() class.
         :returns popped value
@@ -347,7 +347,7 @@ class MachineState:
         self.mem_extend(offset, len(data))
         self.memory[offset : offset + len(data)] = data
 
-    def pop(self, amount=1) -> Union[BitVecRef, List[BitVecRef]]:
+    def pop(self, amount=1) -> Union[BitVec, List[BitVec]]:
         """ Pops amount elements from the stack"""
         if amount >= len(self.stack):
             raise StackUnderflowException
