@@ -77,7 +77,7 @@ class LaserEVM:
         )
 
     @property
-    def accounts(self) -> List[Account]:
+    def accounts(self) -> Dict[str, Account]:
         return self.world_state.accounts
 
     def sym_exec(
