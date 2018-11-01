@@ -104,6 +104,9 @@ def call_cost(value, contract_created):
     return 700 + is_value_tx * 9_000 + contract_created * 25_000
 
 
+def suicide_cost(account_created):
+    return 5_000 + account_created * 25_000
+
 OPCODE_COST_FUNCTIONS = {
     "STOP": lambda: 0,
     "ADD": lambda: 3,
@@ -234,7 +237,7 @@ OPCODE_COST_FUNCTIONS = {
     "DELEGATECALL": call_cost,
     "STATICCALL": call_cost,
     "REVERT": lambda: 0,
-    "SUICIDE": lambda: 0,
+    "SUICIDE": suicide_cost,
 }
 
 
@@ -1454,10 +1457,8 @@ class Instruction:
 
     @StateTransition()
     def suicide_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         target = global_state.mstate.stack.pop()
-
+        account_created = False
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, BitVecNumRef):
@@ -1472,9 +1473,13 @@ class Instruction:
                     address=target,
                     balance=global_state.environment.active_account.balance,
                 )
+                account_created = True
 
         global_state.environment.active_account.balance = 0
         global_state.environment.active_account.deleted = True
+
+        gas = OPCODE_COST_FUNCTIONS[self.op_code](account_created=account_created)
+        global_state.mstate.gas_used += gas
 
         global_state.current_transaction.end(global_state)
 
