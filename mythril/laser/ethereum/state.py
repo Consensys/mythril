@@ -220,7 +220,7 @@ class Environment:
         self,
         active_account: Account,
         sender: BitVecRef,
-        calldata: List,
+        calldata: Calldata,
         gasprice: BitVecRef,
         callvalue: BitVecRef,
         origin: BitVecRef,

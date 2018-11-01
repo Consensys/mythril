@@ -10,7 +10,7 @@ from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.util import bytearray_to_int, sha3
-
+from mythril.laser.ethereum.state import Calldata
 
 class NativeContractException(Exception):
     pass
@@ -82,7 +82,7 @@ def identity(data: Union[bytes, str]) -> bytes:
     return copy.copy(data)
 
 
-def native_contracts(address: int, data: List):
+def native_contracts(address: int, data: Calldata):
     """
     takes integer address 1, 2, 3, 4
     """
