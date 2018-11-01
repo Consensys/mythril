@@ -6,6 +6,7 @@
 - Contract: Unknown
 - Function name: `_function_0x633ab5e0`
 - PC address: 196
+- Estimated Gas Usage: 240
 
 ### Description
 
@@ -17,6 +18,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Contract: Unknown
 - Function name: `_function_0xe3bea282`
 - PC address: 285
+- Estimated Gas Usage: 262
 
 ### Description
 
@@ -28,6 +30,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Contract: Unknown
 - Function name: `_function_0xe3bea282`
 - PC address: 290
+- Estimated Gas Usage: 971
 
 ### Description
 

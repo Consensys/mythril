@@ -6,6 +6,7 @@
 - Contract: Unknown
 - Function name: `withdrawfunds()`
 - PC address: 722
+- Estimated Gas Usage: 399
 
 ### Description
 
@@ -17,6 +18,7 @@ It seems that an attacker is able to execute an call instruction, this can mean 
 - Contract: Unknown
 - Function name: `invest()`
 - PC address: 883
+- Estimated Gas Usage: 506
 
 ### Description
 

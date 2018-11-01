@@ -6,6 +6,7 @@
 - Contract: Unknown
 - Function name: `_function_0x5a6814ec`
 - PC address: 661
+- Estimated Gas Usage: 284
 
 ### Description
 
@@ -17,6 +18,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Contract: Unknown
 - Function name: `_function_0x5a6814ec`
 - PC address: 666
+- Estimated Gas Usage: 993
 
 ### Description
 
@@ -28,6 +30,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
 - PC address: 779
+- Estimated Gas Usage: 328
 
 ### Description
 
@@ -39,6 +42,7 @@ This contract executes a message call to an address found at storage slot 1. Thi
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
 - PC address: 779
+- Estimated Gas Usage: 328
 
 ### Description
 
@@ -50,6 +54,7 @@ Possible transaction order dependence vulnerability: The value or direction of t
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
 - PC address: 784
+- Estimated Gas Usage: 1037
 
 ### Description
 
@@ -61,6 +66,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xe11f493e`
 - PC address: 858
+- Estimated Gas Usage: 350
 
 ### Description
 
@@ -72,6 +78,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Contract: Unknown
 - Function name: `_function_0xe11f493e`
 - PC address: 869
+- Estimated Gas Usage: 350
 
 ### Description
 
@@ -83,6 +90,7 @@ The contract account state is changed after an external call. Consider that the 
 - Contract: Unknown
 - Function name: `_function_0xe11f493e`
 - PC address: 871
+- Estimated Gas Usage: 6073
 
 ### Description
 
@@ -94,6 +102,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xe1d10f79`
 - PC address: 912
+- Estimated Gas Usage: 326
 
 ### Description
 
@@ -105,6 +114,7 @@ This contract executes a message call to an address provided as a function argum
 - Contract: Unknown
 - Function name: `_function_0xe1d10f79`
 - PC address: 918
+- Estimated Gas Usage: 1037
 
 ### Description
 
