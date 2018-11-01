@@ -41,7 +41,7 @@ def execute(statespace):
                     _type="Warning",
                     swc_id=TX_ORIGIN_USAGE,
                     description=description,
-                    gas_used=state.mstate.gas_used
+                    gas_used=state.mstate.gas_used,
                 )
                 issues.append(issue)
 

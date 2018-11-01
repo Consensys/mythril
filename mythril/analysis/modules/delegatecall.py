@@ -52,7 +52,7 @@ def _concrete_call(call, state, address, meminstart):
         bytecode=state.environment.code.bytecode,
         title="Call data forwarded with delegatecall()",
         _type="Informational",
-        gas_used=state.mstate.gas_used
+        gas_used=state.mstate.gas_used,
     )
 
     issue.description = (
@@ -75,7 +75,7 @@ def _symbolic_call(call, state, address, statespace):
         swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
         bytecode=state.environment.code.bytecode,
         title=call.type + " to a user-supplied address",
-        gas_used=state.mstate.gas_used
+        gas_used=state.mstate.gas_used,
     )
 
     if "calldata" in str(call.to):

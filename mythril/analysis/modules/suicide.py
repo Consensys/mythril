@@ -83,7 +83,7 @@ def _analyze_state(state, node):
             _type="Warning",
             description=description,
             debug=debug,
-            gas_used=state.mstate.gas_used
+            gas_used=state.mstate.gas_used,
         )
         issues.append(issue)
     except UnsatError:

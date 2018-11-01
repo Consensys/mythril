@@ -82,8 +82,8 @@ def extcodecopy_cost(data_length=None):
 
 def sstore_cost(value, location):
     if not isinstance(value, int) or not isinstance(location, int):
-        return 5_000
-    return 20_000 if value != 0 and location == 0 else 5_000
+        return 5000
+    return 20000 if value != 0 and location == 0 else 5000
 
 
 def log_cost(level, data_length=None):
@@ -99,11 +99,12 @@ def call_cost(value, contract_created):
     else:
         is_value_tx = True if value != 0 else False
 
-    return 700 + is_value_tx * 9_000 + contract_created * 25_000
+    return 700 + is_value_tx * 9000 + contract_created * 25000
 
 
 def suicide_cost(account_created):
-    return 5_000 + account_created * 25_000
+    return 5000 + account_created * 25000
+
 
 OPCODE_COST_FUNCTIONS = {
     "STOP": lambda: 0,
@@ -1543,7 +1544,8 @@ class Instruction:
                 logging.debug("CALL with symbolic data not supported")
                 gas = OPCODE_COST_FUNCTIONS[self.op_code](
                     value=value,
-                    contract_created=callee_address in global_state.world_state.accounts
+                    contract_created=callee_address
+                    in global_state.world_state.accounts,
                 )
                 global_state.mstate.gas_used += gas
                 return [global_state]
@@ -1555,7 +1557,8 @@ class Instruction:
                 logging.debug("CALL with symbolic start or offset not supported")
                 gas = OPCODE_COST_FUNCTIONS[self.op_code](
                     value=value,
-                    contract_created=callee_address in global_state.world_state.accounts
+                    contract_created=callee_address
+                    in global_state.world_state.accounts,
                 )
                 global_state.mstate.gas_used += gas
                 return [global_state]
@@ -1578,7 +1581,8 @@ class Instruction:
                     )
                 gas = OPCODE_COST_FUNCTIONS[self.op_code](
                     value=value,
-                    contract_created=callee_address in global_state.world_state.accounts
+                    contract_created=callee_address
+                    in global_state.world_state.accounts,
                 )
                 global_state.mstate.gas_used += gas
                 return [global_state]
@@ -1590,7 +1594,7 @@ class Instruction:
 
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             # TODO: maybe use BitVec here constrained to 1
@@ -1639,7 +1643,7 @@ class Instruction:
 
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             return [global_state]
@@ -1661,7 +1665,7 @@ class Instruction:
             )
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             return [global_state]
@@ -1682,7 +1686,7 @@ class Instruction:
 
         gas = OPCODE_COST_FUNCTIONS[self.op_code](
             value=value,
-            contract_created=callee_address in global_state.world_state.accounts
+            contract_created=callee_address in global_state.world_state.accounts,
         )
         global_state.mstate.gas_used += gas
         return [global_state]
@@ -1754,7 +1758,7 @@ class Instruction:
             global_state.mstate.constraints.append(return_value == 0)
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             return [global_state]
@@ -1776,7 +1780,7 @@ class Instruction:
             )
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             return [global_state]
@@ -1796,7 +1800,7 @@ class Instruction:
         global_state.mstate.constraints.append(return_value == 1)
         gas = OPCODE_COST_FUNCTIONS[self.op_code](
             value=value,
-            contract_created=callee_address in global_state.world_state.accounts
+            contract_created=callee_address in global_state.world_state.accounts,
         )
         global_state.mstate.gas_used += gas
         return [global_state]
@@ -1867,7 +1871,7 @@ class Instruction:
 
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             return [global_state]
@@ -1889,7 +1893,7 @@ class Instruction:
             )
             gas = OPCODE_COST_FUNCTIONS[self.op_code](
                 value=value,
-                contract_created=callee_address in global_state.world_state.accounts
+                contract_created=callee_address in global_state.world_state.accounts,
             )
             global_state.mstate.gas_used += gas
             return [global_state]
@@ -1910,7 +1914,7 @@ class Instruction:
 
         gas = OPCODE_COST_FUNCTIONS[self.op_code](
             value=value,
-            contract_created=callee_address in global_state.world_state.accounts
+            contract_created=callee_address in global_state.world_state.accounts,
         )
         global_state.mstate.gas_used += gas
         return [global_state]
