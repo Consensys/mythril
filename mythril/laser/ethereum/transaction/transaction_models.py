@@ -8,7 +8,7 @@ from mythril.laser.ethereum.state import (
     Account,
     Calldata,
 )
-from z3 import BitVec, BitVecNumRef
+from z3 import BitVec, ExprRef
 import array
 
 _next_transaction_id = 0
@@ -47,7 +47,7 @@ class MessageCallTransaction:
         self,
         world_state: WorldState,
         callee_account: Account,
-        caller: BitVecNumRef,
+        caller: ExprRef,
         call_data=None,
         identifier=None,
         gas_price=None,
@@ -119,7 +119,7 @@ class ContractCreationTransaction:
     def __init__(
         self,
         world_state: WorldState,
-        caller: BitVecNumRef,
+        caller: ExprRef,
         identifier=None,
         callee_account=None,
         code=None,

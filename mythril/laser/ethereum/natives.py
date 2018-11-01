@@ -3,7 +3,7 @@
 import copy
 import hashlib
 import logging
-from typing import List, Union
+from typing import Union
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n

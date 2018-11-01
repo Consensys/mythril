@@ -1,11 +1,11 @@
-from z3 import ExprRef, BitVecRef
+from z3 import ExprRef
 
 
 class KeccakFunctionManager:
     def __init__(self):
         self.keccak_expression_mapping = {}
 
-    def is_keccak(self, expression: BitVecRef) -> bool:
+    def is_keccak(self, expression: ExprRef) -> bool:
         return str(expression) in self.keccak_expression_mapping.keys()
 
     def get_argument(self, expression: str) -> ExprRef:

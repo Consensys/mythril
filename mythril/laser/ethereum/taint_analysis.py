@@ -1,7 +1,7 @@
 import logging
 import copy
 from typing import Union, List, Tuple
-from z3 import BitVecNumRef
+from z3 import ExprRef
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum.cfg import JumpType, Node
 from mythril.laser.ethereum.state import GlobalState, Environment
@@ -238,7 +238,7 @@ class TaintRunner:
         record.stack[l], record.stack[i] = record.stack[i], record.stack[l]
 
     @staticmethod
-    def mutate_mload(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_mload(record: TaintRecord, op0: ExprRef) -> None:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -250,7 +250,7 @@ class TaintRunner:
         record.stack.append(record.memory_tainted(index))
 
     @staticmethod
-    def mutate_mstore(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_mstore(record: TaintRecord, op0: ExprRef) -> None:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -261,7 +261,7 @@ class TaintRunner:
         record.memory[index] = value_taint
 
     @staticmethod
-    def mutate_sload(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_sload(record: TaintRecord, op0: ExprRef) -> None:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -273,7 +273,7 @@ class TaintRunner:
         record.stack.append(record.storage_tainted(index))
 
     @staticmethod
-    def mutate_sstore(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_sstore(record: TaintRecord, op0: ExprRef) -> None:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)

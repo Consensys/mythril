@@ -1,7 +1,7 @@
 import binascii
 import logging
 from copy import copy, deepcopy
-from typing import Callable, List
+from typing import Callable, List, Union
 
 from ethereum import utils
 from z3 import (
@@ -886,7 +886,7 @@ class Instruction:
             return self._sload_helper(global_state, str(index))
 
     @staticmethod
-    def _sload_helper(global_state, index, constraints=None):
+    def _sload_helper(global_state: GlobalState, index: Union[int, ExprRef], constraints=None):
         try:
             data = global_state.environment.active_account.storage[index]
         except KeyError:

@@ -149,7 +149,7 @@ class Storage:
         self._storage[item] = BitVec("storage_" + str(item), 256)
         return self._storage[item]
 
-    def __setitem__(self, key: str, value: BitVecRef) -> None:
+    def __setitem__(self, key: str, value: ExprRef) -> None:
         self._storage[key] = value
 
     def keys(self) -> KeysView:
@@ -194,10 +194,10 @@ class Account:
     def __str__(self) -> str:
         return str(self.as_dict)
 
-    def set_balance(self, balance: BitVecRef) -> None:
+    def set_balance(self, balance: ExprRef) -> None:
         self.balance = balance
 
-    def add_balance(self, balance: BitVecRef) -> None:
+    def add_balance(self, balance: ExprRef) -> None:
         self.balance += balance
 
     @property
@@ -218,11 +218,11 @@ class Environment:
     def __init__(
         self,
         active_account: Account,
-        sender: BitVecRef,
+        sender: ExprRef,
         calldata: Calldata,
-        gasprice: BitVecRef,
-        callvalue: BitVecRef,
-        origin: BitVecRef,
+        gasprice: ExprRef,
+        callvalue: ExprRef,
+        origin: ExprRef,
         code=None,
         calldata_type=CalldataType.SYMBOLIC,
     ):

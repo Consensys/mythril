@@ -1,6 +1,6 @@
 import logging
 from typing import Union
-from z3 import simplify, BitVecRef, BitVecNumRef, BoolRef, Extract
+from z3 import simplify, ExprRef, Extract
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
 from mythril.support.loader import DynLoader
@@ -57,7 +57,7 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: BitVecRef
+    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: ExprRef
 ):
     """
     Gets the address of the callee
@@ -143,8 +143,8 @@ def get_callee_account(
 
 def get_call_data(
     global_state: GlobalState,
-    memory_start: Union[int, BitVecNumRef, BoolRef],
-    memory_size: Union[int, BitVecNumRef, BoolRef],
+    memory_start: Union[int, ExprRef],
+    memory_size: Union[int, ExprRef],
     pad=True,
 ):
     """

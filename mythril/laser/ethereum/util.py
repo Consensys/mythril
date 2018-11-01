@@ -63,7 +63,7 @@ def pop_bitvec(state: "MachineState") -> BitVecVal:
         return simplify(item)
 
 
-def get_concrete_int(item: Union[int, BitVecNumRef, BoolRef]) -> int:
+def get_concrete_int(item: Union[int, ExprRef]) -> int:
     if isinstance(item, int):
         return item
     elif isinstance(item, BitVecNumRef):
