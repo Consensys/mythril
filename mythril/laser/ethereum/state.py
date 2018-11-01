@@ -2,7 +2,6 @@ from z3 import (
     BitVec,
     BitVecVal,
     BitVecRef,
-    BitVecNumRef,
     BitVecSort,
     Solver,
     ExprRef,
@@ -21,7 +20,7 @@ from mythril.laser.ethereum.cfg import Node
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
-from typing import KeysView, Dict, List, Union, Any
+from typing import KeysView, Dict, List, Union, Any, Sequence
 from mythril.laser.ethereum.util import get_concrete_int
 
 from mythril.laser.ethereum.evm_exceptions import (
@@ -89,7 +88,7 @@ class Calldata:
     def get_word_at(self, index: int):
         return self[index : index + 32]
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Union[int, slice]) -> Any:
         if isinstance(item, slice):
             try:
                 current_index = (
@@ -130,7 +129,7 @@ class Storage:
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item: int) -> int:
+    def __getitem__(self, item: Union[int, slice]) -> Any:
         try:
             return self._storage[item]
         except KeyError:
@@ -296,7 +295,7 @@ class MachineStack(list):
         except IndexError:
             raise StackUnderflowException("Trying to pop from an empty stack")
 
-    def __getitem__(self, item: int) -> Any:
+    def __getitem__(self, item: Union[int, slice]) -> Any:
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
