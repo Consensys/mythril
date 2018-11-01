@@ -8,6 +8,7 @@ from mythril.laser.ethereum.taint_analysis import TaintRunner
 import re
 import copy
 import logging
+import math
 
 """
 MODULE DESCRIPTION:
@@ -72,12 +73,11 @@ def _check_integer_overflow(statespace, state, node):
     # Formulate expression
     if instruction["opcode"] == "ADD":
         expr = op0 + op1
-        # constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
+        constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
     else:
         expr = op1 * op0
-        # constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
+        constraint = Not(_bvumul_not_overflow(op0, op1))
 
-    constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
     # Check satisfiable
     model = _try_constraints(node.constraints, [constraint])
 
@@ -316,3 +316,65 @@ def _search_children(
         )
 
     return results
+
+
+def _bvumul_not_overflow(op0, op1):
+    width = op0.size()
+
+    # Multiplications of 1-bit vectors never overflow.
+    if width == 1:
+        return BoolVal(True)
+
+    upper = 2 ** width
+
+    op0 = simplify(op0)
+    op1 = simplify(op1)
+
+    # Fast path if any operands are concrete.
+    if is_bv_value(op0) and is_bv_value(op1):
+        return BoolVal(op0.as_long() * op1.as_long() < upper)
+    if is_bv_value(op0):
+        if op0 == 0 or op0 == 1:
+            return BoolVal(True)
+        maximum = math.floor(upper / op0.as_long())
+        return ULT(op1, BitVecVal(maximum, width))
+    if is_bv_value(op1):
+        if op1 == 0 or op1 == 1:
+            return BoolVal(True)
+        maximum = math.floor(upper / op1.as_long())
+        return ULT(op0, BitVecVal(maximum, width))
+
+    # Slow path, otherwise.
+    #
+    # If MSB(op0) + MSB(op1) < width, then op0 * op1 will never overflow.
+    # If MSB(op0) + MSB(op1) = width, then op0 * op1 may overflow to bit width.
+    # If MSB(op0) + MSB(op1) > width, then op0 * op1 will always overflow.
+
+    highest = width - 1
+    res = ZeroExt(1, op0) * ZeroExt(1, op1)
+
+    constraint = Or(
+        op0 == BitVecVal(0, width),
+        op1 == BitVecVal(0, width),
+        op0 == BitVecVal(1, width),
+        op1 == BitVecVal(1, width),
+    )
+
+    for i in range(1, width - 1):
+        # MSB(op0) == i
+        msb_op0_i = Extract(highest, i, op0) == BitVecVal(1, width - i)
+
+        op1_hi = Extract(highest, width - i, op1)
+
+        # MSB(op0) + MSB(op1) < width
+        constraint0 = And(msb_op0_i, op1_hi == BitVecVal(0, i))
+        # MSB(op0) + MSB(op1) == width /\ (0::op0 x 0::op1)[width] == 0
+        constraint1 = And(
+            msb_op0_i,
+            op1_hi == BitVecVal(1, i),
+            Extract(width, width, res) == BitVecVal(0, 1),
+        )
+
+        constraint = Or(constraint, constraint0, constraint1)
+
+    return constraint
