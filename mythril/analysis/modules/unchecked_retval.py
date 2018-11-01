@@ -54,8 +54,9 @@ def execute(statespace):
                 address = state.get_current_instruction()["address"]
                 issue = Issue(
                     contract=node.contract_name,
-                    function=node.function_name,
+                    function_name=node.function_name,
                     address=address,
+                    bytecode=state.environment.code.bytecode,
                     title="Unchecked CALL return value",
                     swc_id=UNCHECKED_RET_VAL,
                     gas_used=state.mstate.gas_used
@@ -103,7 +104,8 @@ def execute(statespace):
                         address = instr["address"]
                         issue = Issue(
                             contract=node.contract_name,
-                            function=node.function_name,
+                            function_name=node.function_name,
+                            bytecode=state.environment.code.bytecode,
                             address=address,
                             title="Unchecked CALL return value",
                             swc_id=UNCHECKED_RET_VAL,

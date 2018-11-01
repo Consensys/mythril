@@ -34,9 +34,10 @@ def execute(statespace):
 
                 issue = Issue(
                     contract=node.contract_name,
-                    function=node.function_name,
+                    function_name=node.function_name,
                     address=instruction["address"],
                     title="Use of tx.origin",
+                    bytecode=state.environment.code.bytecode,
                     _type="Warning",
                     swc_id=TX_ORIGIN_USAGE,
                     description=description,

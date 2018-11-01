@@ -159,7 +159,7 @@ def main():
     options.add_argument(
         "--max-transaction-count",
         type=int,
-        default=3,
+        default=1,
         help="Maximum number of transactions issued by laser",
     )
 
