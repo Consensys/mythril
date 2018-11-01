@@ -9,7 +9,7 @@ import logging
 """
 MODULE DESCRIPTION:
 
-Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a tainted storage index
+Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a tainted storage index 
 (i.e. there's a write to that index is unconstrained by msg.sender).
 """
 
@@ -67,22 +67,18 @@ def _analyze_state(state, node):
     try:
         model = solver.get_model(node.constraints + not_creator_constraints)
 
-        logging.debug(
-            "Transaction Sequence: "
-            + str(
-                solver.get_transaction_sequence(
-                    state, node.constraints + not_creator_constraints
-                )
+        debug = "Transaction Sequence: " + str(
+            solver.get_transaction_sequence(
+                state, node.constraints + not_creator_constraints
             )
         )
 
-        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
-
         issue = Issue(
             contract=node.contract_name,
-            function=node.function_name,
+            function_name=node.function_name,
             address=instruction["address"],
             swc_id=UNPROTECTED_SELFDESTRUCT,
+            bytecode=state.environment.code.bytecode,
             title="Unchecked SUICIDE",
             _type="Warning",
             description=description,

@@ -19,7 +19,6 @@ from z3 import (
     URem,
     SRem,
     BitVec,
-    Solver,
     is_true,
     BitVecVal,
     If,
@@ -928,9 +927,6 @@ class Instruction:
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
-            solver = Solver()
-            solver.set(timeout=1000)
-
             results = []
             new = False
 
@@ -938,7 +934,7 @@ class Instruction:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
 
-                if is_true(key_argument == index_argument):
+                if is_true(simplify(key_argument == index_argument)):
                     return self._sstore_helper(
                         copy(global_state),
                         keccak_key,

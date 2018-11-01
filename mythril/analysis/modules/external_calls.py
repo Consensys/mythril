@@ -119,11 +119,12 @@ def execute(statespace):
 
                     issue = Issue(
                         contract=call.node.contract_name,
-                        function=call.node.function_name,
+                        function_name=call.node.function_name,
                         address=address,
                         title="Message call to external contract",
                         _type="Warning",
                         description=description,
+                        bytecode=state.environment.code.bytecode,
                         swc_id=REENTRANCY,
                     )
 
@@ -133,11 +134,12 @@ def execute(statespace):
 
                     issue = Issue(
                         contract=call.node.contract_name,
-                        function=call.node.function_name,
+                        function_name=call.node.function_name,
                         address=address,
                         title="Message call to external contract",
                         _type="Informational",
                         description=description,
+                        bytecode=state.environment.code.bytecode,
                         swc_id=REENTRANCY,
                     )
 
@@ -177,11 +179,12 @@ def execute(statespace):
 
                             issue = Issue(
                                 contract=call.node.contract_name,
-                                function=call.node.function_name,
+                                function_name=call.node.function_name,
                                 address=address,
                                 title="State change after external call",
                                 _type="Warning",
                                 description=description,
+                                bytecode=state.environment.code.bytecode,
                                 swc_id=REENTRANCY,
                             )
                             issues.append(issue)

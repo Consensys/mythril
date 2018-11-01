@@ -4,8 +4,8 @@ Type: Warning
 Contract: Unknown
 Function name: _function_0x83f12fec
 PC address: 158
-A possible integer overflow exists in the function `_function_0x83f12fec`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
+The arithmetic operation can result in integer overflow.
+
 --------------------
 
 ==== Integer Overflow ====
@@ -14,8 +14,8 @@ Type: Warning
 Contract: Unknown
 Function name: _function_0x83f12fec
 PC address: 278
-A possible integer overflow exists in the function `_function_0x83f12fec`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
+The arithmetic operation can result in integer overflow.
+
 --------------------
 
 ==== Integer Underflow ====
@@ -24,7 +24,7 @@ Type: Warning
 Contract: Unknown
 Function name: _function_0x83f12fec
 PC address: 378
-A possible integer underflow exists in the function `_function_0x83f12fec`.
-The subtraction may result in a value < 0.
+The substraction can result in an integer underflow.
+
 --------------------
 
