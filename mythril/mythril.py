@@ -381,13 +381,18 @@ class Mythril(object):
 
                 if contract_name is not None:
                     contract = SolidityContract(
-                        file, contract_name, solc_args=self.solc_args
+                        input_file=file,
+                        name=contract_name,
+                        solc_args=self.solc_args,
+                        solc_binary=self.solc_binary,
                     )
                     self.contracts.append(contract)
                     contracts.append(contract)
                 else:
                     for contract in get_contracts_from_file(
-                        file, solc_args=self.solc_args
+                        input_file=file,
+                        solc_args=self.solc_args,
+                        solc_binary=self.solc_binary,
                     ):
                         self.contracts.append(contract)
                         contracts.append(contract)

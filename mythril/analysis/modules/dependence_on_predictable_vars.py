@@ -63,9 +63,10 @@ def execute(statespace):
                 )
                 issue = Issue(
                     contract=call.node.contract_name,
-                    function=call.node.function_name,
+                    function_name=call.node.function_name,
                     address=address,
                     swc_id=swc_type,
+                    bytecode=call.state.environment.code.bytecode,
                     title="Dependence on predictable environment variable",
                     _type="Warning",
                     description=description,
@@ -111,8 +112,9 @@ def execute(statespace):
 
                         issue = Issue(
                             contract=call.node.contract_name,
-                            function=call.node.function_name,
+                            function_name=call.node.function_name,
                             address=address,
+                            bytecode=call.state.environment.code.bytecode,
                             title="Dependence on predictable variable",
                             _type="Warning",
                             description=description,
@@ -140,8 +142,9 @@ def execute(statespace):
                             )
                             issue = Issue(
                                 contract=call.node.contract_name,
-                                function=call.node.function_name,
+                                function_name=call.node.function_name,
                                 address=address,
+                                bytecode=call.state.environment.code.bytecode,
                                 title="Dependence on predictable variable",
                                 _type="Informational",
                                 description=description,
