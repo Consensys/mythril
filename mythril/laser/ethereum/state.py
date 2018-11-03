@@ -1,3 +1,4 @@
+import struct
 from z3 import (
     BitVec,
     BitVecVal,
@@ -90,19 +91,25 @@ class Calldata:
 
     def __getitem__(self, item):
         if isinstance(item, slice):
+            start, step, stop = item.start, item.step, item.stop
             try:
+                if start is None:
+                    start = 0
+                if step is None:
+                    step = 1
+                if stop is None:
+                    stop = self.calldatasize
                 current_index = (
-                    item.start
-                    if isinstance(item.start, BitVecRef)
-                    else BitVecVal(item.start, 256)
+                    start
+                    if isinstance(start, BitVecRef)
+                    else BitVecVal(start, 256)
                 )
                 dataparts = []
-                while simplify(current_index != item.stop):
+                while simplify(current_index != stop):
                     dataparts.append(self[current_index])
-                    current_index = simplify(current_index + 1)
+                    current_index = simplify(current_index + step)
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
-
             return simplify(Concat(dataparts))
 
         if self.concrete:
