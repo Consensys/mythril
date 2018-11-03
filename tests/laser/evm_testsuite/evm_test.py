@@ -65,8 +65,6 @@ def test_vmtest(
     laser_evm.time = datetime.now()
 
     # TODO: move this line below and check for VmExceptions when gas has been implemented
-    if post_condition == {}:
-        return
 
     execute_message_call(
         laser_evm,
@@ -74,11 +72,16 @@ def test_vmtest(
         caller_address=action["caller"],
         origin_address=action["origin"],
         code=action["code"][2:],
-        gas=action["gas"],
+        gas_limit=int(action["gas"], 16),
         data=binascii.a2b_hex(action["data"][2:]),
         gas_price=int(action["gasPrice"], 16),
         value=int(action["value"], 16),
     )
+
+    if post_condition == {}:
+        # either opcode or OOG error
+        assert len(laser_evm.open_states) == 0
+        return
 
     # Assert
 
