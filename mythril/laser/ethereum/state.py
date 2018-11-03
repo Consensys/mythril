@@ -99,9 +99,7 @@ class Calldata:
                 if stop is None:
                     stop = self.calldatasize
                 current_index = (
-                    start
-                    if isinstance(start, BitVecRef)
-                    else BitVecVal(start, 256)
+                    start if isinstance(start, BitVecRef) else BitVecVal(start, 256)
                 )
                 dataparts = []
                 while simplify(current_index != stop):
