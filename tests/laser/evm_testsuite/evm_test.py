@@ -17,6 +17,7 @@ test_types = [
     "vmBitwiseLogicOperation",
     "vmEnvironmentalInfo",
     "vmPushDupSwapTest",
+    "vmSha3Test",
     "vmTests",
 ]
 
