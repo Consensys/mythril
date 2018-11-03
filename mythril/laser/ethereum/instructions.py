@@ -2,7 +2,6 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from functools import reduce
 
 from ethereum import utils
 from z3 import (

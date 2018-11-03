@@ -1,4 +1,3 @@
-import struct
 from z3 import (
     BitVec,
     BitVecVal,
