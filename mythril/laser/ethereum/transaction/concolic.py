@@ -23,7 +23,7 @@ def execute_message_call(
     origin_address,
     code,
     data,
-    gas,
+    gas_limit,
     gas_price,
     value,
 ):
@@ -37,6 +37,7 @@ def execute_message_call(
             world_state=open_world_state,
             identifier=next_transaction_id,
             gas_price=gas_price,
+            gas_limit=gas_limit,
             origin=origin_address,
             code=Disassembly(code),
             caller=caller_address,

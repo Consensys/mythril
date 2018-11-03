@@ -26,6 +26,7 @@ def execute_message_call(laser_evm, callee_address):
             world_state=open_world_state,
             identifier=next_transaction_id,
             gas_price=BitVec("gas_price{}".format(next_transaction_id), 256),
+            gas_limit=8000000,  # block gas limit
             origin=BitVec("origin{}".format(next_transaction_id), 256),
             caller=BitVec("caller{}".format(next_transaction_id), 256),
             callee_account=open_world_state[callee_address],
@@ -57,7 +58,7 @@ def execute_contract_creation(
             world_state=open_world_state,
             identifier=next_transaction_id,
             gas_price=BitVec("gas_price{}".format(next_transaction_id), 256),
-            gas_limit=None,  # TODO: Calculate
+            gas_limit=8000000,  # block gas limit
             origin=BitVec("origin{}".format(next_transaction_id), 256),
             code=Disassembly(contract_initialization_code),
             caller=BitVec("creator{}".format(next_transaction_id), 256),

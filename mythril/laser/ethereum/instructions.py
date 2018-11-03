@@ -36,6 +36,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackUnderflowException,
     InvalidJumpDestination,
     InvalidInstruction,
+    OutOfGasException,
 )
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state import GlobalState, CalldataType, Calldata
@@ -263,19 +264,18 @@ class StateTransition(object):
         return states
 
     @staticmethod
-    def check_gas_usage_limit(global_states: List[GlobalState]):
-        valid_states = []
-        for state in global_states:
-            if state.mstate.gas_used <= state.mstate.gas_limit:
-                valid_states.append(state)
-            else:
-                logging.debug("Removing state due to exceeded gas limit")
-        return valid_states
+    def check_gas_usage_limit(global_state: GlobalState):
+        if (
+            global_state.mstate.gas_used >= global_state.mstate.gas_limit
+            or global_state.mstate.gas_used
+            >= global_state.current_transaction.gas_limit
+        ):
+            raise OutOfGasException()
 
     def __call__(self, func):
         def wrapper(func_obj, global_state):
+            self.check_gas_usage_limit(global_state)
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
-            new_global_states = self.check_gas_usage_limit(new_global_states)
             return self.increment_states_pc(new_global_states)
 
         return wrapper
@@ -1603,6 +1603,7 @@ class Instruction:
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
+            gas_limit=2300,  # G_callstipend
             origin=environment.origin,
             caller=BitVecVal(int(environment.active_account.address, 16), 256),
             callee_account=callee_account,
@@ -1716,6 +1717,7 @@ class Instruction:
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
+            gas_limit=2300,  # G_callstipend
             origin=environment.origin,
             code=callee_account.code,
             caller=environment.address,
@@ -1830,6 +1832,7 @@ class Instruction:
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
+            gas_limit=2300,  # G_callstipend
             origin=environment.origin,
             code=callee_account.code,
             caller=environment.sender,
