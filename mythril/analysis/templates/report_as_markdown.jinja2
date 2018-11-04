@@ -8,7 +8,7 @@
 - Contract: {{ issue.contract | default("Unknown") }}
 - Function name: `{{ issue.function }}`
 - PC address: {{ issue.address }}
-- Estimated Gas Usage: {{ issue.gas_used }}
+- Estimated Gas Usage: {{ issue.min_gas_used }} - {{ issue.max_gas_used }}
 
 ### Description
 

@@ -99,7 +99,7 @@ def _check_integer_overflow(statespace, state, node):
         bytecode=state.environment.code.bytecode,
         title="Integer Overflow",
         _type="Warning",
-        gas_used=state.mstate.gas_used,
+        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
     )
 
     issue.description = "The arithmetic operation can result in integer overflow.\n"
@@ -207,7 +207,7 @@ def _check_integer_underflow(statespace, state, node):
                     bytecode=state.environment.code.bytecode,
                     title="Integer Underflow",
                     _type="Warning",
-                    gas_used=state.mstate.gas_used,
+                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 )
 
                 issue.description = (

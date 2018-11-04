@@ -14,8 +14,8 @@ class Issue:
         address,
         swc_id,
         title,
-        gas_used,
         bytecode,
+        gas_used=(None, None),
         _type="Informational",
         description="",
         debug="",
@@ -29,7 +29,7 @@ class Issue:
         self.type = _type
         self.debug = debug
         self.swc_id = swc_id
-        self.gas_used = gas_used
+        self.min_gas_used, self.max_gas_used = gas_used
         self.filename = None
         self.code = None
         self.lineno = None
@@ -56,7 +56,8 @@ class Issue:
             "type": self.type,
             "address": self.address,
             "debug": self.debug,
-            "gas_used": self.gas_used,
+            "min_gas_used": self.min_gas_used,
+            "max_gas_used": self.max_gas_used
         }
 
         if self.filename and self.lineno:

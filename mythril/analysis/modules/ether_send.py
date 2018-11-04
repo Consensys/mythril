@@ -74,7 +74,7 @@ def _analyze_state(state, node):
             " this can mean that the attacker is able to extract funds "
             "out of the contract.".format(target),
             debug=debug,
-            gas_used=state.mstate.gas_used,
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
         issues.append(issue)
     except UnsatError:

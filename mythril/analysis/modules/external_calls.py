@@ -126,7 +126,7 @@ def execute(statespace):
                         description=description,
                         bytecode=state.environment.code.bytecode,
                         swc_id=REENTRANCY,
-                        gas_used=state.mstate.gas_used,
+                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                     )
 
                 else:
@@ -142,7 +142,7 @@ def execute(statespace):
                         description=description,
                         bytecode=state.environment.code.bytecode,
                         swc_id=REENTRANCY,
-                        gas_used=state.mstate.gas_used,
+                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                     )
 
                 issues.append(issue)
@@ -188,7 +188,7 @@ def execute(statespace):
                                 description=description,
                                 bytecode=state.environment.code.bytecode,
                                 swc_id=REENTRANCY,
-                                gas_used=state.mstate.gas_used,
+                                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                             )
                             issues.append(issue)
 
