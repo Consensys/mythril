@@ -194,7 +194,7 @@ OPCODE_COST_FUNCTIONS = {
     "REVERT": (0, 0),
     "SUICIDE": (5000, 30000),
     "ASSERT_FAIL": (0, 0),
-    "INVALID": (0, 0)
+    "INVALID": (0, 0),
 }
 
 
