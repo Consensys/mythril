@@ -8,7 +8,8 @@
       "description": "The subtraction can result in an integer underflow.\n",
       "function": "sendeth(address,uint256)",
       "swc_id": "101",
-      "gas_used": 385,
+      "min_gas_used": 326,
+      "max_gas_used": 374,
       "title": "Integer Underflow",
       "type": "Warning"
     },
@@ -19,7 +20,8 @@
       "description": "The subtraction can result in an integer underflow.\n",
       "function": "sendeth(address,uint256)",
       "swc_id": "101",
-      "gas_used": 562,
+      "min_gas_used": 488,
+      "max_gas_used": 584,
       "title": "Integer Underflow",
       "type": "Warning"
     },
@@ -30,7 +32,8 @@
       "description": "The arithmetic operation can result in integer overflow.\n",
       "function": "sendeth(address,uint256)",
       "swc_id": "101",
-      "gas_used": 5729,
+      "min_gas_used": 5649,
+      "max_gas_used": 20793,
       "title": "Integer Overflow",
       "type": "Warning"
     }

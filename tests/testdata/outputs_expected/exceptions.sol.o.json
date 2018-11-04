@@ -8,7 +8,8 @@
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
       "function": "_function_0x546455b5",
       "swc_id": "110",
-      "gas_used": 197,
+      "min_gas_used": 148,
+      "max_gas_used": 148,
       "title": "Exception state",
       "type": "Informational"
     },
@@ -19,7 +20,8 @@
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
       "function": "_function_0x92dd38ea",
       "swc_id": "110",
-      "gas_used": 247,
+      "min_gas_used": 184,
+      "max_gas_used": 184,
       "title": "Exception state",
       "type": "Informational"
     },
@@ -30,7 +32,8 @@
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
       "function": "_function_0xa08299f1",
       "swc_id": "110",
-      "gas_used": 263,
+      "min_gas_used": 193,
+      "max_gas_used": 193,
       "title": "Exception state",
       "type": "Informational"
     },
@@ -41,7 +44,8 @@
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
       "function": "_function_0xb34c3610",
       "swc_id": "110",
-      "gas_used": 259,
+      "min_gas_used": 182,
+      "max_gas_used": 182,
       "title": "Exception state",
       "type": "Informational"
     }

@@ -4,7 +4,7 @@ Type: Warning
 Contract: Unknown
 Function name: _function_0xcbf0b0c0
 PC address: 146
-Estimated Gas Usage: 159
+Estimated Gas Usage: 127 - 127
 A reachable SUICIDE instruction was detected. The remaining Ether is sent to an address provided as a function argument.
 
 --------------------

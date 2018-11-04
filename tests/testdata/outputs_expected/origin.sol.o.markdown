@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `transferOwnership(address)`
 - PC address: 317
-- Estimated Gas Usage: 267
+- Estimated Gas Usage: 228 - 558
 
 ### Description
 

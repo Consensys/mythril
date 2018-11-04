@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `_function_0x546455b5`
 - PC address: 446
-- Estimated Gas Usage: 197
+- Estimated Gas Usage: 148 - 148
 
 ### Description
 
@@ -18,7 +18,7 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 - Contract: Unknown
 - Function name: `_function_0x92dd38ea`
 - PC address: 484
-- Estimated Gas Usage: 247
+- Estimated Gas Usage: 184 - 184
 
 ### Description
 
@@ -30,7 +30,7 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 - Contract: Unknown
 - Function name: `_function_0xa08299f1`
 - PC address: 506
-- Estimated Gas Usage: 263
+- Estimated Gas Usage: 193 - 193
 
 ### Description
 
@@ -42,7 +42,7 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 - Contract: Unknown
 - Function name: `_function_0xb34c3610`
 - PC address: 531
-- Estimated Gas Usage: 259
+- Estimated Gas Usage: 182 - 182
 
 ### Description
 

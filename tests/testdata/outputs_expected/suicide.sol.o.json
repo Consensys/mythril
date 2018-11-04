@@ -8,7 +8,8 @@
       "description": "A reachable SUICIDE instruction was detected. The remaining Ether is sent to an address provided as a function argument.\n",
       "function": "_function_0xcbf0b0c0",
       "swc_id": "106",
-      "gas_used": 159,
+      "min_gas_used": 127,
+      "max_gas_used": 127,
       "title": "Unchecked SUICIDE",
       "type": "Warning"
     }

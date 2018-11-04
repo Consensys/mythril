@@ -8,7 +8,8 @@
       "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
       "function": "_function_0x141f32ff",
       "swc_id": "104",
-      "gas_used": 1089,
+      "min_gas_used": 1051,
+      "max_gas_used": 35099,
       "title": "Unchecked CALL return value",
       "type": "Informational"
     },
@@ -19,7 +20,8 @@
       "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
       "function": "_function_0x9b58bc26",
       "swc_id": "104",
-      "gas_used": 1152,
+      "min_gas_used": 1093,
+      "max_gas_used": 35141,
       "title": "Unchecked CALL return value",
       "type": "Informational"
     },
@@ -30,7 +32,8 @@
       "description": "This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.",
       "function": "_function_0xeea4c864",
       "swc_id": "107",
-      "gas_used": 462,
+      "min_gas_used": 396,
+      "max_gas_used": 444,
       "title": "Message call to external contract",
       "type": "Warning"
     },
@@ -41,7 +44,8 @@
       "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
       "function": "_function_0xeea4c864",
       "swc_id": "104",
-      "gas_used": 1177,
+      "min_gas_used": 1111,
+      "max_gas_used": 35159,
       "title": "Unchecked CALL return value",
       "type": "Informational"
     }

@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `_function_0x8a4068dd`
 - PC address: 142
-- Estimated Gas Usage: 177
+- Estimated Gas Usage: 145 - 145
 
 ### Description
 
