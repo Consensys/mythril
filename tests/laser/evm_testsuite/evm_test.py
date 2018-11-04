@@ -64,8 +64,6 @@ def test_vmtest(
     # Act
     laser_evm.time = datetime.now()
 
-    # TODO: move this line below and check for VmExceptions when gas has been implemented
-
     execute_message_call(
         laser_evm,
         callee_address=action["address"],
