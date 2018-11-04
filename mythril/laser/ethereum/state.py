@@ -327,7 +327,8 @@ class MachineState:
         self.stack = MachineStack()
         self.memory = []
         self.gas_limit = gas_limit
-        self.gas_used = 0
+        self.min_gas_used = 0  # lower gas usage bound
+        self.max_gas_used = 0  # upper gas usage bound
         self.constraints = []
         self.depth = 0
 

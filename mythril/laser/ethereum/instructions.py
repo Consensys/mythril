@@ -1,8 +1,6 @@
 import binascii
 import logging
 from copy import copy, deepcopy
-from typing import List
-from math import log, ceil
 
 from ethereum import utils
 from z3 import (
@@ -39,7 +37,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     OutOfGasException,
 )
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state import GlobalState, CalldataType, Calldata
+from mythril.laser.ethereum.state import GlobalState, CalldataType
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
     TransactionStartSignal,
@@ -52,192 +50,146 @@ TT256M1 = 2 ** 256 - 1
 keccak_function_manager = KeccakFunctionManager()
 
 
-def exp_cost(exp: int = None):
-    if not isinstance(exp, int) or exp == 0:
-        return 10
-    else:
-        return int(10 + (10 * (1 + log(exp, 256))))
-
-
-def sha3_cost(input_length: int = None):
-    if not isinstance(input_length, int):
-        return 30
-    else:
-        # 6 gas for each input word
-        return 30 + 6 * ceil(input_length / 256)
-
-
-def calldatacopy_codecopy_cost(data_length: int = None):
-    if not isinstance(data_length, int):
-        return 2
-    else:
-        return 2 + 3 * ceil(data_length / 256)
-
-
-def extcodecopy_cost(data_length: int = None):
-    if not isinstance(data_length, int):
-        return 700
-    else:
-        return 700 + 3 * ceil(data_length / 256)
-
-
-def sstore_cost(value: int, location: int):
-    if not isinstance(value, int) or not isinstance(location, int):
-        return 5000
-    return 20000 if value != 0 and location == 0 else 5000
-
-
-def log_cost(level: int, data_length: int = None):
-    if not isinstance(data_length, int):
-        return (level + 1) * 375
-    else:
-        return 375 * (level + 1) + 8 * data_length
-
-
-def call_cost(value: int, contract_created: bool):
-    if not isinstance(value, int):
-        is_value_tx = False
-    else:
-        is_value_tx = True if value != 0 else False
-
-    return 700 + is_value_tx * 9000 + contract_created * 25000
-
-
-def suicide_cost(account_created: bool):
-    return 5000 + account_created * 25000
-
-
+# opcode -> (min_gas, max_gas)
 OPCODE_COST_FUNCTIONS = {
-    "STOP": lambda: 0,
-    "ADD": lambda: 3,
-    "MUL": lambda: 5,
-    "SUB": lambda: 3,
-    "DIV": lambda: 5,
-    "SDIV": lambda: 5,
-    "MOD": lambda: 5,
-    "SMOD": lambda: 5,
-    "ADDMOD": lambda: 8,
-    "MULMOD": lambda: 8,
-    "EXP": exp_cost,
-    "SIGNEXTEND": lambda: 5,
-    "LT": lambda: 3,
-    "GT": lambda: 3,
-    "SLT": lambda: 3,
-    "SGT": lambda: 3,
-    "EQ": lambda: 3,
-    "ISZERO": lambda: 3,
-    "AND": lambda: 3,
-    "OR": lambda: 3,
-    "XOR": lambda: 3,
-    "NOT": lambda: 3,
-    "BYTE": lambda: 3,
-    "SHA3": sha3_cost,
-    "ADDRESS": lambda: 2,
-    "BALANCE": lambda: 20,
-    "ORIGIN": lambda: 2,
-    "CALLER": lambda: 2,
-    "CALLVALUE": lambda: 2,
-    "CALLDATALOAD": lambda: 3,
-    "CALLDATASIZE": lambda: 2,
-    "CALLDATACOPY": calldatacopy_codecopy_cost,
-    "CODESIZE": lambda: 2,
-    "CODECOPY": calldatacopy_codecopy_cost,
-    "GASPRICE": lambda: 2,
-    "EXTCODESIZE": lambda: 20,
-    "EXTCODECOPY": extcodecopy_cost,
-    "RETURNDATASIZE": lambda: 2,
-    "RETURNDATACOPY": lambda: 3,
-    "BLOCKHASH": lambda: 20,
-    "COINBASE": lambda: 2,
-    "TIMESTAMP": lambda: 2,
-    "NUMBER": lambda: 2,
-    "DIFFICULTY": lambda: 2,
-    "GASLIMIT": lambda: 2,
-    "POP": lambda: 2,
-    "MLOAD": lambda: 3,
-    "MSTORE": lambda: 3,
-    "MSTORE8": lambda: 3,
-    "SLOAD": lambda: 50,
-    "SSTORE": sstore_cost,
-    "JUMP": lambda: 8,
-    "JUMPI": lambda: 10,
-    "PC": lambda: 2,
-    "MSIZE": lambda: 2,
-    "GAS": lambda: 2,
-    "JUMPDEST": lambda: 1,
-    "PUSH1": lambda: 3,
-    "PUSH2": lambda: 3,
-    "PUSH3": lambda: 3,
-    "PUSH4": lambda: 3,
-    "PUSH5": lambda: 3,
-    "PUSH6": lambda: 3,
-    "PUSH7": lambda: 3,
-    "PUSH8": lambda: 3,
-    "PUSH9": lambda: 3,
-    "PUSH10": lambda: 3,
-    "PUSH11": lambda: 3,
-    "PUSH12": lambda: 3,
-    "PUSH13": lambda: 3,
-    "PUSH14": lambda: 3,
-    "PUSH15": lambda: 3,
-    "PUSH16": lambda: 3,
-    "PUSH17": lambda: 3,
-    "PUSH18": lambda: 3,
-    "PUSH19": lambda: 3,
-    "PUSH20": lambda: 3,
-    "PUSH21": lambda: 3,
-    "PUSH22": lambda: 3,
-    "PUSH23": lambda: 3,
-    "PUSH24": lambda: 3,
-    "PUSH25": lambda: 3,
-    "PUSH26": lambda: 3,
-    "PUSH27": lambda: 3,
-    "PUSH28": lambda: 3,
-    "PUSH29": lambda: 3,
-    "PUSH30": lambda: 3,
-    "PUSH31": lambda: 3,
-    "PUSH32": lambda: 3,
-    "DUP1": lambda: 3,
-    "DUP2": lambda: 3,
-    "DUP3": lambda: 3,
-    "DUP4": lambda: 3,
-    "DUP5": lambda: 3,
-    "DUP6": lambda: 3,
-    "DUP7": lambda: 3,
-    "DUP8": lambda: 3,
-    "DUP9": lambda: 3,
-    "DUP10": lambda: 3,
-    "DUP11": lambda: 3,
-    "DUP12": lambda: 3,
-    "DUP13": lambda: 3,
-    "DUP14": lambda: 3,
-    "DUP15": lambda: 3,
-    "DUP16": lambda: 3,
-    "SWAP1": lambda: 3,
-    "SWAP2": lambda: 3,
-    "SWAP3": lambda: 3,
-    "SWAP4": lambda: 3,
-    "SWAP5": lambda: 3,
-    "SWAP6": lambda: 3,
-    "SWAP7": lambda: 3,
-    "SWAP8": lambda: 3,
-    "SWAP9": lambda: 3,
-    "SWAP10": lambda: 3,
-    "SWAP11": lambda: 3,
-    "SWAP12": lambda: 3,
-    "SWAP13": lambda: 3,
-    "SWAP14": lambda: 3,
-    "SWAP15": lambda: 3,
-    "SWAP16": lambda: 3,
-    "LOG": log_cost,
-    "CREATE": lambda: 32000,
-    "CALL": call_cost,
-    "CALLCODE": call_cost,
-    "RETURN": lambda: 0,
-    "DELEGATECALL": call_cost,
-    "STATICCALL": call_cost,
-    "REVERT": lambda: 0,
-    "SUICIDE": suicide_cost,
+    "STOP": (0, 0),
+    "ADD": (3, 3),
+    "MUL": (5, 5),
+    "SUB": (3, 3),
+    "DIV": (5, 5),
+    "SDIV": (5, 5),
+    "MOD": (5, 5),
+    "SMOD": (5, 5),
+    "ADDMOD": (8, 8),
+    "MULMOD": (8, 8),
+    "EXP": (10, 340),  # exponent max 2^32
+    "SIGNEXTEND": (5, 5),
+    "LT": (3, 3),
+    "GT": (3, 3),
+    "SLT": (3, 3),
+    "SGT": (3, 3),
+    "EQ": (3, 3),
+    "ISZERO": (3, 3),
+    "AND": (3, 3),
+    "OR": (3, 3),
+    "XOR": (3, 3),
+    "NOT": (3, 3),
+    "BYTE": (3, 3),
+    "SHA3": (30, 30 + 6 * 8),  # max can be larger, but usually storage location with 8 words
+    "ADDRESS": (2, 2),
+    "BALANCE": (20, 20),
+    "ORIGIN": (2, 2),
+    "CALLER": (2, 2),
+    "CALLVALUE": (2, 2),
+    "CALLDATALOAD": (3, 3),
+    "CALLDATASIZE": (2, 2),
+    "CALLDATACOPY": (2, 2 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556
+    "CODESIZE": (2, 2),
+    "CODECOPY": (2, 2 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556,
+    "GASPRICE": (2, 2),
+    "EXTCODESIZE": (20, 20),
+    "EXTCODECOPY": (700, 700 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556
+    "RETURNDATASIZE": (2, 2),
+    "RETURNDATACOPY": (3, 3),
+    "BLOCKHASH": (20, 20),
+    "COINBASE": (2, 2),
+    "TIMESTAMP": (2, 2),
+    "NUMBER": (2, 2),
+    "DIFFICULTY": (2, 2),
+    "GASLIMIT": (2, 2),
+    "POP": (2, 2),
+    "MLOAD": (3, 3),
+    "MSTORE": (3, 3),
+    "MSTORE8": (3, 3),
+    "SLOAD": (50, 50),
+    "SSTORE": (5000, 20000),
+    "JUMP": (8, 8),
+    "JUMPI": (10, 10),
+    "PC": (2, 2),
+    "MSIZE": (2, 2),
+    "GAS": (2, 2),
+    "JUMPDEST": (1, 1),
+    "PUSH1": (3, 3),
+    "PUSH2": (3, 3),
+    "PUSH3": (3, 3),
+    "PUSH4": (3, 3),
+    "PUSH5": (3, 3),
+    "PUSH6": (3, 3),
+    "PUSH7": (3, 3),
+    "PUSH8": (3, 3),
+    "PUSH9": (3, 3),
+    "PUSH10": (3, 3),
+    "PUSH11": (3, 3),
+    "PUSH12": (3, 3),
+    "PUSH13": (3, 3),
+    "PUSH14": (3, 3),
+    "PUSH15": (3, 3),
+    "PUSH16": (3, 3),
+    "PUSH17": (3, 3),
+    "PUSH18": (3, 3),
+    "PUSH19": (3, 3),
+    "PUSH20": (3, 3),
+    "PUSH21": (3, 3),
+    "PUSH22": (3, 3),
+    "PUSH23": (3, 3),
+    "PUSH24": (3, 3),
+    "PUSH25": (3, 3),
+    "PUSH26": (3, 3),
+    "PUSH27": (3, 3),
+    "PUSH28": (3, 3),
+    "PUSH29": (3, 3),
+    "PUSH30": (3, 3),
+    "PUSH31": (3, 3),
+    "PUSH32": (3, 3),
+    "DUP1": (3, 3),
+    "DUP2": (3, 3),
+    "DUP3": (3, 3),
+    "DUP4": (3, 3),
+    "DUP5": (3, 3),
+    "DUP6": (3, 3),
+    "DUP7": (3, 3),
+    "DUP8": (3, 3),
+    "DUP9": (3, 3),
+    "DUP10": (3, 3),
+    "DUP11": (3, 3),
+    "DUP12": (3, 3),
+    "DUP13": (3, 3),
+    "DUP14": (3, 3),
+    "DUP15": (3, 3),
+    "DUP16": (3, 3),
+    "SWAP1": (3, 3),
+    "SWAP2": (3, 3),
+    "SWAP3": (3, 3),
+    "SWAP4": (3, 3),
+    "SWAP5": (3, 3),
+    "SWAP6": (3, 3),
+    "SWAP7": (3, 3),
+    "SWAP8": (3, 3),
+    "SWAP9": (3, 3),
+    "SWAP10": (3, 3),
+    "SWAP11": (3, 3),
+    "SWAP12": (3, 3),
+    "SWAP13": (3, 3),
+    "SWAP14": (3, 3),
+    "SWAP15": (3, 3),
+    "SWAP16": (3, 3),
+    # apparently Solidity only allows byte32 as input to the log
+    # function. Virtually it could be as large as the block gas limit
+    # allows, but let's stick to the reasonable standard here.
+    # https://ethereum.stackexchange.com/a/1691
+    "LOG0": (375, 375 + 8 * 32),
+    "LOG1": (2 * 375, 2 * 375 + 8 * 32),
+    "LOG2": (3 * 375, 3 * 375 + 8 * 32),
+    "LOG3": (4 * 375, 4 * 375 + 8 * 32),
+    "LOG4": (5 * 375, 5 * 375 + 8 * 32),
+    "CREATE": (32000, 32000),
+    "CALL": (700, 700 + 9000 + 25000),
+    "CALLCODE": (700, 700 + 9000 + 25000),
+    "RETURN": (0, 0),
+    "DELEGATECALL": (700, 700 + 9000 + 25000),
+    "STATICCALL": (700, 700 + 9000 + 25000),
+    "REVERT": (0, 0),
+    "SUICIDE": (5000, 30000),
 }
 
 
@@ -266,16 +218,25 @@ class StateTransition(object):
     @staticmethod
     def check_gas_usage_limit(global_state: GlobalState):
         if (
-            global_state.mstate.gas_used >= global_state.mstate.gas_limit
-            or global_state.mstate.gas_used
+            global_state.mstate.min_gas_used >= global_state.mstate.gas_limit
+            or global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
         ):
             raise OutOfGasException()
+
+    @staticmethod
+    def accumulate_gas(global_state: GlobalState):
+        opcode = global_state.instruction["opcode"]
+        min_gas, max_gas = OPCODE_COST_FUNCTIONS[opcode]
+        global_state.mstate.min_gas_used += min_gas
+        global_state.mstate.max_gas_used += max_gas
+        return global_state
 
     def __call__(self, func):
         def wrapper(func_obj, global_state):
             self.check_gas_usage_limit(global_state)
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
+            new_global_states = [self.accumulate_gas(state) for state in new_global_states]
             return self.increment_states_pc(new_global_states)
 
         return wrapper
@@ -317,14 +278,10 @@ class Instruction:
 
     @StateTransition()
     def jumpdest_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
     def push_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         push_instruction = global_state.get_current_instruction()
         push_value = push_instruction["argument"][2:]
 
@@ -339,16 +296,12 @@ class Instruction:
 
     @StateTransition()
     def dup_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         value = int(global_state.get_current_instruction()["opcode"][3:], 10)
         global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
     @StateTransition()
     def swap_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         depth = int(self.op_code[4:])
         stack = global_state.mstate.stack
         stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
@@ -356,15 +309,11 @@ class Instruction:
 
     @StateTransition()
     def pop_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.pop()
         return [global_state]
 
     @StateTransition()
     def and_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
         if type(op1) == BoolRef:
@@ -377,8 +326,6 @@ class Instruction:
 
     @StateTransition()
     def or_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
@@ -394,24 +341,18 @@ class Instruction:
 
     @StateTransition()
     def xor_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         mstate = global_state.mstate
         mstate.stack.append(mstate.stack.pop() ^ mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
     def not_(self, global_state: GlobalState):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         mstate = global_state.mstate
         mstate.stack.append(TT256M1 - mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
     def byte_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
         if not isinstance(op1, ExprRef):
@@ -437,8 +378,6 @@ class Instruction:
     # Arithmetic
     @StateTransition()
     def add_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(
             (
                 helper.pop_bitvec(global_state.mstate)
@@ -449,8 +388,6 @@ class Instruction:
 
     @StateTransition()
     def sub_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(
             (
                 helper.pop_bitvec(global_state.mstate)
@@ -461,8 +398,6 @@ class Instruction:
 
     @StateTransition()
     def mul_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(
             (
                 helper.pop_bitvec(global_state.mstate)
@@ -473,8 +408,6 @@ class Instruction:
 
     @StateTransition()
     def div_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         op0, op1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -487,8 +420,6 @@ class Instruction:
 
     @StateTransition()
     def sdiv_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         s0, s1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -501,8 +432,6 @@ class Instruction:
 
     @StateTransition()
     def mod_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         s0, s1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -512,8 +441,6 @@ class Instruction:
 
     @StateTransition()
     def smod_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         s0, s1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -523,8 +450,6 @@ class Instruction:
 
     @StateTransition()
     def addmod_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         s0, s1, s2 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -535,8 +460,6 @@ class Instruction:
 
     @StateTransition()
     def mulmod_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         s0, s1, s2 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -567,8 +490,6 @@ class Instruction:
 
     @StateTransition()
     def signextend_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         s0, s1 = state.stack.pop(), state.stack.pop()
 
@@ -592,8 +513,6 @@ class Instruction:
     # Comparisons
     @StateTransition()
     def lt_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         exp = ULT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
@@ -601,8 +520,6 @@ class Instruction:
 
     @StateTransition()
     def gt_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
@@ -610,8 +527,6 @@ class Instruction:
 
     @StateTransition()
     def slt_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         exp = util.pop_bitvec(state) < util.pop_bitvec(state)
         state.stack.append(exp)
@@ -619,8 +534,6 @@ class Instruction:
 
     @StateTransition()
     def sgt_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
 
         exp = util.pop_bitvec(state) > util.pop_bitvec(state)
@@ -629,8 +542,6 @@ class Instruction:
 
     @StateTransition()
     def eq_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
 
         op1 = state.stack.pop()
@@ -649,8 +560,6 @@ class Instruction:
 
     @StateTransition()
     def iszero_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
 
         val = state.stack.pop()
@@ -662,8 +571,6 @@ class Instruction:
     # Call data
     @StateTransition()
     def callvalue_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.callvalue)
@@ -672,8 +579,6 @@ class Instruction:
 
     @StateTransition()
     def calldataload_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         op0 = state.stack.pop()
@@ -683,8 +588,6 @@ class Instruction:
 
     @StateTransition()
     def calldatasize_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.calldata.calldatasize)
@@ -700,8 +603,6 @@ class Instruction:
             mstart = util.get_concrete_int(op0)
         except TypeError:
             logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
-            gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         dstart_sym = False
@@ -732,8 +633,6 @@ class Instruction:
                 + "]",
                 256,
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         if size > 0:
@@ -757,8 +656,6 @@ class Instruction:
                     + "]",
                     256,
                 )
-                gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
-                global_state.mstate.gas_used += gas
                 return [global_state]
 
             try:
@@ -786,15 +683,11 @@ class Instruction:
                     + "]",
                     256,
                 )
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
-        global_state.mstate.gas_used += gas
         return [global_state]
 
     # Environment
     @StateTransition()
     def address_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.address)
@@ -802,8 +695,6 @@ class Instruction:
 
     @StateTransition()
     def balance_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         address = state.stack.pop()
         state.stack.append(global_state.new_bitvec("balance_at_" + str(address), 256))
@@ -811,8 +702,6 @@ class Instruction:
 
     @StateTransition()
     def origin_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.origin)
@@ -820,8 +709,6 @@ class Instruction:
 
     @StateTransition()
     def caller_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.sender)
@@ -829,8 +716,6 @@ class Instruction:
 
     @StateTransition()
     def codesize_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
@@ -882,8 +767,6 @@ class Instruction:
 
     @StateTransition()
     def gasprice_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
         return [global_state]
 
@@ -916,12 +799,7 @@ class Instruction:
                 ),
                 256,
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
-            global_state.mstate.gas_used += gas
             return [global_state]
-
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
-        global_state.mstate.gas_used += gas
 
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
@@ -980,8 +858,6 @@ class Instruction:
 
     @StateTransition()
     def extcodesize_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         addr = state.stack.pop()
         environment = global_state.environment
@@ -1024,15 +900,11 @@ class Instruction:
 
     @StateTransition()
     def returndatasize_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("returndatasize", 256))
         return [global_state]
 
     @StateTransition()
     def blockhash_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         blocknumber = state.stack.pop()
         state.stack.append(
@@ -1042,29 +914,21 @@ class Instruction:
 
     @StateTransition()
     def coinbase_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("coinbase", 256))
         return [global_state]
 
     @StateTransition()
     def timestamp_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("timestamp", 256))
         return [global_state]
 
     @StateTransition()
     def number_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
         return [global_state]
 
     @StateTransition()
     def difficulty_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(
             global_state.new_bitvec("block_difficulty", 256)
         )
@@ -1072,16 +936,12 @@ class Instruction:
 
     @StateTransition()
     def gaslimit_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("block_gaslimit", 256))
         return [global_state]
 
     # Memory operations
     @StateTransition()
     def mload_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         op0 = state.stack.pop()
 
@@ -1109,8 +969,6 @@ class Instruction:
 
     @StateTransition()
     def mstore_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -1143,8 +1001,6 @@ class Instruction:
 
     @StateTransition()
     def mstore8_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -1161,8 +1017,6 @@ class Instruction:
 
     @StateTransition()
     def sload_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global keccak_function_manager
 
         state = global_state.mstate
@@ -1300,15 +1154,11 @@ class Instruction:
 
         # We don't have to take refunds for freed storage into account as they're
         # only provided at the end of the transaction and not relevant to OOG errors
-        gas = OPCODE_COST_FUNCTIONS["SSTORE"](value, index)
-        global_state.mstate.gas_used += gas
 
         return [global_state]
 
     @StateTransition(increment_pc=False)
     def jump_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         disassembly = global_state.environment.code
         try:
@@ -1337,8 +1187,6 @@ class Instruction:
 
     @StateTransition(increment_pc=False)
     def jumpi_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         disassembly = global_state.environment.code
         states = []
@@ -1394,22 +1242,16 @@ class Instruction:
 
     @StateTransition()
     def pc_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.mstate.pc - 1)
         return [global_state]
 
     @StateTransition()
     def msize_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
         return [global_state]
 
     @StateTransition()
     def gas_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
@@ -1420,15 +1262,11 @@ class Instruction:
         dpth = int(self.op_code[3:])
         state.stack.pop(), state.stack.pop()
         log_data = [state.stack.pop() for _ in range(dpth)]
-        gas = OPCODE_COST_FUNCTIONS["LOG"](dpth, len(log_data))
-        global_state.mstate.gas_used += gas
         # Not supported
         return [global_state]
 
     @StateTransition()
     def create_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         # TODO: implement me
         state = global_state.mstate
         state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -1438,8 +1276,6 @@ class Instruction:
 
     @StateTransition()
     def return_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 256)]
@@ -1473,16 +1309,10 @@ class Instruction:
 
         global_state.environment.active_account.balance = 0
         global_state.environment.active_account.deleted = True
-
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](account_created=account_created)
-        global_state.mstate.gas_used += gas
-
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
     def revert_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 256)]
@@ -1507,8 +1337,6 @@ class Instruction:
 
     @StateTransition()
     def stop_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
@@ -1530,9 +1358,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            # assume no value, no contract created
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-            global_state.mstate.gas_used += gas
             return [global_state]
         global_state.mstate.stack.append(
             global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1542,12 +1367,6 @@ class Instruction:
             logging.info("Native contract called: " + callee_address)
             if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
                 logging.debug("CALL with symbolic data not supported")
-                gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                    value=value,
-                    contract_created=callee_address
-                    in global_state.world_state.accounts,
-                )
-                global_state.mstate.gas_used += gas
                 return [global_state]
 
             try:
@@ -1555,12 +1374,6 @@ class Instruction:
                 mem_out_sz = memory_out_size.as_long()
             except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
-                gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                    value=value,
-                    contract_created=callee_address
-                    in global_state.world_state.accounts,
-                )
-                global_state.mstate.gas_used += gas
                 return [global_state]
 
             global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
@@ -1579,12 +1392,6 @@ class Instruction:
                         + ")",
                         256,
                     )
-                gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                    value=value,
-                    contract_created=callee_address
-                    in global_state.world_state.accounts,
-                )
-                global_state.mstate.gas_used += gas
                 return [global_state]
 
             for i in range(
@@ -1592,11 +1399,6 @@ class Instruction:
             ):  # If more data is used then it's chopped off
                 global_state.mstate.memory[mem_out_start + i] = data[i]
 
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
 
@@ -1630,8 +1432,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         if global_state.last_return_data is None:
@@ -1642,11 +1442,6 @@ class Instruction:
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
 
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         try:
@@ -1664,11 +1459,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         # Copy memory
@@ -1685,11 +1475,6 @@ class Instruction:
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
 
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](
-            value=value,
-            contract_created=callee_address in global_state.world_state.accounts,
-        )
-        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
@@ -1710,8 +1495,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         transaction = MessageCallTransaction(
@@ -1730,8 +1513,6 @@ class Instruction:
 
     @StateTransition()
     def callcode_post(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        global_state.mstate.gas_used += gas
         instr = global_state.get_current_instruction()
 
         try:
@@ -1747,8 +1528,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         if global_state.last_return_data is None:
@@ -1758,11 +1537,6 @@ class Instruction:
             )
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         try:
@@ -1780,11 +1554,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         # Copy memory
@@ -1800,11 +1569,6 @@ class Instruction:
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](
-            value=value,
-            contract_created=callee_address in global_state.world_state.accounts,
-        )
-        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
@@ -1825,8 +1589,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         transaction = MessageCallTransaction(
@@ -1860,8 +1622,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         if global_state.last_return_data is None:
@@ -1871,12 +1631,6 @@ class Instruction:
             )
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
-
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             return [global_state]
 
         try:
@@ -1894,11 +1648,6 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](
-                value=value,
-                contract_created=callee_address in global_state.world_state.accounts,
-            )
-            global_state.mstate.gas_used += gas
             return [global_state]
 
             # Copy memory
@@ -1914,18 +1663,10 @@ class Instruction:
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
-
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](
-            value=value,
-            contract_created=callee_address in global_state.world_state.accounts,
-        )
-        global_state.mstate.gas_used += gas
         return [global_state]
 
     @StateTransition()
     def staticcall_(self, global_state):
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](value=0, contract_created=False)
-        global_state.mstate.gas_used += gas
         # TODO: implement me
         instr = global_state.get_current_instruction()
         global_state.mstate.stack.append(
