@@ -57,7 +57,7 @@ class Issue:
             "address": self.address,
             "debug": self.debug,
             "min_gas_used": self.min_gas_used,
-            "max_gas_used": self.max_gas_used
+            "max_gas_used": self.max_gas_used,
         }
 
         if self.filename and self.lineno:

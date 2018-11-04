@@ -75,7 +75,10 @@ OPCODE_COST_FUNCTIONS = {
     "XOR": (3, 3),
     "NOT": (3, 3),
     "BYTE": (3, 3),
-    "SHA3": (30, 30 + 6 * 8),  # max can be larger, but usually storage location with 8 words
+    "SHA3": (
+        30,
+        30 + 6 * 8,
+    ),  # max can be larger, but usually storage location with 8 words
     "ADDRESS": (2, 2),
     "BALANCE": (20, 20),
     "ORIGIN": (2, 2),
@@ -190,6 +193,8 @@ OPCODE_COST_FUNCTIONS = {
     "STATICCALL": (700, 700 + 9000 + 25000),
     "REVERT": (0, 0),
     "SUICIDE": (5000, 30000),
+    "ASSERT_FAIL": (0, 0),
+    "INVALID": (0, 0)
 }
 
 
@@ -236,7 +241,9 @@ class StateTransition(object):
         def wrapper(func_obj, global_state):
             self.check_gas_usage_limit(global_state)
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
-            new_global_states = [self.accumulate_gas(state) for state in new_global_states]
+            new_global_states = [
+                self.accumulate_gas(state) for state in new_global_states
+            ]
             return self.increment_states_pc(new_global_states)
 
         return wrapper
