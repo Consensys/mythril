@@ -484,8 +484,6 @@ class Instruction:
 
             state.stack.append(pow(base.as_long(), exponent.as_long(), 2 ** 256))
 
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](exponent.as_long())
-        state.gas_used += gas
         return [global_state]
 
     @StateTransition()
@@ -738,9 +736,6 @@ class Instruction:
             state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
             return [global_state]
 
-        gas = OPCODE_COST_FUNCTIONS[self.op_code](length)
-        state.gas_used += gas
-
         try:
             state.mem_extend(index, length)
             data = b"".join(
@@ -888,13 +883,6 @@ class Instruction:
         state = global_state.mstate
         addr = state.stack.pop()
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
-        try:
-            size = util.get_concrete_int(size)
-        except TypeError:
-            gas = OPCODE_COST_FUNCTIONS[self.op_code]()
-        else:
-            gas = OPCODE_COST_FUNCTIONS[self.op_code](size)
-        state.mstate.gas_used += gas
 
         return [global_state]
 
