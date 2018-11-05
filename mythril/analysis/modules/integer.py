@@ -72,11 +72,13 @@ def _check_integer_overflow(statespace, state, node):
     # Formulate expression
     if instruction["opcode"] == "ADD":
         expr = op0 + op1
+        # constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
     else:
         expr = op1 * op0
+        # constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
 
-    # Check satisfiable
     constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
+    # Check satisfiable
     model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
@@ -99,13 +101,10 @@ def _check_integer_overflow(statespace, state, node):
         _type="Warning",
     )
 
-    issue.description = (
-        "A possible integer overflow exists in the function `{}`.\n"
-        "The addition or multiplication may result in a value higher than the maximum representable integer.".format(
-            node.function_name
-        )
+    issue.description = "The arithmetic operation can result in integer overflow.\n"
+    issue.debug = "Transaction Sequence: " + str(
+        solver.get_transaction_sequence(state, node.constraints)
     )
-    issue.debug = solver.pretty_print_model(model)
     issues.append(issue)
 
     return issues
@@ -133,11 +132,8 @@ def _try_constraints(constraints, new_constraints):
     Tries new constraints
     :return Model if satisfiable otherwise None
     """
-    _constraints = copy.deepcopy(constraints)
-    for constraint in new_constraints:
-        _constraints.append(copy.deepcopy(constraint))
     try:
-        model = solver.get_model(_constraints)
+        model = solver.get_model(constraints + new_constraints)
         return model
     except UnsatError:
         return None
@@ -213,13 +209,12 @@ def _check_integer_underflow(statespace, state, node):
                 )
 
                 issue.description = (
-                    "A possible integer underflow exists in the function `"
-                    + node.function_name
-                    + "`.\n"
-                    "The subtraction may result in a value < 0."
+                    "The subtraction can result in an integer underflow.\n"
                 )
 
-                issue.debug = solver.pretty_print_model(model)
+                issue.debug = "Transaction Sequence: " + str(
+                    solver.get_transaction_sequence(state, node.constraints)
+                )
                 issues.append(issue)
 
             except UnsatError:
@@ -300,8 +295,6 @@ def _search_children(
             element = _check_usage(current_state, taint_result)
             if len(element) < 1:
                 continue
-            if _check_requires(element[0], node, statespace, constraint):
-                continue
             results += element
 
     # Recursively search children
@@ -323,24 +316,3 @@ def _search_children(
         )
 
     return results
-
-
-def _check_requires(state, node, statespace, constraint):
-    """Checks if usage of overflowed statement results in a revert statement"""
-    instruction = state.get_current_instruction()
-    if instruction["opcode"] is not "JUMPI":
-        return False
-    children = [
-        statespace.nodes[edge.node_to]
-        for edge in statespace.edges
-        if edge.node_from == node.uid
-    ]
-
-    for child in children:
-        opcodes = [s.get_current_instruction()["opcode"] for s in child.states]
-        if "REVERT" in opcodes or "ASSERT_FAIL" in opcodes:
-            return True
-    # I added the following case, bc of false positives if the max depth is not high enough
-    if len(children) == 0:
-        return True
-    return False

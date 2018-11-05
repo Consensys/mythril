@@ -66,7 +66,7 @@ def execute(statespace):
                     function_name=call.node.function_name,
                     address=address,
                     swc_id=swc_type,
-                    bytecode=state.environment.code.bytecode,
+                    bytecode=call.state.environment.code.bytecode,
                     title="Dependence on predictable environment variable",
                     _type="Warning",
                     description=description,
@@ -144,7 +144,7 @@ def execute(statespace):
                                 contract=call.node.contract_name,
                                 function_name=call.node.function_name,
                                 address=address,
-                                bytecode=state.environment.code.bytecode,
+                                bytecode=call.state.environment.code.bytecode,
                                 title="Dependence on predictable variable",
                                 _type="Informational",
                                 description=description,
@@ -159,12 +159,11 @@ def solve(call):
     try:
         model = solver.get_model(call.node.constraints)
         logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
+        pretty_model = solver.pretty_print_model(model)
 
-        for decl in model.decls():
-            logging.debug(
-                "[DEPENDENCE_ON_PREDICTABLE_VARS] main model: %s = 0x%x"
-                % (decl.name(), model[decl].as_long())
-            )
+        logging.debug(
+            "[DEPENDENCE_ON_PREDICTABLE_VARS] main model: \n%s" % pretty_model
+        )
         return True
 
     except UnsatError:

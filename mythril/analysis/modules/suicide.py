@@ -39,9 +39,8 @@ def _analyze_state(state, node):
     to = state.mstate.stack[-1]
 
     logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
-    description = (
-        "The function `" + node.function_name + "` executes the SUICIDE instruction. "
-    )
+
+    description = "A reachable SUICIDE instruction was detected. "
 
     if "caller" in str(to):
         description += "The remaining Ether is sent to the caller's address.\n"
@@ -68,7 +67,11 @@ def _analyze_state(state, node):
     try:
         model = solver.get_model(node.constraints + not_creator_constraints)
 
-        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
+        debug = "Transaction Sequence: " + str(
+            solver.get_transaction_sequence(
+                state, node.constraints + not_creator_constraints
+            )
+        )
 
         issue = Issue(
             contract=node.contract_name,

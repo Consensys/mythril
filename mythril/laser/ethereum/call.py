@@ -1,7 +1,7 @@
 import logging
-from z3 import simplify
+from z3 import simplify, Extract
 import mythril.laser.ethereum.util as util
-from mythril.laser.ethereum.state import Account, CalldataType, GlobalState
+from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
 from mythril.support.loader import DynLoader
 import re
 
@@ -11,7 +11,9 @@ to get the necessary elements from the stack and determine the parameters for th
 """
 
 
-def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, with_value=False):
+def get_call_parameters(
+    global_state: GlobalState, dynamic_loader: DynLoader, with_value=False
+):
     """
     Gets call parameters from global state
     Pops the values from the stack and determines output parameters
@@ -22,21 +24,40 @@ def get_call_parameters(global_state: GlobalState, dynamic_loader: DynLoader, wi
     """
     gas, to = global_state.mstate.pop(2)
     value = global_state.mstate.pop() if with_value else 0
-    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(4)
+    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(
+        4
+    )
 
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
     callee_account = None
-    call_data, call_data_type = get_call_data(global_state, memory_input_offset, memory_input_size, False)
+    call_data, call_data_type = get_call_data(
+        global_state, memory_input_offset, memory_input_size, False
+    )
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
-        call_data, call_data_type = get_call_data(global_state, memory_input_offset, memory_input_size)
-        callee_account = get_callee_account(global_state, callee_address, dynamic_loader)
+        call_data, call_data_type = get_call_data(
+            global_state, memory_input_offset, memory_input_size
+        )
+        callee_account = get_callee_account(
+            global_state, callee_address, dynamic_loader
+        )
 
-    return callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size
+    return (
+        callee_address,
+        callee_account,
+        call_data,
+        value,
+        call_data_type,
+        gas,
+        memory_out_offset,
+        memory_out_size,
+    )
 
 
-def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symbolic_to_address):
+def get_callee_address(
+    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address
+):
     """
     Gets the address of the callee
     :param global_state: state to look in
@@ -51,7 +72,7 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
     except TypeError:
         logging.debug("Symbolic call encountered")
 
-        match = re.search(r'storage_(\d+)', str(simplify(symbolic_to_address)))
+        match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
         logging.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
@@ -62,7 +83,9 @@ def get_callee_address(global_state:GlobalState, dynamic_loader: DynLoader, symb
 
         # attempt to read the contract address from instance storage
         try:
-            callee_address = dynamic_loader.read_storage(environment.active_account.address, index)
+            callee_address = dynamic_loader.read_storage(
+                environment.active_account.address, index
+            )
         # TODO: verify whether this happens or not
         except:
             logging.debug("Error accessing contract storage.")
@@ -107,7 +130,9 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
         raise ValueError()
     logging.debug("Dependency loaded: " + callee_address)
 
-    callee_account = Account(callee_address, code, callee_address, dynamic_loader=dynamic_loader)
+    callee_account = Account(
+        callee_address, code, callee_address, dynamic_loader=dynamic_loader
+    )
     accounts[callee_address] = callee_account
 
     return callee_account
@@ -122,17 +147,33 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
     state = global_state.mstate
+    transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
     try:
         # TODO: This only allows for either fully concrete or fully symbolic calldata.
         # Improve management of memory and callata to support a mix between both types.
-        call_data = state.memory[util.get_concrete_int(memory_start):util.get_concrete_int(memory_start + memory_size)]
-        if len(call_data) < 32 and pad:
-            call_data += [0] * (32 - len(call_data))
+        calldata_from_mem = state.memory[
+            util.get_concrete_int(memory_start) : util.get_concrete_int(
+                memory_start + memory_size
+            )
+        ]
+        i = 0
+        starting_calldata = []
+        while i < len(calldata_from_mem):
+            elem = calldata_from_mem[i]
+            if isinstance(elem, int):
+                starting_calldata.append(elem)
+                i += 1
+            else:  # BitVec
+                for j in range(0, elem.size(), 8):
+                    starting_calldata.append(Extract(j + 7, j, elem))
+                    i += 1
+
+        call_data = Calldata(transaction_id, starting_calldata)
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
-        call_data = []
+        call_data = Calldata("{}_internalcall".format(transaction_id))
 
     return call_data, call_data_type

@@ -31,7 +31,7 @@ Type: Warning
 Contract: Unknown
 Function name: _function_0xd24b08cc
 PC address: 779
-A possible transaction order dependence vulnerability exists in function _function_0xd24b08cc. The value or direction of the call statement is determined from a tainted storage location
+Possible transaction order dependence vulnerability: The value or direction of the call statement is determined from a tainted storage location
 --------------------
 
 ==== Unchecked CALL return value ====

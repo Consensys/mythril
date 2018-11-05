@@ -36,16 +36,13 @@ def execute(statespace):
                         "out-of-bounds array access, or assert violations. "
                     )
                     description += (
-                        "This is acceptable in most situations. "
-                        "Note however that `assert()` should only be used to check invariants. "
+                        "Note that explicit `assert()` should only be used to check invariants. "
                         "Use `require()` for regular input checking. "
                     )
 
-                    debug = (
-                        "The exception is triggered under the following conditions:\n\n"
+                    debug = "Transaction Sequence: " + str(
+                        solver.get_transaction_sequence(state, node.constraints)
                     )
-
-                    debug += solver.pretty_print_model(model)
 
                     issues.append(
                         Issue(
