@@ -78,7 +78,6 @@ class LaserEVM:
     def accounts(self):
         return self.world_state.accounts
 
-
     def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
@@ -126,9 +125,7 @@ class LaserEVM:
             initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
-            logging.info(
-                "Starting message call transaction, iteration: {}".format(i)
-            )
+            logging.info("Starting message call transaction, iteration: {}".format(i))
             execute_message_call(self, address)
 
             end_coverage = self._get_covered_instructions()

@@ -82,7 +82,7 @@ class SVMTestCase(BaseTestCase):
             account = Account("0x0000000000000000000000000000000000000000", disassembly)
             accounts = {account.address: account}
 
-            laser = svm.LaserEVM(accounts, max_depth=22)
+            laser = svm.LaserEVM(accounts, max_depth=22, max_transaction_count=1)
             laser.sym_exec(account.address)
             laser_info = _all_info(laser)
 
