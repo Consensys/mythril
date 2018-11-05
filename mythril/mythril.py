@@ -313,16 +313,20 @@ class Mythril(object):
 
     def load_from_bytecode(self, code, bin_runtime=False):
         address = util.get_indexed_address(0)
-        if (bin_runtime):
+        if bin_runtime:
             self.contracts.append(
                 ETHContract(
-                    code=code, name="MAIN", enable_online_lookup=self.enable_online_lookup
+                    code=code,
+                    name="MAIN",
+                    enable_online_lookup=self.enable_online_lookup,
                 )
             )
         else:
             self.contracts.append(
                 ETHContract(
-                    creation_code=code, name="MAIN", enable_online_lookup=self.enable_online_lookup
+                    creation_code=code,
+                    name="MAIN",
+                    enable_online_lookup=self.enable_online_lookup,
                 )
             )
         return address, self.contracts[-1]  # return address and contract object

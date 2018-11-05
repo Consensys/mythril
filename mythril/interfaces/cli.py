@@ -93,7 +93,7 @@ def main():
     inputs.add_argument(
         "--bin-runtime",
         action="store_true",
-        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode."
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
     )
 
     outputs = parser.add_argument_group("output formats")
