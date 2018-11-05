@@ -78,24 +78,14 @@ class LaserEVM:
     def accounts(self):
         return self.world_state.accounts
 
+
     def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
         if main_address:
             logging.info("Starting message call transaction to {}".format(main_address))
-            for i in range(self.max_transaction_count):
-                initial_coverage = self._get_covered_instructions()
-
-                self.time = datetime.now()
-                logging.info(
-                    "Starting message call transaction, iteration: {}".format(i)
-                )
-                execute_message_call(self, main_address)
-
-                end_coverage = self._get_covered_instructions()
-                if end_coverage == initial_coverage:
-                    break
+            self._execute_transactions(main_address)
 
         elif creation_code:
             logging.info("Starting contract creation transaction")
@@ -142,6 +132,21 @@ class LaserEVM:
                 * 100
             )
             logging.info("Achieved {} coverage for code: {}".format(cov, code))
+
+    def _execute_transactions(self, address):
+        self.coverage = {}
+        for i in range(self.max_transaction_count):
+            initial_coverage = self._get_covered_instructions()
+
+            self.time = datetime.now()
+            logging.info(
+                "Starting message call transaction, iteration: {}".format(i)
+            )
+            execute_message_call(self, address)
+
+            end_coverage = self._get_covered_instructions()
+            if end_coverage == initial_coverage:
+                break
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""
