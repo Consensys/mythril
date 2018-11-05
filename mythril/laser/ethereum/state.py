@@ -1,10 +1,31 @@
-from z3 import BitVec, BitVecVal
+from z3 import (
+    BitVec,
+    BitVecVal,
+    BitVecRef,
+    BitVecNumRef,
+    BitVecSort,
+    Solver,
+    ExprRef,
+    Concat,
+    sat,
+    simplify,
+    Array,
+    ForAll,
+    Solver,
+    UGT,
+    Implies,
+)
+from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
 from copy import copy, deepcopy
 from enum import Enum
 from random import randint
+from mythril.laser.ethereum.util import get_concrete_int
 
-from mythril.laser.ethereum.evm_exceptions import StackOverflowException, StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import (
+    StackOverflowException,
+    StackUnderflowException,
+)
 
 
 class CalldataType(Enum):
@@ -12,10 +33,92 @@ class CalldataType(Enum):
     SYMBOLIC = 2
 
 
+class Calldata:
+    """
+    Calldata class representing the calldata of a transaction
+    """
+
+    def __init__(self, tx_id, starting_calldata=None):
+        """
+        Constructor for Calldata
+        :param tx_id: unique value representing the transaction the calldata is for
+        :param starting_calldata: byte array representing the concrete calldata of a transaction
+        """
+        self.tx_id = tx_id
+        if starting_calldata:
+            self._calldata = []
+            self.calldatasize = BitVecVal(len(starting_calldata), 256)
+            self.concrete = True
+        else:
+            self._calldata = Array(
+                "{}_calldata".format(self.tx_id), BitVecSort(256), BitVecSort(8)
+            )
+            self.calldatasize = BitVec("{}_calldatasize".format(self.tx_id), 256)
+            self.concrete = False
+
+        self.starting_calldata = starting_calldata or []
+
+    @property
+    def constraints(self):
+        constraints = []
+        if self.concrete:
+            for calldata_byte in self.starting_calldata:
+                if type(calldata_byte) == int:
+                    self._calldata.append(BitVecVal(calldata_byte, 8))
+                else:
+                    self._calldata.append(calldata_byte)
+            constraints.append(self.calldatasize == len(self.starting_calldata))
+        else:
+            x = BitVec("x", 256)
+            constraints.append(
+                ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
+            )
+        return constraints
+
+    def concretized(self, model):
+        result = []
+
+        for i in range(
+            get_concrete_int(model.eval(self.calldatasize, model_completion=True))
+        ):
+            result.append(get_concrete_int(model.eval(self[i], model_completion=True)))
+
+        return result
+
+    def get_word_at(self, index: int):
+        return self[index : index + 32]
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            try:
+                current_index = (
+                    item.start
+                    if isinstance(item.start, BitVecRef)
+                    else BitVecVal(item.start, 256)
+                )
+                dataparts = []
+                while simplify(current_index != item.stop):
+                    dataparts.append(self[current_index])
+                    current_index = simplify(current_index + 1)
+            except Z3Exception:
+                raise IndexError("Invalid Calldata Slice")
+
+            return simplify(Concat(dataparts))
+
+        if self.concrete:
+            try:
+                return self._calldata[get_concrete_int(item)]
+            except IndexError:
+                return BitVecVal(0, 8)
+        else:
+            return self._calldata[item]
+
+
 class Storage:
     """
     Storage class represents the storage of an Account
     """
+
     def __init__(self, concrete=False, address=None, dynamic_loader=None):
         """
         Constructor for Storage
@@ -32,7 +135,12 @@ class Storage:
         except KeyError:
             if self.address and int(self.address[2:], 16) != 0 and self.dynld:
                 try:
-                    self._storage[item] = int(self.dynld.read_storage(contract_address=self.address, index=int(item)), 16)
+                    self._storage[item] = int(
+                        self.dynld.read_storage(
+                            contract_address=self.address, index=int(item)
+                        ),
+                        16,
+                    )
                     return self._storage[item]
                 except ValueError:
                     pass
@@ -47,12 +155,21 @@ class Storage:
     def keys(self):
         return self._storage.keys()
 
+
 class Account:
     """
     Account class representing ethereum accounts
     """
-    def __init__(self, address, code=None, contract_name="unknown", balance=None, concrete_storage=False,
-                 dynamic_loader=None):
+
+    def __init__(
+        self,
+        address,
+        code=None,
+        contract_name="unknown",
+        balance=None,
+        concrete_storage=False,
+        dynamic_loader=None,
+    ):
         """
         Constructor for account
         :param address: Address of the account
@@ -64,7 +181,9 @@ class Account:
         self.nonce = 0
         self.code = code or Disassembly("")
         self.balance = balance if balance else BitVec("balance", 256)
-        self.storage = Storage(concrete_storage, address=address, dynamic_loader=dynamic_loader)
+        self.storage = Storage(
+            concrete_storage, address=address, dynamic_loader=dynamic_loader
+        )
 
         # Metadata
         self.address = address
@@ -83,13 +202,19 @@ class Account:
 
     @property
     def as_dict(self):
-        return {'nonce': self.nonce, 'code': self.code, 'balance': self.balance, 'storage': self.storage}
+        return {
+            "nonce": self.nonce,
+            "code": self.code,
+            "balance": self.balance,
+            "storage": self.storage,
+        }
 
 
 class Environment:
     """
     The environment class represents the current execution environment for the symbolic executor
     """
+
     def __init__(
         self,
         active_account,
@@ -121,12 +246,17 @@ class Environment:
     def __str__(self):
         return str(self.as_dict)
 
-
     @property
     def as_dict(self):
-        return dict(active_account=self.active_account, sender=self.sender, calldata=self.calldata,
-                    gasprice=self.gasprice, callvalue=self.callvalue, origin=self.origin,
-                    calldata_type=self.calldata_type)
+        return dict(
+            active_account=self.active_account,
+            sender=self.sender,
+            calldata=self.calldata,
+            gasprice=self.gasprice,
+            callvalue=self.callvalue,
+            origin=self.origin,
+            calldata_type=self.calldata_type,
+        )
 
 
 class Constraints(list):
@@ -169,9 +299,12 @@ class MachineStack(list):
     """
     Defines EVM stack, overrides the default list to handle overflows
     """
+
     STACK_LIMIT = 1024
 
     def __init__(self, default_list=None):
+        if default_list is None:
+            default_list = []
         super(MachineStack, self).__init__(default_list)
 
     def append(self, element):
@@ -180,8 +313,10 @@ class MachineStack(list):
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
-            raise StackOverflowException("Reached the EVM stack limit of {}, you can't append more "
-                                         "elements".format(self.STACK_LIMIT))
+            raise StackOverflowException(
+                "Reached the EVM stack limit of {}, you can't append more "
+                "elements".format(self.STACK_LIMIT)
+            )
         super(MachineStack, self).append(element)
 
     def pop(self, index=-1):
@@ -200,19 +335,21 @@ class MachineStack(list):
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
-            raise StackUnderflowException("Trying to access a stack element which doesn't exist")
+            raise StackUnderflowException(
+                "Trying to access a stack element which doesn't exist"
+            )
 
     def __add__(self, other):
         """
         Implement list concatenation if needed
         """
-        raise NotImplementedError('Implement this if needed')
+        raise NotImplementedError("Implement this if needed")
 
     def __iadd__(self, other):
         """
         Implement list concatenation if needed
         """
-        raise NotImplementedError('Implement this if needed')
+        raise NotImplementedError("Implement this if needed")
 
 
 class MachineState:
@@ -236,13 +373,13 @@ class MachineState:
         """
         if self.memory_size > start + size:
             return
-        m_extend = (start + size - self.memory_size)
+        m_extend = start + size - self.memory_size
         self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset, data):
         """ Writes data to memory starting at offset """
         self.mem_extend(offset, len(data))
-        self.memory[offset:offset+len(data)] = data
+        self.memory[offset : offset + len(data)] = data
 
     def pop(self, amount=1):
         """ Pops amount elements from the stack"""
@@ -266,14 +403,29 @@ class MachineState:
 
     @property
     def as_dict(self):
-        return dict(pc=self.pc, stack=self.stack, memory=self.memory, memsize=self.memory_size, gas=self.gas)
+        return dict(
+            pc=self.pc,
+            stack=self.stack,
+            memory=self.memory,
+            memsize=self.memory_size,
+            gas=self.gas,
+        )
 
 
 class GlobalState:
     """
     GlobalState represents the current globalstate
     """
-    def __init__(self, world_state, environment, node, machine_state=None, transaction_stack=None, last_return_data=None):
+
+    def __init__(
+        self,
+        world_state,
+        environment,
+        node,
+        machine_state=None,
+        transaction_stack=None,
+        last_return_data=None,
+    ):
         """ Constructor for GlobalState"""
         self.node = node
         self.world_state = world_state
@@ -288,8 +440,14 @@ class GlobalState:
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         transaction_stack = copy(self.transaction_stack)
-        return GlobalState(world_state, environment, self.node, mstate, transaction_stack=transaction_stack,
-                           last_return_data=self.last_return_data)
+        return GlobalState(
+            world_state,
+            environment,
+            self.node,
+            mstate,
+            transaction_stack=transaction_stack,
+            last_return_data=self.last_return_data,
+        )
 
     @property
     def accounts(self):
@@ -298,7 +456,6 @@ class GlobalState:
     # TODO: remove this, as two instructions are confusing
     def get_current_instruction(self):
         """ Gets the current instruction for this GlobalState"""
-
 
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
@@ -316,7 +473,6 @@ class GlobalState:
 
     def new_bitvec(self, name, size=256):
         transaction_id = self.current_transaction.id
-        node_id = self.node.uid
 
         return BitVec("{}_{}".format(transaction_id, name), size)
 
@@ -325,6 +481,7 @@ class WorldState:
     """
     The WorldState class represents the world state as described in the yellow paper
     """
+
     def __init__(self, transaction_sequence=None):
         """
         Constructor for the world state. Initializes the accounts record
@@ -347,7 +504,9 @@ class WorldState:
         new_world_state.node = self.node
         return new_world_state
 
-    def create_account(self, balance=0, address=None, concrete_storage=False, dynamic_loader=None):
+    def create_account(
+        self, balance=0, address=None, concrete_storage=False, dynamic_loader=None
+    ):
         """
         Create non-contract account
         :param address: The account's address
@@ -357,7 +516,12 @@ class WorldState:
         :return: The new account
         """
         address = address if address else self._generate_new_address()
-        new_account = Account(address, balance=balance, dynamic_loader=dynamic_loader, concrete_storage=concrete_storage)
+        new_account = Account(
+            address,
+            balance=balance,
+            dynamic_loader=dynamic_loader,
+            concrete_storage=concrete_storage,
+        )
         self._put_account(new_account)
         return new_account
 
@@ -369,14 +533,16 @@ class WorldState:
         :param storage: Initial storage for the contract
         :return: The new account
         """
-        new_account = Account(self._generate_new_address(), code=contract_code, balance=0)
+        new_account = Account(
+            self._generate_new_address(), code=contract_code, balance=0
+        )
         new_account.storage = storage
         self._put_account(new_account)
 
     def _generate_new_address(self):
         """ Generates a new address for the global state"""
         while True:
-            address = '0x' + ''.join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
+            address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():
                 return address
 

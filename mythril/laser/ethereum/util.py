@@ -16,7 +16,7 @@ def sha3(seed):
 
 def safe_decode(hex_encoded_string):
 
-    if (hex_encoded_string.startswith("0x")):
+    if hex_encoded_string.startswith("0x"):
         return bytes.fromhex(hex_encoded_string[2:])
     else:
         return bytes.fromhex(hex_encoded_string)
@@ -31,7 +31,7 @@ def get_instruction_index(instruction_list, address):
     index = 0
 
     for instr in instruction_list:
-        if instr['address'] == address:
+        if instr["address"] == address:
             return index
 
         index += 1
@@ -46,7 +46,7 @@ def get_trace_line(instr, state):
     # stack = re.sub("(\d+)",   lambda m: hex(int(m.group(1))), stack)
     stack = re.sub("\n", "", stack)
 
-    return str(instr['address']) + " " + instr['opcode'] + "\tSTACK: " + stack
+    return str(instr["address"]) + " " + instr["opcode"] + "\tSTACK: " + stack
 
 
 def pop_bitvec(state):
@@ -80,17 +80,20 @@ def get_concrete_int(item):
         elif is_true(simplified):
             return 1
         else:
-            raise ValueError("Symbolic boolref encountered")
+            raise TypeError("Symbolic boolref encountered")
 
-    return simplify(item).as_long()
+    try:
+        return simplify(item).as_long()
+    except AttributeError:
+        raise TypeError("Got a symbolic BitVecRef")
 
 
 def concrete_int_from_bytes(_bytes, start_index):
 
     # logging.debug("-- concrete_int_from_bytes: " + str(_bytes[start_index:start_index+32]))
-    b = _bytes[start_index:start_index+32]
+    b = _bytes[start_index : start_index + 32]
 
-    val = int.from_bytes(b, byteorder='big')
+    val = int.from_bytes(b, byteorder="big")
 
     return val
 
@@ -99,10 +102,10 @@ def concrete_int_to_bytes(val):
 
     # logging.debug("concrete_int_to_bytes " + str(val))
 
-    if (type(val) == int):
-        return val.to_bytes(32, byteorder='big')
+    if type(val) == int:
+        return val.to_bytes(32, byteorder="big")
 
-    return (simplify(val).as_long()).to_bytes(32, byteorder='big')
+    return (simplify(val).as_long()).to_bytes(32, byteorder="big")
 
 
 def bytearray_to_int(arr):
@@ -110,4 +113,3 @@ def bytearray_to_int(arr):
     for a in arr:
         o = (o << 8) + a
     return o
-

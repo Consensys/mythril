@@ -25,36 +25,49 @@ def analyze_truffle_project(sigs, args):
 
     for filename in files:
 
-        if re.match(r'.*\.json$', filename) and filename != "Migrations.json":
+        if re.match(r".*\.json$", filename) and filename != "Migrations.json":
 
             with open(os.path.join(build_dir, filename)) as cf:
                 contractdata = json.load(cf)
 
             try:
-                name = contractdata['contractName']
-                bytecode = contractdata['deployedBytecode']
-                filename = PurePath(contractdata['sourcePath']).name
+                name = contractdata["contractName"]
+                bytecode = contractdata["deployedBytecode"]
+                filename = PurePath(contractdata["sourcePath"]).name
             except KeyError:
-                print("Unable to parse contract data. Please use Truffle 4 to compile your project.")
+                print(
+                    "Unable to parse contract data. Please use Truffle 4 to compile your project."
+                )
                 sys.exit()
             if len(bytecode) < 4:
                 continue
 
-            sigs.import_from_solidity_source(contractdata['sourcePath'])
+            sigs.import_from_solidity_source(
+                contractdata["sourcePath"], solc_args=args.solc_args
+            )
             sigs.write()
 
             ethcontract = ETHContract(bytecode, name=name)
 
             address = util.get_indexed_address(0)
-            sym = SymExecWrapper(ethcontract, address, args.strategy, max_depth=args.max_depth,
-                                 create_timeout=args.create_timeout, execution_timeout=args.execution_timeout)
+            sym = SymExecWrapper(
+                ethcontract,
+                address,
+                args.strategy,
+                max_depth=args.max_depth,
+                create_timeout=args.create_timeout,
+                execution_timeout=args.execution_timeout,
+            )
             issues = fire_lasers(sym)
 
             if not len(issues):
-                if args.outform == 'text' or args.outform == 'markdown':
+                if args.outform == "text" or args.outform == "markdown":
                     print("# Analysis result for " + name + "\n\nNo issues found.")
                 else:
-                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': []}}
+                    result = {
+                        "contract": name,
+                        "result": {"success": True, "error": None, "issues": []},
+                    }
                     print(json.dumps(result))
             else:
 
@@ -62,9 +75,9 @@ def analyze_truffle_project(sigs, args):
                 # augment with source code
 
                 disassembly = ethcontract.disassembly
-                source = contractdata['source']
+                source = contractdata["source"]
 
-                deployed_source_map = contractdata['deployedSourceMap'].split(";")
+                deployed_source_map = contractdata["deployedSourceMap"].split(";")
 
                 mappings = []
 
@@ -80,34 +93,49 @@ def analyze_truffle_project(sigs, args):
                     if len(mapping) > 2 and len(mapping[2]) > 0:
                         idx = int(mapping[2])
 
-                    lineno = source.encode('utf-8')[0:offset].count('\n'.encode('utf-8')) + 1
+                    lineno = (
+                        source.encode("utf-8")[0:offset].count("\n".encode("utf-8")) + 1
+                    )
 
                     mappings.append(SourceMapping(idx, offset, length, lineno))
 
                 for issue in issues:
 
-                    index = get_instruction_index(disassembly.instruction_list, issue.address)
+                    index = get_instruction_index(
+                        disassembly.instruction_list, issue.address
+                    )
 
                     if index:
-                            try:
-                                offset = mappings[index].offset
-                                length = mappings[index].length
+                        try:
+                            offset = mappings[index].offset
+                            length = mappings[index].length
 
-                                issue.filename = filename
-                                issue.code = source.encode('utf-8')[offset:offset + length].decode('utf-8')
-                                issue.lineno = mappings[index].lineno
-                            except IndexError:
-                                logging.debug("No code mapping at index %d", index)
+                            issue.filename = filename
+                            issue.code = source.encode("utf-8")[
+                                offset : offset + length
+                            ].decode("utf-8")
+                            issue.lineno = mappings[index].lineno
+                        except IndexError:
+                            logging.debug("No code mapping at index %d", index)
 
                     report.append_issue(issue)
 
-                if args.outform == 'json':
+                if args.outform == "json":
 
-                    result = {'contract': name, 'result': {'success': True, 'error': None, 'issues': list(map(lambda x: x.as_dict, issues))}}
+                    result = {
+                        "contract": name,
+                        "result": {
+                            "success": True,
+                            "error": None,
+                            "issues": list(map(lambda x: x.as_dict, issues)),
+                        },
+                    }
                     print(json.dumps(result))
 
                 else:
-                    if args.outform == 'text':
-                        print("# Analysis result for " + name + ":\n\n" + report.as_text())
-                    elif args.outform == 'markdown':
+                    if args.outform == "text":
+                        print(
+                            "# Analysis result for " + name + ":\n\n" + report.as_text()
+                        )
+                    elif args.outform == "markdown":
                         print(report.as_markdown())

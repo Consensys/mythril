@@ -1,4 +1,5 @@
 ==== Unchecked CALL return value ====
+SWC ID: 104
 Type: Informational
 Contract: Unknown
 Function name: _function_0x141f32ff
@@ -7,6 +8,7 @@ The return value of an external call is not checked. Note that execution continu
 --------------------
 
 ==== Unchecked CALL return value ====
+SWC ID: 104
 Type: Informational
 Contract: Unknown
 Function name: _function_0x9b58bc26
@@ -15,6 +17,7 @@ The return value of an external call is not checked. Note that execution continu
 --------------------
 
 ==== Message call to external contract ====
+SWC ID: 107
 Type: Warning
 Contract: Unknown
 Function name: _function_0xeea4c864
@@ -23,6 +26,7 @@ This contract executes a message call to an address provided as a function argum
 --------------------
 
 ==== Unchecked CALL return value ====
+SWC ID: 104
 Type: Informational
 Contract: Unknown
 Function name: _function_0xeea4c864

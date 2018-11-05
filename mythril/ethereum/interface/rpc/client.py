@@ -3,7 +3,12 @@ import logging
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError as RequestsConnectionError
-from .exceptions import (ConnectionError, BadStatusCodeError, BadJsonError, BadResponseError)
+from .exceptions import (
+    ConnectionError,
+    BadStatusCodeError,
+    BadJsonError,
+    BadResponseError,
+)
 from .base_client import BaseClient
 
 GETH_DEFAULT_RPC_PORT = 8545
@@ -11,17 +16,19 @@ ETH_DEFAULT_RPC_PORT = 8545
 PARITY_DEFAULT_RPC_PORT = 8545
 PYETHAPP_DEFAULT_RPC_PORT = 4000
 MAX_RETRIES = 3
-JSON_MEDIA_TYPE = 'application/json'
+JSON_MEDIA_TYPE = "application/json"
 
-'''
+"""
 This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
-'''
-class EthJsonRpc(BaseClient):
-    '''
-    Ethereum JSON-RPC client class
-    '''
+"""
 
-    def __init__(self, host='localhost', port=GETH_DEFAULT_RPC_PORT, tls=False):
+
+class EthJsonRpc(BaseClient):
+    """
+    Ethereum JSON-RPC client class
+    """
+
+    def __init__(self, host="localhost", port=GETH_DEFAULT_RPC_PORT, tls=False):
         self.host = host
         self.port = port
         self.tls = tls
@@ -31,17 +38,12 @@ class EthJsonRpc(BaseClient):
     def _call(self, method, params=None, _id=1):
 
         params = params or []
-        data = {
-            'jsonrpc': '2.0',
-            'method': method,
-            'params': params,
-            'id': _id,
-        }
-        scheme = 'http'
+        data = {"jsonrpc": "2.0", "method": method, "params": params, "id": _id}
+        scheme = "http"
         if self.tls:
-            scheme += 's'
-        url = '{}://{}:{}'.format(scheme, self.host, self.port)
-        headers = {'Content-Type': JSON_MEDIA_TYPE}
+            scheme += "s"
+        url = "{}://{}:{}".format(scheme, self.host, self.port)
+        headers = {"Content-Type": JSON_MEDIA_TYPE}
         logging.debug("rpc send: %s" % json.dumps(data))
         try:
             r = self.session.post(url, headers=headers, data=json.dumps(data))
@@ -55,7 +57,7 @@ class EthJsonRpc(BaseClient):
         except ValueError:
             raise BadJsonError(r.text)
         try:
-            return response['result']
+            return response["result"]
         except KeyError:
             raise BadResponseError(response)
 

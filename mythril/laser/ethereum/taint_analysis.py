@@ -2,6 +2,7 @@ import logging, copy
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum.cfg import JumpType
 
+
 class TaintRecord:
     """
     TaintRecord contains tainting information for a specific (state, node)
@@ -82,7 +83,7 @@ class TaintRunner:
     """
 
     @staticmethod
-    def execute(statespace, node, state, initial_stack=[]):
+    def execute(statespace, node, state, initial_stack=None):
         """
         Runs taint analysis on the statespace
         :param statespace: symbolic statespace to run taint analysis on
@@ -91,6 +92,8 @@ class TaintRunner:
         :param stack_indexes: stack indexes to introduce taint
         :return: TaintResult object containing analysis results
         """
+        if initial_stack is None:
+            initial_stack = []
         result = TaintResult()
         transaction_stack_length = len(node.states[0].transaction_stack)
         # Build initial current_node
@@ -107,21 +110,36 @@ class TaintRunner:
             records = TaintRunner.execute_node(node, record, index)
 
             result.add_records(records)
-
-            children = TaintRunner.children(node, statespace, environment, transaction_stack_length)
+            if len(records) == 0:  # continue if there is no record to work on
+                continue
+            children = TaintRunner.children(
+                node, statespace, environment, transaction_stack_length
+            )
             for child in children:
                 current_nodes.append((child, records[-1], 0))
         return result
 
     @staticmethod
     def children(node, statespace, environment, transaction_stack_length):
-        direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid and edge.type != JumpType.Transaction]
+        direct_children = [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid and edge.type != JumpType.Transaction
+        ]
         children = []
         for child in direct_children:
-            if all(len(state.transaction_stack) == transaction_stack_length for state in child.states):
+            if all(
+                len(state.transaction_stack) == transaction_stack_length
+                for state in child.states
+            ):
                 children.append(child)
-            elif all(len(state.transaction_stack) > transaction_stack_length for state in child.states):
-                children += TaintRunner.children(child, statespace, environment, transaction_stack_length)
+            elif all(
+                len(state.transaction_stack) > transaction_stack_length
+                for state in child.states
+            ):
+                children += TaintRunner.children(
+                    child, statespace, environment, transaction_stack_length
+                )
         return children
 
     @staticmethod
@@ -147,7 +165,7 @@ class TaintRunner:
         new_record = record.clone()
 
         # Apply Change
-        op = state.get_current_instruction()['opcode']
+        op = state.get_current_instruction()["opcode"]
 
         if op in TaintRunner.stack_taint_table.keys():
             mutator = TaintRunner.stack_taint_table[op]
@@ -168,7 +186,7 @@ class TaintRunner:
             TaintRunner.mutate_sstore(new_record, state.mstate.stack[-1])
         elif op.startswith("LOG"):
             TaintRunner.mutate_log(new_record, op)
-        elif op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
+        elif op in ("CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"):
             TaintRunner.mutate_call(new_record, op)
         else:
             logging.debug("Unknown operation encountered: {}".format(op))
@@ -210,7 +228,7 @@ class TaintRunner:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
@@ -222,7 +240,7 @@ class TaintRunner:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't mstore taint track symbolically")
             return
 
@@ -233,7 +251,7 @@ class TaintRunner:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
@@ -245,7 +263,7 @@ class TaintRunner:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
-        except AttributeError:
+        except TypeError:
             logging.debug("Can't mstore taint track symbolically")
             return
 
@@ -260,7 +278,7 @@ class TaintRunner:
     @staticmethod
     def mutate_call(record, op):
         pops = 6
-        if op in ('CALL', 'CALLCODE'):
+        if op in ("CALL", "CALLCODE"):
             pops += 1
         for _ in range(pops):
             record.stack.pop()
@@ -269,55 +287,55 @@ class TaintRunner:
 
     stack_taint_table = {
         # instruction: (taint source, taint target)
-        'POP': (1, 0),
-        'ADD': (2, 1),
-        'MUL': (2, 1),
-        'SUB': (2, 1),
-        'AND': (2, 1),
-        'OR':  (2, 1),
-        'XOR': (2, 1),
-        'NOT': (1, 1),
-        'BYTE': (2, 1),
-        'DIV': (2, 1),
-        'MOD': (2, 1),
-        'SDIV': (2, 1),
-        'SMOD': (2, 1),
-        'ADDMOD': (3, 1),
-        'MULMOD': (3, 1),
-        'EXP': (2, 1),
-        'SIGNEXTEND': (2, 1),
-        'LT': (2, 1),
-        'GT': (2, 1),
-        'SLT': (2, 1),
-        'SGT': (2, 1),
-        'EQ': (2, 1),
-        'ISZERO': (1, 1),
-        'CALLVALUE': (0, 1),
-        'CALLDATALOAD': (1, 1),
-        'CALLDATACOPY': (3, 0), #todo
-        'CALLDATASIZE': (0, 1),
-        'ADDRESS': (0, 1),
-        'BALANCE': (1, 1),
-        'ORIGIN': (0, 1),
-        'CALLER': (0, 1),
-        'CODESIZE': (0, 1),
-        'SHA3': (2, 1),
-        'GASPRICE': (0, 1),
-        'CODECOPY': (3, 0),
-        'EXTCODESIZE': (1, 1),
-        'EXTCODECOPY': (4, 0),
-        'RETURNDATASIZE': (0, 1),
-        'BLOCKHASH': (1, 1),
-        'COINBASE': (0, 1),
-        'TIMESTAMP': (0, 1),
-        'NUMBER': (0, 1),
-        'DIFFICULTY': (0, 1),
-        'GASLIMIT': (0, 1),
-        'JUMP': (1, 0),
-        'JUMPI': (2, 0),
-        'PC': (0, 1),
-        'MSIZE': (0, 1),
-        'GAS': (0, 1),
-        'CREATE': (3, 1),
-        'RETURN': (2, 0)
+        "POP": (1, 0),
+        "ADD": (2, 1),
+        "MUL": (2, 1),
+        "SUB": (2, 1),
+        "AND": (2, 1),
+        "OR": (2, 1),
+        "XOR": (2, 1),
+        "NOT": (1, 1),
+        "BYTE": (2, 1),
+        "DIV": (2, 1),
+        "MOD": (2, 1),
+        "SDIV": (2, 1),
+        "SMOD": (2, 1),
+        "ADDMOD": (3, 1),
+        "MULMOD": (3, 1),
+        "EXP": (2, 1),
+        "SIGNEXTEND": (2, 1),
+        "LT": (2, 1),
+        "GT": (2, 1),
+        "SLT": (2, 1),
+        "SGT": (2, 1),
+        "EQ": (2, 1),
+        "ISZERO": (1, 1),
+        "CALLVALUE": (0, 1),
+        "CALLDATALOAD": (1, 1),
+        "CALLDATACOPY": (3, 0),  # todo
+        "CALLDATASIZE": (0, 1),
+        "ADDRESS": (0, 1),
+        "BALANCE": (1, 1),
+        "ORIGIN": (0, 1),
+        "CALLER": (0, 1),
+        "CODESIZE": (0, 1),
+        "SHA3": (2, 1),
+        "GASPRICE": (0, 1),
+        "CODECOPY": (3, 0),
+        "EXTCODESIZE": (1, 1),
+        "EXTCODECOPY": (4, 0),
+        "RETURNDATASIZE": (0, 1),
+        "BLOCKHASH": (1, 1),
+        "COINBASE": (0, 1),
+        "TIMESTAMP": (0, 1),
+        "NUMBER": (0, 1),
+        "DIFFICULTY": (0, 1),
+        "GASLIMIT": (0, 1),
+        "JUMP": (1, 0),
+        "JUMPI": (2, 0),
+        "PC": (0, 1),
+        "MSIZE": (0, 1),
+        "GAS": (0, 1),
+        "CREATE": (3, 1),
+        "RETURN": (2, 0),
     }

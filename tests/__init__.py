@@ -16,15 +16,17 @@ MYTHRIL_DIR = TESTS_DIR / "mythril_dir"
 
 
 class BaseTestCase(TestCase):
-
     def setUp(self):
         self.changed_files = []
-        self.ori_mythril_dir = getattr(os.environ, 'MYTHRIL_DIR', '')
-        os.environ['MYTHRIL_DIR'] = str(MYTHRIL_DIR)
-        shutil.copyfile(str(MYTHRIL_DIR / "signatures.json.example"), str(MYTHRIL_DIR / "signatures.json"))
+        self.ori_mythril_dir = getattr(os.environ, "MYTHRIL_DIR", "")
+        os.environ["MYTHRIL_DIR"] = str(MYTHRIL_DIR)
+        shutil.copyfile(
+            str(MYTHRIL_DIR / "signatures.json.example"),
+            str(MYTHRIL_DIR / "signatures.json"),
+        )
 
     def tearDown(self):
-        os.environ['MYTHRIL_DIR'] = self.ori_mythril_dir
+        os.environ["MYTHRIL_DIR"] = self.ori_mythril_dir
         os.remove(str(MYTHRIL_DIR / "signatures.json"))
 
     def compare_files_error_message(self):
@@ -41,4 +43,6 @@ class BaseTestCase(TestCase):
         self.changed_files.append((input_file, output_expected, output_current))
 
     def assert_and_show_changed_files(self):
-        self.assertEqual(0, len(self.changed_files), msg=self.compare_files_error_message())
+        self.assertEqual(
+            0, len(self.changed_files), msg=self.compare_files_error_message()
+        )

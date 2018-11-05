@@ -1,7 +1,7 @@
 # Analysis results for test-filename.sol
 
 ## Ether send
-
+- SWC ID: 105
 - Type: Warning
 - Contract: Unknown
 - Function name: `withdrawfunds()`
@@ -9,12 +9,10 @@
 
 ### Description
 
-In the function `withdrawfunds()` a non-zero amount of Ether is sent to msg.sender.
-
-There is a check on storage index 1. This storage slot can be written to by calling the function `crowdfunding()`.
+It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.
 
 ## Integer Overflow
-
+- SWC ID: 101
 - Type: Warning
 - Contract: Unknown
 - Function name: `invest()`
@@ -22,5 +20,4 @@ There is a check on storage index 1. This storage slot can be written to by call
 
 ### Description
 
-A possible integer overflow exists in the function `invest()`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
+The arithmetic operation can result in integer overflow.

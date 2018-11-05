@@ -1,7 +1,7 @@
 # Analysis results for test-filename.sol
 
 ## Integer Underflow
-
+- SWC ID: 101
 - Type: Warning
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
@@ -9,11 +9,10 @@
 
 ### Description
 
-A possible integer underflow exists in the function `sendeth(address,uint256)`.
-The subtraction may result in a value < 0.
+The subtraction can result in an integer underflow.
 
 ## Integer Underflow
-
+- SWC ID: 101
 - Type: Warning
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
@@ -21,11 +20,10 @@ The subtraction may result in a value < 0.
 
 ### Description
 
-A possible integer underflow exists in the function `sendeth(address,uint256)`.
-The subtraction may result in a value < 0.
+The subtraction can result in an integer underflow.
 
 ## Integer Overflow
-
+- SWC ID: 101
 - Type: Warning
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
@@ -33,5 +31,4 @@ The subtraction may result in a value < 0.
 
 ### Description
 
-A possible integer overflow exists in the function `sendeth(address,uint256)`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
+The arithmetic operation can result in integer overflow.

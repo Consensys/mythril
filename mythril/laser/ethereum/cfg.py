@@ -3,6 +3,7 @@ from enum import Enum
 
 gbl_next_uid = 0  # node counter
 
+
 class JumpType(Enum):
     CONDITIONAL = 1
     UNCONDITIONAL = 2
@@ -41,18 +42,24 @@ class Node:
 
             instruction = state.get_current_instruction()
 
-            code += str(instruction['address']) + " " + instruction['opcode']
-            if instruction['opcode'].startswith("PUSH"):
-                code += " " + instruction['argument']
+            code += str(instruction["address"]) + " " + instruction["opcode"]
+            if instruction["opcode"].startswith("PUSH"):
+                code += " " + instruction["argument"]
 
             code += "\\n"
 
-        return dict(contract_name=self.contract_name, start_addr=self.start_addr, function_name=self.function_name,
-                    code=code)
+        return dict(
+            contract_name=self.contract_name,
+            start_addr=self.start_addr,
+            function_name=self.function_name,
+            code=code,
+        )
 
 
 class Edge:
-    def __init__(self, node_from, node_to, edge_type=JumpType.UNCONDITIONAL, condition=None):
+    def __init__(
+        self, node_from, node_to, edge_type=JumpType.UNCONDITIONAL, condition=None
+    ):
         self.node_from = node_from
         self.node_to = node_to
         self.type = edge_type
@@ -63,4 +70,4 @@ class Edge:
 
     @property
     def as_dict(self):
-        return {"from": self.node_from, 'to': self.node_to}
+        return {"from": self.node_from, "to": self.node_to}

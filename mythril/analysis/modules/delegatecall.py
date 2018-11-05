@@ -1,14 +1,15 @@
 import re
+from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
 from mythril.analysis.ops import get_variable, VarType
 from mythril.analysis.report import Issue
 import logging
 
 
-'''
+"""
 MODULE DESCRIPTION:
 
 Check for invocations of delegatecall(msg.data) in the fallback function.
-'''
+"""
 
 
 def execute(statespace):
@@ -27,7 +28,7 @@ def execute(statespace):
             continue
 
         state = call.state
-        address = state.get_current_instruction()['address']
+        address = state.get_current_instruction()["address"]
         meminstart = get_variable(state.mstate.stack[-3])
 
         if meminstart.type == VarType.CONCRETE:
@@ -40,16 +41,24 @@ def execute(statespace):
 
 
 def _concrete_call(call, state, address, meminstart):
-    if not re.search(r'calldata.*_0', str(state.mstate.memory[meminstart.val])):
+    if not re.search(r"calldata.*_0", str(state.mstate.memory[meminstart.val])):
         return []
 
-    issue = Issue(call.node.contract_name, call.node.function_name, address,
-                  "Call data forwarded with delegatecall()", "Informational")
+    issue = Issue(
+        contract=call.node.contract_name,
+        function_name=call.node.function_name,
+        address=address,
+        swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+        bytecode=state.environment.code.bytecode,
+        title="Call data forwarded with delegatecall()",
+        _type="Informational",
+    )
 
-    issue.description = \
-        "This contract forwards its call data via DELEGATECALL in its fallback function. " \
-        "This means that any function in the called contract can be executed. Note that the callee contract will have " \
+    issue.description = (
+        "This contract forwards its call data via DELEGATECALL in its fallback function. "
+        "This means that any function in the called contract can be executed. Note that the callee contract will have "
         "access to the storage of the calling contract.\n "
+    )
 
     target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
     issue.description += "DELEGATECALL target: {}".format(target)
@@ -58,22 +67,35 @@ def _concrete_call(call, state, address, meminstart):
 
 
 def _symbolic_call(call, state, address, statespace):
-    issue = Issue(call.node.contract_name, call.node.function_name, address, call.type + " to a user-supplied address")
+    issue = Issue(
+        contract=call.node.contract_name,
+        function_name=call.node.function_name,
+        address=address,
+        swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+        bytecode=state.environment.code.bytecode,
+        title=call.type + " to a user-supplied address",
+    )
 
     if "calldata" in str(call.to):
-        issue.description = \
-            "This contract delegates execution to a contract address obtained from calldata. "
+        issue.description = "This contract delegates execution to a contract address obtained from calldata. "
 
     else:
-        m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
+        m = re.search(r"storage_([a-z0-9_&^]+)", str(call.to))
 
         if m:
             idx = m.group(1)
-            func = statespace.find_storage_write(state.environment.active_account.address, idx)
+            func = statespace.find_storage_write(
+                state.environment.active_account.address, idx
+            )
 
             if func:
-                issue.description = "This contract delegates execution to a contract address in storage slot " + str(
-                    idx) + ". This storage slot can be written to by calling the function `" + func + "`. "
+                issue.description = (
+                    "This contract delegates execution to a contract address in storage slot "
+                    + str(idx)
+                    + ". This storage slot can be written to by calling the function `"
+                    + func
+                    + "`. "
+                )
 
             else:
                 logging.debug("[DELEGATECALL] No storage writes to index " + str(idx))
