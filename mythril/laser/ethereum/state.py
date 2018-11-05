@@ -171,7 +171,7 @@ class MachineStack(list):
     """
     STACK_LIMIT = 1024
 
-    def __init__(self, default_list=[]):
+    def __init__(self, default_list=None):
         super(MachineStack, self).__init__(default_list)
 
     def append(self, element):
@@ -219,11 +219,11 @@ class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
     """
-    def __init__(self, gas, pc=0, stack=[], memory=[], constraints=None, depth=0):
+    def __init__(self, gas, pc=0, stack=None, memory=None, constraints=None, depth=0):
         """ Constructor for machineState """
         self.pc = pc
         self.stack = MachineStack(stack)
-        self.memory = memory
+        self.memory = memory or []
         self.gas = gas
         self.constraints = constraints or Constraints()
         self.depth = depth
