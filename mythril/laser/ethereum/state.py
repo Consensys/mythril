@@ -265,6 +265,7 @@ class Constraints(list):
     as a simple list of constraints with some background processing.
     TODO: add the solver to this class after callback refactor
     """
+
     def __init__(self, constraint_list=None, solver=None, possibility=None):
         super(Constraints, self).__init__(constraint_list or [])
         self.solver = solver
@@ -356,6 +357,7 @@ class MachineState:
     """
     MachineState represents current machine state also referenced to as \mu
     """
+
     def __init__(self, gas, pc=0, stack=None, memory=None, constraints=None, depth=0):
         """ Constructor for machineState """
         self.pc = pc
@@ -391,8 +393,14 @@ class MachineState:
         return values[0] if amount == 1 else values
 
     def __deepcopy__(self, memodict={}):
-        return MachineState(gas=self.gas, pc=self.pc, stack=copy(self.stack), memory=copy(self.memory),
-                            constraints=copy(self.constraints), depth=self.depth)
+        return MachineState(
+            gas=self.gas,
+            pc=self.pc,
+            stack=copy(self.stack),
+            memory=copy(self.memory),
+            constraints=copy(self.constraints),
+            depth=self.depth,
+        )
 
     def __str__(self):
         return str(self.as_dict)
