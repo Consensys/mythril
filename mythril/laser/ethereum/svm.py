@@ -103,20 +103,7 @@ class LaserEVM:
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
 
-            # Reset code coverage
-            self.coverage = {}
-            for i in range(self.max_transaction_count):
-                initial_coverage = self._get_covered_instructions()
-
-                self.time = datetime.now()
-                logging.info(
-                    "Starting message call transaction, iteration: {}".format(i)
-                )
-                execute_message_call(self, created_account.address)
-
-                end_coverage = self._get_covered_instructions()
-                if end_coverage == initial_coverage:
-                    break
+            self._execute_transactions(created_account.address)
 
         logging.info("Finished symbolic execution")
         logging.info(
