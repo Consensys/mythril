@@ -8,8 +8,8 @@
       "description": "This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.",
       "function": "_function_0x633ab5e0",
       "swc_id": "107",
-      "min_gas_used": 208,
-      "max_gas_used": 538,
+      "min_gas_used": 390,
+      "max_gas_used": 1001,
       "title": "Message call to external contract",
       "type": "Informational"
     },
@@ -20,8 +20,8 @@
       "description": "This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.",
       "function": "_function_0xe3bea282",
       "swc_id": "107",
-      "min_gas_used": 223,
-      "max_gas_used": 553,
+      "min_gas_used": 412,
+      "max_gas_used": 1023,
       "title": "Message call to external contract",
       "type": "Informational"
     },
@@ -32,8 +32,8 @@
       "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
       "function": "_function_0xe3bea282",
       "swc_id": "104",
-      "min_gas_used": 932,
-      "max_gas_used": 35262,
+      "min_gas_used": 1121,
+      "max_gas_used": 35732,
       "title": "Unchecked CALL return value",
       "type": "Informational"
     }

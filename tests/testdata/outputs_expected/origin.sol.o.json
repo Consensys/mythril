@@ -8,8 +8,8 @@
       "description": "The function `transferOwnership(address)` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.\nSee also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin",
       "function": "transferOwnership(address)",
       "swc_id": "115",
-      "min_gas_used": 228,
-      "max_gas_used": 558,
+      "min_gas_used": 417,
+      "max_gas_used": 842,
       "title": "Use of tx.origin",
       "type": "Warning"
     }

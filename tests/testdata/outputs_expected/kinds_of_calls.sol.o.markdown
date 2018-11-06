@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `_function_0x141f32ff`
 - PC address: 626
-- Estimated Gas Usage: 1051 - 35099
+- Estimated Gas Usage: 1083 - 35883
 
 ### Description
 
@@ -18,7 +18,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0x9b58bc26`
 - PC address: 857
-- Estimated Gas Usage: 1093 - 35141
+- Estimated Gas Usage: 1146 - 35946
 
 ### Description
 
@@ -30,7 +30,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1038
-- Estimated Gas Usage: 396 - 444
+- Estimated Gas Usage: 456 - 1256
 
 ### Description
 
@@ -42,7 +42,7 @@ This contract executes a message call to an address provided as a function argum
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1046
-- Estimated Gas Usage: 1111 - 35159
+- Estimated Gas Usage: 1171 - 35971
 
 ### Description
 

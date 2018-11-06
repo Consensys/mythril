@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `_function_0x5a6814ec`
 - PC address: 661
-- Estimated Gas Usage: 238 - 568
+- Estimated Gas Usage: 434 - 1045
 
 ### Description
 
@@ -18,7 +18,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Contract: Unknown
 - Function name: `_function_0x5a6814ec`
 - PC address: 666
-- Estimated Gas Usage: 947 - 35277
+- Estimated Gas Usage: 1143 - 35754
 
 ### Description
 
@@ -30,7 +30,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
 - PC address: 779
-- Estimated Gas Usage: 268 - 598
+- Estimated Gas Usage: 478 - 1089
 
 ### Description
 
@@ -42,7 +42,7 @@ This contract executes a message call to an address found at storage slot 1. Thi
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
 - PC address: 779
-- Estimated Gas Usage: 268 - 598
+- Estimated Gas Usage: 478 - 1089
 
 ### Description
 
@@ -54,7 +54,7 @@ Possible transaction order dependence vulnerability: The value or direction of t
 - Contract: Unknown
 - Function name: `_function_0xd24b08cc`
 - PC address: 784
-- Estimated Gas Usage: 977 - 35307
+- Estimated Gas Usage: 1187 - 35798
 
 ### Description
 
@@ -66,7 +66,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xe11f493e`
 - PC address: 858
-- Estimated Gas Usage: 283 - 613
+- Estimated Gas Usage: 500 - 1111
 
 ### Description
 
@@ -78,7 +78,7 @@ This contract executes a message call to to another contract. Make sure that the
 - Contract: Unknown
 - Function name: `_function_0xe11f493e`
 - PC address: 869
-- Estimated Gas Usage: 283 - 613
+- Estimated Gas Usage: 500 - 1111
 
 ### Description
 
@@ -90,7 +90,7 @@ The contract account state is changed after an external call. Consider that the 
 - Contract: Unknown
 - Function name: `_function_0xe11f493e`
 - PC address: 871
-- Estimated Gas Usage: 6006 - 55336
+- Estimated Gas Usage: 6223 - 55834
 
 ### Description
 
@@ -102,7 +102,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xe1d10f79`
 - PC address: 912
-- Estimated Gas Usage: 252 - 252
+- Estimated Gas Usage: 326 - 607
 
 ### Description
 
@@ -114,7 +114,7 @@ This contract executes a message call to an address provided as a function argum
 - Contract: Unknown
 - Function name: `_function_0xe1d10f79`
 - PC address: 918
-- Estimated Gas Usage: 963 - 34963
+- Estimated Gas Usage: 1037 - 35318
 
 ### Description
 

@@ -8,8 +8,8 @@
       "description": "It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.",
       "function": "withdrawfunds()",
       "swc_id": "105",
-      "min_gas_used": 337,
-      "max_gas_used": 667,
+      "min_gas_used": 929,
+      "max_gas_used": 1540,
       "title": "Ether send",
       "type": "Warning"
     },
@@ -20,8 +20,8 @@
       "description": "The arithmetic operation can result in integer overflow.\n",
       "function": "invest()",
       "swc_id": "101",
-      "min_gas_used": 425,
-      "max_gas_used": 473,
+      "min_gas_used": 950,
+      "max_gas_used": 1283,
       "title": "Integer Overflow",
       "type": "Warning"
     }
