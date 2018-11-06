@@ -13,7 +13,7 @@ Type: Warning
 Contract: Unknown
 Function name: invest()
 PC address: 883
-The arithmetic operation can result in integer overflow.
+This binary add operation can result in integer overflow.
 
 --------------------
 
