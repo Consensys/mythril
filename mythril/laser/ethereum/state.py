@@ -113,7 +113,9 @@ class Calldata:
             except IndexError:
                 return BitVecVal(0, 8)
         else:
-            constraints = [Implies(item != 0, UGT(self.calldatasize, item))]
+            constraints = [
+                Implies(self._calldata[item] != 0, UGT(self.calldatasize, item))
+            ]
             self._not_yet_added_constraints += constraints
 
             return self._calldata[item]
