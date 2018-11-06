@@ -17,6 +17,7 @@ test_types = [
     "vmBitwiseLogicOperation",
     "vmPushDupSwapTest",
     "vmTests",
+    # "vmSha3Test"
 ]
 
 
@@ -32,21 +33,25 @@ def load_test_data(designations):
                     pre_condition = data["pre"]
 
                     action = data["exec"]
+                    gas_before = int(action["gas"], 16)
+                    gas_after = data.get("gas")
+                    gas_used = gas_before - int(gas_after, 16) if gas_after is not None else None
 
                     post_condition = data.get("post", {})
+                    environment = data.get("env")
 
                     return_data.append(
-                        (test_name, pre_condition, action, post_condition)
+                        (test_name, environment, pre_condition, action, gas_used, post_condition)
                     )
 
     return return_data
 
 
 @pytest.mark.parametrize(
-    "test_name, pre_condition, action, post_condition", load_test_data(test_types)
+    "test_name, environment, pre_condition, action, gas_used, post_condition", load_test_data(test_types)
 )
 def test_vmtest(
-    test_name: str, pre_condition: dict, action: dict, post_condition: dict
+    test_name: str, environment: dict, pre_condition: dict, action: dict, gas_used:int, post_condition: dict
 ) -> None:
     # Arrange
 
@@ -64,24 +69,31 @@ def test_vmtest(
     # Act
     laser_evm.time = datetime.now()
 
-    execute_message_call(
+    if post_condition == {}:
+        return
+
+    final_states = execute_message_call(
         laser_evm,
         callee_address=action["address"],
         caller_address=action["caller"],
         origin_address=action["origin"],
         code=action["code"][2:],
-        gas_limit=int(action["gas"], 16),
+        gas_limit=int(environment["currentGasLimit"], 16),
         data=binascii.a2b_hex(action["data"][2:]),
         gas_price=int(action["gasPrice"], 16),
         value=int(action["value"], 16),
+        track_gas=True
     )
 
-    if post_condition == {}:
-        # either opcode or OOG error
-        assert len(laser_evm.open_states) == 0
-        return
-
     # Assert
+    gas_min_max = [(s.mstate.min_gas_used, s.mstate.max_gas_used) for s in final_states]
+    print(final_states[0].mstate)
+    for state in final_states:
+        print(state.mstate.min_gas_used, gas_used, state.mstate.max_gas_used)
+    assert all(map(lambda g: g[0] <= g[1], gas_min_max))
+    if gas_used:
+        gas_ranges = map(lambda g: g[0] <= gas_used <= g[1], gas_min_max)
+        assert any(gas_ranges)
 
     assert len(laser_evm.open_states) == 1
 
