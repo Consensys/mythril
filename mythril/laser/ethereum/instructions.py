@@ -80,7 +80,7 @@ OPCODE_COST_FUNCTIONS = {
         30 + 6 * 8,
     ),  # max can be larger, but usually storage location with 8 words
     "ADDRESS": (2, 2),
-    "BALANCE": (20, 20),
+    "BALANCE": (400, 400),
     "ORIGIN": (2, 2),
     "CALLER": (2, 2),
     "CALLVALUE": (2, 2),
@@ -90,7 +90,7 @@ OPCODE_COST_FUNCTIONS = {
     "CODESIZE": (2, 2),
     "CODECOPY": (2, 2 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556,
     "GASPRICE": (2, 2),
-    "EXTCODESIZE": (20, 20),
+    "EXTCODESIZE": (700, 700),
     "EXTCODECOPY": (700, 700 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556
     "RETURNDATASIZE": (2, 2),
     "RETURNDATACOPY": (3, 3),
@@ -101,10 +101,12 @@ OPCODE_COST_FUNCTIONS = {
     "DIFFICULTY": (2, 2),
     "GASLIMIT": (2, 2),
     "POP": (2, 2),
-    "MLOAD": (3, 3),
-    "MSTORE": (3, 3),
-    "MSTORE8": (3, 3),
-    "SLOAD": (50, 50),
+    # assume 1KB memory r/w cost as upper bound
+    "MLOAD": (3, 96),
+    "MSTORE": (3, 98),
+    "MSTORE8": (3, 98),
+    # assume 32 byte r/w cost as upper bound
+    "SLOAD": (200, 200),
     "SSTORE": (5000, 20000),
     "JUMP": (8, 8),
     "JUMPI": (10, 10),
@@ -206,8 +208,9 @@ class StateTransition(object):
     incremented if `increment_pc=True`.
     """
 
-    def __init__(self, increment_pc=True):
+    def __init__(self, increment_pc=True, enable_gas=True):
         self.increment_pc = increment_pc
+        self.enable_gas = enable_gas
 
     @staticmethod
     def call_on_state_copy(func, func_obj, state):
@@ -229,8 +232,9 @@ class StateTransition(object):
         ):
             raise OutOfGasException()
 
-    @staticmethod
-    def accumulate_gas(global_state: GlobalState):
+    def accumulate_gas(self, global_state: GlobalState):
+        if not self.enable_gas:
+            return global_state
         opcode = global_state.instruction["opcode"]
         min_gas, max_gas = OPCODE_COST_FUNCTIONS[opcode]
         global_state.mstate.min_gas_used += min_gas
@@ -1147,12 +1151,9 @@ class Instruction:
         if constraint is not None:
             global_state.mstate.constraints.append(constraint)
 
-        # We don't have to take refunds for freed storage into account as they're
-        # only provided at the end of the transaction and not relevant to OOG errors
-
         return [global_state]
 
-    @StateTransition(increment_pc=False)
+    @StateTransition(increment_pc=False, enable_gas=False)
     def jump_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
@@ -1175,15 +1176,22 @@ class Instruction:
             )
 
         new_state = copy(global_state)
+        # add JUMP gas cost
+        min_gas, max_gas = OPCODE_COST_FUNCTIONS["JUMP"]
+        new_state.mstate.min_gas_used += min_gas
+        new_state.mstate.max_gas_used += max_gas
+
+        # manually set PC to destination
         new_state.mstate.pc = index
         new_state.mstate.depth += 1
 
         return [new_state]
 
-    @StateTransition(increment_pc=False)
+    @StateTransition(increment_pc=False, enable_gas=False)
     def jumpi_(self, global_state):
         state = global_state.mstate
         disassembly = global_state.environment.code
+        min_gas, max_gas = OPCODE_COST_FUNCTIONS["JUMPI"]
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
@@ -1193,6 +1201,8 @@ class Instruction:
         except TypeError:
             logging.debug("Skipping JUMPI to invalid destination.")
             global_state.mstate.pc += 1
+            global_state.mstate.min_gas_used += min_gas
+            global_state.mstate.max_gas_used += max_gas
             return [global_state]
 
         # False case
@@ -1204,6 +1214,11 @@ class Instruction:
             type(negated) == BoolRef and not is_false(negated)
         ):
             new_state = copy(global_state)
+            # add JUMPI gas cost
+            new_state.mstate.min_gas_used += min_gas
+            new_state.mstate.max_gas_used += max_gas
+
+            # manually increment PC
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
             new_state.mstate.constraints.append(negated)
@@ -1227,6 +1242,11 @@ class Instruction:
                 type(condi) == BoolRef and not is_false(condi)
             ):
                 new_state = copy(global_state)
+                # add JUMPI gas cost
+                new_state.mstate.min_gas_used += min_gas
+                new_state.mstate.max_gas_used += max_gas
+
+                # manually set PC to destination
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
                 new_state.mstate.constraints.append(condi)
