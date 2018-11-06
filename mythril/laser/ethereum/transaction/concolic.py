@@ -26,6 +26,7 @@ def execute_message_call(
     gas_limit,
     gas_price,
     value,
+    track_gas=False,
 ):
     """ Executes a message call transaction from all open states """
     open_states = laser_evm.open_states[:]
@@ -49,7 +50,7 @@ def execute_message_call(
 
         _setup_global_state_for_execution(laser_evm, transaction)
 
-    laser_evm.exec()
+    return laser_evm.exec(track_gas=track_gas)
 
 
 def _setup_global_state_for_execution(laser_evm, transaction):
