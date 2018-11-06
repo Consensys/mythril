@@ -778,8 +778,6 @@ class Instruction:
         try:
             state.mem_extend(offset, 32)
             data = util.concrete_int_from_bytes(state.memory, offset)
-        except IndexError:  # Memory slot not allocated
-            data = global_state.new_bitvec("mem[" + str(offset) + "]", 256)
         except TypeError:  # Symbolic memory
             data = state.memory[offset]
 

@@ -88,14 +88,14 @@ def get_concrete_int(item):
         raise TypeError("Got a symbolic BitVecRef")
 
 
-def concrete_int_from_bytes(_bytes, start_index):
-    _bytes = [
-        _byte.as_long() if type(_byte) == BitVecNumRef else _byte for _byte in _bytes
+def concrete_int_from_bytes(concrete_bytes, start_index):
+    concrete_bytes = [
+        byte.as_long() if type(byte) == BitVecNumRef else byte
+        for byte in concrete_bytes
     ]
-    b = _bytes[start_index : start_index + 32]
-    val = int.from_bytes(b, byteorder="big")
+    integer_bytes = concrete_bytes[start_index : start_index + 32]
 
-    return val
+    return int.from_bytes(integer_bytes, byteorder="big")
 
 
 def concrete_int_to_bytes(val):

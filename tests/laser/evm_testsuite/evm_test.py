@@ -5,10 +5,12 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from mythril.analysis.solver import get_model
 from datetime import datetime
+
 import binascii
 import json
 from pathlib import Path
 import pytest
+from z3 import ExprRef
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
@@ -99,7 +101,7 @@ def test_vmtest(
         for index, value in details["storage"].items():
             expected = int(value, 16)
             actual = account.storage[int(index, 16)]
-            if type(actual) not in [str, bytes, int]:
+            if isinstance(actual, ExprRef):
                 actual = model.eval(actual)
                 actual = 1 if actual == True else 0 if actual == False else actual
             else:
