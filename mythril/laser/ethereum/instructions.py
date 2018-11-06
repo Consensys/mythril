@@ -105,9 +105,9 @@ OPCODE_COST_FUNCTIONS = {
     "MLOAD": (3, 96),
     "MSTORE": (3, 98),
     "MSTORE8": (3, 98),
-    # assume 32 byte r/w cost as upper bound
-    "SLOAD": (200, 200),
-    "SSTORE": (5000, 20000),
+    # assume 64 byte r/w cost as upper bound
+    "SLOAD": (400, 400),
+    "SSTORE": (5000, 25000),
     "JUMP": (8, 8),
     "JUMPI": (10, 10),
     "PC": (2, 2),
