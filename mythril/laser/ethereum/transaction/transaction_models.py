@@ -91,9 +91,6 @@ class MessageCallTransaction:
 
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = "fallback"
-        global_state.mstate.constraints.extend(
-            global_state.environment.calldata.constraints
-        )
 
         return global_state
 

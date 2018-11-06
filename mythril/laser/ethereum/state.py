@@ -44,8 +44,6 @@ class Calldata:
         :param starting_calldata: byte array representing the concrete calldata of a transaction
         """
         self.tx_id = tx_id
-        self._constraints = []
-        self._not_yet_added_constraints = []
         if not starting_calldata is None:
             self._calldata = []
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
@@ -64,26 +62,14 @@ class Calldata:
                 else:
                     self._calldata.append(calldata_byte)
 
-    @property
-    def constraints(self):
-        return self._constraints
-
-    def update_constraints(self, mstate):
-        """
-        Update constraints of a mstate
-        :param mstate: mstate to add constraints to
-        """
-        mstate.constraints.extend(self._not_yet_added_constraints)
-
-        self._constraints += self._not_yet_added_constraints
-        self._not_yet_added_constraints = []
-
     def concretized(self, model):
         result = []
         for i in range(
             get_concrete_int(model.eval(self.calldatasize, model_completion=True))
         ):
-            result.append(get_concrete_int(model.eval(self[i], model_completion=True)))
+            result.append(
+                get_concrete_int(model.eval(self._calldata[i], model_completion=True))
+            )
 
         return result
 
@@ -105,20 +91,23 @@ class Calldata:
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
 
-            return simplify(Concat(dataparts))
+            values, constraints = zip(*dataparts)
+            result_constraints = []
+            for c in constraints:
+                result_constraints.extend(c)
+            return (simplify(Concat(values)), result_constraints)
 
         if self.concrete:
             try:
-                return self._calldata[get_concrete_int(item)]
+                return (self._calldata[get_concrete_int(item)], ())
             except IndexError:
-                return BitVecVal(0, 8)
+                return (BitVecVal(0, 8), ())
         else:
             constraints = [
                 Implies(self._calldata[item] != 0, UGT(self.calldatasize, item))
             ]
-            self._not_yet_added_constraints += constraints
 
-            return self._calldata[item]
+            return (self._calldata[item], constraints)
 
 
 class Storage:

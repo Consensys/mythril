@@ -419,8 +419,11 @@ class Instruction:
         environment = global_state.environment
         op0 = state.stack.pop()
 
-        state.stack.append(environment.calldata.get_word_at(op0))
-        environment.calldata.update_constraints(state)
+        value, constraints = environment.calldata.get_word_at(op0)
+
+        state.stack.append(value)
+        state.constraints.extend(constraints)
+
         return [global_state]
 
     @StateTransition()
@@ -500,12 +503,13 @@ class Instruction:
 
                 new_memory = []
                 for i in range(size):
-                    new_memory.append(environment.calldata[i_data])
+                    value, constraints = environment.calldata[i_data]
+                    new_memory.append(value)
+                    state.constraints.extend(constraints)
+
                     i_data = (
                         i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
                     )
-
-                    environment.calldata.update_constraints(state)
 
                 for i in range(0, len(new_memory), 32):
                     state.memory[i + mstart] = simplify(Concat(new_memory[i : i + 32]))

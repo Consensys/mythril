@@ -14,16 +14,14 @@ uninitialized_test_data = [
 def test_concrete_calldata_uninitialized_index(starting_calldata):
     # Arrange
     calldata = Calldata(0, starting_calldata)
-    mstate = MagicMock()
-    mstate.constraints = []
     solver = Solver()
 
     # Act
-    value = calldata[100]
-    value2 = calldata.get_word_at(200)
+    value, constraint1 = calldata[100]
+    value2, constraint2 = calldata.get_word_at(200)
 
-    calldata.update_constraints(mstate)
-    solver.add(mstate.constraints)
+    solver.add(constraint1)
+    solver.add(constraint2)
 
     solver.check()
     model = solver.model()
@@ -54,18 +52,13 @@ def test_concrete_calldata_calldatasize():
 def test_symbolic_calldata_constrain_index():
     # Arrange
     calldata = Calldata(0)
-    mstate = MagicMock()
-    mstate.constraints = []
     solver = Solver()
 
     # Act
-    constraint = calldata[100] == 50
+    value, calldata_constraints = calldata[100]
+    constraint = value == 50
 
-    value = calldata[100]
-
-    calldata.update_constraints(mstate)
-    solver.add(mstate.constraints)
-    solver.add(constraint)
+    solver.add([constraint] + calldata_constraints)
 
     solver.check()
     model = solver.model()
@@ -81,16 +74,13 @@ def test_symbolic_calldata_constrain_index():
 def test_concrete_calldata_constrain_index():
     # Arrange
     calldata = Calldata(0, [1, 4, 7, 3, 7, 2, 9])
-    mstate = MagicMock()
-    mstate.constraints = []
     solver = Solver()
 
     # Act
-    constraint = calldata[2] == 3
+    value, calldata_constraints = calldata[2]
+    constraint = value == 3
 
-    calldata.update_constraints(mstate)
-    solver.add(mstate.constraints)
-    solver.add(constraint)
+    solver.add([constraint] + calldata_constraints)
     result = solver.check()
 
     # Assert
@@ -106,12 +96,11 @@ def test_concrete_calldata_constrain_index():
 
     # Act
     constraints = []
-    constraints.append(calldata[51] == 1)
+    value, calldata_constraints = calldata[51]
+    constraints.append(value == 1)
     constraints.append(calldata.calldatasize == 50)
 
-    calldata.update_constraints(mstate)
-    solver.add(mstate.constraints)
-    solver.add(constraints)
+    solver.add(constraints + calldata_constraints)
 
     result = solver.check()
 
