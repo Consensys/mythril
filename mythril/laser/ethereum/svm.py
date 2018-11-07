@@ -194,7 +194,6 @@ class LaserEVM:
                     "Encountered a VmException, ending path: `{}`".format(str(e))
                 )
                 new_global_states = []
-                print(type(e))
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [global_state])

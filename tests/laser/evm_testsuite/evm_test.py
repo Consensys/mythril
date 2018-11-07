@@ -91,12 +91,11 @@ def test_vmtest(
         assert all(map(lambda g: g[0] <= g[1], gas_min_max))
         assert any(gas_ranges)
 
-    if post_condition == {}:
+    if any((v in test_name for v in ["error", "oog"])):
         # no more work to do if error happens or out of gas
         assert len(laser_evm.open_states) == 0
     else:
         assert len(laser_evm.open_states) == 1
-
         world_state = laser_evm.open_states[0]
         model = get_model(next(iter(laser_evm.nodes.values())).states[0].mstate.constraints)
 
