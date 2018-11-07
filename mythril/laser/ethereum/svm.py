@@ -120,6 +120,11 @@ class LaserEVM:
             logging.info("Achieved {} coverage for code: {}".format(cov, code))
 
     def _execute_transactions(self, address):
+        """
+        This function executes multiple transactions on the address based on the coverage
+        :param address: Address of the contract
+        :return:
+        """
         self.coverage = {}
         for i in range(self.max_transaction_count):
             initial_coverage = self._get_covered_instructions()
