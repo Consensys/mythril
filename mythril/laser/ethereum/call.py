@@ -33,13 +33,10 @@ def get_call_parameters(
 
     callee_account = None
     call_data, call_data_type = get_call_data(
-        global_state, memory_input_offset, memory_input_size, False
+        global_state, memory_input_offset, memory_input_size
     )
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
-        call_data, call_data_type = get_call_data(
-            global_state, memory_input_offset, memory_input_size
-        )
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
@@ -145,14 +142,12 @@ def get_call_data(
     global_state: GlobalState,
     memory_start: Union[int, ExprRef],
     memory_size: Union[int, ExprRef],
-    pad=True,
 ):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
     :param memory_start: Start index
     :param memory_size: Size
-    :param pad: Enable zero padding before the call data
     :return: Tuple containing: call_data array from memory or empty array if symbolic, type found
     """
     state = global_state.mstate
