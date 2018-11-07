@@ -18,7 +18,6 @@ from z3 import (
     URem,
     SRem,
     BitVec,
-    Solver,
     is_true,
     BitVecVal,
     If,
@@ -43,7 +42,6 @@ from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     ContractCreationTransaction,
 )
-from mythril.analysis.solver import get_model
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -419,7 +417,11 @@ class Instruction:
         environment = global_state.environment
         op0 = state.stack.pop()
 
-        state.stack.append(environment.calldata.get_word_at(op0))
+        value, constraints = environment.calldata.get_word_at(op0)
+
+        state.stack.append(value)
+        state.constraints.extend(constraints)
+
         return [global_state]
 
     @StateTransition()
@@ -499,7 +501,10 @@ class Instruction:
 
                 new_memory = []
                 for i in range(size):
-                    new_memory.append(environment.calldata[i_data])
+                    value, constraints = environment.calldata[i_data]
+                    new_memory.append(value)
+                    state.constraints.extend(constraints)
+
                     i_data = (
                         i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
                     )
@@ -924,9 +929,6 @@ class Instruction:
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
-            solver = Solver()
-            solver.set(timeout=1000)
-
             results = []
             new = False
 
@@ -934,7 +936,7 @@ class Instruction:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
 
-                if is_true(key_argument == index_argument):
+                if is_true(simplify(key_argument == index_argument)):
                     return self._sstore_helper(
                         copy(global_state),
                         keccak_key,

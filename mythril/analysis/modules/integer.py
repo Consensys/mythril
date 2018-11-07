@@ -72,11 +72,13 @@ def _check_integer_overflow(statespace, state, node):
     # Formulate expression
     if instruction["opcode"] == "ADD":
         expr = op0 + op1
+        # constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
     else:
         expr = op1 * op0
+        # constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
 
-    # Check satisfiable
     constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
+    # Check satisfiable
     model = _try_constraints(node.constraints, [constraint])
 
     if model is None:
@@ -130,11 +132,8 @@ def _try_constraints(constraints, new_constraints):
     Tries new constraints
     :return Model if satisfiable otherwise None
     """
-    _constraints = copy.deepcopy(constraints)
-    for constraint in new_constraints:
-        _constraints.append(copy.deepcopy(constraint))
     try:
-        model = solver.get_model(_constraints)
+        model = solver.get_model(constraints + new_constraints)
         return model
     except UnsatError:
         return None
