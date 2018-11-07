@@ -124,7 +124,7 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
         code = dynamic_loader.dynld(environment.active_account.address, callee_address)
     except ValueError as error:
         logging.debug("Unable to execute dynamic loader because: {}".format(str(error)))
-        raise ValueError(str(error))
+        raise error
     if code is None:
         logging.debug("No code returned, not a contract account?")
         raise ValueError()
