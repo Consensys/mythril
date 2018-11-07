@@ -90,6 +90,11 @@ def main():
         action="store_true",
         help="auto-load dependencies from the blockchain",
     )
+    inputs.add_argument(
+        "--bin-runtime",
+        action="store_true",
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
+    )
 
     outputs = parser.add_argument_group("output formats")
     outputs.add_argument(
@@ -316,10 +321,10 @@ def main():
 
         if args.code:
             # Load from bytecode
-            address, _ = mythril.load_from_bytecode(args.code)
+            address, _ = mythril.load_from_bytecode(args.code, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
-            address, _ = mythril.load_from_bytecode(bytecode)
+            address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
         elif args.address:
             # Get bytecode from a contract address
             address, _ = mythril.load_from_address(args.address)

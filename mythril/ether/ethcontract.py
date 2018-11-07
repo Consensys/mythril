@@ -6,7 +6,7 @@ import re
 
 class ETHContract(persistent.Persistent):
     def __init__(
-        self, code, creation_code="", name="Unknown", enable_online_lookup=False
+        self, code="", creation_code="", name="Unknown", enable_online_lookup=False
     ):
 
         # Workaround: We currently do not support compile-time linking.
@@ -27,7 +27,6 @@ class ETHContract(persistent.Persistent):
     def as_dict(self):
 
         return {
-            "address": self.address,
             "name": self.name,
             "code": self.code,
             "creation_code": self.creation_code,
