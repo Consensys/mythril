@@ -88,9 +88,6 @@ class BaseTransaction:
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
-        global_state.mstate.constraints.extend(
-            global_state.environment.calldata.constraints
-        )
         return global_state
 
 
