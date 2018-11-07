@@ -112,7 +112,7 @@ def test_vmtest(
         assert all(map(lambda g: g[0] <= g[1], gas_min_max))
         assert any(gas_ranges)
 
-    if any((v in test_name for v in ["error", "oog"])):
+    if any((v in test_name for v in ["error", "oog"])) and post_condition == {}:
         # no more work to do if error happens or out of gas
         assert len(laser_evm.open_states) == 0
     else:
