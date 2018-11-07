@@ -95,7 +95,7 @@ def main():
         action="store_true",
         help="turns off getting the data from onchain contracts",
     )
-    inputs.add_argument(    
+    inputs.add_argument(
         "--bin-runtime",
         action="store_true",
         help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
