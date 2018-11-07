@@ -1,3 +1,4 @@
+import struct
 from z3 import (
     BitVec,
     BitVecVal,
@@ -78,16 +79,21 @@ class Calldata:
 
     def __getitem__(self, item):
         if isinstance(item, slice):
+            start, step, stop = item.start, item.step, item.stop
             try:
+                if start is None:
+                    start = 0
+                if step is None:
+                    step = 1
+                if stop is None:
+                    stop = self.calldatasize
                 current_index = (
-                    item.start
-                    if isinstance(item.start, BitVecRef)
-                    else BitVecVal(item.start, 256)
+                    start if isinstance(start, BitVecRef) else BitVecVal(start, 256)
                 )
                 dataparts = []
-                while simplify(current_index != item.stop):
+                while simplify(current_index != stop):
                     dataparts.append(self[current_index])
-                    current_index = simplify(current_index + 1)
+                    current_index = simplify(current_index + step)
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
 
@@ -95,19 +101,19 @@ class Calldata:
             result_constraints = []
             for c in constraints:
                 result_constraints.extend(c)
-            return (simplify(Concat(values)), result_constraints)
+            return simplify(Concat(values)), result_constraints
 
         if self.concrete:
             try:
-                return (self._calldata[get_concrete_int(item)], ())
+                return self._calldata[get_concrete_int(item)], ()
             except IndexError:
-                return (BitVecVal(0, 8), ())
+                return BitVecVal(0, 8), ()
         else:
             constraints = [
                 Implies(self._calldata[item] != 0, UGT(self.calldatasize, item))
             ]
 
-            return (self._calldata[item], constraints)
+            return self._calldata[item], constraints
 
 
 class Storage:
@@ -129,7 +135,11 @@ class Storage:
         try:
             return self._storage[item]
         except KeyError:
-            if self.address and int(self.address[2:], 16) != 0 and self.dynld:
+            if (
+                self.address
+                and int(self.address[2:], 16) != 0
+                and (self.dynld and self.dynld.storage_loading)
+            ):
                 try:
                     self._storage[item] = int(
                         self.dynld.read_storage(

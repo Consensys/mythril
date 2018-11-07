@@ -1,6 +1,8 @@
 import binascii
 import logging
+
 from copy import copy, deepcopy
+from functools import reduce
 
 from ethereum import utils
 from z3 import (
@@ -498,7 +500,6 @@ class Instruction:
 
             try:
                 i_data = dstart
-
                 new_memory = []
                 for i in range(size):
                     value, constraints = environment.calldata[i_data]
@@ -508,9 +509,9 @@ class Instruction:
                     i_data = (
                         i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
                     )
+                for i in range(len(new_memory)):
+                    state.memory[i + mstart] = new_memory[i]
 
-                for i in range(0, len(new_memory), 32):
-                    state.memory[i + mstart] = simplify(Concat(new_memory[i : i + 32]))
             except IndexError:
                 logging.debug("Exception copying calldata to memory")
 
@@ -706,7 +707,7 @@ class Instruction:
 
         try:
             code = self.dynamic_loader.dynld(environment.active_account.address, addr)
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             logging.info("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
@@ -782,8 +783,8 @@ class Instruction:
             data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
             return [global_state]
-
         try:
+            state.mem_extend(offset, 32)
             data = util.concrete_int_from_bytes(state.memory, offset)
         except IndexError:  # Memory slot not allocated
             data = global_state.new_bitvec("mem[" + str(offset) + "]", 256)
@@ -818,7 +819,7 @@ class Instruction:
         try:
             # Attempt to concretize value
             _bytes = util.concrete_int_to_bytes(value)
-            state.memory[mstart : mstart + len(_bytes)] = _bytes
+            state.memory[mstart : mstart + 32] = _bytes
         except:
             try:
                 state.memory[mstart] = value
@@ -915,7 +916,6 @@ class Instruction:
         global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-
         logging.debug("Write to storage[" + str(index) + "]")
 
         try:
