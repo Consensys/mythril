@@ -74,7 +74,8 @@ def _analyze_state(state, node):
             not_creator_constraints.append(
                 Not(Extract(159, 0, transaction.caller) == 0)
             )
-        not_creator_constraints.append(check_changeable_constraints(node.constraints))
+        if not check_changeable_constraints(node.constraints):
+            return []
 
     try:
         model = solver.get_model(node.constraints + not_creator_constraints)
