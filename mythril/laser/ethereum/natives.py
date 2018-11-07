@@ -1,6 +1,5 @@
 # -*- coding: utf8 -*-
 
-import copy
 import hashlib
 import logging
 
@@ -8,7 +7,8 @@ from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
-from mythril.laser.ethereum.util import bytearray_to_int, sha3
+from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
+from z3 import Concat, simplify
 
 
 class NativeContractException(Exception):
@@ -70,7 +70,16 @@ def ripemd160(data):
 
 
 def identity(data):
-    return copy.copy(data)
+    # Group up into an array of 32 byte words instead
+    # of an array of bytes. If saved to memory, 32 byte
+    # words are currently needed, but a correct memory
+    # implementation would be byte indexed for the most
+    # part.
+    return data
+    result = []
+    for i in range(0, len(data), 32):
+        result.append(simplify(Concat(data[i : i + 32])))
+    return result
 
 
 def native_contracts(address, data):
@@ -79,4 +88,11 @@ def native_contracts(address, data):
     """
 
     functions = (ecrecover, sha256, ripemd160, identity)
-    return functions[address - 1](data.starting_calldata)
+
+    try:
+        data = [get_concrete_int(e) for e in data._calldata]
+    except TypeError:
+        # Symbolic calldata
+        data = data._calldata
+
+    return functions[address - 1](data)
