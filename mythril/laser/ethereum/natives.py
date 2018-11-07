@@ -2,7 +2,7 @@
 
 import hashlib
 import logging
-from typing import Union
+from typing import Union, List
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
@@ -35,7 +35,7 @@ def extract32(data: bytearray, i: int) -> int:
     return bytearray_to_int(o)
 
 
-def ecrecover(data: Union[bytes, str]) -> bytes:
+def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
     # TODO: Add type hints
     try:
         data = bytearray(data)
@@ -57,7 +57,7 @@ def ecrecover(data: Union[bytes, str]) -> bytes:
     return o
 
 
-def sha256(data: Union[bytes, str]) -> bytes:
+def sha256(data: Union[bytes, str, List[int]]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
@@ -65,7 +65,7 @@ def sha256(data: Union[bytes, str]) -> bytes:
     return hashlib.sha256(data).digest()
 
 
-def ripemd160(data: Union[bytes, str]) -> bytes:
+def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
@@ -75,7 +75,7 @@ def ripemd160(data: Union[bytes, str]) -> bytes:
     return bytes(padded)
 
 
-def identity(data: Union[bytes, str]) -> bytes:
+def identity(data: Union[bytes, str, List[int]]) -> bytes:
     # Group up into an array of 32 byte words instead
     # of an array of bytes. If saved to memory, 32 byte
     # words are currently needed, but a correct memory
