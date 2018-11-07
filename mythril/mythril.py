@@ -78,12 +78,18 @@ class Mythril(object):
     """
 
     def __init__(
-        self, solv=None, solc_args=None, dynld=False, enable_online_lookup=False
+        self,
+        solv=None,
+        solc_args=None,
+        dynld=False,
+        enable_online_lookup=False,
+        onchain_storage_access=True,
     ):
 
         self.solv = solv
         self.solc_args = solc_args
         self.dynld = dynld
+        self.onchain_storage_access = onchain_storage_access
         self.enable_online_lookup = enable_online_lookup
 
         self.mythril_dir = self._init_mythril_dir()
@@ -427,7 +433,11 @@ class Mythril(object):
             contract,
             address,
             strategy,
-            dynloader=DynLoader(self.eth) if self.dynld else None,
+            dynloader=DynLoader(
+                self.eth,
+                storage_loading=self.onchain_storage_access,
+                contract_loading=self.dynld,
+            ),
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
@@ -450,7 +460,11 @@ class Mythril(object):
             contract,
             address,
             strategy,
-            dynloader=DynLoader(self.eth) if self.dynld else None,
+            dynloader=DynLoader(
+                self.eth,
+                storage_loading=self.onchain_storage_access,
+                contract_loading=self.dynld,
+            ),
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
@@ -476,7 +490,11 @@ class Mythril(object):
                 contract,
                 address,
                 strategy,
-                dynloader=DynLoader(self.eth) if self.dynld else None,
+                dynloader=DynLoader(
+                    self.eth,
+                    storage_loading=self.onchain_storage_access,
+                    contract_loading=self.dynld,
+                ),
                 max_depth=max_depth,
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
