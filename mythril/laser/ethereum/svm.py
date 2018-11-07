@@ -84,7 +84,8 @@ class LaserEVM:
 
         if main_address:
             logging.info("Starting message call transaction to {}".format(main_address))
-            execute_message_call(self, main_address)
+            self._execute_transactions(main_address)
+
         elif creation_code:
             logging.info("Starting contract creation transaction")
             created_account = execute_contract_creation(
@@ -101,20 +102,7 @@ class LaserEVM:
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
 
-            # Reset code coverage
-            self.coverage = {}
-            for i in range(self.max_transaction_count):
-                initial_coverage = self._get_covered_instructions()
-
-                self.time = datetime.now()
-                logging.info(
-                    "Starting message call transaction, iteration: {}".format(i)
-                )
-                execute_message_call(self, created_account.address)
-
-                end_coverage = self._get_covered_instructions()
-                if end_coverage == initial_coverage:
-                    break
+            self._execute_transactions(created_account.address)
 
         logging.info("Finished symbolic execution")
         logging.info(
@@ -129,7 +117,25 @@ class LaserEVM:
                 / float(coverage[0])
                 * 100
             )
-            logging.info("Achieved {} coverage for code: {}".format(cov, code))
+            logging.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
+
+    def _execute_transactions(self, address):
+        """
+        This function executes multiple transactions on the address based on the coverage
+        :param address: Address of the contract
+        :return:
+        """
+        self.coverage = {}
+        for i in range(self.max_transaction_count):
+            initial_coverage = self._get_covered_instructions()
+
+            self.time = datetime.now()
+            logging.info("Starting message call transaction, iteration: {}".format(i))
+            execute_message_call(self, address)
+
+            end_coverage = self._get_covered_instructions()
+            if end_coverage == initial_coverage:
+                break
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""

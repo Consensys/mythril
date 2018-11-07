@@ -9,7 +9,7 @@
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril-classic/master.svg)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril-classic.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril-classic/)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
-[![PyPI Statistics](https://pypistats.com/badge/mythril.svg)](https://pypistats.com/package/mythril)
+[![Downloads](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
 
 Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
 
