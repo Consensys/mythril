@@ -117,7 +117,7 @@ class LaserEVM:
                 / float(coverage[0])
                 * 100
             )
-            logging.info("Achieved {} coverage for code: {}".format(cov, code))
+            logging.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
     def _execute_transactions(self, address):
         """
