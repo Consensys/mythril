@@ -82,10 +82,12 @@ class BaseTransaction:
 
         self.return_data = None
 
-    def initial_global_state_from_environment(self, environment):
+    def initial_global_state_from_environment(
+        self, environment, active_function="constructor"
+    ):
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
-        global_state.environment.active_function_name = "constructor"
+        global_state.environment.active_function_name = active_function
         global_state.mstate.constraints.extend(
             global_state.environment.calldata.constraints
         )
@@ -110,7 +112,9 @@ class MessageCallTransaction(BaseTransaction):
             code=self.code or self.callee_account.code,
             calldata_type=self.call_data_type,
         )
-        return super().initial_global_state_from_environment(environment)
+        return super().initial_global_state_from_environment(
+            environment, active_function="fallback"
+        )
 
     def end(self, global_state, return_data=None, revert=False):
         self.return_data = return_data

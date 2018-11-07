@@ -1,4 +1,4 @@
-from z3 import Solver, simplify, sat, unknown, FuncInterp, UGE
+from z3 import Solver, simplify, sat, unknown, FuncInterp, UGE, Optimize
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -6,12 +6,17 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 import logging
 
 
-def get_model(constraints):
-    s = Solver()
+def get_model(constraints, minimize=(), maximize=()):
+    s = Optimize()
     s.set("timeout", 100000)
 
     for constraint in constraints:
         s.add(constraint)
+    for e in minimize:
+        s.minimize(e)
+    for e in maximize:
+        s.maximize(e)
+
     result = s.check()
     if result == sat:
         return s.model()
@@ -62,6 +67,7 @@ def get_transaction_sequence(global_state, constraints):
     txs = {}
     creation_tx_ids = []
     tx_constraints = constraints.copy()
+    minimize = []
 
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
@@ -74,12 +80,14 @@ def get_transaction_sequence(global_state, constraints):
                     UGE(max_calldatasize, transaction.call_data.calldatasize)
                 )
 
+            minimize.append(transaction.call_data.calldatasize)
+
             txs[tx_id] = tx_template.copy()
 
         else:
             creation_tx_ids.append(tx_id)
 
-    model = get_model(tx_constraints)
+    model = get_model(tx_constraints, minimize=minimize)
 
     for transaction in transaction_sequence:
         if not isinstance(transaction, ContractCreationTransaction):
@@ -105,7 +113,7 @@ def get_transaction_sequence(global_state, constraints):
         if "caller" in name:
             # caller is 'creator' for creation transactions
             tx_id = name.replace("caller", "")
-            caller = "0x" + ("%x" % model[d].as_long()).zfill(64)
+            caller = "0x" + ("%x" % model[d].as_long()).zfill(40)
 
             txs[tx_id]["caller"] = caller
 
