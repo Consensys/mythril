@@ -129,7 +129,7 @@ class LaserEVM:
                 / float(coverage[0])
                 * 100
             )
-            logging.info("Achieved {} coverage for code: {}".format(cov, code))
+            logging.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""
