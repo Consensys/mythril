@@ -84,7 +84,9 @@ def get_concrete_int(item: Union[int, ExprRef]) -> int:
 
 
 def concrete_int_from_bytes(_bytes: bytes, start_index: int) -> int:
-    # logging.debug("-- concrete_int_from_bytes: " + str(_bytes[start_index:start_index+32]))
+    _bytes = [
+        _byte.as_long() if type(_byte) == BitVecNumRef else _byte for _byte in _bytes
+    ]
     b = _bytes[start_index : start_index + 32]
     val = int.from_bytes(b, byteorder="big")
     return val
