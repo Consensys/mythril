@@ -10,7 +10,7 @@ def output_of(command):
 
 class CommandLineToolTestCase(BaseTestCase):
     def test_disassemble_code_correctly(self):
-        command = "python3 {} MYTH -d -c 0x5050".format(MYTH)
+        command = "python3 {} MYTH -d --bin-runtime -c 0x5050".format(MYTH)
         self.assertEqual("0 POP\n1 POP\n", output_of(command))
 
     def test_disassemble_solidity_file_correctly(self):
@@ -26,7 +26,7 @@ class CommandLineToolTestCase(BaseTestCase):
 class TruffleTestCase(BaseTestCase):
     def test_analysis_truffle_project(self):
         truffle_project_root = str(TESTS_DIR / "truffle_project")
-        command = "cd {}; truffle compile; python3 {} --truffle".format(
+        command = "cd {}; truffle compile; python3 {} --truffle --max-transaction-count 1".format(
             truffle_project_root, MYTH
         )
         self.assertIn("=== Ether send ====", output_of(command))
