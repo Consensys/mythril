@@ -84,5 +84,3 @@ def _analyze_state(state, node):
         logging.debug("[UNCHECKED_SUICIDE] no model found")
 
     return issues
-
-

@@ -35,4 +35,3 @@ def _check_changeable_constraints(constraints):
         ):
             return False
     return True
-
