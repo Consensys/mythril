@@ -54,7 +54,7 @@ def _analyze_state(state, node):
     else:
         description += "The remaining Ether is sent to: " + str(to) + "\n"
 
-    not_creator_constraints, constrained = get_non_creator_constraints(state, node)
+    not_creator_constraints, constrained = get_non_creator_constraints(state)
 
     if constrained:
         return []

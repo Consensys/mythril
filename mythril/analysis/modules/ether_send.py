@@ -41,7 +41,7 @@ def _analyze_state(state, node):
     call_value = state.mstate.stack[-3]
     target = state.mstate.stack[-2]
 
-    not_creator_constraints, constrained = get_non_creator_constraints(state, node)
+    not_creator_constraints, constrained = get_non_creator_constraints(state)
     if constrained:
         return []
 
