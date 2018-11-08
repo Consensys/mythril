@@ -1,7 +1,7 @@
 import logging
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Calldata
-from z3 import BitVec
+from mythril.laser.ethereum.symbol_manager import sym_get_bv
 import array
 
 _next_transaction_id = 0
@@ -56,20 +56,20 @@ class MessageCallTransaction:
             else call_data
         )
         self.gas_price = (
-            BitVec("gasprice{}".format(identifier), 256)
+            sym_get_bv("gasprice{}".format(identifier), 256)
             if gas_price is None
             else gas_price
         )
         self.call_value = (
-            BitVec("callvalue{}".format(identifier), 256)
+            sym_get_bv("callvalue{}".format(identifier), 256)
             if call_value is None
             else call_value
         )
         self.origin = (
-            BitVec("origin{}".format(identifier), 256) if origin is None else origin
+            sym_get_bv("origin{}".format(identifier), 256) if origin is None else origin
         )
         self.call_data_type = (
-            BitVec("call_data_type{}".format(identifier), 256)
+            sym_get_bv("call_data_type{}".format(identifier), 256)
             if call_data_type is None
             else call_data_type
         )
@@ -128,20 +128,20 @@ class ContractCreationTransaction:
         self.caller = caller
 
         self.gas_price = (
-            BitVec("gasprice{}".format(identifier), 256)
+            sym_get_bv("gasprice{}".format(identifier), 256)
             if gas_price is None
             else gas_price
         )
         self.call_value = (
-            BitVec("callvalue{}".format(identifier), 256)
+            sym_get_bv("callvalue{}".format(identifier), 256)
             if call_value is None
             else call_value
         )
         self.origin = (
-            BitVec("origin{}".format(identifier), 256) if origin is None else origin
+            sym_get_bv("origin{}".format(identifier), 256) if origin is None else origin
         )
         self.call_data_type = (
-            BitVec("call_data_type{}".format(identifier), 256)
+            sym_get_bv("call_data_type{}".format(identifier), 256)
             if call_data_type is None
             else call_data_type
         )

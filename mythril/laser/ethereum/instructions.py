@@ -19,7 +19,6 @@ from z3 import (
     ExprRef,
     URem,
     SRem,
-    BitVec,
     is_true,
     BitVecVal,
     If,
@@ -44,6 +43,7 @@ from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     ContractCreationTransaction,
 )
+from mythril.laser.ethereum.symbol_manager import sym_get_bv
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -577,7 +577,7 @@ class Instruction:
             # Can't access symbolic memory offsets
             if is_expr(op0):
                 op0 = simplify(op0)
-            state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
+            state.stack.append(sym_get_bv("KECCAC_mem[" + str(op0) + "]", 256))
             return [global_state]
 
         try:
@@ -592,7 +592,7 @@ class Instruction:
         except TypeError:
             argument = str(state.memory[index]).replace(" ", "_")
 
-            result = BitVec("KECCAC[{}]".format(argument), 256)
+            result = sym_get_bv("KECCAC[{}]".format(argument), 256)
             keccak_function_manager.add_keccak(result, state.memory[index])
             state.stack.append(result)
             return [global_state]

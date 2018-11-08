@@ -1,6 +1,5 @@
 import struct
 from z3 import (
-    BitVec,
     BitVecVal,
     BitVecRef,
     BitVecNumRef,
@@ -26,6 +25,8 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
 )
+
+from mythril.laser.ethereum.symbol_manager import sym_get_bv
 
 
 class CalldataType(Enum):
@@ -53,7 +54,7 @@ class Calldata:
             self._calldata = Array(
                 "{}_calldata".format(self.tx_id), BitVecSort(256), BitVecSort(8)
             )
-            self.calldatasize = BitVec("{}_calldatasize".format(self.tx_id), 256)
+            self.calldatasize = sym_get_bv("{}_calldatasize".format(self.tx_id), 256)
             self.concrete = False
 
         if self.concrete:
@@ -152,7 +153,7 @@ class Storage:
                     pass
         if self.concrete:
             return 0
-        self._storage[item] = BitVec("storage_" + str(item), 256)
+        self._storage[item] = sym_get_bv("storage_" + str(item), 256)
         return self._storage[item]
 
     def __setitem__(self, key, value):
@@ -186,7 +187,7 @@ class Account:
         """
         self.nonce = 0
         self.code = code or Disassembly("")
-        self.balance = balance if balance else BitVec("balance", 256)
+        self.balance = balance if balance else sym_get_bv("balance", 256)
         self.storage = Storage(
             concrete_storage, address=address, dynamic_loader=dynamic_loader
         )
@@ -441,7 +442,7 @@ class GlobalState:
     def new_bitvec(self, name, size=256):
         transaction_id = self.current_transaction.id
 
-        return BitVec("{}_{}".format(transaction_id, name), size)
+        return sym_get_bv("{}_{}".format(transaction_id, name), size)
 
 
 class WorldState:

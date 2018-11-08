@@ -1,4 +1,4 @@
-from z3 import BitVec, Extract, Not
+from z3 import Extract, Not
 from logging import debug
 
 from mythril.disassembler.disassembly import Disassembly
@@ -9,6 +9,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
     get_next_transaction_id,
 )
+from mythril.laser.ethereum.symbol_manager import sym_get_bv
 
 
 def execute_message_call(laser_evm, callee_address):
@@ -25,12 +26,12 @@ def execute_message_call(laser_evm, callee_address):
         transaction = MessageCallTransaction(
             world_state=open_world_state,
             callee_account=open_world_state[callee_address],
-            caller=BitVec("caller{}".format(next_transaction_id), 256),
+            caller=sym_get_bv("caller{}".format(next_transaction_id), 256),
             identifier=next_transaction_id,
             call_data=Calldata(next_transaction_id),
-            gas_price=BitVec("gas_price{}".format(next_transaction_id), 256),
-            call_value=BitVec("call_value{}".format(next_transaction_id), 256),
-            origin=BitVec("origin{}".format(next_transaction_id), 256),
+            gas_price=sym_get_bv("gas_price{}".format(next_transaction_id), 256),
+            call_value=sym_get_bv("call_value{}".format(next_transaction_id), 256),
+            origin=sym_get_bv("origin{}".format(next_transaction_id), 256),
             call_data_type=CalldataType.SYMBOLIC,
         )
         _setup_global_state_for_execution(laser_evm, transaction)
@@ -55,14 +56,14 @@ def execute_contract_creation(
         next_transaction_id = get_next_transaction_id()
         transaction = ContractCreationTransaction(
             open_world_state,
-            BitVec("creator{}".format(next_transaction_id), 256),
+            sym_get_bv("creator{}".format(next_transaction_id), 256),
             next_transaction_id,
             new_account,
             Disassembly(contract_initialization_code),
             [],
-            BitVec("gas_price{}".format(next_transaction_id), 256),
-            BitVec("call_value{}".format(next_transaction_id), 256),
-            BitVec("origin{}".format(next_transaction_id), 256),
+            sym_get_bv("gas_price{}".format(next_transaction_id), 256),
+            sym_get_bv("call_value{}".format(next_transaction_id), 256),
+            sym_get_bv("origin{}".format(next_transaction_id), 256),
             CalldataType.SYMBOLIC,
         )
         _setup_global_state_for_execution(laser_evm, transaction)
