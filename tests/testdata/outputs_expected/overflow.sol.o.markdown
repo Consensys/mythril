@@ -31,4 +31,4 @@ The subtraction can result in an integer underflow.
 
 ### Description
 
-The arithmetic operation can result in integer overflow.
+This binary add operation can result in integer overflow.
