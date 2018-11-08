@@ -1,19 +1,19 @@
+import struct
 from z3 import (
     BitVec,
     BitVecVal,
     BitVecRef,
     BitVecNumRef,
     BitVecSort,
-    Solver,
     ExprRef,
     Concat,
     sat,
     simplify,
     Array,
     ForAll,
-    Solver,
-    UGT,
     Implies,
+    UGE,
+    UGT,
 )
 from z3.z3types import Z3Exception
 from mythril.disassembler.disassembly import Disassembly
@@ -45,7 +45,7 @@ class Calldata:
         :param starting_calldata: byte array representing the concrete calldata of a transaction
         """
         self.tx_id = tx_id
-        if starting_calldata:
+        if not starting_calldata is None:
             self._calldata = []
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
             self.concrete = True
@@ -56,32 +56,21 @@ class Calldata:
             self.calldatasize = BitVec("{}_calldatasize".format(self.tx_id), 256)
             self.concrete = False
 
-        self.starting_calldata = starting_calldata or []
-
-    @property
-    def constraints(self):
-        constraints = []
         if self.concrete:
-            for calldata_byte in self.starting_calldata:
+            for calldata_byte in starting_calldata:
                 if type(calldata_byte) == int:
                     self._calldata.append(BitVecVal(calldata_byte, 8))
                 else:
                     self._calldata.append(calldata_byte)
-            constraints.append(self.calldatasize == len(self.starting_calldata))
-        else:
-            x = BitVec("x", 256)
-            constraints.append(
-                ForAll(x, Implies(self[x] != 0, UGT(self.calldatasize, x)))
-            )
-        return constraints
 
     def concretized(self, model):
         result = []
-
         for i in range(
             get_concrete_int(model.eval(self.calldatasize, model_completion=True))
         ):
-            result.append(get_concrete_int(model.eval(self[i], model_completion=True)))
+            result.append(
+                get_concrete_int(model.eval(self._calldata[i], model_completion=True))
+            )
 
         return result
 
@@ -90,28 +79,41 @@ class Calldata:
 
     def __getitem__(self, item):
         if isinstance(item, slice):
+            start, step, stop = item.start, item.step, item.stop
             try:
+                if start is None:
+                    start = 0
+                if step is None:
+                    step = 1
+                if stop is None:
+                    stop = self.calldatasize
                 current_index = (
-                    item.start
-                    if isinstance(item.start, BitVecRef)
-                    else BitVecVal(item.start, 256)
+                    start if isinstance(start, BitVecRef) else BitVecVal(start, 256)
                 )
                 dataparts = []
-                while simplify(current_index != item.stop):
+                while simplify(current_index != stop):
                     dataparts.append(self[current_index])
-                    current_index = simplify(current_index + 1)
+                    current_index = simplify(current_index + step)
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
 
-            return simplify(Concat(dataparts))
+            values, constraints = zip(*dataparts)
+            result_constraints = []
+            for c in constraints:
+                result_constraints.extend(c)
+            return simplify(Concat(values)), result_constraints
 
         if self.concrete:
             try:
-                return self._calldata[get_concrete_int(item)]
+                return self._calldata[get_concrete_int(item)], ()
             except IndexError:
-                return BitVecVal(0, 8)
+                return BitVecVal(0, 8), ()
         else:
-            return self._calldata[item]
+            constraints = [
+                Implies(self._calldata[item] != 0, UGT(self.calldatasize, item))
+            ]
+
+            return self._calldata[item], constraints
 
 
 class Storage:
@@ -133,7 +135,11 @@ class Storage:
         try:
             return self._storage[item]
         except KeyError:
-            if self.address and int(self.address[2:], 16) != 0 and self.dynld:
+            if (
+                self.address
+                and int(self.address[2:], 16) != 0
+                and (self.dynld and self.dynld.storage_loading)
+            ):
                 try:
                     self._storage[item] = int(
                         self.dynld.read_storage(
