@@ -1,5 +1,6 @@
 from mythril.analysis.ops import *
 from mythril.analysis import solver
+from mythril.analysis.get_custom_constraints import get_non_creator_constraints
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
@@ -40,16 +41,9 @@ def _analyze_state(state, node):
     call_value = state.mstate.stack[-3]
     target = state.mstate.stack[-2]
 
-    not_creator_constraints = []
-    if len(state.world_state.transaction_sequence) > 1:
-        creator = state.world_state.transaction_sequence[0].caller
-        for transaction in state.world_state.transaction_sequence[1:]:
-            not_creator_constraints.append(
-                Not(Extract(159, 0, transaction.caller) == Extract(159, 0, creator))
-            )
-            not_creator_constraints.append(
-                Not(Extract(159, 0, transaction.caller) == 0)
-            )
+    not_creator_constraints, constrained = get_non_creator_constraints(state, node)
+    if constrained:
+        return []
 
     try:
         model = solver.get_model(

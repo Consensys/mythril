@@ -11,6 +11,12 @@ def get_model(constraints, minimize=(), maximize=()):
     s.set("timeout", 100000)
 
     for constraint in constraints:
+        if type(constraint) == bool and not constraint:
+            raise UnsatError
+
+    constraints = [constraint for constraint in constraints if type(constraint) != bool]
+
+    for constraint in constraints:
         s.add(constraint)
     for e in minimize:
         s.minimize(e)
