@@ -108,7 +108,7 @@ def test_vmtest(
         gas_min_max = [
             (s.mstate.min_gas_used, s.mstate.max_gas_used) for s in final_states
         ]
-        gas_ranges = [g[0] <= gas_used <= g[1] for g in gas_min_max]
+        gas_ranges = [g[0] <= gas_used for g in gas_min_max]
         assert all(map(lambda g: g[0] <= g[1], gas_min_max))
         assert any(gas_ranges)
 
