@@ -798,7 +798,7 @@ class Instruction:
 
     @StateTransition()
     def gaslimit_(self, global_state: GlobalState) -> List[GlobalState]:
-        global_state.mstate.stack.append(global_state.new_bitvec("block_gaslimit", 256))
+        global_state.mstate.stack.append(global_state.mstate.gas_limit)
         return [global_state]
 
     # Memory operations
