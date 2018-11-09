@@ -364,7 +364,17 @@ class MachineState:
     MachineState represents current machine state also referenced to as \mu
     """
 
-    def __init__(self, gas_limit, pc=0, stack=None, memory=None, constraints=None, depth=0, max_gas_used=0, min_gas_used=0):
+    def __init__(
+        self,
+        gas_limit,
+        pc=0,
+        stack=None,
+        memory=None,
+        constraints=None,
+        depth=0,
+        max_gas_used=0,
+        min_gas_used=0,
+    ):
         """ Constructor for machineState """
         self.pc = pc
         self.stack = MachineStack(stack)
@@ -428,7 +438,7 @@ class MachineState:
             memsize=self.memory_size,
             gas=self.gas_limit,
             max_gas_used=self.max_gas_used,
-            min_gas_used=self.min_gas_used
+            min_gas_used=self.min_gas_used,
         )
 
 
