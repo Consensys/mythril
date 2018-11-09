@@ -1,5 +1,6 @@
 import logging
 from z3 import simplify, Extract
+from z3.z3types import Z3Exception
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
 from mythril.support.loader import DynLoader
@@ -32,13 +33,10 @@ def get_call_parameters(
 
     callee_account = None
     call_data, call_data_type = get_call_data(
-        global_state, memory_input_offset, memory_input_size, False
+        global_state, memory_input_offset, memory_input_size
     )
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
-        call_data, call_data_type = get_call_data(
-            global_state, memory_input_offset, memory_input_size
-        )
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
@@ -138,7 +136,7 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     return callee_account
 
 
-def get_call_data(global_state, memory_start, memory_size, pad=True):
+def get_call_data(global_state, memory_start, memory_size):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
@@ -149,28 +147,44 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
     state = global_state.mstate
     transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
     try:
-        # TODO: This only allows for either fully concrete or fully symbolic calldata.
-        # Improve management of memory and callata to support a mix between both types.
-        calldata_from_mem = state.memory[
-            util.get_concrete_int(memory_start) : util.get_concrete_int(
-                memory_start + memory_size
-            )
-        ]
-        i = 0
-        starting_calldata = []
-        while i < len(calldata_from_mem):
-            elem = calldata_from_mem[i]
-            if isinstance(elem, int):
-                starting_calldata.append(elem)
-                i += 1
-            else:  # BitVec
-                for j in range(0, elem.size(), 8):
-                    starting_calldata.append(Extract(j + 7, j, elem))
-                    i += 1
+        # Make the assumption that if the memory offset - calldatasize == 0, a delegatecall or similar pattern
+        # is being used, and the entire same calldata should be used.
+        try:
+            if simplify(
+                memory_size - global_state.environment.calldata.calldatasize == 0
+            ):
+                uses_entire_calldata = True
+            else:
+                uses_entire_calldata = False
+        except Z3Exception:
+            uses_entire_calldata = False
 
-        call_data = Calldata(transaction_id, starting_calldata)
-        call_data_type = CalldataType.CONCRETE
-        logging.debug("Calldata: " + str(call_data))
+        if uses_entire_calldata:
+            logging.debug("Guessing that the entire calldata is being used in a call")
+            call_data_type = CalldataType.SYMBOLIC
+            call_data = global_state.environment.calldata
+        else:
+            # TODO: This only allows for either fully concrete or fully symbolic calldata.
+            # Improve management of memory and callata to support a mix between both types.
+            calldata_from_mem = state.memory[
+                util.get_concrete_int(memory_start) : util.get_concrete_int(
+                    memory_start + memory_size
+                )
+            ]
+            i = 0
+            starting_calldata = []
+            while i < len(calldata_from_mem):
+                elem = calldata_from_mem[i]
+                if isinstance(elem, int):
+                    starting_calldata.append(elem)
+                    i += 1
+                else:  # BitVec
+                    for j in range(0, elem.size(), 8):
+                        starting_calldata.append(Extract(j + 7, j, elem))
+                        i += 1
+
+            call_data = Calldata(transaction_id, starting_calldata)
+            call_data_type = CalldataType.CONCRETE
     except TypeError:
         logging.info("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
