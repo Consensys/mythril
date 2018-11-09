@@ -48,7 +48,7 @@ def execute(statespace):
 
         found = []
         for var in vars:
-            for constraint in call.node.constraints + [call.to]:
+            for constraint in call.node.constraints[:] + [call.to]:
                 if var in str(constraint):
                     found.append(var)
 
@@ -79,7 +79,7 @@ def execute(statespace):
 
         # Second check: blockhash
 
-        for constraint in call.node.constraints + [call.to]:
+        for constraint in call.node.constraints[:] + [call.to]:
             if "blockhash" in str(constraint):
                 description = "In the function `" + call.node.function_name + "` "
                 if "number" in str(constraint):

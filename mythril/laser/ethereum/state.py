@@ -265,6 +265,43 @@ class Environment:
         )
 
 
+class Constraints(list):
+    """
+    This class should maintain a solver and it's constraints, This class tries to make the Constraints() object
+    as a simple list of constraints with some background processing.
+    TODO: add the solver to this class after callback refactor
+    """
+
+    def __init__(self, constraint_list=None, solver=None, possibility=None):
+        super(Constraints, self).__init__(constraint_list or [])
+        self.solver = solver
+        self.__possibility = possibility
+
+    def check_possibility(self):
+        return True
+
+    def append(self, constraint):
+        super(Constraints, self).append(constraint)
+
+    def pop(self, index=-1):
+        raise NotImplementedError
+
+    def __copy__(self):
+        constraint_list = super(Constraints, self).copy()
+        return Constraints(constraint_list)
+
+    def __deepcopy__(self, memodict=None):
+        return self.__copy__()
+
+    def __add__(self, constraints):
+        constraints_list = super(Constraints, self).__add__(constraints)
+        return Constraints(constraint_list=constraints_list)
+
+    def __iadd__(self, constraints):
+        super(Constraints, self).__iadd__(constraints)
+        return self
+
+
 class MachineStack(list):
     """
     Defines EVM stack, overrides the default list to handle overflows
@@ -327,16 +364,16 @@ class MachineState:
     MachineState represents current machine state also referenced to as \mu
     """
 
-    def __init__(self, gas_limit):
+    def __init__(self, gas_limit, pc=0, stack=None, memory=None, constraints=None, depth=0):
         """ Constructor for machineState """
-        self.pc = 0
-        self.stack = MachineStack()
-        self.memory = []
+        self.pc = pc
+        self.stack = MachineStack(stack)
+        self.memory = memory or []
         self.gas_limit = gas_limit
         self.min_gas_used = 0  # lower gas usage bound
         self.max_gas_used = 0  # upper gas usage bound
-        self.constraints = []
-        self.depth = 0
+        self.constraints = constraints or Constraints()
+        self.depth = depth
 
     def mem_extend(self, start, size):
         """
@@ -362,6 +399,16 @@ class MachineState:
         del self.stack[-amount:]
 
         return values[0] if amount == 1 else values
+
+    def __deepcopy__(self, memodict={}):
+        return MachineState(
+            gas_limit=self.gas_limit,
+            pc=self.pc,
+            stack=copy(self.stack),
+            memory=copy(self.memory),
+            constraints=copy(self.constraints),
+            depth=self.depth,
+        )
 
     def __str__(self):
         return str(self.as_dict)

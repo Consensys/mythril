@@ -15,7 +15,7 @@ Contract: Unknown
 Function name: invest()
 PC address: 883
 Estimated Gas Usage: 1550 - 1883
-The arithmetic operation can result in integer overflow.
+The binary add operation can result in integer overflow.
 
 --------------------
 

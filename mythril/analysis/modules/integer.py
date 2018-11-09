@@ -70,10 +70,13 @@ def _check_integer_overflow(statespace, state, node):
         op1 = BitVecVal(op1, 256)
 
     # Formulate expression
+    # FIXME: handle exponentiation
     if instruction["opcode"] == "ADD":
+        operator = "add"
         expr = op0 + op1
         # constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
     else:
+        operator = "multiply"
         expr = op1 * op0
         # constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
 
@@ -102,7 +105,9 @@ def _check_integer_overflow(statespace, state, node):
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
     )
 
-    issue.description = "The arithmetic operation can result in integer overflow.\n"
+    issue.description = "This binary {} operation can result in integer overflow.\n".format(
+        operator
+    )
     issue.debug = "Transaction Sequence: " + str(
         solver.get_transaction_sequence(state, node.constraints)
     )

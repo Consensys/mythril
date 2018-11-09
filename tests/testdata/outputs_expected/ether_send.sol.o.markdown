@@ -22,4 +22,4 @@ It seems that an attacker is able to execute an call instruction, this can mean 
 
 ### Description
 
-The arithmetic operation can result in integer overflow.
+This binary add operation can result in integer overflow.
