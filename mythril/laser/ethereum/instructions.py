@@ -1063,6 +1063,7 @@ class Instruction:
                 states.append(new_state)
             else:
                 logging.debug("Pruned unreachable states.")
+        del global_state
         return states
 
     @StateTransition()
