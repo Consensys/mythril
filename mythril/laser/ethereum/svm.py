@@ -163,7 +163,6 @@ class LaserEVM:
             except NotImplementedError:
                 logging.info("Encountered unimplemented instruction")
                 continue
-
             self.manage_cfg(op_code, new_states)
 
             self.work_list += new_states
