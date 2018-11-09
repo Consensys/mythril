@@ -24,7 +24,7 @@ Type: Warning
 Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 725
-The arithmetic operation can result in integer overflow.
+This binary add operation can result in integer overflow.
 
 --------------------
 
