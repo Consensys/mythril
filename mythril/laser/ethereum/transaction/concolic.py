@@ -27,8 +27,9 @@ def execute_message_call(
     gas_price,
     value,
     track_gas=False,
-):
+) -> None:
     """ Executes a message call transaction from all open states """
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -53,8 +54,9 @@ def execute_message_call(
     return laser_evm.exec(track_gas=track_gas)
 
 
-def _setup_global_state_for_execution(laser_evm, transaction):
+def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     """ Sets up global state and cfg for a transactions execution"""
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 
