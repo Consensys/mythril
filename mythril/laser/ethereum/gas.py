@@ -1,3 +1,23 @@
+from ethereum import opcodes
+from ethereum.utils import ceil32
+
+
+def calculate_native_gas(size: int, contract: str):
+    gas_value = None
+    word_num = ceil32(size // 32)
+    if contract == "ecrecover":
+        gas_value = opcodes.GECRECOVER
+    elif contract == "sha256":
+        gas_value = opcodes.GSHA256BASE + word_num * opcodes.GSHA256WORD
+    elif contract == "ripemd160":
+        gas_value = opcodes.GRIPEMD160BASE + word_num * opcodes.GRIPEMD160WORD
+    elif contract == "identity":
+        gas_value = opcodes.GIDENTITYBASE + word_num * opcodes.GIDENTITYWORD
+    else:
+        raise ValueError("Unknown contract type {}".format(contract))
+    return gas_value, gas_value
+
+
 # opcode -> (min_gas, max_gas)
 OPCODE_GAS = {
     "STOP": (0, 0),
@@ -137,6 +157,7 @@ OPCODE_GAS = {
     "LOG4": (5 * 375, 5 * 375 + 8 * 32),
     "CREATE": (32000, 32000),
     "CALL": (700, 700 + 9000 + 25000),
+    "NATIVE_COST": calculate_native_gas,
     "CALLCODE": (700, 700 + 9000 + 25000),
     "RETURN": (0, 0),
     "DELEGATECALL": (700, 700 + 9000 + 25000),

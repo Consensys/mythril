@@ -1257,12 +1257,21 @@ class Instruction:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
 
-            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+            contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
             call_address_int = int(callee_address, 16)
+            native_gas_min, native_gas_max = OPCODE_GAS["NATIVE_COST"](
+                global_state.mstate.calculate_extension_size(
+                    mem_out_start,
+                    mem_out_sz
+                ),
+                contract_list[call_address_int - 1]
+            )
+            global_state.mstate.min_gas_used += native_gas_min
+            global_state.mstate.max_gas_used += native_gas_max
+            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
             try:
                 data = natives.native_contracts(call_address_int, call_data)
             except natives.NativeContractException:
-                contract_list = ["ecerecover", "sha256", "ripemd160", "identity"]
                 for i in range(mem_out_sz):
                     global_state.mstate.memory[
                         mem_out_start + i

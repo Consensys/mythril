@@ -386,16 +386,20 @@ class MachineState:
         self.constraints = constraints or Constraints()
         self.depth = depth
 
+    def calculate_extension_size(self, start: int, size: int) -> int:
+        if self.memory_size >= start + size:
+            return 0
+        return start + size - self.memory_size
+
     def mem_extend(self, start: int, size: int) -> None:
         """
         Extends the memory of this machine state
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        if self.memory_size > start + size:
-            return
-        m_extend = start + size - self.memory_size
-        self.memory.extend(bytearray(m_extend))
+        m_extend = self.calculate_extension_size(start, size)
+        if m_extend:
+            self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset: int, data: List[int]) -> None:
         """ Writes data to memory starting at offset """
