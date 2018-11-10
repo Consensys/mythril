@@ -1,4 +1,3 @@
-from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state import Account
 from mythril.disassembler.disassembly import Disassembly
@@ -10,7 +9,7 @@ import binascii
 import json
 from pathlib import Path
 import pytest
-from z3 import ExprRef
+from z3 import ExprRef, simplify
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
@@ -103,7 +102,9 @@ def test_vmtest(
             actual = account.storage[int(index, 16)]
             if isinstance(actual, ExprRef):
                 actual = model.eval(actual)
-                actual = 1 if actual == True else 0 if actual == False else actual
+                actual = (
+                    1 if actual == True else 0 if actual == False else actual
+                )  # Comparisons should be done with == than 'is' here as actual can be a BoolRef
             else:
                 if type(actual) == bytes:
                     actual = int(binascii.b2a_hex(actual), 16)

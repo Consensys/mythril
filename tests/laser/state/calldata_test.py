@@ -2,7 +2,7 @@ import pytest
 from mythril.laser.ethereum.state import Calldata
 from z3 import Solver, simplify
 from z3.z3types import Z3Exception
-
+from mock import MagicMock
 
 uninitialized_test_data = [
     ([]),  # Empty concrete calldata
@@ -17,10 +17,12 @@ def test_concrete_calldata_uninitialized_index(starting_calldata):
     solver = Solver()
 
     # Act
-    value = calldata[100]
-    value2 = calldata.get_word_at(200)
+    value, constraint1 = calldata[100]
+    value2, constraint2 = calldata.get_word_at(200)
 
-    solver.add(calldata.constraints)
+    solver.add(constraint1)
+    solver.add(constraint2)
+
     solver.check()
     model = solver.model()
 
@@ -38,7 +40,6 @@ def test_concrete_calldata_calldatasize():
     solver = Solver()
 
     # Act
-    solver.add(calldata.constraints)
     solver.check()
     model = solver.model()
 
@@ -54,11 +55,11 @@ def test_symbolic_calldata_constrain_index():
     solver = Solver()
 
     # Act
-    constraint = calldata[100] == 50
+    value, calldata_constraints = calldata[100]
+    constraint = value == 50
 
-    value = calldata[100]
+    solver.add([constraint] + calldata_constraints)
 
-    solver.add(calldata.constraints + [constraint])
     solver.check()
     model = solver.model()
 
@@ -76,9 +77,10 @@ def test_concrete_calldata_constrain_index():
     solver = Solver()
 
     # Act
-    constraint = calldata[2] == 3
+    value, calldata_constraints = calldata[2]
+    constraint = value == 3
 
-    solver.add(calldata.constraints + [constraint])
+    solver.add([constraint] + calldata_constraints)
     result = solver.check()
 
     # Assert
@@ -88,14 +90,18 @@ def test_concrete_calldata_constrain_index():
 def test_concrete_calldata_constrain_index():
     # Arrange
     calldata = Calldata(0)
+    mstate = MagicMock()
+    mstate.constraints = []
     solver = Solver()
 
     # Act
     constraints = []
-    constraints.append(calldata[51] == 1)
+    value, calldata_constraints = calldata[51]
+    constraints.append(value == 1)
     constraints.append(calldata.calldatasize == 50)
 
-    solver.add(calldata.constraints + constraints)
+    solver.add(constraints + calldata_constraints)
+
     result = solver.check()
 
     # Assert

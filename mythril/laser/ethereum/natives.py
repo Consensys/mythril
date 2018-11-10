@@ -1,21 +1,25 @@
 # -*- coding: utf8 -*-
 
-import copy
 import hashlib
 import logging
+from typing import Union, List
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
-from mythril.laser.ethereum.util import bytearray_to_int, sha3
+from mythril.laser.ethereum.state import Calldata
+from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
+from z3 import Concat, simplify
 
 
 class NativeContractException(Exception):
     pass
 
 
-def int_to_32bytes(i):  # used because int can't fit as bytes function's input
+def int_to_32bytes(
+    i: int
+) -> bytes:  # used because int can't fit as bytes function's input
     o = [0] * 32
     for x in range(32):
         o[31 - x] = i & 0xFF
@@ -23,7 +27,7 @@ def int_to_32bytes(i):  # used because int can't fit as bytes function's input
     return bytes(o)
 
 
-def extract32(data, i):
+def extract32(data: bytearray, i: int) -> int:
     if i >= len(data):
         return 0
     o = data[i : min(i + 32, len(data))]
@@ -31,8 +35,8 @@ def extract32(data, i):
     return bytearray_to_int(o)
 
 
-def ecrecover(data):
-
+def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
+    # TODO: Add type hints
     try:
         data = bytearray(data)
         v = extract32(data, 32)
@@ -53,7 +57,7 @@ def ecrecover(data):
     return o
 
 
-def sha256(data):
+def sha256(data: Union[bytes, str, List[int]]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
@@ -61,22 +65,39 @@ def sha256(data):
     return hashlib.sha256(data).digest()
 
 
-def ripemd160(data):
+def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
     try:
         data = bytes(data)
     except TypeError:
         raise NativeContractException
-    return 12 * [0] + [i for i in hashlib.new("ripemd160", data).digest()]
+    digest = hashlib.new("ripemd160", data).digest()
+    padded = 12 * [0] + list(digest)
+    return bytes(padded)
 
 
-def identity(data):
-    return copy.copy(data)
+def identity(data: Union[bytes, str, List[int]]) -> bytes:
+    # Group up into an array of 32 byte words instead
+    # of an array of bytes. If saved to memory, 32 byte
+    # words are currently needed, but a correct memory
+    # implementation would be byte indexed for the most
+    # part.
+    return data
+    result = []
+    for i in range(0, len(data), 32):
+        result.append(simplify(Concat(data[i : i + 32])))
+    return result
 
 
-def native_contracts(address, data):
+def native_contracts(address: int, data: Calldata):
     """
     takes integer address 1, 2, 3, 4
     """
-
     functions = (ecrecover, sha256, ripemd160, identity)
-    return functions[address - 1](data.starting_calldata)
+
+    try:
+        data = [get_concrete_int(e) for e in data._calldata]
+    except TypeError:
+        # Symbolic calldata
+        data = data._calldata
+
+    return functions[address - 1](data)
