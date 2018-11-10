@@ -137,7 +137,7 @@ def get_sigs_from_truffle(sigs, contract_data):
         if abi["type"] != "function":
             continue
         function_name = abi["name"]
-        list_of_args = ','.join([input['type'] for input in abi["inputs"]])
+        list_of_args = ",".join([input["type"] for input in abi["inputs"]])
         signature = function_name + "(" + list_of_args + ")"
         sigs.signatures["0x" + sha3(signature)[:4].hex()] = [signature]
         sigs.write()
@@ -157,9 +157,7 @@ def get_mappings(source, deployed_source_map):
         if len(mapping) > 2 and len(mapping[2]) > 0:
             idx = int(mapping[2])
 
-        lineno = (
-            source.encode("utf-8")[0:offset].count("\n".encode("utf-8")) + 1
-        )
+        lineno = source.encode("utf-8")[0:offset].count("\n".encode("utf-8")) + 1
 
         mappings.append(SourceMapping(idx, offset, length, lineno))
 
