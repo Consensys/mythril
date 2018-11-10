@@ -779,7 +779,7 @@ class Instruction:
             state.mem_extend(offset, 32)
             data = util.concrete_int_from_bytes(state.memory, offset)
         except TypeError:  # Symbolic memory
-            data = Concat(state.memory[offset:offset+32])
+            data = Concat(state.memory[offset : offset + 32])
 
         logging.debug("Load from memory[" + str(offset) + "]: " + str(data))
 
@@ -810,7 +810,7 @@ class Instruction:
             # Attempt to concretize value
             _bytes = util.concrete_int_to_bytes(value)
             assert len(_bytes) == 32
-            state.memory[mstart: mstart + 32] = _bytes
+            state.memory[mstart : mstart + 32] = _bytes
         except:
             try:
                 state.memory[mstart] = value
