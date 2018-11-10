@@ -172,7 +172,6 @@ def main():
         default=1,
         help="Maximum number of transactions issued by laser",
     )
-
     options.add_argument(
         "--execution-timeout",
         type=int,

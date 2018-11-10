@@ -3,7 +3,7 @@ from logging import debug
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
-from mythril.laser.ethereum.state import CalldataType, Calldata
+from mythril.laser.ethereum.state import CalldataType, Account, Calldata
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
@@ -11,8 +11,9 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 
 
-def execute_message_call(laser_evm, callee_address):
+def execute_message_call(laser_evm, callee_address: str) -> None:
     """ Executes a message call transaction from all open states """
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -40,8 +41,9 @@ def execute_message_call(laser_evm, callee_address):
 
 def execute_contract_creation(
     laser_evm, contract_initialization_code, contract_name=None
-):
+) -> Account:
     """ Executes a contract creation transaction from all open states"""
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
@@ -71,8 +73,9 @@ def execute_contract_creation(
     return new_account
 
 
-def _setup_global_state_for_execution(laser_evm, transaction):
+def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     """ Sets up global state and cfg for a transactions execution"""
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 
