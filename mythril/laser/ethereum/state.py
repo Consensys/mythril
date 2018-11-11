@@ -467,7 +467,7 @@ class GlobalState:
         self.world_state = world_state
         self.environment = environment
         self.mstate = (
-            machine_state if machine_state else MachineState(gas_limit=8000000)
+            machine_state if machine_state else MachineState(gas_limit=1000000000)
         )
         self.transaction_stack = transaction_stack if transaction_stack else []
         self.op_code = ""

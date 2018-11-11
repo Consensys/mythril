@@ -18,7 +18,7 @@ test_types = [
     "vmEnvironmentalInfo",
     "vmPushDupSwapTest",
     "vmTests",
-    # "vmSha3Test",
+    "vmSha3Test",
 ]
 
 
@@ -102,7 +102,7 @@ def test_vmtest(
     )
 
     # Assert
-    if gas_used is not None and gas_used < 8000000:
+    if gas_used is not None and gas_used < int(environment["currentGasLimit"], 16):
         # avoid gas usage larger than block gas limit
         # this currently exceeds our estimations
         gas_min_max = [

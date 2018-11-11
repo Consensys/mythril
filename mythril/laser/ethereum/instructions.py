@@ -594,7 +594,7 @@ class Instruction:
         state.stack.append(len(disassembly.bytecode) // 2)
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(enable_gas=False)
     def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
         global keccak_function_manager
 
@@ -608,7 +608,14 @@ class Instruction:
             if is_expr(op0):
                 op0 = simplify(op0)
             state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
+            state.min_gas_used += OPCODE_GAS["SHA3"][0]
+            state.max_gas_used += OPCODE_GAS["SHA3"][1]
             return [global_state]
+
+        min_gas, max_gas = OPCODE_GAS["SHA3_FUNC"](state.memory_size + index, length)
+        state.min_gas_used += min_gas
+        state.max_gas_used += max_gas
+        StateTransition.check_gas_usage_limit(global_state)
 
         try:
             state.mem_extend(index, length)
@@ -631,7 +638,6 @@ class Instruction:
         logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
         state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
-
         return [global_state]
 
     @StateTransition()

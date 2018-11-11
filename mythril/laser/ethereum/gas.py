@@ -18,6 +18,12 @@ def calculate_native_gas(size: int, contract: str):
     return gas_value, gas_value
 
 
+def calculate_sha3_gas(start_index: int, length: int):
+    gas_val = 30 + 6 * (start_index + length)
+    print("Boop")
+    return gas_val, gas_val
+
+
 # opcode -> (min_gas, max_gas)
 OPCODE_GAS = {
     "STOP": (0, 0),
@@ -47,6 +53,7 @@ OPCODE_GAS = {
         30,
         30 + 6 * 8,
     ),  # max can be larger, but usually storage location with 8 words
+    "SHA3_FUNC": calculate_sha3_gas,
     "ADDRESS": (2, 2),
     "BALANCE": (400, 400),
     "ORIGIN": (2, 2),

@@ -1,3 +1,4 @@
+from typing import List, Union
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
@@ -27,7 +28,7 @@ def execute_message_call(
     gas_price,
     value,
     track_gas=False,
-) -> None:
+) -> Union[None, List[GlobalState]]:
     """ Executes a message call transaction from all open states """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
