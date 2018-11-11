@@ -47,7 +47,7 @@ class Issue:
 
         issue = {
             "title": self.title,
-            "swc_id": self.swc_id,
+            "swc-id": self.swc_id,
             "contract": self.contract,
             "description": self.description,
             "function": self.function,
