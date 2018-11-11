@@ -21,7 +21,7 @@ def get_model(constraints, minimize=(), maximize=()):
     if result == sat:
         return s.model()
     elif result == unknown:
-        logging.info("Timeout encountered while solving expression using z3")
+        logging.debug("Timeout encountered while solving expression using z3")
     raise UnsatError
 
 
