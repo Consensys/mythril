@@ -20,7 +20,6 @@ def calculate_native_gas(size: int, contract: str):
 
 def calculate_sha3_gas(start_index: int, length: int):
     gas_val = 30 + 6 * (start_index + length)
-    print("Boop")
     return gas_val, gas_val
 
 
