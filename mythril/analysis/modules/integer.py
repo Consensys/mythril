@@ -108,9 +108,13 @@ def _check_integer_overflow(statespace, state, node):
     issue.description = "This binary {} operation can result in integer overflow.\n".format(
         operator
     )
-    issue.debug = "Transaction Sequence: " + str(
-        solver.get_transaction_sequence(state, node.constraints)
-    )
+    try:
+        issue.debug = "Transaction Sequence: " + str(
+            solver.get_transaction_sequence(state, node.constraints)
+        )
+    except UnsatError:
+        return issues
+
     issues.append(issue)
 
     return issues
