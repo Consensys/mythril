@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 567
-- Estimated Gas Usage: 1689 - 1974
+- Estimated Gas Usage: 1122 - 1407
 
 ### Description
 
@@ -18,7 +18,7 @@ The subtraction can result in an integer underflow.
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 649
-- Estimated Gas Usage: 3170 - 3645
+- Estimated Gas Usage: 2027 - 2502
 
 ### Description
 
@@ -30,7 +30,7 @@ The subtraction can result in an integer underflow.
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 725
-- Estimated Gas Usage: 9641 - 30306
+- Estimated Gas Usage: 7922 - 28587
 
 ### Description
 

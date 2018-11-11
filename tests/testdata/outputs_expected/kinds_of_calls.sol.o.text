@@ -4,7 +4,7 @@ Type: Informational
 Contract: Unknown
 Function name: _function_0x141f32ff
 PC address: 626
-Estimated Gas Usage: 2505 - 37257
+Estimated Gas Usage: 1290 - 36042
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 --------------------
 
@@ -14,7 +14,7 @@ Type: Informational
 Contract: Unknown
 Function name: _function_0x9b58bc26
 PC address: 857
-Estimated Gas Usage: 2568 - 37320
+Estimated Gas Usage: 1353 - 36105
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 --------------------
 
@@ -24,7 +24,7 @@ Type: Warning
 Contract: Unknown
 Function name: _function_0xeea4c864
 PC address: 1038
-Estimated Gas Usage: 1878 - 2630
+Estimated Gas Usage: 663 - 1415
 This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
 --------------------
 
@@ -34,7 +34,7 @@ Type: Informational
 Contract: Unknown
 Function name: _function_0xeea4c864
 PC address: 1046
-Estimated Gas Usage: 2593 - 37345
+Estimated Gas Usage: 1378 - 36130
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 --------------------
 
