@@ -18,7 +18,7 @@ It seems that an attacker is able to execute an call instruction, this can mean 
 - Contract: Unknown
 - Function name: `invest()`
 - PC address: 883
-- Estimated Gas Usage: 1550 - 1883
+- Estimated Gas Usage: 2510 - 2795
 
 ### Description
 
