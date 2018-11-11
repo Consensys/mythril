@@ -15,6 +15,7 @@ from z3 import (
     UGT,
 )
 from z3.z3types import Z3Exception
+from ethereum import opcodes, utils
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node
 from copy import copy, deepcopy
@@ -26,6 +27,7 @@ from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
+    OutOfGasException,
 )
 
 
@@ -391,6 +393,22 @@ class MachineState:
             return 0
         return start + size - self.memory_size
 
+    def calculate_memory_gas(self, start: int, size: int):
+        # https://github.com/ethereum/pyethereum/blob/develop/ethereum/vm.py#L148
+        oldsize = self.memory_size // 32
+        old_totalfee = (
+            oldsize * opcodes.GMEMORY + oldsize ** 2 // opcodes.GQUADRATICMEMDENOM
+        )
+        newsize = utils.ceil32(start + size) // 32
+        new_totalfee = (
+            newsize * opcodes.GMEMORY + newsize ** 2 // opcodes.GQUADRATICMEMDENOM
+        )
+        return new_totalfee - old_totalfee
+
+    def check_gas(self):
+        if self.min_gas_used > self.gas_limit:
+            raise OutOfGasException()
+
     def mem_extend(self, start: int, size: int) -> None:
         """
         Extends the memory of this machine state
@@ -399,6 +417,10 @@ class MachineState:
         """
         m_extend = self.calculate_extension_size(start, size)
         if m_extend:
+            extend_gas = self.calculate_memory_gas(start, size)
+            self.min_gas_used += extend_gas
+            self.max_gas_used += extend_gas
+            self.check_gas()
             self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset: int, data: List[int]) -> None:

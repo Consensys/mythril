@@ -18,8 +18,8 @@ def calculate_native_gas(size: int, contract: str):
     return gas_value, gas_value
 
 
-def calculate_sha3_gas(start_index: int, length: int):
-    gas_val = 30 + 6 * (start_index + length)
+def calculate_sha3_gas(length: int):
+    gas_val = 30 + opcodes.GSHA3WORD * ceil32(length)
     return gas_val, gas_val
 
 

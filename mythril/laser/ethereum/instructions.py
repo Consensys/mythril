@@ -81,9 +81,9 @@ class StateTransition(object):
 
     @staticmethod
     def check_gas_usage_limit(global_state: GlobalState):
+        global_state.mstate.check_gas()
         if (
-            global_state.mstate.min_gas_used >= global_state.mstate.gas_limit
-            or global_state.mstate.min_gas_used
+            global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
         ):
             raise OutOfGasException()
@@ -612,7 +612,7 @@ class Instruction:
             state.max_gas_used += OPCODE_GAS["SHA3"][1]
             return [global_state]
 
-        min_gas, max_gas = OPCODE_GAS["SHA3_FUNC"](state.memory_size + index, length)
+        min_gas, max_gas = OPCODE_GAS["SHA3_FUNC"](length)
         state.min_gas_used += min_gas
         state.max_gas_used += max_gas
         StateTransition.check_gas_usage_limit(global_state)
