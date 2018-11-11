@@ -701,14 +701,14 @@ class Instruction:
         try:
             addr = hex(helper.get_concrete_int(addr))
         except TypeError:
-            logging.info("unsupported symbolic address for EXTCODESIZE")
+            logging.debug("unsupported symbolic address for EXTCODESIZE")
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
         try:
             code = self.dynamic_loader.dynld(environment.active_account.address, addr)
         except (ValueError, AttributeError) as e:
-            logging.info("error accessing contract storage due to: " + str(e))
+            logging.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
@@ -1190,7 +1190,7 @@ class Instruction:
         )
 
         if 0 < int(callee_address, 16) < 5:
-            logging.info("Native contract called: " + callee_address)
+            logging.debug("Native contract called: " + callee_address)
             if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
                 logging.debug("CALL with symbolic data not supported")
                 return [global_state]
@@ -1250,7 +1250,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1313,7 +1313,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1345,7 +1345,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1408,7 +1408,7 @@ class Instruction:
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1440,7 +1440,7 @@ class Instruction:
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
-            logging.info(
+            logging.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
