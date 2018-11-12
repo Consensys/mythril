@@ -46,7 +46,7 @@ class Calldata:
         :param starting_calldata: byte array representing the concrete calldata of a transaction
         """
         self.tx_id = tx_id
-        if not starting_calldata is None:
+        if starting_calldata is not None:
             self._calldata = []
             self.calldatasize = BitVecVal(len(starting_calldata), 256)
             self.concrete = True
