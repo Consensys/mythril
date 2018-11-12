@@ -46,7 +46,7 @@ class DynLoader:
         if not self.contract_loading:
             raise ValueError("Cannot load contract when contract_loading flag is false")
 
-        logging.info(
+        logging.debug(
             "Dynld at contract " + contract_address + ": " + dependency_address
         )
 
@@ -58,7 +58,7 @@ class DynLoader:
         else:
             return None
 
-        logging.info("Dependency address: " + dependency_address)
+        logging.debug("Dependency address: " + dependency_address)
 
         code = self.eth.eth_getCode(dependency_address)
 
