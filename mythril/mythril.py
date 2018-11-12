@@ -413,7 +413,7 @@ class Mythril(object):
             except CompilerError as e:
                 raise CriticalError(e)
             except NoContractFoundError:
-                logging.info(
+                logging.error(
                     "The file " + file + " does not contain a compilable contract."
                 )
 

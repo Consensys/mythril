@@ -176,7 +176,7 @@ def get_call_data(
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
-        logging.info("Unsupported symbolic calldata offset")
+        logging.debug("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = Calldata("{}_internalcall".format(transaction_id))
 
