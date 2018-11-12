@@ -154,7 +154,7 @@ class LaserEVM:
             )
         return total_covered_instructions
 
-    def exec(self, create=False, track_gas=False) -> None:
+    def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
         final_states = []
         for global_state in self.strategy:
             if self.execution_timeout and not create:
