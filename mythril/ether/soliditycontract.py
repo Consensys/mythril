@@ -41,6 +41,7 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
     except KeyError:
         raise NoContractFoundError
 
+
 class SolidityContract(ETHContract):
     def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
 
