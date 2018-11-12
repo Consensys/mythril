@@ -56,6 +56,7 @@ class BaseTransaction:
         code=None,
         call_data_type=None,
         call_value=None,
+        init_call_data=True,
     ):
         assert isinstance(world_state, WorldState)
         self.world_state = world_state
@@ -75,11 +76,10 @@ class BaseTransaction:
 
         self.caller = caller
         self.callee_account = callee_account
-        self.call_data = (
-            call_data
-            if isinstance(call_data, Calldata)
-            else Calldata(self.id, call_data)
-        )
+        if call_data is None and init_call_data:
+            self.call_data = Calldata(self.id, call_data)
+        else:
+            self.call_data = call_data if isinstance(call_data, Calldata) else None
         self.call_data_type = (
             call_data_type
             if call_data_type is not None
@@ -131,7 +131,7 @@ class ContractCreationTransaction(BaseTransaction):
     """ Transaction object models an transaction"""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs, init_call_data=False)
         # TODO: set correct balance for new account
         self.callee_account = self.callee_account or self.world_state.create_account(
             0, concrete_storage=True
