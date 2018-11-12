@@ -1298,7 +1298,7 @@ class Instruction:
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            gas_limit=2300,  # G_callstipend
+            gas_limit=gas,
             origin=environment.origin,
             caller=BitVecVal(int(environment.active_account.address, 16), 256),
             callee_account=callee_account,
@@ -1393,7 +1393,7 @@ class Instruction:
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            gas_limit=2300,  # G_callstipend
+            gas_limit=gas,
             origin=environment.origin,
             code=callee_account.code,
             caller=environment.address,
@@ -1470,7 +1470,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, _, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1487,7 +1487,7 @@ class Instruction:
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            gas_limit=2300,  # G_callstipend
+            gas_limit=gas,
             origin=environment.origin,
             code=callee_account.code,
             caller=environment.sender,
