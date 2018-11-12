@@ -93,9 +93,7 @@ class BaseTransaction:
 
         self.return_data = None
 
-    def initial_global_state_from_environment(
-        self, environment, active_function="constructor"
-    ):
+    def initial_global_state_from_environment(self, environment, active_function):
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
@@ -151,7 +149,9 @@ class ContractCreationTransaction(BaseTransaction):
             self.code,
             calldata_type=self.call_data_type,
         )
-        return super().initial_global_state_from_environment(environment)
+        return super().initial_global_state_from_environment(
+            environment, active_function="constructor"
+        )
 
     def end(self, global_state: GlobalState, return_data=None, revert=False):
 
