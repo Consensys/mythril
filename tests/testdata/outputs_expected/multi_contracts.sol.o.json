@@ -7,7 +7,7 @@
       "debug": "<DEBUG-DATA>",
       "description": "It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.",
       "function": "_function_0x8a4068dd",
-      "swc_id": "105",
+      "swc-id": "105",
       "min_gas_used": 186,
       "max_gas_used": 467,
       "title": "Ether send",

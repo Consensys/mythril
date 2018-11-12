@@ -170,7 +170,7 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.info("Encountered unimplemented instruction")
+                logging.debug("Encountered unimplemented instruction")
                 continue
             self.manage_cfg(op_code, new_states)
 

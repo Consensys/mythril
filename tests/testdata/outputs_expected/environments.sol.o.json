@@ -7,7 +7,7 @@
       "debug": "<DEBUG-DATA>",
       "description": "The arithmetic operation can result in integer overflow.\n",
       "function": "_function_0x83f12fec",
-      "swc_id": "101",
+      "swc-id": "101",
       "title": "Integer Overflow",
       "type": "Warning"
     },
@@ -17,7 +17,7 @@
       "debug": "<DEBUG-DATA>",
       "description": "The arithmetic operation can result in integer overflow.\n",
       "function": "_function_0x83f12fec",
-      "swc_id": "101",
+      "swc-id": "101",
       "title": "Integer Overflow",
       "type": "Warning"
     },
@@ -27,7 +27,7 @@
       "debug": "<DEBUG-DATA>",
       "description": "The substraction can result in an integer underflow.\n",
       "function": "_function_0x83f12fec",
-      "swc_id": "101",
+      "swc-id": "101",
       "title": "Integer Underflow",
       "type": "Warning"
     }

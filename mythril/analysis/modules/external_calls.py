@@ -64,7 +64,7 @@ def execute(statespace):
 
         if call.type == "CALL":
 
-            logging.info(
+            logging.debug(
                 "[EXTERNAL_CALLS] Call to: %s, value = %s, gas = %s"
                 % (str(call.to), str(call.value), str(call.gas))
             )
