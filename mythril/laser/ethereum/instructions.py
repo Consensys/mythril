@@ -825,9 +825,8 @@ class Instruction:
         try:
             state.mem_extend(offset, 32)
             data = util.concrete_int_from_bytes(state.memory, offset)
-        except IndexError:  # Memory slot not allocated
-            data = global_state.new_bitvec("mem[" + str(offset) + "]", 256)
         except TypeError:  # Symbolic memory
+            # TODO: Handle this properly
             data = state.memory[offset]
 
         logging.debug("Load from memory[" + str(offset) + "]: " + str(data))
@@ -858,6 +857,7 @@ class Instruction:
         try:
             # Attempt to concretize value
             _bytes = util.concrete_int_to_bytes(value)
+            assert len(_bytes) == 32
             state.memory[mstart : mstart + 32] = _bytes
         except:
             try:

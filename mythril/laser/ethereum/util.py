@@ -83,13 +83,14 @@ def get_concrete_int(item: Union[int, ExprRef]) -> int:
         raise TypeError("Got a symbolic BitVecRef")
 
 
-def concrete_int_from_bytes(_bytes: bytes, start_index: int) -> int:
-    _bytes = [
-        _byte.as_long() if type(_byte) == BitVecNumRef else _byte for _byte in _bytes
+def concrete_int_from_bytes(concrete_bytes: bytes, start_index: int) -> int:
+    concrete_bytes = [
+        byte.as_long() if type(byte) == BitVecNumRef else byte
+        for byte in concrete_bytes
     ]
-    b = _bytes[start_index : start_index + 32]
-    val = int.from_bytes(b, byteorder="big")
-    return val
+    integer_bytes = concrete_bytes[start_index : start_index + 32]
+
+    return int.from_bytes(integer_bytes, byteorder="big")
 
 
 def concrete_int_to_bytes(val):
