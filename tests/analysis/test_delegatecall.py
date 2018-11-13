@@ -6,7 +6,9 @@ from mythril.analysis.modules.delegatecall import (
 from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.ethereum.cfg import Node
-from mythril.laser.ethereum.state import GlobalState, Environment, Account
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.global_state import GlobalState
 import pytest
 from unittest.mock import MagicMock, patch
 import pytest_mock
