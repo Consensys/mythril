@@ -29,7 +29,7 @@ class TruffleTestCase(BaseTestCase):
         command = "cd {}; truffle compile; python3 {} --truffle --max-transaction-count 1".format(
             truffle_project_root, MYTH
         )
-        self.assertIn("=== Ether send ====", output_of(command))
+        self.assertIn("=== Ether thief ====", output_of(command))
 
 
 class InfuraTestCase(BaseTestCase):
