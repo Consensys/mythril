@@ -19,7 +19,7 @@ from mythril.laser.ethereum.transaction import (
 )
 from functools import reduce
 from mythril.laser.ethereum.evm_exceptions import VmException
-from mythril.laser.ethereum.graph import Graph, SimpleGraph
+from mythril.laser.ethereum.strategy.graph import Graph, SimpleGraph
 
 
 class SVMError(Exception):

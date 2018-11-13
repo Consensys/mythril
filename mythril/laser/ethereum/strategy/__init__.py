@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
 
-from mythril.laser.ethereum.graph import SimpleGraph, Graph
+from mythril.laser.ethereum.strategy.graph import SimpleGraph, Graph
 
 
 class BasicSearchStrategy(ABC):
+    """
+    The strategies where we don't need to keep tract of the entire Graph and can just go with a simple worklist
+    """
     __slots__ = "graph", "max_depth"
 
     def __init__(self, graph: SimpleGraph, max_depth: int):
+        assert isinstance(graph, SimpleGraph)
         self.graph = graph
         self.max_depth = max_depth
 
@@ -28,9 +32,13 @@ class BasicSearchStrategy(ABC):
 
 
 class AdvancedSearchStrategy(ABC):
+    """
+    The strategies which requires us to maintain an adjacency list based graph and the current vertex in the traversal
+    """
     __slots__ = "graph", "max_depth", "current_vertex"
 
     def __init__(self, graph: Graph, max_depth: int):
+        assert isinstance(graph, Graph)
         self.graph = graph
         self.max_depth = max_depth
         self.current_vertex = 0
