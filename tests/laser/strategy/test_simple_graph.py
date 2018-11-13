@@ -12,7 +12,12 @@ def test_add_vertex(vertex):
     assert graph.work_list[-1] == vertex
 
 
-add_edge_test_data = [(GlobalState(None, None, None), [GlobalState(None, None, None), GlobalState(None, None, None)])]
+add_edge_test_data = [
+    (
+        GlobalState(None, None, None),
+        [GlobalState(None, None, None), GlobalState(None, None, None)],
+    )
+]
 
 
 @pytest.mark.parametrize("vertex_from, vertices_to", add_edge_test_data)

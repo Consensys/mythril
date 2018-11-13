@@ -7,6 +7,7 @@ class BasicSearchStrategy(ABC):
     """
     The strategies where we don't need to keep tract of the entire Graph and can just go with a simple worklist
     """
+
     __slots__ = "graph", "max_depth"
 
     def __init__(self, graph: SimpleGraph, max_depth: int):
@@ -35,6 +36,7 @@ class AdvancedSearchStrategy(ABC):
     """
     The strategies which requires us to maintain an adjacency list based graph and the current vertex in the traversal
     """
+
     __slots__ = "graph", "max_depth", "current_vertex"
 
     def __init__(self, graph: Graph, max_depth: int):

@@ -4,7 +4,6 @@ from mythril.laser.ethereum.state import GlobalState
 
 
 class BaseGraph(ABC):
-
     @abstractmethod
     def add_vertex(self, global_state: GlobalState):
         raise NotImplementedError("Must be implemented by a subclass")

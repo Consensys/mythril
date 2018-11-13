@@ -12,7 +12,12 @@ def test_add_vertex(vertex):
     assert vertex in graph.adjacency_list
 
 
-add_edge_test_data = [(GlobalState(None, None, None), [GlobalState(None, None, None), GlobalState(None, None, None)])]
+add_edge_test_data = [
+    (
+        GlobalState(None, None, None),
+        [GlobalState(None, None, None), GlobalState(None, None, None)],
+    )
+]
 
 
 @pytest.mark.parametrize("vertex_from, vertices_to", add_edge_test_data)
@@ -24,8 +29,12 @@ def test_add_edges(vertex_from, vertices_to):
 
 
 root_vertex = GlobalState(None, None, None)
-add_multiple_edges_test_data = [((root_vertex, [GlobalState(None, None, None)]),
-                                 (root_vertex, [GlobalState(None, None, None), GlobalState(None, None, None)]))]
+add_multiple_edges_test_data = [
+    (
+        (root_vertex, [GlobalState(None, None, None)]),
+        (root_vertex, [GlobalState(None, None, None), GlobalState(None, None, None)]),
+    )
+]
 
 
 @pytest.mark.parametrize("edge_list1, edge_list2", add_multiple_edges_test_data)
