@@ -5,7 +5,6 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 import logging
-import re
 
 
 """
@@ -54,10 +53,10 @@ def _analyze_state(state, node):
 
     try:
 
-        '''
+        """
         FIXME: Instead of solving for call_value > 0, check whether call value can be greater than
         the total value of all transactions received by the caller
-        '''
+        """
 
         model = solver.get_model(
             node.constraints + not_creator_constraints + [call_value > 0]
@@ -70,7 +69,7 @@ def _analyze_state(state, node):
         # For now we only report an issue if zero ETH has been sent to the contract account.
 
         for key, value in transaction_sequence.items():
-            if int(value['call_value'], 16) > 0:
+            if int(value["call_value"], 16) > 0:
                 return []
 
         debug = "Transaction Sequence: " + str(transaction_sequence)
@@ -84,7 +83,7 @@ def _analyze_state(state, node):
             _type="Warning",
             bytecode=state.environment.code.bytecode,
             description="Users other than the contract creator can withdraw ETH from the contract account"
-                + " without previously having sent any ETH to it. This is likely to be vulnerability.",
+            + " without previously having sent any ETH to it. This is likely to be vulnerability.",
             debug=debug,
         )
         issues.append(issue)
