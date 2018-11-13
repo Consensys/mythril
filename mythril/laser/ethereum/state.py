@@ -394,7 +394,7 @@ class MachineState:
 
     def pop(self, amount=1) -> Union[BitVec, List[BitVec]]:
         """ Pops amount elements from the stack"""
-        if amount >= len(self.stack):
+        if amount > len(self.stack):
             raise StackUnderflowException
         values = self.stack[-amount:][::-1]
         del self.stack[-amount:]
