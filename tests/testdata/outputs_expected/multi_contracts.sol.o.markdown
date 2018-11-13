@@ -1,6 +1,6 @@
 # Analysis results for test-filename.sol
 
-## Ether send
+## Ether thief
 - SWC ID: 105
 - Type: Warning
 - Contract: Unknown
@@ -9,4 +9,4 @@
 
 ### Description
 
-It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.
+Users other than the contract creator can withdraw ETH from the contract account without previously having sent any ETH to it. This is likely to be vulnerability.
