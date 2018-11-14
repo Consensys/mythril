@@ -26,7 +26,9 @@ class GlobalState:
         self.node = node
         self.world_state = world_state
         self.environment = environment
-        self.mstate = machine_state if machine_state else MachineState(gas_limit=1000000000)
+        self.mstate = (
+            machine_state if machine_state else MachineState(gas_limit=1000000000)
+        )
         self.transaction_stack = transaction_stack if transaction_stack else []
         self.op_code = ""
         self.last_return_data = last_return_data
