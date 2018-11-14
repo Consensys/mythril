@@ -2,7 +2,7 @@ import re
 from typing import List
 from z3 import *
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
-from mythril.laser.ethereum.state import GlobalState
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 def get_non_creator_constraints(state: GlobalState) -> (List, bool):
