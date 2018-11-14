@@ -33,9 +33,9 @@ class Graph(BaseGraph):
             self.work_list.append(to_vertex)
             self.adjacency_list[from_vertex].append(to_vertex)
 
-    def get_current_edge_list(self):
+    def get_current_edge_list(self, vertex: GlobalState):
         try:
-            return copy(self.graph.adjacency_list[self.graph.work_list[-1]])
+            return copy(self.adjacency_list[vertex])
         except KeyError:
             return []
 

@@ -18,7 +18,7 @@ class RandomBranchDepthFirstSearch(AdvancedSearchStrategy):
 
     def get_strategic_global_state(self) -> GlobalState:
 
-        edge_list = self.graph.get_current_edge_list()
+        edge_list = self.graph.get_edge_list(self.graph.work_list[-1])
         shuffle(edge_list)
         self.graph.work_list += edge_list
 
