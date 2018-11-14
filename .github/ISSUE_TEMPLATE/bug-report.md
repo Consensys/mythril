@@ -71,7 +71,7 @@ Please modify for your setup
 
 <!-- This section is optional.
 
-Add any other context about the problem here or special environment setup
+Add any other context about the problem here or special environment setup.
 
 Thanks for helping!
 

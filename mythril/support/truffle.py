@@ -4,6 +4,7 @@ import re
 import sys
 import json
 import logging
+from ethereum.utils import sha3
 from mythril.ether.ethcontract import ETHContract
 from mythril.ether.soliditycontract import SourceMapping
 from mythril.exceptions import CriticalError
@@ -41,11 +42,7 @@ def analyze_truffle_project(sigs, args):
                 sys.exit()
             if len(bytecode) < 4:
                 continue
-
-            sigs.import_from_solidity_source(
-                contractdata["sourcePath"], solc_args=args.solc_args
-            )
-            sigs.write()
+            get_sigs_from_truffle(sigs, contractdata)
 
             ethcontract = ETHContract(bytecode, name=name)
 
@@ -57,6 +54,7 @@ def analyze_truffle_project(sigs, args):
                 max_depth=args.max_depth,
                 create_timeout=args.create_timeout,
                 execution_timeout=args.execution_timeout,
+                max_transaction_count=args.max_transaction_count,
             )
             issues = fire_lasers(sym)
 
@@ -74,32 +72,24 @@ def analyze_truffle_project(sigs, args):
                 report = Report()
                 # augment with source code
 
-                disassembly = ethcontract.disassembly
+                deployed_disassembly = ethcontract.disassembly
+                constructor_disassembly = ethcontract.creation_disassembly
+
                 source = contractdata["source"]
 
                 deployed_source_map = contractdata["deployedSourceMap"].split(";")
+                source_map = contractdata["sourceMap"].split(";")
 
-                mappings = []
-
-                for item in deployed_source_map:
-                    mapping = item.split(":")
-
-                    if len(mapping) > 0 and len(mapping[0]) > 0:
-                        offset = int(mapping[0])
-
-                    if len(mapping) > 1 and len(mapping[1]) > 0:
-                        length = int(mapping[1])
-
-                    if len(mapping) > 2 and len(mapping[2]) > 0:
-                        idx = int(mapping[2])
-
-                    lineno = (
-                        source.encode("utf-8")[0:offset].count("\n".encode("utf-8")) + 1
-                    )
-
-                    mappings.append(SourceMapping(idx, offset, length, lineno))
+                deployed_mappings = get_mappings(source, deployed_source_map)
+                constructor_mappings = get_mappings(source, source_map)
 
                 for issue in issues:
+                    if issue.function == "constructor":
+                        mappings = constructor_mappings
+                        disassembly = constructor_disassembly
+                    else:
+                        mappings = deployed_mappings
+                        disassembly = deployed_disassembly
 
                     index = get_instruction_index(
                         disassembly.instruction_list, issue.address
@@ -139,3 +129,36 @@ def analyze_truffle_project(sigs, args):
                         )
                     elif args.outform == "markdown":
                         print(report.as_markdown())
+
+
+def get_sigs_from_truffle(sigs, contract_data):
+    abis = contract_data["abi"]
+    for abi in abis:
+        if abi["type"] != "function":
+            continue
+        function_name = abi["name"]
+        list_of_args = ",".join([input["type"] for input in abi["inputs"]])
+        signature = function_name + "(" + list_of_args + ")"
+        sigs.signatures["0x" + sha3(signature)[:4].hex()] = [signature]
+        sigs.write()
+
+
+def get_mappings(source, deployed_source_map):
+    mappings = []
+    for item in deployed_source_map:
+        mapping = item.split(":")
+
+        if len(mapping) > 0 and len(mapping[0]) > 0:
+            offset = int(mapping[0])
+
+        if len(mapping) > 1 and len(mapping[1]) > 0:
+            length = int(mapping[1])
+
+        if len(mapping) > 2 and len(mapping[2]) > 0:
+            idx = int(mapping[2])
+
+        lineno = source.encode("utf-8")[0:offset].count("\n".encode("utf-8")) + 1
+
+        mappings.append(SourceMapping(idx, offset, length, lineno))
+
+    return mappings

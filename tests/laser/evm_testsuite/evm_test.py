@@ -1,21 +1,24 @@
-from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state import Account
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from mythril.analysis.solver import get_model
 from datetime import datetime
+
 import binascii
 import json
 from pathlib import Path
 import pytest
+from z3 import ExprRef, simplify
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
 test_types = [
     "vmArithmeticTest",
     "vmBitwiseLogicOperation",
+    "vmEnvironmentalInfo",
     "vmPushDupSwapTest",
+    "vmSha3Test",
     "vmTests",
 ]
 
@@ -49,7 +52,8 @@ def test_vmtest(
     test_name: str, pre_condition: dict, action: dict, post_condition: dict
 ) -> None:
     # Arrange
-
+    if test_name == "gasprice":
+        return
     accounts = {}
     for address, details in pre_condition.items():
         account = Account(address)
@@ -72,7 +76,7 @@ def test_vmtest(
         laser_evm,
         callee_address=action["address"],
         caller_address=action["caller"],
-        origin_address=action["origin"],
+        origin_address=binascii.a2b_hex(action["origin"][2:]),
         code=action["code"][2:],
         gas=action["gas"],
         data=binascii.a2b_hex(action["data"][2:]),
@@ -95,9 +99,15 @@ def test_vmtest(
 
         for index, value in details["storage"].items():
             expected = int(value, 16)
-            if type(account.storage[int(index, 16)]) != int:
-                actual = model.eval(account.storage[int(index, 16)])
-                actual = 1 if actual == True else 0 if actual == False else actual
+            actual = account.storage[int(index, 16)]
+            if isinstance(actual, ExprRef):
+                actual = model.eval(actual)
+                actual = (
+                    1 if actual == True else 0 if actual == False else actual
+                )  # Comparisons should be done with == than 'is' here as actual can be a BoolRef
             else:
-                actual = account.storage[int(index, 16)]
+                if type(actual) == bytes:
+                    actual = int(binascii.b2a_hex(actual), 16)
+                elif type(actual) == str:
+                    actual = int(actual, 16)
             assert actual == expected

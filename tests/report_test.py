@@ -29,6 +29,7 @@ def _generate_report(input_file):
         address=(util.get_indexed_address(0)),
         strategy="dfs",
         execution_timeout=30,
+        max_transaction_count=1,
     )
     issues = fire_lasers(sym)
 
@@ -99,6 +100,7 @@ def _assert_empty_json(changed_files):
         if not ordered(output_expected.items()) == ordered(output_current.items()):
             expected.append(output_expected)
             actual.append(output_current)
+            print("Found difference in {}".format(str(input_file)))
 
     assert expected == actual
 

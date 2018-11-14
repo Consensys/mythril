@@ -1,4 +1,5 @@
 from mythril.analysis import solver
+from mythril.analysis.analysis_utils import get_non_creator_constraints
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
@@ -53,16 +54,10 @@ def _analyze_state(state, node):
     else:
         description += "The remaining Ether is sent to: " + str(to) + "\n"
 
-    not_creator_constraints = []
-    if len(state.world_state.transaction_sequence) > 1:
-        creator = state.world_state.transaction_sequence[0].caller
-        for transaction in state.world_state.transaction_sequence[1:]:
-            not_creator_constraints.append(
-                Not(Extract(159, 0, transaction.caller) == Extract(159, 0, creator))
-            )
-            not_creator_constraints.append(
-                Not(Extract(159, 0, transaction.caller) == 0)
-            )
+    not_creator_constraints, constrained = get_non_creator_constraints(state)
+
+    if constrained:
+        return []
 
     try:
         model = solver.get_model(node.constraints + not_creator_constraints)
