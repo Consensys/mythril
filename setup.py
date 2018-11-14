@@ -75,7 +75,7 @@ setup(
     install_requires=[
         "coloredlogs>=10.0",
         "ethereum>=2.3.2",
-        "z3-solver==4.5.1.0.post2",
+        "z3-solver==4.8.0.0.post1",
         "requests",
         "py-solc",
         "plyvel",

@@ -10,15 +10,21 @@ import logging
 """
 MODULE DESCRIPTION:
 
-Check for CALLs that send >0 Ether to either the transaction sender, or to an address provided as a function argument.
-If msg.sender is checked against a value in storage, check whether that storage index is tainted (i.e. there's an unconstrained write
-to that index).
+Search for cases where Ether can be withdrawn to a user-specified address. 
+
+An issue is reported ONLY IF:
+
+- The transaction sender does not match contract creator;
+- The sender has not previously sent any ETH to the contract account.
+
+This is somewhat coarse and needs to be refined in the future.
+
 """
 
 
 def execute(state_space):
 
-    logging.debug("Executing module: ETHER_SEND")
+    logging.debug("Executing module: ETHER_THIEF")
 
     issues = []
 
@@ -46,32 +52,43 @@ def _analyze_state(state, node):
         return []
 
     try:
+
+        """
+        FIXME: Instead of solving for call_value > 0, check whether call value can be greater than
+        the total value of all transactions received by the caller
+        """
+
         model = solver.get_model(
             node.constraints + not_creator_constraints + [call_value > 0]
         )
 
-        debug = "Transaction Sequence: " + str(
-            solver.get_transaction_sequence(
-                state, node.constraints + not_creator_constraints + [call_value > 0]
-            )
+        transaction_sequence = solver.get_transaction_sequence(
+            state, node.constraints + not_creator_constraints + [call_value > 0]
         )
+
+        # For now we only report an issue if zero ETH has been sent to the contract account.
+
+        for key, value in transaction_sequence.items():
+            if int(value["call_value"], 16) > 0:
+                return []
+
+        debug = "Transaction Sequence: " + str(transaction_sequence)
 
         issue = Issue(
             contract=node.contract_name,
             function_name=node.function_name,
             address=instruction["address"],
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-            title="Ether send",
+            title="Ether thief",
             _type="Warning",
             bytecode=state.environment.code.bytecode,
-            description="It seems that an attacker is able to execute an call instruction,"
-            " this can mean that the attacker is able to extract funds "
-            "out of the contract.".format(target),
+            description="Users other than the contract creator can withdraw ETH from the contract account"
+            + " without previously having sent any ETH to it. This is likely to be vulnerability.",
             debug=debug,
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
         issues.append(issue)
     except UnsatError:
-        logging.debug("[UNCHECKED_SUICIDE] no model found")
+        logging.debug("[ETHER_THIEF] no model found")
 
     return issues
