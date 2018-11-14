@@ -3,17 +3,11 @@ from typing import Union, Any, List, Dict
 
 from z3 import BitVec
 
-<<<<<<< HEAD
 from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
     OutOfGasException,
-=======
-from mythril.laser.ethereum.evm_exceptions import (
-    StackOverflowException,
-    StackUnderflowException,
->>>>>>> develop
 )
 from mythril.laser.ethereum.state.constraints import Constraints
 
