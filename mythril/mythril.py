@@ -78,12 +78,18 @@ class Mythril(object):
     """
 
     def __init__(
-        self, solv=None, solc_args=None, dynld=False, enable_online_lookup=False
+        self,
+        solv=None,
+        solc_args=None,
+        dynld=False,
+        enable_online_lookup=False,
+        onchain_storage_access=True,
     ):
 
         self.solv = solv
         self.solc_args = solc_args
         self.dynld = dynld
+        self.onchain_storage_access = onchain_storage_access
         self.enable_online_lookup = enable_online_lookup
 
         self.mythril_dir = self._init_mythril_dir()
@@ -311,13 +317,24 @@ class Mythril(object):
 
         print(self.eth_db.contract_hash_to_address(hash))
 
-    def load_from_bytecode(self, code):
+    def load_from_bytecode(self, code, bin_runtime=False):
         address = util.get_indexed_address(0)
-        self.contracts.append(
-            ETHContract(
-                code, name="MAIN", enable_online_lookup=self.enable_online_lookup
+        if bin_runtime:
+            self.contracts.append(
+                ETHContract(
+                    code=code,
+                    name="MAIN",
+                    enable_online_lookup=self.enable_online_lookup,
+                )
             )
-        )
+        else:
+            self.contracts.append(
+                ETHContract(
+                    creation_code=code,
+                    name="MAIN",
+                    enable_online_lookup=self.enable_online_lookup,
+                )
+            )
         return address, self.contracts[-1]  # return address and contract object
 
     def load_from_address(self, address):
@@ -375,13 +392,18 @@ class Mythril(object):
 
                 if contract_name is not None:
                     contract = SolidityContract(
-                        file, contract_name, solc_args=self.solc_args
+                        input_file=file,
+                        name=contract_name,
+                        solc_args=self.solc_args,
+                        solc_binary=self.solc_binary,
                     )
                     self.contracts.append(contract)
                     contracts.append(contract)
                 else:
                     for contract in get_contracts_from_file(
-                        file, solc_args=self.solc_args
+                        input_file=file,
+                        solc_args=self.solc_args,
+                        solc_binary=self.solc_binary,
                     ):
                         self.contracts.append(contract)
                         contracts.append(contract)
@@ -391,7 +413,7 @@ class Mythril(object):
             except CompilerError as e:
                 raise CriticalError(e)
             except NoContractFoundError:
-                logging.info(
+                logging.error(
                     "The file " + file + " does not contain a compilable contract."
                 )
 
@@ -411,7 +433,11 @@ class Mythril(object):
             contract,
             address,
             strategy,
-            dynloader=DynLoader(self.eth) if self.dynld else None,
+            dynloader=DynLoader(
+                self.eth,
+                storage_loading=self.onchain_storage_access,
+                contract_loading=self.dynld,
+            ),
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
@@ -434,7 +460,11 @@ class Mythril(object):
             contract,
             address,
             strategy,
-            dynloader=DynLoader(self.eth) if self.dynld else None,
+            dynloader=DynLoader(
+                self.eth,
+                storage_loading=self.onchain_storage_access,
+                contract_loading=self.dynld,
+            ),
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
@@ -460,7 +490,11 @@ class Mythril(object):
                 contract,
                 address,
                 strategy,
-                dynloader=DynLoader(self.eth) if self.dynld else None,
+                dynloader=DynLoader(
+                    self.eth,
+                    storage_loading=self.onchain_storage_access,
+                    contract_loading=self.dynld,
+                ),
                 max_depth=max_depth,
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,

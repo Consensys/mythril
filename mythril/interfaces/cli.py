@@ -21,7 +21,7 @@ import mythril.support.signatures as sigs
 
 def exit_with_error(format_, message):
     if format_ == "text" or format_ == "markdown":
-        print(message)
+        logging.error(message)
     else:
         result = {"success": False, "error": str(message), "issues": []}
         print(json.dumps(result))
@@ -89,6 +89,16 @@ def main():
         "--dynld",
         action="store_true",
         help="auto-load dependencies from the blockchain",
+    )
+    inputs.add_argument(
+        "--no-onchain-storage-access",
+        action="store_true",
+        help="turns off getting the data from onchain contracts",
+    )
+    inputs.add_argument(
+        "--bin-runtime",
+        action="store_true",
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
     )
 
     outputs = parser.add_argument_group("output formats")
@@ -158,10 +168,9 @@ def main():
     options.add_argument(
         "--max-transaction-count",
         type=int,
-        default=1,
+        default=2,
         help="Maximum number of transactions issued by laser",
     )
-
     options.add_argument(
         "--execution-timeout",
         type=int,
@@ -267,10 +276,15 @@ def main():
         mythril = Mythril(
             solv=args.solv,
             dynld=args.dynld,
+            onchain_storage_access=(not args.no_onchain_storage_access),
             solc_args=args.solc_args,
             enable_online_lookup=args.query_signature,
         )
-        if args.dynld and not (args.rpc or args.i):
+        if (
+            args.dynld
+            or not args.no_onchain_storage_access
+            and not (args.rpc or args.i)
+        ):
             mythril.set_api_from_config_path()
 
         if args.address:
@@ -279,7 +293,7 @@ def main():
                 mythril.set_api_rpc_infura()
             elif args.rpc:
                 mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-            elif not args.dynld:
+            elif not (args.dynld or not args.no_onchain_storage_access):
                 mythril.set_api_rpc_localhost()
         elif args.search or args.contract_hash_to_address:
             # Open LevelDB if necessary
@@ -316,10 +330,10 @@ def main():
 
         if args.code:
             # Load from bytecode
-            address, _ = mythril.load_from_bytecode(args.code)
+            address, _ = mythril.load_from_bytecode(args.code, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
-            address, _ = mythril.load_from_bytecode(bytecode)
+            address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
         elif args.address:
             # Get bytecode from a contract address
             address, _ = mythril.load_from_address(args.address)
