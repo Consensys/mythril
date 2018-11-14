@@ -4,7 +4,7 @@ from ethereum.utils import ceil32
 
 def calculate_native_gas(size: int, contract: str):
     gas_value = None
-    word_num = ceil32(size // 32)
+    word_num = ceil32(size) // 32
     if contract == "ecrecover":
         gas_value = opcodes.GECRECOVER
     elif contract == "sha256":
