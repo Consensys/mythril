@@ -23,7 +23,7 @@ except ImportError:
         """
         if weights is None:
             return [population[int(random() * len(population))]]
-        cum_weights = accumulate(weights)
+        cum_weights = list(accumulate(weights))
         return [
             population[
                 bisect(cum_weights, random() * cum_weights[-1], 0, len(population) - 1)
