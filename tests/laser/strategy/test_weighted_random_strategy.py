@@ -9,8 +9,12 @@ test_worklist_input = [
     (
         [
             GlobalState(None, None, None, machine_state=MachineState(gas=100, depth=2)),
-            GlobalState(None, None, None, machine_state=MachineState(gas=100, depth=10)),
-            GlobalState(None, None, None, machine_state=MachineState(gas=100, depth=20)),
+            GlobalState(
+                None, None, None, machine_state=MachineState(gas=100, depth=10)
+            ),
+            GlobalState(
+                None, None, None, machine_state=MachineState(gas=100, depth=20)
+            ),
         ]
     )
 ]
@@ -24,11 +28,12 @@ def test_random_weighted_strategy(work_list):
     iterations = 10000
     eps = 1e-2
     random.seed(1)
-    total_sum = sum([1/(1+global_state.mstate.depth) for global_state in work_list])
+    total_sum = sum([1 / (1 + global_state.mstate.depth) for global_state in work_list])
     for i in range(iterations):
         global_state = strategy.get_strategic_global_state()
-        counter[global_state.mstate.depth] = counter.get(global_state.mstate.depth, 0) + 1
+        counter[global_state.mstate.depth] = (
+            counter.get(global_state.mstate.depth, 0) + 1
+        )
         strategy.graph.work_list.append(global_state)
     for key in counter.keys():
-        assert abs(counter[key]/iterations - 1/((key+1)*total_sum)) < eps
-
+        assert abs(counter[key] / iterations - 1 / ((key + 1) * total_sum)) < eps
