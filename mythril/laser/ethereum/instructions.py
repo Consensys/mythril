@@ -41,7 +41,8 @@ from mythril.laser.ethereum.evm_exceptions import (
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state import GlobalState, CalldataType
+from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
     TransactionStartSignal,

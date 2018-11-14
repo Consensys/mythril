@@ -5,14 +5,11 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     get_next_transaction_id,
 )
 from z3 import BitVec
-from mythril.laser.ethereum.state import (
-    GlobalState,
-    Environment,
-    CalldataType,
-    Account,
-    WorldState,
-    Calldata,
-)
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.calldata import Calldata, CalldataType
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 

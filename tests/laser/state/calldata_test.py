@@ -1,5 +1,5 @@
 import pytest
-from mythril.laser.ethereum.state import Calldata
+from mythril.laser.ethereum.state.calldata import Calldata
 from z3 import Solver, simplify
 from z3.z3types import Z3Exception
 from mock import MagicMock

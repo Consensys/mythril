@@ -1,13 +1,11 @@
 import logging
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import (
-    GlobalState,
-    Environment,
-    WorldState,
-    Account,
-    Calldata,
-)
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.calldata import Calldata
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from z3 import BitVec, ExprRef
 import array
 
