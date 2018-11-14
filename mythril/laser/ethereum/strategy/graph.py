@@ -21,19 +21,24 @@ class Graph(BaseGraph):
         self.work_list = []
 
     def add_vertex(self, global_state: GlobalState):
+        """
+        Add a vertex to the graph
+        """
         self.work_list.append(global_state)
         self.adjacency_list[global_state] = []
 
     def add_edges(self, from_vertex: GlobalState, to_vertices: List):
-        if from_vertex not in self.adjacency_list.keys():
-            self.adjacency_list[from_vertex] = []
-            self.work_list.append(from_vertex)
-
+        """
+        Add edges to the vertices already present in the graph
+        """
+        assert from_vertex in self.adjacency_list.keys()
         for to_vertex in to_vertices:
             self.work_list.append(to_vertex)
             self.adjacency_list[from_vertex].append(to_vertex)
+            if to_vertex not in self.adjacency_list.keys():
+                self.adjacency_list[to_vertex] = []
 
-    def get_current_edge_list(self, vertex: GlobalState):
+    def get_edge_list(self, vertex: GlobalState):
         try:
             return copy(self.adjacency_list[vertex])
         except KeyError:

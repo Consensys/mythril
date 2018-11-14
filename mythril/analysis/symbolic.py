@@ -10,6 +10,7 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
+from mythril.laser.ethereum.strategy.advanced import RandomBranchDepthFirstSearch
 
 
 class SymExecWrapper:
@@ -38,6 +39,8 @@ class SymExecWrapper:
             s_strategy = ReturnRandomNaivelyStrategy
         elif strategy == "weighted-random":
             s_strategy = ReturnWeightedRandomStrategy
+        elif strategy == "random-branch-dfs":
+            s_strategy = RandomBranchDepthFirstSearch
         else:
             raise ValueError("Invalid strategy argument supplied")
 

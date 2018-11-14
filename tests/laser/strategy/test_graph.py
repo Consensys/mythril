@@ -23,6 +23,7 @@ add_edge_test_data = [
 @pytest.mark.parametrize("vertex_from, vertices_to", add_edge_test_data)
 def test_add_edges(vertex_from, vertices_to):
     graph = Graph()
+    graph.add_vertex(vertex_from)
     graph.add_edges(vertex_from, vertices_to)
 
     assert graph.adjacency_list[vertex_from] == vertices_to
@@ -40,6 +41,8 @@ add_multiple_edges_test_data = [
 @pytest.mark.parametrize("edge_list1, edge_list2", add_multiple_edges_test_data)
 def test_add_edges_multiple_times(edge_list1, edge_list2):
     graph = Graph()
+    graph.add_vertex(edge_list1[0])
+    graph.add_vertex(edge_list2[0])
     graph.add_edges(edge_list1[0], edge_list1[1])
     graph.add_edges(edge_list2[0], edge_list2[1])
 
@@ -52,8 +55,9 @@ test_edges_list_data = [(root_vertex, [GlobalState(None, None, None)])]
 @pytest.mark.parametrize("root, edge_list", test_edges_list_data)
 def test_edge_list(root, edge_list):
     graph = Graph()
+    graph.add_vertex(root)
     graph.add_edges(root, edge_list)
-    assert edge_list == graph.get_current_edge_list(root)
+    assert edge_list == graph.get_edge_list(root)
 
 
 @pytest.mark.parametrize("vertex", [root_vertex])
@@ -61,4 +65,4 @@ def test_edge_list_doesnt_exist(vertex):
     graph = Graph()
     graph.add_vertex(vertex)
 
-    assert graph.get_current_edge_list(vertex) == []
+    assert graph.get_edge_list(vertex) == []

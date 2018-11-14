@@ -10,7 +10,7 @@ class BasicSearchStrategy(ABC):
 
     __slots__ = "graph", "max_depth"
 
-    def __init__(self, graph: SimpleGraph, max_depth: int):
+    def __init__(self, graph: SimpleGraph, max_depth: float):
         assert isinstance(graph, SimpleGraph)
         self.graph = graph
         self.max_depth = max_depth
@@ -39,7 +39,7 @@ class AdvancedSearchStrategy(ABC):
 
     __slots__ = "graph", "max_depth", "current_vertex"
 
-    def __init__(self, graph: Graph, max_depth: int):
+    def __init__(self, graph: Graph, max_depth: float):
         assert isinstance(graph, Graph)
         self.graph = graph
         self.max_depth = max_depth
