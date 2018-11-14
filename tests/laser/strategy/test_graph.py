@@ -44,3 +44,26 @@ def test_add_edges_multiple_times(edge_list1, edge_list2):
     graph.add_edges(edge_list2[0], edge_list2[1])
 
     assert graph.adjacency_list[edge_list1[0]] == edge_list1[1] + edge_list2[1]
+
+
+@pytest.mark.parametrize("edge_list1, edge_list2", add_multiple_edges_test_data)
+def test_edge_list(edge_list1, edge_list2):
+    graph = Graph()
+    graph.add_edges(edge_list1[0], edge_list1[1])
+    assert edge_list1 == graph.get_current_edge_list()
+
+
+def test_edge_list_uninitialized():
+    graph = Graph()
+
+    with pytest.raises(IndexError):
+        graph.get_current_edge_list()
+
+
+@pytest.mark.parametrize("vertex", root_vertex)
+def test_edge_list_doesnt_exist(vertex):
+    graph = Graph()
+    graph.add_vertex(vertex)
+
+    assert graph.get_current_edge_list() == []
+

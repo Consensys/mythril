@@ -1,9 +1,7 @@
 from random import shuffle
-from copy import copy
-from typing import List
 
 from . import AdvancedSearchStrategy
-from mythril.laser.ethereum.graph import Graph
+from mythril.laser.ethereum.strategy.graph import Graph
 from mythril.laser.ethereum.state import GlobalState
 
 
@@ -20,13 +18,7 @@ class RandomBranchDepthFirstSearch(AdvancedSearchStrategy):
 
     def get_strategic_global_state(self) -> GlobalState:
 
-        if not self.graph.work_list:
-            raise IndexError
-
-        try:
-            edge_list = copy(self.graph.adjacency_list[self.graph.work_list[-1]])
-        except KeyError:
-            edge_list = []
+        edge_list = self.graph.get_current_edge_list()
         shuffle(edge_list)
         self.graph.work_list += edge_list
 

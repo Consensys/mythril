@@ -1,5 +1,7 @@
-from typing import List, Dict
+from typing import List
+from copy import copy
 from abc import ABC, abstractmethod
+
 from mythril.laser.ethereum.state import GlobalState
 
 
@@ -25,9 +27,17 @@ class Graph(BaseGraph):
     def add_edges(self, from_vertex: GlobalState, to_vertices: List):
         if from_vertex not in self.adjacency_list.keys():
             self.adjacency_list[from_vertex] = []
+            self.work_list.append(from_vertex)
+
         for to_vertex in to_vertices:
             self.work_list.append(to_vertex)
             self.adjacency_list[from_vertex].append(to_vertex)
+
+    def get_current_edge_list(self):
+        try:
+            return copy(self.graph.adjacency_list[self.graph.work_list[-1]])
+        except KeyError:
+            return []
 
 
 class SimpleGraph(BaseGraph):
