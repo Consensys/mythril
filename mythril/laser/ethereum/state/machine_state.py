@@ -8,6 +8,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackUnderflowException,
 )
 from mythril.laser.ethereum.state.constraints import Constraints
+from mythril.laser.ethereum.state.memory import Memory
 
 
 class MachineStack(list):
@@ -78,26 +79,10 @@ class MachineState:
         """ Constructor for machineState """
         self.pc = pc
         self.stack = MachineStack(stack)
-        self.memory = memory or []
+        self.memory = memory or Memory("memory")
         self.gas = gas
         self.constraints = constraints or Constraints()
         self.depth = depth
-
-    def mem_extend(self, start: int, size: int) -> None:
-        """
-        Extends the memory of this machine state
-        :param start: Start of memory extension
-        :param size: Size of memory extension
-        """
-        if self.memory_size > start + size:
-            return
-        m_extend = start + size - self.memory_size
-        self.memory.extend(bytearray(m_extend))
-
-    def memory_write(self, offset: int, data: List[int]) -> None:
-        """ Writes data to memory starting at offset """
-        self.mem_extend(offset, len(data))
-        self.memory[offset : offset + len(data)] = data
 
     def pop(self, amount=1) -> Union[BitVec, List[BitVec]]:
         """ Pops amount elements from the stack"""
@@ -123,15 +108,10 @@ class MachineState:
         return str(self.as_dict)
 
     @property
-    def memory_size(self) -> int:
-        return len(self.memory)
-
-    @property
     def as_dict(self) -> Dict:
         return dict(
             pc=self.pc,
             stack=self.stack,
             memory=self.memory,
-            memsize=self.memory_size,
             gas=self.gas,
         )

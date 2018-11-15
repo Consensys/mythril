@@ -468,31 +468,9 @@ class Instruction:
             size_sym = True
 
         if size_sym:
-            state.mem_extend(mstart, 1)
-            state.memory[mstart] = global_state.new_bitvec(
-                "calldata_"
-                + str(environment.active_account.contract_name)
-                + "["
-                + str(dstart)
-                + ": + "
-                + str(size)
-                + "]",
-                256,
-            )
-            return [global_state]
-
-        if size > 0:
-            try:
-                state.mem_extend(mstart, size)
-            except TypeError:
-                logging.debug(
-                    "Memory allocation error: mstart = "
-                    + str(mstart)
-                    + ", size = "
-                    + str(size)
-                )
-                state.mem_extend(mstart, 1)
-                state.memory[mstart] = global_state.new_bitvec(
+            state.memory.write_word_at(
+                mstart,
+                global_state.new_bitvec(
                     "calldata_"
                     + str(environment.active_account.contract_name)
                     + "["
@@ -501,9 +479,11 @@ class Instruction:
                     + str(size)
                     + "]",
                     256,
-                )
-                return [global_state]
+                ),
+            )
+            return [global_state]
 
+        if size > 0:
             try:
                 i_data = dstart
                 new_memory = []
@@ -587,7 +567,6 @@ class Instruction:
             return [global_state]
 
         try:
-            state.mem_extend(index, length)
             data = b"".join(
                 [
                     util.get_concrete_int(i).to_bytes(1, byteorder="big")
@@ -630,17 +609,16 @@ class Instruction:
 
         try:
             concrete_size = helper.get_concrete_int(size)
-            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
         except TypeError:
             # except both attribute error and Exception
-            global_state.mstate.mem_extend(concrete_memory_offset, 1)
-            global_state.mstate.memory[
-                concrete_memory_offset
-            ] = global_state.new_bitvec(
-                "code({})".format(
-                    global_state.environment.active_account.contract_name
+            global_state.mstate.memory.write_word_at(
+                concrete_memory_offset,
+                global_state.new_bitvec(
+                    "code({})".format(
+                        global_state.environment.active_account.contract_name
+                    ),
+                    256,
                 ),
-                256,
             )
             return [global_state]
 
@@ -648,15 +626,14 @@ class Instruction:
             concrete_code_offset = helper.get_concrete_int(code_offset)
         except TypeError:
             logging.debug("Unsupported symbolic code offset in CODECOPY")
-            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
             for i in range(concrete_size):
                 global_state.mstate.memory[
                     concrete_memory_offset + i
                 ] = global_state.new_bitvec(
                     "code({})".format(
-                        global_state.environment.active_account.contract_name
+                        global_state.environment.active_account.contract_name, i
                     ),
-                    256,
+                    8,
                 )
             return [global_state]
 
@@ -666,15 +643,16 @@ class Instruction:
             global_state.current_transaction, ContractCreationTransaction
         ):
             if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
-                global_state.mstate.mem_extend(concrete_memory_offset, 1)
-                global_state.mstate.memory[
-                    concrete_memory_offset
-                ] = global_state.new_bitvec(
-                    "code({})".format(
-                        global_state.environment.active_account.contract_name
+                global_state.mstate.memory.write_word_at(
+                    concrete_memory_offset,
+                    global_state.new_bitvec(
+                        "code({})".format(
+                            global_state.environment.active_account.contract_name
+                        ),
+                        256,
                     ),
-                    256,
                 )
+
                 return [global_state]
 
         for i in range(concrete_size):
@@ -694,9 +672,8 @@ class Instruction:
                     "code({})".format(
                         global_state.environment.active_account.contract_name
                     ),
-                    256,
+                    8,
                 )
-
         return [global_state]
 
     @StateTransition()
@@ -789,12 +766,8 @@ class Instruction:
             data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
             return [global_state]
-        try:
-            state.mem_extend(offset, 32)
-            data = util.concrete_int_from_bytes(state.memory, offset)
-        except TypeError:  # Symbolic memory
-            # TODO: Handle this properly
-            data = state.memory[offset]
+
+        data = state.memory.get_word_at(offset)
 
         logging.debug("Load from memory[" + str(offset) + "]: " + str(data))
 
@@ -812,25 +785,9 @@ class Instruction:
             logging.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
-        try:
-            state.mem_extend(mstart, 32)
-        except Exception:
-            logging.debug(
-                "Error extending memory, mstart = " + str(mstart) + ", size = 32"
-            )
-
         logging.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
 
-        try:
-            # Attempt to concretize value
-            _bytes = util.concrete_int_to_bytes(value)
-            assert len(_bytes) == 32
-            state.memory[mstart : mstart + 32] = _bytes
-        except:
-            try:
-                state.memory[mstart] = value
-            except TypeError:
-                logging.debug("Invalid memory access")
+        state.memory.write_word_at(mstart, value)
 
         return [global_state]
 
@@ -845,9 +802,15 @@ class Instruction:
             logging.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
-        state.mem_extend(offset, 1)
+        try:
+            value_to_write = util.get_concrete_int(value) ^ 0xFF
+        except TypeError:  # BitVec
+            value_to_write = Extract(7, 0, value)
 
-        state.memory[offset] = value % 256
+        logging.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
+
+        state.memory[offset] = value_to_write
+
         return [global_state]
 
     @StateTransition()
@@ -1117,6 +1080,7 @@ class Instruction:
             return_data = state.memory[
                 util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
             ]
+            return_data = [util.get_concrete_int(i) for i in return_data]
         except TypeError:
             logging.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
@@ -1211,7 +1175,6 @@ class Instruction:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
 
-            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
             call_address_int = int(callee_address, 16)
             try:
                 data = natives.native_contracts(call_address_int, call_data)
@@ -1297,9 +1260,6 @@ class Instruction:
             return [global_state]
 
         # Copy memory
-        global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
-        )
         for i in range(min(memory_out_size, len(global_state.last_return_data))):
             global_state.mstate.memory[
                 i + memory_out_offset
@@ -1392,9 +1352,6 @@ class Instruction:
             return [global_state]
 
         # Copy memory
-        global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
-        )
         for i in range(min(memory_out_size, len(global_state.last_return_data))):
             global_state.mstate.memory[
                 i + memory_out_offset
@@ -1486,10 +1443,7 @@ class Instruction:
             )
             return [global_state]
 
-            # Copy memory
-        global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
-        )
+        # Copy memory
         for i in range(min(memory_out_size, len(global_state.last_return_data))):
             global_state.mstate.memory[
                 i + memory_out_offset
