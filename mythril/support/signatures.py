@@ -7,6 +7,7 @@ import json
 import time
 import logging
 
+from collections import defaultdict
 from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
@@ -58,17 +59,15 @@ class SignatureDb(object):
         Constr
         :param enable_online_lookup: enable onlien signature hash lookup
         """
-        self.signatures = {}  # signatures in-mem cache
+        self.signatures = defaultdict(list)  # signatures in-mem cache
         self.signatures_file = None
         self.enable_online_lookup = (
             enable_online_lookup
         )  # enable online funcsig resolving
-        self.online_lookup_miss = (
-            set()
-        )  # temporarily track misses from onlinedb to avoid requesting the same non-existent sighash multiple times
-        self.online_directory_unavailable_until = (
-            0
-        )  # flag the online directory as unavailable for some time
+        # temporarily track misses from onlinedb to avoid requesting the same non-existent sighash multiple times
+        self.online_lookup_miss = set()
+        # flag the online directory as unavailable for some time
+        self.online_directory_unavailable_until = 0
 
     def open(self, path=None):
         """
@@ -85,9 +84,8 @@ class SignatureDb(object):
                 mythril_dir = os.path.join(os.path.expanduser("~"), ".mythril")
             path = os.path.join(mythril_dir, "signatures.json")
 
-        self.signatures_file = (
-            path
-        )  # store early to allow error handling to access the place we tried to load the file
+        # store early to allow error handling to access the place we tried to load the file
+        self.signatures_file = path
         if not os.path.exists(path):
             logging.debug("Signatures: file not found: %s" % path)
             raise FileNotFoundError(
@@ -104,9 +102,8 @@ class SignatureDb(object):
         # normalize it to {sighash:list(signatures,...)}
         for sighash, funcsig in sigs.items():
             if isinstance(funcsig, list):
-                self.signatures = sigs
+                self.signatures = defaultdict(list, sigs)
                 break  # already normalized
-            self.signatures.setdefault(sighash, [])
             self.signatures[sighash].append(funcsig)
 
         return self
@@ -131,10 +128,14 @@ class SignatureDb(object):
                 finally:
                     unlock_file(f)
 
-            sigs.update(
-                self.signatures
-            )  # reload file and merge cached sigs into what we load from file
-            self.signatures = sigs
+            for sighash, funcsig in sigs.items():
+                updated_funcsigs = set(funcsig + self.signatures[sighash])
+                self.signatures[sighash] = list(updated_funcsigs)
+
+            # sigs.update(
+            #     self.signatures
+            # )  # reload file and merge cached sigs into what we load from file
+            # self.signatures = sigs
 
         if directory and not os.path.exists(directory):
             os.makedirs(directory)  # create folder structure if not existS
@@ -145,7 +146,7 @@ class SignatureDb(object):
         with open(path, "r+") as f:  # placing 'w+' here will result in race conditions
             lock_file(f, exclusive=True)
             try:
-                json.dump(self.signatures, f)
+                json.dump(self.signatures, f, indent=4, sort_keys=True)
             finally:
                 unlock_file(f)
 
