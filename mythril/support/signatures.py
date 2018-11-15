@@ -99,14 +99,27 @@ class SignatureDb(object):
             finally:
                 unlock_file(f)
 
-        # normalize it to {sighash:list(signatures,...)}
+        # assert signature file format
         for sighash, funcsig in sigs.items():
-            if isinstance(funcsig, list):
-                self.signatures = defaultdict(list, sigs)
-                break  # already normalized
-            self.signatures[sighash].append(funcsig)
+            if (
+                not sighash.startswith("0x")
+                or len(sighash) != 10
+                or not isinstance(funcsig, list)
+            ):
+                raise ValueError(
+                    "Malformed signature file at {}. {}: {} is not a valid entry".format(
+                        path, sighash, funcsig
+                    )
+                )
+        self.signatures = sigs
 
         return self
+
+    def update_signatures(self, new_signatures):
+        for sighash, funcsigs in new_signatures.items():
+            # eliminate duplicates
+            updated_funcsigs = set(funcsigs + self.signatures[sighash])
+            self.signatures[sighash] = list(updated_funcsigs)
 
     def write(self, path=None, sync=True):
         """
@@ -128,9 +141,7 @@ class SignatureDb(object):
                 finally:
                     unlock_file(f)
 
-            for sighash, funcsig in sigs.items():
-                updated_funcsigs = set(funcsig + self.signatures[sighash])
-                self.signatures[sighash] = list(updated_funcsigs)
+            self.update_signatures(sigs)
 
             # sigs.update(
             #     self.signatures
@@ -146,7 +157,7 @@ class SignatureDb(object):
         with open(path, "r+") as f:  # placing 'w+' here will result in race conditions
             lock_file(f, exclusive=True)
             try:
-                json.dump(self.signatures, f, indent=4, sort_keys=True)
+                json.dump(self.signatures, f, indent=4)
             finally:
                 unlock_file(f)
 
@@ -179,7 +190,7 @@ class SignatureDb(object):
                 )  # might return multiple sigs
                 if funcsigs:
                     # only store if we get at least one result
-                    self.signatures[sighash] = funcsigs
+                    self.update_signatures({sighash: funcsigs})
                 else:
                     # miss
                     self.online_lookup_miss.add(sighash)
@@ -214,8 +225,8 @@ class SignatureDb(object):
         :param file_path: solidity source code file path
         :return: self
         """
-        self.signatures.update(
-            SignatureDb.get_sigs_from_file(
+        self.update_signatures(
+            self.get_sigs_from_file(
                 file_path, solc_binary=solc_binary, solc_args=solc_args
             )
         )
