@@ -48,7 +48,7 @@ def test_concrete_call():
         == "This contract forwards its call data via DELEGATECALL in its fallback function."
         " This means that any function in the called contract can be executed."
         " Note that the callee contract will have access to the storage of the "
-        "calling contract.\n DELEGATECALL target: 0x1"
+        "calling contract.\nDELEGATECALL target: 0x1"
     )
 
 
@@ -80,12 +80,11 @@ def test_concrete_call_symbolic_to():
     assert issue.function == node.function_name
     assert issue.title == "Call data forwarded with delegatecall()"
     assert issue.type == "Informational"
-    assert (
-        issue.description
-        == "This contract forwards its call data via DELEGATECALL in its fallback function."
+    assert issue.description == (
+        "This contract forwards its call data via DELEGATECALL in its fallback function."
         " This means that any function in the called contract can be executed."
         " Note that the callee contract will have access to the storage of the "
-        "calling contract.\n DELEGATECALL target: calldata_3"
+        "calling contract.\nDELEGATECALL target: calldata_3"
     )
 
 
@@ -135,11 +134,10 @@ def test_symbolic_call_storage_to(mocker):
     assert issue.function == node.function_name
     assert issue.title == "Type:  to a user-supplied address"
     assert issue.type == "Informational"
-    assert (
-        issue.description
-        == "This contract delegates execution to a contract address in storage slot 1."
-        " This storage slot can be written to by calling the function `Function name`. "
-        "Be aware that the called contract gets unrestricted access to this contract's state."
+    assert issue.description == (
+        "This contract delegates execution to a contract address in storage slot 1."
+        " This storage slot can be written to by calling the function `Function name`."
+        " Be aware that the called contract gets unrestricted access to this contract's state."
     )
 
 
@@ -176,10 +174,9 @@ def test_symbolic_call_calldata_to(mocker):
     assert issue.function == node.function_name
     assert issue.title == "Type:  to a user-supplied address"
     assert issue.type == "Informational"
-    assert (
-        issue.description
-        == "This contract delegates execution to a contract address obtained from calldata. "
-        "Be aware that the called contract gets unrestricted access to this contract's state."
+    assert issue.description == (
+        "This contract delegates execution to a contract address obtained from calldata."
+        " Be aware that the called contract gets unrestricted access to this contract's state."
     )
 
 

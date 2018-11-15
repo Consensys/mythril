@@ -157,7 +157,7 @@ class SignatureDb(object):
         with open(path, "r+") as f:  # placing 'w+' here will result in race conditions
             lock_file(f, exclusive=True)
             try:
-                json.dump(self.signatures, f, indent=4)
+                json.dump(self.signatures, f, indent=4, sort_keys=True)
             finally:
                 unlock_file(f)
 

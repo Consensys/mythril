@@ -102,5 +102,5 @@ def _symbolic_call(call, state, address, statespace):
             else:
                 logging.debug("[DELEGATECALL] No storage writes to index " + str(idx))
 
-    issue.description += "Be aware that the called contract gets unrestricted access to this contract's state."
+    issue.description += " Be aware that the called contract gets unrestricted access to this contract's state."
     return [issue]
