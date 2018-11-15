@@ -58,7 +58,7 @@ def _concrete_call(call, state, address, meminstart):
     issue.description = (
         "This contract forwards its call data via DELEGATECALL in its fallback function. "
         "This means that any function in the called contract can be executed. Note that the callee contract will have "
-        "access to the storage of the calling contract.\n "
+        "access to the storage of the calling contract.\n"
     )
 
     target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
@@ -79,7 +79,7 @@ def _symbolic_call(call, state, address, statespace):
     )
 
     if "calldata" in str(call.to):
-        issue.description = "This contract delegates execution to a contract address obtained from calldata. "
+        issue.description = "This contract delegates execution to a contract address obtained from calldata."
 
     else:
         m = re.search(r"storage_([a-z0-9_&^]+)", str(call.to))
@@ -96,7 +96,7 @@ def _symbolic_call(call, state, address, statespace):
                     + str(idx)
                     + ". This storage slot can be written to by calling the function `"
                     + func
-                    + "`. "
+                    + "`."
                 )
 
             else:

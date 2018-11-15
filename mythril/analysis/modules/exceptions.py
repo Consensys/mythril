@@ -37,7 +37,7 @@ def execute(statespace):
                     )
                     description += (
                         "Note that explicit `assert()` should only be used to check invariants. "
-                        "Use `require()` for regular input checking. "
+                        "Use `require()` for regular input checking."
                     )
 
                     debug = "Transaction Sequence: " + str(

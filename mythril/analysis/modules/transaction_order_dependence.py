@@ -11,7 +11,7 @@ from mythril.exceptions import UnsatError
 """
 MODULE DESCRIPTION:
 This module finds the existance of transaction order dependence vulnerabilities.
-The following webpage contains an extensive description of the vulnerability: 
+The following webpage contains an extensive description of the vulnerability:
 https://consensys.github.io/smart-contract-best-practices/known_attacks/#transaction-ordering-dependence-tod-front-running
 """
 
@@ -49,7 +49,7 @@ def execute(statespace):
 
             issue.description = (
                 "Possible transaction order dependence vulnerability: The value or "
-                "direction of the call statement is determined from a tainted storage location"
+                "direction of the call statement is determined from a tainted storage location."
             )
             issues.append(issue)
 
