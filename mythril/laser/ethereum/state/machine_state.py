@@ -109,9 +109,4 @@ class MachineState:
 
     @property
     def as_dict(self) -> Dict:
-        return dict(
-            pc=self.pc,
-            stack=self.stack,
-            memory=self.memory,
-            gas=self.gas,
-        )
+        return dict(pc=self.pc, stack=self.stack, memory=self.memory, gas=self.gas)
