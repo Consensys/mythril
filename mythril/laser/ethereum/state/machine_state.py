@@ -3,9 +3,11 @@ from typing import Union, Any, List, Dict
 
 from z3 import BitVec
 
+from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
+    OutOfGasException,
 )
 from mythril.laser.ethereum.state.constraints import Constraints
 
@@ -73,15 +75,46 @@ class MachineState:
     """
 
     def __init__(
-        self, gas: int, pc=0, stack=None, memory=None, constraints=None, depth=0
+        self,
+        gas_limit: int,
+        pc=0,
+        stack=None,
+        memory=None,
+        constraints=None,
+        depth=0,
+        max_gas_used=0,
+        min_gas_used=0,
     ):
         """ Constructor for machineState """
         self.pc = pc
         self.stack = MachineStack(stack)
         self.memory = memory or []
-        self.gas = gas
+        self.gas_limit = gas_limit
+        self.min_gas_used = min_gas_used  # lower gas usage bound
+        self.max_gas_used = max_gas_used  # upper gas usage bound
         self.constraints = constraints or Constraints()
         self.depth = depth
+
+    def calculate_extension_size(self, start: int, size: int) -> int:
+        if self.memory_size > start + size:
+            return 0
+        return start + size - self.memory_size
+
+    def calculate_memory_gas(self, start: int, size: int):
+        # https://github.com/ethereum/pyethereum/blob/develop/ethereum/vm.py#L148
+        oldsize = self.memory_size // 32
+        old_totalfee = (
+            oldsize * opcodes.GMEMORY + oldsize ** 2 // opcodes.GQUADRATICMEMDENOM
+        )
+        newsize = utils.ceil32(start + size) // 32
+        new_totalfee = (
+            newsize * opcodes.GMEMORY + newsize ** 2 // opcodes.GQUADRATICMEMDENOM
+        )
+        return new_totalfee - old_totalfee
+
+    def check_gas(self):
+        if self.min_gas_used > self.gas_limit:
+            raise OutOfGasException()
 
     def mem_extend(self, start: int, size: int) -> None:
         """
@@ -89,10 +122,13 @@ class MachineState:
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
-        if self.memory_size > start + size:
-            return
-        m_extend = start + size - self.memory_size
-        self.memory.extend(bytearray(m_extend))
+        m_extend = self.calculate_extension_size(start, size)
+        if m_extend:
+            extend_gas = self.calculate_memory_gas(start, size)
+            self.min_gas_used += extend_gas
+            self.max_gas_used += extend_gas
+            self.check_gas()
+            self.memory.extend(bytearray(m_extend))
 
     def memory_write(self, offset: int, data: List[int]) -> None:
         """ Writes data to memory starting at offset """
@@ -111,7 +147,9 @@ class MachineState:
     def __deepcopy__(self, memodict=None):
         memodict = {} if memodict is None else memodict
         return MachineState(
-            gas=self.gas,
+            gas_limit=self.gas_limit,
+            max_gas_used=self.max_gas_used,
+            min_gas_used=self.min_gas_used,
             pc=self.pc,
             stack=copy(self.stack),
             memory=copy(self.memory),
@@ -133,5 +171,7 @@ class MachineState:
             stack=self.stack,
             memory=self.memory,
             memsize=self.memory_size,
-            gas=self.gas,
+            gas=self.gas_limit,
+            max_gas_used=self.max_gas_used,
+            min_gas_used=self.min_gas_used,
         )

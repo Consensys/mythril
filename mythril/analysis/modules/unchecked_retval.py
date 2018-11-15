@@ -59,6 +59,7 @@ def execute(statespace):
                     bytecode=state.environment.code.bytecode,
                     title="Unchecked CALL return value",
                     swc_id=UNCHECKED_RET_VAL,
+                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 )
 
                 issue.description = (
@@ -108,6 +109,10 @@ def execute(statespace):
                             address=address,
                             title="Unchecked CALL return value",
                             swc_id=UNCHECKED_RET_VAL,
+                            gas_used=(
+                                state.mstate.min_gas_used,
+                                state.mstate.max_gas_used,
+                            ),
                         )
 
                         issue.description = (

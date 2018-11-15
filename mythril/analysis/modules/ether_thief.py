@@ -85,6 +85,7 @@ def _analyze_state(state, node):
             description="Users other than the contract creator can withdraw ETH from the contract account"
             + " without previously having sent any ETH to it. This is likely to be vulnerability.",
             debug=debug,
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
         issues.append(issue)
     except UnsatError:

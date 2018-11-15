@@ -37,7 +37,9 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackUnderflowException,
     InvalidJumpDestination,
     InvalidInstruction,
+    OutOfGasException,
 )
+from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -63,8 +65,9 @@ class StateTransition(object):
     incremented if `increment_pc=True`.
     """
 
-    def __init__(self, increment_pc=True):
+    def __init__(self, increment_pc=True, enable_gas=True):
         self.increment_pc = increment_pc
+        self.enable_gas = enable_gas
 
     @staticmethod
     def call_on_state_copy(func: Callable, func_obj: "Instruction", state: GlobalState):
@@ -77,11 +80,32 @@ class StateTransition(object):
                 state.mstate.pc += 1
         return states
 
+    @staticmethod
+    def check_gas_usage_limit(global_state: GlobalState):
+        global_state.mstate.check_gas()
+        if (
+            global_state.mstate.min_gas_used
+            >= global_state.current_transaction.gas_limit
+        ):
+            raise OutOfGasException()
+
+    def accumulate_gas(self, global_state: GlobalState):
+        if not self.enable_gas:
+            return global_state
+        opcode = global_state.instruction["opcode"]
+        min_gas, max_gas = OPCODE_GAS[opcode]
+        global_state.mstate.min_gas_used += min_gas
+        global_state.mstate.max_gas_used += max_gas
+        return global_state
+
     def __call__(self, func: Callable) -> Callable:
         def wrapper(
             func_obj: "Instruction", global_state: GlobalState
         ) -> List[GlobalState]:
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
+            new_global_states = [
+                self.accumulate_gas(state) for state in new_global_states
+            ]
             return self.increment_states_pc(new_global_states)
 
         return wrapper
@@ -94,7 +118,7 @@ class Instruction:
 
     def __init__(self, op_code: str, dynamic_loader: DynLoader):
         self.dynamic_loader = dynamic_loader
-        self.op_code = op_code
+        self.op_code = op_code.upper()
 
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
@@ -326,6 +350,7 @@ class Instruction:
                 )
             )
         else:
+
             state.stack.append(pow(base.as_long(), exponent.as_long(), 2 ** 256))
 
         return [global_state]
@@ -570,7 +595,7 @@ class Instruction:
         state.stack.append(len(disassembly.bytecode) // 2)
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(enable_gas=False)
     def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
         global keccak_function_manager
 
@@ -584,7 +609,14 @@ class Instruction:
             if is_expr(op0):
                 op0 = simplify(op0)
             state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
+            state.min_gas_used += OPCODE_GAS["SHA3"][0]
+            state.max_gas_used += OPCODE_GAS["SHA3"][1]
             return [global_state]
+
+        min_gas, max_gas = OPCODE_GAS["SHA3_FUNC"](length)
+        state.min_gas_used += min_gas
+        state.max_gas_used += max_gas
+        StateTransition.check_gas_usage_limit(global_state)
 
         try:
             state.mem_extend(index, length)
@@ -629,8 +661,9 @@ class Instruction:
             return [global_state]
 
         try:
-            concrete_size = helper.get_concrete_int(size)
-            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+            size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, size)
+
         except TypeError:
             # except both attribute error and Exception
             global_state.mstate.mem_extend(concrete_memory_offset, 1)
@@ -648,8 +681,8 @@ class Instruction:
             concrete_code_offset = helper.get_concrete_int(code_offset)
         except TypeError:
             logging.debug("Unsupported symbolic code offset in CODECOPY")
-            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
-            for i in range(concrete_size):
+            global_state.mstate.mem_extend(concrete_memory_offset, size)
+            for i in range(size):
                 global_state.mstate.memory[
                     concrete_memory_offset + i
                 ] = global_state.new_bitvec(
@@ -662,7 +695,7 @@ class Instruction:
 
         bytecode = global_state.environment.code.bytecode
 
-        if concrete_size == 0 and isinstance(
+        if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
             if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
@@ -677,7 +710,7 @@ class Instruction:
                 )
                 return [global_state]
 
-        for i in range(concrete_size):
+        for i in range(size):
             if 2 * (concrete_code_offset + i + 1) <= len(bytecode):
                 global_state.mstate.memory[concrete_memory_offset + i] = int(
                     bytecode[
@@ -731,6 +764,7 @@ class Instruction:
         state = global_state.mstate
         addr = state.stack.pop()
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
         return [global_state]
 
     @StateTransition()
@@ -771,7 +805,7 @@ class Instruction:
 
     @StateTransition()
     def gaslimit_(self, global_state: GlobalState) -> List[GlobalState]:
-        global_state.mstate.stack.append(global_state.new_bitvec("block_gaslimit", 256))
+        global_state.mstate.stack.append(global_state.mstate.gas_limit)
         return [global_state]
 
     # Memory operations
@@ -990,7 +1024,7 @@ class Instruction:
 
         return [global_state]
 
-    @StateTransition(increment_pc=False)
+    @StateTransition(increment_pc=False, enable_gas=False)
     def jump_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         disassembly = global_state.environment.code
@@ -1013,15 +1047,22 @@ class Instruction:
             )
 
         new_state = copy(global_state)
+        # add JUMP gas cost
+        min_gas, max_gas = OPCODE_GAS["JUMP"]
+        new_state.mstate.min_gas_used += min_gas
+        new_state.mstate.max_gas_used += max_gas
+
+        # manually set PC to destination
         new_state.mstate.pc = index
         new_state.mstate.depth += 1
 
         return [new_state]
 
-    @StateTransition(increment_pc=False)
+    @StateTransition(increment_pc=False, enable_gas=False)
     def jumpi_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
         disassembly = global_state.environment.code
+        min_gas, max_gas = OPCODE_GAS["JUMPI"]
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
@@ -1031,6 +1072,8 @@ class Instruction:
         except TypeError:
             logging.debug("Skipping JUMPI to invalid destination.")
             global_state.mstate.pc += 1
+            global_state.mstate.min_gas_used += min_gas
+            global_state.mstate.max_gas_used += max_gas
             return [global_state]
 
         # False case
@@ -1042,6 +1085,11 @@ class Instruction:
             type(negated) == BoolRef and not is_false(negated)
         ):
             new_state = copy(global_state)
+            # add JUMPI gas cost
+            new_state.mstate.min_gas_used += min_gas
+            new_state.mstate.max_gas_used += max_gas
+
+            # manually increment PC
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
             new_state.mstate.constraints.append(negated)
@@ -1065,6 +1113,11 @@ class Instruction:
                 type(condi) == BoolRef and not is_false(condi)
             ):
                 new_state = copy(global_state)
+                # add JUMPI gas cost
+                new_state.mstate.min_gas_used += min_gas
+                new_state.mstate.max_gas_used += max_gas
+
+                # manually set PC to destination
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
                 new_state.mstate.constraints.append(condi)
@@ -1095,7 +1148,7 @@ class Instruction:
         state = global_state.mstate
         dpth = int(self.op_code[3:])
         state.stack.pop(), state.stack.pop()
-        [state.stack.pop() for _ in range(dpth)]
+        log_data = [state.stack.pop() for _ in range(dpth)]
         # Not supported
         return [global_state]
 
@@ -1124,7 +1177,7 @@ class Instruction:
     @StateTransition()
     def suicide_(self, global_state: GlobalState):
         target = global_state.mstate.stack.pop()
-
+        account_created = False
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, BitVecNumRef):
@@ -1139,10 +1192,10 @@ class Instruction:
                     address=target,
                     balance=global_state.environment.active_account.balance,
                 )
+                account_created = True
 
         global_state.environment.active_account.balance = 0
         global_state.environment.active_account.deleted = True
-
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
@@ -1211,12 +1264,18 @@ class Instruction:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
 
-            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+            contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
             call_address_int = int(callee_address, 16)
+            native_gas_min, native_gas_max = OPCODE_GAS["NATIVE_COST"](
+                global_state.mstate.calculate_extension_size(mem_out_start, mem_out_sz),
+                contract_list[call_address_int - 1],
+            )
+            global_state.mstate.min_gas_used += native_gas_min
+            global_state.mstate.max_gas_used += native_gas_max
+            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
             try:
                 data = natives.native_contracts(call_address_int, call_data)
             except natives.NativeContractException:
-                contract_list = ["ecerecover", "sha256", "ripemd160", "identity"]
                 for i in range(mem_out_sz):
                     global_state.mstate.memory[
                         mem_out_start + i
@@ -1227,7 +1286,6 @@ class Instruction:
                         + ")",
                         256,
                     )
-
                 return [global_state]
 
             for i in range(
@@ -1239,14 +1297,15 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(
-            global_state.world_state,
-            callee_account,
-            BitVecVal(int(environment.active_account.address, 16), 256),
-            call_data=call_data,
+            world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            call_value=value,
+            gas_limit=gas,
             origin=environment.origin,
+            caller=BitVecVal(int(environment.active_account.address, 16), 256),
+            callee_account=callee_account,
+            call_data=call_data,
             call_data_type=call_data_type,
+            call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1255,7 +1314,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1333,15 +1392,16 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(
-            global_state.world_state,
-            environment.active_account,
-            environment.address,
-            call_data=call_data,
+            world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            call_value=value,
+            gas_limit=gas,
             origin=environment.origin,
-            call_data_type=call_data_type,
             code=callee_account.code,
+            caller=environment.address,
+            callee_account=environment.active_account,
+            call_data=call_data,
+            call_data_type=call_data_type,
+            call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1350,7 +1410,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1371,7 +1431,6 @@ class Instruction:
             )
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
-
             return [global_state]
 
         try:
@@ -1404,7 +1463,6 @@ class Instruction:
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
-
         return [global_state]
 
     @StateTransition()
@@ -1413,7 +1471,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, _, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1428,15 +1486,16 @@ class Instruction:
             return [global_state]
 
         transaction = MessageCallTransaction(
-            global_state.world_state,
-            environment.active_account,
-            environment.sender,
-            call_data,
+            world_state=global_state.world_state,
             gas_price=environment.gasprice,
-            call_value=environment.callvalue,
+            gas_limit=gas,
             origin=environment.origin,
-            call_data_type=call_data_type,
             code=callee_account.code,
+            caller=environment.sender,
+            callee_account=environment.active_account,
+            call_data=call_data,
+            call_data_type=call_data_type,
+            call_value=environment.callvalue,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
@@ -1445,7 +1504,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            _, _, _, _, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1466,7 +1525,6 @@ class Instruction:
             )
             global_state.mstate.stack.append(return_value)
             global_state.mstate.constraints.append(return_value == 0)
-
             return [global_state]
 
         try:
@@ -1499,7 +1557,6 @@ class Instruction:
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
         global_state.mstate.constraints.append(return_value == 1)
-
         return [global_state]
 
     @StateTransition()
