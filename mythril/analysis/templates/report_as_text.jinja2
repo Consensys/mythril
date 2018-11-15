@@ -6,6 +6,7 @@ Type: {{ issue.type }}
 Contract: {{ issue.contract | default("Unknown") }}
 Function name: {{ issue.function }}
 PC address: {{ issue.address }}
+Estimated Gas Usage: {{ issue.min_gas_used }} - {{ issue.max_gas_used }}
 {{ issue.description }}
 --------------------
 {% if issue.filename and issue.lineno %}
