@@ -30,6 +30,10 @@ def execute(statespace):
                 bytecode=call.state.environment.code.bytecode,
                 title="Multiple Calls",
                 _type="Informational",
+                gas_used=(
+                    call.state.mstate.min_gas_used,
+                    call.state.mstate.max_gas_used,
+                ),
             )
 
             issue.description = (

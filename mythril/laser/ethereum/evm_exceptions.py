@@ -16,3 +16,7 @@ class InvalidJumpDestination(VmException):
 
 class InvalidInstruction(VmException):
     pass
+
+
+class OutOfGasException(VmException):
+    pass
