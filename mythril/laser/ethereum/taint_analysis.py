@@ -4,7 +4,8 @@ from typing import Union, List, Tuple
 from z3 import ExprRef
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum.cfg import JumpType, Node
-from mythril.laser.ethereum.state import GlobalState, Environment
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.symbolic import SymExecWrapper
 
 

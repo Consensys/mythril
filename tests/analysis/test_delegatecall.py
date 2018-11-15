@@ -6,7 +6,9 @@ from mythril.analysis.modules.delegatecall import (
 from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.ethereum.cfg import Node
-from mythril.laser.ethereum.state import GlobalState, Environment, Account
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.global_state import GlobalState
 import pytest
 from unittest.mock import MagicMock, patch
 import pytest_mock
@@ -181,7 +183,7 @@ def test_symbolic_call_calldata_to(mocker):
     )
 
 
-@patch("mythril.laser.ethereum.state.GlobalState.get_current_instruction")
+@patch("mythril.laser.ethereum.state.global_state.GlobalState.get_current_instruction")
 @patch("mythril.analysis.modules.delegatecall._concrete_call")
 @patch("mythril.analysis.modules.delegatecall._symbolic_call")
 def test_delegate_call(sym_mock, concrete_mock, curr_instruction):

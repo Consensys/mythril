@@ -7,7 +7,8 @@ from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
 )
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.state import WorldState, Account
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
 import unittest.mock as mock
 from unittest.mock import MagicMock
 

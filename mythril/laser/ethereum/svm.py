@@ -1,7 +1,9 @@
 import logging
 from typing import List, Tuple, Union, Callable, Dict
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import WorldState, GlobalState
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     TransactionEndSignal,
@@ -10,7 +12,6 @@ from mythril.laser.ethereum.transaction import (
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
-from mythril.laser.ethereum.state import Account
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from mythril.laser.ethereum.strategy import BasicSearchStrategy
 from datetime import datetime, timedelta

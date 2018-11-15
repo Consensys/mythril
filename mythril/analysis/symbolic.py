@@ -1,5 +1,5 @@
 from mythril.laser.ethereum import svm
-from mythril.laser.ethereum.state import Account
+from mythril.laser.ethereum.state.account import Account
 from mythril.ether.soliditycontract import SolidityContract, ETHContract
 import copy
 import logging

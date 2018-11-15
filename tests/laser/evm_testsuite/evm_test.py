@@ -1,5 +1,5 @@
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.state import Account
+from mythril.laser.ethereum.state.account import Account
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from mythril.analysis.solver import get_model

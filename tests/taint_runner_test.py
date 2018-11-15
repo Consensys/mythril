@@ -3,7 +3,10 @@ import pytest
 from pytest_mock import mocker
 from mythril.laser.ethereum.taint_analysis import *
 from mythril.laser.ethereum.cfg import Node, Edge
-from mythril.laser.ethereum.state import MachineState, Account, Environment, GlobalState
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.machine_state import MachineState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
 
 
