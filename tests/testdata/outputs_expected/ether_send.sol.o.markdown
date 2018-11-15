@@ -18,7 +18,7 @@ Users other than the contract creator can withdraw ETH from the contract account
 - Contract: Unknown
 - Function name: `invest()`
 - PC address: 883
-- Estimated Gas Usage: 1943 - 2228
+- Estimated Gas Usage: 1571 - 1856
 
 ### Description
 

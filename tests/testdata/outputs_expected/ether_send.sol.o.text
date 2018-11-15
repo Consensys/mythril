@@ -14,7 +14,7 @@ Type: Warning
 Contract: Unknown
 Function name: invest()
 PC address: 883
-Estimated Gas Usage: 1943 - 2228
+Estimated Gas Usage: 1571 - 1856
 This binary add operation can result in integer overflow.
 
 --------------------
