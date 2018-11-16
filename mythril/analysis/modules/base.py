@@ -8,7 +8,7 @@ class DetectionModule:
         self.hooks = hooks
         self.description = description
 
-    def execute(self):
+    def execute(self, statespace):
         raise NotImplementedError()
 
     def __repr__(self):
