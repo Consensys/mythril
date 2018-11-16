@@ -86,7 +86,9 @@ class LaserEVM:
         elif hook_type == "post":
             entrypoint = self.post_hooks
         else:
-            raise ValueError("Invalid hook type %s. Must be one of {pre, post}", hook_type)
+            raise ValueError(
+                "Invalid hook type %s. Must be one of {pre, post}", hook_type
+            )
 
         for op_code, funcs in hook_dict.items():
             entrypoint[op_code].extend(funcs)
