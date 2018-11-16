@@ -52,7 +52,7 @@ class PredictableDependenceModule(DetectionModule):
 
             found = []
             for var in vars:
-                for constraint in call.node.constraints + [call.to]:
+                for constraint in call.node.constraints[:] + [call.to]:
                     if var in str(constraint):
                         found.append(var)
 
@@ -74,12 +74,16 @@ class PredictableDependenceModule(DetectionModule):
                         title="Dependence on predictable environment variable",
                         _type="Warning",
                         description=description,
+                        gas_used=(
+                            call.state.mstate.min_gas_used,
+                            call.state.mstate.max_gas_used,
+                        ),
                     )
                     issues.append(issue)
 
             # Second check: blockhash
 
-            for constraint in call.node.constraints + [call.to]:
+            for constraint in call.node.constraints[:] + [call.to]:
                 if "blockhash" in str(constraint):
                     description = "In the function `" + call.node.function_name + "` "
                     if "number" in str(constraint):
@@ -121,6 +125,10 @@ class PredictableDependenceModule(DetectionModule):
                                 _type="Warning",
                                 description=description,
                                 swc_id=PREDICTABLE_VARS_DEPENDENCE,
+                                gas_used=(
+                                    call.state.mstate.min_gas_used,
+                                    call.state.mstate.max_gas_used,
+                                ),
                             )
                             issues.append(issue)
                             break
@@ -151,6 +159,10 @@ class PredictableDependenceModule(DetectionModule):
                                     _type="Informational",
                                     description=description,
                                     swc_id=PREDICTABLE_VARS_DEPENDENCE,
+                                    gas_used=(
+                                        call.state.mstate.min_gas_used,
+                                        call.state.mstate.max_gas_used,
+                                    ),
                                 )
                                 issues.append(issue)
                                 break

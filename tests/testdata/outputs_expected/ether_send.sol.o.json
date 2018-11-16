@@ -1,1 +1,30 @@
-{"error": null, "issues": [{"address": 722, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "It seems that an attacker is able to execute an call instruction, this can mean that the attacker is able to extract funds out of the contract.", "function": "withdrawfunds()", "swc_id": "105", "title": "Ether send", "type": "Warning"}, {"address": 883, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "This binary add operation can result in integer overflow.\n", "function": "invest()", "swc_id": "101", "title": "Integer Overflow", "type": "Warning"}], "success": true}
+{
+  "error": null,
+  "issues": [
+    {
+      "address": 722,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "Users other than the contract creator can withdraw ETH from the contract account without previously having sent any ETH to it. This is likely to be vulnerability.",
+      "function": "withdrawfunds()",
+      "swc-id": "105",
+      "min_gas_used": 1138,
+      "max_gas_used": 1749,
+      "title": "Ether thief",
+      "type": "Warning"
+    },
+    {
+      "address": 883,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "This binary add operation can result in integer overflow.\n",
+      "function": "invest()",
+      "swc-id": "101",
+      "min_gas_used": 1571,
+      "max_gas_used": 1856,
+      "title": "Integer Overflow",
+      "type": "Warning"
+    }
+  ],
+  "success": true
+}

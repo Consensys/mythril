@@ -70,7 +70,7 @@ class ExternalCallModule(DetectionModule):
 
             if call.type == "CALL":
 
-                logging.info(
+                logging.debug(
                     "[EXTERNAL_CALLS] Call to: %s, value = %s, gas = %s"
                     % (str(call.to), str(call.value), str(call.gas))
                 )
@@ -137,6 +137,7 @@ class ExternalCallModule(DetectionModule):
                             description=description,
                             bytecode=state.environment.code.bytecode,
                             swc_id=REENTRANCY,
+                            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                         )
 
                     else:
@@ -152,6 +153,7 @@ class ExternalCallModule(DetectionModule):
                             description=description,
                             bytecode=state.environment.code.bytecode,
                             swc_id=REENTRANCY,
+                            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                         )
 
                     issues.append(issue)
@@ -197,6 +199,10 @@ class ExternalCallModule(DetectionModule):
                                     description=description,
                                     bytecode=state.environment.code.bytecode,
                                     swc_id=REENTRANCY,
+                                    gas_used=(
+                                        state.mstate.min_gas_used,
+                                        state.mstate.max_gas_used,
+                                    ),
                                 )
                                 issues.append(issue)
 

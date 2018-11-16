@@ -1,6 +1,9 @@
 import logging
+from typing import List, Tuple, Union, Callable, Dict
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import WorldState
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     TransactionEndSignal,
@@ -36,7 +39,7 @@ class LaserEVM:
 
     def __init__(
         self,
-        accounts,
+        accounts: Dict[str, Account],
         dynamic_loader=None,
         max_depth=float("inf"),
         execution_timeout=60,
@@ -75,10 +78,16 @@ class LaserEVM:
         )
 
     @property
-    def accounts(self):
+    def accounts(self) -> Dict[str, Account]:
         return self.world_state.accounts
 
-    def sym_exec(self, main_address=None, creation_code=None, contract_name=None):
+    def sym_exec(
+        self,
+        main_address=None,
+        creation_code=None,
+        contract_name=None,
+        max_transactions=3,
+    ) -> None:
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
@@ -146,30 +155,36 @@ class LaserEVM:
             )
         return total_covered_instructions
 
-    def exec(self, create=False):
+    def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
+        final_states = []
         for global_state in self.strategy:
             if self.execution_timeout and not create:
                 if (
                     self.time + timedelta(seconds=self.execution_timeout)
                     <= datetime.now()
                 ):
-                    return
+                    return final_states + [global_state] if track_gas else None
             elif self.create_timeout and create:
                 if self.time + timedelta(seconds=self.create_timeout) <= datetime.now():
-                    return
+                    return final_states + [global_state] if track_gas else None
 
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.info("Encountered unimplemented instruction")
+                logging.debug("Encountered unimplemented instruction")
                 continue
-
             self.manage_cfg(op_code, new_states)
 
-            self.work_list += new_states
+            if new_states:
+                self.work_list += new_states
+            elif track_gas:
+                final_states.append(global_state)
             self.total_states += len(new_states)
+        return final_states if track_gas else None
 
-    def execute_state(self, global_state):
+    def execute_state(
+        self, global_state: GlobalState
+    ) -> Tuple[List[GlobalState], Union[str, None]]:
         instructions = global_state.environment.code.instruction_list
         try:
             op_code = instructions[global_state.mstate.pc]["opcode"]
@@ -246,8 +261,12 @@ class LaserEVM:
         return new_global_states, op_code
 
     def _end_message_call(
-        self, return_global_state, global_state, revert_changes=False, return_data=None
-    ):
+        self,
+        return_global_state: GlobalState,
+        global_state: GlobalState,
+        revert_changes=False,
+        return_data=None,
+    ) -> List[GlobalState]:
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[
             return_global_state.mstate.pc
@@ -272,7 +291,7 @@ class LaserEVM:
 
         return new_global_states
 
-    def _measure_coverage(self, global_state):
+    def _measure_coverage(self, global_state: GlobalState) -> None:
         code = global_state.environment.code.bytecode
         number_of_instructions = len(global_state.environment.code.instruction_list)
         instruction_index = global_state.mstate.pc
@@ -285,7 +304,7 @@ class LaserEVM:
 
         self.coverage[code][1][instruction_index] = True
 
-    def manage_cfg(self, opcode, new_states):
+    def manage_cfg(self, opcode: str, new_states: List[GlobalState]) -> None:
         if opcode == "JUMP":
             assert len(new_states) <= 1
             for state in new_states:
@@ -320,7 +339,9 @@ class LaserEVM:
         for state in new_states:
             state.node.states.append(state)
 
-    def _new_node_state(self, state, edge_type=JumpType.UNCONDITIONAL, condition=None):
+    def _new_node_state(
+        self, state: GlobalState, edge_type=JumpType.UNCONDITIONAL, condition=None
+    ) -> None:
         new_node = Node(state.environment.active_account.contract_name)
         old_node = state.node
         state.node = new_node
@@ -362,13 +383,15 @@ class LaserEVM:
 
         new_node.function_name = environment.active_function_name
 
-    def _execute_pre_hook(self, op_code, global_state):
+    def _execute_pre_hook(self, op_code: str, global_state: GlobalState) -> None:
         if op_code not in self.pre_hooks.keys():
             return
         for hook in self.pre_hooks[op_code]:
             hook(global_state)
 
-    def _execute_post_hook(self, op_code, global_states):
+    def _execute_post_hook(
+        self, op_code: str, global_states: List[GlobalState]
+    ) -> None:
         if op_code not in self.post_hooks.keys():
             return
 
@@ -376,20 +399,20 @@ class LaserEVM:
             for global_state in global_states:
                 hook(global_state)
 
-    def hook(self, op_code):
-        def hook_decorator(function):
+    def hook(self, op_code: str) -> Callable:
+        def hook_decorator(func: Callable):
             if op_code not in self.pre_hooks.keys():
                 self.pre_hooks[op_code] = []
-            self.pre_hooks[op_code].append(function)
-            return function
+            self.pre_hooks[op_code].append(func)
+            return func
 
         return hook_decorator
 
-    def post_hook(self, op_code):
-        def hook_decorator(function):
+    def post_hook(self, op_code: str) -> Callable:
+        def hook_decorator(func: Callable):
             if op_code not in self.post_hooks.keys():
                 self.post_hooks[op_code] = []
-            self.post_hooks[op_code].append(function)
-            return function
+            self.post_hooks[op_code].append(func)
+            return func
 
         return hook_decorator

@@ -1,4 +1,5 @@
 from mythril.analysis import solver
+from mythril.analysis.analysis_utils import get_non_creator_constraints
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
@@ -67,27 +68,10 @@ class SuicideModule(DetectionModule):
         else:
             description += "The remaining Ether is sent to: " + str(to) + "\n"
 
-        not_creator_constraints = []
-        creator = None
-        if isinstance(
-            state.world_state.transaction_sequence[0], ContractCreationTransaction
-        ):
-            creator = state.world_state.transaction_sequence[0].caller
-        if creator is not None:
-            for transaction in state.world_state.transaction_sequence[1:]:
-                not_creator_constraints.append(
-                    Not(Extract(159, 0, transaction.caller) == Extract(159, 0, creator))
-                )
-                not_creator_constraints.append(
-                    Not(Extract(159, 0, transaction.caller) == 0)
-                )
-        else:
-            for transaction in state.world_state.transaction_sequence:
-                not_creator_constraints.append(
-                    Not(Extract(159, 0, transaction.caller) == 0)
-                )
-            if not self.check_changeable_constraints(node.constraints):
-                return []
+        not_creator_constraints, constrained = get_non_creator_constraints(state)
+
+        if constrained:
+            return []
 
         try:
             model = solver.get_model(node.constraints + not_creator_constraints)
@@ -108,20 +92,10 @@ class SuicideModule(DetectionModule):
                 _type="Warning",
                 description=description,
                 debug=debug,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
             issues.append(issue)
         except UnsatError:
             logging.debug("[UNCHECKED_SUICIDE] no model found")
 
         return issues
-
-    def check_changeable_constraints(self, constraints):
-        for constraint in constraints:
-            if re.search(r"caller", str(constraint)) and re.search(
-                r"[0-9]{20}", str(constraint)
-            ):
-                return False
-        return True
-
-
-detector = SuicideModule()

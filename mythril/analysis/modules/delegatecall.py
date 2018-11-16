@@ -54,6 +54,7 @@ class DelegateCallModule(DetectionModule):
             bytecode=state.environment.code.bytecode,
             title="Call data forwarded with delegatecall()",
             _type="Informational",
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
 
         issue.description = (
@@ -75,6 +76,7 @@ class DelegateCallModule(DetectionModule):
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
             bytecode=state.environment.code.bytecode,
             title=call.type + " to a user-supplied address",
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
 
         if "calldata" in str(call.to):

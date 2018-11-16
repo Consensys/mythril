@@ -1,1 +1,54 @@
-{"error": null, "issues": [{"address": 446, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ", "function": "_function_0x546455b5", "swc_id": "110", "title": "Exception state", "type": "Informational"}, {"address": 484, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ", "function": "_function_0x92dd38ea", "swc_id": "110", "title": "Exception state", "type": "Informational"}, {"address": 506, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ", "function": "_function_0xa08299f1", "swc_id": "110", "title": "Exception state", "type": "Informational"}, {"address": 531, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ", "function": "_function_0xb34c3610", "swc_id": "110", "title": "Exception state", "type": "Informational"}], "success": true}
+{
+  "error": null,
+  "issues": [
+    {
+      "address": 446,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
+      "function": "_function_0x546455b5",
+      "swc-id": "110",
+      "min_gas_used": 206,
+      "max_gas_used": 301,
+      "title": "Exception state",
+      "type": "Informational"
+    },
+    {
+      "address": 484,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
+      "function": "_function_0x92dd38ea",
+      "swc-id": "110",
+      "min_gas_used": 256,
+      "max_gas_used": 351,
+      "title": "Exception state",
+      "type": "Informational"
+    },
+    {
+      "address": 506,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
+      "function": "_function_0xa08299f1",
+      "swc-id": "110",
+      "min_gas_used": 272,
+      "max_gas_used": 367,
+      "title": "Exception state",
+      "type": "Informational"
+    },
+    {
+      "address": 531,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking. ",
+      "function": "_function_0xb34c3610",
+      "swc-id": "110",
+      "min_gas_used": 268,
+      "max_gas_used": 363,
+      "title": "Exception state",
+      "type": "Informational"
+    }
+  ],
+  "success": true
+}

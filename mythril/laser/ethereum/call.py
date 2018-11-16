@@ -1,7 +1,10 @@
 import logging
-from z3 import simplify, Extract
+from typing import Union
+from z3 import simplify, ExprRef, Extract
 import mythril.laser.ethereum.util as util
-from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.support.loader import DynLoader
 import re
 
@@ -32,13 +35,10 @@ def get_call_parameters(
 
     callee_account = None
     call_data, call_data_type = get_call_data(
-        global_state, memory_input_offset, memory_input_size, False
+        global_state, memory_input_offset, memory_input_size
     )
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
-        call_data, call_data_type = get_call_data(
-            global_state, memory_input_offset, memory_input_size
-        )
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
@@ -56,7 +56,7 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address
+    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: ExprRef
 ):
     """
     Gets the address of the callee
@@ -98,7 +98,9 @@ def get_callee_address(
     return callee_address
 
 
-def get_callee_account(global_state, callee_address, dynamic_loader):
+def get_callee_account(
+    global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
+):
     """
     Gets the callees account from the global_state
     :param global_state: state to look in
@@ -138,7 +140,11 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
     return callee_account
 
 
-def get_call_data(global_state, memory_start, memory_size, pad=True):
+def get_call_data(
+    global_state: GlobalState,
+    memory_start: Union[int, ExprRef],
+    memory_size: Union[int, ExprRef],
+):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
@@ -172,7 +178,7 @@ def get_call_data(global_state, memory_start, memory_size, pad=True):
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
-        logging.info("Unsupported symbolic calldata offset")
+        logging.debug("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = Calldata("{}_internalcall".format(transaction_id))
 

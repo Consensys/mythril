@@ -53,6 +53,10 @@ class TxOrderDependenceModule(DetectionModule):
                     bytecode=call.state.environment.code.bytecode,
                     swc_id=TX_ORDER_DEPENDENCE,
                     _type="Warning",
+                    gas_used=(
+                        call.state.mstate.min_gas_used,
+                        call.state.mstate.max_gas_used,
+                    ),
                 )
 
                 issue.description = (

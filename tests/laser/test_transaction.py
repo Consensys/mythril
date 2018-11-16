@@ -1,6 +1,6 @@
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum import svm
-from mythril.laser.ethereum.state import Account
+from mythril.laser.ethereum.state.account import Account
 import mythril.laser.ethereum.cfg as cfg
 
 

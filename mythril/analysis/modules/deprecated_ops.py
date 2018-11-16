@@ -54,6 +54,7 @@ class DeprecatedOperationsModule(DetectionModule):
                         _type="Warning",
                         swc_id=TX_ORIGIN_USAGE,
                         description=description,
+                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                     )
                     issues.append(issue)
 

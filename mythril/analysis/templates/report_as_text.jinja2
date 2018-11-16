@@ -1,11 +1,12 @@
 {% if issues %}
 {% for issue in issues %}
 ==== {{ issue.title }} ====
-SWC ID: {{ issue.swc_id }}
+SWC ID: {{ issue['swc-id'] }}
 Type: {{ issue.type }}
 Contract: {{ issue.contract | default("Unknown") }}
 Function name: {{ issue.function }}
 PC address: {{ issue.address }}
+Estimated Gas Usage: {{ issue.min_gas_used }} - {{ issue.max_gas_used }}
 {{ issue.description }}
 --------------------
 {% if issue.filename and issue.lineno %}

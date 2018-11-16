@@ -79,13 +79,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if instruction["opcode"] == "ADD":
             operator = "add"
             expr = op0 + op1
-            # constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
+            constraint = Not(BVAddNoOverflow(op0, op1, signed=False))
         else:
             operator = "multiply"
             expr = op1 * op0
-            # constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
+            constraint = Not(BVMulNoOverflow(op0, op1, signed=False))
 
-        constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
         # Check satisfiable
         model = self._try_constraints(node.constraints, [constraint])
 
@@ -102,14 +101,19 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             bytecode=state.environment.code.bytecode,
             title="Integer Overflow",
             _type="Warning",
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
 
         issue.description = "This binary {} operation can result in integer overflow.\n".format(
             operator
         )
-        issue.debug = "Transaction Sequence: " + str(
-            solver.get_transaction_sequence(state, node.constraints)
-        )
+        try:
+            issue.debug = "Transaction Sequence: " + str(
+                solver.get_transaction_sequence(state, node.constraints)
+            )
+        except UnsatError:
+            return issues
+
         issues.append(issue)
 
         return issues
@@ -212,6 +216,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                         bytecode=state.environment.code.bytecode,
                         title="Integer Underflow",
                         _type="Warning",
+                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                     )
 
                     issue.description = (
