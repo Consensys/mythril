@@ -180,8 +180,8 @@ def test_symbolic_call_calldata_to(mocker):
 
 
 @patch("mythril.laser.ethereum.state.global_state.GlobalState.get_current_instruction")
-@patch("mythril.analysis.modules.delegatecall._concrete_call")
-@patch("mythril.analysis.modules.delegatecall._symbolic_call")
+@patch("mythril.analysis.modules.delegatecall.detector._concrete_call")
+@patch("mythril.analysis.modules.delegatecall.detector._symbolic_call")
 def test_delegate_call(sym_mock, concrete_mock, curr_instruction):
     # arrange
     # sym_mock = mocker.patch.object(delegatecall, "_symbolic_call")
