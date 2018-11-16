@@ -94,11 +94,12 @@ class Mythril(object):
 
         self.mythril_dir = self._init_mythril_dir()
 
-        self.sigs = signatures.SignatureDb(
-            enable_online_lookup=self.enable_online_lookup
-        )
+        self.sigs = {}
         try:
-            self.sigs.open()  # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
+            # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
+            )
         except FileNotFoundError:
             logging.info(
                 "No signature database found. Creating database if sigs are loaded in: "

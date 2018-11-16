@@ -53,7 +53,16 @@ except ImportError:
         msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, file_size(f))
 
 
-class SignatureDb(object):
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class SignatureDb(object, metaclass=Singleton):
     def __init__(self, enable_online_lookup=False):
         """
         Constr
@@ -68,6 +77,7 @@ class SignatureDb(object):
         self.online_lookup_miss = set()
         # flag the online directory as unavailable for some time
         self.online_directory_unavailable_until = 0
+        self.open()
 
     def open(self, path=None):
         """
@@ -111,7 +121,7 @@ class SignatureDb(object):
                         path, sighash, funcsig
                     )
                 )
-        self.signatures = sigs
+        self.signatures = defaultdict(list, sigs)
 
         return self
 
@@ -142,11 +152,6 @@ class SignatureDb(object):
                     unlock_file(f)
 
             self.update_signatures(sigs)
-
-            # sigs.update(
-            #     self.signatures
-            # )  # reload file and merge cached sigs into what we load from file
-            # self.signatures = sigs
 
         if directory and not os.path.exists(directory):
             os.makedirs(directory)  # create folder structure if not existS
