@@ -85,7 +85,7 @@ def execute(statespace):
                     if "calldata" in target:
                         description += "an address provided as a function argument. "
                     else:
-                        description += "the address of the transaction senderself. "
+                        description += "the address of the transaction sender. "
 
                     user_supplied = True
                 else:
