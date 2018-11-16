@@ -1,6 +1,7 @@
 import pytest
 import random
-from mythril.laser.ethereum.state import GlobalState, MachineState
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.strategy.basic import ReturnWeightedRandomStrategy
 from mythril.laser.ethereum.strategy.graph import SimpleGraph
 

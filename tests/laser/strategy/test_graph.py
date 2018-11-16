@@ -1,6 +1,6 @@
 import pytest
 from mythril.laser.ethereum.strategy.graph import Graph
-from mythril.laser.ethereum.state import GlobalState
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 add_vertex_test_data = [GlobalState(None, None, None)]
 
