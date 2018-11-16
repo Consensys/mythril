@@ -4,20 +4,26 @@ import pkgutil
 import logging
 
 
-def fire_lasers(statespace, module_names=None):
-    module_names = [] if module_names is None else module_names
-    module_names.append("base")  # always exclude base class file
-    issues = []
+def get_detection_modules(except_modules=None):
+    except_modules = [] if except_modules is None else except_modules
+    except_modules.append("base")  # always exclude base class file
     _modules = []
 
     for loader, name, _ in pkgutil.walk_packages(modules.__path__):
-        _modules.append(loader.find_module(name).load_module(name))
+        module = loader.find_module(name).load_module(name)
+        if module.__name__ not in except_modules:
+            _modules.append(module)
 
+    logging.info("Found %s detection modules", len(_modules))
+    return _modules
+
+
+def fire_lasers(statespace, module_names=None):
     logging.info("Starting analysis")
 
-    for module in _modules:
-        if module.__name__ not in module_names:
-            logging.info("Executing " + module.detector.name)
-            issues += module.detector.execute(statespace)
+    issues = []
+    for module in get_detection_modules(module_names):
+        logging.info("Executing " + module.detector.name)
+        issues += module.detector.execute(statespace)
 
     return issues

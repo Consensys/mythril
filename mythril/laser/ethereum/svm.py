@@ -1,5 +1,8 @@
 import logging
+from collections import defaultdict
+from ethereum.opcodes import opcodes
 from typing import List, Tuple, Union, Callable, Dict
+from mythril.analysis.security import get_detection_modules
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -30,6 +33,9 @@ class SVMError(Exception):
 """
 Main symbolic execution engine.
 """
+
+
+OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 
 
 class LaserEVM:
@@ -70,12 +76,28 @@ class LaserEVM:
 
         self.time = None
 
-        self.pre_hooks = {}
-        self.post_hooks = {}
+        self.pre_hooks = defaultdict(list)
+        self.post_hooks = defaultdict(list)
+
+        self.register_detection_modules()
 
         logging.info(
             "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
         )
+
+    def register_detection_modules(self):
+        modules = get_detection_modules()
+        for module in modules:
+            for hook in module.detector.hooks:
+                hook = hook.upper()
+                if hook in OPCODE_LIST:
+                    self.post_hooks[hook].append(module.detector.execute)
+                elif hook.endswith("*"):
+                    to_register = filter(lambda x: x.startswith(hook), OPCODE_LIST)
+                    for actual_hook in to_register:
+                        self.post_hooks[actual_hook].append(module.detector.execute)
+                else:
+                    logging.error("Encountered invalid hook opcode %s in module %s", hook, module.detector.name)
 
     @property
     def accounts(self) -> Dict[str, Account]:
