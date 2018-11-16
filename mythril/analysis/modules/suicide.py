@@ -99,3 +99,5 @@ class SuicideModule(DetectionModule):
             logging.debug("[UNCHECKED_SUICIDE] no model found")
 
         return issues
+
+detector = SuicideModule()
