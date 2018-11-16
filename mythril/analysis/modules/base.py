@@ -3,13 +3,23 @@ from typing import List
 
 
 class DetectionModule:
-    def __init__(self, name: str, swc_id: str, hooks: List[str], description: str, entrypoint: str = "post"):
+    def __init__(
+        self,
+        name: str,
+        swc_id: str,
+        hooks: List[str],
+        description: str,
+        entrypoint: str = "post",
+    ):
         self.name = name
         self.swc_id = swc_id
         self.hooks = hooks
         self.description = description
         if entrypoint not in ("post", "callback"):
-            logging.error("Invalid entrypoint in module %s, must be one of {post, callback}", self.name)
+            logging.error(
+                "Invalid entrypoint in module %s, must be one of {post, callback}",
+                self.name,
+            )
         self.entrypoint = entrypoint
 
     def execute(self, statespace):

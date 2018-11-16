@@ -11,7 +11,10 @@ def get_detection_modules(entrypoint, except_modules=None):
 
     for loader, name, _ in pkgutil.walk_packages(modules.__path__):
         module = loader.find_module(name).load_module(name)
-        if module.__name__ not in except_modules and module.detector.entrypoint == entrypoint:
+        if (
+            module.__name__ not in except_modules
+            and module.detector.entrypoint == entrypoint
+        ):
             _modules.append(module)
 
     logging.info("Found %s detection modules", len(_modules))

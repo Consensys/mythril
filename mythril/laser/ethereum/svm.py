@@ -97,7 +97,11 @@ class LaserEVM:
                     for actual_hook in to_register:
                         self.post_hooks[actual_hook].append(module.detector.execute)
                 else:
-                    logging.error("Encountered invalid hook opcode %s in module %s", hook, module.detector.name)
+                    logging.error(
+                        "Encountered invalid hook opcode %s in module %s",
+                        hook,
+                        module.detector.name,
+                    )
 
     @property
     def accounts(self) -> Dict[str, Account]:
