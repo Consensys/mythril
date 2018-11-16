@@ -35,9 +35,6 @@ Main symbolic execution engine.
 """
 
 
-OPCODE_LIST = [c[0] for _, c in opcodes.items()]
-
-
 class LaserEVM:
     """
     Laser EVM class
@@ -79,29 +76,20 @@ class LaserEVM:
         self.pre_hooks = defaultdict(list)
         self.post_hooks = defaultdict(list)
 
-        self.register_detection_modules()
-
         logging.info(
             "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
         )
 
-    def register_detection_modules(self):
-        modules = get_detection_modules(entrypoint="callback")
-        for module in modules:
-            for hook in module.detector.hooks:
-                hook = hook.upper()
-                if hook in OPCODE_LIST:
-                    self.post_hooks[hook].append(module.detector.execute)
-                elif hook.endswith("*"):
-                    to_register = filter(lambda x: x.startswith(hook[:-1]), OPCODE_LIST)
-                    for actual_hook in to_register:
-                        self.post_hooks[actual_hook].append(module.detector.execute)
-                else:
-                    logging.error(
-                        "Encountered invalid hook opcode %s in module %s",
-                        hook,
-                        module.detector.name,
-                    )
+    def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
+        if hook_type == "pre":
+            entrypoint = self.pre_hooks
+        elif hook_type == "post":
+            entrypoint = self.post_hooks
+        else:
+            raise ValueError("Invalid hook type %s. Must be one of {pre, post}", hook_type)
+
+        for op_code, funcs in hook_dict.items():
+            entrypoint[op_code].extend(funcs)
 
     @property
     def accounts(self) -> Dict[str, Account]:
