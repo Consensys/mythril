@@ -399,7 +399,7 @@ class LaserEVM:
             for global_state in global_states:
                 hook(global_state)
 
-    def hook(self, op_code: str) -> Callable:
+    def pre_hook(self, op_code: str) -> Callable:
         def hook_decorator(func: Callable):
             if op_code not in self.pre_hooks.keys():
                 self.pre_hooks[op_code] = []
