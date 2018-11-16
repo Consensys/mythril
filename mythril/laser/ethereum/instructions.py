@@ -1194,6 +1194,13 @@ class Instruction:
                 )
                 account_created = True
 
+        global_state.environment.active_account = deepcopy(
+            global_state.environment.active_account
+        )
+        global_state.accounts[
+            global_state.environment.active_account.address
+        ] = global_state.environment.active_account
+
         global_state.environment.active_account.balance = 0
         global_state.environment.active_account.deleted = True
         global_state.current_transaction.end(global_state)
