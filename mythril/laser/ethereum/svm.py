@@ -86,7 +86,7 @@ class LaserEVM:
         )
 
     def register_detection_modules(self):
-        modules = get_detection_modules()
+        modules = get_detection_modules(entrypoint="callback")
         for module in modules:
             for hook in module.detector.hooks:
                 hook = hook.upper()
