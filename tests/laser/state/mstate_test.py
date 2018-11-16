@@ -1,28 +1,8 @@
 # TODO: REWRITE FOR NEW MEMORY
 
-"""
 import pytest
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
-
-memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
-
-
-@pytest.mark.parametrize(
-    "initial_size,start,extension_size", memory_extension_test_data
-)
-def test_memory_extension(initial_size, start, extension_size):
-    # Arrange
-    machine_state = MachineState(0)
-    machine_state.memory = [0] * initial_size
-
-    # Act
-    machine_state.mem_extend(start, extension_size)
-
-    # Assert
-    assert machine_state.memory_size == len(machine_state.memory)
-    assert machine_state.memory_size == max(initial_size, start + extension_size)
-
 
 stack_pop_too_many_test_data = [(0, 1), (0, 2), (5, 1), (5, 10)]
 
@@ -82,21 +62,3 @@ def test_stack_single_pop():
 
     # Assert
     assert isinstance(result, int)
-
-
-memory_write_test_data = [(5, 10, [1, 2, 3]), (0, 0, [3, 4]), (20, 1, [2, 4, 10])]
-
-
-@pytest.mark.parametrize("initial_size, memory_offset, data", memory_write_test_data)
-def test_memory_write(initial_size, memory_offset, data):
-    # Arrange
-    machine_state = MachineState(0)
-    machine_state.memory = [0] * initial_size
-
-    # Act
-    machine_state.memory_write(memory_offset, data)
-
-    # Assert
-    assert len(machine_state.memory) == max(initial_size, memory_offset + len(data))
-    assert machine_state.memory[memory_offset : memory_offset + len(data)] == data
-"""
