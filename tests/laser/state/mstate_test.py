@@ -1,5 +1,3 @@
-# TODO: REWRITE FOR NEW MEMORY
-
 import pytest
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException

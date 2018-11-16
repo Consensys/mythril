@@ -75,10 +75,8 @@ class Memory:
                     raise IndexError("Invalid Memory Slice")
                 if step is None:
                     step = 1
-                dataparts = []
 
-                for i in range(start, stop, step):
-                    dataparts.append(self[i])
+                dataparts = [self[i] for i in range(start, stop, step)]
 
             except Z3Exception:
                 raise IndexError("Invalid Memory Slice")
