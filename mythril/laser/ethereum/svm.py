@@ -93,7 +93,7 @@ class LaserEVM:
                 if hook in OPCODE_LIST:
                     self.post_hooks[hook].append(module.detector.execute)
                 elif hook.endswith("*"):
-                    to_register = filter(lambda x: x.startswith(hook), OPCODE_LIST)
+                    to_register = filter(lambda x: x.startswith(hook[:-1]), OPCODE_LIST)
                     for actual_hook in to_register:
                         self.post_hooks[actual_hook].append(module.detector.execute)
                 else:
