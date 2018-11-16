@@ -100,4 +100,5 @@ class SuicideModule(DetectionModule):
 
         return issues
 
+
 detector = SuicideModule()

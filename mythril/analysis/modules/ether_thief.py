@@ -34,7 +34,7 @@ class EtherThief(DetectionModule):
                 "- The transaction sender does not match contract creator\n"
                 "- The sender has not previously sent any ETH to the contract account.\n\n"
                 "This is somewhat coarse and needs to be refined in the future."
-            )
+            ),
         )
 
     def execute(self, state_space):
