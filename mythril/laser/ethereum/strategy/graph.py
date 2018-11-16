@@ -2,7 +2,7 @@ from typing import List
 from copy import copy
 from abc import ABC, abstractmethod
 
-from mythril.laser.ethereum.state import GlobalState
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 class BaseGraph(ABC):

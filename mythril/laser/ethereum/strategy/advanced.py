@@ -2,7 +2,7 @@ from random import shuffle
 
 from . import AdvancedSearchStrategy
 from mythril.laser.ethereum.strategy.graph import Graph
-from mythril.laser.ethereum.state import GlobalState
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 class RandomBranchDepthFirstSearch(AdvancedSearchStrategy):
