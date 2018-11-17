@@ -36,7 +36,7 @@ class EtherThief(DetectionModule):
         )
 
     def execute(self, state_space):
-        logging.debug("Executing module: " + format(self.name))
+        logging.debug("Executing module: %s", self.name)
         issues = []
 
         for k in state_space.nodes:
