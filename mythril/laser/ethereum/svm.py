@@ -1,7 +1,9 @@
 import logging
 from typing import List, Tuple, Union, Callable, Dict
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import WorldState, GlobalState
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     TransactionEndSignal,
@@ -10,7 +12,6 @@ from mythril.laser.ethereum.transaction import (
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
-from mythril.laser.ethereum.state import Account
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from datetime import datetime, timedelta
 from copy import copy
@@ -154,17 +155,18 @@ class LaserEVM:
             )
         return total_covered_instructions
 
-    def exec(self, create=False) -> None:
+    def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
+        final_states = []
         for global_state in self.strategy:
             if self.execution_timeout and not create:
                 if (
                     self.time + timedelta(seconds=self.execution_timeout)
                     <= datetime.now()
                 ):
-                    return
+                    return final_states + [global_state] if track_gas else None
             elif self.create_timeout and create:
                 if self.time + timedelta(seconds=self.create_timeout) <= datetime.now():
-                    return
+                    return final_states + [global_state] if track_gas else None
 
             try:
                 new_states, op_code = self.execute_state(global_state)
@@ -173,8 +175,12 @@ class LaserEVM:
                 continue
             self.manage_cfg(op_code, new_states)
 
-            self.work_list += new_states
+            if new_states:
+                self.work_list += new_states
+            elif track_gas:
+                final_states.append(global_state)
             self.total_states += len(new_states)
+        return final_states if track_gas else None
 
     def execute_state(
         self, global_state: GlobalState

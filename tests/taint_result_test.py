@@ -1,5 +1,5 @@
 from mythril.laser.ethereum.taint_analysis import *
-from mythril.laser.ethereum.state import GlobalState
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 def test_result_state():

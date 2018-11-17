@@ -55,6 +55,10 @@ def execute(statespace):
                             description=description,
                             bytecode=state.environment.code.bytecode,
                             debug=debug,
+                            gas_used=(
+                                state.mstate.min_gas_used,
+                                state.mstate.max_gas_used,
+                            ),
                         )
                     )
 

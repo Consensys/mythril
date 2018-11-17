@@ -8,7 +8,7 @@ from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
-from mythril.laser.ethereum.state import Calldata
+from mythril.laser.ethereum.state.calldata import Calldata
 from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
 from z3 import Concat, simplify
 
