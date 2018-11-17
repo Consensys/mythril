@@ -8,18 +8,22 @@ from mythril.exceptions import UnsatError
 import logging
 
 
-"""
-MODULE DESCRIPTION:
+DESCRIPTION = """
 
-Search for cases where Ether can be withdrawn to a user-specified address.
+Search for cases where Ether can be withdrawn to a user-specified address. 
+
 An issue is reported ONLY IF:
 
 - The transaction sender does not match contract creator;
+- The sender address can be chosen arbitrarily;
+- The receiver address is identical to the sender address;
 - The sender has not previously sent any ETH to the contract account.
 
 This is somewhat coarse and needs to be refined in the future.
 
 """
+
+ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
 
 
 class EtherThief(DetectionModule):
@@ -28,17 +32,11 @@ class EtherThief(DetectionModule):
             name="Ether Thief",
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
             hooks=["CALL"],
-            description=(
-                "Search for cases where Ether can be withdrawn to a user-specified address.\n"
-                "An issue is reported ONLY IF:\n\n"
-                "- The transaction sender does not match contract creator\n"
-                "- The sender has not previously sent any ETH to the contract account.\n\n"
-                "This is somewhat coarse and needs to be refined in the future."
-            ),
+            description=DESCRIPTION,
         )
 
     def execute(self, state_space):
-        logging.debug("Executing module: ETHER_THIEF")
+        logging.debug("Executing module: " + format(self.name))
         issues = []
 
         for k in state_space.nodes:
@@ -71,11 +69,24 @@ class EtherThief(DetectionModule):
             """
 
             model = solver.get_model(
-                node.constraints + not_creator_constraints + [call_value > 0]
+                node.constraints
+                + not_creator_constraints
+                + [
+                    call_value > 0,
+                    state.environment.sender == ARBITRARY_SENDER_ADDRESS,
+                    target == state.environment.sender,
+                ]
             )
 
             transaction_sequence = solver.get_transaction_sequence(
-                state, node.constraints + not_creator_constraints + [call_value > 0]
+                state,
+                node.constraints
+                + not_creator_constraints
+                + [
+                    call_value > 0,
+                    state.environment.sender == ARBITRARY_SENDER_ADDRESS,
+                    target == state.environment.sender,
+                ],
             )
 
             # For now we only report an issue if zero ETH has been sent to the contract account.
