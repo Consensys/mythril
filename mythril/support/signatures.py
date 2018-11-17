@@ -99,13 +99,22 @@ class SignatureDb(object, metaclass=Singleton):
         if not os.path.exists(path):
             logging.debug("Signatures: file not found: %s" % path)
             raise FileNotFoundError(
-                "Missing function signature file. Resolving of function names disabled."
+                (
+                    "Could not find signature file in {}. Function name resolution disabled.\n"
+                    "Consider replacing it with the pre-initialized database at "
+                    "https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json"
+                ).format(path)
             )
 
         with open(path, "r") as f:
             lock_file(f)
             try:
                 sigs = json.load(f)
+            except json.JSONDecodeError as e:
+                # reraise with path
+                raise json.JSONDecodeError(
+                    "Invalid JSON in the signatures file {}: {}".format(path, str(e))
+                )
             finally:
                 unlock_file(f)
 

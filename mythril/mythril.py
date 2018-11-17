@@ -100,20 +100,10 @@ class Mythril(object):
             self.sigs = signatures.SignatureDb(
                 enable_online_lookup=self.enable_online_lookup
             )
-        except FileNotFoundError:
-            logging.info(
-                "No signature database found. Creating database if sigs are loaded in: "
-                + self.sigs.signatures_file
-                + "\n"
-                + "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json"
-            )
-        except json.JSONDecodeError as jde:
-            raise CriticalError(
-                "Invalid JSON in signatures file "
-                + self.sigs.signatures_file
-                + "\n"
-                + str(jde)
-            )
+        except FileNotFoundError as e:
+            logging.info(str(e))
+        except json.JSONDecodeError as e:
+            raise CriticalError(str(e))
 
         self.solc_binary = self._init_solc_binary(solv)
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
