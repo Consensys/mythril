@@ -1,5 +1,8 @@
 import logging
+from collections import defaultdict
+from ethereum.opcodes import opcodes
 from typing import List, Tuple, Union, Callable, Dict
+from mythril.analysis.security import get_detection_modules
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -70,12 +73,25 @@ class LaserEVM:
 
         self.time = None
 
-        self.pre_hooks = {}
-        self.post_hooks = {}
+        self.pre_hooks = defaultdict(list)
+        self.post_hooks = defaultdict(list)
 
         logging.info(
             "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
         )
+
+    def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
+        if hook_type == "pre":
+            entrypoint = self.pre_hooks
+        elif hook_type == "post":
+            entrypoint = self.post_hooks
+        else:
+            raise ValueError(
+                "Invalid hook type %s. Must be one of {pre, post}", hook_type
+            )
+
+        for op_code, funcs in hook_dict.items():
+            entrypoint[op_code].extend(funcs)
 
     @property
     def accounts(self) -> Dict[str, Account]:
@@ -399,7 +415,7 @@ class LaserEVM:
             for global_state in global_states:
                 hook(global_state)
 
-    def hook(self, op_code: str) -> Callable:
+    def pre_hook(self, op_code: str) -> Callable:
         def hook_decorator(func: Callable):
             if op_code not in self.pre_hooks.keys():
                 self.pre_hooks[op_code] = []

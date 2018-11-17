@@ -2,105 +2,111 @@ import re
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
 from mythril.analysis.ops import get_variable, VarType
 from mythril.analysis.report import Issue
+from mythril.analysis.modules.base import DetectionModule
 import logging
 
 
-"""
-MODULE DESCRIPTION:
+class DelegateCallModule(DetectionModule):
+    def __init__(self):
+        super().__init__(
+            name="DELEGATECALL Usage in Fallback Function",
+            swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+            hooks=["DELEGATECALL"],
+            description="Check for invocations of delegatecall(msg.data) in the fallback function.",
+        )
 
-Check for invocations of delegatecall(msg.data) in the fallback function.
-"""
+    def execute(self, statespace):
+        """
+        Executes analysis module for delegate call analysis module
+        :param statespace: Statespace to analyse
+        :return: Found issues
+        """
+        issues = []
 
+        for call in statespace.calls:
 
-def execute(statespace):
-    """
-    Executes analysis module for delegate call analysis module
-    :param statespace: Statespace to analyse
-    :return: Found issues
-    """
-    issues = []
+            if call.type is not "DELEGATECALL":
+                continue
+            if call.node.function_name is not "fallback":
+                continue
 
-    for call in statespace.calls:
+            state = call.state
+            address = state.get_current_instruction()["address"]
+            meminstart = get_variable(state.mstate.stack[-3])
 
-        if call.type is not "DELEGATECALL":
-            continue
-        if call.node.function_name is not "fallback":
-            continue
+            if meminstart.type == VarType.CONCRETE:
+                issues += self._concrete_call(call, state, address, meminstart)
 
-        state = call.state
-        address = state.get_current_instruction()["address"]
-        meminstart = get_variable(state.mstate.stack[-3])
+            if call.to.type == VarType.SYMBOLIC:
+                issues += self._symbolic_call(call, state, address, statespace)
 
-        if meminstart.type == VarType.CONCRETE:
-            issues += _concrete_call(call, state, address, meminstart)
+        return issues
 
-        if call.to.type == VarType.SYMBOLIC:
-            issues += _symbolic_call(call, state, address, statespace)
+    def _concrete_call(self, call, state, address, meminstart):
+        if not re.search(r"calldata.*_0", str(state.mstate.memory[meminstart.val])):
+            return []
 
-    return issues
+        issue = Issue(
+            contract=call.node.contract_name,
+            function_name=call.node.function_name,
+            address=address,
+            swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+            bytecode=state.environment.code.bytecode,
+            title="Call data forwarded with delegatecall()",
+            _type="Informational",
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+        )
 
+        issue.description = (
+            "This contract forwards its call data via DELEGATECALL in its fallback function. "
+            "This means that any function in the called contract can be executed. Note that the callee contract will have "
+            "access to the storage of the calling contract.\n"
+        )
 
-def _concrete_call(call, state, address, meminstart):
-    if not re.search(r"calldata.*_0", str(state.mstate.memory[meminstart.val])):
-        return []
+        target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
+        issue.description += "DELEGATECALL target: {}".format(target)
 
-    issue = Issue(
-        contract=call.node.contract_name,
-        function_name=call.node.function_name,
-        address=address,
-        swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-        bytecode=state.environment.code.bytecode,
-        title="Call data forwarded with delegatecall()",
-        _type="Informational",
-        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-    )
+        return [issue]
 
-    issue.description = (
-        "This contract forwards its call data via DELEGATECALL in its fallback function. "
-        "This means that any function in the called contract can be executed. Note that the callee contract will have "
-        "access to the storage of the calling contract.\n"
-    )
+    def _symbolic_call(self, call, state, address, statespace):
+        issue = Issue(
+            contract=call.node.contract_name,
+            function_name=call.node.function_name,
+            address=address,
+            swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+            bytecode=state.environment.code.bytecode,
+            title=call.type + " to a user-supplied address",
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+        )
 
-    target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
-    issue.description += "DELEGATECALL target: {}".format(target)
+        if "calldata" in str(call.to):
+            issue.description = "This contract delegates execution to a contract address obtained from calldata."
 
-    return [issue]
+        else:
+            m = re.search(r"storage_([a-z0-9_&^]+)", str(call.to))
 
-
-def _symbolic_call(call, state, address, statespace):
-    issue = Issue(
-        contract=call.node.contract_name,
-        function_name=call.node.function_name,
-        address=address,
-        swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-        bytecode=state.environment.code.bytecode,
-        title=call.type + " to a user-supplied address",
-        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-    )
-
-    if "calldata" in str(call.to):
-        issue.description = "This contract delegates execution to a contract address obtained from calldata."
-
-    else:
-        m = re.search(r"storage_([a-z0-9_&^]+)", str(call.to))
-
-        if m:
-            idx = m.group(1)
-            func = statespace.find_storage_write(
-                state.environment.active_account.address, idx
-            )
-
-            if func:
-                issue.description = (
-                    "This contract delegates execution to a contract address in storage slot "
-                    + str(idx)
-                    + ". This storage slot can be written to by calling the function `"
-                    + func
-                    + "`."
+            if m:
+                idx = m.group(1)
+                func = statespace.find_storage_write(
+                    state.environment.active_account.address, idx
                 )
 
-            else:
-                logging.debug("[DELEGATECALL] No storage writes to index " + str(idx))
+                if func:
+                    issue.description = (
+                        "This contract delegates execution to a contract address in storage slot "
+                        + str(idx)
+                        + ". This storage slot can be written to by calling the function `"
+                        + func
+                        + "`."
+                    )
 
-    issue.description += " Be aware that the called contract gets unrestricted access to this contract's state."
-    return [issue]
+                else:
+                    logging.debug(
+                        "[DELEGATECALL] No storage writes to index " + str(idx)
+                    )
+
+        issue.description += " Be aware that the called contract gets unrestricted access to this contract's state."
+        return [issue]
+
+
+detector = DelegateCallModule()
