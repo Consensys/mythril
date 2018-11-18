@@ -4,7 +4,7 @@
 - SWC ID: 106
 - Type: Warning
 - Contract: Unknown
-- Function name: `_function_0xcbf0b0c0`
+- Function name: `kill(address)`
 - PC address: 146
 - Estimated Gas Usage: 168 - 263
 

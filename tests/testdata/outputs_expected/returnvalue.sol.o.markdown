@@ -4,7 +4,7 @@
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0x633ab5e0`
+- Function name: `callchecked()`
 - PC address: 196
 - Estimated Gas Usage: 599 - 1210
 
@@ -16,7 +16,7 @@ This contract executes a message call to to another contract. Make sure that the
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe3bea282`
+- Function name: `callnotchecked()`
 - PC address: 285
 - Estimated Gas Usage: 621 - 1232
 
@@ -28,7 +28,7 @@ This contract executes a message call to to another contract. Make sure that the
 - SWC ID: 104
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe3bea282`
+- Function name: `callnotchecked()`
 - PC address: 290
 - Estimated Gas Usage: 1330 - 35941
 
