@@ -148,10 +148,16 @@ class LaserEVM:
         """
         self.coverage = {}
         for i in range(self.transaction_count):
+            initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
             logging.info("Starting message call transaction, iteration: {}".format(i))
+
             execute_message_call(self, address)
+
+            end_coverage = self._get_covered_instructions()
+
+            logging.info("Number of new instructions covered in tx %d: %d" % (i, end_coverage - initial_coverage))
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""
