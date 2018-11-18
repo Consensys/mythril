@@ -4,7 +4,7 @@
 - SWC ID: 105
 - Type: Warning
 - Contract: Unknown
-- Function name: `_function_0x8a4068dd`
+- Function name: `transfer()`
 - PC address: 142
 - Estimated Gas Usage: 186 - 467
 
