@@ -23,11 +23,12 @@ class Disassembly(object):
         self.function_name_to_address = {}
         self.address_to_function_name = {}
 
-        signatures = SignatureDb(
-            enable_online_lookup=enable_online_lookup
-        )  # control if you want to have online signature hash lookups
+        signatures = {}
         try:
-            signatures.open()  # open from default locations
+            # open from default locations
+            signatures = SignatureDb(
+                enable_online_lookup=enable_online_lookup
+            )  # control if you want to have online signature hash lookups
         except FileNotFoundError:
             logging.info(
                 "Missing function signature file. Resolving of function names from signature file disabled."
@@ -47,8 +48,6 @@ class Disassembly(object):
             if jump_target is not None and function_name is not None:
                 self.function_name_to_address[function_name] = jump_target
                 self.address_to_function_name[jump_target] = function_name
-
-        signatures.write()  # store resolved signatures (potentially resolved online)
 
     def get_easm(self):
         return asm.instruction_list_to_easm(self.instruction_list)
