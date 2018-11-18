@@ -86,7 +86,9 @@ class StateTransition(object):
         global_state.mstate.check_gas()
         if isinstance(global_state.current_transaction.gas_limit, BitVecRef):
             try:
-                global_state.current_transaction.gas_limit = global_state.current_transaction.gas_limit.as_long()
+                global_state.current_transaction.gas_limit = (
+                    global_state.current_transaction.gas_limit.as_long()
+                )
             except AttributeError:
                 return
         if (
