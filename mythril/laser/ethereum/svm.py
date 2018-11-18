@@ -48,7 +48,7 @@ class LaserEVM:
         execution_timeout=60,
         create_timeout=10,
         strategy=DepthFirstSearchStrategy,
-        transaction_count=3,
+        transaction_count=2,
     ):
         world_state = WorldState()
         world_state.accounts = accounts

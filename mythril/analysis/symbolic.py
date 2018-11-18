@@ -28,7 +28,7 @@ class SymExecWrapper:
         max_depth=22,
         execution_timeout=None,
         create_timeout=None,
-        transaction_count=3,
+        transaction_count=2,
     ):
 
         if strategy == "dfs":
