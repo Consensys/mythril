@@ -418,7 +418,9 @@ def main():
                     }
                     print(outputs[args.outform])
                 except ModuleNotFoundError as e:
-                    exit_with_error(args.outform, "Error loading analyis modules: " + format(e))
+                    exit_with_error(
+                        args.outform, "Error loading analyis modules: " + format(e)
+                    )
 
         elif args.statespace_json:
 

@@ -38,10 +38,7 @@ def get_detection_modules(entrypoint, include_modules=()):
 
         for loader, name, _ in pkgutil.walk_packages(modules.__path__):
             module = loader.find_module(name).load_module(name)
-            if (
-                module.__name__ !=  "base"
-                and module.detector.entrypoint == entrypoint
-            ):
+            if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
                 _modules.append(module)
 
     else:
@@ -58,7 +55,9 @@ def fire_lasers(statespace, module_names=()):
     logging.info("Starting analysis")
 
     issues = []
-    for module in get_detection_modules(entrypoint="post", include_modules=module_names):
+    for module in get_detection_modules(
+        entrypoint="post", include_modules=module_names
+    ):
         logging.info("Executing " + module.detector.name)
         issues += module.detector.execute(statespace)
 
