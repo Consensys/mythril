@@ -2,6 +2,7 @@ from collections import defaultdict
 from ethereum.opcodes import opcodes
 from mythril.analysis import modules
 import pkgutil
+import importlib.util
 import logging
 
 
@@ -28,16 +29,22 @@ def get_detection_module_hooks():
     return dict(hook_dict)
 
 
-def get_detection_modules(entrypoint, except_modules=()):
-    except_modules = list(except_modules) + ["base"]
+def get_detection_modules(entrypoint, include_modules=()):
+    include_modules = list(include_modules)
+
     _modules = []
 
-    for loader, name, _ in pkgutil.walk_packages(modules.__path__):
-        module = loader.find_module(name).load_module(name)
-        if (
-            module.__name__ not in except_modules
-            and module.detector.entrypoint == entrypoint
-        ):
+    if not include_modules:
+
+        for loader, name, _ in pkgutil.walk_packages(modules.__path__):
+            module = loader.find_module(name).load_module(name)
+            if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
+                _modules.append(module)
+
+    else:
+        for module_name in include_modules:
+            module = importlib.import_module(module_name, modules)
+
             _modules.append(module)
 
     logging.info("Found %s detection modules", len(_modules))
@@ -48,7 +55,9 @@ def fire_lasers(statespace, module_names=()):
     logging.info("Starting analysis")
 
     issues = []
-    for module in get_detection_modules(entrypoint="post", except_modules=module_names):
+    for module in get_detection_modules(
+        entrypoint="post", include_modules=module_names
+    ):
         logging.info("Executing " + module.detector.name)
         issues += module.detector.execute(statespace)
 
