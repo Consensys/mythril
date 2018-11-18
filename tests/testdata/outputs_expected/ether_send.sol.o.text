@@ -5,7 +5,7 @@ Contract: Unknown
 Function name: withdrawfunds()
 PC address: 722
 Estimated Gas Usage: 1138 - 1749
-Users other than the contract creator can withdraw ETH from the contract account without previously having sent any ETH to it. This is likely to be vulnerability.
+Arbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability.
 --------------------
 
 ==== Integer Overflow ====
