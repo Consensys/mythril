@@ -10,7 +10,7 @@
 
 ### Description
 
-Users other than the contract creator can withdraw ETH from the contract account without previously having sent any ETH to it. This is likely to be vulnerability.
+Arbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability.
 
 ## Integer Overflow
 - SWC ID: 101
