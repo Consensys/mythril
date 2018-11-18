@@ -389,6 +389,7 @@ def main():
                     max_depth=args.max_depth,
                     execution_timeout=args.execution_timeout,
                     create_timeout=args.create_timeout,
+                    transaction_count=1
                 )
 
                 try:
@@ -398,24 +399,29 @@ def main():
                     exit_with_error(args.outform, "Error saving graph: " + str(e))
 
             else:
-                report = mythril.fire_lasers(
-                    strategy=args.strategy,
-                    address=address,
-                    modules=[m.strip() for m in args.modules.strip().split(",")]
-                    if args.modules
-                    else [],
-                    verbose_report=args.verbose_report,
-                    max_depth=args.max_depth,
-                    execution_timeout=args.execution_timeout,
-                    create_timeout=args.create_timeout,
-                    transaction_count=args.transaction_count,
-                )
-                outputs = {
-                    "json": report.as_json(),
-                    "text": report.as_text(),
-                    "markdown": report.as_markdown(),
-                }
-                print(outputs[args.outform])
+                try:
+                    report = mythril.fire_lasers(
+                        strategy=args.strategy,
+                        address=address,
+                        modules=[m.strip() for m in args.modules.strip().split(",")]
+                        if args.modules
+                        else [],
+                        verbose_report=args.verbose_report,
+                        max_depth=args.max_depth,
+                        execution_timeout=args.execution_timeout,
+                        create_timeout=args.create_timeout,
+                        transaction_count=args.transaction_count,
+                    )
+                    outputs = {
+                        "json": report.as_json(),
+                        "text": report.as_text(),
+                        "markdown": report.as_markdown(),
+                    }
+                    print(outputs[args.outform])
+                except ModuleNotFoundError as e:
+                    exit_with_error(
+                        args.outform, "Error loading analyis modules: " + format(e)
+                    )
 
         elif args.statespace_json:
 
