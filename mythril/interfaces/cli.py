@@ -389,7 +389,7 @@ def main():
                     max_depth=args.max_depth,
                     execution_timeout=args.execution_timeout,
                     create_timeout=args.create_timeout,
-                    transaction_count=1
+                    transaction_count=1,
                 )
 
                 try:
