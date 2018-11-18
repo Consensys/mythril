@@ -49,7 +49,6 @@ def main():
         help="detect vulnerabilities, use with -c, -a or solidity file(s)",
     )
     commands.add_argument(
-        "-t",
         "--truffle",
         action="store_true",
         help="analyze a truffle project (run from project dir)",
@@ -167,7 +166,8 @@ def main():
         help="Symbolic execution strategy",
     )
     options.add_argument(
-        "--max-transaction-count",
+        "-t",
+        "--transaction-count",
         type=int,
         default=2,
         help="Maximum number of transactions issued by laser",
@@ -408,7 +408,7 @@ def main():
                     max_depth=args.max_depth,
                     execution_timeout=args.execution_timeout,
                     create_timeout=args.create_timeout,
-                    max_transaction_count=args.max_transaction_count,
+                    transaction_count=args.transaction_count,
                 )
                 outputs = {
                     "json": report.as_json(),

@@ -48,7 +48,7 @@ class LaserEVM:
         execution_timeout=60,
         create_timeout=10,
         strategy=DepthFirstSearchStrategy,
-        max_transaction_count=3,
+        transaction_count=3,
     ):
         world_state = WorldState()
         world_state.accounts = accounts
@@ -66,7 +66,7 @@ class LaserEVM:
         self.work_list = []
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
-        self.max_transaction_count = max_transaction_count
+        self.transaction_count = transaction_count
 
         self.execution_timeout = execution_timeout
         self.create_timeout = create_timeout
@@ -98,11 +98,7 @@ class LaserEVM:
         return self.world_state.accounts
 
     def sym_exec(
-        self,
-        main_address=None,
-        creation_code=None,
-        contract_name=None,
-        max_transactions=3,
+        self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
@@ -151,16 +147,11 @@ class LaserEVM:
         :return:
         """
         self.coverage = {}
-        for i in range(self.max_transaction_count):
-            initial_coverage = self._get_covered_instructions()
+        for i in range(self.transaction_count):
 
             self.time = datetime.now()
             logging.info("Starting message call transaction, iteration: {}".format(i))
             execute_message_call(self, address)
-
-            end_coverage = self._get_covered_instructions()
-            if end_coverage == initial_coverage:
-                break
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""

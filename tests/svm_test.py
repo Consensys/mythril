@@ -85,7 +85,7 @@ class SVMTestCase(BaseTestCase):
             account = Account("0x0000000000000000000000000000000000000000", disassembly)
             accounts = {account.address: account}
 
-            laser = svm.LaserEVM(accounts, max_depth=22, max_transaction_count=1)
+            laser = svm.LaserEVM(accounts, max_depth=22, transaction_count=1)
             laser.register_hooks(
                 hook_type="post", hook_dict=get_detection_module_hooks()
             )

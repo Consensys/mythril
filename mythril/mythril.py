@@ -481,7 +481,7 @@ class Mythril(object):
         max_depth=None,
         execution_timeout=None,
         create_timeout=None,
-        max_transaction_count=None,
+        transaction_count=None,
     ):
 
         all_issues = []
@@ -498,7 +498,7 @@ class Mythril(object):
                 max_depth=max_depth,
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
-                max_transaction_count=max_transaction_count,
+                transaction_count=transaction_count,
             )
 
             issues = fire_lasers(sym, modules)
