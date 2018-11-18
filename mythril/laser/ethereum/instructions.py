@@ -13,6 +13,7 @@ from z3 import (
     Concat,
     ULT,
     UGT,
+    BitVecRef,
     BitVecNumRef,
     Not,
     is_false,
@@ -83,6 +84,8 @@ class StateTransition(object):
     @staticmethod
     def check_gas_usage_limit(global_state: GlobalState):
         global_state.mstate.check_gas()
+        if type(global_state.current_transaction.gas_limit) == BitVecRef:
+            return
         if (
             global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
@@ -1139,6 +1142,7 @@ class Instruction:
 
     @StateTransition()
     def gas_(self, global_state: GlobalState) -> List[GlobalState]:
+        # TODO: Push a Constrained variable which lies between min gas and max gas
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
@@ -1491,7 +1495,7 @@ class Instruction:
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
             return [global_state]
-
+        
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
