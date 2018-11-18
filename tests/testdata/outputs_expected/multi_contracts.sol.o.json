@@ -6,7 +6,7 @@
       "contract": "Unknown",
       "debug": "<DEBUG-DATA>",
       "description": "Users other than the contract creator can withdraw ETH from the contract account without previously having sent any ETH to it. This is likely to be vulnerability.",
-      "function": "_function_0x8a4068dd",
+      "function": "transfer()",
       "swc-id": "105",
       "min_gas_used": 186,
       "max_gas_used": 467,

@@ -9,10 +9,6 @@ from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
 
-"""
-MODULE DESCRIPTION:
-"""
-
 
 class TxOrderDependenceModule(DetectionModule):
     def __init__(self):
@@ -61,7 +57,7 @@ class TxOrderDependenceModule(DetectionModule):
 
                 issue.description = (
                     "Possible transaction order dependence vulnerability: The value or "
-                    "direction of the call statement is determined from a tainted storage location"
+                    "direction of the call statement is determined from a tainted storage location."
                 )
                 issues.append(issue)
 
