@@ -5,6 +5,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
+from z3 import BitVecVal, UGT
 import logging
 
 
@@ -12,14 +13,12 @@ DESCRIPTION = """
 
 Search for cases where Ether can be withdrawn to a user-specified address. 
 
-An issue is reported ONLY IF:
+An issue is reported if:
 
 - The transaction sender does not match contract creator;
 - The sender address can be chosen arbitrarily;
 - The receiver address is identical to the sender address;
-- The sender has not previously sent any ETH to the contract account.
-
-This is somewhat coarse and needs to be refined in the future.
+- The sender can withdraw *more* than the total amount they sent over all transactions.
 
 """
 
@@ -61,18 +60,18 @@ class EtherThief(DetectionModule):
         if constrained:
             return []
 
-        try:
+        eth_sent_total = BitVecVal(0, 256)
 
-            """
-            FIXME: Instead of solving for call_value > 0, check whether call value can be greater than
-            the total value of all transactions received by the caller
-            """
+        for tx in state.world_state.transaction_sequence[1:]:
+            eth_sent_total += tx.call_value
+
+        try:
 
             model = solver.get_model(
                 node.constraints
                 + not_creator_constraints
                 + [
-                    call_value > 0,
+                    UGT(call_value, eth_sent_total),
                     state.environment.sender == ARBITRARY_SENDER_ADDRESS,
                     target == state.environment.sender,
                 ]
@@ -83,17 +82,11 @@ class EtherThief(DetectionModule):
                 node.constraints
                 + not_creator_constraints
                 + [
-                    call_value > 0,
+                    call_value > eth_sent_total,
                     state.environment.sender == ARBITRARY_SENDER_ADDRESS,
                     target == state.environment.sender,
                 ],
             )
-
-            # For now we only report an issue if zero ETH has been sent to the contract account.
-
-            for key, value in transaction_sequence.items():
-                if int(value["call_value"], 16) > 0:
-                    return []
 
             debug = "Transaction Sequence: " + str(transaction_sequence)
 
@@ -105,8 +98,9 @@ class EtherThief(DetectionModule):
                 title="Ether thief",
                 _type="Warning",
                 bytecode=state.environment.code.bytecode,
-                description="Users other than the contract creator can withdraw ETH from the contract account"
-                + " without previously having sent any ETH to it. This is likely to be vulnerability.",
+                description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
+                + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
+                + " a vulnerability.",
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
