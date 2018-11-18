@@ -157,7 +157,10 @@ class LaserEVM:
 
             end_coverage = self._get_covered_instructions()
 
-            logging.info("Number of new instructions covered in tx %d: %d" % (i, end_coverage - initial_coverage))
+            logging.info(
+                "Number of new instructions covered in tx %d: %d"
+                % (i, end_coverage - initial_coverage)
+            )
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""
