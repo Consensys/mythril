@@ -45,7 +45,7 @@ class Memory:
                 )
             )
 
-    def write_word_at(self, index: int, value: Union[int, BitVecRef, BoolRef]):
+    def write_word_at(self, index: int, value: Union[int, BitVecRef, bool, BoolRef]):
         """
         Writes a 32 byte word to memory at the specified index`
         :param index: index to write to
@@ -53,6 +53,12 @@ class Memory:
         """
         try:
             # Attempt to concretize value
+            if isinstance(value, bool):
+                _bytes = (
+                    int(1).to_bytes(32, byteorder="big")
+                    if value
+                    else int(0).to_bytes(32, byteorder="big")
+                )
             _bytes = util.concrete_int_to_bytes(value)
             assert len(_bytes) == 32
             self[index : index + 32] = _bytes
@@ -62,6 +68,7 @@ class Memory:
             else:
                 value_to_write = value
             assert value_to_write.size() == 256
+
             for i in range(0, value_to_write.size(), 8):
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
 
