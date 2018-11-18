@@ -84,8 +84,11 @@ class StateTransition(object):
     @staticmethod
     def check_gas_usage_limit(global_state: GlobalState):
         global_state.mstate.check_gas()
-        if type(global_state.current_transaction.gas_limit) == BitVecRef:
-            return
+        if isinstance(global_state.current_transaction.gas_limit, BitVecRef):
+            try:
+                global_state.current_transaction.gas_limit = global_state.current_transaction.gas_limit.as_long()
+            except AttributeError:
+                return
         if (
             global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
