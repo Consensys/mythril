@@ -102,6 +102,17 @@ class Mythril(object):
             )
         except FileNotFoundError as e:
             logging.info(str(e))
+
+            # Create empty db file if none exists
+
+            f = open(os.path.join(self.mythril_dir, "signatures.json"), "w")
+            f.write("{}")
+            f.close()
+
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
+            )
+
         except json.JSONDecodeError as e:
             raise CriticalError(str(e))
 
