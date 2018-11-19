@@ -79,9 +79,3 @@ def solc_exists(version):
         return True
     else:
         return False
-
-def trim_0x(hex_string):
-    if hex_string.startswith("0x"):
-        return hex_string[2:]
-    else:
-        return hex_string
