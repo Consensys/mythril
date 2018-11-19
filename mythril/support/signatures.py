@@ -152,10 +152,12 @@ class SignatureDB(object):
                     )
                 )
         except FileNotFoundError:
-            raise CompilerError((
-                "Compiler not found. Make sure that solc is installed and in PATH, "
-                "or the SOLC environment variable is set."
-            ))
+            raise CompilerError(
+                (
+                    "Compiler not found. Make sure that solc is installed and in PATH, "
+                    "or the SOLC environment variable is set."
+                )
+            )
 
         stdout = stdout.decode("unicode_escape").split("\n")
         for line in stdout:

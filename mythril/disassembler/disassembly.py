@@ -25,9 +25,7 @@ class Disassembly(object):
 
         # open from default locations
         # control if you want to have online signature hash lookups
-        signatures = SignatureDB(
-            enable_online_lookup=enable_online_lookup
-        )
+        signatures = SignatureDB(enable_online_lookup=enable_online_lookup)
 
         # Need to take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
         jump_table_indices = asm.find_op_code_sequence(
