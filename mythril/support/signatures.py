@@ -102,6 +102,7 @@ class SignatureDB(object):
             raise ValueError(
                 "Invalid byte signature %s, must have 10 characters", byte_sig
             )
+        return byte_sig
 
     def add(self, byte_sig: str, text_sig: str) -> None:
         """
@@ -136,7 +137,7 @@ class SignatureDB(object):
         cur.execute("SELECT text_sig FROM signatures WHERE byte_sig=?", (byte_sig,))
         text_sigs = cur.fetchall()
         if text_sigs:
-            return text_sigs
+            return [t[0] for t in text_sigs]
 
         # otherwise try the online lookup if we're allowed to
         if not (
