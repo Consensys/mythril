@@ -112,7 +112,7 @@ class NativeTests(BaseTestCase):
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
         accounts = {account.address: account}
 
-        laser = svm.LaserEVM(accounts, max_depth=100, max_transaction_count=1)
+        laser = svm.LaserEVM(accounts, max_depth=100, transaction_count=1)
         laser.sym_exec(account.address)
 
         laser_info = str(_all_info(laser))
