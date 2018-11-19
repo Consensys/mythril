@@ -2,14 +2,15 @@ FROM ubuntu:bionic
 
 RUN apt-get update \
   && apt-get install -y \
+     libsqlite3-0 \
+     libsqlite3-dev \
+  && apt-get install -y \
      build-essential \
      locales \
      python-pip-whl=9.0.1-2 \
      python3-pip=9.0.1-2 \
      python3-setuptools \
      software-properties-common \
-     libsqlite3-0 \
-     libsqlite3-dev \
   && add-apt-repository -y ppa:ethereum/ethereum \
   && apt-get update \
   && apt-get install -y \
