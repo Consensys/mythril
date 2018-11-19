@@ -5,11 +5,11 @@
       "address": 142,
       "contract": "Unknown",
       "debug": "<DEBUG-DATA>",
-      "description": "Users other than the contract creator can withdraw ETH from the contract account without previously having sent any ETH to it. This is likely to be vulnerability.",
-      "function": "_function_0x8a4068dd",
-      "swc-id": "105",
-      "min_gas_used": 186,
+      "description": "Arbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability.",
+      "function": "transfer()",
       "max_gas_used": 467,
+      "min_gas_used": 186,
+      "swc-id": "105",
       "title": "Ether thief",
       "type": "Warning"
     }

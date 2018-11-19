@@ -1,5 +1,8 @@
 import logging
+from collections import defaultdict
+from ethereum.opcodes import opcodes
 from typing import List, Tuple, Union, Callable, Dict
+from mythril.analysis.security import get_detection_modules
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -45,7 +48,7 @@ class LaserEVM:
         execution_timeout=60,
         create_timeout=10,
         strategy=DepthFirstSearchStrategy,
-        max_transaction_count=3,
+        transaction_count=2,
     ):
         world_state = WorldState()
         world_state.accounts = accounts
@@ -63,30 +66,39 @@ class LaserEVM:
         self.work_list = []
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
-        self.max_transaction_count = max_transaction_count
+        self.transaction_count = transaction_count
 
         self.execution_timeout = execution_timeout
         self.create_timeout = create_timeout
 
         self.time = None
 
-        self.pre_hooks = {}
-        self.post_hooks = {}
+        self.pre_hooks = defaultdict(list)
+        self.post_hooks = defaultdict(list)
 
         logging.info(
             "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
         )
+
+    def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
+        if hook_type == "pre":
+            entrypoint = self.pre_hooks
+        elif hook_type == "post":
+            entrypoint = self.post_hooks
+        else:
+            raise ValueError(
+                "Invalid hook type %s. Must be one of {pre, post}", hook_type
+            )
+
+        for op_code, funcs in hook_dict.items():
+            entrypoint[op_code].extend(funcs)
 
     @property
     def accounts(self) -> Dict[str, Account]:
         return self.world_state.accounts
 
     def sym_exec(
-        self,
-        main_address=None,
-        creation_code=None,
-        contract_name=None,
-        max_transactions=3,
+        self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
@@ -135,16 +147,20 @@ class LaserEVM:
         :return:
         """
         self.coverage = {}
-        for i in range(self.max_transaction_count):
+        for i in range(self.transaction_count):
             initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
             logging.info("Starting message call transaction, iteration: {}".format(i))
+
             execute_message_call(self, address)
 
             end_coverage = self._get_covered_instructions()
-            if end_coverage == initial_coverage:
-                break
+
+            logging.info(
+                "Number of new instructions covered in tx %d: %d"
+                % (i, end_coverage - initial_coverage)
+            )
 
     def _get_covered_instructions(self) -> int:
         """ Gets the total number of covered instructions for all accounts in the svm"""
@@ -399,7 +415,7 @@ class LaserEVM:
             for global_state in global_states:
                 hook(global_state)
 
-    def hook(self, op_code: str) -> Callable:
+    def pre_hook(self, op_code: str) -> Callable:
         def hook_decorator(func: Callable):
             if op_code not in self.pre_hooks.keys():
                 self.pre_hooks[op_code] = []

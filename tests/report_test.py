@@ -29,7 +29,7 @@ def _generate_report(input_file):
         address=(util.get_indexed_address(0)),
         strategy="dfs",
         execution_timeout=30,
-        max_transaction_count=1,
+        transaction_count=1,
     )
     issues = fire_lasers(sym)
 

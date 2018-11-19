@@ -1,4 +1,5 @@
 import json
+from mythril.analysis.security import get_detection_module_hooks
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
 from mythril.ether.ethcontract import ETHContract
@@ -84,7 +85,10 @@ class SVMTestCase(BaseTestCase):
             account = Account("0x0000000000000000000000000000000000000000", disassembly)
             accounts = {account.address: account}
 
-            laser = svm.LaserEVM(accounts, max_depth=22, max_transaction_count=1)
+            laser = svm.LaserEVM(accounts, max_depth=22, transaction_count=1)
+            laser.register_hooks(
+                hook_type="post", hook_dict=get_detection_module_hooks()
+            )
             laser.sym_exec(account.address)
             laser_info = _all_info(laser)
 

@@ -94,25 +94,27 @@ class Mythril(object):
 
         self.mythril_dir = self._init_mythril_dir()
 
-        self.sigs = signatures.SignatureDb(
-            enable_online_lookup=self.enable_online_lookup
-        )
+        self.sigs = {}
         try:
-            self.sigs.open()  # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
-        except FileNotFoundError:
-            logging.info(
-                "No signature database found. Creating database if sigs are loaded in: "
-                + self.sigs.signatures_file
-                + "\n"
-                + "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json"
+            # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
             )
-        except json.JSONDecodeError as jde:
-            raise CriticalError(
-                "Invalid JSON in signatures file "
-                + self.sigs.signatures_file
-                + "\n"
-                + str(jde)
+        except FileNotFoundError as e:
+            logging.info(str(e))
+
+            # Create empty db file if none exists
+
+            f = open(os.path.join(self.mythril_dir, "signatures.json"), "w")
+            f.write("{}")
+            f.close()
+
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
             )
+
+        except json.JSONDecodeError as e:
+            raise CriticalError(str(e))
 
         self.solc_binary = self._init_solc_binary(solv)
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
@@ -481,7 +483,7 @@ class Mythril(object):
         max_depth=None,
         execution_timeout=None,
         create_timeout=None,
-        max_transaction_count=None,
+        transaction_count=None,
     ):
 
         all_issues = []
@@ -498,7 +500,7 @@ class Mythril(object):
                 max_depth=max_depth,
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
-                max_transaction_count=max_transaction_count,
+                transaction_count=transaction_count,
             )
 
             issues = fire_lasers(sym, modules)

@@ -1,3 +1,4 @@
+from mythril.analysis.security import get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
 from mythril.ether.soliditycontract import SolidityContract, ETHContract
@@ -27,7 +28,7 @@ class SymExecWrapper:
         max_depth=22,
         execution_timeout=None,
         create_timeout=None,
-        max_transaction_count=3,
+        transaction_count=2,
     ):
 
         if strategy == "dfs":
@@ -57,7 +58,10 @@ class SymExecWrapper:
             execution_timeout=execution_timeout,
             strategy=s_strategy,
             create_timeout=create_timeout,
-            max_transaction_count=max_transaction_count,
+            transaction_count=transaction_count,
+        )
+        self.laser.register_hooks(
+            hook_type="post", hook_dict=get_detection_module_hooks()
         )
 
         if isinstance(contract, SolidityContract):

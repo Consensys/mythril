@@ -4,7 +4,7 @@
 - SWC ID: 110
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0x546455b5`
+- Function name: `assert3(uint256)`
 - PC address: 446
 - Estimated Gas Usage: 206 - 301
 
@@ -16,7 +16,7 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 - SWC ID: 110
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0x92dd38ea`
+- Function name: `arrayaccess(uint256)`
 - PC address: 484
 - Estimated Gas Usage: 256 - 351
 
@@ -28,7 +28,7 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 - SWC ID: 110
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xa08299f1`
+- Function name: `divisionby0(uint256)`
 - PC address: 506
 - Estimated Gas Usage: 272 - 367
 
@@ -40,7 +40,7 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 - SWC ID: 110
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xb34c3610`
+- Function name: `assert1()`
 - PC address: 531
 - Estimated Gas Usage: 268 - 363
 
