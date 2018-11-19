@@ -21,13 +21,13 @@ class BaseTestCase(TestCase):
         self.ori_mythril_dir = getattr(os.environ, "MYTHRIL_DIR", "")
         os.environ["MYTHRIL_DIR"] = str(MYTHRIL_DIR)
         shutil.copyfile(
-            str(MYTHRIL_DIR / "signatures.json.example"),
-            str(MYTHRIL_DIR / "signatures.json"),
+            str(MYTHRIL_DIR / "signatures.db.example"),
+            str(MYTHRIL_DIR / "signatures.db"),
         )
 
     def tearDown(self):
         os.environ["MYTHRIL_DIR"] = self.ori_mythril_dir
-        os.remove(str(MYTHRIL_DIR / "signatures.json"))
+        os.remove(str(MYTHRIL_DIR / "signatures.db"))
 
     def compare_files_error_message(self):
         message = "Following output files are changed, compare them manually to see differences: \n"

@@ -12,7 +12,7 @@ def test_get_function_info(mocker):
     # Arrange
     global instruction_list
 
-    signature_database_mock = SignatureDb()
+    signature_database_mock = SignatureDB()
     mocker.patch.object(signature_database_mock, "get")
     signature_database_mock.get.return_value = ["function_name"]
 
@@ -31,7 +31,7 @@ def test_get_function_info_multiple_names(mocker):
     # Arrange
     global instruction_list
 
-    signature_database_mock = SignatureDb()
+    signature_database_mock = SignatureDB()
     mocker.patch.object(signature_database_mock, "get")
     signature_database_mock.get.return_value = ["function_name", "another_name"]
 
@@ -48,7 +48,7 @@ def test_get_function_info_no_names(mocker):
     # Arrange
     global instruction_list
 
-    signature_database_mock = SignatureDb()
+    signature_database_mock = SignatureDB()
     mocker.patch.object(signature_database_mock, "get")
     signature_database_mock.get.return_value = []
 

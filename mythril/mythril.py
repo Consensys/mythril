@@ -94,27 +94,10 @@ class Mythril(object):
 
         self.mythril_dir = self._init_mythril_dir()
 
-        self.sigs = {}
-        try:
-            # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
-            self.sigs = signatures.SignatureDb(
-                enable_online_lookup=self.enable_online_lookup
-            )
-        except FileNotFoundError as e:
-            logging.info(str(e))
-
-            # Create empty db file if none exists
-
-            f = open(os.path.join(self.mythril_dir, "signatures.json"), "w")
-            f.write("{}")
-            f.close()
-
-            self.sigs = signatures.SignatureDb(
-                enable_online_lookup=self.enable_online_lookup
-            )
-
-        except json.JSONDecodeError as e:
-            raise CriticalError(str(e))
+        # tries mythril_dir/signatures.db by default (provide path= arg to make this configurable)
+        self.sigs = signatures.SignatureDB(
+            enable_online_lookup=self.enable_online_lookup
+        )
 
         self.solc_binary = self._init_solc_binary(solv)
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
@@ -386,12 +369,9 @@ class Mythril(object):
 
             try:
                 # import signatures from solidity source
-                self.sigs.import_from_solidity_source(
+                self.sigs.import_solidity_file(
                     file, solc_binary=self.solc_binary, solc_args=self.solc_args
                 )
-                # Save updated function signatures
-                self.sigs.write()  # dump signatures to disk (previously opened file or default location)
-
                 if contract_name is not None:
                     contract = SolidityContract(
                         input_file=file,
