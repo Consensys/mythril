@@ -703,7 +703,7 @@ class Instruction:
 
         if global_state.environment.code.bytecode.startswith("0x"):
             bytecode = global_state.environment.code.bytecode[2:]
-        else:    
+        else:
             bytecode = global_state.environment.code.bytecode
 
         if size == 0 and isinstance(
