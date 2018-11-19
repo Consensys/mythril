@@ -701,12 +701,15 @@ class Instruction:
                 )
             return [global_state]
 
-        bytecode = global_state.environment.code.bytecode
+        if global_state.environment.code.bytecode.startswith("0x"):
+            bytecode = global_state.environment.code.bytecode[2:]
+        else:    
+            bytecode = global_state.environment.code.bytecode
 
         if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
-            if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
+            if concrete_code_offset >= len(bytecode) // 2:
                 global_state.mstate.mem_extend(concrete_memory_offset, 1)
                 global_state.mstate.memory[
                     concrete_memory_offset
