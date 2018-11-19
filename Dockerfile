@@ -8,6 +8,8 @@ RUN apt-get update \
      python3-pip=9.0.1-2 \
      python3-setuptools \
      software-properties-common \
+     libsqlite3-0 \
+     libsqlite3-dev \
   && add-apt-repository -y ppa:ethereum/ethereum \
   && apt-get update \
   && apt-get install -y \
