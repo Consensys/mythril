@@ -109,7 +109,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         )
         try:
             issue.debug = "Transaction Sequence: " + str(
-                solver.get_transaction_sequence(state, node.constraints)
+                solver.get_transaction_sequence(state, node.constraints + [constraint])
             )
         except UnsatError:
             return issues
