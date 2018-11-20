@@ -17,9 +17,9 @@ import solc
 from configparser import ConfigParser
 import platform
 
-from mythril.ether import util
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum import util
+from mythril.ethereum.evmcontract import EVMContract
+from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures
@@ -323,7 +323,7 @@ class Mythril(object):
         address = util.get_indexed_address(0)
         if bin_runtime:
             self.contracts.append(
-                ETHContract(
+                EVMContract(
                     code=code,
                     name="MAIN",
                     enable_online_lookup=self.enable_online_lookup,
@@ -331,7 +331,7 @@ class Mythril(object):
             )
         else:
             self.contracts.append(
-                ETHContract(
+                EVMContract(
                     creation_code=code,
                     name="MAIN",
                     enable_online_lookup=self.enable_online_lookup,
@@ -360,7 +360,7 @@ class Mythril(object):
                 )
             else:
                 self.contracts.append(
-                    ETHContract(
+                    EVMContract(
                         code,
                         name=address,
                         enable_online_lookup=self.enable_online_lookup,

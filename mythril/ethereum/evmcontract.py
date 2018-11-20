@@ -4,7 +4,7 @@ import persistent
 import re
 
 
-class ETHContract(persistent.Persistent):
+class EVMContract(persistent.Persistent):
     def __init__(
         self, code="", creation_code="", name="Unknown", enable_online_lookup=False
     ):

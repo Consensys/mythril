@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.solidity.soliditycontract import SolidityContract
 from tests import BaseTestCase
 
 TEST_FILES = Path(__file__).parent / "testdata/input_contracts"
