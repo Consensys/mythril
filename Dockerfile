@@ -16,6 +16,7 @@ RUN apt-get update \
      python3-dev \
      pandoc \
      git \
+     wget \
   && ln -s /usr/bin/python3 /usr/local/bin/python
 
 COPY ./requirements.txt /opt/mythril/requirements.txt
