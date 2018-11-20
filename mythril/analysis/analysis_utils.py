@@ -41,6 +41,8 @@ def has_caller_check_constraint(constraints: List) -> bool:
     Checks whether the caller is constrained to a value or not
     """
     for constraint in constraints:
-        if re.search(r"caller.*==[0-9]{20}", str(constraint).replace('\n', '').replace(' ', '')):
+        if re.search(
+            r"caller.*==[0-9]{20}", str(constraint).replace("\n", "").replace(" ", "")
+        ):
             return False
     return True
