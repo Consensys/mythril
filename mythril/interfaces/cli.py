@@ -335,8 +335,7 @@ def main():
             address, _ = mythril.load_from_bytecode(code, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
-            if bytecode.startswith("0x"):
-                bytecode = bytecode[2:]
+            bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
             address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
         elif args.address:
             # Get bytecode from a contract address
