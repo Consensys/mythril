@@ -1,5 +1,5 @@
 import logging
-from mythril import ether
+from mythril import ethereum
 import time
 from ethereum.messages import Log
 import rlp
@@ -156,7 +156,7 @@ class AccountIndexer(object):
             processed += BATCH_SIZE
             blockNum = min(blockNum + BATCH_SIZE, self.lastBlock + 1)
 
-            cost_time = time.time() - ether.start_time
+            cost_time = time.time() - ethereum.start_time
             print(
                 "%d blocks processed (in %d seconds), %d unique addresses found, next block: %d"
                 % (processed, cost_time, count, min(self.lastBlock, blockNum))

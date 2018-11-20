@@ -1,9 +1,8 @@
 from mythril.analysis.security import get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
-from mythril.ether.soliditycontract import SolidityContract, ETHContract
+from mythril.solidity.soliditycontract import SolidityContract, EVMContract
 import copy
-import logging
 from .ops import get_variable, SStore, Call, VarType
 from mythril.laser.ethereum.strategy.basic import (
     DepthFirstSearchStrategy,
@@ -28,7 +27,7 @@ class SymExecWrapper:
         max_depth=22,
         execution_timeout=None,
         create_timeout=None,
-        max_transaction_count=3,
+        transaction_count=2,
     ):
 
         if strategy == "dfs":
@@ -58,7 +57,7 @@ class SymExecWrapper:
             execution_timeout=execution_timeout,
             strategy=s_strategy,
             create_timeout=create_timeout,
-            max_transaction_count=max_transaction_count,
+            transaction_count=transaction_count,
         )
         self.laser.register_hooks(
             hook_type="post", hook_dict=get_detection_module_hooks()
@@ -68,7 +67,7 @@ class SymExecWrapper:
             self.laser.sym_exec(
                 creation_code=contract.creation_code, contract_name=contract.name
             )
-        elif isinstance(contract, ETHContract) and contract.creation_code:
+        elif isinstance(contract, EVMContract) and contract.creation_code:
             self.laser.sym_exec(
                 creation_code=contract.creation_code, contract_name=contract.name
             )

@@ -1,10 +1,9 @@
 from mythril.analysis.report import Report
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
-from mythril.ether import util
-from mythril.ether.soliditycontract import ETHContract
+from mythril.ethereum import util
+from mythril.solidity.soliditycontract import EVMContract
 from multiprocessing import Pool, cpu_count
-import datetime
 import pytest
 import json
 from tests import *
@@ -23,13 +22,13 @@ def _fix_debug_data(json_str):
 
 
 def _generate_report(input_file):
-    contract = ETHContract(input_file.read_text(), enable_online_lookup=False)
+    contract = EVMContract(input_file.read_text(), enable_online_lookup=False)
     sym = SymExecWrapper(
         contract,
         address=(util.get_indexed_address(0)),
         strategy="dfs",
         execution_timeout=30,
-        max_transaction_count=1,
+        transaction_count=1,
     )
     issues = fire_lasers(sym)
 

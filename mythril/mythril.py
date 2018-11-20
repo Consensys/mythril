@@ -17,9 +17,9 @@ import solc
 from configparser import ConfigParser
 import platform
 
-from mythril.ether import util
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum import util
+from mythril.ethereum.evmcontract import EVMContract
+from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures
@@ -102,6 +102,17 @@ class Mythril(object):
             )
         except FileNotFoundError as e:
             logging.info(str(e))
+
+            # Create empty db file if none exists
+
+            f = open(os.path.join(self.mythril_dir, "signatures.json"), "w")
+            f.write("{}")
+            f.close()
+
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
+            )
+
         except json.JSONDecodeError as e:
             raise CriticalError(str(e))
 
@@ -312,7 +323,7 @@ class Mythril(object):
         address = util.get_indexed_address(0)
         if bin_runtime:
             self.contracts.append(
-                ETHContract(
+                EVMContract(
                     code=code,
                     name="MAIN",
                     enable_online_lookup=self.enable_online_lookup,
@@ -320,7 +331,7 @@ class Mythril(object):
             )
         else:
             self.contracts.append(
-                ETHContract(
+                EVMContract(
                     creation_code=code,
                     name="MAIN",
                     enable_online_lookup=self.enable_online_lookup,
@@ -349,7 +360,7 @@ class Mythril(object):
                 )
             else:
                 self.contracts.append(
-                    ETHContract(
+                    EVMContract(
                         code,
                         name=address,
                         enable_online_lookup=self.enable_online_lookup,
@@ -472,7 +483,7 @@ class Mythril(object):
         max_depth=None,
         execution_timeout=None,
         create_timeout=None,
-        max_transaction_count=None,
+        transaction_count=None,
     ):
 
         all_issues = []
@@ -489,7 +500,7 @@ class Mythril(object):
                 max_depth=max_depth,
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
-                max_transaction_count=max_transaction_count,
+                transaction_count=transaction_count,
             )
 
             issues = fire_lasers(sym, modules)
