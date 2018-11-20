@@ -1,5 +1,5 @@
 import unittest
-from mythril.ethereum.ethcontract import ETHContract
+from mythril.ethereum.evmcontract import EVMContract
 
 
 class ETHContractTestCase(unittest.TestCase):
@@ -10,32 +10,32 @@ class ETHContractTestCase(unittest.TestCase):
 
 class Getinstruction_listTestCase(ETHContractTestCase):
     def runTest(self):
-        contract = ETHContract(self.code, self.creation_code)
+        contract = EVMContract(self.code, self.creation_code)
 
         disassembly = contract.disassembly
 
         self.assertEqual(
             len(disassembly.instruction_list),
             53,
-            "Error disassembling code using ETHContract.get_instruction_list()",
+            "Error disassembling code using EVMContract.get_instruction_list()",
         )
 
 
 class GetEASMTestCase(ETHContractTestCase):
     def runTest(self):
-        contract = ETHContract(self.code)
+        contract = EVMContract(self.code)
 
         instruction_list = contract.get_easm()
 
         self.assertTrue(
             "PUSH1 0x60" in instruction_list,
-            "Error obtaining EASM code through ETHContract.get_easm()",
+            "Error obtaining EASM code through EVMContract.get_easm()",
         )
 
 
 class MatchesExpressionTestCase(ETHContractTestCase):
     def runTest(self):
-        contract = ETHContract(self.code)
+        contract = EVMContract(self.code)
 
         self.assertTrue(
             contract.matches_expression("code#PUSH1# or code#PUSH1#"),
