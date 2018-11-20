@@ -331,7 +331,7 @@ def main():
 
         if args.code:
             # Load from bytecode
-            if args.code.startswith("0x"):
+           code = args.code[2:] if args.code.startswith("0x") else args.code
                 code = args.code[2:]
             else:
                 code = args.code
