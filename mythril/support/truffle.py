@@ -5,7 +5,7 @@ import sys
 import json
 import logging
 from ethereum.utils import sha3
-from mythril.ethereum.ethcontract import ETHContract
+from mythril.ethereum.evmcontract import EVMContract
 from mythril.solidity.soliditycontract import SourceMapping
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
@@ -43,7 +43,7 @@ def analyze_truffle_project(sigs, args):
                 continue
             get_sigs_from_truffle(sigs, contractdata)
 
-            ethcontract = ETHContract(bytecode, name=name)
+            ethcontract = EVMContract(bytecode, name=name)
 
             address = util.get_indexed_address(0)
             sym = SymExecWrapper(

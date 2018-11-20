@@ -1,5 +1,5 @@
 import mythril.laser.ethereum.util as helper
-from mythril.ethereum.ethcontract import ETHContract
+from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.util import get_solc_json
 from mythril.exceptions import NoContractFoundError
 
@@ -42,7 +42,7 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
         raise NoContractFoundError
 
 
-class SolidityContract(ETHContract):
+class SolidityContract(EVMContract):
     def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
 
         data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
