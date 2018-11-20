@@ -5,14 +5,13 @@ import sys
 import json
 import logging
 from ethereum.utils import sha3
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SourceMapping
-from mythril.exceptions import CriticalError
+from mythril.ethereum.ethcontract import ETHContract
+from mythril.solidity.soliditycontract import SourceMapping
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.report import Report
 
-from mythril.ether import util
+from mythril.ethereum import util
 from mythril.laser.ethereum.util import get_instruction_index
 
 

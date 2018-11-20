@@ -10,7 +10,7 @@ from ethereum import utils
 from ethereum.block import BlockHeader, Block
 from mythril.ethereum.interface.leveldb.state import State
 from mythril.ethereum.interface.leveldb.eth_db import ETH_DB
-from mythril.ether.ethcontract import ETHContract
+from mythril.ethereum.ethcontract import ETHContract
 from mythril.exceptions import AddressNotFoundError
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/rawdb/schema.go

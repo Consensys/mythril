@@ -2,8 +2,8 @@ import json
 from mythril.analysis.security import get_detection_module_hooks
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.ethereum.ethcontract import ETHContract
+from mythril.solidity.soliditycontract import SolidityContract
 
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState

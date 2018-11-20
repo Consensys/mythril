@@ -17,9 +17,9 @@ import solc
 from configparser import ConfigParser
 import platform
 
-from mythril.ether import util
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum import util
+from mythril.ethereum.ethcontract import ETHContract
+from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures

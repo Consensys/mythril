@@ -1,9 +1,8 @@
 from mythril.analysis.security import get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
-from mythril.ether.soliditycontract import SolidityContract, ETHContract
+from mythril.solidity.soliditycontract import SolidityContract, ETHContract
 import copy
-import logging
 from .ops import get_variable, SStore, Call, VarType
 from mythril.laser.ethereum.strategy.basic import (
     DepthFirstSearchStrategy,

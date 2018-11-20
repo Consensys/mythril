@@ -1,6 +1,6 @@
 import mythril.laser.ethereum.util as helper
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.util import get_solc_json
+from mythril.ethereum.ethcontract import ETHContract
+from mythril.ethereum.util import get_solc_json
 from mythril.exceptions import NoContractFoundError
 
 

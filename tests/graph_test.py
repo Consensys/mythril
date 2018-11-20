@@ -1,7 +1,7 @@
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.symbolic import SymExecWrapper
-from mythril.ether import util
-from mythril.ether.soliditycontract import ETHContract
+from mythril.ethereum import util
+from mythril.solidity.soliditycontract import ETHContract
 from tests import *
 import re
 
