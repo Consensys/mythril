@@ -701,10 +701,7 @@ class Instruction:
                 )
             return [global_state]
 
-        if global_state.environment.code.bytecode.startswith("0x"):
-            bytecode = global_state.environment.code.bytecode[2:]
-        else:
-            bytecode = global_state.environment.code.bytecode
+        bytecode = global_state.environment.code.bytecode
 
         if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction

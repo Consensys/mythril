@@ -331,10 +331,7 @@ def main():
 
         if args.code:
             # Load from bytecode
-           code = args.code[2:] if args.code.startswith("0x") else args.code
-                code = args.code[2:]
-            else:
-                code = args.code
+            code = args.code[2:] if args.code.startswith("0x") else args.code
             address, _ = mythril.load_from_bytecode(code, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
