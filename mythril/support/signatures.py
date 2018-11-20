@@ -57,7 +57,7 @@ class SignatureDB(object):
         return self.get(byte_sig=item)
 
     @staticmethod
-    def _normalize_byte_sig(byte_sig: str):
+    def _normalize_byte_sig(byte_sig: str) -> str:
         """
         Adds a leading 0x to the byte signature if it's not already there.
         :param byte_sig: 8-byte signature string
@@ -129,7 +129,7 @@ class SignatureDB(object):
             logging.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
             return []
 
-    def import_solidity_file(self, file_path, solc_binary="solc", solc_args=None):
+    def import_solidity_file(self, file_path: str, solc_binary: str = "solc", solc_args: str = None):
         """
         Import Function Signatures from solidity source files
         :param file_path: solidity source code file path
