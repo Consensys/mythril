@@ -140,6 +140,7 @@ def get_callee_account(
 
     return callee_account
 
+
 def get_call_data(
     global_state: GlobalState,
     memory_start: Union[int, ExprRef],
