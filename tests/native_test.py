@@ -1,4 +1,4 @@
-from mythril.ether.soliditycontract import SolidityContract
+from mythril.solidity.soliditycontract import SolidityContract
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
