@@ -1,6 +1,8 @@
 """
 This module implements basic symbolic execution search strategies
 """
+from mythril.laser.ethereum.state.global_state import GlobalState
+from typing import List
 from random import randrange
 from . import BasicSearchStrategy
 
@@ -35,7 +37,7 @@ class DepthFirstSearchStrategy(BasicSearchStrategy):
     I.E. Follow one path to a leaf, and then continue to the next one
     """
 
-    def get_strategic_global_state(self):
+    def get_strategic_global_state(self) -> GlobalState:
         return self.work_list.pop()
 
 
@@ -45,7 +47,7 @@ class BreadthFirstSearchStrategy(BasicSearchStrategy):
     I.E. Execute all states of a "level" before continuing
     """
 
-    def get_strategic_global_state(self):
+    def get_strategic_global_state(self) -> GlobalState:
         return self.work_list.pop(0)
 
 
@@ -54,7 +56,7 @@ class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
     chooses a random state from the worklist with equal likelihood
     """
 
-    def get_strategic_global_state(self):
+    def get_strategic_global_state(self) -> GlobalState:
         if len(self.work_list) > 0:
             return self.work_list.pop(randrange(len(self.work_list)))
         else:
@@ -66,7 +68,7 @@ class ReturnWeightedRandomStrategy(BasicSearchStrategy):
     chooses a random state from the worklist with likelihood based on inverse proportion to depth
     """
 
-    def get_strategic_global_state(self):
+    def get_strategic_global_state(self) -> GlobalState:
         probability_distribution = [
             1 / (global_state.mstate.depth + 1) for global_state in self.work_list
         ]

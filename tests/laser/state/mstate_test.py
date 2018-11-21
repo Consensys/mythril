@@ -1,5 +1,5 @@
 import pytest
-from mythril.laser.ethereum.state import MachineState
+from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 
 memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
@@ -10,7 +10,7 @@ memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
 )
 def test_memory_extension(initial_size, start, extension_size):
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(gas_limit=8000000)
     machine_state.memory = [0] * initial_size
 
     # Act
@@ -27,7 +27,7 @@ stack_pop_too_many_test_data = [(0, 1), (0, 2), (5, 1), (5, 10)]
 @pytest.mark.parametrize("initial_size,overflow", stack_pop_too_many_test_data)
 def test_stack_pop_too_many(initial_size, overflow):
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = [42] * initial_size
 
     # Act + Assert
@@ -44,7 +44,7 @@ stack_pop_test_data = [
 @pytest.mark.parametrize("initial_stack,amount,expected", stack_pop_test_data)
 def test_stack_multiple_pop(initial_stack, amount, expected):
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = initial_stack[:]
 
     # Act
@@ -58,7 +58,7 @@ def test_stack_multiple_pop(initial_stack, amount, expected):
 
 def test_stack_multiple_pop_():
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = [1, 2, 3]
 
     # Act
@@ -71,7 +71,7 @@ def test_stack_multiple_pop_():
 
 def test_stack_single_pop():
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = [1, 2, 3]
 
     # Act
@@ -87,7 +87,7 @@ memory_write_test_data = [(5, 10, [1, 2, 3]), (0, 0, [3, 4]), (20, 1, [2, 4, 10]
 @pytest.mark.parametrize("initial_size, memory_offset, data", memory_write_test_data)
 def test_memory_write(initial_size, memory_offset, data):
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.memory = [0] * initial_size
 
     # Act

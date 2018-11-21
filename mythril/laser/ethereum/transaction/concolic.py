@@ -1,17 +1,15 @@
+from typing import List, Union
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
     get_next_transaction_id,
 )
 from z3 import BitVec
-from mythril.laser.ethereum.state import (
-    GlobalState,
-    Environment,
-    CalldataType,
-    Account,
-    WorldState,
-    Calldata,
-)
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.calldata import Calldata, CalldataType
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 
@@ -23,36 +21,40 @@ def execute_message_call(
     origin_address,
     code,
     data,
-    gas,
+    gas_limit,
     gas_price,
     value,
-):
+    track_gas=False,
+) -> Union[None, List[GlobalState]]:
     """ Executes a message call transaction from all open states """
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
         transaction = MessageCallTransaction(
-            identifier=next_transaction_id,
             world_state=open_world_state,
-            callee_account=open_world_state[callee_address],
-            caller=caller_address,
-            call_data=Calldata(next_transaction_id, data),
+            identifier=next_transaction_id,
             gas_price=gas_price,
-            call_value=value,
+            gas_limit=gas_limit,
             origin=origin_address,
-            call_data_type=CalldataType.SYMBOLIC,
             code=Disassembly(code),
+            caller=caller_address,
+            callee_account=open_world_state[callee_address],
+            call_data=Calldata(next_transaction_id, data),
+            call_data_type=CalldataType.SYMBOLIC,
+            call_value=value,
         )
 
         _setup_global_state_for_execution(laser_evm, transaction)
 
-    laser_evm.exec()
+    return laser_evm.exec(track_gas=track_gas)
 
 
-def _setup_global_state_for_execution(laser_evm, transaction):
+def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     """ Sets up global state and cfg for a transactions execution"""
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 

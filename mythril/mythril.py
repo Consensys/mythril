@@ -17,9 +17,9 @@ import solc
 from configparser import ConfigParser
 import platform
 
-from mythril.ether import util
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum import util
+from mythril.ethereum.evmcontract import EVMContract
+from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.support import signatures
@@ -94,25 +94,27 @@ class Mythril(object):
 
         self.mythril_dir = self._init_mythril_dir()
 
-        self.sigs = signatures.SignatureDb(
-            enable_online_lookup=self.enable_online_lookup
-        )
+        self.sigs = {}
         try:
-            self.sigs.open()  # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
-        except FileNotFoundError:
-            logging.info(
-                "No signature database found. Creating database if sigs are loaded in: "
-                + self.sigs.signatures_file
-                + "\n"
-                + "Consider replacing it with the pre-initialized database at https://raw.githubusercontent.com/ConsenSys/mythril/master/signatures.json"
+            # tries mythril_dir/signatures.json by default (provide path= arg to make this configurable)
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
             )
-        except json.JSONDecodeError as jde:
-            raise CriticalError(
-                "Invalid JSON in signatures file "
-                + self.sigs.signatures_file
-                + "\n"
-                + str(jde)
+        except FileNotFoundError as e:
+            logging.info(str(e))
+
+            # Create empty db file if none exists
+
+            f = open(os.path.join(self.mythril_dir, "signatures.json"), "w")
+            f.write("{}")
+            f.close()
+
+            self.sigs = signatures.SignatureDb(
+                enable_online_lookup=self.enable_online_lookup
             )
+
+        except json.JSONDecodeError as e:
+            raise CriticalError(str(e))
 
         self.solc_binary = self._init_solc_binary(solv)
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
@@ -321,7 +323,7 @@ class Mythril(object):
         address = util.get_indexed_address(0)
         if bin_runtime:
             self.contracts.append(
-                ETHContract(
+                EVMContract(
                     code=code,
                     name="MAIN",
                     enable_online_lookup=self.enable_online_lookup,
@@ -329,7 +331,7 @@ class Mythril(object):
             )
         else:
             self.contracts.append(
-                ETHContract(
+                EVMContract(
                     creation_code=code,
                     name="MAIN",
                     enable_online_lookup=self.enable_online_lookup,
@@ -358,7 +360,7 @@ class Mythril(object):
                 )
             else:
                 self.contracts.append(
-                    ETHContract(
+                    EVMContract(
                         code,
                         name=address,
                         enable_online_lookup=self.enable_online_lookup,
@@ -413,7 +415,7 @@ class Mythril(object):
             except CompilerError as e:
                 raise CriticalError(e)
             except NoContractFoundError:
-                logging.info(
+                logging.error(
                     "The file " + file + " does not contain a compilable contract."
                 )
 
@@ -481,7 +483,7 @@ class Mythril(object):
         max_depth=None,
         execution_timeout=None,
         create_timeout=None,
-        max_transaction_count=None,
+        transaction_count=None,
     ):
 
         all_issues = []
@@ -498,7 +500,7 @@ class Mythril(object):
                 max_depth=max_depth,
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
-                max_transaction_count=max_transaction_count,
+                transaction_count=transaction_count,
             )
 
             issues = fire_lasers(sym, modules)

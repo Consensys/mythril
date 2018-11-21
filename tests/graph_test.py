@@ -1,7 +1,7 @@
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.symbolic import SymExecWrapper
-from mythril.ether import util
-from mythril.ether.soliditycontract import ETHContract
+from mythril.ethereum import util
+from mythril.solidity.soliditycontract import EVMContract
 from tests import *
 import re
 
@@ -17,10 +17,13 @@ class GraphTest(BaseTestCase):
                 input_file.name + ".graph.html"
             )
 
-            contract = ETHContract(input_file.read_text())
+            contract = EVMContract(input_file.read_text())
 
             sym = SymExecWrapper(
-                contract, address=(util.get_indexed_address(0)), strategy="dfs"
+                contract,
+                address=(util.get_indexed_address(0)),
+                strategy="dfs",
+                transaction_count=1,
             )
 
             html = generate_graph(sym)

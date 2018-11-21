@@ -10,7 +10,7 @@ from ethereum import utils
 from ethereum.block import BlockHeader, Block
 from mythril.ethereum.interface.leveldb.state import State
 from mythril.ethereum.interface.leveldb.eth_db import ETH_DB
-from mythril.ether.ethcontract import ETHContract
+from mythril.ethereum.evmcontract import EVMContract
 from mythril.exceptions import AddressNotFoundError
 
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/rawdb/schema.go
@@ -182,7 +182,7 @@ class EthLevelDB(object):
         for account in self.reader._get_head_state().get_all_accounts():
             if account.code is not None:
                 code = _encode_hex(account.code)
-                contract = ETHContract(code, enable_online_lookup=False)
+                contract = EVMContract(code, enable_online_lookup=False)
 
                 yield contract, account.address, account.balance
 

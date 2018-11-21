@@ -1,6 +1,6 @@
 import mythril.laser.ethereum.util as helper
-from mythril.ether.ethcontract import ETHContract
-from mythril.ether.util import get_solc_json
+from mythril.ethereum.evmcontract import EVMContract
+from mythril.ethereum.util import get_solc_json
 from mythril.exceptions import NoContractFoundError
 
 
@@ -27,18 +27,22 @@ class SourceCodeInfo:
 
 def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
     data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
-    for key, contract in data["contracts"].items():
-        filename, name = key.split(":")
-        if filename == input_file and len(contract["bin-runtime"]):
-            yield SolidityContract(
-                input_file=input_file,
-                name=name,
-                solc_args=solc_args,
-                solc_binary=solc_binary,
-            )
+
+    try:
+        for key, contract in data["contracts"].items():
+            filename, name = key.split(":")
+            if filename == input_file and len(contract["bin-runtime"]):
+                yield SolidityContract(
+                    input_file=input_file,
+                    name=name,
+                    solc_args=solc_args,
+                    solc_binary=solc_binary,
+                )
+    except KeyError:
+        raise NoContractFoundError
 
 
-class SolidityContract(ETHContract):
+class SolidityContract(EVMContract):
     def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
 
         data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)

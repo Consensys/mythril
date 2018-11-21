@@ -1,13 +1,18 @@
 import logging
+from typing import Union
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state import GlobalState, Environment, WorldState, Calldata
-from z3 import BitVec
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.calldata import Calldata
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.global_state import GlobalState
+from z3 import BitVec, ExprRef
 import array
 
 _next_transaction_id = 0
 
 
-def get_next_transaction_id():
+def get_next_transaction_id() -> int:
     global _next_transaction_id
     _next_transaction_id += 1
     return _next_transaction_id
@@ -16,7 +21,7 @@ def get_next_transaction_id():
 class TransactionEndSignal(Exception):
     """ Exception raised when a transaction is finalized"""
 
-    def __init__(self, global_state, revert=False):
+    def __init__(self, global_state: GlobalState, revert=False):
         self.global_state = global_state
         self.revert = revert
 
@@ -24,60 +29,83 @@ class TransactionEndSignal(Exception):
 class TransactionStartSignal(Exception):
     """ Exception raised when a new transaction is started"""
 
-    def __init__(self, transaction, op_code):
+    def __init__(
+        self,
+        transaction: Union["MessageCallTransaction", "ContractCreationTransaction"],
+        op_code: str,
+    ):
         self.transaction = transaction
         self.op_code = op_code
 
 
-class MessageCallTransaction:
-    """ Transaction object models an transaction"""
+class BaseTransaction:
+    """Basic transaction class holding common data."""
 
     def __init__(
         self,
-        world_state,
-        callee_account,
-        caller,
+        world_state: WorldState,
+        callee_account: Account = None,
+        caller: ExprRef = None,
         call_data=None,
         identifier=None,
         gas_price=None,
-        call_value=None,
+        gas_limit=None,
         origin=None,
-        call_data_type=None,
         code=None,
+        call_data_type=None,
+        call_value=None,
+        init_call_data=True,
     ):
         assert isinstance(world_state, WorldState)
-        self.id = identifier or get_next_transaction_id()
         self.world_state = world_state
-        self.callee_account = callee_account
-        self.caller = caller
-        self.call_data = (
-            Calldata(self.id, call_data)
-            if not isinstance(call_data, Calldata)
-            else call_data
-        )
+        self.id = identifier or get_next_transaction_id()
+
         self.gas_price = (
-            BitVec("gasprice{}".format(identifier), 256)
-            if gas_price is None
-            else gas_price
+            gas_price
+            if gas_price is not None
+            else BitVec("gasprice{}".format(identifier), 256)
         )
-        self.call_value = (
-            BitVec("callvalue{}".format(identifier), 256)
-            if call_value is None
-            else call_value
-        )
+        self.gas_limit = gas_limit
+
         self.origin = (
-            BitVec("origin{}".format(identifier), 256) if origin is None else origin
-        )
-        self.call_data_type = (
-            BitVec("call_data_type{}".format(identifier), 256)
-            if call_data_type is None
-            else call_data_type
+            origin if origin is not None else BitVec("origin{}".format(identifier), 256)
         )
         self.code = code
+
+        self.caller = caller
+        self.callee_account = callee_account
+        if call_data is None and init_call_data:
+            self.call_data = Calldata(self.id, call_data)
+        else:
+            self.call_data = call_data if isinstance(call_data, Calldata) else None
+        self.call_data_type = (
+            call_data_type
+            if call_data_type is not None
+            else BitVec("call_data_type{}".format(identifier), 256)
+        )
+        self.call_value = (
+            call_value
+            if call_value is not None
+            else BitVec("callvalue{}".format(identifier), 256)
+        )
+
         self.return_data = None
 
-    def initial_global_state(self):
+    def initial_global_state_from_environment(self, environment, active_function):
         # Initialize the execution environment
+        global_state = GlobalState(self.world_state, environment, None)
+        global_state.environment.active_function_name = active_function
+        return global_state
+
+
+class MessageCallTransaction(BaseTransaction):
+    """ Transaction object models an transaction"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def initial_global_state(self) -> GlobalState:
+        """Initialize the execution environment"""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -88,75 +116,27 @@ class MessageCallTransaction:
             code=self.code or self.callee_account.code,
             calldata_type=self.call_data_type,
         )
+        return super().initial_global_state_from_environment(
+            environment, active_function="fallback"
+        )
 
-        global_state = GlobalState(self.world_state, environment, None)
-        global_state.environment.active_function_name = "fallback"
-
-        return global_state
-
-    def end(self, global_state, return_data=None, revert=False):
+    def end(self, global_state: GlobalState, return_data=None, revert=False) -> None:
         self.return_data = return_data
         raise TransactionEndSignal(global_state, revert)
 
 
-class ContractCreationTransaction:
+class ContractCreationTransaction(BaseTransaction):
     """ Transaction object models an transaction"""
 
-    def __init__(
-        self,
-        world_state,
-        caller,
-        identifier=None,
-        callee_account=None,
-        code=None,
-        call_data=None,
-        gas_price=None,
-        call_value=None,
-        origin=None,
-        call_data_type=None,
-    ):
-        assert isinstance(world_state, WorldState)
-        self.id = identifier or get_next_transaction_id()
-        self.world_state = world_state
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs, init_call_data=False)
         # TODO: set correct balance for new account
-        self.callee_account = (
-            callee_account
-            if callee_account
-            else world_state.create_account(0, concrete_storage=True)
+        self.callee_account = self.callee_account or self.world_state.create_account(
+            0, concrete_storage=True
         )
 
-        self.caller = caller
-
-        self.gas_price = (
-            BitVec("gasprice{}".format(identifier), 256)
-            if gas_price is None
-            else gas_price
-        )
-        self.call_value = (
-            BitVec("callvalue{}".format(identifier), 256)
-            if call_value is None
-            else call_value
-        )
-        self.origin = (
-            BitVec("origin{}".format(identifier), 256) if origin is None else origin
-        )
-        self.call_data_type = (
-            BitVec("call_data_type{}".format(identifier), 256)
-            if call_data_type is None
-            else call_data_type
-        )
-
-        self.call_data = (
-            Calldata(self.id, call_data)
-            if not isinstance(call_data, Calldata)
-            else call_data
-        )
-        self.origin = origin
-        self.code = code
-        self.return_data = None
-
-    def initial_global_state(self):
-        # Initialize the execution environment
+    def initial_global_state(self) -> GlobalState:
+        """Initialize the execution environment"""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -167,13 +147,11 @@ class ContractCreationTransaction:
             self.code,
             calldata_type=self.call_data_type,
         )
+        return super().initial_global_state_from_environment(
+            environment, active_function="constructor"
+        )
 
-        global_state = GlobalState(self.world_state, environment, None)
-        global_state.environment.active_function_name = "constructor"
-
-        return global_state
-
-    def end(self, global_state, return_data=None, revert=False):
+    def end(self, global_state: GlobalState, return_data=None, revert=False):
 
         if (
             not all([isinstance(element, int) for element in return_data])

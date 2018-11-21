@@ -1,8 +1,11 @@
 import logging
-from z3 import simplify, Extract
 from z3.z3types import Z3Exception
+from typing import Union
+from z3 import simplify, ExprRef, Extract
 import mythril.laser.ethereum.util as util
-from mythril.laser.ethereum.state import Account, CalldataType, GlobalState, Calldata
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.support.loader import DynLoader
 import re
 
@@ -54,7 +57,7 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address
+    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: ExprRef
 ):
     """
     Gets the address of the callee
@@ -96,7 +99,9 @@ def get_callee_address(
     return callee_address
 
 
-def get_callee_account(global_state, callee_address, dynamic_loader):
+def get_callee_account(
+    global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
+):
     """
     Gets the callees account from the global_state
     :param global_state: state to look in
@@ -135,8 +140,11 @@ def get_callee_account(global_state, callee_address, dynamic_loader):
 
     return callee_account
 
-
-def get_call_data(global_state, memory_start, memory_size):
+def get_call_data(
+    global_state: GlobalState,
+    memory_start: Union[int, ExprRef],
+    memory_size: Union[int, ExprRef],
+):
     """
     Gets call_data from the global_state
     :param global_state: state to look in
@@ -186,7 +194,7 @@ def get_call_data(global_state, memory_start, memory_size):
             call_data = Calldata(transaction_id, starting_calldata)
             call_data_type = CalldataType.CONCRETE
     except TypeError:
-        logging.info("Unsupported symbolic calldata offset")
+        logging.debug("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = Calldata("{}_internalcall".format(transaction_id))
 
