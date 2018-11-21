@@ -129,7 +129,9 @@ class SignatureDB(object):
             logging.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
             return []
 
-    def import_solidity_file(self, file_path: str, solc_binary: str = "solc", solc_args: str = None):
+    def import_solidity_file(
+        self, file_path: str, solc_binary: str = "solc", solc_args: str = None
+    ):
         """
         Import Function Signatures from solidity source files
         :param file_path: solidity source code file path
