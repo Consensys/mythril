@@ -51,7 +51,6 @@ jobs:
           environment:
             LC_ALL: en_US.ASCII
             LANG: en_US.ASCII
-            MYTHRIL_DIR: /home/mythril
 
       - store_test_results:
           path: /home/mythril/.tox/output

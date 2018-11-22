@@ -22,6 +22,26 @@ except ImportError:
     FourByteDirectoryOnlineLookupError = Exception
 
 
+class SQLiteDB(object):
+    """
+    Simple CM for sqlite3 databases. Commits everything at exit.
+    """
+
+    def __init__(self, path):
+        self.path = path
+        self.conn = None
+        self.cursor = None
+
+    def __enter__(self):
+        self.conn = sqlite3.connect(self.path)
+        self.cursor = self.conn.cursor()
+        return self.cursor
+
+    def __exit__(self, exc_class, exc, traceback):
+        self.conn.commit()
+        self.conn.close()
+
+
 class SignatureDB(object):
     def __init__(self, enable_online_lookup: bool = False, path: str = None) -> None:
         self.enable_online_lookup = enable_online_lookup
@@ -33,22 +53,16 @@ class SignatureDB(object):
             )
         self.path = os.path.join(self.path, "signatures.db")
 
-        logging.info("Using signature database at", self.path)
+        logging.info("Using signature database at %s", self.path)
         # NOTE: Creates a new DB file if it doesn't exist already
-        self.conn = sqlite3.connect(self.path)
-        cur = self.conn.cursor()
-        cur.execute(
-            (
-                "CREATE TABLE IF NOT EXISTS signatures"
-                "(byte_sig VARCHAR(10), text_sig VARCHAR(255),"
-                "PRIMARY KEY (byte_sig, text_sig))"
+        with SQLiteDB(self.path) as cur:
+            cur.execute(
+                (
+                    "CREATE TABLE IF NOT EXISTS signatures"
+                    "(byte_sig VARCHAR(10), text_sig VARCHAR(255),"
+                    "PRIMARY KEY (byte_sig, text_sig))"
+                )
             )
-        )
-        self.conn.commit()
-        cur.close()
-
-    def __del__(self) -> None:
-        self.conn.close()
 
     def __getitem__(self, item: str) -> List[str]:
         """
@@ -81,14 +95,12 @@ class SignatureDB(object):
         :return:
         """
         byte_sig = self._normalize_byte_sig(byte_sig)
-        cur = self.conn.cursor()
-        # ignore new row if it's already in the DB (and would cause a unique constraint error)
-        cur.execute(
-            "INSERT OR IGNORE INTO signatures (byte_sig, text_sig) VALUES (?,?)",
-            (byte_sig, text_sig),
-        )
-        self.conn.commit()
-        cur.close()
+        with SQLiteDB(self.path) as cur:
+            # ignore new row if it's already in the DB (and would cause a unique constraint error)
+            cur.execute(
+                "INSERT OR IGNORE INTO signatures (byte_sig, text_sig) VALUES (?,?)",
+                (byte_sig, text_sig),
+            )
 
     def get(self, byte_sig: str, online_timeout: int = 2) -> List[str]:
         """
@@ -102,9 +114,10 @@ class SignatureDB(object):
 
         byte_sig = self._normalize_byte_sig(byte_sig)
         # try lookup in the local DB
-        cur = self.conn.cursor()
-        cur.execute("SELECT text_sig FROM signatures WHERE byte_sig=?", (byte_sig,))
-        text_sigs = cur.fetchall()
+        with SQLiteDB(self.path) as cur:
+            cur.execute("SELECT text_sig FROM signatures WHERE byte_sig=?", (byte_sig,))
+            text_sigs = cur.fetchall()
+
         if text_sigs:
             return [t[0] for t in text_sigs]
 

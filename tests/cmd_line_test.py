@@ -1,5 +1,5 @@
 from subprocess import check_output
-from tests import *
+from tests import BaseTestCase, TESTDATA, PROJECT_DIR, TESTS_DIR
 
 MYTH = str(PROJECT_DIR / "myth")
 
