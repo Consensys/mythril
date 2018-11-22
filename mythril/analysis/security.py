@@ -63,6 +63,6 @@ def fire_lasers(statespace, module_names=()):
         entrypoint="callback", include_modules=module_names
     ):
         logging.debug("Retrieving results for " + module.detector.name)
-        issues += module.detector.execute(statespace)
+        issues += module.detector.issues
 
     return issues
