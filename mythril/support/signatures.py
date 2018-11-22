@@ -201,4 +201,6 @@ class SignatureDB(object):
         )
 
     def __repr__(self):
-        return "<SignatureDB path='{}' enable_online_lookup={}>".format(self.path, self.enable_online_lookup)
+        return "<SignatureDB path='{}' enable_online_lookup={}>".format(
+            self.path, self.enable_online_lookup
+        )
