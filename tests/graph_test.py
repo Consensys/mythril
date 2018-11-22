@@ -2,7 +2,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ethereum import util
 from mythril.solidity.soliditycontract import EVMContract
-from tests import BaseTestCase
+from tests import BaseTestCase, TESTDATA_INPUTS, TESTDATA_OUTPUTS_EXPECTED, TESTDATA_OUTPUTS_CURRENT
 import re
 
 

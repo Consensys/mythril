@@ -41,6 +41,9 @@ class SQLiteDB(object):
         self.conn.commit()
         self.conn.close()
 
+    def __repr__(self):
+        return "<SQLiteDB path={}>".format(self.path)
+
 
 class SignatureDB(object):
     def __init__(self, enable_online_lookup: bool = False, path: str = None) -> None:
