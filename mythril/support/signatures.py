@@ -33,6 +33,8 @@ class SignatureDB(object):
             )
         self.path = os.path.join(self.path, "signatures.db")
 
+        logging.info("Using signature database at", self.path)
+        # NOTE: Creates a new DB file if it doesn't exist already
         self.conn = sqlite3.connect(self.path)
         cur = self.conn.cursor()
         cur.execute(
@@ -51,7 +53,7 @@ class SignatureDB(object):
     def __getitem__(self, item: str) -> List[str]:
         """
         Provide dict interface db[sighash]
-        :param item: 8-byte signature string
+        :param item: 4-byte signature string
         :return: list of matching text signature strings
         """
         return self.get(byte_sig=item)
@@ -60,7 +62,7 @@ class SignatureDB(object):
     def _normalize_byte_sig(byte_sig: str) -> str:
         """
         Adds a leading 0x to the byte signature if it's not already there.
-        :param byte_sig: 8-byte signature string
+        :param byte_sig: 4-byte signature string
         :return: normalized byte signature string
         """
         if not byte_sig.startswith("0x"):
@@ -74,7 +76,7 @@ class SignatureDB(object):
     def add(self, byte_sig: str, text_sig: str) -> None:
         """
         Adds a new byte - text signature pair to the database.
-        :param byte_sig: 8-byte signature string
+        :param byte_sig: 4-byte signature string
         :param text_sig: resolved text signature
         :return:
         """
