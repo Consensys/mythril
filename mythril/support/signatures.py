@@ -199,3 +199,6 @@ class SignatureDB(object):
                 byte_sig, timeout=timeout, proxies=proxies
             )
         )
+
+    def __repr__(self):
+        return "<SignatureDB path='{}' enable_online_lookup={}>".format(self.path, self.enable_online_lookup)
