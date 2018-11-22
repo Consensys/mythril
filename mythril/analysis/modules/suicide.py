@@ -82,7 +82,7 @@ class SuicideModule(DetectionModule, metaclass=Singleton):
                 "or where msg.sender is checked against a tainted storage index (i.e. "
                 "there's a write to that index is unconstrained by msg.sender)."
             ),
-            entrypoint="callback"
+            entrypoint="callback",
         )
         self._issues = []
 

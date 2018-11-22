@@ -21,7 +21,7 @@ class GlobalState:
         machine_state=None,
         transaction_stack=None,
         last_return_data=None,
-        annotations=None
+        annotations=None,
     ):
         """ Constructor for GlobalState"""
         self.node = node
@@ -47,7 +47,7 @@ class GlobalState:
             mstate,
             transaction_stack=transaction_stack,
             last_return_data=self.last_return_data,
-            annotations=self.annotations
+            annotations=self.annotations,
         )
 
     @property

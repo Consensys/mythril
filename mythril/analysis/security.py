@@ -37,12 +37,14 @@ def get_detection_modules(entrypoint, include_modules=()):
     if not include_modules:
         for loader, module_name, _ in pkgutil.walk_packages(modules.__path__):
             if module_name != "base":
-                module = importlib.import_module('mythril.analysis.modules.' + module_name)
+                module = importlib.import_module(
+                    "mythril.analysis.modules." + module_name
+                )
                 if module.detector.entrypoint == entrypoint:
                     _modules.append(module)
     else:
         for module_name in include_modules:
-            module = importlib.import_module('mythril.analysis.modules.' + module_name)
+            module = importlib.import_module("mythril.analysis.modules." + module_name)
             if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
                 _modules.append(module)
 
