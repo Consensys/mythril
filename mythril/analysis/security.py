@@ -35,17 +35,18 @@ def get_detection_modules(entrypoint, include_modules=()):
     _modules = []
 
     if not include_modules:
-
-        for loader, name, _ in pkgutil.walk_packages(modules.__path__):
-            module = loader.find_module(name).load_module(name)
-            if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
-                _modules.append(module)
-
+        for loader, module_name, _ in pkgutil.walk_packages(modules.__path__):
+            if module_name != "base":
+                module = importlib.import_module(
+                    "mythril.analysis.modules." + module_name
+                )
+                if module.detector.entrypoint == entrypoint:
+                    _modules.append(module)
     else:
         for module_name in include_modules:
-            module = importlib.import_module(module_name, modules)
-
-            _modules.append(module)
+            module = importlib.import_module("mythril.analysis.modules." + module_name)
+            if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
+                _modules.append(module)
 
     logging.info("Found %s detection modules", len(_modules))
     return _modules
@@ -60,5 +61,11 @@ def fire_lasers(statespace, module_names=()):
     ):
         logging.info("Executing " + module.detector.name)
         issues += module.detector.execute(statespace)
+
+    for module in get_detection_modules(
+        entrypoint="callback", include_modules=module_names
+    ):
+        logging.debug("Retrieving results for " + module.detector.name)
+        issues += module.detector.issues
 
     return issues
