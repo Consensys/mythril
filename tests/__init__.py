@@ -18,7 +18,7 @@ MYTHRIL_DIR = TESTS_DIR / "mythril_dir"
 class BaseTestCase(TestCase):
     def setUp(self):
         self.changed_files = []
-        self.ori_mythril_dir = getattr(os.environ, "MYTHRIL_DIR", "")
+        self.ori_mythril_dir = os.environ.get("MYTHRIL_DIR", "")
         os.environ["MYTHRIL_DIR"] = str(MYTHRIL_DIR)
         shutil.copyfile(
             str(MYTHRIL_DIR / "signatures.db.example"),
