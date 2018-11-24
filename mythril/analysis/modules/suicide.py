@@ -10,11 +10,14 @@ import re
 import logging
 
 
-"""
-MODULE DESCRIPTION:
+DESCRIPTION = """
 
+Check if the contact can be 'accidentally' killed by anyone.
+For killable contracts, also check whether it is possible to direct the contract balance to the attacker.
 
 """
+
+ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
 
 
 class SuicideModule(DetectionModule):
@@ -23,16 +26,13 @@ class SuicideModule(DetectionModule):
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
             hooks=["SUICIDE"],
-            description=(
-                "Check for SUICIDE instructions that either can be reached by anyone, "
-                "or where msg.sender is checked against a tainted storage index (i.e. "
-                "there's a write to that index is unconstrained by msg.sender)."
+            description=(DESCRIPTION)
             ),
         )
 
     def execute(self, state_space):
 
-        logging.debug("Executing module: UNCHECKED_SUICIDE")
+        logging.debug("Executing module: SUICIDE")
 
         issues = []
 
@@ -53,34 +53,28 @@ class SuicideModule(DetectionModule):
 
         to = state.mstate.stack[-1]
 
-        logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
-
-        description = "A reachable SUICIDE instruction was detected. "
-
-        if "caller" in str(to):
-            description += "The remaining Ether is sent to the caller's address.\n"
-        elif "storage" in str(to):
-            description += "The remaining Ether is sent to a stored address.\n"
-        elif "calldata" in str(to):
-            description += "The remaining Ether is sent to an address provided as a function argument.\n"
-        elif type(to) == BitVecNumRef:
-            description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
-        else:
-            description += "The remaining Ether is sent to: " + str(to) + "\n"
+        logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
         not_creator_constraints, constrained = get_non_creator_constraints(state)
+        constraints = node.constraints + not_creator_constraints + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
 
         if constrained:
             return []
 
         try:
-            model = solver.get_model(node.constraints + not_creator_constraints)
+            model = solver.get_model(constraints)
+            logging.debug("[SUICIDE] SUICIDE instruction is callable by anyone " + node.function_name)
 
-            debug = "Transaction Sequence: " + str(
-                solver.get_transaction_sequence(
-                    state, node.constraints + not_creator_constraints
-                )
-            )
+            try:
+                transaction_sequence = solver.get_transaction_sequence(constraints)
+                logging.debug("[SUICIDE] To address can be set. " + node.function_name)
+
+            except UnsatError:
+                transaction_sequence = solver.get_transaction_sequence(constraints + [to == ARBITRARY_SENDER_ADDRESS])
+                logging.debug("[SUICIDE] To address can't be set. " + node.function_name)
+
+
+            debug = "Transaction Sequence: " + str(transaction_sequence)
 
             issue = Issue(
                 contract=node.contract_name,
