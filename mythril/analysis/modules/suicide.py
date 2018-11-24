@@ -52,21 +52,34 @@ class SuicideModule(DetectionModule):
         logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
         not_creator_constraints, constrained = get_non_creator_constraints(state)
-        constraints = node.constraints + not_creator_constraints + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
+        constraints = (
+            node.constraints
+            + not_creator_constraints
+            + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
+        )
 
         if constrained:
             return []
 
         try:
             model = solver.get_model(constraints)
-            logging.debug("[SUICIDE] SUICIDE instruction is callable by anyone " + node.function_name)
+            logging.debug(
+                "[SUICIDE] SUICIDE instruction is callable by anyone "
+                + node.function_name
+            )
 
             try:
-                transaction_sequence = solver.get_transaction_sequence(state, constraints + [to == ARBITRARY_SENDER_ADDRESS])
-                logging.debug("[SUICIDE] To address can't be set. " + node.function_name)
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
+                )
+                logging.debug(
+                    "[SUICIDE] To address can't be set. " + node.function_name
+                )
                 description = "The contract can be killed by anyone and the attacker can withdraw its balance."
             except UnsatError:
-                transaction_sequence = solver.get_transaction_sequence(state, constraints)
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, constraints
+                )
                 logging.debug("[SUICIDE] To address can be set. " + node.function_name)
                 description = "The contract can be killed by anyone."
 
