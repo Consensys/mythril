@@ -205,7 +205,7 @@ def main():
         "--rpc",
         help="custom RPC settings",
         metavar="HOST:PORT / ganache / infura-[network_name]",
-        default="infura-mainnet"
+        default="infura-mainnet",
     )
     rpc.add_argument(
         "--rpctls", type=bool, default=False, help="RPC connection over TLS"
