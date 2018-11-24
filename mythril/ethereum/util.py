@@ -46,7 +46,7 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
             )
     except FileNotFoundError:
         raise CompilerError(
-            "Compiler not found.+ Make sure that solc is installed and in PATH, or set the SOLC environment variable."
+            "Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable."
         )
 
     out = stdout.decode("UTF-8")
