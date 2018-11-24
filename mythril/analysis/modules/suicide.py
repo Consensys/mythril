@@ -66,12 +66,14 @@ class SuicideModule(DetectionModule):
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
                 )
-                description = "The contract can be killed by anyone and the attacker can withdraw its balance."
+                description = "Anyone can kill this contract and withdraw its balance to their own account."
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )
-                description = "The contract can be killed by anyone."
+                description = (
+                    "The contract can be killed by anyone. Don't accidentally kill it."
+                )
 
             debug = "Transaction Sequence: " + str(transaction_sequence)
 

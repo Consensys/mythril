@@ -10,4 +10,4 @@
 
 ### Description
 
-The contract can be killed by anyone and the attacker can withdraw its balance.
+Anyone can kill this contract and withdraw its balance to their own account.

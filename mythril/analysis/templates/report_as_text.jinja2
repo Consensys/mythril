@@ -16,13 +16,8 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 
 {{ issue.code }}
 
---------------------
 {% endif %}
-{% if verbose and issue.debug %}
---------------------
-DEBUGGING INFORMATION:
-
-{{ issue.debug }}
+{% if issue.debug %}
 {% endif %}
 
 {% endfor %}

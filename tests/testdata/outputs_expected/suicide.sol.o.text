@@ -5,6 +5,6 @@ Contract: Unknown
 Function name: kill(address)
 PC address: 146
 Estimated Gas Usage: 168 - 263
-The contract can be killed by anyone and the attacker can withdraw its balance.
+Anyone can kill this contract and withdraw its balance to their own account.
 --------------------
 
