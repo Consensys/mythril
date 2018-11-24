@@ -67,16 +67,6 @@ class EtherThief(DetectionModule):
 
         try:
 
-            model = solver.get_model(
-                node.constraints
-                + not_creator_constraints
-                + [
-                    UGT(call_value, eth_sent_total),
-                    state.environment.sender == ARBITRARY_SENDER_ADDRESS,
-                    target == state.environment.sender,
-                ]
-            )
-
             transaction_sequence = solver.get_transaction_sequence(
                 state,
                 node.constraints
