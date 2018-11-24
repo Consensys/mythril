@@ -12,7 +12,7 @@ OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 def reset_callback_modules():
     modules = get_detection_modules("callback")
     for module in modules:
-        module._issues = []
+        module.detector._issues = []
 
 
 def get_detection_module_hooks():
