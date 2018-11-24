@@ -62,13 +62,13 @@ class SuicideModule(DetectionModule):
             logging.debug("[SUICIDE] SUICIDE instruction is callable by anyone " + node.function_name)
 
             try:
-                transaction_sequence = solver.get_transaction_sequence(constraints)
-                logging.debug("[SUICIDE] To address can be set. " + node.function_name)
-
-            except UnsatError:
-                transaction_sequence = solver.get_transaction_sequence(constraints + [to == ARBITRARY_SENDER_ADDRESS])
+                transaction_sequence = solver.get_transaction_sequence(state, constraints + [to == ARBITRARY_SENDER_ADDRESS])
                 logging.debug("[SUICIDE] To address can't be set. " + node.function_name)
-
+                description = "The contract can be killed by anyone and the attacker can withdraw its balance."
+            except UnsatError:
+                transaction_sequence = solver.get_transaction_sequence(state, constraints)
+                logging.debug("[SUICIDE] To address can be set. " + node.function_name)
+                description = "The contract can be killed by anyone."
 
             debug = "Transaction Sequence: " + str(transaction_sequence)
 
