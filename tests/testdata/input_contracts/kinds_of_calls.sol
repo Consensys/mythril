@@ -1,3 +1,6 @@
+pragma solidity 0.5.0;
+
+
 contract D {
     uint public n;
     address public sender;

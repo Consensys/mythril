@@ -1,3 +1,6 @@
+pragma solidity 0.5.0;
+
+
 contract Exceptions {
 
     uint256[8] myarray;
@@ -28,7 +31,7 @@ contract Exceptions {
         if (input > 0) {
             uint256 i = 1/input;
         }
-    }    
+    }
 
     function arrayaccess(uint256 index) {
         uint256 i = myarray[index];
