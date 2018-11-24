@@ -1,12 +1,9 @@
 from mythril.analysis import solver
 from mythril.analysis.analysis_utils import get_non_creator_constraints
-from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
 from mythril.analysis.modules.base import DetectionModule
-from mythril.laser.ethereum.transaction import ContractCreationTransaction
-import re
 import logging
 
 
@@ -14,7 +11,7 @@ DESCRIPTION = """
 
 Check if the contact can be 'accidentally' killed by anyone.
 For killable contracts, also check whether it is possible to direct the contract balance to the attacker.
-
+s
 """
 
 ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
@@ -26,8 +23,7 @@ class SuicideModule(DetectionModule):
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
             hooks=["SUICIDE"],
-            description=(DESCRIPTION)
-            ),
+            description=DESCRIPTION,
         )
 
     def execute(self, state_space):
