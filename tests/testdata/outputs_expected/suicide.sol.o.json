@@ -1,18 +1,1 @@
-{
-  "error": null,
-  "issues": [
-    {
-      "address": 146,
-      "contract": "Unknown",
-      "debug": "<DEBUG-DATA>",
-      "description": "A reachable SUICIDE instruction was detected. The remaining Ether is sent to an address provided as a function argument.\n",
-      "function": "kill(address)",
-      "swc-id": "106",
-      "min_gas_used": 168,
-      "max_gas_used": 263,
-      "title": "Unchecked SUICIDE",
-      "type": "Warning"
-    }
-  ],
-  "success": true
-}
+{"error": null, "issues": [{"address": 146, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract can be killed by anyone and the attacker can withdraw its balance.", "function": "kill(address)", "max_gas_used": 263, "min_gas_used": 168, "swc-id": "106", "title": "Unchecked SUICIDE", "type": "Warning"}], "success": true}

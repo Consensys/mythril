@@ -62,12 +62,6 @@ class SuicideModule(DetectionModule):
             return []
 
         try:
-            model = solver.get_model(constraints)
-            logging.debug(
-                "[SUICIDE] SUICIDE instruction is callable by anyone "
-                + node.function_name
-            )
-
             try:
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
@@ -99,7 +93,7 @@ class SuicideModule(DetectionModule):
             )
             issues.append(issue)
         except UnsatError:
-            logging.debug("[UNCHECKED_SUICIDE] no model found")
+            logging.debug("[SUICIDE] no model found")
 
         return issues
 

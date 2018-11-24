@@ -10,4 +10,4 @@
 
 ### Description
 
-A reachable SUICIDE instruction was detected. The remaining Ether is sent to an address provided as a function argument.
+The contract can be killed by anyone and the attacker can withdraw its balance.
