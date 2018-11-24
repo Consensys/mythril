@@ -15,7 +15,9 @@ class CommandLineToolTestCase(BaseTestCase):
         output_of(command)
 
     def test_disassemble_code_correctly(self):
-        command = "python3 {} MYTH -d --bin-runtime -c 0x5050 --solv 0.4.24".format(MYTH)
+        command = "python3 {} MYTH -d --bin-runtime -c 0x5050 --solv 0.4.24".format(
+            MYTH
+        )
         self.assertEqual("0 POP\n1 POP\n", output_of(command))
 
     def test_disassemble_solidity_file_correctly(self):
