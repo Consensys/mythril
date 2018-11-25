@@ -17,7 +17,7 @@ class Constraints(list):
 
     def check_possibility(self):
         if self.__possibility is None:
-            self.__possibility = (self.solver.check() != unsat)
+            self.__possibility = self.solver.check() != unsat
         if self.__possibility is False:
             self.solver = None
         return self.__possibility
