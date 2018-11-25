@@ -6,6 +6,7 @@ from subprocess import Popen, PIPE
 import binascii
 import os
 import json
+from pathlib import Path
 
 
 def safe_decode(hex_encoded_string):
@@ -73,7 +74,9 @@ def get_indexed_address(index):
 
 def solc_exists(version):
     solc_binary = os.path.join(
-        os.environ["HOME"], ".py-solc/solc-v" + version, "bin/solc"
+        os.environ.get("HOME", str(Path.home())),
+        ".py-solc/solc-v" + version,
+        "bin/solc",
     )
     if os.path.exists(solc_binary):
         return True
