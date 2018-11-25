@@ -1,6 +1,5 @@
 from mythril.analysis.ops import *
 from mythril.analysis import solver
-from mythril.analysis.analysis_utils import get_non_creator_constraints
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.analysis.modules.base import DetectionModule
@@ -21,8 +20,6 @@ An issue is reported if:
 - The sender can withdraw *more* than the total amount they sent over all transactions.
 
 """
-
-ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
 
 
 class EtherThief(DetectionModule):
@@ -56,13 +53,9 @@ class EtherThief(DetectionModule):
         call_value = state.mstate.stack[-3]
         target = state.mstate.stack[-2]
 
-        not_creator_constraints, constrained = get_non_creator_constraints(state)
-        if constrained:
-            return []
-
         eth_sent_total = BitVecVal(0, 256)
 
-        for tx in state.world_state.transaction_sequence[1:]:
+        for tx in state.world_state.transaction_sequence:
             eth_sent_total += tx.call_value
 
         try:
@@ -70,10 +63,8 @@ class EtherThief(DetectionModule):
             transaction_sequence = solver.get_transaction_sequence(
                 state,
                 node.constraints
-                + not_creator_constraints
                 + [
-                    call_value > eth_sent_total,
-                    state.environment.sender == ARBITRARY_SENDER_ADDRESS,
+                    UGT(call_value, eth_sent_total),
                     target == state.environment.sender,
                 ],
             )

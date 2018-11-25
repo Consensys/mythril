@@ -51,25 +51,15 @@ class SuicideModule(DetectionModule):
 
         logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
-        not_creator_constraints, constrained = get_non_creator_constraints(state)
-        constraints = (
-            node.constraints
-            + not_creator_constraints
-            + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
-        )
-
-        if constrained:
-            return []
-
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
+                    state, node.constraints + [to == state.environment.sender]
                 )
                 description = "Anyone can kill this contract and withdraw its balance to their own account."
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, constraints
+                    state, node.constraints
                 )
                 description = (
                     "The contract can be killed by anyone. Don't accidentally kill it."
