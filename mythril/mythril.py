@@ -9,6 +9,7 @@ import logging
 import json
 import os
 import re
+from pathlib import Path
 
 from ethereum import utils
 import codecs
@@ -243,7 +244,9 @@ class Mythril(object):
                         )
 
                 solc_binary = os.path.join(
-                    os.environ["HOME"], ".py-solc/solc-v" + version, "bin/solc"
+                    os.environ.get("HOME", str(Path.home())),
+                    ".py-solc/solc-v" + version,
+                    "bin/solc",
                 )
                 logging.info("Setting the compiler to " + str(solc_binary))
         else:
