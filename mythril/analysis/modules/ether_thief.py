@@ -72,7 +72,7 @@ class EtherThief(DetectionModule):
                 node.constraints
                 + not_creator_constraints
                 + [
-                    call_value > eth_sent_total,
+                    UGT(call_value, eth_sent_total),
                     state.environment.sender == ARBITRARY_SENDER_ADDRESS,
                     target == state.environment.sender,
                 ],
