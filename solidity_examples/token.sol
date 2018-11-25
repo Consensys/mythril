@@ -1,11 +1,12 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.5.0;
+
 
 contract Token {
 
   mapping(address => uint) balances;
   uint public totalSupply;
 
-  function Token(uint _initialSupply) {
+  constructor(uint _initialSupply) public {
     balances[msg.sender] = totalSupply = _initialSupply;
   }
 
@@ -16,7 +17,7 @@ contract Token {
     return true;
   }
 
-  function balanceOf(address _owner) public constant returns (uint balance) {
+  function balanceOf(address _owner) public returns (uint balance) {
     return balances[_owner];
   }
 }
