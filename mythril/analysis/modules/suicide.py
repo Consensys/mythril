@@ -1,20 +1,70 @@
 from mythril.analysis import solver
 from mythril.analysis.analysis_utils import get_non_creator_constraints
+from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
 from mythril.analysis.modules.base import DetectionModule
+from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 
-
 DESCRIPTION = """
-
 Check if the contact can be 'accidentally' killed by anyone.
-For killable contracts, also check whether it is possible to direct the contract balance to the attacker.
-s
+For kill-able contracts, also check whether it is possible to direct the contract balance to the attacker.
 """
 
 ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
+
+
+def _analyze_state(state):
+    logging.info("Suicide module: Analyzing suicide instruction")
+    node = state.node
+    instruction = state.get_current_instruction()
+    to = state.mstate.stack[-1]
+
+    logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
+
+    not_creator_constraints, constrained = get_non_creator_constraints(state)
+    constraints = (
+        node.constraints
+        + not_creator_constraints
+        + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
+    )
+
+    if constrained:
+        return []
+
+    try:
+        try:
+            transaction_sequence = solver.get_transaction_sequence(
+                state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
+            )
+            description = "Anyone can kill this contract and withdraw its balance to their own account."
+        except UnsatError:
+            transaction_sequence = solver.get_transaction_sequence(state, constraints)
+            description = (
+                "The contract can be killed by anyone. Don't accidentally kill it."
+            )
+
+        debug = "Transaction Sequence: " + str(transaction_sequence)
+
+        issue = Issue(
+            contract=node.contract_name,
+            function_name=node.function_name,
+            address=instruction["address"],
+            swc_id=UNPROTECTED_SELFDESTRUCT,
+            bytecode=state.environment.code.bytecode,
+            title="Unchecked SUICIDE",
+            _type="Warning",
+            description=description,
+            debug=debug,
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+        )
+        return [issue]
+    except UnsatError:
+        logging.info("[UNCHECKED_SUICIDE] no model found")
+
+    return []
 
 
 class SuicideModule(DetectionModule):
@@ -23,77 +73,18 @@ class SuicideModule(DetectionModule):
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
             hooks=["SUICIDE"],
-            description=DESCRIPTION,
+            description=(DESCRIPTION),
+            entrypoint="callback",
         )
+        self._issues = []
 
-    def execute(self, state_space):
+    def execute(self, state: GlobalState):
+        self._issues.extend(_analyze_state(state))
+        return self.issues
 
-        logging.debug("Executing module: SUICIDE")
-
-        issues = []
-
-        for k in state_space.nodes:
-            node = state_space.nodes[k]
-
-            for state in node.states:
-                issues += self._analyze_state(state, node)
-
-        return issues
-
-    def _analyze_state(self, state, node):
-        issues = []
-        instruction = state.get_current_instruction()
-
-        if instruction["opcode"] != "SUICIDE":
-            return []
-
-        to = state.mstate.stack[-1]
-
-        logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
-
-        not_creator_constraints, constrained = get_non_creator_constraints(state)
-        constraints = (
-            node.constraints
-            + not_creator_constraints
-            + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
-        )
-
-        if constrained:
-            return []
-
-        try:
-            try:
-                transaction_sequence = solver.get_transaction_sequence(
-                    state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
-                )
-                description = "Anyone can kill this contract and withdraw its balance to their own account."
-            except UnsatError:
-                transaction_sequence = solver.get_transaction_sequence(
-                    state, constraints
-                )
-                description = (
-                    "The contract can be killed by anyone. Don't accidentally kill it."
-                )
-
-            debug = "Transaction Sequence: " + str(transaction_sequence)
-
-            issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
-                address=instruction["address"],
-                swc_id=UNPROTECTED_SELFDESTRUCT,
-                bytecode=state.environment.code.bytecode,
-                title="Unchecked SUICIDE",
-                _type="Warning",
-                description=description,
-                debug=debug,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            )
-            issues.append(issue)
-        except UnsatError:
-            logging.debug("[SUICIDE] no model found")
-
-        return issues
+    @property
+    def issues(self):
+        return self._issues
 
 
 detector = SuicideModule()
