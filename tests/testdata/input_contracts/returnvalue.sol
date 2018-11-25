@@ -3,14 +3,15 @@ pragma solidity 0.5.0;
 
 contract ReturnValue {
 
-  address callee = 0xE0F7e56e62b4267062172495D7506087205A4229;
+  address public callee = 0xE0f7e56E62b4267062172495D7506087205A4229;
 
-  function callnotchecked()  {
-    callee.call();
+  function callnotchecked() public {
+    callee.call("");
   }
 
-  function callchecked()  {
-  	require(callee.call());
+  function callchecked() public {
+    (bool success, bytes memory data) = callee.call("");
+    require(success);
   }
 
 }

@@ -13,12 +13,12 @@ contract Crowdfunding {
     _;
   }
 
-  function crowdfunding() {
+  function crowdfunding() public {
     owner = msg.sender;
   }
 
-  function withdrawfunds() onlyOwner {
-    msg.sender.transfer(this.balance);
+  function withdrawfunds() public onlyOwner {
+    msg.sender.transfer(address(this).balance);
   }
 
   function invest() public payable {
@@ -27,7 +27,7 @@ contract Crowdfunding {
     balances[msg.sender] += msg.value;
   }
 
-  function getBalance() public constant returns (uint) {
+  function getBalance() public returns (uint) {
     return balances[msg.sender];
   }
 
