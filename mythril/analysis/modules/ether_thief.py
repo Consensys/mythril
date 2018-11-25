@@ -63,10 +63,7 @@ class EtherThief(DetectionModule):
             transaction_sequence = solver.get_transaction_sequence(
                 state,
                 node.constraints
-                + [
-                    UGT(call_value, eth_sent_total),
-                    target == state.environment.sender,
-                ],
+                + [UGT(call_value, eth_sent_total), target == state.environment.sender],
             )
 
             debug = "Transaction Sequence: " + str(transaction_sequence)
