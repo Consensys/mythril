@@ -9,6 +9,7 @@ import logging
 import json
 import os
 import re
+from pathlib import Path
 
 from ethereum import utils
 import codecs
@@ -206,34 +207,33 @@ class Mythril(object):
         # Figure out solc binary and version
         # Only proper versions are supported. No nightlies, commits etc (such as available in remix)
 
-        if version:
-            # tried converting input to semver, seemed not necessary so just slicing for now
-            if version == str(solc.main.get_solc_version())[:6]:
-                logging.info("Given version matches installed version")
-                try:
-                    solc_binary = os.environ["SOLC"]
-                except KeyError:
-                    solc_binary = "solc"
-            else:
-                if util.solc_exists(version):
-                    logging.info("Given version is already installed")
-                else:
-                    try:
-                        solc.install_solc("v" + version)
-                    except SolcError:
-                        raise CriticalError(
-                            "There was an error when trying to install the specified solc version"
-                        )
+        if not version:
+            return os.environ.get("SOLC") or "solc"
 
-                solc_binary = os.path.join(
-                    os.environ["HOME"], ".py-solc/solc-v" + version, "bin/solc"
-                )
-                logging.info("Setting the compiler to " + str(solc_binary))
+        # tried converting input to semver, seemed not necessary so just slicing for now
+        main_version = solc.main.get_solc_version_string()
+        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
+        if main_version is None:
+            raise CriticalError(
+                "Could not extract solc version from string {}".format(main_version)
+            )
+        if version == main_version_number:
+            logging.info("Given version matches installed version")
+            solc_binary = os.environ.get("SOLC") or "solc"
         else:
-            try:
-                solc_binary = os.environ["SOLC"]
-            except KeyError:
-                solc_binary = "solc"
+            solc_binary = util.solc_exists(version)
+            if solc_binary:
+                logging.info("Given version is already installed")
+            else:
+                try:
+                    solc.install_solc("v" + version)
+                except SolcError:
+                    raise CriticalError(
+                        "There was an error when trying to install the specified solc version"
+                    )
+
+            logging.info("Setting the compiler to %s", solc_binary)
+
         return solc_binary
 
     def set_api_leveldb(self, leveldb):
@@ -302,8 +302,10 @@ class Mythril(object):
 
         print(self.eth_db.contract_hash_to_address(hash))
 
-    def load_from_bytecode(self, code, bin_runtime=False):
-        address = util.get_indexed_address(0)
+    def load_from_bytecode(self, code, bin_runtime=False, address=None):
+
+        if address is None:
+            address = util.get_indexed_address(0)
         if bin_runtime:
             self.contracts.append(
                 EVMContract(
