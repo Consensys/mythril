@@ -706,7 +706,7 @@ class Instruction:
         if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
-            if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
+            if concrete_code_offset >= len(bytecode) // 2:
                 global_state.mstate.mem_extend(concrete_memory_offset, 1)
                 global_state.mstate.memory[
                     concrete_memory_offset
