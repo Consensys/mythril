@@ -322,8 +322,10 @@ class Mythril(object):
 
         print(self.eth_db.contract_hash_to_address(hash))
 
-    def load_from_bytecode(self, code, bin_runtime=False):
-        address = util.get_indexed_address(0)
+    def load_from_bytecode(self, code, bin_runtime=False, address=None):
+
+        if address is None:
+            address = util.get_indexed_address(0)
         if bin_runtime:
             self.contracts.append(
                 EVMContract(
