@@ -4,7 +4,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
-from z3 import BitVecVal, UGT
+from z3 import BitVecVal, UGT, Sum
 import logging
 
 
@@ -55,16 +55,22 @@ class EtherThief(DetectionModule):
 
         eth_sent_total = BitVecVal(0, 256)
 
-        for tx in state.world_state.transaction_sequence[1:]:
-            eth_sent_total += tx.call_value
+        constraints = node.constraints
+
+        for tx in state.world_state.transaction_sequence:
+            if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
+
+                # There's sometimes no overflow check on balances added.
+                # But we don't care about attacks that require more 2^^256 ETH to be sent.
+
+                constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
+                eth_sent_total = Sum(eth_sent_total, tx.call_value)
+
+        constraints += [UGT(call_value, eth_sent_total), target == state.environment.sender]
 
         try:
 
-            transaction_sequence = solver.get_transaction_sequence(
-                state,
-                node.constraints
-                + [UGT(call_value, eth_sent_total), target == state.environment.sender],
-            )
+            transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
             debug = "Transaction Sequence: " + str(transaction_sequence)
 
