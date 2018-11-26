@@ -60,7 +60,7 @@ class SymExecWrapper:
             transaction_count=transaction_count,
         )
         self.laser.register_hooks(
-            hook_type="post", hook_dict=get_detection_module_hooks()
+            hook_type="pre", hook_dict=get_detection_module_hooks()
         )
 
         if isinstance(contract, SolidityContract):

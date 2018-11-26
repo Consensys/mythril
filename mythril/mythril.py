@@ -9,6 +9,7 @@ import logging
 import json
 import os
 import re
+from pathlib import Path
 
 from ethereum import utils
 import codecs
@@ -243,7 +244,9 @@ class Mythril(object):
                         )
 
                 solc_binary = os.path.join(
-                    os.environ["HOME"], ".py-solc/solc-v" + version, "bin/solc"
+                    os.environ.get("HOME", str(Path.home())),
+                    ".py-solc/solc-v" + version,
+                    "bin/solc",
                 )
                 logging.info("Setting the compiler to " + str(solc_binary))
         else:
@@ -319,8 +322,10 @@ class Mythril(object):
 
         print(self.eth_db.contract_hash_to_address(hash))
 
-    def load_from_bytecode(self, code, bin_runtime=False):
-        address = util.get_indexed_address(0)
+    def load_from_bytecode(self, code, bin_runtime=False, address=None):
+
+        if address is None:
+            address = util.get_indexed_address(0)
         if bin_runtime:
             self.contracts.append(
                 EVMContract(

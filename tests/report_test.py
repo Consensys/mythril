@@ -1,5 +1,5 @@
 from mythril.analysis.report import Report
-from mythril.analysis.security import fire_lasers
+from mythril.analysis.security import fire_lasers, reset_callback_modules
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.ethereum import util
 from mythril.solidity.soliditycontract import EVMContract
@@ -42,6 +42,7 @@ def _generate_report(input_file):
 @pytest.fixture(scope="module")
 def reports():
     """ Fixture that analyses all reports"""
+    reset_callback_modules()
     pool = Pool(cpu_count())
     input_files = sorted(
         [f for f in TESTDATA_INPUTS.iterdir() if f.name != "environments.sol.o"]
