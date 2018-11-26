@@ -177,15 +177,15 @@ contract WalletLibrary is WalletEvents {
   }
 
   // Gets an owner by 0-indexed position (using numOwners as the count)
-  function getOwner(uint ownerIndex) external returns (address) {
+  function getOwner(uint ownerIndex) external view returns (address) {
     return address(m_owners[ownerIndex + 1]);
   }
 
-  function isOwner(address _addr) public returns (bool) {
+  function isOwner(address _addr) public view returns (bool) {
     return m_ownerIndex[uint(_addr)] > 0;
   }
 
-  function hasConfirmed(bytes32 _operation, address _owner) external returns (bool) {
+  function hasConfirmed(bytes32 _operation, address _owner) external view returns (bool) {
     PendingState memory pending = m_pending[_operation];
     uint ownerIndex = m_ownerIndex[uint(_owner)];
 
@@ -356,7 +356,7 @@ contract WalletLibrary is WalletEvents {
   }
 
   // determines today's index.
-  function today() private returns (uint) { return now / 1 days; }
+  function today() private view returns (uint) { return now / 1 days; }
 
   function clearPending() internal {
     uint length = m_pendingIndex.length;
