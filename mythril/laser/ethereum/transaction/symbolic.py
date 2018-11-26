@@ -68,7 +68,7 @@ def execute_contract_creation(
             gas_limit=8000000,  # block gas limit
             origin=BitVec("origin{}".format(next_transaction_id), 256),
             code=Disassembly(contract_initialization_code),
-            caller=CREATOR_ADDRESS,
+            caller=BitVecVal(CREATOR_ADDRESS, 256),
             callee_account=new_account,
             call_data=[],
             call_data_type=CalldataType.SYMBOLIC,
