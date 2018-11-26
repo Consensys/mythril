@@ -17,6 +17,7 @@ def get_non_creator_constraints(state: GlobalState) -> (List, bool):
         state.world_state.transaction_sequence[0], ContractCreationTransaction
     ):
         creator = state.world_state.transaction_sequence[0].caller
+
     if creator is not None:
         for transaction in state.world_state.transaction_sequence[1:]:
             not_creator_constraints.append(
@@ -40,8 +41,8 @@ def has_caller_check_constraint(constraints: List) -> bool:
     Checks whether the caller is constrained to a value or not
     """
     for constraint in constraints:
-        if re.search(r"caller", str(constraint)) and re.search(
-            r"[0-9]{20}", str(constraint)
+        if re.search(
+            r"caller.*==[0-9]{20}", str(constraint).replace("\n", "").replace(" ", "")
         ):
             return False
     return True
