@@ -9,7 +9,7 @@ contract D {
         _e.call(abi.encode(bytes4(keccak256("setN(uint256)")), _n));
     }
 
-    function callcodeSetN(address _e, uint _n) public {
+    function callcodeSetN(address _e, uint _n) public view {
         _e.staticcall(abi.encode(bytes4(keccak256("setN(uint256)")), _n));
     }
 

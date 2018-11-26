@@ -73,38 +73,38 @@ contract Rubixi {
     }
 
     //Functions to provide information to end-user using JSON interface or other interfaces
-    function currentMultiplier() public returns (uint multiplier, string memory info) {
+    function currentMultiplier() public view returns (uint multiplier, string memory info) {
         multiplier = pyramidMultiplier;
         info = "This multiplier applies to you as soon as transaction is received, may be lowered to hasten payouts or increased if payouts are fast enough. Due to no float or decimals, multiplier is x100 for a fractional multiplier e.g. 250 is actually a 2.5x multiplier. Capped at 3x max and 1.2x min.";
     }
 
-    function currentFeePercentage() public returns (uint fee, string memory info) {
+    function currentFeePercentage() public view returns (uint fee, string memory info) {
         fee = feePercent;
         info = "Shown in % form. Fee is halved(50%) for amounts equal or greater than 50 ethers. (Fee may change, but is capped to a maximum of 10%)";
 }
 
-    function currentPyramidBalanceApproximately() public returns (uint pyramidBalance, string memory info) {
+    function currentPyramidBalanceApproximately() public view returns (uint pyramidBalance, string memory info) {
         pyramidBalance = balance / 1 ether;
         info = "All balance values are measured in Ethers, note that due to no decimal placing, these values show up as integers only, within the contract itself you will get the exact decimal value you are supposed to";
     }
 
-    function nextPayoutWhenPyramidBalanceTotalsApproximately() public returns (uint balancePayout) {
+    function nextPayoutWhenPyramidBalanceTotalsApproximately() public view returns (uint balancePayout) {
         balancePayout = participants[payoutOrder].payout / 1 ether;
     }
 
-    function feesSeperateFromBalanceApproximately() public returns (uint fees) {
+    function feesSeperateFromBalanceApproximately() public view returns (uint fees) {
         fees = collectedFees / 1 ether;
     }
 
-    function totalParticipants() public returns (uint count) {
+    function totalParticipants() public view returns (uint count) {
         count = participants.length;
     }
 
-    function numberOfParticipantsWaitingForPayout() public returns (uint count) {
+    function numberOfParticipantsWaitingForPayout() public view returns (uint count) {
         count = participants.length - payoutOrder;
     }
 
-    function participantDetails(uint orderInPyramid) public returns (address addr, uint payout) {
+    function participantDetails(uint orderInPyramid) public view returns (address addr, uint payout) {
         if (orderInPyramid <= participants.length) {
             addr = participants[orderInPyramid].etherAddress;
             payout = participants[orderInPyramid].payout / 1 ether;

@@ -17,7 +17,7 @@ contract Over {
     return true;
   }
 
-  function balanceOf(address _owner) public returns (uint balance) {
+  function balanceOf(address _owner) public view returns (uint balance) {
     return balances[_owner];
   }
 }

@@ -27,7 +27,7 @@ contract Crowdfunding {
     balances[msg.sender] += msg.value;
   }
 
-  function getBalance() public returns (uint) {
+  function getBalance() public view returns (uint) {
     return balances[msg.sender];
   }
 
