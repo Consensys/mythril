@@ -74,4 +74,5 @@ def fire_lasers(statespace, module_names=()):
         logging.debug("Retrieving results for " + module.detector.name)
         issues += module.detector.issues
 
+    reset_callback_modules()
     return issues
