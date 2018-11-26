@@ -66,7 +66,10 @@ class EtherThief(DetectionModule):
                 constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
                 eth_sent_total = Sum(eth_sent_total, tx.call_value)
 
-        constraints += [UGT(call_value, eth_sent_total), target == state.environment.sender]
+        constraints += [
+            UGT(call_value, eth_sent_total),
+            target == state.environment.sender,
+        ]
 
         try:
 
