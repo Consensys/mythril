@@ -1,0 +1,1 @@
+{"error": null, "issues": [{"address": 498, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "This binary add operation can result in integer overflow.\n", "function": "sendToken(address,uint256)", "max_gas_used": 27415, "min_gas_used": 6750, "swc-id": "101", "title": "Integer Overflow", "type": "Warning"}], "success": true}

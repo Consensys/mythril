@@ -1,18 +1,18 @@
 {
-    "error": null,
-    "issues": [
-        {
-            "address": 290,
-            "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
-            "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
-            "function": "callnotchecked()",
-            "max_gas_used": 35941,
-            "min_gas_used": 1330,
-            "swc-id": "104",
-            "title": "Unchecked CALL return value",
-            "type": "Informational",
-        }
-    ],
-    "success": true,
+  "error": null,
+  "issues": [
+    {
+      "address": 290,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
+      "function": "callnotchecked()",
+      "max_gas_used": 35941,
+      "min_gas_used": 1330,
+      "swc-id": "104",
+      "title": "Unchecked CALL return value",
+      "type": "Informational"
+    }
+  ],
+  "success": true
 }
