@@ -1,11 +1,11 @@
-pragma solidity ^0.4.16;
+pragma solidity 0.5.0;
 
 
 contract IntegerOverflow2 {
     uint256 public count = 7;
     mapping(address => uint256) balances;
 
-  function batchTransfer(address[] _receivers, uint256 _value) public returns(bool){
+  function batchTransfer(address[] memory _receivers, uint256 _value) public returns(bool){
     uint cnt = _receivers.length;
     uint256 amount = uint256(cnt) * _value;
 

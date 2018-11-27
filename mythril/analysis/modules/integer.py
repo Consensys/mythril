@@ -108,7 +108,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             operator
         )
         try:
-            issue.debug = "Transaction Sequence: " + str(
+            issue.debug = str(
                 solver.get_transaction_sequence(state, node.constraints + [constraint])
             )
         except UnsatError:
@@ -223,7 +223,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                         "The subtraction can result in an integer underflow.\n"
                     )
 
-                    issue.debug = "Transaction Sequence: " + str(
+                    issue.debug = str(
                         solver.get_transaction_sequence(state, node.constraints)
                     )
                     issues.append(issue)

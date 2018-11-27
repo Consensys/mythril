@@ -9,7 +9,7 @@
 // some number (specified in constructor) of the set of owners (specified in the constructor, modifiable) before the
 // interior is executed.
 
-pragma solidity ^0.4.9;
+pragma solidity 0.5.0;
 
 contract WalletEvents {
   // EVENTS
@@ -50,15 +50,15 @@ contract WalletAbi {
 
   function changeRequirement(uint _newRequired) external;
 
-  function isOwner(address _addr) constant returns (bool);
+  function isOwner(address _addr) public returns (bool);
 
-  function hasConfirmed(bytes32 _operation, address _owner) external constant returns (bool);
+  function hasConfirmed(bytes32 _operation, address _owner) external returns (bool);
 
   // (re)sets the daily limit. needs many of the owners to confirm. doesn't alter the amount already spent today.
   function setDailyLimit(uint _newLimit) external;
 
-  function execute(address _to, uint _value, bytes _data) external returns (bytes32 o_hash);
-  function confirm(bytes32 _h) returns (bool o_success);
+  function execute(address _to, uint _value, bytes calldata _data) external returns (bytes32 o_hash);
+  function confirm(bytes32 _h) public returns (bool o_success);
 }
 
 contract WalletLibrary is WalletEvents {
@@ -96,15 +96,15 @@ contract WalletLibrary is WalletEvents {
   // METHODS
 
   // gets called when no other function matches
-  function() payable {
+  function() external payable {
     // just being sent some cash?
     if (msg.value > 0)
-      Deposit(msg.sender, msg.value);
+      emit Deposit(msg.sender, msg.value);
   }
 
   // constructor is given number of sigs required to do protected "onlymanyowners" transactions
   // as well as the selection of addresses capable of confirming them.
-  function initMultiowned(address[] _owners, uint _required) only_uninitialized {
+  function initMultiowned(address[] memory _owners, uint _required) public only_uninitialized {
     m_numOwners = _owners.length + 1;
     m_owners[1] = uint(msg.sender);
     m_ownerIndex[uint(msg.sender)] = 1;
@@ -122,16 +122,16 @@ contract WalletLibrary is WalletEvents {
     // make sure they're an owner
     if (ownerIndex == 0) return;
     uint ownerIndexBit = 2**ownerIndex;
-    var pending = m_pending[_operation];
+    PendingState memory pending = m_pending[_operation];
     if (pending.ownersDone & ownerIndexBit > 0) {
       pending.yetNeeded++;
       pending.ownersDone -= ownerIndexBit;
-      Revoke(msg.sender, _operation);
+      emit Revoke(msg.sender, _operation);
     }
   }
 
   // Replaces an owner `_from` with another `_to`.
-  function changeOwner(address _from, address _to) onlymanyowners(sha3(msg.data)) external {
+  function changeOwner(address _from, address _to) onlymanyowners(keccak256(msg.data)) external {
     if (isOwner(_to)) return;
     uint ownerIndex = m_ownerIndex[uint(_from)];
     if (ownerIndex == 0) return;
@@ -140,10 +140,10 @@ contract WalletLibrary is WalletEvents {
     m_owners[ownerIndex] = uint(_to);
     m_ownerIndex[uint(_from)] = 0;
     m_ownerIndex[uint(_to)] = ownerIndex;
-    OwnerChanged(_from, _to);
+    emit OwnerChanged(_from, _to);
   }
 
-  function addOwner(address _owner) onlymanyowners(sha3(msg.data)) external {
+  function addOwner(address _owner) onlymanyowners(keccak256(msg.data)) external {
     if (isOwner(_owner)) return;
 
     clearPending();
@@ -154,10 +154,10 @@ contract WalletLibrary is WalletEvents {
     m_numOwners++;
     m_owners[m_numOwners] = uint(_owner);
     m_ownerIndex[uint(_owner)] = m_numOwners;
-    OwnerAdded(_owner);
+    emit OwnerAdded(_owner);
   }
 
-  function removeOwner(address _owner) onlymanyowners(sha3(msg.data)) external {
+  function removeOwner(address _owner) onlymanyowners(keccak256(msg.data)) external {
     uint ownerIndex = m_ownerIndex[uint(_owner)];
     if (ownerIndex == 0) return;
     if (m_required > m_numOwners - 1) return;
@@ -166,27 +166,27 @@ contract WalletLibrary is WalletEvents {
     m_ownerIndex[uint(_owner)] = 0;
     clearPending();
     reorganizeOwners(); //make sure m_numOwner is equal to the number of owners and always points to the optimal free slot
-    OwnerRemoved(_owner);
+    emit OwnerRemoved(_owner);
   }
 
-  function changeRequirement(uint _newRequired) onlymanyowners(sha3(msg.data)) external {
+  function changeRequirement(uint _newRequired) onlymanyowners(keccak256(msg.data)) external {
     if (_newRequired > m_numOwners) return;
     m_required = _newRequired;
     clearPending();
-    RequirementChanged(_newRequired);
+    emit RequirementChanged(_newRequired);
   }
 
   // Gets an owner by 0-indexed position (using numOwners as the count)
-  function getOwner(uint ownerIndex) external constant returns (address) {
+  function getOwner(uint ownerIndex) external view returns (address) {
     return address(m_owners[ownerIndex + 1]);
   }
 
-  function isOwner(address _addr) constant returns (bool) {
+  function isOwner(address _addr) public view returns (bool) {
     return m_ownerIndex[uint(_addr)] > 0;
   }
 
-  function hasConfirmed(bytes32 _operation, address _owner) external constant returns (bool) {
-    var pending = m_pending[_operation];
+  function hasConfirmed(bytes32 _operation, address _owner) external view returns (bool) {
+    PendingState memory pending = m_pending[_operation];
     uint ownerIndex = m_ownerIndex[uint(_owner)];
 
     // make sure they're an owner
@@ -198,85 +198,87 @@ contract WalletLibrary is WalletEvents {
   }
 
   // constructor - stores initial daily limit and records the present day's index.
-  function initDaylimit(uint _limit) only_uninitialized {
+  function initDaylimit(uint _limit) public only_uninitialized {
     m_dailyLimit = _limit;
     m_lastDay = today();
   }
   // (re)sets the daily limit. needs many of the owners to confirm. doesn't alter the amount already spent today.
-  function setDailyLimit(uint _newLimit) onlymanyowners(sha3(msg.data)) external {
+  function setDailyLimit(uint _newLimit) onlymanyowners(keccak256(msg.data)) external {
     m_dailyLimit = _newLimit;
   }
   // resets the amount already spent today. needs many of the owners to confirm.
-  function resetSpentToday() onlymanyowners(sha3(msg.data)) external {
+  function resetSpentToday() onlymanyowners(keccak256(msg.data)) external {
     m_spentToday = 0;
   }
 
   // throw unless the contract is not yet initialized.
-  modifier only_uninitialized { if (m_numOwners > 0) throw; _; }
+  modifier only_uninitialized { require(m_numOwners > 0); _; }
 
   // constructor - just pass on the owner array to the multiowned and
   // the limit to daylimit
-  function initWallet(address[] _owners, uint _required, uint _daylimit) only_uninitialized {
+  function initWallet(address[] memory _owners, uint _required, uint _daylimit) public only_uninitialized {
     initDaylimit(_daylimit);
     initMultiowned(_owners, _required);
   }
 
   // kills the contract sending everything to `_to`.
-  function kill(address _to) onlymanyowners(sha3(msg.data)) external {
-    suicide(_to);
+  function kill(address payable _to) onlymanyowners(keccak256(msg.data)) external {
+    selfdestruct(_to);
   }
 
   // Outside-visible transact entry point. Executes transaction immediately if below daily spend limit.
   // If not, goes into multisig process. We provide a hash on return to allow the sender to provide
   // shortcuts for the other confirmations (allowing them to avoid replicating the _to, _value
   // and _data arguments). They still get the option of using them if they want, anyways.
-  function execute(address _to, uint _value, bytes _data) external onlyowner returns (bytes32 o_hash) {
+  function execute(address _to, uint _value, bytes calldata _data) external onlyowner returns (bytes32 o_hash) {
     // first, take the opportunity to check that we're under the daily limit.
     if ((_data.length == 0 && underLimit(_value)) || m_required == 1) {
       // yes - just execute the call.
       address created;
-      if (_to == 0) {
+      if (_to == address(0)) {
         created = create(_value, _data);
       } else {
-        if (!_to.call.value(_value)(_data))
-          throw;
+        (bool success, bytes memory data) = _to.call.value(_value)(_data);
+        require(success);
       }
-      SingleTransact(msg.sender, _value, _to, _data, created);
+      emit SingleTransact(msg.sender, _value, _to, _data, created);
     } else {
       // determine our operation hash.
-      o_hash = sha3(msg.data, block.number);
+      o_hash = keccak256(abi.encode(msg.data, block.number));
       // store if it's new
-      if (m_txs[o_hash].to == 0 && m_txs[o_hash].value == 0 && m_txs[o_hash].data.length == 0) {
+      if (m_txs[o_hash].to == address(0) && m_txs[o_hash].value == 0 && m_txs[o_hash].data.length == 0) {
         m_txs[o_hash].to = _to;
         m_txs[o_hash].value = _value;
         m_txs[o_hash].data = _data;
       }
       if (!confirm(o_hash)) {
-        ConfirmationNeeded(o_hash, msg.sender, _value, _to, _data);
+        emit ConfirmationNeeded(o_hash, msg.sender, _value, _to, _data);
       }
     }
   }
 
-  function create(uint _value, bytes _code) internal returns (address o_addr) {
+  function create(uint _value, bytes memory _code) internal returns (address o_addr) {
+    uint256 o_size;
     assembly {
       o_addr := create(_value, add(_code, 0x20), mload(_code))
-      jumpi(0xdeadbeef, iszero(extcodesize(o_addr)))
+      o_size := extcodesize(o_addr)
     }
+    require(o_size != 0);
   }
 
   // confirm a transaction through just the hash. we use the previous transactions map, m_txs, in order
   // to determine the body of the transaction from the hash provided.
-  function confirm(bytes32 _h) onlymanyowners(_h) returns (bool o_success) {
-    if (m_txs[_h].to != 0 || m_txs[_h].value != 0 || m_txs[_h].data.length != 0) {
+  function confirm(bytes32 _h) public onlymanyowners(_h) returns (bool o_success) {
+    if (m_txs[_h].to != address(0) || m_txs[_h].value != 0 || m_txs[_h].data.length != 0) {
       address created;
-      if (m_txs[_h].to == 0) {
+      if (m_txs[_h].to == address(0)) {
         created = create(m_txs[_h].value, m_txs[_h].data);
       } else {
-        if (!m_txs[_h].to.call.value(m_txs[_h].value)(m_txs[_h].data))
-          throw;
+          (bool success, bytes memory data) = m_txs[_h].to.call.value(m_txs[_h].value)(m_txs[_h].data);
+        require(success);
       }
 
-      MultiTransact(msg.sender, _h, m_txs[_h].value, m_txs[_h].to, m_txs[_h].data, created);
+      emit MultiTransact(msg.sender, _h, m_txs[_h].value, m_txs[_h].to, m_txs[_h].data, created);
       delete m_txs[_h];
       return true;
     }
@@ -288,9 +290,9 @@ contract WalletLibrary is WalletEvents {
     // determine what index the present sender is:
     uint ownerIndex = m_ownerIndex[uint(msg.sender)];
     // make sure they're an owner
-    if (ownerIndex == 0) return;
+    if (ownerIndex == 0) return false;
 
-    var pending = m_pending[_operation];
+    PendingState memory pending = m_pending[_operation];
     // if we're not yet working on this operation, switch over and reset the confirmation status.
     if (pending.yetNeeded == 0) {
       // reset count of confirmations needed.
@@ -304,7 +306,7 @@ contract WalletLibrary is WalletEvents {
     uint ownerIndexBit = 2**ownerIndex;
     // make sure we (the message sender) haven't confirmed this operation previously.
     if (pending.ownersDone & ownerIndexBit == 0) {
-      Confirmation(msg.sender, _operation);
+      emit Confirmation(msg.sender, _operation);
       // ok - check if count is enough to go ahead.
       if (pending.yetNeeded <= 1) {
         // enough confirmations: reset and run interior.
@@ -354,7 +356,7 @@ contract WalletLibrary is WalletEvents {
   }
 
   // determines today's index.
-  function today() private constant returns (uint) { return now / 1 days; }
+  function today() private view returns (uint) { return now / 1 days; }
 
   function clearPending() internal {
     uint length = m_pendingIndex.length;
@@ -370,7 +372,7 @@ contract WalletLibrary is WalletEvents {
   }
 
   // FIELDS
-  address constant _walletLibrary = 0xcafecafecafecafecafecafecafecafecafecafe;
+  address _walletLibrary = 0xCAfEcAfeCAfECaFeCaFecaFecaFECafECafeCaFe;
 
   // the number of owners that must confirm the same operation before it is run.
   uint public m_required;
@@ -384,7 +386,7 @@ contract WalletLibrary is WalletEvents {
   // list of owners
   uint[256] m_owners;
 
-  uint constant c_maxOwners = 250;
+  uint c_maxOwners = 250;
   // index on the list of owners to allow reverse lookup
   mapping(uint => uint) m_ownerIndex;
   // the ongoing operations.

@@ -75,7 +75,7 @@ class EtherThief(DetectionModule):
 
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = "Transaction Sequence: " + str(transaction_sequence)
+            debug = str(transaction_sequence)
 
             issue = Issue(
                 contract=node.contract_name,
