@@ -24,11 +24,14 @@ def _analyze_state(state):
     try:
         try:
             transaction_sequence = solver.get_transaction_sequence(
-                state, node.constraints
+                state,
+                node.constraints + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
             )
             description = "Anyone can kill this contract and withdraw its balance to their own account."
         except UnsatError:
-            transaction_sequence = solver.get_transaction_sequence(state, constraints)
+            transaction_sequence = solver.get_transaction_sequence(
+                state, node.constraints
+            )
             description = (
                 "The contract can be killed by anyone. Don't accidentally kill it."
             )
