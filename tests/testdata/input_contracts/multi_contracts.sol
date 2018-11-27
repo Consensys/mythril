@@ -1,17 +1,16 @@
-pragma solidity ^0.4.17;
+pragma solidity 0.5.0;
+
 
 contract Transfer1 {
-
-  function transfer() {
-    msg.sender.transfer(1 ether);
-  }
+    function transfer() public {
+        msg.sender.transfer(1 ether);
+    }
 
 }
 
+
 contract Transfer2 {
-
-  function transfer() {
-    msg.sender.transfer(2 ether);
-  }
-
+    function transfer() public {
+        msg.sender.transfer(2 ether);
+    }
 }
