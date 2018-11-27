@@ -11,7 +11,12 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum import svm
-from tests import *
+from tests import (
+    BaseTestCase,
+    TESTDATA_INPUTS_CONTRACTS,
+    TESTDATA_OUTPUTS_EXPECTED_LASER_RESULT,
+    TESTDATA_OUTPUTS_CURRENT_LASER_RESULT,
+)
 
 
 class LaserEncoder(json.JSONEncoder):
