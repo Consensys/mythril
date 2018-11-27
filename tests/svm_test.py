@@ -84,7 +84,7 @@ class SVMTestCase(BaseTestCase):
             )
 
             disassembly = SolidityContract(
-                str(input_file), solc_binary=Mythril._init_solc_binary("0.4.24")
+                str(input_file), solc_binary=Mythril._init_solc_binary("0.5.0")
             ).disassembly
             account = Account("0x0000000000000000000000000000000000000000", disassembly)
             accounts = {account.address: account}

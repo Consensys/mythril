@@ -200,13 +200,12 @@ def main():
     )
 
     rpc = parser.add_argument_group("RPC options")
-    rpc.add_argument(
-        "-i", action="store_true", help="Preset: Infura Node service (Mainnet)"
-    )
+
     rpc.add_argument(
         "--rpc",
         help="custom RPC settings",
         metavar="HOST:PORT / ganache / infura-[network_name]",
+        default="infura-mainnet",
     )
     rpc.add_argument(
         "--rpctls", type=bool, default=False, help="RPC connection over TLS"
@@ -290,12 +289,7 @@ def main():
 
         if args.address:
             # Establish RPC connection if necessary
-            if args.i:
-                mythril.set_api_rpc_infura()
-            elif args.rpc:
-                mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-            elif not (args.dynld or not args.no_onchain_storage_access):
-                mythril.set_api_rpc_localhost()
+            mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
         elif args.search or args.contract_hash_to_address:
             # Open LevelDB if necessary
             mythril.set_api_leveldb(
@@ -331,9 +325,11 @@ def main():
 
         if args.code:
             # Load from bytecode
-            address, _ = mythril.load_from_bytecode(args.code, args.bin_runtime)
+            code = args.code[2:] if args.code.startswith("0x") else args.code
+            address, _ = mythril.load_from_bytecode(code, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
+            bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
             address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
         elif args.address:
             # Get bytecode from a contract address
