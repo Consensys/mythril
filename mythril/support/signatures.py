@@ -187,10 +187,7 @@ class SignatureDB(object):
 
         logging.debug("Signatures: found %d signatures after parsing" % len(sigs))
 
-        if not sigs:
-            return
-
-        # update DB
+        # update DB with what we've found
         for byte_sig, text_sigs in sigs.items():
             for text_sig in text_sigs:
                 self.add(byte_sig, text_sig)
