@@ -78,7 +78,7 @@ class EtherThief(DetectionModule):
                 ],
             )
 
-            debug = "Transaction Sequence: " + str(transaction_sequence)
+            debug = str(transaction_sequence)
 
             issue = Issue(
                 contract=node.contract_name,

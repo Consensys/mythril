@@ -46,7 +46,7 @@ def _analyze_state(state):
                 "The contract can be killed by anyone. Don't accidentally kill it."
             )
 
-        debug = "Transaction Sequence: " + str(transaction_sequence)
+        debug = str(transaction_sequence)
 
         issue = Issue(
             contract=node.contract_name,
