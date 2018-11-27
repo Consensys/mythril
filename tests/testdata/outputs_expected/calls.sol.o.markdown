@@ -28,7 +28,7 @@ The return value of an external call is not checked. Note that execution continu
 - SWC ID: 104
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 871
 - Estimated Gas Usage: 6432 - 61043
 
