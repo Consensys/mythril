@@ -7,6 +7,7 @@ from datetime import datetime
 
 import binascii
 import json
+import os
 from pathlib import Path
 import pytest
 from z3 import ExprRef, simplify

@@ -64,7 +64,7 @@ The return value of an external call is not checked. Note that execution continu
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 858
 - Estimated Gas Usage: 709 - 1320
 
@@ -76,7 +76,7 @@ This contract executes a message call to to another contract. Make sure that the
 - SWC ID: 107
 - Type: Warning
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 869
 - Estimated Gas Usage: 709 - 1320
 
@@ -88,7 +88,7 @@ The contract account state is changed after an external call. Consider that the 
 - SWC ID: 104
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 871
 - Estimated Gas Usage: 6432 - 61043
 
