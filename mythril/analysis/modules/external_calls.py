@@ -25,7 +25,7 @@ def _analyze_state(state):
     address = state.get_current_instruction()["address"]
 
     try:
-        constraints = node.constraints  + [gas > 2300]
+        constraints = node.constraints
         transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
         # Check whether we can also set the callee address
@@ -35,9 +35,11 @@ def _analyze_state(state):
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
             debug = str(transaction_sequence)
-            description = "The contract executes a function call with high gas to a user-supplied address. " \
-                          "Note that the callee can contain arbitrary code and may re-enter any function in this contract. " \
-                          "Review the business logic carefully to prevent unanticipated effects on the contract state."
+            description = (
+                "The contract executes a function call with high gas to a user-supplied address. "
+                "Note that the callee can contain arbitrary code and may re-enter any function in this contract. "
+                "Review the business logic carefully to prevent unanticipated effects on the contract state."
+            )
 
             issue = Issue(
                 contract=node.contract_name,
@@ -54,11 +56,15 @@ def _analyze_state(state):
 
         except UnsatError:
 
-            logging.debug("[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue.")
+            logging.debug(
+                "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
+            )
 
             debug = str(transaction_sequence)
-            description = "The contract executes a function call to an external address. " \
-                          "Verify that the code at this address is trusted and immutable."
+            description = (
+                "The contract executes a function call to an external address. "
+                "Verify that the code at this address is trusted and immutable."
+            )
 
             issue = Issue(
                 contract=node.contract_name,
