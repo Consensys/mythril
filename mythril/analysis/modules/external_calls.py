@@ -8,16 +8,23 @@ from mythril.exceptions import UnsatError
 import logging
 
 
+DESCRIPTION = """
+
+Search for low level calls (e.g. call.value()) that forward all gas to the callee. 
+Report a warning if the callee address can be set by the sender, otherwise create 
+an informational issue.
+
+"""
+
+
 class ExternalCallModule(DetectionModule):
-    def __init__(self, max_search_depth=64):
+    def __init__(self):
         super().__init__(
             name="External Calls",
             swc_id=REENTRANCY,
-            hooks=["CALL"],
+            hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"],
             description="Check for call.value()() to external addresses",
         )
-        self.max_search_depth = max_search_depth
-        self.calls_visited = []
 
     def execute(self, state_space):
         logging.debug("Executing module: %s", self.name)
