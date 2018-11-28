@@ -16,6 +16,7 @@ class BaseCalldata:
     Base calldata class
     This represents the calldata provided when sending a transaction to a contract
     """
+
     def __init__(self, tx_id):
         self.tx_id = tx_id
 
@@ -31,7 +32,7 @@ class BaseCalldata:
 
     def get_word_at(self, offset: int) -> ExprRef:
         """ Gets word at offset"""
-        return self[offset: offset + 32]
+        return self[offset : offset + 32]
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
         if isinstance(item, int) or isinstance(item, ExprRef):
@@ -116,7 +117,7 @@ class SymbolicCalldata(BaseCalldata):
         symbolic_base_value = If(
             x > self._size,
             BitVecVal(0, 8),
-            BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8)
+            BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8),
         )
 
         return_value = symbolic_base_value
