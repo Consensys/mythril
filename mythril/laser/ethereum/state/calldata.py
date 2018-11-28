@@ -34,7 +34,7 @@ class BaseCalldata:
         return self[offset: offset + 32]
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
-        if isinstance(item, int):
+        if isinstance(item, int) or isinstance(item, ExprRef):
             return self._load(item)
 
         if isinstance(item, slice):
