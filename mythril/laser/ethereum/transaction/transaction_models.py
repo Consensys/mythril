@@ -2,7 +2,7 @@ import logging
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import Calldata
+from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -75,9 +75,9 @@ class BaseTransaction:
         self.caller = caller
         self.callee_account = callee_account
         if call_data is None and init_call_data:
-            self.call_data = Calldata(self.id, call_data)
+            self.call_data = ConcreteCalldata(self.id, call_data)
         else:
-            self.call_data = call_data if isinstance(call_data, Calldata) else None
+            self.call_data = call_data if isinstance(call_data, BaseCalldata) else None
         self.call_data_type = (
             call_data_type
             if call_data_type is not None
