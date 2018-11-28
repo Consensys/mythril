@@ -9,7 +9,7 @@ contract Caller {
 	uint256 statevar;
 
 	constructor(address addr) public {
-		fixed_address = "0x552254cbaaf32613c6c0450cf19524594ef84044";
+		fixed_address = address(0x552254CbAaF32613C6c0450CF19524594eF84044);
 	}
 
 	function thisisfine() public {
