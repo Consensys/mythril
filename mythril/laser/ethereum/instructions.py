@@ -131,7 +131,7 @@ class Instruction:
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
         # Generalize some ops
-        logging.debug("Evaluating {}".format(self.op_code))
+        # logging.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
