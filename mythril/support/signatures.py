@@ -124,11 +124,12 @@ class SignatureDB(object):
         if text_sigs:
             return [t[0] for t in text_sigs]
 
-        # otherwise try the online lookup if we're allowed to
-        if not (
-            self.enable_online_lookup
-            and byte_sig not in self.online_lookup_miss
-            and time.time() > self.online_lookup_timeout,
+        # abort if we're not allowed to check 4byte or we already missed
+        # the signature, or we're on a timeout
+        if (
+            not self.enable_online_lookup
+            or byte_sig in self.online_lookup_miss
+            or time.time() < self.online_lookup_timeout,
         ):
             return []
 
