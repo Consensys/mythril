@@ -9,7 +9,7 @@ contract Caller {
 	uint256 statevar;
 
 	constructor(address addr) public {
-		fixed_address = addr;
+		fixed_address = "0x552254cbaaf32613c6c0450cf19524594ef84044";
 	}
 
 	function thisisfine() public {
@@ -27,6 +27,7 @@ contract Caller {
 
 	function callstoredaddress() public {
 	    stored_address.call("");
+	    statevar = 0;
 	}
 
 	function setstoredaddress(address addr) public {
