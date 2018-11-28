@@ -37,9 +37,6 @@ class DelegateCallModule(DetectionModule):
             if meminstart.type == VarType.CONCRETE:
                 issues += self._concrete_call(call, state, address, meminstart)
 
-            if call.to.type == VarType.SYMBOLIC:
-                issues += self._symbolic_call(call, state, address, statespace)
-
         return issues
 
     def _concrete_call(self, call, state, address, meminstart):
@@ -66,46 +63,6 @@ class DelegateCallModule(DetectionModule):
         target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
         issue.description += "DELEGATECALL target: {}".format(target)
 
-        return [issue]
-
-    def _symbolic_call(self, call, state, address, statespace):
-        issue = Issue(
-            contract=call.node.contract_name,
-            function_name=call.node.function_name,
-            address=address,
-            swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-            bytecode=state.environment.code.bytecode,
-            title=call.type + " to a user-supplied address",
-            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-        )
-
-        if "calldata" in str(call.to):
-            issue.description = "This contract delegates execution to a contract address obtained from calldata."
-
-        else:
-            m = re.search(r"storage_([a-z0-9_&^]+)", str(call.to))
-
-            if m:
-                idx = m.group(1)
-                func = statespace.find_storage_write(
-                    state.environment.active_account.address, idx
-                )
-
-                if func:
-                    issue.description = (
-                        "This contract delegates execution to a contract address in storage slot "
-                        + str(idx)
-                        + ". This storage slot can be written to by calling the function `"
-                        + func
-                        + "`."
-                    )
-
-                else:
-                    logging.debug(
-                        "[DELEGATECALL] No storage writes to index " + str(idx)
-                    )
-
-        issue.description += " Be aware that the called contract gets unrestricted access to this contract's state."
         return [issue]
 
 
