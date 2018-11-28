@@ -1,14 +1,6 @@
 from enum import Enum
 from typing import Union, Any
-from z3 import (
-    BitVecVal,
-    BitVecRef,
-    BitVec,
-    simplify,
-    Concat,
-    If,
-    ExprRef
-)
+from z3 import BitVecVal, BitVecRef, BitVec, simplify, Concat, If, ExprRef
 from z3.z3types import Z3Exception
 
 from mythril.laser.ethereum.util import get_concrete_int
@@ -31,7 +23,7 @@ class BaseCalldata:
         return result
 
     def get_word_at(self, index: int):
-        return self[index: index + 32]
+        return self[index : index + 32]
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
         if isinstance(item, int):

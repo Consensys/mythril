@@ -3,7 +3,11 @@ from logging import debug
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
-from mythril.laser.ethereum.state.calldata import CalldataType, BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.calldata import (
+    CalldataType,
+    BaseCalldata,
+    SymbolicCalldata,
+)
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
