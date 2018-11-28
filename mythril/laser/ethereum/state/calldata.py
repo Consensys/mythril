@@ -94,7 +94,7 @@ class SymbolicCalldata(BaseCalldata):
     def _load(self, item: Union[int, ExprRef], clean=False) -> Any:
         x = BitVecVal(item, 256) if isinstance(item, int) else item
 
-        b = BitVec("{}_calldata_{}".format(0, str(item)), 8)
+        b = BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8)
         c = x > self._size
         a = BitVecVal(0, 8)
         symbolic_base_value = If(c, a, b)
@@ -102,6 +102,8 @@ class SymbolicCalldata(BaseCalldata):
         return_value = symbolic_base_value
         for r_index, r_value in self._reads:
             return_value = If(r_index == item, r_value, return_value)
+
+        return_value = simplify(return_value)
 
         if not clean:
             self._reads.append((item, symbolic_base_value))
