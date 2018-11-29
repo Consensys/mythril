@@ -1,6 +1,6 @@
-from mythril.ether import util
+from mythril.ethereum import util
 from mythril.disassembler import asm
-from mythril.support.signatures import SignatureDb
+from mythril.support.signatures import SignatureDB
 import logging
 
 
@@ -23,16 +23,9 @@ class Disassembly(object):
         self.function_name_to_address = {}
         self.address_to_function_name = {}
 
-        signatures = {}
-        try:
-            # open from default locations
-            signatures = SignatureDb(
-                enable_online_lookup=enable_online_lookup
-            )  # control if you want to have online signature hash lookups
-        except FileNotFoundError:
-            logging.info(
-                "Missing function signature file. Resolving of function names from signature file disabled."
-            )
+        # open from default locations
+        # control if you want to have online signature hash lookups
+        signatures = SignatureDB(enable_online_lookup=enable_online_lookup)
 
         # Need to take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
         jump_table_indices = asm.find_op_code_sequence(
@@ -54,7 +47,7 @@ class Disassembly(object):
 
 
 def get_function_info(
-    index: int, instruction_list: list, signature_database: SignatureDb
+    index: int, instruction_list: list, signature_database: SignatureDB
 ) -> (str, int, str):
     """
     Finds the function information for a call table entry

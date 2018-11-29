@@ -23,15 +23,3 @@ The subtraction can result in an integer underflow.
 ### Description
 
 The subtraction can result in an integer underflow.
-
-## Integer Overflow
-- SWC ID: 101
-- Type: Warning
-- Contract: Unknown
-- Function name: `sendeth(address,uint256)`
-- PC address: 725
-- Estimated Gas Usage: 6806 - 27471
-
-### Description
-
-This binary add operation can result in integer overflow.

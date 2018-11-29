@@ -42,7 +42,7 @@ class ReachableExceptionsModule(DetectionModule):
                             "Use `require()` for regular input checking."
                         )
 
-                        debug = "Transaction Sequence: " + str(
+                        debug = str(
                             solver.get_transaction_sequence(state, node.constraints)
                         )
 

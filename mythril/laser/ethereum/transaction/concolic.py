@@ -6,7 +6,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 from z3 import BitVec
 from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import Calldata, CalldataType
+from mythril.laser.ethereum.state.calldata import CalldataType, ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -42,7 +42,7 @@ def execute_message_call(
             code=Disassembly(code),
             caller=caller_address,
             callee_account=open_world_state[callee_address],
-            call_data=Calldata(next_transaction_id, data),
+            call_data=ConcreteCalldata(next_transaction_id, data),
             call_data_type=CalldataType.SYMBOLIC,
             call_value=value,
         )
