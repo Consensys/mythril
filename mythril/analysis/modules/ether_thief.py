@@ -7,7 +7,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 from z3 import BitVecVal, UGT, Sum
 import logging
-
+from copy import copy
 
 DESCRIPTION = """
 
@@ -35,7 +35,7 @@ def _analyze_state(state):
 
     eth_sent_total = BitVecVal(0, 256)
 
-    constraints = node.constraints
+    constraints = copy(node.constraints)
 
     for tx in state.world_state.transaction_sequence:
         if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
@@ -45,7 +45,6 @@ def _analyze_state(state):
 
             constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
             eth_sent_total = Sum(eth_sent_total, tx.call_value)
-
     constraints += [UGT(call_value, eth_sent_total), target == state.environment.sender]
 
     try:
