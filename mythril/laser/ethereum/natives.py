@@ -8,7 +8,7 @@ from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
-from mythril.laser.ethereum.state.calldata import Calldata
+from mythril.laser.ethereum.state.calldata import BaseCalldata
 from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
 from z3 import Concat, simplify
 
@@ -88,7 +88,7 @@ def identity(data: Union[bytes, str, List[int]]) -> bytes:
     return result
 
 
-def native_contracts(address: int, data: Calldata):
+def native_contracts(address: int, data: BaseCalldata):
     """
     takes integer address 1, 2, 3, 4
     """
