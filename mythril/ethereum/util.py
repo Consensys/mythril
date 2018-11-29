@@ -79,7 +79,7 @@ def solc_exists(version):
             ".py-solc/solc-v" + version,
             "bin/solc",
         ),  # py-solc setup
-        "/usr/bin/solc",  # Ubuntu PPA setup
+        #"/usr/bin/solc",  # Ubuntu PPA setup
     ]
     for solc_path in solc_binaries:
         if os.path.exists(solc_path):

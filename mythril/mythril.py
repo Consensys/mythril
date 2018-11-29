@@ -227,6 +227,9 @@ class Mythril(object):
             else:
                 try:
                     solc.install_solc("v" + version)
+                    solc_binary = util.solc_exists(version)
+                    if not solc_binary:
+                        raise SolcError()
                 except SolcError:
                     raise CriticalError(
                         "There was an error when trying to install the specified solc version"
