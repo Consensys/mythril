@@ -1,5 +1,4 @@
 from mythril.analysis import solver
-from mythril.analysis.analysis_utils import get_non_creator_constraints
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
@@ -13,8 +12,6 @@ Check if the contact can be 'accidentally' killed by anyone.
 For kill-able contracts, also check whether it is possible to direct the contract balance to the attacker.
 """
 
-ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
-
 
 def _analyze_state(state):
     logging.info("Suicide module: Analyzing suicide instruction")
@@ -24,24 +21,17 @@ def _analyze_state(state):
 
     logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
-    not_creator_constraints, constrained = get_non_creator_constraints(state)
-    constraints = (
-        node.constraints
-        + not_creator_constraints
-        + [state.environment.sender == ARBITRARY_SENDER_ADDRESS]
-    )
-
-    if constrained:
-        return []
-
     try:
         try:
             transaction_sequence = solver.get_transaction_sequence(
-                state, constraints + [to == ARBITRARY_SENDER_ADDRESS]
+                state,
+                node.constraints + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
             )
             description = "Anyone can kill this contract and withdraw its balance to their own account."
         except UnsatError:
-            transaction_sequence = solver.get_transaction_sequence(state, constraints)
+            transaction_sequence = solver.get_transaction_sequence(
+                state, node.constraints
+            )
             description = (
                 "The contract can be killed by anyone. Don't accidentally kill it."
             )
