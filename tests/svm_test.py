@@ -11,7 +11,12 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum import svm
-from tests import *
+from tests import (
+    BaseTestCase,
+    TESTDATA_INPUTS_CONTRACTS,
+    TESTDATA_OUTPUTS_EXPECTED_LASER_RESULT,
+    TESTDATA_OUTPUTS_CURRENT_LASER_RESULT,
+)
 
 
 class LaserEncoder(json.JSONEncoder):
@@ -84,7 +89,7 @@ class SVMTestCase(BaseTestCase):
             )
 
             disassembly = SolidityContract(
-                str(input_file), solc_binary=Mythril._init_solc_binary("0.4.24")
+                str(input_file), solc_binary=Mythril._init_solc_binary("0.5.0")
             ).disassembly
             account = Account("0x0000000000000000000000000000000000000000", disassembly)
             accounts = {account.address: account}

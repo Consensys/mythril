@@ -1,5 +1,4 @@
 from mythril.analysis import solver
-from mythril.analysis.analysis_utils import get_non_creator_constraints
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
@@ -8,6 +7,11 @@ from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 
+DESCRIPTION = """
+Check if the contact can be 'accidentally' killed by anyone.
+For kill-able contracts, also check whether it is possible to direct the contract balance to the attacker.
+"""
+
 
 def _analyze_state(state):
     logging.info("Suicide module: Analyzing suicide instruction")
@@ -15,33 +19,24 @@ def _analyze_state(state):
     instruction = state.get_current_instruction()
     to = state.mstate.stack[-1]
 
-    logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
+    logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
-    description = "A reachable SUICIDE instruction was detected. "
-
-    if "caller" in str(to):
-        description += "The remaining Ether is sent to the caller's address.\n"
-    elif "storage" in str(to):
-        description += "The remaining Ether is sent to a stored address.\n"
-    elif "calldata" in str(to):
-        description += "The remaining Ether is sent to an address provided as a function argument.\n"
-    elif type(to) == BitVecNumRef:
-        description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
-    else:
-        description += "The remaining Ether is sent to: " + str(to) + "\n"
-
-    not_creator_constraints, constrained = get_non_creator_constraints(state)
-
-    if constrained:
-        return []
     try:
-        solver.get_model(node.constraints + not_creator_constraints)
-
-        debug = "Transaction Sequence: " + str(
-            solver.get_transaction_sequence(
-                state, node.constraints + not_creator_constraints
+        try:
+            transaction_sequence = solver.get_transaction_sequence(
+                state,
+                node.constraints + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
             )
-        )
+            description = "Anyone can kill this contract and withdraw its balance to their own account."
+        except UnsatError:
+            transaction_sequence = solver.get_transaction_sequence(
+                state, node.constraints
+            )
+            description = (
+                "The contract can be killed by anyone. Don't accidentally kill it."
+            )
+
+        debug = str(transaction_sequence)
 
         issue = Issue(
             contract=node.contract_name,
@@ -68,11 +63,7 @@ class SuicideModule(DetectionModule):
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
             hooks=["SUICIDE"],
-            description=(
-                "Check for SUICIDE instructions that either can be reached by anyone, "
-                "or where msg.sender is checked against a tainted storage index (i.e. "
-                "there's a write to that index is unconstrained by msg.sender)."
-            ),
+            description=(DESCRIPTION),
             entrypoint="callback",
         )
         self._issues = []

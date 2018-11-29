@@ -1,6 +1,6 @@
 # Analysis results for test-filename.sol
 
-## Message call to external contract
+## External call
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
@@ -10,7 +10,7 @@
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.
 
 ## Unchecked CALL return value
 - SWC ID: 104
@@ -24,9 +24,9 @@ This contract executes a message call to to another contract. Make sure that the
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-## Message call to external contract
+## External call
 - SWC ID: 107
-- Type: Warning
+- Type: Informational
 - Contract: Unknown
 - Function name: `callstoredaddress()`
 - PC address: 779
@@ -34,19 +34,7 @@ The return value of an external call is not checked. Note that execution continu
 
 ### Description
 
-This contract executes a message call to an address found at storage slot 1. This storage slot can be written to by calling the function `setstoredaddress(address)`. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
-
-## Transaction order dependence
-- SWC ID: 114
-- Type: Warning
-- Contract: Unknown
-- Function name: `callstoredaddress()`
-- PC address: 779
-- Estimated Gas Usage: 687 - 1298
-
-### Description
-
-Possible transaction order dependence vulnerability: The value or direction of the call statement is determined from a tainted storage location.
+The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.
 
 ## Unchecked CALL return value
 - SWC ID: 104
@@ -60,35 +48,23 @@ Possible transaction order dependence vulnerability: The value or direction of t
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-## Message call to external contract
+## External call
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 858
 - Estimated Gas Usage: 709 - 1320
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
-
-## State change after external call
-- SWC ID: 107
-- Type: Warning
-- Contract: Unknown
-- Function name: `_function_0xe11f493e`
-- PC address: 869
-- Estimated Gas Usage: 709 - 1320
-
-### Description
-
-The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.
+The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.
 
 ## Unchecked CALL return value
 - SWC ID: 104
 - Type: Informational
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 871
 - Estimated Gas Usage: 6432 - 61043
 
@@ -96,7 +72,7 @@ The contract account state is changed after an external call. Consider that the 
 
 The return value of an external call is not checked. Note that execution continue even if the called contract throws.
 
-## Message call to external contract
+## External call to user-supplied address
 - SWC ID: 107
 - Type: Warning
 - Contract: Unknown
@@ -106,7 +82,7 @@ The return value of an external call is not checked. Note that execution continu
 
 ### Description
 
-This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
+The contract executes a function call with high gas to a user-supplied address. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent unanticipated effects on the contract state.
 
 ## Unchecked CALL return value
 - SWC ID: 104

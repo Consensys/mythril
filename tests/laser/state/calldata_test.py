@@ -1,6 +1,6 @@
 import pytest
-from mythril.laser.ethereum.state.calldata import Calldata
-from z3 import Solver, simplify
+from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCalldata
+from z3 import Solver, simplify, BitVec, sat, unsat
 from z3.z3types import Z3Exception
 from mock import MagicMock
 
@@ -13,21 +13,11 @@ uninitialized_test_data = [
 @pytest.mark.parametrize("starting_calldata", uninitialized_test_data)
 def test_concrete_calldata_uninitialized_index(starting_calldata):
     # Arrange
-    calldata = Calldata(0, starting_calldata)
-    solver = Solver()
+    calldata = ConcreteCalldata(0, starting_calldata)
 
     # Act
-    value, constraint1 = calldata[100]
-    value2, constraint2 = calldata.get_word_at(200)
-
-    solver.add(constraint1)
-    solver.add(constraint2)
-
-    solver.check()
-    model = solver.model()
-
-    value = model.eval(value)
-    value2 = model.eval(value2)
+    value = calldata[100]
+    value2 = calldata.get_word_at(200)
 
     # Assert
     assert value == 0
@@ -36,73 +26,65 @@ def test_concrete_calldata_uninitialized_index(starting_calldata):
 
 def test_concrete_calldata_calldatasize():
     # Arrange
-    calldata = Calldata(0, [1, 4, 7, 3, 7, 2, 9])
+    calldata = ConcreteCalldata(0, [1, 4, 7, 3, 7, 2, 9])
     solver = Solver()
 
     # Act
     solver.check()
     model = solver.model()
-
     result = model.eval(calldata.calldatasize)
 
     # Assert
     assert result == 7
 
 
-def test_symbolic_calldata_constrain_index():
-    # Arrange
-    calldata = Calldata(0)
-    solver = Solver()
-
-    # Act
-    value, calldata_constraints = calldata[100]
-    constraint = value == 50
-
-    solver.add([constraint] + calldata_constraints)
-
-    solver.check()
-    model = solver.model()
-
-    value = model.eval(value)
-    calldatasize = model.eval(calldata.calldatasize)
-
-    # Assert
-    assert value == 50
-    assert simplify(calldatasize >= 100)
-
-
 def test_concrete_calldata_constrain_index():
     # Arrange
-    calldata = Calldata(0, [1, 4, 7, 3, 7, 2, 9])
+    calldata = ConcreteCalldata(0, [1, 4, 7, 3, 7, 2, 9])
     solver = Solver()
 
     # Act
-    value, calldata_constraints = calldata[2]
+    value = calldata[2]
     constraint = value == 3
 
-    solver.add([constraint] + calldata_constraints)
+    solver.add([constraint])
     result = solver.check()
 
     # Assert
     assert str(result) == "unsat"
 
 
-def test_concrete_calldata_constrain_index():
+def test_symbolic_calldata_constrain_index():
     # Arrange
-    calldata = Calldata(0)
-    mstate = MagicMock()
-    mstate.constraints = []
+    calldata = SymbolicCalldata(0)
     solver = Solver()
 
     # Act
-    constraints = []
-    value, calldata_constraints = calldata[51]
-    constraints.append(value == 1)
-    constraints.append(calldata.calldatasize == 50)
+    value = calldata[51]
 
-    solver.add(constraints + calldata_constraints)
+    constraints = [value == 1, calldata.calldatasize == 50]
+
+    solver.add(constraints)
 
     result = solver.check()
 
     # Assert
     assert str(result) == "unsat"
+
+
+def test_symbolic_calldata_equal_indices():
+    calldata = SymbolicCalldata(0)
+
+    index_a = BitVec("index_a", 256)
+    index_b = BitVec("index_b", 256)
+
+    # Act
+    a = calldata[index_a]
+    b = calldata[index_b]
+
+    s = Solver()
+    s.append(index_a == index_b)
+    s.append(a != b)
+
+    # Assert
+    assert unsat == s.check()
