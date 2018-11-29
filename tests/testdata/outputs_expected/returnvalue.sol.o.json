@@ -1,18 +1,1 @@
-{
-  "error": null,
-  "issues": [
-    {
-      "address": 290,
-      "contract": "Unknown",
-      "debug": "<DEBUG-DATA>",
-      "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
-      "function": "callnotchecked()",
-      "max_gas_used": 35941,
-      "min_gas_used": 1330,
-      "swc-id": "104",
-      "title": "Unchecked CALL return value",
-      "type": "Informational"
-    }
-  ],
-  "success": true
-}
+{"error": null, "issues": [{"address": 196, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.", "function": "callchecked()", "max_gas_used": 1210, "min_gas_used": 599, "swc-id": "107", "title": "External call", "type": "Informational"}, {"address": 285, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.", "function": "callnotchecked()", "max_gas_used": 1232, "min_gas_used": 621, "swc-id": "107", "title": "External call", "type": "Informational"}, {"address": 290, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.", "function": "callnotchecked()", "max_gas_used": 35941, "min_gas_used": 1330, "swc-id": "104", "title": "Unchecked CALL return value", "type": "Informational"}], "success": true}
