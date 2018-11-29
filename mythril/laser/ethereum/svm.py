@@ -203,7 +203,7 @@ class LaserEVM:
             elif track_gas:
                 final_states.append(global_state)
             self.total_states += len(new_states)
-            
+
             del global_state.mstate.constraints.solver
             global_state.mstate.constraints.solver = None
 

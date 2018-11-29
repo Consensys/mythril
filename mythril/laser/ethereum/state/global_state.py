@@ -87,4 +87,3 @@ class GlobalState:
         global_state2.mstate.constraints.copy_solver()
 
         return global_state1, global_state2
-

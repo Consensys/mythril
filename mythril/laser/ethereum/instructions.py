@@ -1092,8 +1092,12 @@ class Instruction:
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
-        negated_cond = (type(negated) == bool and negated) or ( type(negated) == BoolRef and not is_false(negated))
-        positive_cond = (type(condi) == bool and condi) or ( type(condi) == BoolRef and not is_false(condi) )
+        negated_cond = (type(negated) == bool and negated) or (
+            type(negated) == BoolRef and not is_false(negated)
+        )
+        positive_cond = (type(condi) == bool and condi) or (
+            type(condi) == BoolRef and not is_false(condi)
+        )
         branched = False
 
         if index and negated_cond and positive_cond:
