@@ -33,11 +33,10 @@ class Constraints(list):
 
     def __copy__(self):
         constraint_list = super(Constraints, self).copy()
-        if self.solver is not None:
-            solver = copy(self.solver)
-        else:
-            solver = None
-        return Constraints(constraint_list, solver)
+        return Constraints(constraint_list, self.solver)
+
+    def copy_solver(self):
+        self.solver = copy(self.solver)
 
     def __deepcopy__(self, memodict=None):
         return self.__copy__()

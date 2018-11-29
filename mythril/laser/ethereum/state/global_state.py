@@ -75,3 +75,13 @@ class GlobalState:
     def new_bitvec(self, name: str, size=256) -> BitVec:
         transaction_id = self.current_transaction.id
         return BitVec("{}_{}".format(transaction_id, name), size)
+
+    def split_global_state(self):
+        global_state1 = copy(self)
+        global_state2 = copy(self)
+
+        global_state1.mstate.constraints.copy_solver()
+        global_state2.mstate.constraints.copy_solver()
+
+        return global_state1, global_state2
+

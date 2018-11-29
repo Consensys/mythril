@@ -150,7 +150,6 @@ class Instruction:
 
         if instruction_mutator is None:
             raise NotImplementedError
-
         return instruction_mutator(global_state)
 
     @StateTransition()
@@ -1089,47 +1088,54 @@ class Instruction:
             simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
         )
 
-        if (type(negated) == bool and negated) or (
-            type(negated) == BoolRef and not is_false(negated)
-        ):
-            new_state = copy(global_state)
+        # True case
+        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
+
+        # Get jump destination
+        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
+
+        negated_cond = (type(negated) == bool and negated) or ( type(negated) == BoolRef and not is_false(negated))
+        positive_cond = (type(condi) == bool and condi) or ( type(condi) == BoolRef and not is_false(condi) )
+        branched = False
+
+        if index and negated_cond and positive_cond:
+            new_state1, new_state2 = global_state.split_global_state()
+        else:
+            new_state1, new_state2 = copy(global_state), copy(global_state)
+
+        if negated_cond:
             # add JUMPI gas cost
-            new_state.mstate.min_gas_used += min_gas
-            new_state.mstate.max_gas_used += max_gas
+            new_state1.mstate.min_gas_used += min_gas
+            new_state1.mstate.max_gas_used += max_gas
 
             # manually increment PC
-            new_state.mstate.depth += 1
-            new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
-            states.append(new_state)
+            new_state1.mstate.depth += 1
+            new_state1.mstate.pc += 1
+            new_state1.mstate.constraints.append(negated)
+            states.append(new_state1)
         else:
             logging.debug("Pruned unreachable states.")
 
         # True case
 
-        # Get jump destination
-        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
         if not index:
             logging.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
         if instr["opcode"] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (
-                type(condi) == BoolRef and not is_false(condi)
-            ):
-                new_state = copy(global_state)
+            if positive_cond:
+                new_state2 = copy(global_state)
                 # add JUMPI gas cost
-                new_state.mstate.min_gas_used += min_gas
-                new_state.mstate.max_gas_used += max_gas
+                new_state2.mstate.min_gas_used += min_gas
+                new_state2.mstate.max_gas_used += max_gas
 
                 # manually set PC to destination
-                new_state.mstate.pc = index
-                new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
-                states.append(new_state)
+                new_state2.mstate.pc = index
+                new_state2.mstate.depth += 1
+                new_state2.mstate.constraints.append(condi)
+                states.append(new_state2)
             else:
                 logging.debug("Pruned unreachable states.")
         del global_state
