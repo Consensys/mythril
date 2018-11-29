@@ -42,7 +42,7 @@ from mythril.laser.ethereum.evm_exceptions import (
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
+from mythril.laser.ethereum.state.calldata import CalldataType
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -131,7 +131,7 @@ class Instruction:
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
         # Generalize some ops
-        logging.debug("Evaluating {}".format(self.op_code))
+        # logging.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -457,10 +457,9 @@ class Instruction:
         environment = global_state.environment
         op0 = state.stack.pop()
 
-        value, constraints = environment.calldata.get_word_at(op0)
+        value = environment.calldata.get_word_at(op0)
 
         state.stack.append(value)
-        state.constraints.extend(constraints)
 
         return [global_state]
 
@@ -540,9 +539,8 @@ class Instruction:
                 i_data = dstart
                 new_memory = []
                 for i in range(size):
-                    value, constraints = environment.calldata[i_data]
+                    value = environment.calldata[i_data]
                     new_memory.append(value)
-                    state.constraints.extend(constraints)
 
                     i_data = (
                         i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
@@ -705,7 +703,7 @@ class Instruction:
         if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
-            if concrete_code_offset >= len(global_state.environment.code.bytecode) // 2:
+            if concrete_code_offset >= len(bytecode) // 2:
                 global_state.mstate.mem_extend(concrete_memory_offset, 1)
                 global_state.mstate.memory[
                     concrete_memory_offset

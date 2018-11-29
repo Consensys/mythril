@@ -11,7 +11,7 @@ class SolidityContractTest(BaseTestCase):
     def test_get_source_info_without_name_gets_latest_contract_info(self):
         input_file = TEST_FILES / "multi_contracts.sol"
         contract = SolidityContract(
-            str(input_file), solc_binary=Mythril._init_solc_binary("0.4.24")
+            str(input_file), solc_binary=Mythril._init_solc_binary("0.5.0")
         )
 
         code_info = contract.get_source_info(142)
@@ -25,7 +25,7 @@ class SolidityContractTest(BaseTestCase):
         contract = SolidityContract(
             str(input_file),
             name="Transfer1",
-            solc_binary=Mythril._init_solc_binary("0.4.24"),
+            solc_binary=Mythril._init_solc_binary("0.5.0"),
         )
 
         code_info = contract.get_source_info(142)
@@ -39,11 +39,11 @@ class SolidityContractTest(BaseTestCase):
         contract = SolidityContract(
             str(input_file),
             name="AssertFail",
-            solc_binary=Mythril._init_solc_binary("0.4.24"),
+            solc_binary=Mythril._init_solc_binary("0.5.0"),
         )
 
-        code_info = contract.get_source_info(62, constructor=True)
+        code_info = contract.get_source_info(70, constructor=True)
 
         self.assertEqual(code_info.filename, str(input_file))
         self.assertEqual(code_info.lineno, 6)
-        self.assertEqual(code_info.code, "assert(var1>0)")
+        self.assertEqual(code_info.code, "assert(var1 > 0)")

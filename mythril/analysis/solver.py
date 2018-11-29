@@ -103,7 +103,7 @@ def get_transaction_sequence(global_state, constraints):
         concrete_transactions[tx_id]["calldata"] = "0x" + "".join(
             [
                 hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
-                for b in transaction.call_data.concretized(model)
+                for b in transaction.call_data.concrete(model)
             ]
         )
 

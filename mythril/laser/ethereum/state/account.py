@@ -1,6 +1,6 @@
 from typing import Dict, Union, Any, KeysView
 
-from z3 import BitVec, ExprRef
+from z3 import BitVec, BitVecVal, ExprRef
 
 from mythril.disassembler.disassembly import Disassembly
 
@@ -41,7 +41,7 @@ class Storage:
                     pass
         if self.concrete:
             return 0
-        self._storage[item] = BitVec("storage_" + str(item), 256)
+        self._storage[item] = BitVecVal(0, 256)
         return self._storage[item]
 
     def __setitem__(self, key: str, value: ExprRef) -> None:

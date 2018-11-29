@@ -1,13 +1,13 @@
 from mythril.analysis.ops import *
 from mythril.analysis import solver
-from mythril.analysis.analysis_utils import get_non_creator_constraints
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.analysis.modules.base import DetectionModule
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
-from z3 import BitVecVal, UGT
+from z3 import BitVecVal, UGT, Sum
 import logging
-
+from copy import copy
 
 DESCRIPTION = """
 
@@ -22,7 +22,56 @@ An issue is reported if:
 
 """
 
-ARBITRARY_SENDER_ADDRESS = 0xAAAAAAAABBBBBBBBBCCCCCCCDDDDDDDDEEEEEEEE
+
+def _analyze_state(state):
+    instruction = state.get_current_instruction()
+    node = state.node
+
+    if instruction["opcode"] != "CALL":
+        return []
+
+    call_value = state.mstate.stack[-3]
+    target = state.mstate.stack[-2]
+
+    eth_sent_total = BitVecVal(0, 256)
+
+    constraints = copy(node.constraints)
+
+    for tx in state.world_state.transaction_sequence:
+        if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
+
+            # There's sometimes no overflow check on balances added.
+            # But we don't care about attacks that require more 2^^256 ETH to be sent.
+
+            constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
+            eth_sent_total = Sum(eth_sent_total, tx.call_value)
+    constraints += [UGT(call_value, eth_sent_total), target == state.environment.sender]
+
+    try:
+
+        transaction_sequence = solver.get_transaction_sequence(state, constraints)
+
+        debug = str(transaction_sequence)
+
+        issue = Issue(
+            contract=node.contract_name,
+            function_name=node.function_name,
+            address=instruction["address"],
+            swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
+            title="Ether thief",
+            _type="Warning",
+            bytecode=state.environment.code.bytecode,
+            description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
+            + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
+            + " a vulnerability.",
+            debug=debug,
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+        )
+    except UnsatError:
+        logging.debug("[ETHER_THIEF] no model found")
+        return []
+
+    return [issue]
 
 
 class EtherThief(DetectionModule):
@@ -32,83 +81,17 @@ class EtherThief(DetectionModule):
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
             hooks=["CALL"],
             description=DESCRIPTION,
+            entrypoint="callback",
         )
+        self._issues = []
 
-    def execute(self, state_space):
-        logging.debug("Executing module: %s", self.name)
-        issues = []
+    def execute(self, state: GlobalState):
+        self._issues.extend(_analyze_state(state))
+        return self.issues
 
-        for k in state_space.nodes:
-            node = state_space.nodes[k]
-            for state in node.states:
-                issues += self._analyze_state(state, node)
-
-        return issues
-
-    @staticmethod
-    def _analyze_state(state, node):
-        issues = []
-        instruction = state.get_current_instruction()
-
-        if instruction["opcode"] != "CALL":
-            return []
-
-        call_value = state.mstate.stack[-3]
-        target = state.mstate.stack[-2]
-
-        not_creator_constraints, constrained = get_non_creator_constraints(state)
-        if constrained:
-            return []
-
-        eth_sent_total = BitVecVal(0, 256)
-
-        for tx in state.world_state.transaction_sequence[1:]:
-            eth_sent_total += tx.call_value
-
-        try:
-
-            model = solver.get_model(
-                node.constraints
-                + not_creator_constraints
-                + [
-                    UGT(call_value, eth_sent_total),
-                    state.environment.sender == ARBITRARY_SENDER_ADDRESS,
-                    target == state.environment.sender,
-                ]
-            )
-
-            transaction_sequence = solver.get_transaction_sequence(
-                state,
-                node.constraints
-                + not_creator_constraints
-                + [
-                    call_value > eth_sent_total,
-                    state.environment.sender == ARBITRARY_SENDER_ADDRESS,
-                    target == state.environment.sender,
-                ],
-            )
-
-            debug = "Transaction Sequence: " + str(transaction_sequence)
-
-            issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
-                address=instruction["address"],
-                swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-                title="Ether thief",
-                _type="Warning",
-                bytecode=state.environment.code.bytecode,
-                description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
-                + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
-                + " a vulnerability.",
-                debug=debug,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            )
-            issues.append(issue)
-        except UnsatError:
-            logging.debug("[ETHER_THIEF] no model found")
-
-        return issues
+    @property
+    def issues(self):
+        return self._issues
 
 
 detector = EtherThief()
