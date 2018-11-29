@@ -3,7 +3,7 @@ from typing import Dict
 from z3 import ExprRef, BitVecVal
 
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.calldata import Calldata, CalldataType
+from mythril.laser.ethereum.state.calldata import CalldataType, BaseCalldata
 
 
 class Environment:
@@ -15,7 +15,7 @@ class Environment:
         self,
         active_account: Account,
         sender: ExprRef,
-        calldata: Calldata,
+        calldata: BaseCalldata,
         gasprice: ExprRef,
         callvalue: ExprRef,
         origin: ExprRef,
