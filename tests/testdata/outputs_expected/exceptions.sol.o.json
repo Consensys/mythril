@@ -7,9 +7,9 @@
       "debug": "<DEBUG-DATA>",
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.",
       "function": "assert3(uint256)",
-      "swc-id": "110",
-      "min_gas_used": 206,
       "max_gas_used": 301,
+      "min_gas_used": 206,
+      "swc-id": "110",
       "title": "Exception state",
       "type": "Informational"
     },
@@ -19,9 +19,9 @@
       "debug": "<DEBUG-DATA>",
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.",
       "function": "arrayaccess(uint256)",
-      "swc-id": "110",
-      "min_gas_used": 256,
       "max_gas_used": 351,
+      "min_gas_used": 256,
+      "swc-id": "110",
       "title": "Exception state",
       "type": "Informational"
     },
@@ -31,9 +31,9 @@
       "debug": "<DEBUG-DATA>",
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.",
       "function": "divisionby0(uint256)",
-      "swc-id": "110",
-      "min_gas_used": 272,
       "max_gas_used": 367,
+      "min_gas_used": 272,
+      "swc-id": "110",
       "title": "Exception state",
       "type": "Informational"
     },
@@ -43,9 +43,9 @@
       "debug": "<DEBUG-DATA>",
       "description": "A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.",
       "function": "assert1()",
-      "swc-id": "110",
-      "min_gas_used": 268,
       "max_gas_used": 363,
+      "min_gas_used": 268,
+      "swc-id": "110",
       "title": "Exception state",
       "type": "Informational"
     }

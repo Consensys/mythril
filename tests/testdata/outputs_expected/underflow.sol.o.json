@@ -7,9 +7,9 @@
       "debug": "<DEBUG-DATA>",
       "description": "The subtraction can result in an integer underflow.\n",
       "function": "sendeth(address,uint256)",
-      "swc-id": "101",
-      "min_gas_used": 750,
       "max_gas_used": 1035,
+      "min_gas_used": 750,
+      "swc-id": "101",
       "title": "Integer Underflow",
       "type": "Warning"
     },
@@ -19,22 +19,10 @@
       "debug": "<DEBUG-DATA>",
       "description": "The subtraction can result in an integer underflow.\n",
       "function": "sendeth(address,uint256)",
-      "swc-id": "101",
-      "min_gas_used": 1283,
       "max_gas_used": 1758,
-      "title": "Integer Underflow",
-      "type": "Warning"
-    },
-    {
-      "address": 725,
-      "contract": "Unknown",
-      "debug": "<DEBUG-DATA>",
-      "description": "This binary add operation can result in integer overflow.\n",
-      "function": "sendeth(address,uint256)",
+      "min_gas_used": 1283,
       "swc-id": "101",
-      "min_gas_used": 6806,
-      "max_gas_used": 27471,
-      "title": "Integer Overflow",
+      "title": "Integer Underflow",
       "type": "Warning"
     }
   ],

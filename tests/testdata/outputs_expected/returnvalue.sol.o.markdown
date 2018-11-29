@@ -1,6 +1,6 @@
 # Analysis results for test-filename.sol
 
-## Message call to external contract
+## External call
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
@@ -10,9 +10,9 @@
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.
 
-## Message call to external contract
+## External call
 - SWC ID: 107
 - Type: Informational
 - Contract: Unknown
@@ -22,7 +22,7 @@ This contract executes a message call to to another contract. Make sure that the
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.
 
 ## Unchecked CALL return value
 - SWC ID: 104
