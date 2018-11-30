@@ -131,7 +131,7 @@ class Instruction:
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
         # Generalize some ops
-        # logging.debug("Evaluating {}".format(self.op_code))
+        logging.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -769,6 +769,14 @@ class Instruction:
         # FIXME: not implemented
         state = global_state.mstate
         addr = state.stack.pop()
+        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+        return [global_state]
+
+    @StateTransition()
+    def returndatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        # FIXME: not implemented
+        state = global_state.mstate
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
 
         return [global_state]
