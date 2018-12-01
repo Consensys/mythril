@@ -29,12 +29,12 @@
             "address": 1038,
             "contract": "Unknown",
             "debug": "<DEBUG-DATA>",
-            "description": "This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.",
+            "description": "The contract executes a function call with high gas to a user-supplied address. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent unanticipated effects on the contract state.",
             "function": "_function_0xeea4c864",
             "max_gas_used": 1223,
             "min_gas_used": 471,
             "swc-id": "107",
-            "title": "Message call to external contract",
+            "title": "External call to user-supplied address",
             "type": "Warning"
         },
         {

@@ -42,7 +42,7 @@ from mythril.laser.ethereum.evm_exceptions import (
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
+from mythril.laser.ethereum.state.calldata import CalldataType
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -458,10 +458,9 @@ class Instruction:
         environment = global_state.environment
         op0 = state.stack.pop()
 
-        value, constraints = environment.calldata.get_word_at(op0)
+        value = environment.calldata.get_word_at(op0)
 
         state.stack.append(value)
-        state.constraints.extend(constraints)
 
         return [global_state]
 
@@ -541,9 +540,8 @@ class Instruction:
                 i_data = dstart
                 new_memory = []
                 for i in range(size):
-                    value, constraints = environment.calldata[i_data]
+                    value = environment.calldata[i_data]
                     new_memory.append(value)
-                    state.constraints.extend(constraints)
 
                     i_data = (
                         i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
@@ -771,6 +769,14 @@ class Instruction:
         # FIXME: not implemented
         state = global_state.mstate
         addr = state.stack.pop()
+        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+        return [global_state]
+
+    @StateTransition()
+    def returndatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        # FIXME: not implemented
+        state = global_state.mstate
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
 
         return [global_state]

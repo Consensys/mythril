@@ -3,7 +3,11 @@ from typing import Union
 from z3 import simplify, ExprRef, Extract
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.calldata import CalldataType, Calldata
+from mythril.laser.ethereum.state.calldata import (
+    CalldataType,
+    SymbolicCalldata,
+    ConcreteCalldata,
+)
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.support.loader import DynLoader
 import re
@@ -162,12 +166,12 @@ def get_call_data(
         ]
         i = 0
 
-        call_data = Calldata(transaction_id, calldata_from_mem)
+        call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
         logging.debug("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
-        call_data = Calldata("{}_internalcall".format(transaction_id))
+        call_data = SymbolicCalldata("{}_internalcall".format(transaction_id))
 
     return call_data, call_data_type

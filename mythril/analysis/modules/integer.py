@@ -167,21 +167,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             constraints = copy.deepcopy(node.constraints)
 
-            # Filter for patterns that indicate benign underflows
-
-            # Pattern 1: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would underflow if calldatasize is very large.
-            # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
             if type(op0) == int and type(op1) == int:
-                return []
-            if re.search(r"calldatasize_", str(op0)):
-                return []
-            if re.search(r"256\*.*If\(1", str(op0), re.DOTALL) or re.search(
-                r"256\*.*If\(1", str(op1), re.DOTALL
-            ):
-                return []
-            if re.search(r"32 \+.*calldata", str(op0), re.DOTALL) or re.search(
-                r"32 \+.*calldata", str(op1), re.DOTALL
-            ):
                 return []
 
             logging.debug(
@@ -189,11 +175,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     str(op0), str(op1), str(instruction["address"])
                 )
             )
+
             allowed_types = [int, BitVecRef, BitVecNumRef]
 
             if type(op0) in allowed_types and type(op1) in allowed_types:
-                constraints.append(UGT(op1, op0))
-
+                constraints.append(Not(BVSubNoUnderflow(op0, op1, signed=False)))
                 try:
 
                     model = solver.get_model(constraints)
