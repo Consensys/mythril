@@ -73,7 +73,7 @@ class WorldState:
         new_account.storage = storage
         self._put_account(new_account)
 
-    def annotate(self, annotation: StateAnnotation):
+    def annotate(self, annotation: StateAnnotation) -> None:
         self._annotations.append(annotation)
 
     @property
