@@ -87,5 +87,5 @@ class GlobalState:
             self.world_state.annotate(annotation)
 
     @property
-    def annotations(self):
+    def annotations(self) -> List[StateAnnotation]:
         return self._annotations
