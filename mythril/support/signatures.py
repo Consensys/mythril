@@ -129,7 +129,7 @@ class SignatureDB(object):
         if (
             not self.enable_online_lookup
             or byte_sig in self.online_lookup_miss
-            or time.time() < self.online_lookup_timeout,
+            or time.time() < self.online_lookup_timeout
         ):
             return []
 

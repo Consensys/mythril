@@ -26,7 +26,7 @@ class CommandLineToolTestCase(BaseTestCase):
 class TruffleTestCase(BaseTestCase):
     def test_analysis_truffle_project(self):
         truffle_project_root = str(TESTS_DIR / "truffle_project")
-        command = "cd {}; truffle compile; python3 {} --truffle -t 1".format(
+        command = "cd {}; truffle compile; python3 {} --truffle -t 2".format(
             truffle_project_root, MYTH
         )
         self.assertIn("=== Ether thief ====", output_of(command))
