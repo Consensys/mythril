@@ -10,7 +10,7 @@ class WorldState:
     The WorldState class represents the world state as described in the yellow paper
     """
 
-    def __init__(self, transaction_sequence=None, annotations=None):
+    def __init__(self, transaction_sequence=None, annotations: List[StateAnnotation] = None) -> None:
         """
         Constructor for the world state. Initializes the accounts record
         """
