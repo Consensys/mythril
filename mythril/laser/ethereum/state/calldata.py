@@ -108,18 +108,17 @@ class SymbolicCalldata(BaseCalldata):
         :param tx_id: Id of the transaction that the calldata is for.
         """
         self._reads = []
-        self._size = BitVec("calldatasize", 256)
+        self._size = BitVec(str(tx_id) + "_calldatasize", 256)
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, ExprRef], clean=False) -> Any:
         x = BitVecVal(item, 256) if isinstance(item, int) else item
 
         symbolic_base_value = If(
-            x > self._size,
+            x >= self._size,
             BitVecVal(0, 8),
             BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8),
         )
-
         return_value = symbolic_base_value
         for r_index, r_value in self._reads:
             return_value = If(r_index == item, r_value, return_value)
