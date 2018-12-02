@@ -77,7 +77,7 @@ class WorldState:
         self._annotations.append(annotation)
 
     @property
-    def annotations(self):
+    def annotations(self) -> List[StateAnnotation]:
         return self._annotations
 
     def _generate_new_address(self) -> str:
