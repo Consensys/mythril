@@ -78,9 +78,11 @@ def solc_exists(version):
             os.environ.get("HOME", str(Path.home())),
             ".py-solc/solc-v" + version,
             "bin/solc",
-        ),  # py-solc setup
-        "/usr/bin/solc",  # Ubuntu PPA setup
+        )  # py-solc setup
     ]
+    if version.startswith("0.5"):
+        # Temporary fix to support v0.5.x with Ubuntu PPA setup
+        solc_binaries.append("/usr/bin/solc")
     for solc_path in solc_binaries:
         if os.path.exists(solc_path):
             return solc_path
