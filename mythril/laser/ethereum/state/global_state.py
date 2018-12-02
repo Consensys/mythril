@@ -80,7 +80,7 @@ class GlobalState:
         transaction_id = self.current_transaction.id
         return BitVec("{}_{}".format(transaction_id, name), size)
 
-    def annotate(self, annotation: StateAnnotation):
+    def annotate(self, annotation: StateAnnotation) -> None:
         self._annotations.append(annotation)
 
         if annotation.persist_to_world_state:
