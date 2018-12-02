@@ -8,7 +8,7 @@ import logging
 
 def get_model(constraints, minimize=(), maximize=()):
     s = Optimize()
-    s.set("timeout", 100000)
+    s.set("timeout", 1000000)
 
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
