@@ -46,8 +46,6 @@ class BaseCalldata:
     def get_word_at(self, offset: int) -> ExprRef:
         """ Gets word at offset"""
         parts = self[offset : offset + 32]
-        if not all([is_bv(a) for a in parts]):
-            print("break")
         return simplify(Concat(parts))
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
