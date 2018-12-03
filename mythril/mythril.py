@@ -36,6 +36,7 @@ from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 log = logging.getLogger(__name__)
 
+
 class Mythril(object):
     """
     Mythril main interface class.

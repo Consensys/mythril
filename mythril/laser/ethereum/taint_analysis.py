@@ -10,6 +10,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 
 log = logging.getLogger(__name__)
 
+
 class TaintRecord:
     """
     TaintRecord contains tainting information for a specific (state, node)

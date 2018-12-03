@@ -865,9 +865,7 @@ class Instruction:
         try:
             state.mem_extend(mstart, 32)
         except Exception:
-            log.debug(
-                "Error extending memory, mstart = " + str(mstart) + ", size = 32"
-            )
+            log.debug("Error extending memory, mstart = " + str(mstart) + ", size = 32")
 
         log.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
 

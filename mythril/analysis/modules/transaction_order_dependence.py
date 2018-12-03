@@ -12,6 +12,7 @@ from mythril.exceptions import UnsatError
 
 log = logging.getLogger(__name__)
 
+
 class TxOrderDependenceModule(DetectionModule):
     def __init__(self):
         super().__init__(

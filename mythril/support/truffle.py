@@ -16,6 +16,7 @@ from mythril.laser.ethereum.util import get_instruction_index
 
 log = logging.getLogger(__name__)
 
+
 def analyze_truffle_project(sigs, args):
 
     project_root = os.getcwd()

@@ -78,9 +78,7 @@ class LaserEVM:
         self.pre_hooks = defaultdict(list)
         self.post_hooks = defaultdict(list)
 
-        log.info(
-            "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
-        )
+        log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
         if hook_type == "pre":
@@ -224,9 +222,7 @@ class LaserEVM:
                 # In this case we don't put an unmodified world state in the open_states list Since in the case of an
                 #  exceptional halt all changes should be discarded, and this world state would not provide us with a
                 #  previously unseen world state
-                log.debug(
-                    "Encountered a VmException, ending path: `{}`".format(str(e))
-                )
+                log.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction

@@ -8,6 +8,7 @@ import re
 
 log = logging.getLogger(__name__)
 
+
 class UncheckedRetvalModule(DetectionModule):
     def __init__(self):
         super().__init__(

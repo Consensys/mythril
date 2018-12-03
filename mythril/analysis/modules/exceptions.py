@@ -8,6 +8,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class ReachableExceptionsModule(DetectionModule):
     def __init__(self):
         super().__init__(

@@ -191,7 +191,9 @@ def main():
     options.add_argument(
         "--enable-physics", action="store_true", help="enable graph physics simulation"
     )
-    options.add_argument("-v", type=int, help="log level (0-2)", metavar="LOG_LEVEL", default=0)
+    options.add_argument(
+        "-v", type=int, help="log level (0-2)", metavar="LOG_LEVEL", default=0
+    )
     options.add_argument(
         "-q",
         "--query-signature",
@@ -247,18 +249,20 @@ def main():
 
     if args.v:
         if 0 <= args.v < 3:
-            '''
+            """
             logging.basicConfig(
                 format="%(name)s[%(process)d] %(levelname)s %(message)s",
                 level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v],
             )
-            '''
+            """
             coloredlogs.install(
-                #fmt="%(filename)s[%(process)d] %(levelname)s %(message)s",
+                # fmt="%(filename)s[%(process)d] %(levelname)s %(message)s",
                 fmt="%(name)s[%(process)d] %(levelname)s %(message)s",
                 level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v],
             )
-            logging.getLogger("mythril").setLevel([logging.NOTSET, logging.INFO, logging.DEBUG][args.v])
+            logging.getLogger("mythril").setLevel(
+                [logging.NOTSET, logging.INFO, logging.DEBUG][args.v]
+            )
         else:
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"

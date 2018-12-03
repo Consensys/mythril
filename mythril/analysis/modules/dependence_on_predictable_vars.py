@@ -33,9 +33,7 @@ class PredictableDependenceModule(DetectionModule):
         for call in statespace.calls:
 
             if "callvalue" in str(call.value):
-                log.debug(
-                    "[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function"
-                )
+                log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function")
                 continue
 
             # We're only interested in calls that send Ether

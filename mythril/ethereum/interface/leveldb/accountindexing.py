@@ -78,9 +78,7 @@ class AccountIndexer(object):
         """
         Processesing method
         """
-        log.debug(
-            "Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE)
-        )
+        log.debug("Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE))
 
         addresses = []
 
