@@ -4,6 +4,9 @@ from mythril.analysis.modules.base import DetectionModule
 import logging
 
 
+log = logging.getLogger(__name__)
+
+
 """
 MODULE DESCRIPTION:
 
@@ -25,7 +28,7 @@ class DeprecatedOperationsModule(DetectionModule):
 
     def execute(self, statespace):
 
-        logging.debug("Executing module: DEPRECATED OPCODES")
+        log.debug("Executing module: DEPRECATED OPCODES")
 
         issues = []
 

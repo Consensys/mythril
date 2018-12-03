@@ -13,6 +13,8 @@ from mythril.ethereum.interface.leveldb.eth_db import ETH_DB
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.exceptions import AddressNotFoundError
 
+log = logging.getLogger(__name__)
+
 # Per https://github.com/ethereum/go-ethereum/blob/master/core/rawdb/schema.go
 # prefixes and suffixes for keys in geth
 header_prefix = b"h"  # header_prefix + num (uint64 big endian) + hash -> header
@@ -213,7 +215,7 @@ class EthLevelDB(object):
             cnt += 1
 
             if not cnt % 1000:
-                logging.info("Searched %d contracts" % cnt)
+                log.info("Searched %d contracts" % cnt)
 
     def contract_hash_to_address(self, contract_hash):
         """Tries to find corresponding account address"""

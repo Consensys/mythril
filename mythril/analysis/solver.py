@@ -5,6 +5,8 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 import logging
 
+log = logging.getLogger(__name__)
+
 
 def get_model(constraints, minimize=(), maximize=()):
     s = Optimize()
@@ -27,7 +29,7 @@ def get_model(constraints, minimize=(), maximize=()):
     if result == sat:
         return s.model()
     elif result == unknown:
-        logging.debug("Timeout encountered while solving expression using z3")
+        log.debug("Timeout encountered while solving expression using z3")
     raise UnsatError
 
 

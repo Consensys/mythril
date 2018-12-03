@@ -1,7 +1,6 @@
 from mythril.ethereum import util
 from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDB
-import logging
 
 
 class Disassembly(object):

@@ -1,6 +1,5 @@
 import re
 from z3 import *
-import logging
 from typing import Union, List, Dict
 
 import sha3 as _sha3

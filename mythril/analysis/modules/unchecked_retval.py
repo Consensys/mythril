@@ -6,6 +6,7 @@ from mythril.laser.ethereum.svm import NodeFlags
 import logging
 import re
 
+log = logging.getLogger(__name__)
 
 class UncheckedRetvalModule(DetectionModule):
     def __init__(self):
@@ -26,7 +27,7 @@ class UncheckedRetvalModule(DetectionModule):
 
     def execute(self, statespace):
 
-        logging.debug("Executing module: UNCHECKED_RETVAL")
+        log.debug("Executing module: UNCHECKED_RETVAL")
 
         issues = []
 

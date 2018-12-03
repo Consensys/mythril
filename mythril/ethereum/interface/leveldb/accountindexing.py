@@ -8,6 +8,8 @@ from ethereum import utils
 from ethereum.utils import hash32, address, int256
 from mythril.exceptions import AddressNotFoundError
 
+log = logging.getLogger(__name__)
+
 BATCH_SIZE = 8 * 4096
 
 
@@ -76,7 +78,7 @@ class AccountIndexer(object):
         """
         Processesing method
         """
-        logging.debug(
+        log.debug(
             "Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE)
         )
 

@@ -2,6 +2,7 @@ from mythril.disassembler.disassembly import Disassembly
 import logging
 import re
 
+log = logging.getLogger(__name__)
 
 class DynLoader:
     def __init__(self, eth, contract_loading=True, storage_loading=True):
@@ -46,7 +47,7 @@ class DynLoader:
         if not self.contract_loading:
             raise ValueError("Cannot load contract when contract_loading flag is false")
 
-        logging.debug(
+        log.debug(
             "Dynld at contract " + contract_address + ": " + dependency_address
         )
 
@@ -58,7 +59,7 @@ class DynLoader:
         else:
             return None
 
-        logging.debug("Dependency address: " + dependency_address)
+        log.debug("Dependency address: " + dependency_address)
 
         code = self.eth.eth_getCode(dependency_address)
 

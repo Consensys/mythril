@@ -12,6 +12,8 @@ from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
 
+log = logging.getLogger(__name__)
+
 try:
     # load if available but do not fail
     import ethereum_input_decoder
@@ -56,7 +58,7 @@ class SignatureDB(object):
             )
         self.path = os.path.join(self.path, "signatures.db")
 
-        logging.info("Using signature database at %s", self.path)
+        log.info("Using signature database at %s", self.path)
         # NOTE: Creates a new DB file if it doesn't exist already
         with SQLiteDB(self.path) as cur:
             cur.execute(
@@ -145,7 +147,7 @@ class SignatureDB(object):
         except FourByteDirectoryOnlineLookupError as fbdole:
             # wait at least 2 mins to try again
             self.online_lookup_timeout = time.time() + 2 * 60
-            logging.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
+            log.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
             return []
 
     def import_solidity_file(
@@ -186,7 +188,7 @@ class SignatureDB(object):
             if all(map(lambda x: x in line, ["(", ")", ":"])):
                 sigs["0x" + line.split(":")[0]] = [line.split(":")[1].strip()]
 
-        logging.debug("Signatures: found %d signatures after parsing" % len(sigs))
+        log.debug("Signatures: found %d signatures after parsing" % len(sigs))
 
         # update DB with what we've found
         for byte_sig, text_sigs in sigs.items():

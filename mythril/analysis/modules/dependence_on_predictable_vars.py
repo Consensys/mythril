@@ -8,6 +8,8 @@ from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
 import logging
 
+log = logging.getLogger(__name__)
+
 
 class PredictableDependenceModule(DetectionModule):
     def __init__(self):
@@ -24,14 +26,14 @@ class PredictableDependenceModule(DetectionModule):
 
     def execute(self, statespace):
 
-        logging.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
+        log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
 
         issues = []
 
         for call in statespace.calls:
 
             if "callvalue" in str(call.value):
-                logging.debug(
+                log.debug(
                     "[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function"
                 )
                 continue
@@ -171,16 +173,16 @@ class PredictableDependenceModule(DetectionModule):
     def solve(self, call):
         try:
             model = solver.get_model(call.node.constraints)
-            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
+            log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
             pretty_model = solver.pretty_print_model(model)
 
-            logging.debug(
+            log.debug(
                 "[DEPENDENCE_ON_PREDICTABLE_VARS] main model: \n%s" % pretty_model
             )
             return True
 
         except UnsatError:
-            logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] no model found")
+            log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] no model found")
             return False
 
 

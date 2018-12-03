@@ -8,6 +8,7 @@ from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.symbolic import SymExecWrapper
 
+log = logging.getLogger(__name__)
 
 class TaintRecord:
     """
@@ -204,7 +205,7 @@ class TaintRunner:
         elif op in ("CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"):
             TaintRunner.mutate_call(new_record, op)
         else:
-            logging.debug("Unknown operation encountered: {}".format(op))
+            log.debug("Unknown operation encountered: {}".format(op))
 
         return new_record
 
@@ -244,7 +245,7 @@ class TaintRunner:
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
@@ -256,7 +257,7 @@ class TaintRunner:
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.memory[index] = value_taint
@@ -267,7 +268,7 @@ class TaintRunner:
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
@@ -279,7 +280,7 @@ class TaintRunner:
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.storage[index] = value_taint
