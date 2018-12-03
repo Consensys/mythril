@@ -1,5 +1,6 @@
 from copy import copy
 from random import randint
+from typing import List
 
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
@@ -10,7 +11,9 @@ class WorldState:
     The WorldState class represents the world state as described in the yellow paper
     """
 
-    def __init__(self, transaction_sequence=None, annotations: List[StateAnnotation] = None) -> None:
+    def __init__(
+        self, transaction_sequence=None, annotations: List[StateAnnotation] = None
+    ) -> None:
         """
         Constructor for the world state. Initializes the accounts record
         """
