@@ -76,6 +76,8 @@ def test_vmtest(
     # Arrange
     if test_name == "gasprice":
         return
+    if "calldatacopy0_return" not in test_name:
+        return
     accounts = {}
     for address, details in pre_condition.items():
         account = Account(address)
