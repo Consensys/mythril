@@ -6,6 +6,8 @@ import os
 import time
 import logging
 import sqlite3
+import threading
+import functools
 from typing import List
 from collections import defaultdict
 
@@ -13,9 +15,27 @@ from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
 
+lock = threading.Lock()
+
+
+def synchronized(sync_lock):
+    """ Synchronization decorator """
+
+    def wrapper(f):
+        @functools.wraps(f)
+        def inner_wrapper(*args, **kw):
+            with sync_lock:
+                return f(*args, **kw)
+
+        return inner_wrapper
+
+    return wrapper
+
+
 class Singleton(type):
     _instances = {}
 
+    @synchronized(lock)
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
@@ -207,7 +227,9 @@ class SignatureDB(object, metaclass=Singleton):
                 solc_text = line.split(":")[1].strip()
                 self.solidity_sigs[solc_bytes].append(solc_text)
 
-        logging.debug("Signatures: found %d signatures after parsing" % len(self.solidity_sigs))
+        logging.debug(
+            "Signatures: found %d signatures after parsing" % len(self.solidity_sigs)
+        )
 
         # update DB with what we've found
         for byte_sig, text_sigs in self.solidity_sigs.items():
