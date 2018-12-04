@@ -122,12 +122,12 @@ class Mythril(object):
             logging.info("Creating mythril data directory")
             os.mkdir(mythril_dir)
 
-        db_path = Path(mythril_dir) / "signatures.db"
+        db_path = str(Path(mythril_dir) / "signatures.db")
         if not os.path.exists(db_path):
             # if the default mythril dir doesn't contain a signature DB
             # initialize it with the default one from the project root
             parent_dir = Path(__file__).parent.parent
-            copyfile(parent_dir / "signatures.db", db_path)
+            copyfile(str(parent_dir / "signatures.db"), db_path)
 
         return mythril_dir
 
