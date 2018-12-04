@@ -76,7 +76,7 @@ def get_transaction_sequence(global_state, constraints):
     minimize = []
 
     transactions = []
-
+    model = None
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
@@ -92,10 +92,16 @@ def get_transaction_sequence(global_state, constraints):
 
             concrete_transactions[tx_id] = tx_template.copy()
 
+            try:
+                model = get_model(tx_constraints, minimize=minimize)
+                break
+            except UnsatError:
+                continue
         else:
             creation_tx_ids.append(tx_id)
 
-    model = get_model(tx_constraints, minimize=minimize)
+    if model is None:
+        model = get_model(tx_constraints, minimize=minimize)
 
     for transaction in transactions:
         tx_id = str(transaction.id)
