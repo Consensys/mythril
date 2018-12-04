@@ -12,7 +12,7 @@ import sys
 import argparse
 
 # logging.basicConfig(level=logging.DEBUG)
-
+from mythril.disassembler.disassembly import Disassembly
 from mythril.exceptions import CriticalError, AddressNotFoundError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
@@ -322,11 +322,12 @@ def main():
 
         # Load / compile input contracts
         address = None
+        bytecode = None
 
         if args.code:
             # Load from bytecode
-            code = args.code[2:] if args.code.startswith("0x") else args.code
-            address, _ = mythril.load_from_bytecode(code, args.bin_runtime)
+            bytecode = args.code[2:] if args.code.startswith("0x") else args.code
+            address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
             bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
@@ -367,7 +368,18 @@ def main():
             easm_text = mythril.contracts[
                 0
             ].get_easm()  # or mythril.disassemble(mythril.contracts[0])
-            sys.stdout.write(easm_text)
+
+            output = ""
+            if easm_text:
+                output += "Runtime Disassembly:\n"
+                output += easm_text
+
+            if bytecode:
+                easm_text_2 = Disassembly(bytecode).get_easm()
+                output += "Disassembly:\n"
+                output += easm_text_2
+
+            sys.stdout.write(output)
 
         elif args.graph or args.fire_lasers:
             if not mythril.contracts:
