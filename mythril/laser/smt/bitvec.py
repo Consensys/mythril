@@ -24,19 +24,19 @@ class BitVec(Expression):
         return BitVec(self.raw / other.raw, annotations=union)
 
 
-def UREM(a: BitVec, b: BitVec) -> BitVec:
+def URem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
     return BitVec(z3.URem(a.raw, b.raw), annotations=union)
 
 
-def SREM(a: BitVec, b: BitVec) -> BitVec:
+def SRem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
     return BitVec(z3.SRem(a.raw, b.raw), annotations=union)
 
 
-def UDIV(a: BitVec, b: BitVec) -> BitVec:
+def UDiv(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
-    return BitVec(z3.UDIV(a.raw, b.raw), annotations=union)
+    return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
 
 
 def BitVecVal(value, size, annotations=None):
