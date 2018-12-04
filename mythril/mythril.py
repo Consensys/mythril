@@ -17,6 +17,7 @@ from solc.exceptions import SolcError
 import solc
 from configparser import ConfigParser
 import platform
+from shutil import copyfile
 
 from mythril.ethereum import util
 from mythril.ethereum.evmcontract import EVMContract
@@ -116,11 +117,18 @@ class Mythril(object):
         except KeyError:
             mythril_dir = os.path.join(os.path.expanduser("~"), ".mythril")
 
-            # Initialize data directory and signature database
-
         if not os.path.exists(mythril_dir):
+            # Initialize data directory
             logging.info("Creating mythril data directory")
             os.mkdir(mythril_dir)
+
+        db_path = Path(mythril_dir) / "signatures.db"
+        if not os.path.exists(db_path):
+            # if the default mythril dir doesn't contain a signature DB
+            # initialize it with the default one from the project root
+            parent_dir = Path(__file__).parent.parent
+            copyfile(parent_dir / "signatures.db", db_path)
+
         return mythril_dir
 
     def _init_config(self):
