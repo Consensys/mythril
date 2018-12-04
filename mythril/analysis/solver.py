@@ -90,7 +90,7 @@ def get_transaction_sequence(global_state, constraints):
 
             minimize.append(transaction.call_data.calldatasize)
             minimize.append(transaction.call_value)
-            
+
             concrete_transactions[tx_id] = tx_template.copy()
 
         else:
