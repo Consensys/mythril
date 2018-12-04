@@ -23,6 +23,30 @@ class BitVec(Expression):
         union = self.annotations + other.annotations
         return BitVec(self.raw / other.raw, annotations=union)
 
+    def __and__(self, other: "BV") -> "BV":
+        union = self.annotations + other.annotations
+        return BitVec(self.raw & other.raw, annotations=union)
+
+    def __or__(self, other: "BV") -> "BV":
+        union = self.annotations + other.annotations
+        return BitVec(self.raw | other.raw, annotations=union)
+
+    def __xor__(self, other: "BV") -> "BV":
+        union = self.annotations + other.annotations
+        return BitVec(self.raw ^ other.raw, annotations=union)
+
+
+def Concat(*args):
+    nraw = z3.Concat([a.raw for a in args])
+    annotations = []
+    for bv in args:
+        annotations += bv.annotations
+    BitVec(nraw, annotations)
+
+
+def Extract(high, low, bv: BitVec):
+    BitVec(z3.Extract(high, low, bv.raw), annotations=bv.annotations)
+
 
 def URem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
@@ -32,6 +56,11 @@ def URem(a: BitVec, b: BitVec) -> BitVec:
 def SRem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
     return BitVec(z3.SRem(a.raw, b.raw), annotations=union)
+
+
+def UDiv(a: BitVec, b: BitVec) -> BitVec:
+    union = a.annotations + b.annotations
+    return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
 
 
 def UDiv(a: BitVec, b: BitVec) -> BitVec:
