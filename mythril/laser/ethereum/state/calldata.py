@@ -107,7 +107,7 @@ class ConcreteCalldata(BaseCalldata):
         return self._calldata[item]
 
     def concrete(self, model: Model) -> list:
-        return self._calldata
+        return self._concrete_calldata
 
     @property
     def size(self) -> int:
