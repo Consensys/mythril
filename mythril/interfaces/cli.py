@@ -364,9 +364,11 @@ def main():
             print(storage)
 
         elif args.disassemble:
-            easm_text = mythril.contracts[
-                0
-            ].get_easm()  # or mythril.disassemble(mythril.contracts[0])
+            if args.code:
+                easm_text = "Disassembly: \n" + mythril.contracts[0].get_creation_easm()
+            else:
+                easm_text = "Runtime Disassembly: \n" + mythril.contracts[0].get_easm()
+                # or mythril.disassemble(mythril.contracts[0])
             sys.stdout.write(easm_text)
 
         elif args.graph or args.fire_lasers:
