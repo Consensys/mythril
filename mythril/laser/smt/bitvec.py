@@ -100,30 +100,3 @@ def BitVecVal(value, size, annotations=None):
 def BitVecSym(name, size, annotations=None):
     raw = z3.BitVec(name, size)
     return BitVec(raw, annotations)
-
-
-class OverflowAnnotation:
-    def __init__(self, location):
-        self.location = location
-
-    @staticmethod
-    def it_overflows(expression, location):
-        a = OverflowAnnotation(location)
-        expression.annotate(a)
-
-    @staticmethod
-    def does_overflow(expression):
-        locs = []
-        for annotation in expression.annotations:
-            if isinstance(annotation, OverflowAnnotation):
-                locs.append(annotation.location)
-        return len(locs) > 0
-
-
-x = BitVecSym("x", 256)
-
-OverflowAnnotation.it_overflows(x, 10)
-
-y = x + BitVecVal(2, 256)
-
-print(OverflowAnnotation.does_overflow(y))
