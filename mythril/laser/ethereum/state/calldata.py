@@ -158,7 +158,7 @@ class SymbolicCalldata(BaseCalldata):
 
     def _load(self, item: Union[int, ExprRef]) -> Any:
         item = BitVecVal(item, 256) if isinstance(item, int) else item
-        return If(item < self._size, simplify(self._calldata[item]), 0)
+        return simplify(If(item < self._size, simplify(self._calldata[item]), 0))
 
     def concrete(self, model: Model) -> list:
         concrete_length = get_concrete_int(model.eval(self.size, model_completion=True))
@@ -168,7 +168,7 @@ class SymbolicCalldata(BaseCalldata):
             c_value = get_concrete_int(model.eval(value, model_completion=True))
             result.append(c_value)
 
-        return simplify(result)
+        return result
 
     @property
     def size(self) -> ExprRef:
