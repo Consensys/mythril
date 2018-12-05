@@ -76,26 +76,32 @@ def get_transaction_sequence(global_state, constraints):
     minimize = []
 
     transactions = []
-
+    model = None
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
             transactions.append(transaction)
             # Constrain calldatasize
             max_calldatasize = 5000
-            if max_calldatasize != None:
-                tx_constraints.append(
-                    UGE(max_calldatasize, transaction.call_data.calldatasize)
-                )
+            tx_constraints.append(
+                UGE(max_calldatasize, transaction.call_data.calldatasize)
+            )
 
             minimize.append(transaction.call_data.calldatasize)
+            minimize.append(transaction.call_value)
 
             concrete_transactions[tx_id] = tx_template.copy()
 
+            try:
+                model = get_model(tx_constraints, minimize=minimize)
+                break
+            except UnsatError:
+                continue
         else:
             creation_tx_ids.append(tx_id)
 
-    model = get_model(tx_constraints, minimize=minimize)
+    if model is None:
+        model = get_model(tx_constraints, minimize=minimize)
 
     for transaction in transactions:
         tx_id = str(transaction.id)
