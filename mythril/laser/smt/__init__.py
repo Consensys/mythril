@@ -38,6 +38,7 @@ class _SmtSymbolFactory(SymbolFactory):
     An implementation of a SymbolFactory that creates symbols using
     the classes in: mythril.laser.smt
     """
+
     @staticmethod
     def BitVecVal(value: int, size: int, annotations=None):
         """ Creates a new bit vector with a concrete value """
@@ -56,6 +57,7 @@ class _Z3SymbolFactory(SymbolFactory):
     An implementation of a SymbolFactory that directly returns
     z3 symbols
     """
+
     @staticmethod
     def BitVecVal(value: int, size: int, annotations=None):
         """ Creates a new bit vector with a concrete value """
@@ -69,4 +71,3 @@ class _Z3SymbolFactory(SymbolFactory):
 
 # This is the instance that other parts of mythril should use
 symbol_factory = _Z3SymbolFactory()
-

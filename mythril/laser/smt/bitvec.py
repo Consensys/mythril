@@ -108,4 +108,3 @@ def SRem(a: BitVec, b: BitVec) -> BitVec:
 def UDiv(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
     return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
-
