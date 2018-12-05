@@ -1,3 +1,6 @@
+import z3
+
+
 class Expression:
     def __init__(self, raw, annotations=None):
         self.raw = raw
@@ -12,3 +15,12 @@ class Expression:
             self._annotations += annotation
         else:
             self._annotations.append(annotation)
+
+    def simplify(self):
+        """ Simplifies this expression """
+        self.raw = z3.simplify(self.raw)
+
+
+def simplify(expression: Expression):
+    """ Simplifies the expression """
+    expression.simplify()

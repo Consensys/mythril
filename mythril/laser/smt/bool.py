@@ -6,4 +6,12 @@ from mythril.laser.smt.expression import Expression
 
 
 class Bool(Expression):
-    pass
+
+    @property
+    def is_false(self):
+        return z3.is_false(self.raw)
+
+    @property
+    def is_true(self):
+        return z3.is_true(self.raw)
+

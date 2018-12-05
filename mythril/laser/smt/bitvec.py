@@ -7,8 +7,25 @@ from mythril.laser.smt.bool import Bool
 
 
 class BitVec(Expression):
+    """
+    Bit vector symbol
+    """
     def __init__(self, raw, annotations=None):
         super().__init__(raw, annotations)
+
+    @property
+    def symbolic(self):
+        """ Returns whether this symbol doesn't have a concrete value """
+        self.simplify()
+        return not isinstance(self.raw, z3.BitVecNumRef)
+
+    @property
+    def value(self):
+        """ Returns the value of this symbol if concrete, otherwise None"""
+        if self.symbolic:
+            return None
+        assert isinstance(self.raw, z3.BitVecNumRef)
+        return self.raw.as_long()
 
     def __add__(self, other: "BV") -> "BV":
         union = self.annotations + other.annotations
@@ -86,11 +103,6 @@ def URem(a: BitVec, b: BitVec) -> BitVec:
 def SRem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
     return BitVec(z3.SRem(a.raw, b.raw), annotations=union)
-
-
-def UDiv(a: BitVec, b: BitVec) -> BitVec:
-    union = a.annotations + b.annotations
-    return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
 
 
 def UDiv(a: BitVec, b: BitVec) -> BitVec:
