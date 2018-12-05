@@ -92,12 +92,3 @@ def UDiv(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
     return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
 
-
-def BitVecVal(value, size, annotations=None):
-    raw = z3.BitVecVal(value, size)
-    return BitVec(raw, annotations)
-
-
-def BitVecSym(name, size, annotations=None):
-    raw = z3.BitVec(name, size)
-    return BitVec(raw, annotations)
