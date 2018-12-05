@@ -10,7 +10,7 @@
 
 ### Description
 
-The function `_function_0x141f32ff` uses callcode. Callcode does not persist sender or value in the call. Use delegatecall instead.
+The function `_function_0x141f32ff` uses callcode. Callcode does not persist sender or value over the call. Use delegatecall instead.
 
 ## Unchecked CALL return value
 - SWC ID: 104
