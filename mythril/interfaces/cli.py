@@ -322,7 +322,6 @@ def main():
 
         # Load / compile input contracts
         address = None
-        code = None
 
         if args.code:
             # Load from bytecode
@@ -365,16 +364,15 @@ def main():
             print(storage)
 
         elif args.disassemble:
-            output = ""
-            easm_text = mythril.contracts[0].get_easm()
             # or mythril.disassemble(mythril.contracts[0])
+            output = ""
 
-            if mythril.contracts[0].code::
-                output += "Runtime Disassembly: \n" + easm_text
+            if mythril.contracts[0].code:
+                output += "Runtime Disassembly: \n" + mythril.contracts[0].get_easm()
             if mythril.contracts[0].creation_code:
                 output += "Disassembly: \n" + mythril.contracts[0].get_creation_easm()
 
-            sys.stdout.write(output)
+            print(output)
 
         elif args.graph or args.fire_lasers:
             if not mythril.contracts:
