@@ -369,7 +369,7 @@ def main():
             easm_text = mythril.contracts[0].get_easm()
             # or mythril.disassemble(mythril.contracts[0])
 
-            if easm_text:
+            if mythril.contracts[0].code::
                 output += "Runtime Disassembly: \n" + easm_text
             if mythril.contracts[0].creation_code:
                 output += "Disassembly: \n" + mythril.contracts[0].get_creation_easm()
