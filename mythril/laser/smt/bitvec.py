@@ -5,6 +5,7 @@ from mythril.laser.smt.bool import Bool
 
 # fmt: off
 
+
 class BitVec(Expression):
     def __init__(self, raw, annotations=None):
         super().__init__(raw, annotations)
@@ -50,17 +51,17 @@ class BitVec(Expression):
         return Bool(self.raw == other.raw, annotations=union)
 
 
-def UGT(a, b):
+def UGT(a: BitVec, b: BitVec) -> Bool:
     annotations = a.annotations + b.annotations
     Bool(z3.UGT(a, b), annotations)
 
 
-def ULT(a, b):
+def ULT(a: BitVec, b: BitVec) -> Bool:
     annotations = a.annotations + b.annotations
     Bool(z3.ULT(a, b), annotations)
 
 
-def Concat(*args):
+def Concat(*args) -> BitVec:
     nraw = z3.Concat([a.raw for a in args])
     annotations = []
     for bv in args:
