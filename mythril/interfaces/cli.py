@@ -365,14 +365,11 @@ def main():
 
         elif args.disassemble:
             # or mythril.disassemble(mythril.contracts[0])
-            output = ""
 
             if mythril.contracts[0].code:
-                output += "Runtime Disassembly: \n" + mythril.contracts[0].get_easm()
+                print("Runtime Disassembly: \n" + mythril.contracts[0].get_easm())
             if mythril.contracts[0].creation_code:
-                output += "Disassembly: \n" + mythril.contracts[0].get_creation_easm()
-
-            print(output)
+                print("Disassembly: \n" + mythril.contracts[0].get_creation_easm())
 
         elif args.graph or args.fire_lasers:
             if not mythril.contracts:
