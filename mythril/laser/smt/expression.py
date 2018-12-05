@@ -3,7 +3,7 @@ import z3
 
 class Expression:
     """
-    This is the base symbol type
+    This is the base symbol class and maintains functionality for simplification and annotations
     """
     def __init__(self, raw, annotations=None):
         self.raw = raw
@@ -11,9 +11,11 @@ class Expression:
 
     @property
     def annotations(self):
+        """ Gets the annotations for this expression """
         return self._annotations
 
     def annotate(self, annotation):
+        """ Annotates this expression with the given annotation"""
         if isinstance(annotation, list):
             self._annotations += annotation
         else:
