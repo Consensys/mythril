@@ -51,6 +51,11 @@ class BitVec(Expression):
         return Bool(self.raw == other.raw, annotations=union)
 
 
+def If(a: Bool, b: BitVec, c: BitVec):
+    union = a.annotations + b.annotations + c.annotations
+    return BitVec(z3.If(a, b, c), union)
+
+
 def UGT(a: BitVec, b: BitVec) -> Bool:
     annotations = a.annotations + b.annotations
     Bool(z3.UGT(a, b), annotations)
