@@ -1,7 +1,9 @@
 import z3
 
 from mythril.laser.smt.expression import Expression
+from mythril.laser.smt.bool import Bool
 
+# fmt: off
 
 class BitVec(Expression):
     def __init__(self, raw, annotations=None):
@@ -34,6 +36,28 @@ class BitVec(Expression):
     def __xor__(self, other: "BV") -> "BV":
         union = self.annotations + other.annotations
         return BitVec(self.raw ^ other.raw, annotations=union)
+
+    def __lt__(self, other: "BV") -> "BV":
+        union = self.annotations + other.annotations
+        return Bool(self.raw < other.raw, annotations=union)
+
+    def __gt__(self, other: "BV") -> "BV":
+        union = self.annotations + other.annotations
+        return Bool(self.raw < other.raw, annotations=union)
+
+    def __eq__(self, other: "BV") -> "BV":
+        union = self.annotations + other.annotations
+        return Bool(self.raw == other.raw, annotations=union)
+
+
+def UGT(a, b):
+    annotations = a.annotations + b.annotations
+    Bool(z3.UGT(a, b), annotations)
+
+
+def ULT(a, b):
+    annotations = a.annotations + b.annotations
+    Bool(z3.ULT(a, b), annotations)
 
 
 def Concat(*args):
