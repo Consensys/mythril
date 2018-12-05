@@ -9,7 +9,7 @@
       "function": "transferOwnership(address)",
       "max_gas_used": 1051,
       "min_gas_used": 626,
-      "swc-id": "115",
+      "swc-id": "111",
       "title": "Use of tx.origin",
       "type": "Warning"
     }

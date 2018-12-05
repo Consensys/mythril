@@ -1,7 +1,7 @@
 # Analysis results for test-filename.sol
 
 ## Use of tx.origin
-- SWC ID: 115
+- SWC ID: 111
 - Type: Warning
 - Contract: Unknown
 - Function name: `transferOwnership(address)`
