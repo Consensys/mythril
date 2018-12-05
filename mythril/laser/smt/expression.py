@@ -5,6 +5,7 @@ class Expression:
     """
     This is the base symbol class and maintains functionality for simplification and annotations
     """
+
     def __init__(self, raw, annotations=None):
         self.raw = raw
         self._annotations = annotations or []
