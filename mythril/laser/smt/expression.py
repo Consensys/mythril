@@ -2,6 +2,9 @@ import z3
 
 
 class Expression:
+    """
+    This is the base symbol type
+    """
     def __init__(self, raw, annotations=None):
         self.raw = raw
         self._annotations = annotations or []
