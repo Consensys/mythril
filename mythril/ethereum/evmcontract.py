@@ -37,6 +37,10 @@ class EVMContract(persistent.Persistent):
 
         return self.disassembly.get_easm()
 
+    def get_creation_easm(self):
+
+        return self.creation_disassembly.get_easm()
+
     def matches_expression(self, expression):
 
         str_eval = ""
