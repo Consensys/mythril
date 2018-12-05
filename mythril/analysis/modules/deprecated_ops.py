@@ -33,8 +33,8 @@ def _analyze_state(state):
         logging.debug("CALLCODE in function " + node.function_name)
         title = "Use of callcode"
         description = (
-            "The function `{}` uses callcode. Callcode does not persist sender or value in the call. "
-            "Use delegatecall instead."
+            "The function `{}` uses callcode. Callcode does not persist sender or value over the call. "
+            "Use delegatecall instead.".format(node.function_name)
         )
         swc_id = DEPRICATED_FUNCTIONS_USAGE
 
