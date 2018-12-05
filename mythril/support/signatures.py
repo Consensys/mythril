@@ -6,7 +6,7 @@ import os
 import time
 import logging
 import sqlite3
-import threading
+import multiprocessing
 import functools
 from typing import List
 from collections import defaultdict
@@ -15,7 +15,7 @@ from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
 
-lock = threading.Lock()
+lock = multiprocessing.Lock()
 
 
 def synchronized(sync_lock):
