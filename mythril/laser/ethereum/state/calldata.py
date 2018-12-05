@@ -50,7 +50,7 @@ class BaseCalldata:
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
         if isinstance(item, int) or isinstance(item, ExprRef):
-            return simplify(self._load(item))
+            return self._load(item)
 
         if isinstance(item, slice):
             start = 0 if item.start is None else item.start
@@ -63,7 +63,7 @@ class BaseCalldata:
                 )
                 parts = []
                 while simplify(current_index != stop):
-                    element = simplify(self._load(current_index))
+                    element = self._load(current_index)
                     if not isinstance(element, ExprRef):
                         element = BitVecVal(element, 8)
 
@@ -104,7 +104,7 @@ class ConcreteCalldata(BaseCalldata):
 
     def _load(self, item: Union[int, ExprRef]) -> BitVecSort(8):
         item = BitVecVal(item, 256) if isinstance(item, int) else item
-        return self._calldata[item]
+        return simplify(self._calldata[item])
 
     def concrete(self, model: Model) -> list:
         return self._concrete_calldata
@@ -156,7 +156,7 @@ class SymbolicCalldata(BaseCalldata):
         )
         super().__init__(tx_id)
 
-    def _load(self, item: Union[int, ExprRef], clean=False) -> Any:
+    def _load(self, item: Union[int, ExprRef]) -> Any:
         item = BitVecVal(item, 256) if isinstance(item, int) else item
         return If(item < self._size, simplify(self._calldata[item]), 0)
 
@@ -164,11 +164,11 @@ class SymbolicCalldata(BaseCalldata):
         concrete_length = get_concrete_int(model.eval(self.size, model_completion=True))
         result = []
         for i in range(concrete_length):
-            value = self._load(i, clean=True)
+            value = self._load(i)
             c_value = get_concrete_int(model.eval(value, model_completion=True))
             result.append(c_value)
 
-        return result
+        return simplify(result)
 
     @property
     def size(self) -> ExprRef:
