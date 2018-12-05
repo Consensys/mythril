@@ -371,7 +371,7 @@ def main():
 
             if easm_text:
                 output += "Runtime Disassembly: \n" + easm_text
-            if code:
+            if mythril.contracts[0].creation_code:
                 output += "Disassembly: \n" + mythril.contracts[0].get_creation_easm()
 
             sys.stdout.write(output)
