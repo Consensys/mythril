@@ -34,7 +34,9 @@ class Memory:
                 )
             )
 
-    def write_word_at(self, index: int, value: Union[int, BitVecRef, bool, BoolRef]) -> None:
+    def write_word_at(
+        self, index: int, value: Union[int, BitVecRef, bool, BoolRef]
+    ) -> None:
         """
         Writes a 32 byte word to memory at the specified index`
         :param index: index to write to
@@ -48,7 +50,8 @@ class Memory:
                     if value
                     else int(0).to_bytes(32, byteorder="big")
                 )
-            _bytes = util.concrete_int_to_bytes(value)
+            else:
+                _bytes = util.concrete_int_to_bytes(value)
             assert len(_bytes) == 32
             self[index : index + 32] = _bytes
         except (Z3Exception, AttributeError):  # BitVector or BoolRef
