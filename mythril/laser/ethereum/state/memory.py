@@ -34,7 +34,7 @@ class Memory:
                 )
             )
 
-    def write_word_at(self, index: int, value: Union[int, BitVecRef, bool, BoolRef]):
+    def write_word_at(self, index: int, value: Union[int, BitVecRef, bool, BoolRef]) -> None:
         """
         Writes a 32 byte word to memory at the specified index`
         :param index: index to write to
