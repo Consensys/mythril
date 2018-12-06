@@ -18,16 +18,6 @@ MYTHRIL_DIR = TESTS_DIR / "mythril_dir"
 class BaseTestCase(TestCase):
     def setUp(self):
         self.changed_files = []
-        self.ori_mythril_dir = os.environ.get("MYTHRIL_DIR", "")
-        os.environ["MYTHRIL_DIR"] = str(MYTHRIL_DIR)
-        shutil.copyfile(
-            str(MYTHRIL_DIR / "signatures.db.example"),
-            str(MYTHRIL_DIR / "signatures.db"),
-        )
-
-    def tearDown(self):
-        os.environ["MYTHRIL_DIR"] = self.ori_mythril_dir
-        os.remove(str(MYTHRIL_DIR / "signatures.db"))
 
     def compare_files_error_message(self):
         message = "Following output files are changed, compare them manually to see differences: \n"
