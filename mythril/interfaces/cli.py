@@ -18,10 +18,12 @@ from mythril.mythril import Mythril
 from mythril.version import VERSION
 import mythril.support.signatures as sigs
 
+log = logging.getLogger(__name__)
+
 
 def exit_with_error(format_, message):
     if format_ == "text" or format_ == "markdown":
-        logging.error(message)
+        log.error(message)
     else:
         result = {"success": False, "error": str(message), "issues": []}
         print(json.dumps(result))
@@ -192,7 +194,7 @@ def main():
         "--enable-physics", action="store_true", help="enable graph physics simulation"
     )
     options.add_argument(
-        "-v", type=int, help="log level (0-2)", metavar="LOG_LEVEL", default=0
+        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
     )
     options.add_argument(
         "-q",
@@ -248,21 +250,19 @@ def main():
         sys.exit()
 
     if args.v:
-        if 0 <= args.v < 3:
-            """
-            logging.basicConfig(
-                format="%(name)s[%(process)d] %(levelname)s %(message)s",
-                level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v],
-            )
-            """
+        if 0 <= args.v < 6:
+            log_levels = [
+                logging.NOTSET,
+                logging.CRITICAL,
+                logging.ERROR,
+                logging.WARNING,
+                logging.INFO,
+                logging.DEBUG,
+            ]
             coloredlogs.install(
-                # fmt="%(filename)s[%(process)d] %(levelname)s %(message)s",
-                fmt="%(name)s[%(process)d] %(levelname)s %(message)s",
-                level=[logging.NOTSET, logging.INFO, logging.DEBUG][args.v],
+                fmt="%(name)s [%(levelname)s]: %(message)s", level=log_levels[args.v]
             )
-            logging.getLogger("mythril").setLevel(
-                [logging.NOTSET, logging.INFO, logging.DEBUG][args.v]
-            )
+            logging.getLogger("mythril").setLevel(log_levels[args.v])
         else:
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
