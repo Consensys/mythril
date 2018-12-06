@@ -13,9 +13,6 @@ Check for usage of deprecated opcodes
 def _analyze_state(state):
     node = state.node
     instruction = state.get_current_instruction()
-    description = ""
-    title = ""
-    swc_id = None
 
     if instruction["opcode"] == "ORIGIN":
         logging.debug("ORIGIN in function " + node.function_name)
