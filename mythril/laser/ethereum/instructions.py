@@ -131,7 +131,7 @@ class Instruction:
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
         # Generalize some ops
-        # logging.debug("Evaluating {}".format(self.op_code))
+        logging.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -774,6 +774,14 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
+    def returndatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        # FIXME: not implemented
+        state = global_state.mstate
+        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+        return [global_state]
+
+    @StateTransition()
     def returndatasize_(self, global_state: GlobalState) -> List[GlobalState]:
         global_state.mstate.stack.append(global_state.new_bitvec("returndatasize", 256))
         return [global_state]
@@ -983,8 +991,13 @@ class Instruction:
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
-
-                if is_true(simplify(key_argument == index_argument)):
+                condition = key_argument == index_argument
+                condition = (
+                    condition
+                    if type(condition) == bool
+                    else is_true(simplify(condition))
+                )
+                if condition:
                     return self._sstore_helper(
                         copy(global_state),
                         keccak_key,

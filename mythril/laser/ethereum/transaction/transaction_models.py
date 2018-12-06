@@ -79,9 +79,10 @@ class BaseTransaction:
         self.caller = caller
         self.callee_account = callee_account
         if call_data is None and init_call_data:
-            self.call_data = ConcreteCalldata(self.id, call_data)
+            self.call_data = SymbolicCalldata(self.id)
         else:
             self.call_data = call_data if isinstance(call_data, BaseCalldata) else None
+
         self.call_data_type = (
             call_data_type
             if call_data_type is not None

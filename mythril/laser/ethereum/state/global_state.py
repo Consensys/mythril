@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 from copy import copy, deepcopy
 from z3 import BitVec
@@ -6,6 +6,7 @@ from z3 import BitVec
 from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 
 class GlobalState:
@@ -33,7 +34,7 @@ class GlobalState:
         self.transaction_stack = transaction_stack if transaction_stack else []
         self.op_code = ""
         self.last_return_data = last_return_data
-        self.annotations = annotations or []
+        self._annotations = annotations or []
 
     def __copy__(self) -> "GlobalState":
         world_state = copy(self.world_state)
@@ -47,7 +48,7 @@ class GlobalState:
             mstate,
             transaction_stack=transaction_stack,
             last_return_data=self.last_return_data,
-            annotations=self.annotations,
+            annotations=[copy(a) for a in self._annotations],
         )
 
     @property
@@ -78,3 +79,13 @@ class GlobalState:
     def new_bitvec(self, name: str, size=256) -> BitVec:
         transaction_id = self.current_transaction.id
         return BitVec("{}_{}".format(transaction_id, name), size)
+
+    def annotate(self, annotation: StateAnnotation) -> None:
+        self._annotations.append(annotation)
+
+        if annotation.persist_to_world_state:
+            self.world_state.annotate(annotation)
+
+    @property
+    def annotations(self) -> List[StateAnnotation]:
+        return self._annotations
