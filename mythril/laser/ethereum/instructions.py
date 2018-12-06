@@ -49,6 +49,7 @@ from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     ContractCreationTransaction,
 )
+
 from mythril.support.loader import DynLoader
 from mythril.analysis.solver import get_model
 
