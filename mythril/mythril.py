@@ -494,6 +494,7 @@ class Mythril(object):
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
                 transaction_count=transaction_count,
+                modules=modules,
             )
 
             issues = fire_lasers(sym, modules)
