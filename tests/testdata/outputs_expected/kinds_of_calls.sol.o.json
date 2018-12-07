@@ -1,17 +1,17 @@
 {
     "error": null,
     "issues": [
-        {                                                                                    
-            "address": 618,                                                                  
-            "contract": "Unknown",                                                           
-            "debug": "<DEBUG-DATA>",                                                         
-            "description": "The function `_function_0x141f32ff` uses callcode. Callcode does 
-            "function": "_function_0x141f32ff",                                              
-            "max_gas_used": 1141,                                                            
-            "min_gas_used": 389,                                                             
-            "swc-id": "111",                                                                 
-            "title": "Use of callcode",                                                      
-            "type": "Warning"                                                                
+        {
+            "address": 618,
+            "contract": "Unknown",
+            "debug": "<DEBUG-DATA>",
+            "description": "The function `_function_0x141f32ff` uses callcode. Callcode does not persist sender or value over the call. Use delegatecall instead.",
+            "function": "_function_0x141f32ff",
+            "max_gas_used": 1141,
+            "min_gas_used": 389,
+            "swc-id": "111",
+            "title": "Use of callcode",
+            "type": "Warning"
         },
         {
             "address": 626,
