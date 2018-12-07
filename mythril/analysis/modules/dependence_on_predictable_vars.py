@@ -42,9 +42,7 @@ def _analyze_states(state):
     if call is None:
         return []
     if "callvalue" in str(call.value):
-        logging.debug(
-            "[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function"
-        )
+        logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] Skipping refund function")
         return []
 
     # We're only interested in calls that send Ether
@@ -109,7 +107,9 @@ def _analyze_states(state):
                             + ")' is used to determine Ether recipient"
                         )
                         if int(m.group(2)) > 255:
-                            description += ", this expression will always be equal to zero."
+                            description += (
+                                ", this expression will always be equal to zero."
+                            )
                     elif "storage" in str(
                         constraint
                     ):  # block.blockhash(block.number - storage_0)
@@ -122,9 +122,7 @@ def _analyze_states(state):
                             "predictable expression 'block.blockhash(block.number)'"
                             + " is used to determine Ether recipient"
                         )
-                        description += (
-                            ", this expression will always be equal to zero."
-                        )
+                        description += ", this expression will always be equal to zero."
 
                     issue = Issue(
                         contract=call.node.contract_name,
@@ -193,5 +191,3 @@ def solve(call):
     except UnsatError:
         logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] no model found")
         return False
-
-

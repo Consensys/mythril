@@ -22,32 +22,19 @@ def get_call_from_state(state):
         if to.type == VarType.CONCRETE and to.val < 5:
             return
 
-        if (
-            meminstart.type == VarType.CONCRETE
-            and meminsz.type == VarType.CONCRETE
-        ):
+        if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:
             return Call(
-                    state.node,
-                    state,
-                    None,
-                    op,
-                    to,
-                    gas,
-                    value,
-                    state.mstate.memory[
-                    meminstart.val: meminsz.val * 4
-                    ],
-                )
+                state.node,
+                state,
+                None,
+                op,
+                to,
+                gas,
+                value,
+                state.mstate.memory[meminstart.val : meminsz.val * 4],
+            )
         else:
-            return Call(
-                    state.node,
-                    state,
-                    None,
-                    op,
-                    to,
-                    gas,
-                    value,
-                )
+            return Call(state.node, state, None, op, to, gas, value)
 
     else:
         gas, to, meminstart, meminsz, memoutstart, memoutsz = (
