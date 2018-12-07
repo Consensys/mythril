@@ -49,6 +49,7 @@ from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     ContractCreationTransaction,
 )
+
 from mythril.support.loader import DynLoader
 from mythril.analysis.solver import get_model
 
@@ -986,8 +987,13 @@ class Instruction:
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
                 index_argument = keccak_function_manager.get_argument(index)
-
-                if is_true(simplify(key_argument == index_argument)):
+                condition = key_argument == index_argument
+                condition = (
+                    condition
+                    if type(condition) == bool
+                    else is_true(simplify(condition))
+                )
+                if condition:
                     return self._sstore_helper(
                         copy(global_state),
                         keccak_key,

@@ -28,6 +28,7 @@ class SymExecWrapper:
         execution_timeout=None,
         create_timeout=None,
         transaction_count=2,
+        modules=(),
     ):
 
         if strategy == "dfs":
@@ -60,7 +61,7 @@ class SymExecWrapper:
             transaction_count=transaction_count,
         )
         self.laser.register_hooks(
-            hook_type="pre", hook_dict=get_detection_module_hooks()
+            hook_type="pre", hook_dict=get_detection_module_hooks(modules)
         )
 
         if isinstance(contract, SolidityContract):

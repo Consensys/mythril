@@ -17,6 +17,7 @@ from solc.exceptions import SolcError
 import solc
 from configparser import ConfigParser
 import platform
+from shutil import copyfile
 
 from mythril.ethereum import util
 from mythril.ethereum.evmcontract import EVMContract
@@ -116,11 +117,18 @@ class Mythril(object):
         except KeyError:
             mythril_dir = os.path.join(os.path.expanduser("~"), ".mythril")
 
-            # Initialize data directory and signature database
-
         if not os.path.exists(mythril_dir):
+            # Initialize data directory
             logging.info("Creating mythril data directory")
             os.mkdir(mythril_dir)
+
+        db_path = str(Path(mythril_dir) / "signatures.db")
+        if not os.path.exists(db_path):
+            # if the default mythril dir doesn't contain a signature DB
+            # initialize it with the default one from the project root
+            parent_dir = Path(__file__).parent.parent
+            copyfile(str(parent_dir / "signatures.db"), db_path)
+
         return mythril_dir
 
     def _init_config(self):
@@ -227,6 +235,9 @@ class Mythril(object):
             else:
                 try:
                     solc.install_solc("v" + version)
+                    solc_binary = util.solc_exists(version)
+                    if not solc_binary:
+                        raise SolcError()
                 except SolcError:
                     raise CriticalError(
                         "There was an error when trying to install the specified solc version"
@@ -483,6 +494,7 @@ class Mythril(object):
                 execution_timeout=execution_timeout,
                 create_timeout=create_timeout,
                 transaction_count=transaction_count,
+                modules=modules,
             )
 
             issues = fire_lasers(sym, modules)

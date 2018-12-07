@@ -1,7 +1,9 @@
 from copy import copy
 from random import randint
+from typing import List
 
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 
 class WorldState:
@@ -9,13 +11,16 @@ class WorldState:
     The WorldState class represents the world state as described in the yellow paper
     """
 
-    def __init__(self, transaction_sequence=None):
+    def __init__(
+        self, transaction_sequence=None, annotations: List[StateAnnotation] = None
+    ) -> None:
         """
         Constructor for the world state. Initializes the accounts record
         """
         self.accounts = {}
         self.node = None
         self.transaction_sequence = transaction_sequence or []
+        self._annotations = annotations or []
 
     def __getitem__(self, item: str) -> Account:
         """
@@ -26,7 +31,11 @@ class WorldState:
         return self.accounts[item]
 
     def __copy__(self) -> "WorldState":
-        new_world_state = WorldState(transaction_sequence=self.transaction_sequence[:])
+        new_annotations = [copy(a) for a in self._annotations]
+        new_world_state = WorldState(
+            transaction_sequence=self.transaction_sequence[:],
+            annotations=new_annotations,
+        )
         new_world_state.accounts = copy(self.accounts)
         new_world_state.node = self.node
         return new_world_state
@@ -66,6 +75,13 @@ class WorldState:
         )
         new_account.storage = storage
         self._put_account(new_account)
+
+    def annotate(self, annotation: StateAnnotation) -> None:
+        self._annotations.append(annotation)
+
+    @property
+    def annotations(self) -> List[StateAnnotation]:
+        return self._annotations
 
     def _generate_new_address(self) -> str:
         """ Generates a new address for the global state"""

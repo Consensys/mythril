@@ -1,5 +1,17 @@
 # Analysis results for test-filename.sol
 
+## Use of callcode
+- SWC ID: 111
+- Type: Warning
+- Contract: Unknown
+- Function name: `_function_0x141f32ff`
+- PC address: 618
+- Estimated Gas Usage: 389 - 1141
+
+### Description
+
+The function `_function_0x141f32ff` uses callcode. Callcode does not persist sender or value over the call. Use delegatecall instead.
+
 ## Unchecked CALL return value
 - SWC ID: 104
 - Type: Informational
