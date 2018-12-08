@@ -1,5 +1,6 @@
 import re
-from mythril.analysis.ops import VarType
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.analysis.ops import Call, VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.call_helpers import get_call_from_state
@@ -25,10 +26,10 @@ class PredictableDependenceModule(DetectionModule):
         self._issues = []
 
     @property
-    def issues(self):
+    def issues(self) -> list:
         return self._issues
 
-    def execute(self, state):
+    def execute(self, state: GlobalState) -> list:
         self._issues.extend(_analyze_states(state))
         return self.issues
 
@@ -36,7 +37,7 @@ class PredictableDependenceModule(DetectionModule):
 detector = PredictableDependenceModule()
 
 
-def _analyze_states(state):
+def _analyze_states(state: GlobalState) -> list:
     issues = []
     call = get_call_from_state(state)
     if call is None:
@@ -177,7 +178,7 @@ def _analyze_states(state):
         return issues
 
 
-def solve(call):
+def solve(call: Call) -> bool:
     try:
         model = solver.get_model(call.node.constraints)
         logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))

@@ -1,7 +1,10 @@
+from typing import Union
+
 from mythril.analysis.ops import VarType, Call, get_variable
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 
-def get_call_from_state(state):
+def get_call_from_state(state: GlobalState) -> Union[Call, None]:
     instruction = state.get_current_instruction()
 
     op = instruction["opcode"]
@@ -20,7 +23,7 @@ def get_call_from_state(state):
         )
 
         if to.type == VarType.CONCRETE and to.val < 5:
-            return
+            return None
 
         if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:
             return Call(
