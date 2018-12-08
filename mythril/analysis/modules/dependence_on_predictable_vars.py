@@ -97,7 +97,7 @@ def _analyze_states(state: GlobalState) -> list:
             description = "In the function `" + call.node.function_name + "` "
             if "number" in str(constraint):
                 m = re.search(r"blockhash\w+(\s-\s(\d+))*", str(constraint))
-                if m and solve(call.node.constraints):
+                if m and solve(call):
 
                     found = m.group(1)
 
@@ -175,7 +175,7 @@ def _analyze_states(state: GlobalState) -> list:
                         )
                         issues.append(issue)
                         break
-        return issues
+    return issues
 
 
 def solve(call: Call) -> bool:
