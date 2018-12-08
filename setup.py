@@ -79,7 +79,7 @@ setup(
         "requests",
         "py-solc",
         "plyvel",
-        "eth_abi>=2.0.0-beta.3",
+        "eth_abi==1.3.0",
         "eth-utils>=1.0.1",
         "eth-account>=0.1.0a2",
         "eth-hash>=0.1.0",
