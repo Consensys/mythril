@@ -34,7 +34,7 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
                 to,
                 gas,
                 value,
-                state.mstate.memory[meminstart.val: meminsz.val * 4],
+                state.mstate.memory[meminstart.val : meminsz.val * 4],
             )
         else:
             return Call(state.node, state, None, op, to, gas, value)

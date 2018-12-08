@@ -142,6 +142,7 @@ def _analyze_states(state: GlobalState) -> list:
                     issues.append(issue)
                     break
             else:
+
                 r = re.search(r"storage_([a-z0-9_&^]+)", str(constraint))
                 if r:  # block.blockhash(storage_0)
 
