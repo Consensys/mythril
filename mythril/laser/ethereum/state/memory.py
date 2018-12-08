@@ -25,14 +25,16 @@ class Memory:
                 bytes([util.get_concrete_int(b) for b in self[index : index + 32]]), 0
             )
         except TypeError:
-            return simplify(
+            result = simplify(
                 Concat(
                     [
-                        b if isinstance(b, BitVecRef) else BitVecVal(b, 256)
+                        b if isinstance(b, BitVecRef) else BitVecVal(b, 8)
                         for b in self[index : index + 32]
                     ]
                 )
             )
+            assert result.size() == 256
+            return result
 
     def write_word_at(
         self, index: int, value: Union[int, BitVecRef, bool, BoolRef]
