@@ -10,6 +10,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     OutOfGasException,
 )
 from mythril.laser.ethereum.state.constraints import Constraints
+from mythril.laser.ethereum.state.memory import Memory
 
 
 class MachineStack(list):
@@ -88,7 +89,7 @@ class MachineState:
         """ Constructor for machineState """
         self.pc = pc
         self.stack = MachineStack(stack)
-        self.memory = memory or []
+        self.memory = memory or Memory()
         self.gas_limit = gas_limit
         self.min_gas_used = min_gas_used  # lower gas usage bound
         self.max_gas_used = max_gas_used  # upper gas usage bound
@@ -128,7 +129,7 @@ class MachineState:
             self.min_gas_used += extend_gas
             self.max_gas_used += extend_gas
             self.check_gas()
-            self.memory.extend(bytearray(m_extend))
+            self.memory.extend(m_extend)
 
     def memory_write(self, offset: int, data: List[int]) -> None:
         """ Writes data to memory starting at offset """

@@ -159,26 +159,14 @@ def get_call_data(
     state = global_state.mstate
     transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
     try:
-        # TODO: This only allows for either fully concrete or fully symbolic calldata.
-        # Improve management of memory and callata to support a mix between both types.
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
                 memory_start + memory_size
             )
         ]
         i = 0
-        starting_calldata = []
-        while i < len(calldata_from_mem):
-            elem = calldata_from_mem[i]
-            if isinstance(elem, int):
-                starting_calldata.append(elem)
-                i += 1
-            else:  # BitVec
-                for j in range(0, elem.size(), 8):
-                    starting_calldata.append(Extract(j + 7, j, elem))
-                    i += 1
 
-        call_data = ConcreteCalldata(transaction_id, starting_calldata)
+        call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
         call_data_type = CalldataType.CONCRETE
         logging.debug("Calldata: " + str(call_data))
     except TypeError:
