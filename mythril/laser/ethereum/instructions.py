@@ -21,13 +21,13 @@ from z3 import (
     ExprRef,
     URem,
     SRem,
-    BitVec,
     is_true,
-    BitVecVal,
     If,
     BoolRef,
     Or,
 )
+
+from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -51,7 +51,6 @@ from mythril.laser.ethereum.transaction import (
 )
 
 from mythril.support.loader import DynLoader
-from mythril.analysis.solver import get_model
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -169,7 +168,7 @@ class Instruction:
             raise VmException("Invalid Push instruction")
 
         push_value += "0" * max(length_of_value - len(push_value), 0)
-        global_state.mstate.stack.append(BitVecVal(int(push_value, 16), 256))
+        global_state.mstate.stack.append(symbol_factory.BitVecVal(int(push_value, 16), 256))
         return [global_state]
 
     @StateTransition()
@@ -195,9 +194,9 @@ class Instruction:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
         if type(op1) == BoolRef:
-            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+            op1 = If(op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
         if type(op2) == BoolRef:
-            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+            op2 = If(op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
         stack.append(op1 & op2)
 
         return [global_state]
@@ -208,10 +207,10 @@ class Instruction:
         op1, op2 = stack.pop(), stack.pop()
 
         if type(op1) == BoolRef:
-            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+            op1 = If(op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
 
         if type(op2) == BoolRef:
-            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+            op2 = If(op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
 
         stack.append(op1 | op2)
 
@@ -234,13 +233,13 @@ class Instruction:
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
         if not isinstance(op1, ExprRef):
-            op1 = BitVecVal(op1, 256)
+            op1 = symbol_factory.BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
             offset = (31 - index) * 8
             if offset >= 0:
                 result = simplify(
-                    Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1))
+                    Concat(symbol_factory.BitVecVal(0, 248), Extract(offset + 7, offset, op1))
                 )
             else:
                 result = 0
@@ -291,7 +290,7 @@ class Instruction:
             util.pop_bitvec(global_state.mstate),
         )
         if op1 == 0:
-            global_state.mstate.stack.append(BitVecVal(0, 256))
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(UDiv(op0, op1))
         return [global_state]
@@ -303,7 +302,7 @@ class Instruction:
             util.pop_bitvec(global_state.mstate),
         )
         if s1 == 0:
-            global_state.mstate.stack.append(BitVecVal(0, 256))
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(s0 / s1)
         return [global_state]
@@ -424,10 +423,10 @@ class Instruction:
         op2 = state.stack.pop()
 
         if type(op1) == BoolRef:
-            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+            op1 = If(op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
 
         if type(op2) == BoolRef:
-            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+            op2 = If(op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
 
         exp = op1 == op2
 
@@ -615,7 +614,7 @@ class Instruction:
             # Can't access symbolic memory offsets
             if is_expr(op0):
                 op0 = simplify(op0)
-            state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
+            state.stack.append(symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256))
             state.min_gas_used += OPCODE_GAS["SHA3"][0]
             state.max_gas_used += OPCODE_GAS["SHA3"][1]
             return [global_state]
@@ -637,7 +636,7 @@ class Instruction:
         except TypeError:
             argument = str(state.memory[index]).replace(" ", "_")
 
-            result = BitVec("KECCAC[{}]".format(argument), 256)
+            result = symbol_factory.BitVecSym("KECCAC[{}]".format(argument), 256)
             keccak_function_manager.add_keccak(result, state.memory[index])
             state.stack.append(result)
             return [global_state]
@@ -645,7 +644,7 @@ class Instruction:
         keccak = utils.sha3(utils.bytearray_to_bytestr(data))
         logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
-        state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
+        state.stack.append(symbol_factory.BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
         return [global_state]
 
     @StateTransition()
@@ -1323,7 +1322,7 @@ class Instruction:
             gas_price=environment.gasprice,
             gas_limit=gas,
             origin=environment.origin,
-            caller=BitVecVal(int(environment.active_account.address, 16), 256),
+            caller=symbol_factory.BitVecVal(int(environment.active_account.address, 16), 256),
             callee_account=callee_account,
             call_data=call_data,
             call_data_type=call_data_type,
