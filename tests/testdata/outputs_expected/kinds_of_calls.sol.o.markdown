@@ -30,7 +30,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0x9b58bc26`
 - PC address: 857
-- Estimated Gas Usage: 1167 - 35919
+- Estimated Gas Usage: 1161 - 35913
 
 ### Description
 
@@ -42,7 +42,7 @@ The return value of an external call is not checked. Note that execution continu
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1038
-- Estimated Gas Usage: 477 - 1229
+- Estimated Gas Usage: 471 - 1223
 
 ### Description
 
@@ -54,7 +54,7 @@ The contract executes a function call with high gas to a user-supplied address. 
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1046
-- Estimated Gas Usage: 1192 - 35944
+- Estimated Gas Usage: 1186 - 35938
 
 ### Description
 
