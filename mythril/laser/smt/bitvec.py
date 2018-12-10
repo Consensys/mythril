@@ -126,3 +126,12 @@ def UDiv(a: BitVec, b: BitVec) -> BitVec:
     """ Create an unsigned division expression """
     union = a.annotations + b.annotations
     return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
+
+
+def Sum(*args) -> BitVec:
+    """ Create sum expression"""
+    nraw = z3.Sum([a.raw for a in args])
+    annotations = []
+    for bv in args:
+        annotations += bv.annotations
+    return BitVec(nraw, annotations)
