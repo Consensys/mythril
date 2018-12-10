@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Union, Any
 from z3 import (
-    BitVecVal,
     BitVecRef,
     BitVec,
     simplify,
@@ -16,6 +15,7 @@ from z3 import (
 )
 from z3.z3types import Z3Exception, Model
 
+from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.util import get_concrete_int
 
 
@@ -40,7 +40,7 @@ class BaseCalldata:
         """
         result = self.size
         if isinstance(result, int):
-            return BitVecVal(result, 256)
+            return symbol_factory.BitVecVal(result, 256)
         return result
 
     def get_word_at(self, offset: int) -> ExprRef:
@@ -59,13 +59,13 @@ class BaseCalldata:
 
             try:
                 current_index = (
-                    start if isinstance(start, BitVecRef) else BitVecVal(start, 256)
+                    start if isinstance(start, BitVecRef) else symbol_factory.BitVecVal(start, 256)
                 )
                 parts = []
                 while simplify(current_index != stop):
                     element = self._load(current_index)
                     if not isinstance(element, ExprRef):
-                        element = BitVecVal(element, 8)
+                        element = symbol_factory.BitVecVal(element, 8)
 
                     parts.append(element)
                     current_index = simplify(current_index + step)
@@ -97,13 +97,13 @@ class ConcreteCalldata(BaseCalldata):
         :param calldata: The concrete calldata content
         """
         self._concrete_calldata = calldata
-        self._calldata = K(BitVecSort(256), BitVecVal(0, 8))
+        self._calldata = K(BitVecSort(256), symbol_factory.BitVecVal(0, 8))
         for i, element in enumerate(calldata, 0):
             self._calldata = Store(self._calldata, i, element)
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, ExprRef]) -> BitVecSort(8):
-        item = BitVecVal(item, 256) if isinstance(item, int) else item
+        item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
         return simplify(self._calldata[item])
 
     def concrete(self, model: Model) -> list:
@@ -131,7 +131,7 @@ class BasicConcreteCalldata(BaseCalldata):
             except IndexError:
                 return 0
 
-        value = BitVecVal(0x0, 8)
+        value = symbol_factory.BitVecVal(0x0, 8)
         for i in range(self.size):
             value = If(item == i, self._calldata[i], value)
         return value
@@ -157,7 +157,7 @@ class SymbolicCalldata(BaseCalldata):
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, ExprRef]) -> Any:
-        item = BitVecVal(item, 256) if isinstance(item, int) else item
+        item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
         return simplify(If(item < self._size, simplify(self._calldata[item]), 0))
 
     def concrete(self, model: Model) -> list:
