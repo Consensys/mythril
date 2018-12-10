@@ -6,10 +6,13 @@ class BaseArray:
     """
     Base array type, implements basic store and set operations
     """
+
     def __getitem__(self, item: BitVec):
         """ Gets item from the array, item can be symbolic"""
         if isinstance(item, slice):
-            raise ValueError("Instance of BaseArray, does not support getitem with slices")
+            raise ValueError(
+                "Instance of BaseArray, does not support getitem with slices"
+            )
         return z3.Select(self.raw, item.raw)
 
     def __setitem__(self, key: BitVec, value: BitVec):

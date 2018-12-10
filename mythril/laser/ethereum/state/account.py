@@ -76,7 +76,11 @@ class Account:
         """
         self.nonce = 0
         self.code = code or Disassembly("")
-        self.balance = balance if balance else symbol_factory.BitVecSym("{}_balance".format(address), 256)
+        self.balance = (
+            balance
+            if balance
+            else symbol_factory.BitVecSym("{}_balance".format(address), 256)
+        )
         self.storage = Storage(
             concrete_storage, address=address, dynamic_loader=dynamic_loader
         )

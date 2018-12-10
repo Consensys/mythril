@@ -1,4 +1,14 @@
-from mythril.laser.smt.bitvec import BitVec, If, UGT, ULT, Concat, Extract, URem, SRem, UDiv
+from mythril.laser.smt.bitvec import (
+    BitVec,
+    If,
+    UGT,
+    ULT,
+    Concat,
+    Extract,
+    URem,
+    SRem,
+    UDiv,
+)
 from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false
 

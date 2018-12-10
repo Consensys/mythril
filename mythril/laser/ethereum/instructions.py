@@ -168,7 +168,9 @@ class Instruction:
             raise VmException("Invalid Push instruction")
 
         push_value += "0" * max(length_of_value - len(push_value), 0)
-        global_state.mstate.stack.append(symbol_factory.BitVecVal(int(push_value, 16), 256))
+        global_state.mstate.stack.append(
+            symbol_factory.BitVecVal(int(push_value, 16), 256)
+        )
         return [global_state]
 
     @StateTransition()
@@ -194,9 +196,13 @@ class Instruction:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
         if type(op1) == BoolRef:
-            op1 = If(op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+            op1 = If(
+                op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
         if type(op2) == BoolRef:
-            op2 = If(op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+            op2 = If(
+                op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
         stack.append(op1 & op2)
 
         return [global_state]
@@ -207,10 +213,14 @@ class Instruction:
         op1, op2 = stack.pop(), stack.pop()
 
         if type(op1) == BoolRef:
-            op1 = If(op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+            op1 = If(
+                op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
         if type(op2) == BoolRef:
-            op2 = If(op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+            op2 = If(
+                op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
         stack.append(op1 | op2)
 
@@ -239,7 +249,10 @@ class Instruction:
             offset = (31 - index) * 8
             if offset >= 0:
                 result = simplify(
-                    Concat(symbol_factory.BitVecVal(0, 248), Extract(offset + 7, offset, op1))
+                    Concat(
+                        symbol_factory.BitVecVal(0, 248),
+                        Extract(offset + 7, offset, op1),
+                    )
                 )
             else:
                 result = 0
@@ -423,10 +436,14 @@ class Instruction:
         op2 = state.stack.pop()
 
         if type(op1) == BoolRef:
-            op1 = If(op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+            op1 = If(
+                op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
         if type(op2) == BoolRef:
-            op2 = If(op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+            op2 = If(
+                op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
         exp = op1 == op2
 
@@ -614,7 +631,9 @@ class Instruction:
             # Can't access symbolic memory offsets
             if is_expr(op0):
                 op0 = simplify(op0)
-            state.stack.append(symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256))
+            state.stack.append(
+                symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
+            )
             state.min_gas_used += OPCODE_GAS["SHA3"][0]
             state.max_gas_used += OPCODE_GAS["SHA3"][1]
             return [global_state]
@@ -644,7 +663,9 @@ class Instruction:
         keccak = utils.sha3(utils.bytearray_to_bytestr(data))
         logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
-        state.stack.append(symbol_factory.BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
+        state.stack.append(
+            symbol_factory.BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256)
+        )
         return [global_state]
 
     @StateTransition()
@@ -1322,7 +1343,9 @@ class Instruction:
             gas_price=environment.gasprice,
             gas_limit=gas,
             origin=environment.origin,
-            caller=symbol_factory.BitVecVal(int(environment.active_account.address, 16), 256),
+            caller=symbol_factory.BitVecVal(
+                int(environment.active_account.address, 16), 256
+            ),
             callee_account=callee_account,
             call_data=call_data,
             call_data_type=call_data_type,

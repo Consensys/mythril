@@ -74,7 +74,9 @@ class BaseTransaction:
         self.gas_limit = gas_limit
 
         self.origin = (
-            origin if origin is not None else symbol_factory.BitVecSym("origin{}".format(identifier), 256)
+            origin
+            if origin is not None
+            else symbol_factory.BitVecSym("origin{}".format(identifier), 256)
         )
         self.code = code
 

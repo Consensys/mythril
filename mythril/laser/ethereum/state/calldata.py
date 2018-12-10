@@ -59,7 +59,9 @@ class BaseCalldata:
 
             try:
                 current_index = (
-                    start if isinstance(start, BitVecRef) else symbol_factory.BitVecVal(start, 256)
+                    start
+                    if isinstance(start, BitVecRef)
+                    else symbol_factory.BitVecVal(start, 256)
                 )
                 parts = []
                 while simplify(current_index != stop):
