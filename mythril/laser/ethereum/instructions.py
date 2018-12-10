@@ -1287,7 +1287,7 @@ class Instruction:
 
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = memory_out_size.as_long()
+                mem_out_sz = memory_out_size if type(memory_out_size) == int else memory_out_size.as_long()
             except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
