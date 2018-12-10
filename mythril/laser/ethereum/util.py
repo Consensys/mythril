@@ -1,5 +1,7 @@
 import re
-from z3 import *
+from z3 import BitVecVal, BoolRef, If, simplify, is_false, is_true, ExprRef, BitVecNumRef
+from mythril.laser.smt import symbol_factory
+
 import logging
 from typing import Union, List, Dict
 
@@ -51,14 +53,14 @@ def pop_bitvec(state: "MachineState") -> BitVecVal:
     item = state.stack.pop()
 
     if type(item) == BoolRef:
-        return If(item, BitVecVal(1, 256), BitVecVal(0, 256))
+        return If(item, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
     elif type(item) == bool:
         if item:
-            return BitVecVal(1, 256)
+            return symbol_factory.BitVecVal(1, 256)
         else:
-            return BitVecVal(0, 256)
+            return symbol_factory.BitVecVal(0, 256)
     elif type(item) == int:
-        return BitVecVal(item, 256)
+        return symbol_factory.BitVecVal(item, 256)
     else:
         return simplify(item)
 
