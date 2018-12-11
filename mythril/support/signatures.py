@@ -43,6 +43,7 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
+
 try:
     # load if available but do not fail
     import ethereum_input_decoder

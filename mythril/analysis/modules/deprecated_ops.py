@@ -61,7 +61,6 @@ class DeprecatedOperationsModule(DetectionModule):
         )
         self._issues = []
 
-
     def execute(self, state: GlobalState):
         self._issues.extend(_analyze_state(state))
         return self.issues
