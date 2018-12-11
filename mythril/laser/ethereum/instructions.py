@@ -510,7 +510,7 @@ class Instruction:
                 + ": + "
                 + str(size)
                 + "]",
-                256,
+                8,
             )
             return [global_state]
 
@@ -533,7 +533,7 @@ class Instruction:
                     + ": + "
                     + str(size)
                     + "]",
-                    256,
+                    8,
                 )
                 return [global_state]
 
@@ -561,7 +561,7 @@ class Instruction:
                     + ": + "
                     + str(size)
                     + "]",
-                    256,
+                    8,
                 )
         return [global_state]
 
@@ -680,7 +680,7 @@ class Instruction:
                 "code({})".format(
                     global_state.environment.active_account.contract_name
                 ),
-                256,
+                8,
             )
             return [global_state]
 
@@ -696,7 +696,7 @@ class Instruction:
                     "code({})".format(
                         global_state.environment.active_account.contract_name
                     ),
-                    256,
+                    8,
                 )
             return [global_state]
 
@@ -713,7 +713,7 @@ class Instruction:
                     "code({})".format(
                         global_state.environment.active_account.contract_name
                     ),
-                    256,
+                    8,
                 )
                 return [global_state]
 
@@ -734,7 +734,7 @@ class Instruction:
                     "code({})".format(
                         global_state.environment.active_account.contract_name
                     ),
-                    256,
+                    8,
                 )
 
         return [global_state]
@@ -838,12 +838,9 @@ class Instruction:
             data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
             return [global_state]
-        try:
-            state.mem_extend(offset, 32)
-            data = util.concrete_int_from_bytes(state.memory, offset)
-        except TypeError:  # Symbolic memory
-            # TODO: Handle this properly
-            data = state.memory[offset]
+
+        state.mem_extend(offset, 32)
+        data = state.memory.get_word_at(offset)
 
         logging.debug("Load from memory[" + str(offset) + "]: " + str(data))
 
@@ -870,16 +867,7 @@ class Instruction:
 
         logging.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
 
-        try:
-            # Attempt to concretize value
-            _bytes = util.concrete_int_to_bytes(value)
-            assert len(_bytes) == 32
-            state.memory[mstart : mstart + 32] = _bytes
-        except:
-            try:
-                state.memory[mstart] = value
-            except TypeError:
-                logging.debug("Invalid memory access")
+        state.memory.write_word_at(mstart, value)
 
         return [global_state]
 
@@ -896,7 +884,14 @@ class Instruction:
 
         state.mem_extend(offset, 1)
 
-        state.memory[offset] = value % 256
+        try:
+            value_to_write = util.get_concrete_int(value) ^ 0xFF
+        except TypeError:  # BitVec
+            value_to_write = Extract(7, 0, value)
+        logging.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
+
+        state.memory[offset] = value_to_write
+
         return [global_state]
 
     @StateTransition()
@@ -1186,7 +1181,7 @@ class Instruction:
     def return_(self, global_state: GlobalState):
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [global_state.new_bitvec("return_data", 256)]
+        return_data = [global_state.new_bitvec("return_data", 8)]
         try:
             return_data = state.memory[
                 util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
@@ -1230,7 +1225,7 @@ class Instruction:
     def revert_(self, global_state: GlobalState) -> None:
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [global_state.new_bitvec("return_data", 256)]
+        return_data = [global_state.new_bitvec("return_data", 8)]
         try:
             return_data = state.memory[
                 util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
@@ -1287,7 +1282,11 @@ class Instruction:
 
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = memory_out_size.as_long()
+                mem_out_sz = (
+                    memory_out_size
+                    if type(memory_out_size) == int
+                    else memory_out_size.as_long()
+                )
             except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
@@ -1312,7 +1311,7 @@ class Instruction:
                         + "("
                         + str(call_data)
                         + ")",
-                        256,
+                        8,
                     )
                 return [global_state]
 
@@ -1320,7 +1319,6 @@ class Instruction:
                 min(len(data), mem_out_sz)
             ):  # If more data is used then it's chopped off
                 global_state.mstate.memory[mem_out_start + i] = data[i]
-
             # TODO: maybe use BitVec here constrained to 1
             return [global_state]
 
