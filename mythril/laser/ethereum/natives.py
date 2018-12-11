@@ -8,7 +8,7 @@ from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
-from mythril.laser.ethereum.state.calldata import BaseCalldata
+from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
 from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
 from z3 import Concat, simplify
 
@@ -96,10 +96,9 @@ def native_contracts(address: int, data: BaseCalldata):
     """
     functions = (ecrecover, sha256, ripemd160, identity)
 
-    try:
-        data = [get_concrete_int(e) for e in data._calldata]
-    except TypeError:
-        # Symbolic calldata
-        data = data._calldata
+    if isinstance(data, ConcreteCalldata):
+        data = data.concrete(None)
+    else:
+        raise NativeContractException()
 
     return functions[address - 1](data)

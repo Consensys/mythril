@@ -29,7 +29,7 @@ def _analyze_state(state):
     try:
         constraints = node.constraints
         transaction_sequence = solver.get_transaction_sequence(
-            state, constraints + [UGT(gas, 2300)]
+            state, constraints + [UGT(gas, BitVecVal(2300, 256))]
         )
 
         # Check whether we can also set the callee address

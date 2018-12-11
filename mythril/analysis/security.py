@@ -16,9 +16,9 @@ def reset_callback_modules():
         module.detector._issues = []
 
 
-def get_detection_module_hooks():
+def get_detection_module_hooks(modules):
     hook_dict = defaultdict(list)
-    _modules = get_detection_modules(entrypoint="callback")
+    _modules = get_detection_modules(entrypoint="callback", include_modules=modules)
     for module in _modules:
         for op_code in map(lambda x: x.upper(), module.detector.hooks):
             if op_code in OPCODE_LIST:

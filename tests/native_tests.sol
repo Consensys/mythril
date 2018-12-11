@@ -14,11 +14,15 @@ contract Caller {
     constructor (address addr) public {
         fixedAddress = addr;
     }
+    /*
+    // Commented out because this causes laser to enter an infinite loop... :/
+    // It sets the free memory pointer to a symbolic value, and things break
 
     //some typical function as a decoy
     function thisisfine() public {
         (bool success, bytes memory mem) = fixedAddress.call("");
     }
+    */
 
     function sha256Test1() public returns (uint256) {
         uint256 i;

@@ -1,6 +1,9 @@
 import pytest
+from z3 import BitVec, simplify
+
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
+from mythril.laser.ethereum.state.memory import Memory
 
 memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
 
@@ -11,7 +14,8 @@ memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
 def test_memory_extension(initial_size, start, extension_size):
     # Arrange
     machine_state = MachineState(gas_limit=8000000)
-    machine_state.memory = [0] * initial_size
+    machine_state.memory = Memory()
+    machine_state.memory.extend(initial_size)
 
     # Act
     machine_state.mem_extend(start, extension_size)
@@ -81,18 +85,39 @@ def test_stack_single_pop():
     assert isinstance(result, int)
 
 
-memory_write_test_data = [(5, 10, [1, 2, 3]), (0, 0, [3, 4]), (20, 1, [2, 4, 10])]
-
-
-@pytest.mark.parametrize("initial_size, memory_offset, data", memory_write_test_data)
-def test_memory_write(initial_size, memory_offset, data):
+def test_memory_zeroed():
     # Arrange
-    machine_state = MachineState(8000000)
-    machine_state.memory = [0] * initial_size
+    mem = Memory()
+    mem.extend(2000 + 32)
 
     # Act
-    machine_state.memory_write(memory_offset, data)
+    mem[11] = 10
+    mem.write_word_at(2000, 0x12345)
 
     # Assert
-    assert len(machine_state.memory) == max(initial_size, memory_offset + len(data))
-    assert machine_state.memory[memory_offset : memory_offset + len(data)] == data
+    assert mem[10] == 0
+    assert mem[100] == 0
+    assert mem.get_word_at(1000) == 0
+
+
+def test_memory_write():
+    # Arrange
+    mem = Memory()
+    mem.extend(200 + 32)
+
+    a = BitVec("a", 256)
+    b = BitVec("b", 8)
+
+    # Act
+    mem[11] = 10
+    mem[12] = b
+    mem.write_word_at(200, 0x12345)
+    mem.write_word_at(100, a)
+
+    # Assert
+    assert mem[0] == 0
+    assert mem[11] == 10
+    assert mem[200 + 31] == 0x45
+    assert mem.get_word_at(200) == 0x12345
+    assert simplify(a == mem.get_word_at(100))
+    assert simplify(b == mem[12])
