@@ -109,6 +109,6 @@ class Memory:
         else:
             if isinstance(value, int):
                 assert 0 <= value <= 0xFF
-            # if isinstance(value, BitVec):
-            #     assert value.size() == 8
+            if isinstance(value, BitVec):
+                assert value.size() == 8
             self._memory[key] = value
