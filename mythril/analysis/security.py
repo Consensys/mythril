@@ -5,6 +5,7 @@ import pkgutil
 import importlib.util
 import logging
 
+log = logging.getLogger(__name__)
 
 OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 
@@ -27,7 +28,7 @@ def get_detection_module_hooks(modules):
                 for actual_hook in to_register:
                     hook_dict[actual_hook].append(module.detector.execute)
             else:
-                logging.error(
+                log.error(
                     "Encountered invalid hook opcode %s in module %s",
                     op_code,
                     module.detector.name,
@@ -54,24 +55,24 @@ def get_detection_modules(entrypoint, include_modules=()):
             if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
                 _modules.append(module)
 
-    logging.info("Found %s detection modules", len(_modules))
+    log.info("Found %s detection modules", len(_modules))
     return _modules
 
 
 def fire_lasers(statespace, module_names=()):
-    logging.info("Starting analysis")
+    log.info("Starting analysis")
 
     issues = []
     for module in get_detection_modules(
         entrypoint="post", include_modules=module_names
     ):
-        logging.info("Executing " + module.detector.name)
+        log.info("Executing " + module.detector.name)
         issues += module.detector.execute(statespace)
 
     for module in get_detection_modules(
         entrypoint="callback", include_modules=module_names
     ):
-        logging.debug("Retrieving results for " + module.detector.name)
+        log.debug("Retrieving results for " + module.detector.name)
         issues += module.detector.issues
 
     reset_callback_modules()

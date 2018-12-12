@@ -35,7 +35,7 @@ from mythril.analysis.security import fire_lasers
 from mythril.analysis.report import Report
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
-# logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 
 
 class Mythril(object):
@@ -119,7 +119,7 @@ class Mythril(object):
 
         if not os.path.exists(mythril_dir):
             # Initialize data directory
-            logging.info("Creating mythril data directory")
+            log.info("Creating mythril data directory")
             os.mkdir(mythril_dir)
 
         db_path = str(Path(mythril_dir) / "signatures.db")
@@ -154,7 +154,7 @@ class Mythril(object):
         leveldb_fallback_dir = os.path.join(leveldb_fallback_dir, "geth", "chaindata")
 
         if not os.path.exists(self.config_path):
-            logging.info("No config file found. Creating default: " + self.config_path)
+            log.info("No config file found. Creating default: " + self.config_path)
             open(self.config_path, "a").close()
 
         config = ConfigParser(allow_no_value=True)
@@ -226,12 +226,12 @@ class Mythril(object):
                 "Could not extract solc version from string {}".format(main_version)
             )
         if version == main_version_number:
-            logging.info("Given version matches installed version")
+            log.info("Given version matches installed version")
             solc_binary = os.environ.get("SOLC") or "solc"
         else:
             solc_binary = util.solc_exists(version)
             if solc_binary:
-                logging.info("Given version is already installed")
+                log.info("Given version is already installed")
             else:
                 try:
                     solc.install_solc("v" + version)
@@ -243,7 +243,7 @@ class Mythril(object):
                         "There was an error when trying to install the specified solc version"
                     )
 
-            logging.info("Setting the compiler to %s", solc_binary)
+            log.info("Setting the compiler to %s", solc_binary)
 
         return solc_binary
 
@@ -254,7 +254,7 @@ class Mythril(object):
 
     def set_api_rpc_infura(self):
         self.eth = EthJsonRpc("mainnet.infura.io", 443, True)
-        logging.info("Using INFURA for RPC queries")
+        log.info("Using INFURA for RPC queries")
 
     def set_api_rpc(self, rpc=None, rpctls=False):
         if rpc == "ganache":
@@ -274,13 +274,13 @@ class Mythril(object):
 
         if rpcconfig:
             self.eth = EthJsonRpc(rpcconfig[0], int(rpcconfig[1]), rpcconfig[2])
-            logging.info("Using RPC settings: %s" % str(rpcconfig))
+            log.info("Using RPC settings: %s" % str(rpcconfig))
         else:
             raise CriticalError("Invalid RPC settings, check help for details.")
 
     def set_api_rpc_localhost(self):
         self.eth = EthJsonRpc("localhost", 8545)
-        logging.info("Using default RPC settings: http://localhost:8545")
+        log.info("Using default RPC settings: http://localhost:8545")
 
     def set_api_from_config_path(self):
         config = ConfigParser(allow_no_value=False)
@@ -408,7 +408,7 @@ class Mythril(object):
             except CompilerError as e:
                 raise CriticalError(e)
             except NoContractFoundError:
-                logging.error(
+                log.error(
                     "The file " + file + " does not contain a compilable contract."
                 )
 

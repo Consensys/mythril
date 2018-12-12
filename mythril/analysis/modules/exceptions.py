@@ -6,6 +6,9 @@ from mythril.analysis.modules.base import DetectionModule
 import logging
 
 
+log = logging.getLogger(__name__)
+
+
 class ReachableExceptionsModule(DetectionModule):
     def __init__(self):
         super().__init__(
@@ -17,7 +20,7 @@ class ReachableExceptionsModule(DetectionModule):
 
     def execute(self, statespace):
 
-        logging.debug("Executing module: EXCEPTIONS")
+        log.debug("Executing module: EXCEPTIONS")
 
         issues = []
 
@@ -65,7 +68,7 @@ class ReachableExceptionsModule(DetectionModule):
                         )
 
                     except UnsatError:
-                        logging.debug("[EXCEPTIONS] no model found")
+                        log.debug("[EXCEPTIONS] no model found")
 
         return issues
 
