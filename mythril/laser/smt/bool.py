@@ -49,14 +49,16 @@ class Bool(Expression):
             return self.value
         else:
             return False
-            raise AttributeError("Can not evalutate symbolic bool value")
+
 
 def Or(a: Bool, b: Bool):
+    """ Create an or expression"""
     union = a.annotations + b.annotations
     return Bool(z3.Or(a.raw, b.raw), annotations=union)
 
 
 def Not(a: Bool):
+    """ Create a Not expression"""
     return Bool(z3.Not(a.raw), a.annotations)
 
 

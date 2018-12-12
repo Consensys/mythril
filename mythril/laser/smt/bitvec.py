@@ -3,6 +3,7 @@ import z3
 from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.bool import Bool
 
+from typing import Union
 # fmt: off
 
 
@@ -30,7 +31,7 @@ class BitVec(Expression):
         assert isinstance(self.raw, z3.BitVecNumRef)
         return self.raw.as_long()
 
-    def __add__(self, other) -> "BV":
+    def __add__(self, other) -> "BitVec":
         """ Create an addition expression """
         if isinstance(other, int):
             return BitVec(self.raw + other, annotations=self.annotations)
@@ -38,46 +39,48 @@ class BitVec(Expression):
         union = self.annotations + other.annotations
         return BitVec(self.raw + other.raw, annotations=union)
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "BitVec":
         """ Create a subtraction expression """
+
         if isinstance(other, int):
             return BitVec(self.raw - other, annotations=self.annotations)
+
         union = self.annotations + other.annotations
         return BitVec(self.raw - other.raw, annotations=union)
 
-    def __mul__(self, other: "BV") -> "BV":
+    def __mul__(self, other) -> "BitVec":
         """ Create a multiplication expression """
         union = self.annotations + other.annotations
         return BitVec(self.raw * other.raw, annotations=union)
 
-    def __truediv__(self, other: "BV") -> "BV":
+    def __truediv__(self, other) -> "BitVec":
         """ Create a signed division expression """
         union = self.annotations + other.annotations
         return BitVec(self.raw / other.raw, annotations=union)
 
-    def __and__(self, other: "BV") -> "BV":
+    def __and__(self, other) -> "BitVec":
         """ Create an and expression """
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, 256))
         union = self.annotations + other.annotations
         return BitVec(self.raw & other.raw, annotations=union)
 
-    def __or__(self, other: "BV") -> "BV":
+    def __or__(self, other) -> "BitVec":
         """ Create an or expression """
         union = self.annotations + other.annotations
         return BitVec(self.raw | other.raw, annotations=union)
 
-    def __xor__(self, other: "BV") -> "BV":
+    def __xor__(self, other) -> "BitVec":
         """ Create a xor expression """
         union = self.annotations + other.annotations
         return BitVec(self.raw ^ other.raw, annotations=union)
 
-    def __lt__(self, other: "BV") -> Bool:
+    def __lt__(self, other) -> Bool:
         """ Create a signed less than expression """
         union = self.annotations + other.annotations
         return Bool(self.raw < other.raw, annotations=union)
 
-    def __gt__(self, other: "BV") -> Bool:
+    def __gt__(self, other) -> Bool:
         """ Create a signed greater than expression """
         union = self.annotations + other.annotations
         return Bool(self.raw > other.raw, annotations=union)
@@ -174,18 +177,30 @@ def Sum(*args) -> BitVec:
     return BitVec(nraw, annotations)
 
 
-def BVAddNoOverflow(a: BitVec, b: BitVec, signed: bool) -> Bool:
+def BVAddNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
+    """Creates predicate that verifies that the addition doesn't overflow"""
+    if not isinstance(a, Expression):
+        a = BitVec(z3.BitVecVal(a, 256))
+    if not isinstance(b, Expression):
+        b = BitVec(z3.BitVecVal(b, 256))
     return Bool(z3.BVAddNoOverflow(a.raw, b.raw, signed))
 
 
-def BVMulNoOverflow(a: BitVec, b: BitVec, signed: bool) -> Bool:
+def BVMulNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
+    """Creates predicate that verifies that the multiplication doesn't overflow"""
+    if not isinstance(a, Expression):
+        a = BitVec(z3.BitVecVal(a, 256))
+    if not isinstance(b, Expression):
+        b = BitVec(z3.BitVecVal(b, 256))
     return Bool(z3.BVMulNoOverflow(a.raw, b.raw, signed))
 
 
-def BVSubNoUnderflow(a: BitVec, b: BitVec, signed: bool) -> Bool:
+def BVSubNoUnderflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
+    """Creates predicate that verifies that the subtraction doesn't overflow"""
     if not isinstance(a, Expression):
         a = BitVec(z3.BitVecVal(a, 256))
     if not isinstance(b, Expression):
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
+
