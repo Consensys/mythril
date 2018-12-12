@@ -198,6 +198,10 @@ class Instruction:
             op2 = If(
                 op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
+        if not isinstance(op1, Expression):
+            op1 = symbol_factory.BitVecVal(op1, 256)
+        if not isinstance(op2, Expression):
+            op2 = symbol_factory.BitVecVal(op2, 256)
         stack.append(op1 & op2)
 
         return [global_state]
@@ -1298,7 +1302,7 @@ class Instruction:
 
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = memory_out_size.as_long()
+                mem_out_sz = helper.get_concrete_int(memory_out_size)
             except TypeError:
                 logging.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
