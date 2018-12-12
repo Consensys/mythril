@@ -83,7 +83,6 @@ def get_concrete_int(item: Union[int, Expression]) -> int:
 
 
 def concrete_int_from_bytes(concrete_bytes: bytes, start_index: int) -> int:
-
     concrete_bytes = [
         byte.value if isinstance(byte, BitVec) and not byte.symbolic else byte
         for byte in concrete_bytes

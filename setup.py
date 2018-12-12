@@ -74,6 +74,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     install_requires=[
         "coloredlogs>=10.0",
+        "py_ecc==1.4.2",
         "ethereum>=2.3.2",
         "z3-solver>=4.8.0.0",
         "requests",

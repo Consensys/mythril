@@ -1,6 +1,7 @@
 coloredlogs>=10.0
 configparser>=3.5.0
 coverage
+py_ecc==1.4.2
 eth_abi==1.3.0
 eth-account>=0.1.0a2
 ethereum>=2.3.2

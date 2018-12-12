@@ -9,6 +9,8 @@ from mythril.laser.smt import symbol_factory, UGT, Sum, BVAddNoOverflow
 import logging
 from copy import copy
 
+log = logging.getLogger(__name__)
+
 DESCRIPTION = """
 
 Search for cases where Ether can be withdrawn to a user-specified address. 
@@ -68,7 +70,7 @@ def _analyze_state(state):
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
     except UnsatError:
-        logging.debug("[ETHER_THIEF] no model found")
+        log.debug("[ETHER_THIEF] no model found")
         return []
 
     return [issue]

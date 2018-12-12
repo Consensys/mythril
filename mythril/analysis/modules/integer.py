@@ -18,6 +18,9 @@ import copy
 import logging
 
 
+log = logging.getLogger(__name__)
+
+
 class IntegerOverflowUnderflowModule(DetectionModule):
     def __init__(self):
         super().__init__(
@@ -37,7 +40,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :param statespace: Statespace to analyse
         :return: Found issues
         """
-        logging.debug("Executing module: INTEGER")
+        log.debug("Executing module: INTEGER")
 
         issues = []
 
@@ -96,7 +99,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         model = self._try_constraints(node.constraints, [constraint])
 
         if model is None:
-            logging.debug("[INTEGER_OVERFLOW] no model found")
+            log.debug("[INTEGER_OVERFLOW] no model found")
             return issues
 
         # Build issue
@@ -177,7 +180,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             if type(op0) == int and type(op1) == int:
                 return []
 
-            logging.debug(
+            log.debug(
                 "[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(
                     str(op0), str(op1), str(instruction["address"])
                 )
@@ -222,7 +225,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     issues.append(issue)
 
                 except UnsatError:
-                    logging.debug("[INTEGER_UNDERFLOW] no model found")
+                    log.debug("[INTEGER_UNDERFLOW] no model found")
         return issues
 
     def _check_usage(self, state, taint_result):
@@ -273,7 +276,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if constraint is None:
             constraint = []
 
-        logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
+        log.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
 
         if taint_result is None:
             state = node.states[index]

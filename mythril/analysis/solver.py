@@ -6,6 +6,8 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 import logging
 
+log = logging.getLogger(__name__)
+
 
 def get_model(constraints, minimize=(), maximize=()):
     s = Optimize()
@@ -28,7 +30,7 @@ def get_model(constraints, minimize=(), maximize=()):
     if result == sat:
         return s.model()
     elif result == unknown:
-        logging.debug("Timeout encountered while solving expression using z3")
+        log.debug("Timeout encountered while solving expression using z3")
     raise UnsatError
 
 
@@ -77,7 +79,6 @@ def get_transaction_sequence(global_state, constraints):
     minimize = []
 
     transactions = []
-    model = None
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
@@ -93,16 +94,10 @@ def get_transaction_sequence(global_state, constraints):
 
             concrete_transactions[tx_id] = tx_template.copy()
 
-            try:
-                model = get_model(tx_constraints, minimize=minimize)
-                break
-            except UnsatError:
-                continue
         else:
             creation_tx_ids.append(tx_id)
 
-    if model is None:
-        model = get_model(tx_constraints, minimize=minimize)
+    model = get_model(tx_constraints, minimize=minimize)
 
     for transaction in transactions:
         tx_id = str(transaction.id)

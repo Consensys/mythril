@@ -6,6 +6,8 @@ from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 
+log = logging.getLogger(__name__)
+
 DESCRIPTION = """
 Check if the contact can be 'accidentally' killed by anyone.
 For kill-able contracts, also check whether it is possible to direct the contract balance to the attacker.
@@ -13,12 +15,12 @@ For kill-able contracts, also check whether it is possible to direct the contrac
 
 
 def _analyze_state(state):
-    logging.info("Suicide module: Analyzing suicide instruction")
+    log.info("Suicide module: Analyzing suicide instruction")
     node = state.node
     instruction = state.get_current_instruction()
     to = state.mstate.stack[-1]
 
-    logging.debug("[SUICIDE] SUICIDE in function " + node.function_name)
+    log.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
     try:
         try:
@@ -51,7 +53,7 @@ def _analyze_state(state):
         )
         return [issue]
     except UnsatError:
-        logging.info("[UNCHECKED_SUICIDE] no model found")
+        log.info("[UNCHECKED_SUICIDE] no model found")
 
     return []
 
