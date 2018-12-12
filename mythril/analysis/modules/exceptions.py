@@ -44,7 +44,7 @@ def _analyze_state(state) -> list:
         return [issue]
 
     except UnsatError:
-        log.debug("[EXCEPTIONS] no model found")
+        log.debug("no model found")
 
     return []
 
