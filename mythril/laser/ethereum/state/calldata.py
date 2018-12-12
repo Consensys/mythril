@@ -92,7 +92,13 @@ class ConcreteCalldata(BaseCalldata):
         self._concrete_calldata = calldata
         self._calldata = K(256, 8, 0)
         for i, element in enumerate(calldata, 0):
-            self._calldata[i] = element
+            element = (
+                symbol_factory.BitVecVal(element, 8)
+                if isinstance(element, int)
+                else element
+            )
+            self._calldata[symbol_factory.BitVecVal(i, 256)] = element
+
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, Expression]) -> BitVec:
