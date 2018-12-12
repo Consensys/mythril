@@ -68,4 +68,5 @@ class ReachableExceptionsModule(DetectionModule):
     def issues(self) -> list:
         return self._issues
 
+
 detector = ReachableExceptionsModule()
