@@ -1,7 +1,6 @@
 import pytest
 from mythril.laser.ethereum.state.account import Storage
-from z3 import ExprRef
-
+from mythril.laser.smt import Expression
 storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
 
 
@@ -28,7 +27,7 @@ def test_symbolic_storage_uninitialized_index(initial_storage, key):
     value = storage[key]
 
     # Assert
-    assert isinstance(value, ExprRef)
+    assert isinstance(value, Expression)
 
 
 def test_storage_set_item():
