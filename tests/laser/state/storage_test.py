@@ -1,6 +1,7 @@
 import pytest
 from mythril.laser.ethereum.state.account import Storage
 from mythril.laser.smt import Expression
+
 storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
 
 

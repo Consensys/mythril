@@ -87,4 +87,7 @@ class _Z3SymbolFactory(SymbolFactory):
 
 
 # This is the instance that other parts of mythril should use
-symbol_factory: SymbolFactory = _SmtSymbolFactory()
+
+# Type hints are not allowed here in 3.5
+# symbol_factory: SymbolFactory = _SmtSymbolFactory()
+symbol_factory = _SmtSymbolFactory()
