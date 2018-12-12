@@ -17,7 +17,7 @@ class BaseArray:
 
     def __setitem__(self, key: BitVec, value: BitVec):
         """ Sets an item in the array, key can be symbolic"""
-        self.raw = z3.Store(self.raw, key, value)
+        self.raw = z3.Store(self.raw, key.raw, value.raw)
 
 
 class Array(BaseArray):
