@@ -188,12 +188,9 @@ def solve(call: Call) -> bool:
         log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
         pretty_model = solver.pretty_print_model(model)
 
-        log.debug(
-            "[DEPENDENCE_ON_PREDICTABLE_VARS] main model: \n%s" % pretty_model
-        )
+        log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] main model: \n%s" % pretty_model)
         return True
 
     except UnsatError:
         log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] no model found")
         return False
-
