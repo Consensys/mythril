@@ -14,6 +14,8 @@ from mythril.analysis.report import Report
 from mythril.ethereum import util
 from mythril.laser.ethereum.util import get_instruction_index
 
+log = logging.getLogger(__name__)
+
 
 def analyze_truffle_project(sigs, args):
 
@@ -105,7 +107,7 @@ def analyze_truffle_project(sigs, args):
                             ].decode("utf-8")
                             issue.lineno = mappings[index].lineno
                         except IndexError:
-                            logging.debug("No code mapping at index %d", index)
+                            log.debug("No code mapping at index %d", index)
 
                     report.append_issue(issue)
 

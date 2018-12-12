@@ -12,6 +12,8 @@ from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
 from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
 from z3 import Concat, simplify
 
+log = logging.getLogger(__name__)
+
 
 class NativeContractException(Exception):
     pass
@@ -51,7 +53,7 @@ def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
     try:
         pub = ecrecover_to_pub(message, v, r, s)
     except Exception as e:
-        logging.debug("An error has occured while extracting public key: " + e)
+        log.debug("An error has occured while extracting public key: " + e)
         return []
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
     return o

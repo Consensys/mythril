@@ -15,6 +15,8 @@ from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
 
 
+log = logging.getLogger(__name__)
+
 lock = multiprocessing.Lock()
 
 
@@ -90,7 +92,7 @@ class SignatureDB(object, metaclass=Singleton):
             )
         self.path = os.path.join(self.path, "signatures.db")
 
-        logging.info("Using signature database at %s", self.path)
+        log.info("Using signature database at %s", self.path)
         # NOTE: Creates a new DB file if it doesn't exist already
         with SQLiteDB(self.path) as cur:
             cur.execute(
@@ -185,7 +187,7 @@ class SignatureDB(object, metaclass=Singleton):
         except FourByteDirectoryOnlineLookupError as fbdole:
             # wait at least 2 mins to try again
             self.online_lookup_timeout = time.time() + 2 * 60
-            logging.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
+            log.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
             return []
 
     def import_solidity_file(
@@ -226,8 +228,7 @@ class SignatureDB(object, metaclass=Singleton):
                 solc_bytes = "0x" + line.split(":")[0]
                 solc_text = line.split(":")[1].strip()
                 self.solidity_sigs[solc_bytes].append(solc_text)
-
-        logging.debug(
+        log.debug(
             "Signatures: found %d signatures after parsing" % len(self.solidity_sigs)
         )
 

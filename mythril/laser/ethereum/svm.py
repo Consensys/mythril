@@ -25,6 +25,8 @@ from mythril.laser.ethereum.transaction import (
 from functools import reduce
 from mythril.laser.ethereum.evm_exceptions import VmException
 
+log = logging.getLogger(__name__)
+
 
 class SVMError(Exception):
     pass
@@ -76,9 +78,7 @@ class LaserEVM:
         self.pre_hooks = defaultdict(list)
         self.post_hooks = defaultdict(list)
 
-        logging.info(
-            "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
-        )
+        log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
         if hook_type == "pre":
@@ -100,33 +100,33 @@ class LaserEVM:
     def sym_exec(
         self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
-        logging.debug("Starting LASER execution")
+        log.debug("Starting LASER execution")
         self.time = datetime.now()
 
         if main_address:
-            logging.info("Starting message call transaction to {}".format(main_address))
+            log.info("Starting message call transaction to {}".format(main_address))
             self._execute_transactions(main_address)
 
         elif creation_code:
-            logging.info("Starting contract creation transaction")
+            log.info("Starting contract creation transaction")
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
             )
-            logging.info(
+            log.info(
                 "Finished contract creation, found {} open states".format(
                     len(self.open_states)
                 )
             )
             if len(self.open_states) == 0:
-                logging.warning(
+                log.warning(
                     "No contract was created during the execution of contract creation "
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
 
             self._execute_transactions(created_account.address)
 
-        logging.info("Finished symbolic execution")
-        logging.info(
+        log.info("Finished symbolic execution")
+        log.info(
             "%d nodes, %d edges, %d total states",
             len(self.nodes),
             len(self.edges),
@@ -138,7 +138,7 @@ class LaserEVM:
                 / float(coverage[0])
                 * 100
             )
-            logging.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
+            log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
     def _execute_transactions(self, address):
         """
@@ -151,13 +151,13 @@ class LaserEVM:
             initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
-            logging.info("Starting message call transaction, iteration: {}".format(i))
+            log.info("Starting message call transaction, iteration: {}".format(i))
 
             execute_message_call(self, address)
 
             end_coverage = self._get_covered_instructions()
 
-            logging.info(
+            log.info(
                 "Number of new instructions covered in tx %d: %d"
                 % (i, end_coverage - initial_coverage)
             )
@@ -187,7 +187,7 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.debug("Encountered unimplemented instruction")
+                log.debug("Encountered unimplemented instruction")
                 continue
             self.manage_cfg(op_code, new_states)
 
@@ -222,9 +222,7 @@ class LaserEVM:
                 # In this case we don't put an unmodified world state in the open_states list Since in the case of an
                 #  exceptional halt all changes should be discarded, and this world state would not provide us with a
                 #  previously unseen world state
-                logging.debug(
-                    "Encountered a VmException, ending path: `{}`".format(str(e))
-                )
+                log.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
@@ -388,7 +386,7 @@ class LaserEVM:
             ]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            logging.debug(
+            log.debug(
                 "- Entering function "
                 + environment.active_account.contract_name
                 + ":"

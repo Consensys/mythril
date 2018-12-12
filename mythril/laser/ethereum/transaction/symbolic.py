@@ -1,5 +1,5 @@
 from z3 import BitVec, BitVecVal
-from logging import debug
+import logging
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
@@ -15,6 +15,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     get_next_transaction_id,
 )
 
+log = logging.getLogger(__name__)
 
 CREATOR_ADDRESS = 0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE
 ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
@@ -28,7 +29,7 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
 
     for open_world_state in open_states:
         if open_world_state[callee_address].deleted:
-            debug("Can not execute dead contract, skipping.")
+            log.debug("Can not execute dead contract, skipping.")
             continue
 
         next_transaction_id = get_next_transaction_id()
