@@ -4,6 +4,7 @@ from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.bool import Bool
 
 from typing import Union
+
 # fmt: off
 
 
@@ -203,4 +204,3 @@ def BVSubNoUnderflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool)
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
-

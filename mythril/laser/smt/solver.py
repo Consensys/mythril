@@ -32,25 +32,35 @@ class Solver:
         self.raw.add(constraints)
 
     def check(self):
+        """ Returns z3 smt check result"""
         return self.raw.check()
 
     def model(self):
+        """ Returns z3 model for a solution"""
         return self.raw.model()
 
     def reset(self) -> None:
+        """ Resets this solver """
         self.raw.reset()
 
     def pop(self, num) -> None:
+        """ Pop num constraints from this solver """
         self.raw.pop(num)
 
 
 class Optimize(Solver):
+    """
+    An optimizing smt solver
+    """
+
     def __init__(self):
         super().__init__()
         self.raw = z3.Optimize()
 
     def minimize(self, element: Expression):
+        """ In solving this solver will try to minimize the passed expression """
         self.raw.minimize(element.raw)
 
     def maximize(self, element: Expression):
+        """ In solving this solver will try to maximize the passed expression """
         self.raw.maximize(element.raw)
