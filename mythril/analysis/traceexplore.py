@@ -1,4 +1,5 @@
-from z3 import Z3Exception, simplify
+from z3 import Z3Exception
+from mythril.laser.smt import simplify
 from mythril.laser.ethereum.svm import NodeFlags
 import re
 
