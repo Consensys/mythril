@@ -11,6 +11,8 @@ from .exceptions import (
 )
 from .base_client import BaseClient
 
+log = logging.getLogger(__name__)
+
 GETH_DEFAULT_RPC_PORT = 8545
 ETH_DEFAULT_RPC_PORT = 8545
 PARITY_DEFAULT_RPC_PORT = 8545
@@ -44,7 +46,7 @@ class EthJsonRpc(BaseClient):
             scheme += "s"
         url = "{}://{}:{}".format(scheme, self.host, self.port)
         headers = {"Content-Type": JSON_MEDIA_TYPE}
-        logging.debug("rpc send: %s" % json.dumps(data))
+        log.debug("rpc send: %s" % json.dumps(data))
         try:
             r = self.session.post(url, headers=headers, data=json.dumps(data))
         except RequestsConnectionError:
@@ -53,7 +55,7 @@ class EthJsonRpc(BaseClient):
             raise BadStatusCodeError(r.status_code)
         try:
             response = r.json()
-            logging.debug("rpc response: %s" % response)
+            log.debug("rpc response: %s" % response)
         except ValueError:
             raise BadJsonError(r.text)
         try:

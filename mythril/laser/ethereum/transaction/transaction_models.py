@@ -1,4 +1,3 @@
-import logging
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.environment import Environment

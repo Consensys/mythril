@@ -17,6 +17,8 @@ This module contains the business logic used by Instruction in instructions.py
 to get the necessary elements from the stack and determine the parameters for the new global state.
 """
 
+log = logging.getLogger(__name__)
+
 
 def get_call_parameters(
     global_state: GlobalState, dynamic_loader: DynLoader, with_value=False
@@ -74,16 +76,16 @@ def get_callee_address(
     try:
         callee_address = hex(util.get_concrete_int(symbolic_to_address))
     except TypeError:
-        logging.debug("Symbolic call encountered")
+        log.debug("Symbolic call encountered")
 
         match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
-        logging.debug("CALL to: " + str(simplify(symbolic_to_address)))
+        log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
             raise ValueError()
 
         index = int(match.group(1))
-        logging.debug("Dynamic contract address at storage index {}".format(index))
+        log.debug("Dynamic contract address at storage index {}".format(index))
 
         # attempt to read the contract address from instance storage
         try:
@@ -92,7 +94,7 @@ def get_callee_address(
             )
         # TODO: verify whether this happens or not
         except:
-            logging.debug("Error accessing contract storage.")
+            log.debug("Error accessing contract storage.")
             raise ValueError
 
         # testrpc simply returns the address, geth response is more elaborate.
@@ -119,22 +121,22 @@ def get_callee_account(
         return global_state.accounts[callee_address]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
-        logging.debug("Module with address " + callee_address + " not loaded.")
+        log.debug("Module with address " + callee_address + " not loaded.")
 
     if dynamic_loader is None:
         raise ValueError()
 
-    logging.debug("Attempting to load dependency")
+    log.debug("Attempting to load dependency")
 
     try:
         code = dynamic_loader.dynld(environment.active_account.address, callee_address)
     except ValueError as error:
-        logging.debug("Unable to execute dynamic loader because: {}".format(str(error)))
+        log.debug("Unable to execute dynamic loader because: {}".format(str(error)))
         raise error
     if code is None:
-        logging.debug("No code returned, not a contract account?")
+        log.debug("No code returned, not a contract account?")
         raise ValueError()
-    logging.debug("Dependency loaded: " + callee_address)
+    log.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(
         callee_address, code, callee_address, dynamic_loader=dynamic_loader
@@ -159,30 +161,18 @@ def get_call_data(
     state = global_state.mstate
     transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
     try:
-        # TODO: This only allows for either fully concrete or fully symbolic calldata.
-        # Improve management of memory and callata to support a mix between both types.
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
                 memory_start + memory_size
             )
         ]
         i = 0
-        starting_calldata = []
-        while i < len(calldata_from_mem):
-            elem = calldata_from_mem[i]
-            if isinstance(elem, int):
-                starting_calldata.append(elem)
-                i += 1
-            else:  # BitVec
-                for j in range(0, elem.size(), 8):
-                    starting_calldata.append(Extract(j + 7, j, elem))
-                    i += 1
 
-        call_data = ConcreteCalldata(transaction_id, starting_calldata)
+        call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
         call_data_type = CalldataType.CONCRETE
-        logging.debug("Calldata: " + str(call_data))
+        log.debug("Calldata: " + str(call_data))
     except TypeError:
-        logging.debug("Unsupported symbolic calldata offset")
+        log.debug("Unsupported symbolic calldata offset")
         call_data_type = CalldataType.SYMBOLIC
         call_data = SymbolicCalldata("{}_internalcall".format(transaction_id))
 

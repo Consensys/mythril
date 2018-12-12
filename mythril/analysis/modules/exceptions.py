@@ -7,12 +7,14 @@ import logging
 
 from mythril.laser.ethereum.state.global_state import GlobalState
 
+log = logging.getLogger(__name__)
+
 
 def _analyze_state(state) -> list:
-    logging.info("Exceptions module: found ASSERT_FAIL instruction")
+    log.info("Exceptions module: found ASSERT_FAIL instruction")
     node = state.node
 
-    logging.debug("ASSERT_FAIL in function " + node.function_name)
+    log.debug("ASSERT_FAIL in function " + node.function_name)
 
     try:
         address = state.get_current_instruction()["address"]
@@ -42,7 +44,7 @@ def _analyze_state(state) -> list:
         return [issue]
 
     except UnsatError:
-        logging.debug("[EXCEPTIONS] no model found")
+        log.debug("[EXCEPTIONS] no model found")
 
     return []
 
@@ -65,6 +67,5 @@ class ReachableExceptionsModule(DetectionModule):
     @property
     def issues(self) -> list:
         return self._issues
-
 
 detector = ReachableExceptionsModule()
