@@ -1,5 +1,4 @@
 import re
-from z3 import *
 from mythril.analysis.ops import VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue

@@ -3,7 +3,6 @@ from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
 from mythril.analysis.ops import get_variable, VarType
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
-import logging
 
 
 class DelegateCallModule(DetectionModule):

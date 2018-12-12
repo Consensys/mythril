@@ -1,12 +1,12 @@
-from z3 import *
 from mythril.analysis import solver
-from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.analysis.modules.base import DetectionModule
-import re
+
+from mythril.laser.smt import BVAddNoOverflow, BVSubNoUnderflow, BVMulNoOverflow, BitVec, symbol_factory, Not
+
 import copy
 import logging
 
@@ -64,15 +64,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
         # Do a type check
-        allowed_types = [int, BitVecRef, BitVecNumRef]
+        allowed_types = [int, BitVec]
         if not (type(op0) in allowed_types and type(op1) in allowed_types):
             return issues
 
         # Change ints to BitVec
         if type(op0) is int:
-            op0 = BitVecVal(op0, 256)
+            op0 = symbol_factory.BitVecVal(op0, 256)
         if type(op1) is int:
-            op1 = BitVecVal(op1, 256)
+            op1 = symbol_factory.BitVecVal(op1, 256)
 
         # Formulate expression
         # FIXME: handle exponentiation
@@ -176,7 +176,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 )
             )
 
-            allowed_types = [int, BitVecRef, BitVecNumRef]
+            allowed_types = [int, BitVec]
 
             if type(op0) in allowed_types and type(op1) in allowed_types:
                 constraints.append(Not(BVSubNoUnderflow(op0, op1, signed=False)))
