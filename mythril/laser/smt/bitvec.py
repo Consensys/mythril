@@ -13,6 +13,9 @@ class BitVec(Expression):
     def __init__(self, raw, annotations=None):
         super().__init__(raw, annotations)
 
+    def size(self):
+        return self.raw.size()
+
     @property
     def symbolic(self):
         """ Returns whether this symbol doesn't have a concrete value """
@@ -27,13 +30,18 @@ class BitVec(Expression):
         assert isinstance(self.raw, z3.BitVecNumRef)
         return self.raw.as_long()
 
-    def __add__(self, other: "BV") -> "BV":
+    def __add__(self, other) -> "BV":
         """ Create an addition expression """
+        if isinstance(other, int):
+            return BitVec(self.raw + other, annotations=self.annotations)
+
         union = self.annotations + other.annotations
         return BitVec(self.raw + other.raw, annotations=union)
 
-    def __sub__(self, other: "BV") -> "BV":
+    def __sub__(self, other):
         """ Create a subtraction expression """
+        if isinstance(other, int):
+            return BitVec(self.raw - other, annotations=self.annotations)
         union = self.annotations + other.annotations
         return BitVec(self.raw - other.raw, annotations=union)
 
@@ -70,34 +78,50 @@ class BitVec(Expression):
     def __gt__(self, other: "BV") -> Bool:
         """ Create a signed greater than expression """
         union = self.annotations + other.annotations
-        return Bool(self.raw < other.raw, annotations=union)
+        return Bool(self.raw > other.raw, annotations=union)
 
-    def __eq__(self, other: "BV") -> Bool:
+    def __eq__(self, other) -> Bool:
         """ Create an equality expression """
+        if not isinstance(other, BitVec):
+            return Bool(self.raw == other, annotations=self.annotations)
+
         union = self.annotations + other.annotations
         return Bool(self.raw == other.raw, annotations=union)
+
+    def __ne__(self, other) -> Bool:
+        """ Create an inequality expression """
+        if not isinstance(other, BitVec):
+            return Bool(self.raw != other, annotations=self.annotations)
+
+        union = self.annotations + other.annotations
+        return Bool(self.raw != other.raw, annotations=union)
 
 
 def If(a: Bool, b: BitVec, c: BitVec):
     """ Create an if-then-else expression """
     union = a.annotations + b.annotations + c.annotations
-    return BitVec(z3.If(a, b, c), union)
+    return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
 
 def UGT(a: BitVec, b: BitVec) -> Bool:
     """ Create an unsigned greater than expression """
     annotations = a.annotations + b.annotations
-    return Bool(z3.UGT(a, b), annotations)
+    return Bool(z3.UGT(a.raw, b.raw), annotations)
 
 
 def ULT(a: BitVec, b: BitVec) -> Bool:
     """ Create an unsigned less than expression """
     annotations = a.annotations + b.annotations
-    return Bool(z3.ULT(a, b), annotations)
+    return Bool(z3.ULT(a.raw, b.raw), annotations)
 
 
 def Concat(*args) -> BitVec:
     """ Create a concatenation expression """
+
+    # The following statement is used if a list is provided as an argument to concat
+    if len(args) == 1 and isinstance(args[0], list):
+        args = args[0]
+
     nraw = z3.Concat([a.raw for a in args])
     annotations = []
     for bv in args:

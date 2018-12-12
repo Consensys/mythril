@@ -10,7 +10,7 @@ from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
 from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
-from z3 import Concat, simplify
+from mythril.laser.smt import Concat, simplify
 
 
 class NativeContractException(Exception):

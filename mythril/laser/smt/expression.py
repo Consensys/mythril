@@ -30,3 +30,4 @@ class Expression:
 def simplify(expression: Expression):
     """ Simplifies the expression """
     expression.simplify()
+    return expression

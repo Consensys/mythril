@@ -14,12 +14,12 @@ class Solver:
         """ Sets the timeout that will be used by this solver"""
         self.raw.set(timeout=timeout)
 
-    def add(self, constraints: list[Bool]) -> None:
+    def add(self, constraints: list) -> None:
         """ Adds the constraints to this solver """
         constraints = [c.raw for c in constraints]
         self.raw.add(constraints)
 
-    def append(self, constraints: list[Bool]) -> None:
+    def append(self, constraints: list) -> None:
         """ Adds the constraints to this solver """
         constraints = [c.raw for c in constraints]
         self.raw.add(constraints)

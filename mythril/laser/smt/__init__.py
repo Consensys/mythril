@@ -10,7 +10,9 @@ from mythril.laser.smt.bitvec import (
     UDiv,
 )
 from mythril.laser.smt.expression import Expression, simplify
-from mythril.laser.smt.bool import Bool, is_true, is_false
+from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not
+from mythril.laser.smt.array import K, Array, BaseArray
+from mythril.laser.smt.solver import Solver
 
 import z3
 
@@ -80,4 +82,4 @@ class _Z3SymbolFactory(SymbolFactory):
 
 
 # This is the instance that other parts of mythril should use
-symbol_factory: SymbolFactory = _Z3SymbolFactory()
+symbol_factory: SymbolFactory = _SmtSymbolFactory()

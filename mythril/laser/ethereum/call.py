@@ -1,6 +1,6 @@
 import logging
 from typing import Union
-from z3 import simplify, ExprRef, Extract
+from mythril.laser.smt import simplify, Expression
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import (
@@ -60,7 +60,7 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: ExprRef
+    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: Expression
 ):
     """
     Gets the address of the callee
@@ -146,8 +146,8 @@ def get_callee_account(
 
 def get_call_data(
     global_state: GlobalState,
-    memory_start: Union[int, ExprRef],
-    memory_size: Union[int, ExprRef],
+    memory_start: Union[int, Expression],
+    memory_size: Union[int, Expression],
 ):
     """
     Gets call_data from the global_state

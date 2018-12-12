@@ -6,27 +6,25 @@ from typing import Callable, List, Union
 from functools import reduce
 
 from ethereum import utils
-from z3 import (
+
+from mythril.laser.smt import (
     Extract,
+    Expression,
     UDiv,
     simplify,
     Concat,
     ULT,
     UGT,
-    BitVecRef,
-    BitVecNumRef,
-    Not,
+    BitVec,
+    is_true,
     is_false,
-    is_expr,
-    ExprRef,
     URem,
     SRem,
-    is_true,
     If,
-    BoolRef,
+    Bool,
     Or,
+    Not,
 )
-
 from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.natives as natives
@@ -84,13 +82,13 @@ class StateTransition(object):
     @staticmethod
     def check_gas_usage_limit(global_state: GlobalState):
         global_state.mstate.check_gas()
-        if isinstance(global_state.current_transaction.gas_limit, BitVecRef):
-            try:
-                global_state.current_transaction.gas_limit = (
-                    global_state.current_transaction.gas_limit.as_long()
-                )
-            except AttributeError:
+        if isinstance(global_state.current_transaction.gas_limit, BitVec):
+            value = global_state.current_transaction.gas_limit.value
+            if value is None:
                 return
+            global_state.current_transaction.gas_limit = (
+                value
+            )
         if (
             global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
@@ -141,7 +139,7 @@ class Instruction:
             op = "swap"
         elif self.op_code.startswith("LOG"):
             op = "log"
-
+        print(global_state.get_current_instruction())
         instruction_mutator = (
             getattr(self, op + "_", None)
             if not post
@@ -195,11 +193,11 @@ class Instruction:
     def and_(self, global_state: GlobalState) -> List[GlobalState]:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
-        if type(op1) == BoolRef:
+        if isinstance(op1, Bool):
             op1 = If(
                 op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
-        if type(op2) == BoolRef:
+        if isinstance(op2, Bool):
             op2 = If(
                 op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
@@ -212,12 +210,12 @@ class Instruction:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
-        if type(op1) == BoolRef:
+        if isinstance(op1, Bool):
             op1 = If(
                 op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
 
-        if type(op2) == BoolRef:
+        if isinstance(op2, Bool):
             op2 = If(
                 op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
@@ -235,14 +233,14 @@ class Instruction:
     @StateTransition()
     def not_(self, global_state: GlobalState):
         mstate = global_state.mstate
-        mstate.stack.append(TT256M1 - mstate.stack.pop())
+        mstate.stack.append(symbol_factory.BitVecVal(TT256M1, 256) - mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
     def byte_(self, global_state: GlobalState) -> List[GlobalState]:
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
-        if not isinstance(op1, ExprRef):
+        if not isinstance(op1, Expression):
             op1 = symbol_factory.BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
@@ -363,7 +361,7 @@ class Instruction:
         state = global_state.mstate
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
-        if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
+        if base.symbolic or exponent.symbolic:
             state.stack.append(
                 global_state.new_bitvec(
                     "(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")",
@@ -372,7 +370,7 @@ class Instruction:
             )
         else:
 
-            state.stack.append(pow(base.as_long(), exponent.as_long(), 2 ** 256))
+            state.stack.append(pow(base.value, exponent.value, 2 ** 256))
 
         return [global_state]
 
@@ -409,7 +407,8 @@ class Instruction:
     @StateTransition()
     def gt_(self, global_state: GlobalState) -> List[GlobalState]:
         state = global_state.mstate
-        exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
+        op1, op2 = util.pop_bitvec(state), util.pop_bitvec(state)
+        exp = UGT(op1, op2)
         state.stack.append(exp)
         return [global_state]
 
@@ -435,12 +434,12 @@ class Instruction:
         op1 = state.stack.pop()
         op2 = state.stack.pop()
 
-        if type(op1) == BoolRef:
+        if isinstance(op1, Bool):
             op1 = If(
                 op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
 
-        if type(op2) == BoolRef:
+        if isinstance(op2, Bool):
             op2 = If(
                 op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
             )
@@ -455,7 +454,7 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = val == False if type(val) == BoolRef else val == 0
+        exp = (val == False) if isinstance(val, Bool) else val == 0
         state.stack.append(exp)
 
         return [global_state]
@@ -629,7 +628,7 @@ class Instruction:
             index, length = util.get_concrete_int(op0), util.get_concrete_int(op1)
         except TypeError:
             # Can't access symbolic memory offsets
-            if is_expr(op0):
+            if isinstance(op0, Expression):
                 op0 = simplify(op0)
             state.stack.append(
                 symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
@@ -960,7 +959,7 @@ class Instruction:
 
     @staticmethod
     def _sload_helper(
-        global_state: GlobalState, index: Union[int, ExprRef], constraints=None
+        global_state: GlobalState, index: Union[int, Expression], constraints=None
     ):
         try:
             data = global_state.environment.active_account.storage[index]
@@ -1049,7 +1048,7 @@ class Instruction:
             ] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = (
-                value if not isinstance(value, ExprRef) else simplify(value)
+                value if not isinstance(value, Expression) else simplify(value)
             )
         except KeyError:
             logging.debug("Error writing to storage: Invalid index")
@@ -1113,11 +1112,11 @@ class Instruction:
 
         # False case
         negated = (
-            simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
+            simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
 
         if (type(negated) == bool and negated) or (
-            type(negated) == BoolRef and not is_false(negated)
+            isinstance(condition, Bool) and not is_false(negated)
         ):
             new_state = copy(global_state)
             # add JUMPI gas cost
@@ -1142,10 +1141,10 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
+        condi = simplify(condition) if  isinstance(condition, Bool) else condition != 0
         if instr["opcode"] == "JUMPDEST":
             if (type(condi) == bool and condi) or (
-                type(condi) == BoolRef and not is_false(condi)
+                isinstance(condi, Bool) and not is_false(condi)
             ):
                 new_state = copy(global_state)
                 # add JUMPI gas cost
@@ -1216,8 +1215,8 @@ class Instruction:
         account_created = False
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, BitVecNumRef):
-            target = "0x" + hex(target.as_long())[-40:]
+        if isinstance(target, BitVec) and not target.symbolic:
+            target = "0x" + hex(target.value)[-40:]
         if isinstance(target, str):
             try:
                 global_state.world_state[
@@ -1385,12 +1384,12 @@ class Instruction:
         try:
             memory_out_offset = (
                 util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, ExprRef)
+                if isinstance(memory_out_offset, Expression)
                 else memory_out_offset
             )
             memory_out_size = (
                 util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, ExprRef)
+                if isinstance(memory_out_size, Expression)
                 else memory_out_size
             )
         except TypeError:
@@ -1480,12 +1479,12 @@ class Instruction:
         try:
             memory_out_offset = (
                 util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, ExprRef)
+                if isinstance(memory_out_offset, Expression)
                 else memory_out_offset
             )
             memory_out_size = (
                 util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, ExprRef)
+                if isinstance(memory_out_size, Expression)
                 else memory_out_size
             )
         except TypeError:
@@ -1574,12 +1573,12 @@ class Instruction:
         try:
             memory_out_offset = (
                 util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, ExprRef)
+                if isinstance(memory_out_offset, Expression)
                 else memory_out_offset
             )
             memory_out_size = (
                 util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, ExprRef)
+                if isinstance(memory_out_size, Expression)
                 else memory_out_size
             )
         except TypeError:

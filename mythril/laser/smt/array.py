@@ -13,7 +13,7 @@ class BaseArray:
             raise ValueError(
                 "Instance of BaseArray, does not support getitem with slices"
             )
-        return z3.Select(self.raw, item.raw)
+        return BitVec(z3.Select(self.raw, item.raw))
 
     def __setitem__(self, key: BitVec, value: BitVec):
         """ Sets an item in the array, key can be symbolic"""
