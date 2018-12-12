@@ -115,7 +115,8 @@ def get_transaction_sequence(global_state, constraints):
         )
 
         concrete_transactions[tx_id]["call_value"] = (
-            "0x%x" % model.eval(transaction.call_value.raw, model_completion=True).as_long()
+            "0x%x"
+            % model.eval(transaction.call_value.raw, model_completion=True).as_long()
         )
         concrete_transactions[tx_id]["caller"] = "0x" + (
             "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()

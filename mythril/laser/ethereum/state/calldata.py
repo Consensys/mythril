@@ -9,6 +9,7 @@ from mythril.laser.ethereum.util import get_concrete_int
 from z3 import Model
 from z3.z3types import Z3Exception
 
+
 class CalldataType(Enum):
     CONCRETE = 1
     SYMBOLIC = 2
@@ -142,22 +143,26 @@ class SymbolicCalldata(BaseCalldata):
         Initializes the SymbolicCalldata object
         :param tx_id: Id of the transaction that the calldata is for.
         """
-        self._size = BitVec(str(tx_id) + "_calldatasize", 256)
-        self._calldata = Array(
-            "{}_calldata".format(tx_id), 256, 8
-        )
+        self._size = symbol_factory.BitVecSym(str(tx_id) + "_calldatasize", 256)
+        self._calldata = Array("{}_calldata".format(tx_id), 256, 8)
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, Expression]) -> Any:
         item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
-        return simplify(If(item < self._size, simplify(self._calldata[item]), 0))
+        return simplify(
+            If(
+                item < self._size,
+                simplify(self._calldata[item]),
+                symbol_factory.BitVecVal(0, 8),
+            )
+        )
 
     def concrete(self, model: Model) -> list:
-        concrete_length = get_concrete_int(model.eval(self.size, model_completion=True))
+        concrete_length = model.eval(self.size.raw, model_completion=True).as_long()
         result = []
         for i in range(concrete_length):
             value = self._load(i)
-            c_value = get_concrete_int(model.eval(value, model_completion=True))
+            c_value = model.eval(value.raw, model_completion=True).as_long()
             result.append(c_value)
 
         return result

@@ -48,6 +48,7 @@ class Bool(Expression):
         if self.value is not None:
             return self.value
         else:
+            return False
             raise AttributeError("Can not evalutate symbolic bool value")
 
 def Or(a: Bool, b: Bool):

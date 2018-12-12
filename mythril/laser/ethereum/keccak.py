@@ -1,5 +1,6 @@
 from mythril.laser.smt import Expression
 
+
 class KeccakFunctionManager:
     def __init__(self):
         self.keccak_expression_mapping = {}

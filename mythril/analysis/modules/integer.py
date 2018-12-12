@@ -5,7 +5,14 @@ from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.analysis.modules.base import DetectionModule
 
-from mythril.laser.smt import BVAddNoOverflow, BVSubNoUnderflow, BVMulNoOverflow, BitVec, symbol_factory, Not
+from mythril.laser.smt import (
+    BVAddNoOverflow,
+    BVSubNoUnderflow,
+    BVMulNoOverflow,
+    BitVec,
+    symbol_factory,
+    Not,
+)
 
 import copy
 import logging

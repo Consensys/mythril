@@ -8,6 +8,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.smt import Expression
 
+
 class TaintRecord:
     """
     TaintRecord contains tainting information for a specific (state, node)

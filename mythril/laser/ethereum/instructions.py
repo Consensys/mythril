@@ -86,9 +86,7 @@ class StateTransition(object):
             value = global_state.current_transaction.gas_limit.value
             if value is None:
                 return
-            global_state.current_transaction.gas_limit = (
-                value
-            )
+            global_state.current_transaction.gas_limit = value
         if (
             global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
@@ -139,7 +137,6 @@ class Instruction:
             op = "swap"
         elif self.op_code.startswith("LOG"):
             op = "log"
-        print(global_state.get_current_instruction())
         instruction_mutator = (
             getattr(self, op + "_", None)
             if not post
@@ -1141,7 +1138,7 @@ class Instruction:
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if  isinstance(condition, Bool) else condition != 0
+        condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
         if instr["opcode"] == "JUMPDEST":
             if (type(condi) == bool and condi) or (
                 isinstance(condi, Bool) and not is_false(condi)

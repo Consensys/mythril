@@ -1,6 +1,14 @@
 from typing import Union
 from z3 import Z3Exception
-from mythril.laser.smt import BitVec, symbol_factory, If, Concat, simplify, Bool, Extract
+from mythril.laser.smt import (
+    BitVec,
+    symbol_factory,
+    If,
+    Concat,
+    simplify,
+    Bool,
+    Extract,
+)
 from mythril.laser.ethereum import util
 
 
@@ -36,9 +44,7 @@ class Memory:
             assert result.size() == 256
             return result
 
-    def write_word_at(
-        self, index: int, value: Union[int, BitVec, bool, Bool]
-    ) -> None:
+    def write_word_at(self, index: int, value: Union[int, BitVec, bool, Bool]) -> None:
         """
         Writes a 32 byte word to memory at the specified index`
         :param index: index to write to
@@ -58,7 +64,11 @@ class Memory:
             self[index : index + 32] = _bytes
         except (Z3Exception, AttributeError):  # BitVector or BoolRef
             if isinstance(value, Bool):
-                value_to_write = If(value, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256))
+                value_to_write = If(
+                    value,
+                    symbol_factory.BitVecVal(1, 256),
+                    symbol_factory.BitVecVal(0, 256),
+                )
             else:
                 value_to_write = value
             assert value_to_write.size() == 256

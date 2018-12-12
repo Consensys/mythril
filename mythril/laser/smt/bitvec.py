@@ -57,6 +57,8 @@ class BitVec(Expression):
 
     def __and__(self, other: "BV") -> "BV":
         """ Create an and expression """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, 256))
         union = self.annotations + other.annotations
         return BitVec(self.raw & other.raw, annotations=union)
 
@@ -99,6 +101,12 @@ class BitVec(Expression):
 
 def If(a: Bool, b: BitVec, c: BitVec):
     """ Create an if-then-else expression """
+    if not isinstance(a, Expression):
+        a = Bool(z3.BoolVal(a))
+    if not isinstance(b, Expression):
+        b = BitVec(z3.BitVecVal(b, 256))
+    if not isinstance(c, Expression):
+        c = BitVec(z3.BitVecVal(c, 256))
     union = a.annotations + b.annotations + c.annotations
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
@@ -107,6 +115,11 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
     """ Create an unsigned greater than expression """
     annotations = a.annotations + b.annotations
     return Bool(z3.UGT(a.raw, b.raw), annotations)
+
+
+def UGE(a: BitVec, b:BitVec) -> Bool:
+    annotations = a.annotations + b.annotations
+    return Bool(z3.UGE(a.raw, b.raw), annotations)
 
 
 def ULT(a: BitVec, b: BitVec) -> Bool:
@@ -159,3 +172,20 @@ def Sum(*args) -> BitVec:
     for bv in args:
         annotations += bv.annotations
     return BitVec(nraw, annotations)
+
+
+def BVAddNoOverflow(a: BitVec, b: BitVec, signed: bool) -> Bool:
+    return Bool(z3.BVAddNoOverflow(a.raw, b.raw, signed))
+
+
+def BVMulNoOverflow(a: BitVec, b: BitVec, signed: bool) -> Bool:
+    return Bool(z3.BVMulNoOverflow(a.raw, b.raw, signed))
+
+
+def BVSubNoUnderflow(a: BitVec, b: BitVec, signed: bool) -> Bool:
+    if not isinstance(a, Expression):
+        a = BitVec(z3.BitVecVal(a, 256))
+    if not isinstance(b, Expression):
+        b = BitVec(z3.BitVecVal(b, 256))
+
+    return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))

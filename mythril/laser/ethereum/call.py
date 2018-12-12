@@ -60,7 +60,9 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: Expression
+    global_state: GlobalState,
+    dynamic_loader: DynLoader,
+    symbolic_to_address: Expression,
 ):
     """
     Gets the address of the callee
