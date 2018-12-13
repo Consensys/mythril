@@ -2,7 +2,8 @@ import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 from mythril.laser.ethereum.svm import NodeFlags
-import z3
+from z3 import Z3Exception
+from mythril.laser.smt import simplify
 
 default_opts = {
     "autoResize": True,
@@ -185,8 +186,8 @@ def extract_edges(statespace):
             label = ""
         else:
             try:
-                label = str(z3.simplify(edge.condition)).replace("\n", "")
-            except z3.Z3Exception:
+                label = str(simplify(edge.condition)).replace("\n", "")
+            except Z3Exception:
                 label = str(edge.condition).replace("\n", "")
 
         label = re.sub(

@@ -6,9 +6,10 @@ from mythril.laser.ethereum.svm import NodeFlags
 import logging
 import re
 
+log = logging.getLogger(__name__)
+
 
 class UncheckedRetvalModule(DetectionModule):
-    """This module checks whether CALL return value is checked."""
     def __init__(self):
         super().__init__(
             name="Unchecked Return Value",
@@ -26,12 +27,8 @@ class UncheckedRetvalModule(DetectionModule):
         )
 
     def execute(self, statespace):
-        """
 
-        :param statespace:
-        :return:
-        """
-        logging.debug("Executing module: UNCHECKED_RETVAL")
+        log.debug("Executing module: UNCHECKED_RETVAL")
 
         issues = []
 

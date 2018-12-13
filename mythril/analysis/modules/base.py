@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+log = logging.getLogger(__name__)
+
 
 class DetectionModule:
     """The base detection module.
@@ -28,7 +30,7 @@ class DetectionModule:
         self.hooks = hooks
         self.description = description
         if entrypoint not in ("post", "callback"):
-            logging.error(
+            log.error(
                 "Invalid entrypoint in module %s, must be one of {post, callback}",
                 self.name,
             )

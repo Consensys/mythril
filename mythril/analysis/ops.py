@@ -1,4 +1,4 @@
-from z3 import *
+from mythril.laser.smt import simplify
 from enum import Enum
 from mythril.laser.ethereum import util
 

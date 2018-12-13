@@ -4,6 +4,7 @@ from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 
+log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 Check for usage of deprecated opcodes
@@ -15,7 +16,7 @@ def _analyze_state(state):
     instruction = state.get_current_instruction()
 
     if instruction["opcode"] == "ORIGIN":
-        logging.debug("ORIGIN in function " + node.function_name)
+        log.debug("ORIGIN in function " + node.function_name)
         title = "Use of tx.origin"
         description = (
             "The function `{}` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. "
@@ -27,7 +28,7 @@ def _analyze_state(state):
         swc_id = DEPRICATED_FUNCTIONS_USAGE
 
     elif instruction["opcode"] == "CALLCODE":
-        logging.debug("CALLCODE in function " + node.function_name)
+        log.debug("CALLCODE in function " + node.function_name)
         title = "Use of callcode"
         description = (
             "The function `{}` uses callcode. Callcode does not persist sender or value over the call. "

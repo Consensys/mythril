@@ -1,6 +1,6 @@
 from copy import copy
 from random import randint
-from typing import List
+from typing import List, Iterator
 
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
@@ -90,6 +90,15 @@ class WorldState:
         :return:
         """
         return self._annotations
+
+    def get_annotations(self, annotation_type: type) -> Iterator[StateAnnotation]:
+        """
+        Filters annotations for the queried annotation type. Designed particularly for
+        modules with annotations: worldstate.get_annotations(MySpecificModuleAnnotation)
+        :param annotation_type: The type to filter annotations for
+        :return: filter of matching annotations
+        """
+        return filter(lambda x: isinstance(x, annotation_type), self.annotations)
 
     def _generate_new_address(self) -> str:
         """ Generates a new address for the global state"""

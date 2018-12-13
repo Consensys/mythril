@@ -77,6 +77,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     install_requires=[
         "coloredlogs>=10.0",
+        "py_ecc==1.4.2",
         "ethereum>=2.3.2",
         "z3-solver>=4.8.0.0",
         "requests",
@@ -104,7 +105,7 @@ setup(
     tests_require=["pytest>=3.6.0", "pytest_mock", "pytest-cov"],
     python_requires=">=3.5",
     extras_require={},
-    package_data={"mythril.analysis.templates": ["*"]},
+    package_data={"mythril.analysis.templates": ["*"], "": ["signatures.db"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
     cmdclass={"verify": VerifyVersionCommand},

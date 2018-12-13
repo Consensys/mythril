@@ -1,6 +1,14 @@
 from typing import Union
-from z3 import BitVecRef, Extract, BitVecVal, If, BoolRef, Z3Exception, simplify, Concat
-
+from z3 import Z3Exception
+from mythril.laser.smt import (
+    BitVec,
+    symbol_factory,
+    If,
+    Concat,
+    simplify,
+    Bool,
+    Extract,
+)
 from mythril.laser.ethereum import util
 
 
@@ -21,7 +29,7 @@ class Memory:
         """
         self._memory.extend(bytearray(size))
 
-    def get_word_at(self, index: int) -> Union[int, BitVecRef]:
+    def get_word_at(self, index: int) -> Union[int, BitVec]:
         """
         Access a word from a specified memory index
         :param index: integer representing the index to access
@@ -31,11 +39,11 @@ class Memory:
             return util.concrete_int_from_bytes(
                 bytes([util.get_concrete_int(b) for b in self[index : index + 32]]), 0
             )
-        except TypeError:
+        except:
             result = simplify(
                 Concat(
                     [
-                        b if isinstance(b, BitVecRef) else BitVecVal(b, 8)
+                        b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
                         for b in self[index : index + 32]
                     ]
                 )
@@ -43,9 +51,7 @@ class Memory:
             assert result.size() == 256
             return result
 
-    def write_word_at(
-        self, index: int, value: Union[int, BitVecRef, bool, BoolRef]
-    ) -> None:
+    def write_word_at(self, index: int, value: Union[int, BitVec, bool, Bool]) -> None:
         """
         Writes a 32 byte word to memory at the specified index`
         :param index: index to write to
@@ -64,8 +70,12 @@ class Memory:
             assert len(_bytes) == 32
             self[index : index + 32] = _bytes
         except (Z3Exception, AttributeError):  # BitVector or BoolRef
-            if isinstance(value, BoolRef):
-                value_to_write = If(value, BitVecVal(1, 256), BitVecVal(0, 256))
+            if isinstance(value, Bool):
+                value_to_write = If(
+                    value,
+                    symbol_factory.BitVecVal(1, 256),
+                    symbol_factory.BitVecVal(0, 256),
+                )
             else:
                 value_to_write = value
             assert value_to_write.size() == 256
@@ -73,7 +83,7 @@ class Memory:
             for i in range(0, value_to_write.size(), 8):
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
 
-    def __getitem__(self, item: Union[int, slice]) -> Union[BitVecRef, int, list]:
+    def __getitem__(self, item: Union[int, slice]) -> Union[BitVec, int, list]:
         if isinstance(item, slice):
             start, step, stop = item.start, item.step, item.stop
             if start is None:
@@ -89,7 +99,7 @@ class Memory:
         except IndexError:
             return 0
 
-    def __setitem__(self, key: Union[int, slice], value: Union[BitVecRef, int, list]):
+    def __setitem__(self, key: Union[int, slice], value: Union[BitVec, int, list]):
         if isinstance(key, slice):
             start, step, stop = key.start, key.step, key.stop
 
@@ -106,6 +116,6 @@ class Memory:
         else:
             if isinstance(value, int):
                 assert 0 <= value <= 0xFF
-            if isinstance(value, BitVecRef):
+            if isinstance(value, BitVec):
                 assert value.size() == 8
             self._memory[key] = value

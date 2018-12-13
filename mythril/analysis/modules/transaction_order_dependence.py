@@ -10,6 +10,9 @@ from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
 
 
+log = logging.getLogger(__name__)
+
+
 class TxOrderDependenceModule(DetectionModule):
     """This module finds the existance of transaction order dependence."""
     def __init__(self):
@@ -27,7 +30,7 @@ class TxOrderDependenceModule(DetectionModule):
 
     def execute(self, statespace):
         """ Executes the analysis module"""
-        logging.debug("Executing module: TOD")
+        log.debug("Executing module: TOD")
 
         issues = []
 

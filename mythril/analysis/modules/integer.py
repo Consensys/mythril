@@ -1,14 +1,24 @@
-from z3 import *
 from mythril.analysis import solver
-from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.analysis.modules.base import DetectionModule
-import re
+
+from mythril.laser.smt import (
+    BVAddNoOverflow,
+    BVSubNoUnderflow,
+    BVMulNoOverflow,
+    BitVec,
+    symbol_factory,
+    Not,
+)
+
 import copy
 import logging
+
+
+log = logging.getLogger(__name__)
 
 
 class IntegerOverflowUnderflowModule(DetectionModule):
@@ -31,7 +41,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :param statespace: Statespace to analyse
         :return: Found issues
         """
-        logging.debug("Executing module: INTEGER")
+        log.debug("Executing module: INTEGER")
 
         issues = []
 
@@ -65,15 +75,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
         # Do a type check
-        allowed_types = [int, BitVecRef, BitVecNumRef]
+        allowed_types = [int, BitVec]
         if not (type(op0) in allowed_types and type(op1) in allowed_types):
             return issues
 
         # Change ints to BitVec
         if type(op0) is int:
-            op0 = BitVecVal(op0, 256)
+            op0 = symbol_factory.BitVecVal(op0, 256)
         if type(op1) is int:
-            op1 = BitVecVal(op1, 256)
+            op1 = symbol_factory.BitVecVal(op1, 256)
 
         # Formulate expression
         # FIXME: handle exponentiation
@@ -90,7 +100,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         model = self._try_constraints(node.constraints, [constraint])
 
         if model is None:
-            logging.debug("[INTEGER_OVERFLOW] no model found")
+            log.debug("[INTEGER_OVERFLOW] no model found")
             return issues
 
         # Build issue
@@ -171,13 +181,13 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             if type(op0) == int and type(op1) == int:
                 return []
 
-            logging.debug(
+            log.debug(
                 "[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(
                     str(op0), str(op1), str(instruction["address"])
                 )
             )
 
-            allowed_types = [int, BitVecRef, BitVecNumRef]
+            allowed_types = [int, BitVec]
 
             if type(op0) in allowed_types and type(op1) in allowed_types:
                 constraints.append(Not(BVSubNoUnderflow(op0, op1, signed=False)))
@@ -216,7 +226,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     issues.append(issue)
 
                 except UnsatError:
-                    logging.debug("[INTEGER_UNDERFLOW] no model found")
+                    log.debug("[INTEGER_UNDERFLOW] no model found")
         return issues
 
     def _check_usage(self, state, taint_result):
@@ -267,7 +277,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if constraint is None:
             constraint = []
 
-        logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
+        log.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
 
         if taint_result is None:
             state = node.states[index]

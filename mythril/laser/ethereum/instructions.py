@@ -6,28 +6,26 @@ from typing import Callable, List, Union
 from functools import reduce
 
 from ethereum import utils
-from z3 import (
+
+from mythril.laser.smt import (
     Extract,
+    Expression,
     UDiv,
     simplify,
     Concat,
     ULT,
     UGT,
-    BitVecRef,
-    BitVecNumRef,
-    Not,
-    is_false,
-    is_expr,
-    ExprRef,
-    URem,
-    SRem,
     BitVec,
     is_true,
-    BitVecVal,
+    is_false,
+    URem,
+    SRem,
     If,
-    BoolRef,
+    Bool,
     Or,
+    Not,
 )
+from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -52,6 +50,8 @@ from mythril.laser.ethereum.transaction import (
 
 from mythril.support.loader import DynLoader
 from mythril.analysis.solver import get_model
+
+log = logging.getLogger(__name__)
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
@@ -102,13 +102,11 @@ class StateTransition(object):
         :return:
         """
         global_state.mstate.check_gas()
-        if isinstance(global_state.current_transaction.gas_limit, BitVecRef):
-            try:
-                global_state.current_transaction.gas_limit = (
-                    global_state.current_transaction.gas_limit.as_long()
-                )
-            except AttributeError:
+        if isinstance(global_state.current_transaction.gas_limit, BitVec):
+            value = global_state.current_transaction.gas_limit.value
+            if value is None:
                 return
+            global_state.current_transaction.gas_limit = value
         if (
             global_state.mstate.min_gas_used
             >= global_state.current_transaction.gas_limit
@@ -160,7 +158,7 @@ class Instruction:
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """ Performs the mutation for this instruction """
         # Generalize some ops
-        logging.debug("Evaluating {}".format(self.op_code))
+        log.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -207,7 +205,9 @@ class Instruction:
             raise VmException("Invalid Push instruction")
 
         push_value += "0" * max(length_of_value - len(push_value), 0)
-        global_state.mstate.stack.append(BitVecVal(int(push_value, 16), 256))
+        global_state.mstate.stack.append(
+            symbol_factory.BitVecVal(int(push_value, 16), 256)
+        )
         return [global_state]
 
     @StateTransition()
@@ -252,10 +252,18 @@ class Instruction:
         """
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
-        if type(op1) == BoolRef:
-            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
-        if type(op2) == BoolRef:
-            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        if isinstance(op1, Bool):
+            op1 = If(
+                op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
+        if isinstance(op2, Bool):
+            op2 = If(
+                op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
+        if not isinstance(op1, Expression):
+            op1 = symbol_factory.BitVecVal(op1, 256)
+        if not isinstance(op2, Expression):
+            op2 = symbol_factory.BitVecVal(op2, 256)
         stack.append(op1 & op2)
 
         return [global_state]
@@ -270,11 +278,15 @@ class Instruction:
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
-        if type(op1) == BoolRef:
-            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+        if isinstance(op1, Bool):
+            op1 = If(
+                op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
-        if type(op2) == BoolRef:
-            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        if isinstance(op2, Bool):
+            op2 = If(
+                op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
         stack.append(op1 | op2)
 
@@ -299,7 +311,7 @@ class Instruction:
         :return:
         """
         mstate = global_state.mstate
-        mstate.stack.append(TT256M1 - mstate.stack.pop())
+        mstate.stack.append(symbol_factory.BitVecVal(TT256M1, 256) - mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
@@ -311,19 +323,22 @@ class Instruction:
         """
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
-        if not isinstance(op1, ExprRef):
-            op1 = BitVecVal(op1, 256)
+        if not isinstance(op1, Expression):
+            op1 = symbol_factory.BitVecVal(op1, 256)
         try:
             index = util.get_concrete_int(op0)
             offset = (31 - index) * 8
             if offset >= 0:
                 result = simplify(
-                    Concat(BitVecVal(0, 248), Extract(offset + 7, offset, op1))
+                    Concat(
+                        symbol_factory.BitVecVal(0, 248),
+                        Extract(offset + 7, offset, op1),
+                    )
                 )
             else:
                 result = 0
         except TypeError:
-            logging.debug("BYTE: Unsupported symbolic byte offset")
+            log.debug("BYTE: Unsupported symbolic byte offset")
             result = global_state.new_bitvec(
                 str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256
             )
@@ -389,7 +404,7 @@ class Instruction:
             util.pop_bitvec(global_state.mstate),
         )
         if op1 == 0:
-            global_state.mstate.stack.append(BitVecVal(0, 256))
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(UDiv(op0, op1))
         return [global_state]
@@ -406,7 +421,7 @@ class Instruction:
             util.pop_bitvec(global_state.mstate),
         )
         if s1 == 0:
-            global_state.mstate.stack.append(BitVecVal(0, 256))
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
         else:
             global_state.mstate.stack.append(s0 / s1)
         return [global_state]
@@ -479,7 +494,7 @@ class Instruction:
         state = global_state.mstate
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
-        if (type(base) != BitVecNumRef) or (type(exponent) != BitVecNumRef):
+        if base.symbolic or exponent.symbolic:
             state.stack.append(
                 global_state.new_bitvec(
                     "(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")",
@@ -488,7 +503,7 @@ class Instruction:
             )
         else:
 
-            state.stack.append(pow(base.as_long(), exponent.as_long(), 2 ** 256))
+            state.stack.append(pow(base.value, exponent.value, 2 ** 256))
 
         return [global_state]
 
@@ -540,7 +555,8 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        exp = UGT(util.pop_bitvec(state), util.pop_bitvec(state))
+        op1, op2 = util.pop_bitvec(state), util.pop_bitvec(state)
+        exp = UGT(op1, op2)
         state.stack.append(exp)
         return [global_state]
 
@@ -581,11 +597,15 @@ class Instruction:
         op1 = state.stack.pop()
         op2 = state.stack.pop()
 
-        if type(op1) == BoolRef:
-            op1 = If(op1, BitVecVal(1, 256), BitVecVal(0, 256))
+        if isinstance(op1, Bool):
+            op1 = If(
+                op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
-        if type(op2) == BoolRef:
-            op2 = If(op2, BitVecVal(1, 256), BitVecVal(0, 256))
+        if isinstance(op2, Bool):
+            op2 = If(
+                op2, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            )
 
         exp = op1 == op2
 
@@ -602,7 +622,7 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = val == False if type(val) == BoolRef else val == 0
+        exp = (val == False) if isinstance(val, Bool) else val == 0
         state.stack.append(exp)
 
         return [global_state]
@@ -664,14 +684,14 @@ class Instruction:
         try:
             mstart = util.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Unsupported symbolic memory offset in CALLDATACOPY")
+            log.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
         dstart_sym = False
         try:
             dstart = util.get_concrete_int(op1)
         except TypeError:
-            logging.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
+            log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
             dstart_sym = True
 
@@ -679,7 +699,7 @@ class Instruction:
         try:
             size = util.get_concrete_int(op2)
         except TypeError:
-            logging.debug("Unsupported symbolic size in CALLDATACOPY")
+            log.debug("Unsupported symbolic size in CALLDATACOPY")
             size = simplify(op2)
             size_sym = True
 
@@ -701,7 +721,7 @@ class Instruction:
             try:
                 state.mem_extend(mstart, size)
             except TypeError:
-                logging.debug(
+                log.debug(
                     "Memory allocation error: mstart = "
                     + str(mstart)
                     + ", size = "
@@ -734,7 +754,7 @@ class Instruction:
                     state.memory[i + mstart] = new_memory[i]
 
             except IndexError:
-                logging.debug("Exception copying calldata to memory")
+                log.debug("Exception copying calldata to memory")
 
                 state.memory[mstart] = global_state.new_bitvec(
                     "calldata_"
@@ -826,9 +846,11 @@ class Instruction:
             index, length = util.get_concrete_int(op0), util.get_concrete_int(op1)
         except TypeError:
             # Can't access symbolic memory offsets
-            if is_expr(op0):
+            if isinstance(op0, Expression):
                 op0 = simplify(op0)
-            state.stack.append(BitVec("KECCAC_mem[" + str(op0) + "]", 256))
+            state.stack.append(
+                symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
+            )
             state.min_gas_used += OPCODE_GAS["SHA3"][0]
             state.max_gas_used += OPCODE_GAS["SHA3"][1]
             return [global_state]
@@ -850,15 +872,17 @@ class Instruction:
         except TypeError:
             argument = str(state.memory[index]).replace(" ", "_")
 
-            result = BitVec("KECCAC[{}]".format(argument), 256)
+            result = symbol_factory.BitVecSym("KECCAC[{}]".format(argument), 256)
             keccak_function_manager.add_keccak(result, state.memory[index])
             state.stack.append(result)
             return [global_state]
 
         keccak = utils.sha3(utils.bytearray_to_bytestr(data))
-        logging.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
+        log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
-        state.stack.append(BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256))
+        state.stack.append(
+            symbol_factory.BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256)
+        )
         return [global_state]
 
     @StateTransition()
@@ -887,7 +911,7 @@ class Instruction:
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
         except TypeError:
-            logging.debug("Unsupported symbolic memory offset in CODECOPY")
+            log.debug("Unsupported symbolic memory offset in CODECOPY")
             return [global_state]
 
         try:
@@ -910,7 +934,7 @@ class Instruction:
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
         except TypeError:
-            logging.debug("Unsupported symbolic code offset in CODECOPY")
+            log.debug("Unsupported symbolic code offset in CODECOPY")
             global_state.mstate.mem_extend(concrete_memory_offset, size)
             for i in range(size):
                 global_state.mstate.memory[
@@ -975,14 +999,14 @@ class Instruction:
         try:
             addr = hex(helper.get_concrete_int(addr))
         except TypeError:
-            logging.debug("unsupported symbolic address for EXTCODESIZE")
+            log.debug("unsupported symbolic address for EXTCODESIZE")
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
         try:
             code = self.dynamic_loader.dynld(environment.active_account.address, addr)
         except (ValueError, AttributeError) as e:
-            logging.debug("error accessing contract storage due to: " + str(e))
+            log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
@@ -1107,12 +1131,12 @@ class Instruction:
         state = global_state.mstate
         op0 = state.stack.pop()
 
-        logging.debug("MLOAD[" + str(op0) + "]")
+        log.debug("MLOAD[" + str(op0) + "]")
 
         try:
             offset = util.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD from symbolic index")
+            log.debug("Can't MLOAD from symbolic index")
             data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
             state.stack.append(data)
             return [global_state]
@@ -1120,7 +1144,7 @@ class Instruction:
         state.mem_extend(offset, 32)
         data = state.memory.get_word_at(offset)
 
-        logging.debug("Load from memory[" + str(offset) + "]: " + str(data))
+        log.debug("Load from memory[" + str(offset) + "]: " + str(data))
 
         state.stack.append(data)
         return [global_state]
@@ -1138,17 +1162,15 @@ class Instruction:
         try:
             mstart = util.get_concrete_int(op0)
         except TypeError:
-            logging.debug("MSTORE to symbolic index. Not supported")
+            log.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
         try:
             state.mem_extend(mstart, 32)
         except Exception:
-            logging.debug(
-                "Error extending memory, mstart = " + str(mstart) + ", size = 32"
-            )
+            log.debug("Error extending memory, mstart = " + str(mstart) + ", size = 32")
 
-        logging.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
+        log.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
 
         state.memory.write_word_at(mstart, value)
 
@@ -1167,7 +1189,7 @@ class Instruction:
         try:
             offset = util.get_concrete_int(op0)
         except TypeError:
-            logging.debug("MSTORE to symbolic index. Not supported")
+            log.debug("MSTORE to symbolic index. Not supported")
             return [global_state]
 
         state.mem_extend(offset, 1)
@@ -1176,7 +1198,7 @@ class Instruction:
             value_to_write = util.get_concrete_int(value) ^ 0xFF
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
-        logging.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
+        log.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
 
         state.memory[offset] = value_to_write
 
@@ -1193,7 +1215,7 @@ class Instruction:
 
         state = global_state.mstate
         index = state.stack.pop()
-        logging.debug("Storage access at index " + str(index))
+        log.debug("Storage access at index " + str(index))
 
         try:
             index = util.get_concrete_int(index)
@@ -1233,7 +1255,7 @@ class Instruction:
 
     @staticmethod
     def _sload_helper(
-        global_state: GlobalState, index: Union[int, ExprRef], constraints=None
+        global_state: GlobalState, index: Union[int, Expression], constraints=None
     ):
         try:
             data = global_state.environment.active_account.storage[index]
@@ -1266,7 +1288,7 @@ class Instruction:
         global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-        logging.debug("Write to storage[" + str(index) + "]")
+        log.debug("Write to storage[" + str(index) + "]")
 
         try:
             index = util.get_concrete_int(index)
@@ -1327,10 +1349,10 @@ class Instruction:
             ] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = (
-                value if not isinstance(value, ExprRef) else simplify(value)
+                value if not isinstance(value, Expression) else simplify(value)
             )
         except KeyError:
-            logging.debug("Error writing to storage: Invalid index")
+            log.debug("Error writing to storage: Invalid index")
 
         if constraint is not None:
             global_state.mstate.constraints.append(constraint)
@@ -1393,7 +1415,7 @@ class Instruction:
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Skipping JUMPI to invalid destination.")
+            log.debug("Skipping JUMPI to invalid destination.")
             global_state.mstate.pc += 1
             global_state.mstate.min_gas_used += min_gas
             global_state.mstate.max_gas_used += max_gas
@@ -1401,11 +1423,11 @@ class Instruction:
 
         # False case
         negated = (
-            simplify(Not(condition)) if type(condition) == BoolRef else condition == 0
+            simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
 
         if (type(negated) == bool and negated) or (
-            type(negated) == BoolRef and not is_false(negated)
+            isinstance(condition, Bool) and not is_false(negated)
         ):
             new_state = copy(global_state)
             # add JUMPI gas cost
@@ -1418,22 +1440,22 @@ class Instruction:
             new_state.mstate.constraints.append(negated)
             states.append(new_state)
         else:
-            logging.debug("Pruned unreachable states.")
+            log.debug("Pruned unreachable states.")
 
         # True case
 
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
         if not index:
-            logging.debug("Invalid jump destination: " + str(jump_addr))
+            log.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if type(condition) == BoolRef else condition != 0
+        condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
         if instr["opcode"] == "JUMPDEST":
             if (type(condi) == bool and condi) or (
-                type(condi) == BoolRef and not is_false(condi)
+                isinstance(condi, Bool) and not is_false(condi)
             ):
                 new_state = copy(global_state)
                 # add JUMPI gas cost
@@ -1446,7 +1468,7 @@ class Instruction:
                 new_state.mstate.constraints.append(condi)
                 states.append(new_state)
             else:
-                logging.debug("Pruned unreachable states.")
+                log.debug("Pruned unreachable states.")
         del global_state
         return states
 
@@ -1524,7 +1546,7 @@ class Instruction:
                 util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
             ]
         except TypeError:
-            logging.debug("Return with symbolic length or offset. Not supported")
+            log.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition()
@@ -1537,8 +1559,8 @@ class Instruction:
         account_created = False
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, BitVecNumRef):
-            target = "0x" + hex(target.as_long())[-40:]
+        if isinstance(target, BitVec) and not target.symbolic:
+            target = "0x" + hex(target.value)[-40:]
         if isinstance(target, str):
             try:
                 global_state.world_state[
@@ -1576,7 +1598,7 @@ class Instruction:
                 util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
             ]
         except TypeError:
-            logging.debug("Return with symbolic length or offset. Not supported")
+            log.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(
             global_state, return_data=return_data, revert=True
         )
@@ -1621,7 +1643,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1636,16 +1658,16 @@ class Instruction:
         )
 
         if 0 < int(callee_address, 16) < 5:
-            logging.debug("Native contract called: " + callee_address)
+            log.debug("Native contract called: " + callee_address)
             if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
-                logging.debug("CALL with symbolic data not supported")
+                log.debug("CALL with symbolic data not supported")
                 return [global_state]
 
             try:
                 mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = memory_out_size.as_long()
+                mem_out_sz = helper.get_concrete_int(memory_out_size)
             except TypeError:
-                logging.debug("CALL with symbolic start or offset not supported")
+                log.debug("CALL with symbolic start or offset not supported")
                 return [global_state]
 
             contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
@@ -1684,7 +1706,9 @@ class Instruction:
             gas_price=environment.gasprice,
             gas_limit=gas,
             origin=environment.origin,
-            caller=BitVecVal(int(environment.active_account.address, 16), 256),
+            caller=symbol_factory.BitVecVal(
+                int(environment.active_account.address, 16), 256
+            ),
             callee_account=callee_account,
             call_data=call_data,
             call_data_type=call_data_type,
@@ -1706,7 +1730,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1729,12 +1753,12 @@ class Instruction:
         try:
             memory_out_offset = (
                 util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, ExprRef)
+                if isinstance(memory_out_offset, Expression)
                 else memory_out_offset
             )
             memory_out_size = (
                 util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, ExprRef)
+                if isinstance(memory_out_size, Expression)
                 else memory_out_size
             )
         except TypeError:
@@ -1774,7 +1798,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1812,7 +1836,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1878,7 +1902,7 @@ class Instruction:
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1916,7 +1940,7 @@ class Instruction:
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1938,12 +1962,12 @@ class Instruction:
         try:
             memory_out_offset = (
                 util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, ExprRef)
+                if isinstance(memory_out_offset, Expression)
                 else memory_out_offset
             )
             memory_out_size = (
                 util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, ExprRef)
+                if isinstance(memory_out_size, Expression)
                 else memory_out_size
             )
         except TypeError:

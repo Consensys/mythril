@@ -1,12 +1,14 @@
 import logging
 import copy
 from typing import Union, List, Tuple
-from z3 import ExprRef
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum.cfg import JumpType, Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.symbolic import SymExecWrapper
+from mythril.laser.smt import Expression
+
+log = logging.getLogger(__name__)
 
 
 class TaintRecord:
@@ -94,10 +96,10 @@ class TaintRunner:
     ) -> TaintResult:
         """
         Runs taint analysis on the statespace
-        :param initial_stack:
         :param statespace: symbolic statespace to run taint analysis on
         :param node: taint introduction node
         :param state: taint introduction state
+        :param stack_indexes: stack indexes to introduce taint
         :return: TaintResult object containing analysis results
         """
         if initial_stack is None:
@@ -134,14 +136,6 @@ class TaintRunner:
         environment: Environment,
         transaction_stack_length: int,
     ) -> List[Node]:
-        """
-
-        :param node:
-        :param statespace:
-        :param environment:
-        :param transaction_stack_length:
-        :return:
-        """
         direct_children = [
             statespace.nodes[edge.node_to]
             for edge in statespace.edges
@@ -182,12 +176,6 @@ class TaintRunner:
 
     @staticmethod
     def execute_state(record: TaintRecord, state: GlobalState) -> TaintRecord:
-        """
-
-        :param record:
-        :param state:
-        :return:
-        """
         assert len(state.mstate.stack) == len(record.stack)
         """ Runs taint analysis on a state """
         record.add_state(state)
@@ -218,17 +206,12 @@ class TaintRunner:
         elif op in ("CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"):
             TaintRunner.mutate_call(new_record, op)
         else:
-            logging.debug("Unknown operation encountered: {}".format(op))
+            log.debug("Unknown operation encountered: {}".format(op))
 
         return new_record
 
     @staticmethod
     def mutate_stack(record: TaintRecord, mutator: Tuple[int, int]) -> None:
-        """
-
-        :param record:
-        :param mutator:
-        """
         pop, push = mutator
 
         values = []
@@ -242,124 +225,75 @@ class TaintRunner:
 
     @staticmethod
     def mutate_push(op: str, record: TaintRecord) -> None:
-        """
-
-        :param op:
-        :param record:
-        """
         TaintRunner.mutate_stack(record, (0, 1))
 
     @staticmethod
     def mutate_dup(op: str, record: TaintRecord) -> None:
-        """
-
-        :param op:
-        :param record:
-        """
         depth = int(op[3:])
         index = len(record.stack) - depth
         record.stack.append(record.stack[index])
 
     @staticmethod
     def mutate_swap(op: str, record: TaintRecord) -> None:
-        """
-
-        :param op:
-        :param record:
-        """
         depth = int(op[4:])
         l = len(record.stack) - 1
         i = l - depth
         record.stack[l], record.stack[i] = record.stack[i], record.stack[l]
 
     @staticmethod
-    def mutate_mload(record: TaintRecord, op0: ExprRef) -> None:
-        """
-
-        :param record:
-        :param op0:
-        :return:
-        """
+    def mutate_mload(record: TaintRecord, op0: Expression) -> None:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
         record.stack.append(record.memory_tainted(index))
 
     @staticmethod
-    def mutate_mstore(record: TaintRecord, op0: ExprRef) -> None:
-        """
-
-        :param record:
-        :param op0:
-        :return:
-        """
+    def mutate_mstore(record: TaintRecord, op0: Expression) -> None:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.memory[index] = value_taint
 
     @staticmethod
-    def mutate_sload(record: TaintRecord, op0: ExprRef) -> None:
-        """
-
-        :param record:
-        :param op0:
-        :return:
-        """
+    def mutate_sload(record: TaintRecord, op0: Expression) -> None:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
         record.stack.append(record.storage_tainted(index))
 
     @staticmethod
-    def mutate_sstore(record: TaintRecord, op0: ExprRef) -> None:
-        """
-
-        :param record:
-        :param op0:
-        :return:
-        """
+    def mutate_sstore(record: TaintRecord, op0: Expression) -> None:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.storage[index] = value_taint
 
     @staticmethod
     def mutate_log(record: TaintRecord, op: str) -> None:
-        """
-
-        :param record:
-        :param op:
-        """
         depth = int(op[3:])
         for _ in range(depth + 2):
             record.stack.pop()
 
     @staticmethod
     def mutate_call(record: TaintRecord, op: str) -> None:
-        """
-
-        :param record:
-        :param op:
-        """
         pops = 6
         if op in ("CALL", "CALLCODE"):
             pops += 1

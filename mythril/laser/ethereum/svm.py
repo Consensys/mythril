@@ -1,29 +1,29 @@
 import logging
 from collections import defaultdict
-from ethereum.opcodes import opcodes
+from copy import copy
+from datetime import datetime, timedelta
+from functools import reduce
 from typing import List, Tuple, Union, Callable, Dict
-from mythril.analysis.security import get_detection_modules
-from mythril.disassembler.disassembly import Disassembly
+
+from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import VmException
+from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     TransactionEndSignal,
     ContractCreationTransaction,
 )
-from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
-from mythril.laser.ethereum.instructions import Instruction
-from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
-from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
-from datetime import datetime, timedelta
-from copy import copy
 from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from functools import reduce
-from mythril.laser.ethereum.evm_exceptions import VmException
+
+log = logging.getLogger(__name__)
 
 
 class SVMError(Exception):
@@ -76,16 +76,9 @@ class LaserEVM:
         self.pre_hooks = defaultdict(list)
         self.post_hooks = defaultdict(list)
 
-        logging.info(
-            "LASER EVM initialized with dynamic loader: " + str(dynamic_loader)
-        )
+        log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
-        """
-
-        :param hook_type:
-        :param hook_dict:
-        """
         if hook_type == "pre":
             entrypoint = self.pre_hooks
         elif hook_type == "post":
@@ -100,48 +93,38 @@ class LaserEVM:
 
     @property
     def accounts(self) -> Dict[str, Account]:
-        """
-
-        :return:
-        """
         return self.world_state.accounts
 
     def sym_exec(
         self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
-        """
-
-        :param main_address:
-        :param creation_code:
-        :param contract_name:
-        """
-        logging.debug("Starting LASER execution")
+        log.debug("Starting LASER execution")
         self.time = datetime.now()
 
         if main_address:
-            logging.info("Starting message call transaction to {}".format(main_address))
+            log.info("Starting message call transaction to {}".format(main_address))
             self._execute_transactions(main_address)
 
         elif creation_code:
-            logging.info("Starting contract creation transaction")
+            log.info("Starting contract creation transaction")
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
             )
-            logging.info(
+            log.info(
                 "Finished contract creation, found {} open states".format(
                     len(self.open_states)
                 )
             )
             if len(self.open_states) == 0:
-                logging.warning(
+                log.warning(
                     "No contract was created during the execution of contract creation "
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
 
             self._execute_transactions(created_account.address)
 
-        logging.info("Finished symbolic execution")
-        logging.info(
+        log.info("Finished symbolic execution")
+        log.info(
             "%d nodes, %d edges, %d total states",
             len(self.nodes),
             len(self.edges),
@@ -153,7 +136,7 @@ class LaserEVM:
                 / float(coverage[0])
                 * 100
             )
-            logging.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
+            log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
     def _execute_transactions(self, address):
         """
@@ -166,13 +149,13 @@ class LaserEVM:
             initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
-            logging.info("Starting message call transaction, iteration: {}".format(i))
+            log.info("Starting message call transaction, iteration: {}".format(i))
 
             execute_message_call(self, address)
 
             end_coverage = self._get_covered_instructions()
 
-            logging.info(
+            log.info(
                 "Number of new instructions covered in tx %d: %d"
                 % (i, end_coverage - initial_coverage)
             )
@@ -187,12 +170,6 @@ class LaserEVM:
         return total_covered_instructions
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
-        """
-
-        :param create:
-        :param track_gas:
-        :return:
-        """
         final_states = []
         for global_state in self.strategy:
             if self.execution_timeout and not create:
@@ -208,7 +185,7 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
-                logging.debug("Encountered unimplemented instruction")
+                log.debug("Encountered unimplemented instruction")
                 continue
             self.manage_cfg(op_code, new_states)
 
@@ -222,11 +199,6 @@ class LaserEVM:
     def execute_state(
         self, global_state: GlobalState
     ) -> Tuple[List[GlobalState], Union[str, None]]:
-        """
-
-        :param global_state:
-        :return:
-        """
         instructions = global_state.environment.code.instruction_list
         try:
             op_code = instructions[global_state.mstate.pc]["opcode"]
@@ -248,9 +220,7 @@ class LaserEVM:
                 # In this case we don't put an unmodified world state in the open_states list Since in the case of an
                 #  exceptional halt all changes should be discarded, and this world state would not provide us with a
                 #  previously unseen world state
-                logging.debug(
-                    "Encountered a VmException, ending path: `{}`".format(str(e))
-                )
+                log.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
@@ -347,11 +317,6 @@ class LaserEVM:
         self.coverage[code][1][instruction_index] = True
 
     def manage_cfg(self, opcode: str, new_states: List[GlobalState]) -> None:
-        """
-
-        :param opcode:
-        :param new_states:
-        """
         if opcode == "JUMP":
             assert len(new_states) <= 1
             for state in new_states:
@@ -419,7 +384,7 @@ class LaserEVM:
             ]
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            logging.debug(
+            log.debug(
                 "- Entering function "
                 + environment.active_account.contract_name
                 + ":"
@@ -447,17 +412,7 @@ class LaserEVM:
                 hook(global_state)
 
     def pre_hook(self, op_code: str) -> Callable:
-        """
-
-        :param op_code:
-        :return:
-        """
         def hook_decorator(func: Callable):
-            """
-
-            :param func:
-            :return:
-            """
             if op_code not in self.pre_hooks.keys():
                 self.pre_hooks[op_code] = []
             self.pre_hooks[op_code].append(func)
@@ -466,17 +421,7 @@ class LaserEVM:
         return hook_decorator
 
     def post_hook(self, op_code: str) -> Callable:
-        """
-
-        :param op_code:
-        :return:
-        """
         def hook_decorator(func: Callable):
-            """
-
-            :param func:
-            :return:
-            """
             if op_code not in self.post_hooks.keys():
                 self.post_hooks[op_code] = []
             self.post_hooks[op_code].append(func)

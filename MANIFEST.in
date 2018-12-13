@@ -1,2 +1,2 @@
-include mythril/disassembler/signatures.db
+include signatures.db
 include mythril/analysis/templates/*
