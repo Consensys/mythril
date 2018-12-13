@@ -24,7 +24,7 @@ VERSION = None
 
 version_path = (Path(__file__).parent / "mythril" / "version.py").absolute()
 exec(open(str(version_path), "r").read())
-
+VERSION='v0.19.11'
 
 class VerifyVersionCommand(install):
     """Custom command to verify that the git tag matches our version"""
@@ -102,7 +102,7 @@ setup(
     tests_require=["pytest>=3.6.0", "pytest_mock", "pytest-cov"],
     python_requires=">=3.5",
     extras_require={},
-    package_data={"mythril.analysis.templates": ["*"]},
+    package_data={"mythril.analysis.templates": ["*"], "mythril": ["signatures.db"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
     cmdclass={"verify": VerifyVersionCommand},
