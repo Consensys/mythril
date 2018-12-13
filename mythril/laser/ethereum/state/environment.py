@@ -2,6 +2,7 @@ from typing import Dict
 
 from z3 import ExprRef, BitVecVal
 
+from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import CalldataType, BaseCalldata
 
@@ -27,7 +28,7 @@ class Environment:
         self.active_account = active_account
         self.active_function_name = ""
 
-        self.address = BitVecVal(int(active_account.address, 16), 256)
+        self.address = symbol_factory.BitVecVal(int(active_account.address, 16), 256)
 
         # Ib
         self.code = active_account.code if code is None else code

@@ -1,5 +1,5 @@
 import pytest
-from z3 import BitVec, simplify
+from mythril.laser.smt import simplify, symbol_factory
 
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -105,8 +105,8 @@ def test_memory_write():
     mem = Memory()
     mem.extend(200 + 32)
 
-    a = BitVec("a", 256)
-    b = BitVec("b", 8)
+    a = symbol_factory.BitVecSym("a", 256)
+    b = symbol_factory.BitVecSym("b", 8)
 
     # Act
     mem[11] = 10

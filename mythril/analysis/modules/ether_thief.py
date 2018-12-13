@@ -5,7 +5,7 @@ from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
-from z3 import BitVecVal, UGT, Sum
+from mythril.laser.smt import symbol_factory, UGT, Sum, BVAddNoOverflow
 import logging
 from copy import copy
 
@@ -35,7 +35,7 @@ def _analyze_state(state):
     call_value = state.mstate.stack[-3]
     target = state.mstate.stack[-2]
 
-    eth_sent_total = BitVecVal(0, 256)
+    eth_sent_total = symbol_factory.BitVecVal(0, 256)
 
     constraints = copy(node.constraints)
 
