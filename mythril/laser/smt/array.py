@@ -26,7 +26,7 @@ class Array(BaseArray):
         Initializes a symbolic array
         :param name: Name of the array
         :param domain: The domain for the array (10 -> all the values that a bv of size 10 could take)
-        :param range: The range for the values in the array (10 -> all the values that a bv of size 10 could take)
+        :param value_range: The range for the values in the array (10 -> all the values that a bv of size 10 could take)
         """
         self.domain = z3.BitVecSort(domain)
         self.range = z3.BitVecSort(value_range)
