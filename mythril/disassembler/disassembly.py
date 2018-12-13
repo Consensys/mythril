@@ -10,9 +10,9 @@ class Disassembly(object):
 
     Stores bytecode, and its disassembly.
     Additionally it will gather the following information on the existing functions in the disassembled code:
-     - function hashes
-     - function name to entry point mapping
-     - function entry point to function name mapping
+    - function hashes
+    - function name to entry point mapping
+    - function entry point to function name mapping
     """
 
     def __init__(self, code: str, enable_online_lookup: bool = False):
@@ -43,6 +43,10 @@ class Disassembly(object):
                 self.address_to_function_name[jump_target] = function_name
 
     def get_easm(self):
+        """
+
+        :return:
+        """
         return asm.instruction_list_to_easm(self.instruction_list)
 
 

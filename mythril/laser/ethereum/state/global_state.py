@@ -53,6 +53,10 @@ class GlobalState:
 
     @property
     def accounts(self) -> Dict:
+        """
+
+        :return:
+        """
         return self.world_state.accounts
 
     # TODO: remove this, as two instructions are confusing
@@ -66,6 +70,10 @@ class GlobalState:
     def current_transaction(
         self
     ) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
+        """
+
+        :return:
+        """
         # TODO: Remove circular to transaction package to import Transaction classes
         try:
             return self.transaction_stack[-1][0]
@@ -74,13 +82,27 @@ class GlobalState:
 
     @property
     def instruction(self) -> Dict:
+        """
+
+        :return:
+        """
         return self.get_current_instruction()
 
     def new_bitvec(self, name: str, size=256) -> BitVec:
+        """
+
+        :param name:
+        :param size:
+        :return:
+        """
         transaction_id = self.current_transaction.id
         return BitVec("{}_{}".format(transaction_id, name), size)
 
     def annotate(self, annotation: StateAnnotation) -> None:
+        """
+
+        :param annotation:
+        """
         self._annotations.append(annotation)
 
         if annotation.persist_to_world_state:
@@ -88,4 +110,8 @@ class GlobalState:
 
     @property
     def annotations(self) -> List[StateAnnotation]:
+        """
+
+        :return:
+        """
         return self._annotations

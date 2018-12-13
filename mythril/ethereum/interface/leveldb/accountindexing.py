@@ -21,9 +21,19 @@ class CountableList(object):
         self.element_sedes = element_sedes
 
     def serialize(self, obj):
+        """
+
+        :param obj:
+        :return:
+        """
         return [self.element_sedes.serialize(e) for e in obj]
 
     def deserialize(self, serial):
+        """
+
+        :param serial:
+        :return:
+        """
         # needed for 2 reasons:
         # 1. empty lists are not zero elements
         # 2. underlying logs are stored as list - if empty will also except and receipts will be lost

@@ -90,6 +90,9 @@ class BaseCalldata:
 
 
 class ConcreteCalldata(BaseCalldata):
+    """
+
+    """
     def __init__(self, tx_id: int, calldata: list):
         """
         Initializes the ConcreteCalldata object
@@ -107,14 +110,27 @@ class ConcreteCalldata(BaseCalldata):
         return simplify(self._calldata[item])
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         return self._concrete_calldata
 
     @property
     def size(self) -> int:
+        """
+
+        :return:
+        """
         return len(self._concrete_calldata)
 
 
 class BasicConcreteCalldata(BaseCalldata):
+    """
+
+    """
+
     def __init__(self, tx_id: int, calldata: list):
         """
         Initializes the ConcreteCalldata object, that doesn't use z3 arrays
@@ -137,14 +153,26 @@ class BasicConcreteCalldata(BaseCalldata):
         return value
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         return self._calldata
 
     @property
     def size(self) -> int:
+        """
+
+        :return:
+        """
         return len(self._calldata)
 
 
 class SymbolicCalldata(BaseCalldata):
+    """
+
+    """
     def __init__(self, tx_id: int):
         """
         Initializes the SymbolicCalldata object
@@ -161,6 +189,11 @@ class SymbolicCalldata(BaseCalldata):
         return simplify(If(item < self._size, simplify(self._calldata[item]), 0))
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         concrete_length = get_concrete_int(model.eval(self.size, model_completion=True))
         result = []
         for i in range(concrete_length):
@@ -172,10 +205,17 @@ class SymbolicCalldata(BaseCalldata):
 
     @property
     def size(self) -> ExprRef:
+        """
+
+        :return:
+        """
         return self._size
 
 
 class BasicSymbolicCalldata(BaseCalldata):
+    """
+
+    """
     def __init__(self, tx_id: int):
         """
         Initializes the SymbolicCalldata object
@@ -202,6 +242,11 @@ class BasicSymbolicCalldata(BaseCalldata):
         return simplify(return_value)
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         concrete_length = get_concrete_int(model.eval(self.size, model_completion=True))
         result = []
         for i in range(concrete_length):
@@ -213,4 +258,8 @@ class BasicSymbolicCalldata(BaseCalldata):
 
     @property
     def size(self) -> ExprRef:
+        """
+
+        :return:
+        """
         return self._size

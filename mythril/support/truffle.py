@@ -16,7 +16,11 @@ from mythril.laser.ethereum.util import get_instruction_index
 
 
 def analyze_truffle_project(sigs, args):
+    """
 
+    :param sigs:
+    :param args:
+    """
     project_root = os.getcwd()
 
     build_dir = os.path.join(project_root, "build", "contracts")
@@ -131,6 +135,11 @@ def analyze_truffle_project(sigs, args):
 
 
 def get_sigs_from_truffle(sigs, contract_data):
+    """
+
+    :param sigs:
+    :param contract_data:
+    """
     abis = contract_data["abi"]
     for abi in abis:
         if abi["type"] != "function":
@@ -142,6 +151,12 @@ def get_sigs_from_truffle(sigs, contract_data):
 
 
 def get_mappings(source, deployed_source_map):
+    """
+
+    :param source:
+    :param deployed_source_map:
+    :return:
+    """
     mappings = []
     for item in deployed_source_map:
         mapping = item.split(":")

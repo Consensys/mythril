@@ -62,4 +62,7 @@ class EthJsonRpc(BaseClient):
             raise BadResponseError(response)
 
     def close(self):
+        """
+
+        """
         self.session.close()

@@ -89,6 +89,7 @@ def _analyze_state(state):
 
 
 class ExternalCalls(DetectionModule):
+    """This module searches for low level calls (e.g. call.value()) that forward all gas to the callee."""
     def __init__(self):
         super().__init__(
             name="External calls",
@@ -100,11 +101,20 @@ class ExternalCalls(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState):
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
     @property
     def issues(self):
+        """
+
+        :return:
+        """
         return self._issues
 
 

@@ -17,6 +17,11 @@ def clean_hex(d):
 
 
 def validate_block(block):
+    """
+
+    :param block:
+    :return:
+    """
     if isinstance(block, str):
         if block not in BLOCK_TAGS:
             raise ValueError("invalid block tag")

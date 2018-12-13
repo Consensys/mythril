@@ -38,6 +38,10 @@ class DepthFirstSearchStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
         return self.work_list.pop()
 
 
@@ -48,6 +52,10 @@ class BreadthFirstSearchStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
         return self.work_list.pop(0)
 
 
@@ -57,6 +65,10 @@ class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
         if len(self.work_list) > 0:
             return self.work_list.pop(randrange(len(self.work_list)))
         else:
@@ -69,6 +81,10 @@ class ReturnWeightedRandomStrategy(BasicSearchStrategy):
     """
 
     def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
         probability_distribution = [
             1 / (global_state.mstate.depth + 1) for global_state in self.work_list
         ]

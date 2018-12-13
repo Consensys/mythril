@@ -10,7 +10,11 @@ from pathlib import Path
 
 
 def safe_decode(hex_encoded_string):
+    """
 
+    :param hex_encoded_string:
+    :return:
+    """
     if hex_encoded_string.startswith("0x"):
         return bytes.fromhex(hex_encoded_string[2:])
     else:
@@ -18,7 +22,13 @@ def safe_decode(hex_encoded_string):
 
 
 def get_solc_json(file, solc_binary="solc", solc_args=None):
+    """
 
+    :param file:
+    :param solc_binary:
+    :param solc_args:
+    :return:
+    """
     cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap,srcmap-runtime"]
 
     if solc_args:
@@ -58,6 +68,13 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
 
 
 def encode_calldata(func_name, arg_types, args):
+    """
+
+    :param func_name:
+    :param arg_types:
+    :param args:
+    :return:
+    """
     mid = method_id(func_name, arg_types)
     function_selector = zpad(encode_int(mid), 4)
     args = encode_abi(arg_types, args)
@@ -65,14 +82,28 @@ def encode_calldata(func_name, arg_types, args):
 
 
 def get_random_address():
+    """
+
+    :return:
+    """
     return binascii.b2a_hex(os.urandom(20)).decode("UTF-8")
 
 
 def get_indexed_address(index):
+    """
+
+    :param index:
+    :return:
+    """
     return "0x" + (hex(index)[2:] * 40)
 
 
 def solc_exists(version):
+    """
+
+    :param version:
+    :return:
+    """
     solc_binaries = [
         os.path.join(
             os.environ.get("HOME", str(Path.home())),

@@ -77,10 +77,18 @@ class WorldState:
         self._put_account(new_account)
 
     def annotate(self, annotation: StateAnnotation) -> None:
+        """
+
+        :param annotation:
+        """
         self._annotations.append(annotation)
 
     @property
     def annotations(self) -> List[StateAnnotation]:
+        """
+
+        :return:
+        """
         return self._annotations
 
     def _generate_new_address(self) -> str:

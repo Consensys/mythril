@@ -17,6 +17,10 @@ _next_transaction_id = 0
 
 
 def get_next_transaction_id() -> int:
+    """
+
+    :return:
+    """
     global _next_transaction_id
     _next_transaction_id += 1
     return _next_transaction_id
@@ -97,6 +101,12 @@ class BaseTransaction:
         self.return_data = None
 
     def initial_global_state_from_environment(self, environment, active_function):
+        """
+
+        :param environment:
+        :param active_function:
+        :return:
+        """
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
@@ -126,6 +136,12 @@ class MessageCallTransaction(BaseTransaction):
         )
 
     def end(self, global_state: GlobalState, return_data=None, revert=False) -> None:
+        """
+
+        :param global_state:
+        :param return_data:
+        :param revert:
+        """
         self.return_data = return_data
         raise TransactionEndSignal(global_state, revert)
 
@@ -157,7 +173,12 @@ class ContractCreationTransaction(BaseTransaction):
         )
 
     def end(self, global_state: GlobalState, return_data=None, revert=False):
+        """
 
+        :param global_state:
+        :param return_data:
+        :param revert:
+        """
         if (
             not all([isinstance(element, int) for element in return_data])
             or len(return_data) == 0

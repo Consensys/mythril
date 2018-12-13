@@ -18,6 +18,10 @@ class EvmInstruction:
         self.argument = argument
 
     def to_dict(self) -> dict:
+        """
+
+        :return:
+        """
         result = {"address": self.address, "opcode": self.op_code}
         if self.argument:
             result["argument"] = self.argument
@@ -25,6 +29,11 @@ class EvmInstruction:
 
 
 def instruction_list_to_easm(instruction_list: list) -> str:
+    """
+
+    :param instruction_list:
+    :return:
+    """
     result = ""
 
     for instruction in instruction_list:
@@ -37,6 +46,11 @@ def instruction_list_to_easm(instruction_list: list) -> str:
 
 
 def get_opcode_from_name(operation_name: str) -> int:
+    """
+
+    :param operation_name:
+    :return:
+    """
     for op_code, value in opcodes.items():
         if operation_name == value[0]:
             return op_code
@@ -46,8 +60,7 @@ def get_opcode_from_name(operation_name: str) -> int:
 def find_op_code_sequence(pattern: list, instruction_list: list) -> Generator:
     """
     Returns all indices in instruction_list that point to instruction sequences following a pattern
-    :param pattern: The pattern to look for.
-        Example:  [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies the pattern
+    :param pattern: The pattern to look for, e.g. [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies pattern
     :param instruction_list: List of instructions to look in
     :return: Indices to the instruction sequences
     """
@@ -59,8 +72,7 @@ def find_op_code_sequence(pattern: list, instruction_list: list) -> Generator:
 def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool:
     """
     Checks if the instructions starting at index follow a pattern
-    :param pattern: List of lists describing a pattern.
-        Example:  [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies the pattern
+    :param pattern: List of lists describing a pattern, e.g. [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies pattern
     :param instruction_list: List of instructions
     :param index: Index to check for
     :return: Pattern matched

@@ -82,6 +82,11 @@ def _assert_empty_json(changed_files):
     actual = []
 
     def ordered(obj):
+        """
+
+        :param obj:
+        :return:
+        """
         if isinstance(obj, dict):
             return sorted((k, ordered(v)) for k, v in obj.items())
         elif isinstance(obj, list):
@@ -126,6 +131,11 @@ def _get_changed_files_json(report_builder, reports):
     postfix = ".json"
 
     def ordered(obj):
+        """
+
+        :param obj:
+        :return:
+        """
         if isinstance(obj, dict):
             return sorted((k, ordered(v)) for k, v in obj.items())
         elif isinstance(obj, list):

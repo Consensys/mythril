@@ -5,6 +5,9 @@ from mythril.laser.ethereum import util
 
 
 class Memory:
+    """
+
+    """
     def __init__(self):
         self._memory = []
 
@@ -12,6 +15,10 @@ class Memory:
         return len(self._memory)
 
     def extend(self, size):
+        """
+
+        :param size:
+        """
         self._memory.extend(bytearray(size))
 
     def get_word_at(self, index: int) -> Union[int, BitVecRef]:

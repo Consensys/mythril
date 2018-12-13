@@ -75,6 +75,7 @@ def _analyze_state(state):
 
 
 class EtherThief(DetectionModule):
+    """This module search for cases where Ether can be withdrawn to a user-specified address."""
     def __init__(self):
         super().__init__(
             name="Ether Thief",
@@ -86,11 +87,20 @@ class EtherThief(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState):
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
     @property
     def issues(self):
+        """
+
+        :return:
+        """
         return self._issues
 
 

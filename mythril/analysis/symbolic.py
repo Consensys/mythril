@@ -179,7 +179,12 @@ class SymExecWrapper:
                 state_index += 1
 
     def find_storage_write(self, address, index):
+        """
 
+        :param address:
+        :param index:
+        :return:
+        """
         # Find an SSTOR not constrained by caller that writes to storage index "index"
 
         try:

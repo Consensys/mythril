@@ -48,6 +48,10 @@ class Storage:
         self._storage[key] = value
 
     def keys(self) -> KeysView:
+        """
+
+        :return:
+        """
         return self._storage.keys()
 
 
@@ -90,13 +94,25 @@ class Account:
         return str(self.as_dict)
 
     def set_balance(self, balance: ExprRef) -> None:
+        """
+
+        :param balance:
+        """
         self.balance = balance
 
     def add_balance(self, balance: ExprRef) -> None:
+        """
+
+        :param balance:
+        """
         self.balance += balance
 
     @property
     def as_dict(self) -> Dict:
+        """
+
+        :return:
+        """
         return {
             "nonce": self.nonce,
             "code": self.code,

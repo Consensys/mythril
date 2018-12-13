@@ -1,3 +1,8 @@
+"""
+This module contains the business logic used by Instruction in instructions.py
+to get the necessary elements from the stack and determine the parameters for the new global state.
+"""
+
 import logging
 from typing import Union
 from z3 import simplify, ExprRef, Extract
@@ -11,11 +16,6 @@ from mythril.laser.ethereum.state.calldata import (
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.support.loader import DynLoader
 import re
-
-"""
-This module contains the business logic used by Instruction in instructions.py
-to get the necessary elements from the stack and determine the parameters for the new global state.
-"""
 
 
 def get_call_parameters(

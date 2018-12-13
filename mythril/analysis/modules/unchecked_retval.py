@@ -8,6 +8,7 @@ import re
 
 
 class UncheckedRetvalModule(DetectionModule):
+    """This module checks whether CALL return value is checked."""
     def __init__(self):
         super().__init__(
             name="Unchecked Return Value",
@@ -25,7 +26,11 @@ class UncheckedRetvalModule(DetectionModule):
         )
 
     def execute(self, statespace):
+        """
 
+        :param statespace:
+        :return:
+        """
         logging.debug("Executing module: UNCHECKED_RETVAL")
 
         issues = []

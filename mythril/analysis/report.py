@@ -7,6 +7,9 @@ import hashlib
 
 
 class Issue:
+    """
+
+    """
     def __init__(
         self,
         contract,
@@ -46,7 +49,10 @@ class Issue:
 
     @property
     def as_dict(self):
+        """
 
+        :return:
+        """
         issue = {
             "title": self.title,
             "swc-id": self.swc_id,
@@ -70,6 +76,10 @@ class Issue:
         return issue
 
     def add_code_info(self, contract):
+        """
+
+        :param contract:
+        """
         if self.address:
             codeinfo = contract.get_source_info(
                 self.address, constructor=(self.function == "constructor")
@@ -80,6 +90,9 @@ class Issue:
 
 
 class Report:
+    """
+
+    """
     environment = Environment(
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
@@ -90,15 +103,27 @@ class Report:
         pass
 
     def sorted_issues(self):
+        """
+
+        :return:
+        """
         issue_list = [issue.as_dict for key, issue in self.issues.items()]
         return sorted(issue_list, key=operator.itemgetter("address", "title"))
 
     def append_issue(self, issue):
+        """
+
+        :param issue:
+        """
         m = hashlib.md5()
         m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
         self.issues[m.digest()] = issue
 
     def as_text(self):
+        """
+
+        :return:
+        """
         name = self._file_name()
         template = Report.environment.get_template("report_as_text.jinja2")
         return template.render(
@@ -106,6 +131,10 @@ class Report:
         )
 
     def as_json(self):
+        """
+
+        :return:
+        """
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
         return json.dumps(result, sort_keys=True)
 
@@ -124,6 +153,10 @@ class Report:
         return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):
+        """
+
+        :return:
+        """
         filename = self._file_name()
         template = Report.environment.get_template("report_as_markdown.jinja2")
         return template.render(

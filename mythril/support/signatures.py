@@ -22,8 +22,19 @@ def synchronized(sync_lock):
     """ Synchronization decorator """
 
     def wrapper(f):
+        """
+
+        :param f:
+        :return:
+        """
         @functools.wraps(f)
         def inner_wrapper(*args, **kw):
+            """
+
+            :param args:
+            :param kw:
+            :return:
+            """
             with sync_lock:
                 return f(*args, **kw)
 
@@ -76,7 +87,14 @@ class SQLiteDB(object):
 
 
 class SignatureDB(object, metaclass=Singleton):
+    """
+
+    """
     def __init__(self, enable_online_lookup: bool = False, path: str = None) -> None:
+        """
+        :param enable_online_lookup:
+        :param path:
+        """
         self.enable_online_lookup = enable_online_lookup
         self.online_lookup_miss = set()
         self.online_lookup_timeout = 0
@@ -193,6 +211,8 @@ class SignatureDB(object, metaclass=Singleton):
     ):
         """
         Import Function Signatures from solidity source files
+        :param solc_binary:
+        :param solc_args:
         :param file_path: solidity source code file path
         :return:
         """

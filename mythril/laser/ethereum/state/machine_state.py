@@ -97,11 +97,23 @@ class MachineState:
         self.depth = depth
 
     def calculate_extension_size(self, start: int, size: int) -> int:
+        """
+
+        :param start:
+        :param size:
+        :return:
+        """
         if self.memory_size > start + size:
             return 0
         return start + size - self.memory_size
 
     def calculate_memory_gas(self, start: int, size: int):
+        """
+
+        :param start:
+        :param size:
+        :return:
+        """
         # https://github.com/ethereum/pyethereum/blob/develop/ethereum/vm.py#L148
         oldsize = self.memory_size // 32
         old_totalfee = (
@@ -114,6 +126,9 @@ class MachineState:
         return new_totalfee - old_totalfee
 
     def check_gas(self):
+        """
+
+        """
         if self.min_gas_used > self.gas_limit:
             raise OutOfGasException()
 
@@ -163,10 +178,18 @@ class MachineState:
 
     @property
     def memory_size(self) -> int:
+        """
+
+        :return:
+        """
         return len(self.memory)
 
     @property
     def as_dict(self) -> Dict:
+        """
+
+        :return:
+        """
         return dict(
             pc=self.pc,
             stack=self.stack,

@@ -4,6 +4,9 @@ import re
 
 
 class DynLoader:
+    """
+
+    """
     def __init__(self, eth, contract_loading=True, storage_loading=True):
         self.eth = eth
         self.storage_cache = {}
@@ -11,7 +14,12 @@ class DynLoader:
         self.storage_loading = storage_loading
 
     def read_storage(self, contract_address, index):
+        """
 
+        :param contract_address:
+        :param index:
+        :return:
+        """
         if not self.storage_loading:
             raise Exception(
                 "Cannot load from the storage when the storage_loading flag is false"
@@ -42,7 +50,12 @@ class DynLoader:
         return data
 
     def dynld(self, contract_address, dependency_address):
+        """
 
+        :param contract_address:
+        :param dependency_address:
+        :return:
+        """
         if not self.contract_loading:
             raise ValueError("Cannot load contract when contract_loading flag is false")
 

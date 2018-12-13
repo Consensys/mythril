@@ -7,6 +7,13 @@ import logging
 
 
 def get_model(constraints, minimize=(), maximize=()):
+    """
+
+    :param constraints:
+    :param minimize:
+    :param maximize:
+    :return:
+    """
     s = Optimize()
     s.set("timeout", 100000)
 
@@ -32,7 +39,11 @@ def get_model(constraints, minimize=(), maximize=()):
 
 
 def pretty_print_model(model):
+    """
 
+    :param model:
+    :return:
+    """
     ret = ""
 
     for d in model.decls():
@@ -57,7 +68,6 @@ def get_transaction_sequence(global_state, constraints):
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
-    :param caller: address of caller
     :param max_callvalue: maximum callvalue for a transaction
     """
 

@@ -20,6 +20,11 @@ class NativeContractException(Exception):
 def int_to_32bytes(
     i: int
 ) -> bytes:  # used because int can't fit as bytes function's input
+    """
+
+    :param i:
+    :return:
+    """
     o = [0] * 32
     for x in range(32):
         o[31 - x] = i & 0xFF
@@ -28,6 +33,12 @@ def int_to_32bytes(
 
 
 def extract32(data: bytearray, i: int) -> int:
+    """
+
+    :param data:
+    :param i:
+    :return:
+    """
     if i >= len(data):
         return 0
     o = data[i : min(i + 32, len(data))]
@@ -36,6 +47,11 @@ def extract32(data: bytearray, i: int) -> int:
 
 
 def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     # TODO: Add type hints
     try:
         data = bytearray(data)
@@ -58,6 +74,11 @@ def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def sha256(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     try:
         data = bytes(data)
     except TypeError:
@@ -66,6 +87,11 @@ def sha256(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     try:
         data = bytes(data)
     except TypeError:
@@ -76,6 +102,11 @@ def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def identity(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     # Group up into an array of 32 byte words instead
     # of an array of bytes. If saved to memory, 32 byte
     # words are currently needed, but a correct memory

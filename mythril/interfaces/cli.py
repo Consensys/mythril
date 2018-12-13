@@ -20,6 +20,11 @@ import mythril.support.signatures as sigs
 
 
 def exit_with_error(format_, message):
+    """
+
+    :param format_:
+    :param message:
+    """
     if format_ == "text" or format_ == "markdown":
         logging.error(message)
     else:
@@ -29,6 +34,9 @@ def exit_with_error(format_, message):
 
 
 def main():
+    """
+
+    """
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )

@@ -44,6 +44,10 @@ class Environment:
 
     @property
     def as_dict(self) -> Dict:
+        """
+
+        :return:
+        """
         return dict(
             active_account=self.active_account,
             sender=self.sender,

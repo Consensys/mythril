@@ -9,6 +9,9 @@ class VarType(Enum):
 
 
 class Variable:
+    """
+
+    """
     def __init__(self, val, _type):
         self.val = val
         self.type = _type
@@ -18,6 +21,11 @@ class Variable:
 
 
 def get_variable(i):
+    """
+
+    :param i:
+    :return:
+    """
     try:
         return Variable(util.get_concrete_int(i), VarType.CONCRETE)
     except TypeError:
@@ -25,6 +33,9 @@ def get_variable(i):
 
 
 class Op:
+    """
+
+    """
     def __init__(self, node, state, state_index):
         self.node = node
         self.state = state
@@ -32,6 +43,9 @@ class Op:
 
 
 class Call(Op):
+    """
+
+    """
     def __init__(
         self,
         node,
@@ -53,6 +67,9 @@ class Call(Op):
 
 
 class SStore(Op):
+    """
+
+    """
     def __init__(self, node, state, state_index, value):
         super().__init__(node, state, state_index)
         self.value = value

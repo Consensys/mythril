@@ -5,6 +5,9 @@ import re
 
 
 class EVMContract(persistent.Persistent):
+    """
+
+    """
     def __init__(
         self, code="", creation_code="", name="Unknown", enable_online_lookup=False
     ):
@@ -25,7 +28,10 @@ class EVMContract(persistent.Persistent):
         )
 
     def as_dict(self):
+        """
 
+        :return:
+        """
         return {
             "name": self.name,
             "code": self.code,
@@ -34,15 +40,25 @@ class EVMContract(persistent.Persistent):
         }
 
     def get_easm(self):
+        """
 
+        :return:
+        """
         return self.disassembly.get_easm()
 
     def get_creation_easm(self):
+        """
 
+        :return:
+        """
         return self.creation_disassembly.get_easm()
 
     def matches_expression(self, expression):
+        """
 
+        :param expression:
+        :return:
+        """
         str_eval = ""
         easm_code = None
 

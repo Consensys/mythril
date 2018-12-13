@@ -81,6 +81,11 @@ class LaserEVM:
         )
 
     def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
+        """
+
+        :param hook_type:
+        :param hook_dict:
+        """
         if hook_type == "pre":
             entrypoint = self.pre_hooks
         elif hook_type == "post":
@@ -95,11 +100,21 @@ class LaserEVM:
 
     @property
     def accounts(self) -> Dict[str, Account]:
+        """
+
+        :return:
+        """
         return self.world_state.accounts
 
     def sym_exec(
         self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
+        """
+
+        :param main_address:
+        :param creation_code:
+        :param contract_name:
+        """
         logging.debug("Starting LASER execution")
         self.time = datetime.now()
 
@@ -172,6 +187,12 @@ class LaserEVM:
         return total_covered_instructions
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
+        """
+
+        :param create:
+        :param track_gas:
+        :return:
+        """
         final_states = []
         for global_state in self.strategy:
             if self.execution_timeout and not create:
@@ -201,6 +222,11 @@ class LaserEVM:
     def execute_state(
         self, global_state: GlobalState
     ) -> Tuple[List[GlobalState], Union[str, None]]:
+        """
+
+        :param global_state:
+        :return:
+        """
         instructions = global_state.environment.code.instruction_list
         try:
             op_code = instructions[global_state.mstate.pc]["opcode"]
@@ -321,6 +347,11 @@ class LaserEVM:
         self.coverage[code][1][instruction_index] = True
 
     def manage_cfg(self, opcode: str, new_states: List[GlobalState]) -> None:
+        """
+
+        :param opcode:
+        :param new_states:
+        """
         if opcode == "JUMP":
             assert len(new_states) <= 1
             for state in new_states:
@@ -416,7 +447,17 @@ class LaserEVM:
                 hook(global_state)
 
     def pre_hook(self, op_code: str) -> Callable:
+        """
+
+        :param op_code:
+        :return:
+        """
         def hook_decorator(func: Callable):
+            """
+
+            :param func:
+            :return:
+            """
             if op_code not in self.pre_hooks.keys():
                 self.pre_hooks[op_code] = []
             self.pre_hooks[op_code].append(func)
@@ -425,7 +466,17 @@ class LaserEVM:
         return hook_decorator
 
     def post_hook(self, op_code: str) -> Callable:
+        """
+
+        :param op_code:
+        :return:
+        """
         def hook_decorator(func: Callable):
+            """
+
+            :param func:
+            :return:
+            """
             if op_code not in self.post_hooks.keys():
                 self.post_hooks[op_code] = []
             self.post_hooks[op_code].append(func)

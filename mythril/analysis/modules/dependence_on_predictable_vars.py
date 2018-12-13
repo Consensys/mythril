@@ -10,6 +10,7 @@ import logging
 
 
 class PredictableDependenceModule(DetectionModule):
+    """This module detects whether Ether is sent using predictable parameters."""
     def __init__(self):
         super().__init__(
             name="Dependence of Predictable Variables",
@@ -23,7 +24,11 @@ class PredictableDependenceModule(DetectionModule):
         )
 
     def execute(self, statespace):
+        """
 
+        :param statespace:
+        :return:
+        """
         logging.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
 
         issues = []
@@ -169,6 +174,11 @@ class PredictableDependenceModule(DetectionModule):
         return issues
 
     def solve(self, call):
+        """
+
+        :param call:
+        :return:
+        """
         try:
             model = solver.get_model(call.node.constraints)
             logging.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))

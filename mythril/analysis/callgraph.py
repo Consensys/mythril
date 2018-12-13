@@ -121,6 +121,12 @@ phrack_color = {
 
 
 def extract_nodes(statespace, color_map):
+    """
+
+    :param statespace:
+    :param color_map:
+    :return:
+    """
     nodes = []
     for node_key in statespace.nodes:
         node = statespace.nodes[node_key]
@@ -168,6 +174,11 @@ def extract_nodes(statespace, color_map):
 
 
 def extract_edges(statespace):
+    """
+
+    :param statespace:
+    :return:
+    """
     edges = []
     for edge in statespace.edges:
         if edge.condition is None:
@@ -200,6 +211,14 @@ def generate_graph(
     physics=False,
     phrackify=False,
 ):
+    """
+
+    :param statespace:
+    :param title:
+    :param physics:
+    :param phrackify:
+    :return:
+    """
     env = Environment(
         loader=PackageLoader("mythril.analysis"),
         autoescape=select_autoescape(["html", "xml"]),

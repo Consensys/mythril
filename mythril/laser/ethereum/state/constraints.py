@@ -11,12 +11,24 @@ class Constraints(list):
         self.__possibility = possibility
 
     def check_possibility(self):
+        """
+
+        :return:
+        """
         return True
 
     def append(self, constraint):
+        """
+
+        :param constraint:
+        """
         super(Constraints, self).append(constraint)
 
     def pop(self, index=-1):
+        """
+
+        :param index:
+        """
         raise NotImplementedError
 
     def __copy__(self):

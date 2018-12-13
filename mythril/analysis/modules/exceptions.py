@@ -7,6 +7,7 @@ import logging
 
 
 class ReachableExceptionsModule(DetectionModule):
+    """This module checks whether any exception states are reachable."""
     def __init__(self):
         super().__init__(
             name="Reachable Exceptions",
@@ -16,7 +17,11 @@ class ReachableExceptionsModule(DetectionModule):
         )
 
     def execute(self, statespace):
+        """
 
+        :param statespace:
+        :return:
+        """
         logging.debug("Executing module: EXCEPTIONS")
 
         issues = []

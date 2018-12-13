@@ -19,6 +19,9 @@ class NodeFlags(Flags):
 
 
 class Node:
+    """
+
+    """
     def __init__(self, contract_name: str, start_addr=0, constraints=None):
         constraints = constraints if constraints else []
         self.contract_name = contract_name
@@ -35,6 +38,10 @@ class Node:
         gbl_next_uid += 1
 
     def get_cfg_dict(self) -> Dict:
+        """
+
+        :return:
+        """
         code = ""
         for state in self.states:
             instruction = state.get_current_instruction()
@@ -54,6 +61,9 @@ class Node:
 
 
 class Edge:
+    """
+
+    """
     def __init__(
         self,
         node_from: int,
@@ -71,4 +81,8 @@ class Edge:
 
     @property
     def as_dict(self) -> Dict[str, int]:
+        """
+
+        :return:
+        """
         return {"from": self.node_from, "to": self.node_to}

@@ -7,6 +7,7 @@ import logging
 
 
 class DelegateCallModule(DetectionModule):
+    """This module detects calldata being forwarded using DELEGATECALL."""
     def __init__(self):
         super().__init__(
             name="DELEGATECALL Usage in Fallback Function",

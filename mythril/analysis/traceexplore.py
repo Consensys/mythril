@@ -47,6 +47,11 @@ colors = [
 
 
 def get_serializable_statespace(statespace):
+    """
+
+    :param statespace:
+    :return:
+    """
     nodes = []
     edges = []
 
@@ -77,6 +82,11 @@ def get_serializable_statespace(statespace):
         color = color_map[node.get_cfg_dict()["contract_name"]]
 
         def get_state_accounts(node_state):
+            """
+
+            :param node_state:
+            :return:
+            """
             state_accounts = []
             for key in node_state.accounts:
                 account = node_state.accounts[key].as_dict

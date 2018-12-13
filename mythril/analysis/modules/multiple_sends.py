@@ -5,6 +5,7 @@ from mythril.laser.ethereum.cfg import JumpType
 
 
 class MultipleSendsModule(DetectionModule):
+    """This module checks for multiple sends in a single transaction."""
     def __init__(self):
         super().__init__(
             name="Multiple Sends",
@@ -14,6 +15,11 @@ class MultipleSendsModule(DetectionModule):
         )
 
     def execute(self, statespace):
+        """
+
+        :param statespace:
+        :return:
+        """
         issues = []
 
         for call in statespace.calls:
@@ -59,7 +65,8 @@ class MultipleSendsModule(DetectionModule):
         sending_children = list(filter(lambda c: c.node in children, statespace.calls))
         return sending_children
 
-    def _explore_states(self, call, statespace):
+    @staticmethod
+    def _explore_states(call, statespace):
         other_calls = list(
             filter(
                 lambda other: other.node == call.node

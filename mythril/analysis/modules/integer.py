@@ -12,6 +12,7 @@ import logging
 
 
 class IntegerOverflowUnderflowModule(DetectionModule):
+    """This module searches for integer over- and underflows."""
     def __init__(self):
         super().__init__(
             name="Integer Overflow and Underflow",
