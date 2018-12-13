@@ -1,4 +1,4 @@
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Iterable
 
 from copy import copy, deepcopy
 from z3 import BitVec
@@ -90,3 +90,12 @@ class GlobalState:
     @property
     def annotations(self) -> List[StateAnnotation]:
         return self._annotations
+
+    def get_annotations(self, annotation_type: type) -> Iterable[StateAnnotation]:
+        """
+        Filters annotations for the queried annotation type. Designed particularly for
+        modules with annotations: globalstate.get_annotations(MySpecificModuleAnnotation)
+        :param annotation_type: The type to filter annotations for
+        :return: filter of matching annotations
+        """
+        return filter(lambda x: isinstance(x, annotation_type), self.annotations)
