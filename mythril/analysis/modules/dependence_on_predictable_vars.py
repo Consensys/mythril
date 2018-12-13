@@ -30,12 +30,16 @@ class PredictableDependenceModule(DetectionModule):
 
     @property
     def issues(self) -> list:
+        """
+
+        :return:
+        """
         return self._issues
 
     def execute(self, state: GlobalState) -> list:
         """
 
-        :param statespace:
+        :param state:
         :return:
         """
         log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")

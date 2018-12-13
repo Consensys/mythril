@@ -27,9 +27,18 @@ class DelegateCallModule(DetectionModule):
 
     @property
     def issues(self) -> list:
+        """
+
+        :return:
+        """
         return self._issues
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         log.debug("Executing module: DELEGATE_CALL")
         self._issues.extend(_analyze_states(state))
         return self.issues

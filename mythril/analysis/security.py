@@ -11,12 +11,20 @@ OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 
 
 def reset_callback_modules():
+    """
+
+    """
     modules = get_detection_modules("callback")
     for module in modules:
         module.detector._issues = []
 
 
 def get_detection_module_hooks(modules):
+    """
+
+    :param modules:
+    :return:
+    """
     hook_dict = defaultdict(list)
     _modules = get_detection_modules(entrypoint="callback", include_modules=modules)
     for module in _modules:
@@ -37,6 +45,12 @@ def get_detection_module_hooks(modules):
 
 
 def get_detection_modules(entrypoint, include_modules=()):
+    """
+
+    :param entrypoint:
+    :param include_modules:
+    :return:
+    """
     include_modules = list(include_modules)
 
     _modules = []
@@ -60,6 +74,12 @@ def get_detection_modules(entrypoint, include_modules=()):
 
 
 def fire_lasers(statespace, module_names=()):
+    """
+
+    :param statespace:
+    :param module_names:
+    :return:
+    """
     log.info("Starting analysis")
 
     issues = []

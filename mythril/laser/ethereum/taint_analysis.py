@@ -96,10 +96,10 @@ class TaintRunner:
     ) -> TaintResult:
         """
         Runs taint analysis on the statespace
+        :param initial_stack:
         :param statespace: symbolic statespace to run taint analysis on
         :param node: taint introduction node
         :param state: taint introduction state
-        :param stack_indexes: stack indexes to introduce taint
         :return: TaintResult object containing analysis results
         """
         if initial_stack is None:
@@ -136,6 +136,14 @@ class TaintRunner:
         environment: Environment,
         transaction_stack_length: int,
     ) -> List[Node]:
+        """
+
+        :param node:
+        :param statespace:
+        :param environment:
+        :param transaction_stack_length:
+        :return:
+        """
         direct_children = [
             statespace.nodes[edge.node_to]
             for edge in statespace.edges
@@ -176,6 +184,12 @@ class TaintRunner:
 
     @staticmethod
     def execute_state(record: TaintRecord, state: GlobalState) -> TaintRecord:
+        """
+
+        :param record:
+        :param state:
+        :return:
+        """
         assert len(state.mstate.stack) == len(record.stack)
         """ Runs taint analysis on a state """
         record.add_state(state)
@@ -212,6 +226,11 @@ class TaintRunner:
 
     @staticmethod
     def mutate_stack(record: TaintRecord, mutator: Tuple[int, int]) -> None:
+        """
+
+        :param record:
+        :param mutator:
+        """
         pop, push = mutator
 
         values = []
@@ -225,16 +244,31 @@ class TaintRunner:
 
     @staticmethod
     def mutate_push(op: str, record: TaintRecord) -> None:
+        """
+
+        :param op:
+        :param record:
+        """
         TaintRunner.mutate_stack(record, (0, 1))
 
     @staticmethod
     def mutate_dup(op: str, record: TaintRecord) -> None:
+        """
+
+        :param op:
+        :param record:
+        """
         depth = int(op[3:])
         index = len(record.stack) - depth
         record.stack.append(record.stack[index])
 
     @staticmethod
     def mutate_swap(op: str, record: TaintRecord) -> None:
+        """
+
+        :param op:
+        :param record:
+        """
         depth = int(op[4:])
         l = len(record.stack) - 1
         i = l - depth
@@ -242,6 +276,12 @@ class TaintRunner:
 
     @staticmethod
     def mutate_mload(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -254,6 +294,12 @@ class TaintRunner:
 
     @staticmethod
     def mutate_mstore(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -265,6 +311,12 @@ class TaintRunner:
 
     @staticmethod
     def mutate_sload(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -277,6 +329,12 @@ class TaintRunner:
 
     @staticmethod
     def mutate_sstore(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
@@ -288,12 +346,22 @@ class TaintRunner:
 
     @staticmethod
     def mutate_log(record: TaintRecord, op: str) -> None:
+        """
+
+        :param record:
+        :param op:
+        """
         depth = int(op[3:])
         for _ in range(depth + 2):
             record.stack.pop()
 
     @staticmethod
     def mutate_call(record: TaintRecord, op: str) -> None:
+        """
+
+        :param record:
+        :param op:
+        """
         pops = 6
         if op in ("CALL", "CALLCODE"):
             pops += 1

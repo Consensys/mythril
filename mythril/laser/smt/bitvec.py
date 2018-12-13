@@ -16,6 +16,10 @@ class BitVec(Expression):
         super().__init__(raw, annotations)
 
     def size(self):
+        """
+
+        :return:
+        """
         return self.raw.size()
 
     @property
@@ -122,6 +126,12 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
 
 
 def UGE(a: BitVec, b:BitVec) -> Bool:
+    """
+
+    :param a:
+    :param b:
+    :return:
+    """
     annotations = a.annotations + b.annotations
     return Bool(z3.UGE(a.raw, b.raw), annotations)
 

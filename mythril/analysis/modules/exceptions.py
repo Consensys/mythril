@@ -50,6 +50,9 @@ def _analyze_state(state) -> list:
 
 
 class ReachableExceptionsModule(DetectionModule):
+    """
+
+    """
     def __init__(self):
         super().__init__(
             name="Reachable Exceptions",
@@ -61,11 +64,20 @@ class ReachableExceptionsModule(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
     @property
     def issues(self) -> list:
+        """
+
+        :return:
+        """
         return self._issues
 
 

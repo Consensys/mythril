@@ -97,7 +97,7 @@ class ExternalCalls(DetectionModule):
             name="External calls",
             swc_id=REENTRANCY,
             hooks=["CALL"],
-            description=(DESCRIPTION),
+            description=DESCRIPTION,
             entrypoint="callback",
         )
         self._issues = []

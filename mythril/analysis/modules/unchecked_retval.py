@@ -10,6 +10,9 @@ log = logging.getLogger(__name__)
 
 
 class UncheckedRetvalModule(DetectionModule):
+    """
+
+    """
     def __init__(self):
         super().__init__(
             name="Unchecked Return Value",
@@ -27,7 +30,11 @@ class UncheckedRetvalModule(DetectionModule):
         )
 
     def execute(self, statespace):
+        """
 
+        :param statespace:
+        :return:
+        """
         log.debug("Executing module: UNCHECKED_RETVAL")
 
         issues = []

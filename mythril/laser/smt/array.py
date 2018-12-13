@@ -21,6 +21,9 @@ class BaseArray:
 
 
 class Array(BaseArray):
+    """
+
+    """
     def __init__(self, name: str, domain: int, value_range: int):
         """
         Initializes a symbolic array
@@ -34,6 +37,9 @@ class Array(BaseArray):
 
 
 class K(BaseArray):
+    """
+
+    """
     def __init__(self, domain: int, value_range: int, value: int):
         """
         Initializes an array with a default value

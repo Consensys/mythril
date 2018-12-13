@@ -5,6 +5,11 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 def get_call_from_state(state: GlobalState) -> Union[Call, None]:
+    """
+
+    :param state:
+    :return:
+    """
     instruction = state.get_current_instruction()
 
     op = instruction["opcode"]

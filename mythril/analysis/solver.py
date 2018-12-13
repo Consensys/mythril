@@ -71,7 +71,6 @@ def get_transaction_sequence(global_state, constraints):
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
-    :param max_callvalue: maximum callvalue for a transaction
     """
 
     transaction_sequence = global_state.world_state.transaction_sequence
