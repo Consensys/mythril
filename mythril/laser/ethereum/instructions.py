@@ -260,7 +260,7 @@ class Instruction:
             else:
                 result = 0
         except TypeError:
-            logging.debug("BYTE: Unsupported symbolic byte offset")
+            log.debug("BYTE: Unsupported symbolic byte offset")
             result = global_state.new_bitvec(
                 str(simplify(op1)) + "[" + str(simplify(op0)) + "]", 256
             )
@@ -1427,7 +1427,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
@@ -1460,7 +1460,7 @@ class Instruction:
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
-            logging.debug(
+            log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
