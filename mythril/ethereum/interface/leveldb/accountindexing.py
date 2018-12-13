@@ -13,8 +13,7 @@ BATCH_SIZE = 8 * 4096
 
 class CountableList(object):
     """A sedes for lists of arbitrary length.
-    :param element_sedes: when (de-)serializing a list, this sedes will be
-                          applied to all of its elements
+    :param element_sedes: when (de-)serializing a list, this sedes will be applied to all of its elements
     """
 
     def __init__(self, element_sedes):
