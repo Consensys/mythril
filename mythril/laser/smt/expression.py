@@ -26,7 +26,11 @@ class Expression:
         """ Simplifies this expression """
         self.raw = z3.simplify(self.raw)
 
+    def __repr__(self):
+        return repr(self.raw)
+
 
 def simplify(expression: Expression):
     """ Simplifies the expression """
     expression.simplify()
+    return expression

@@ -3,6 +3,7 @@ from typing import Dict, Union, List, Iterable
 from copy import copy, deepcopy
 from z3 import BitVec
 
+from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
@@ -78,7 +79,7 @@ class GlobalState:
 
     def new_bitvec(self, name: str, size=256) -> BitVec:
         transaction_id = self.current_transaction.id
-        return BitVec("{}_{}".format(transaction_id, name), size)
+        return symbol_factory.BitVecSym("{}_{}".format(transaction_id, name), size)
 
     def annotate(self, annotation: StateAnnotation) -> None:
         self._annotations.append(annotation)

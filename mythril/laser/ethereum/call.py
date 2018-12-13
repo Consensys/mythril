@@ -1,6 +1,6 @@
 import logging
 from typing import Union
-from z3 import simplify, ExprRef, Extract
+from mythril.laser.smt import simplify, Expression, symbol_factory
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import (
@@ -62,7 +62,9 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: ExprRef
+    global_state: GlobalState,
+    dynamic_loader: DynLoader,
+    symbolic_to_address: Expression,
 ):
     """
     Gets the address of the callee
@@ -148,8 +150,8 @@ def get_callee_account(
 
 def get_call_data(
     global_state: GlobalState,
-    memory_start: Union[int, ExprRef],
-    memory_size: Union[int, ExprRef],
+    memory_start: Union[int, Expression],
+    memory_size: Union[int, Expression],
 ):
     """
     Gets call_data from the global_state
@@ -160,14 +162,24 @@ def get_call_data(
     """
     state = global_state.mstate
     transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
+
+    memory_start = (
+        symbol_factory.BitVecVal(memory_start, 256)
+        if isinstance(memory_start, int)
+        else memory_start
+    )
+    memory_size = (
+        symbol_factory.BitVecVal(memory_size, 256)
+        if isinstance(memory_size, int)
+        else memory_size
+    )
+
     try:
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
                 memory_start + memory_size
             )
         ]
-        i = 0
-
         call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
         call_data_type = CalldataType.CONCRETE
         log.debug("Calldata: " + str(call_data))

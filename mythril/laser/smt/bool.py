@@ -26,6 +26,7 @@ class Bool(Expression):
     @property
     def value(self) -> Union[bool, None]:
         """ Returns the concrete value of this bool if concrete, otherwise None"""
+        self.simplify()
         if self.is_true:
             return True
         elif self.is_false:
@@ -33,12 +34,39 @@ class Bool(Expression):
         else:
             return None
 
+    def __eq__(self, other):
+        if isinstance(other, Expression):
+            return Bool(self.raw == other.raw, self.annotations + other.annotations)
+        return Bool(self.raw == other, self.annotations)
+
+    def __ne__(self, other):
+        if isinstance(other, Expression):
+            return Bool(self.raw != other.raw, self.annotations + other.annotations)
+        return Bool(self.raw != other, self.annotations)
+
+    def __bool__(self):
+        if self.value is not None:
+            return self.value
+        else:
+            return False
+
+
+def Or(a: Bool, b: Bool):
+    """ Create an or expression"""
+    union = a.annotations + b.annotations
+    return Bool(z3.Or(a.raw, b.raw), annotations=union)
+
+
+def Not(a: Bool):
+    """ Create a Not expression"""
+    return Bool(z3.Not(a.raw), a.annotations)
+
 
 def is_false(a: Bool) -> bool:
     """ Returns whether the provided bool can be simplified to false"""
-    return is_false(a)
+    return z3.is_false(a.raw)
 
 
 def is_true(a: Bool) -> bool:
     """ Returns whether the provided bool can be simplified to true"""
-    return is_true(a)
+    return z3.is_true(a.raw)
