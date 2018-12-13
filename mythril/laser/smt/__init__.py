@@ -1,6 +1,23 @@
-from mythril.laser.smt.bitvec import BitVec
-from mythril.laser.smt.expression import Expression
-from mythril.laser.smt.bool import Bool
+from mythril.laser.smt.bitvec import (
+    BitVec,
+    If,
+    UGT,
+    ULT,
+    Concat,
+    Extract,
+    URem,
+    SRem,
+    UDiv,
+    UGE,
+    Sum,
+    BVAddNoOverflow,
+    BVMulNoOverflow,
+    BVSubNoUnderflow,
+)
+from mythril.laser.smt.expression import Expression, simplify
+from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not
+from mythril.laser.smt.array import K, Array, BaseArray
+from mythril.laser.smt.solver import Solver, Optimize
 
 import z3
 
@@ -70,4 +87,7 @@ class _Z3SymbolFactory(SymbolFactory):
 
 
 # This is the instance that other parts of mythril should use
-symbol_factory = _Z3SymbolFactory()
+
+# Type hints are not allowed here in 3.5
+# symbol_factory: SymbolFactory = _SmtSymbolFactory()
+symbol_factory = _SmtSymbolFactory()

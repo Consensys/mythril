@@ -1,8 +1,8 @@
-from z3 import *
 from mythril.analysis.report import Issue
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
+from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 import logging
@@ -29,7 +29,7 @@ def _analyze_state(state):
     try:
         constraints = node.constraints
         transaction_sequence = solver.get_transaction_sequence(
-            state, constraints + [UGT(gas, BitVecVal(2300, 256))]
+            state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
         )
 
         # Check whether we can also set the callee address
