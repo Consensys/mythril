@@ -260,9 +260,6 @@ class SignatureDB(object, metaclass=Singleton):
     def lookup_online(byte_sig: str, timeout: int, proxies=None) -> List[str]:
         """
         Lookup function signatures from 4byte.directory.
-        //tintinweb: the smart-contract-sanctuary project dumps contracts from etherscan.io and feeds them into
-                     4bytes.directory.
-                     https://github.com/tintinweb/smart-contract-sanctuary
 
         :param byte_sig: function signature hash as hexstr
         :param timeout: optional timeout for online lookup
