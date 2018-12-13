@@ -33,7 +33,7 @@ class DelegateCallModule(DetectionModule):
         return self.issues
 
 
-def _analyze_states(state: GlobalState) -> list:
+def _analyze_states(state: GlobalState) -> List[Issue]:
     """
     :param state: the current state
     :return: returns the issues for that corresponding state
