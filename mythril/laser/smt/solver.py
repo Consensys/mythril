@@ -11,8 +11,8 @@ class Solver:
     def __init__(self):
         self.raw = z3.Solver()
 
-    def set_timeout(self, timeout) -> None:
-        """ Sets the timeout that will be used by this solver"""
+    def set_timeout(self, timeout: int) -> None:
+        """ Sets the timeout that will be used by this solver, timeout is in milliseconds"""
         self.raw.set(timeout=timeout)
 
     def add(self, constraints: list) -> None:
