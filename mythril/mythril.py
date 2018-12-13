@@ -126,7 +126,7 @@ class Mythril(object):
         if not os.path.exists(db_path):
             # if the default mythril dir doesn't contain a signature DB
             # initialize it with the default one from the project root
-            parent_dir = Path(__file__).parent
+            parent_dir = Path(__file__).parent.parent
             copyfile(str(parent_dir / "signatures.db"), db_path)
 
         return mythril_dir
