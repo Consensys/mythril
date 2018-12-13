@@ -136,9 +136,7 @@ def test_vmtest(
                 actual = account.storage[int(index, 16)]
                 if isinstance(actual, Expression):
                     actual = actual.value
-                    actual = (
-                        1 if actual is True else 0 if actual is False else actual
-                    )
+                    actual = 1 if actual is True else 0 if actual is False else actual
                 else:
                     if type(actual) == bytes:
                         actual = int(binascii.b2a_hex(actual), 16)
