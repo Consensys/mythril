@@ -24,7 +24,6 @@ VERSION = None
 
 version_path = (Path(__file__).parent / "mythril" / "version.py").absolute()
 exec(open(str(version_path), "r").read())
-VERSION = "v0.19.11"
 
 
 class VerifyVersionCommand(install):
