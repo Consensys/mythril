@@ -58,7 +58,7 @@ def _analyze_states(state: GlobalState) -> list:
 
 def _concrete_call(
     call: Call, state: GlobalState, address: int, meminstart: Variable
-) -> list:
+) -> List[Issue]:
     """
     :param call: The current call's information
     :param state: The current state
