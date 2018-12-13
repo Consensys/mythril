@@ -138,7 +138,7 @@ def test_vmtest(
                     actual = actual.value
                     actual = (
                         1 if actual is True else 0 if actual is False else actual
-                    )  # Comparisons should be done with == than 'is' here as actual can be a BoolRef
+                    )
                 else:
                     if type(actual) == bytes:
                         actual = int(binascii.b2a_hex(actual), 16)
