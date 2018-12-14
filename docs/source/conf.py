@@ -28,6 +28,7 @@ author = "Bernhard Mueller"
 version = ""
 # The full version, including alpha/beta/rc tags
 from mythril.version import VERSION
+
 release = VERSION
 
 
