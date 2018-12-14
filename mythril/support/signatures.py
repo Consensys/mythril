@@ -26,6 +26,7 @@ def synchronized(sync_lock):
         :param f:
         :return:
         """
+
         @functools.wraps(f)
         def inner_wrapper(*args, **kw):
             """
@@ -44,6 +45,7 @@ def synchronized(sync_lock):
 
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
+
     _instances = {}
 
     @synchronized(lock)
@@ -113,6 +115,7 @@ class SignatureDB(object, metaclass=Singleton):
     """
 
     """
+
     def __init__(self, enable_online_lookup: bool = False, path: str = None) -> None:
         """
         :param enable_online_lookup:

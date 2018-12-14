@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 
 class DynLoader:
     """The dynamic loader class."""
+
     def __init__(self, eth, contract_loading=True, storage_loading=True):
         """
 

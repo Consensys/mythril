@@ -7,6 +7,7 @@ from mythril.laser.ethereum.cfg import JumpType
 
 class MultipleSendsModule(DetectionModule):
     """This module checks for multiple sends in a single transaction."""
+
     def __init__(self):
         """
 

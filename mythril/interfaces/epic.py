@@ -54,6 +54,7 @@ COLOR_ANSI = (
 
 class LolCat(object):
     """Cats lel"""
+
     def __init__(self, mode=256, output=sys.stdout):
         self.mode = mode
         self.output = output

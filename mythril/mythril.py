@@ -322,6 +322,7 @@ class Mythril(object):
 
         :param search:
         """
+
         def search_callback(_, address, balance):
             """
 

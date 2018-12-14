@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 
 class PredictableDependenceModule(DetectionModule):
     """This module detects whether Ether is sent using predictable parameters."""
+
     def __init__(self):
         """
 

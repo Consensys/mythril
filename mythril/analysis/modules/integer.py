@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 class IntegerOverflowUnderflowModule(DetectionModule):
     """This module searches for integer over- and underflows."""
+
     def __init__(self):
         """
 

@@ -7,6 +7,7 @@ from mythril.exceptions import NoContractFoundError
 
 class SourceMapping:
     """Representation of a source mapping for a Solidity file."""
+
     def __init__(self, solidity_file_idx, offset, length, lineno):
         self.solidity_file_idx = solidity_file_idx
         self.offset = offset
@@ -16,6 +17,7 @@ class SourceMapping:
 
 class SolidityFile:
     """Representation of a file containing Solidity code."""
+
     def __init__(self, filename, data):
         self.filename = filename
         self.data = data
@@ -23,6 +25,7 @@ class SolidityFile:
 
 class SourceCodeInfo:
     """Metadata class containing a code reference for a specific file."""
+
     def __init__(self, filename, lineno, code):
         self.filename = filename
         self.lineno = lineno
@@ -54,6 +57,7 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
 
 class SolidityContract(EVMContract):
     """Representation of a Solidity contract."""
+
     def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
 
         data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)

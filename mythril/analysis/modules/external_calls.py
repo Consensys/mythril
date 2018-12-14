@@ -97,6 +97,7 @@ def _analyze_state(state):
 
 class ExternalCalls(DetectionModule):
     """This module searches for low level calls (e.g. call.value()) that forward all gas to the callee."""
+
     def __init__(self):
         """
 

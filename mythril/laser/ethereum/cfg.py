@@ -8,6 +8,7 @@ gbl_next_uid = 0  # node counter
 
 class JumpType(Enum):
     """An enum to represent the types of possible JUMP scenarios."""
+
     CONDITIONAL = 1
     UNCONDITIONAL = 2
     CALL = 3
@@ -17,6 +18,7 @@ class JumpType(Enum):
 
 class NodeFlags(Flags):
     """A collection of flags to denote the type a call graph node can have."""
+
     FUNC_ENTRY = 1
     CALL_RETURN = 2
 
@@ -70,6 +72,7 @@ class Node:
 
 class Edge:
     """The respresentation of a call graph edge."""
+
     def __init__(
         self,
         node_from: int,

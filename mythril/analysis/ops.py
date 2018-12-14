@@ -6,12 +6,14 @@ from mythril.laser.ethereum import util
 
 class VarType(Enum):
     """An enum denoting whether a value is symbolic or concrete."""
+
     SYMBOLIC = 1
     CONCRETE = 2
 
 
 class Variable:
     """The representation of a variable with value and type."""
+
     def __init__(self, val, _type):
         """
 
@@ -43,6 +45,7 @@ def get_variable(i):
 
 class Op:
     """The base type for operations referencing current node and state."""
+
     def __init__(self, node, state, state_index):
         """
 
@@ -57,6 +60,7 @@ class Op:
 
 class Call(Op):
     """The representation of a CALL operation."""
+
     def __init__(
         self,
         node,
@@ -89,6 +93,7 @@ class Call(Op):
 
 class SStore(Op):
     """The respresentation of an SSTORE operation."""
+
     def __init__(self, node, state, state_index, value):
         super().__init__(node, state, state_index)
         self.value = value

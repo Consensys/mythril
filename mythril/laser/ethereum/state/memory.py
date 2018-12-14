@@ -15,6 +15,7 @@ from mythril.laser.ethereum import util
 
 class Memory:
     """A class representing contract memory with random access."""
+
     def __init__(self):
         """
 

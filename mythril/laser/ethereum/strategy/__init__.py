@@ -5,6 +5,7 @@ class BasicSearchStrategy(ABC):
     """
 
     """
+
     __slots__ = "work_list", "max_depth"
 
     def __init__(self, work_list, max_depth):

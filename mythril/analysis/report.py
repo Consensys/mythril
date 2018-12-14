@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 
 class Issue:
     """Representation of an issue and its location."""
+
     def __init__(
         self,
         contract,
@@ -104,6 +105,7 @@ class Issue:
 
 class Report:
     """A report containing the content of multiple issues."""
+
     environment = Environment(
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )

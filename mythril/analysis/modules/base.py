@@ -11,6 +11,7 @@ class DetectionModule:
     
     All custom-built detection modules must inherit from this class.
     """
+
     def __init__(
         self,
         name: str,

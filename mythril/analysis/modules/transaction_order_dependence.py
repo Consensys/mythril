@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 class TxOrderDependenceModule(DetectionModule):
     """This module finds the existence of transaction order dependence."""
+
     def __init__(self):
         super().__init__(
             name="Transaction Order Dependence",

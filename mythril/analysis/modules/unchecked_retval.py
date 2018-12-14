@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 
 class UncheckedRetvalModule(DetectionModule):
     """A detection module to test whether CALL return value is checked."""
+
     def __init__(self):
         super().__init__(
             name="Unchecked Return Value",

@@ -7,6 +7,7 @@ import re
 
 class EVMContract(persistent.Persistent):
     """This class represents an address with associated code (Smart Contract)."""
+
     def __init__(
         self, code="", creation_code="", name="Unknown", enable_online_lookup=False
     ):

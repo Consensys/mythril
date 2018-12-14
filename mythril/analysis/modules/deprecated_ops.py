@@ -58,6 +58,7 @@ def _analyze_state(state):
 
 class DeprecatedOperationsModule(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
+
     def __init__(self):
         """
 

@@ -59,6 +59,7 @@ class ReachableExceptionsModule(DetectionModule):
     """
 
     """
+
     def __init__(self):
         """
 

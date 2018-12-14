@@ -29,6 +29,7 @@ log = logging.getLogger(__name__)
 
 class SVMError(Exception):
     """An exception denoting an unexpected state in symbolic execution."""
+
     pass
 
 
@@ -492,6 +493,7 @@ class LaserEVM:
         :param op_code:
         :return:
         """
+
         def hook_decorator(func: Callable):
             """
 
@@ -511,6 +513,7 @@ class LaserEVM:
         :param op_code:
         :return:
         """
+
         def hook_decorator(func: Callable):
             """
 

@@ -4,6 +4,7 @@ This includes the base StateAnnotation class, as well as an adaption, which will
 copied on every new state.
 """
 
+
 class StateAnnotation:
     """
     The StateAnnotation class is used to persist information over traces. This allows modules to reason about traces

@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 
 class NativeContractException(Exception):
     """An exception denoting an error during a native call."""
+
     pass
 
 

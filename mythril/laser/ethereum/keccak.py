@@ -4,6 +4,7 @@ from mythril.laser.smt import Expression
 
 class KeccakFunctionManager:
     """A keccak function manager for symbolic expressions."""
+
     def __init__(self):
         """
 

@@ -110,6 +110,7 @@ class BaseCalldata:
 
 class ConcreteCalldata(BaseCalldata):
     """A concrete call data representation."""
+
     def __init__(self, tx_id: int, calldata: list):
         """
         Initializes the ConcreteCalldata object.
@@ -203,6 +204,7 @@ class BasicConcreteCalldata(BaseCalldata):
 
 class SymbolicCalldata(BaseCalldata):
     """A class for representing symbolic call data."""
+
     def __init__(self, tx_id: int):
         """Initializes the SymbolicCalldata object.
 
@@ -253,6 +255,7 @@ class SymbolicCalldata(BaseCalldata):
 
 class BasicSymbolicCalldata(BaseCalldata):
     """A basic class representing symbolic call data."""
+
     def __init__(self, tx_id: int):
         """
         Initializes the SymbolicCalldata object

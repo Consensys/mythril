@@ -84,6 +84,7 @@ def _analyze_state(state):
 
 class EtherThief(DetectionModule):
     """This module search for cases where Ether can be withdrawn to a user-specified address."""
+
     def __init__(self):
         """
 

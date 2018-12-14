@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 class DelegateCallModule(DetectionModule):
     """This module detects calldata being forwarded using DELEGATECALL."""
+
     def __init__(self):
         """
 
