@@ -10,10 +10,6 @@ from mythril.analysis.call_helpers import get_call_from_state
 
 log = logging.getLogger(__name__)
 
-DESCRIPTION = """
-Check for multiple sends in a single transactions
-"""
-
 
 class MultipleSendsAnnotation(StateAnnotation):
     def __init__(self):
@@ -46,6 +42,10 @@ class MultipleSendsModule(DetectionModule):
 
 
 def _analyze_state(state: GlobalState):
+    """
+    :param state: the current state
+    :return: returns the issues for that corresponding state
+    """
     node = state.node
     instruction = state.get_current_instruction()
 
