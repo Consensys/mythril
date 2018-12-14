@@ -1,3 +1,4 @@
+"""This module contains a representation of the EVM's machine state and its stack."""
 from copy import copy
 from typing import Union, Any, List, Dict
 
@@ -21,6 +22,10 @@ class MachineStack(list):
     STACK_LIMIT = 1024
 
     def __init__(self, default_list=None):
+        """
+
+        :param default_list:
+        """
         if default_list is None:
             default_list = []
         super(MachineStack, self).__init__(default_list)
@@ -50,6 +55,11 @@ class MachineStack(list):
             raise StackUnderflowException("Trying to pop from an empty stack")
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
+        """
+
+        :param item:
+        :return:
+        """
         try:
             return super(MachineStack, self).__getitem__(item)
         except IndexError:
@@ -58,14 +68,16 @@ class MachineStack(list):
             )
 
     def __add__(self, other):
-        """
-        Implement list concatenation if needed
+        """Implement list concatenation if needed
+
+        :param other:
         """
         raise NotImplementedError("Implement this if needed")
 
     def __iadd__(self, other):
         """
         Implement list concatenation if needed
+        :param other:
         """
         raise NotImplementedError("Implement this if needed")
 
@@ -86,7 +98,17 @@ class MachineState:
         max_gas_used=0,
         min_gas_used=0,
     ):
-        """ Constructor for machineState """
+        """ Constructor for machineState
+
+        :param gas_limit:
+        :param pc:
+        :param stack:
+        :param memory:
+        :param constraints:
+        :param depth:
+        :param max_gas_used:
+        :param min_gas_used:
+        """
         self.pc = pc
         self.stack = MachineStack(stack)
         self.memory = memory or Memory()
@@ -126,15 +148,13 @@ class MachineState:
         return new_totalfee - old_totalfee
 
     def check_gas(self):
-        """
-
-        """
+        """Check whether the machine is out of gas."""
         if self.min_gas_used > self.gas_limit:
             raise OutOfGasException()
 
     def mem_extend(self, start: int, size: int) -> None:
-        """
-        Extends the memory of this machine state
+        """Extends the memory of this machine state
+
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
@@ -147,12 +167,20 @@ class MachineState:
             self.memory.extend(m_extend)
 
     def memory_write(self, offset: int, data: List[int]) -> None:
-        """ Writes data to memory starting at offset """
+        """ Writes data to memory starting at offset
+
+        :param offset:
+        :param data:
+        """
         self.mem_extend(offset, len(data))
         self.memory[offset : offset + len(data)] = data
 
     def pop(self, amount=1) -> Union[BitVec, List[BitVec]]:
-        """ Pops amount elements from the stack"""
+        """ Pops amount elements from the stack
+
+        :param amount:
+        :return:
+        """
         if amount > len(self.stack):
             raise StackUnderflowException
         values = self.stack[-amount:][::-1]
@@ -161,6 +189,11 @@ class MachineState:
         return values[0] if amount == 1 else values
 
     def __deepcopy__(self, memodict=None):
+        """
+
+        :param memodict:
+        :return:
+        """
         memodict = {} if memodict is None else memodict
         return MachineState(
             gas_limit=self.gas_limit,
@@ -174,6 +207,10 @@ class MachineState:
         )
 
     def __str__(self):
+        """
+
+        :return:
+        """
         return str(self.as_dict)
 
     @property

@@ -1,3 +1,4 @@
+"""This module contains a representation of a smart contract's memory."""
 from typing import Union
 from z3 import Z3Exception
 from mythril.laser.smt import (
@@ -13,13 +14,18 @@ from mythril.laser.ethereum import util
 
 
 class Memory:
-    """
-
-    """
+    """A class representing contract memory with random access."""
     def __init__(self):
+        """
+
+        """
         self._memory = []
 
     def __len__(self):
+        """
+
+        :return:
+        """
         return len(self._memory)
 
     def extend(self, size):
@@ -30,8 +36,8 @@ class Memory:
         self._memory.extend(bytearray(size))
 
     def get_word_at(self, index: int) -> Union[int, BitVec]:
-        """
-        Access a word from a specified memory index
+        """Access a word from a specified memory index
+
         :param index: integer representing the index to access
         :return: 32 byte word at the specified index
         """
@@ -52,8 +58,8 @@ class Memory:
             return result
 
     def write_word_at(self, index: int, value: Union[int, BitVec, bool, Bool]) -> None:
-        """
-        Writes a 32 byte word to memory at the specified index`
+        """Writes a 32 byte word to memory at the specified index`
+
         :param index: index to write to
         :param value: the value to write to memory
         """
@@ -84,6 +90,11 @@ class Memory:
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
 
     def __getitem__(self, item: Union[int, slice]) -> Union[BitVec, int, list]:
+        """
+
+        :param item:
+        :return:
+        """
         if isinstance(item, slice):
             start, step, stop = item.start, item.step, item.stop
             if start is None:
@@ -100,6 +111,11 @@ class Memory:
             return 0
 
     def __setitem__(self, key: Union[int, slice], value: Union[BitVec, int, list]):
+        """
+
+        :param key:
+        :param value:
+        """
         if isinstance(key, slice):
             start, step, stop = key.start, key.step, key.stop
 

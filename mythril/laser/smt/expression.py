@@ -1,29 +1,40 @@
+"""This module contains the SMT abstraction for a basic symbol expression."""
+
 import z3
 
 
 class Expression:
-    """
-    This is the base symbol class and maintains functionality for simplification and annotations
-    """
+    """This is the base symbol class and maintains functionality for simplification and annotations."""
 
     def __init__(self, raw, annotations=None):
+        """
+
+        :param raw: 
+        :param annotations: 
+        """
         self.raw = raw
         self._annotations = annotations or []
 
     @property
     def annotations(self):
-        """ Gets the annotations for this expression """
+        """Gets the annotations for this expression 
+        
+        :return: 
+        """
         return self._annotations
 
     def annotate(self, annotation):
-        """ Annotates this expression with the given annotation"""
+        """Annotates this expression with the given annotation
+        
+        :param annotation: 
+        """
         if isinstance(annotation, list):
             self._annotations += annotation
         else:
             self._annotations.append(annotation)
 
     def simplify(self):
-        """ Simplifies this expression """
+        """Simplify this expression."""
         self.raw = z3.simplify(self.raw)
 
     def __repr__(self):
@@ -31,6 +42,10 @@ class Expression:
 
 
 def simplify(expression: Expression):
-    """ Simplifies the expression """
+    """Simplify the expression .
+    
+    :param expression: 
+    :return: 
+    """
     expression.simplify()
     return expression

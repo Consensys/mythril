@@ -1,3 +1,4 @@
+"""This module contains the detection code for unauthorized ether withdrawal."""
 from mythril.analysis.ops import *
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
@@ -26,6 +27,11 @@ An issue is reported if:
 
 
 def _analyze_state(state):
+    """
+
+    :param state:
+    :return:
+    """
     instruction = state.get_current_instruction()
     node = state.node
 
@@ -79,6 +85,9 @@ def _analyze_state(state):
 class EtherThief(DetectionModule):
     """This module search for cases where Ether can be withdrawn to a user-specified address."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="Ether Thief",
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,

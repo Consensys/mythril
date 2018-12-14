@@ -1,3 +1,4 @@
+"""This module contains the detection code for potentially insecure low-level calls."""
 from mythril.analysis.report import Issue
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
@@ -19,7 +20,11 @@ an informational issue.
 
 
 def _analyze_state(state):
+    """
 
+    :param state:
+    :return:
+    """
     node = state.node
     gas = state.mstate.stack[-1]
     to = state.mstate.stack[-2]
@@ -93,6 +98,9 @@ def _analyze_state(state):
 class ExternalCalls(DetectionModule):
     """This module searches for low level calls (e.g. call.value()) that forward all gas to the callee."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="External calls",
             swc_id=REENTRANCY,

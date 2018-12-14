@@ -1,3 +1,4 @@
+"""This module contains various utility conversion functions and constants for LASER."""
 import re
 
 from mythril.laser.smt import is_false, is_true, simplify, If, BitVec, Bool, Expression

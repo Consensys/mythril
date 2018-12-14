@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+"""This nodule defines helper functions to deal with native calls."""
 
 import hashlib
 import logging
@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 
 class NativeContractException(Exception):
+    """An exception denoting an error during a native call."""
     pass
 
 
@@ -122,8 +123,11 @@ def identity(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def native_contracts(address: int, data: BaseCalldata):
-    """
-    takes integer address 1, 2, 3, 4
+    """Takes integer address 1, 2, 3, 4
+
+    :param address:
+    :param data:
+    :return:
     """
     functions = (ecrecover, sha256, ripemd160, identity)
 

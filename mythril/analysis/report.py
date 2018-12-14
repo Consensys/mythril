@@ -1,3 +1,4 @@
+"""This module provides classes that make up an issue report."""
 import logging
 import json
 import operator
@@ -9,9 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class Issue:
-    """
-
-    """
+    """Representation of an issue and its location."""
     def __init__(
         self,
         contract,
@@ -25,7 +24,19 @@ class Issue:
         description="",
         debug="",
     ):
+        """
 
+        :param contract:
+        :param function_name:
+        :param address:
+        :param swc_id:
+        :param title:
+        :param bytecode:
+        :param gas_used:
+        :param _type:
+        :param description:
+        :param debug:
+        """
         self.title = title
         self.contract = contract
         self.function = function_name
@@ -92,14 +103,16 @@ class Issue:
 
 
 class Report:
-    """
-
-    """
+    """A report containing the content of multiple issues."""
     environment = Environment(
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
     def __init__(self, verbose=False):
+        """
+
+        :param verbose:
+        """
         self.issues = {}
         self.verbose = verbose
         pass
@@ -141,7 +154,10 @@ class Report:
         return json.dumps(result, sort_keys=True)
 
     def as_swc_standard_format(self):
-        """ Format defined for integration and correlation"""
+        """ Format defined for integration and correlation
+
+        :return:
+        """
         result = {
             "issues": [
                 {
@@ -166,5 +182,9 @@ class Report:
         )
 
     def _file_name(self):
+        """
+
+        :return:
+        """
         if len(self.issues.values()) > 0:
             return list(self.issues.values())[0].filename

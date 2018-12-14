@@ -1,3 +1,4 @@
+"""This module contains functions setting up and executing transactions with symbolic values."""
 import logging
 
 
@@ -23,7 +24,11 @@ ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 
 
 def execute_message_call(laser_evm, callee_address: str) -> None:
-    """ Executes a message call transaction from all open states """
+    """ Executes a message call transaction from all open states
+
+    :param laser_evm:
+    :param callee_address:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
@@ -60,7 +65,13 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
 def execute_contract_creation(
     laser_evm, contract_initialization_code, contract_name=None
 ) -> Account:
-    """ Executes a contract creation transaction from all open states"""
+    """ Executes a contract creation transaction from all open states
+
+    :param laser_evm:
+    :param contract_initialization_code:
+    :param contract_name:
+    :return:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
@@ -99,7 +110,11 @@ def execute_contract_creation(
 
 
 def _setup_global_state_for_execution(laser_evm, transaction) -> None:
-    """ Sets up global state and cfg for a transactions execution"""
+    """ Sets up global state and cfg for a transactions execution
+
+    :param laser_evm:
+    :param transaction:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))

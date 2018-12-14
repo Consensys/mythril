@@ -1,3 +1,4 @@
+"""This module contains a representation of the EVM's world state."""
 from copy import copy
 from random import randint
 from typing import List, Iterator
@@ -16,6 +17,9 @@ class WorldState:
     ) -> None:
         """
         Constructor for the world state. Initializes the accounts record
+
+        :param transaction_sequence:
+        :param annotations:
         """
         self.accounts = {}
         self.node = None
@@ -25,12 +29,17 @@ class WorldState:
     def __getitem__(self, item: str) -> Account:
         """
         Gets an account from the worldstate using item as key
+
         :param item: Address of the account to get
         :return: Account associated with the address
         """
         return self.accounts[item]
 
     def __copy__(self) -> "WorldState":
+        """
+
+        :return:
+        """
         new_annotations = [copy(a) for a in self._annotations]
         new_world_state = WorldState(
             transaction_sequence=self.transaction_sequence[:],
@@ -45,6 +54,7 @@ class WorldState:
     ) -> Account:
         """
         Create non-contract account
+
         :param address: The account's address
         :param balance: Initial balance for the account
         :param concrete_storage: Interpret account storage as concrete
@@ -65,6 +75,7 @@ class WorldState:
         """
         Creates a new contract account, based on the contract code and storage provided
         The contract code only includes the runtime contract bytecode
+
         :param contract_code: Runtime bytecode for the contract
         :param storage: Initial storage for the contract
         :return: The new account
@@ -95,17 +106,25 @@ class WorldState:
         """
         Filters annotations for the queried annotation type. Designed particularly for
         modules with annotations: worldstate.get_annotations(MySpecificModuleAnnotation)
+
         :param annotation_type: The type to filter annotations for
         :return: filter of matching annotations
         """
         return filter(lambda x: isinstance(x, annotation_type), self.annotations)
 
     def _generate_new_address(self) -> str:
-        """ Generates a new address for the global state"""
+        """ Generates a new address for the global state
+
+        :return:
+        """
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
             if address not in self.accounts.keys():
                 return address
 
     def _put_account(self, account: Account) -> None:
+        """
+
+        :param account:
+        """
         self.accounts[account.address] = account

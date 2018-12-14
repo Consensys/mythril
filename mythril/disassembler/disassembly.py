@@ -1,3 +1,4 @@
+"""This module contains the class used to represent disassembly code."""
 from mythril.ethereum import util
 from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDB
@@ -15,6 +16,11 @@ class Disassembly(object):
     """
 
     def __init__(self, code: str, enable_online_lookup: bool = False):
+        """
+
+        :param code:
+        :param enable_online_lookup:
+        """
         self.bytecode = code
         self.instruction_list = asm.disassemble(util.safe_decode(code))
 

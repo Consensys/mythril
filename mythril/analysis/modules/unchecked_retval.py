@@ -1,3 +1,4 @@
+"""This module contains detection code to find occurrences of calls whose return value remains unchecked."""
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
 from mythril.analysis.modules.base import DetectionModule
@@ -10,9 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class UncheckedRetvalModule(DetectionModule):
-    """
-
-    """
+    """A detection module to test whether CALL return value is checked."""
     def __init__(self):
         super().__init__(
             name="Unchecked Return Value",

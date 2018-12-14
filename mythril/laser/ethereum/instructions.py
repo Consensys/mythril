@@ -1,3 +1,4 @@
+"""This module contains a representation class for EVM instructions and transitions between them."""
 import binascii
 import logging
 
@@ -68,6 +69,11 @@ class StateTransition(object):
     """
 
     def __init__(self, increment_pc=True, enable_gas=True):
+        """
+
+        :param increment_pc:
+        :param enable_gas:
+        """
         self.increment_pc = increment_pc
         self.enable_gas = enable_gas
 
@@ -152,11 +158,21 @@ class Instruction:
     """
 
     def __init__(self, op_code: str, dynamic_loader: DynLoader):
+        """
+
+        :param op_code:
+        :param dynamic_loader:
+        """
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code.upper()
 
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
-        """ Performs the mutation for this instruction """
+        """ Performs the mutation for this instruction
+
+        :param global_state:
+        :param post:
+        :return:
+        """
         # Generalize some ops
         log.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
@@ -1257,6 +1273,13 @@ class Instruction:
     def _sload_helper(
         global_state: GlobalState, index: Union[int, Expression], constraints=None
     ):
+        """
+
+        :param global_state:
+        :param index:
+        :param constraints:
+        :return:
+        """
         try:
             data = global_state.environment.active_account.storage[index]
         except KeyError:
@@ -1271,6 +1294,12 @@ class Instruction:
 
     @staticmethod
     def _get_constraints(keccak_keys, this_key, argument):
+        """
+
+        :param keccak_keys:
+        :param this_key:
+        :param argument:
+        """
         global keccak_function_manager
         for keccak_key in keccak_keys:
             if keccak_key == this_key:
@@ -1340,6 +1369,14 @@ class Instruction:
 
     @staticmethod
     def _sstore_helper(global_state, index, value, constraint=None):
+        """
+
+        :param global_state:
+        :param index:
+        :param value:
+        :param constraint:
+        :return:
+        """
         try:
             global_state.environment.active_account = deepcopy(
                 global_state.environment.active_account

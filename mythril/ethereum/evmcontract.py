@@ -1,3 +1,4 @@
+"""This module contains the class representing EVM contracts, aka Smart Contracts."""
 from mythril.disassembler.disassembly import Disassembly
 from ethereum import utils
 import persistent
@@ -5,17 +6,21 @@ import re
 
 
 class EVMContract(persistent.Persistent):
-    """
-
-    """
+    """This class represents an address with associated code (Smart Contract)."""
     def __init__(
         self, code="", creation_code="", name="Unknown", enable_online_lookup=False
     ):
+        """Create a new contract.
 
-        # Workaround: We currently do not support compile-time linking.
-        # Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
-        # Apply this for creation_code & code
+        Workaround: We currently do not support compile-time linking.
+        Dynamic contract addresses of the format __[contract-name]_____________ are replaced with a generic address
+        Apply this for creation_code & code
 
+        :param code:
+        :param creation_code:
+        :param name:
+        :param enable_online_lookup:
+        """
         creation_code = re.sub(r"(_{2}.{38})", "aa" * 20, creation_code)
         code = re.sub(r"(_{2}.{38})", "aa" * 20, code)
 

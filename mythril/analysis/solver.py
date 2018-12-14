@@ -1,3 +1,4 @@
+"""This module contains analysis module helpers to solve path constraints."""
 from z3 import sat, unknown, FuncInterp
 from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
 from mythril.exceptions import UnsatError
@@ -66,8 +67,7 @@ def pretty_print_model(model):
 
 
 def get_transaction_sequence(global_state, constraints):
-    """
-    Generate concrete transaction sequence
+    """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence

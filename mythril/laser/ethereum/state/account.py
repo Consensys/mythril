@@ -1,3 +1,8 @@
+"""This module contains account-related functionality.
+
+This includes classes representing accounts and their storage.
+"""
+
 from typing import Dict, Union, Any, KeysView
 
 from z3 import ExprRef

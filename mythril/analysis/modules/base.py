@@ -1,3 +1,5 @@
+"""This module contains the base class for all user-defined detection modules."""
+
 import logging
 from typing import List
 
@@ -17,7 +19,7 @@ class DetectionModule:
         description: str,
         entrypoint: str = "post",
     ) -> None:
-        """
+        """Initialize a new detection module.
 
         :param name: 
         :param swc_id: 
@@ -38,6 +40,7 @@ class DetectionModule:
 
     def execute(self, statespace):
         """ The entry point for execution, which is being called by Mythril.
+
         :param statespace:
         :return:
         """

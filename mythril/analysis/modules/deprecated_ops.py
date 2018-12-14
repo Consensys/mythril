@@ -1,3 +1,4 @@
+"""This module contains the detection code for deprecated op codes."""
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import DEPRICATED_FUNCTIONS_USAGE
 from mythril.analysis.modules.base import DetectionModule
@@ -12,6 +13,11 @@ Check for usage of deprecated opcodes
 
 
 def _analyze_state(state):
+    """
+
+    :param state:
+    :return:
+    """
     node = state.node
     instruction = state.get_current_instruction()
 
@@ -53,6 +59,9 @@ def _analyze_state(state):
 class DeprecatedOperationsModule(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="Deprecated Operations",
             swc_id=DEPRICATED_FUNCTIONS_USAGE,

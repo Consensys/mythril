@@ -1,3 +1,8 @@
+"""This module contains account indexing functionality.
+
+This includes a sedes class for lists, account storage receipts for LevelDB
+and a class for updating account addresses.
+"""
 import logging
 from mythril import ethereum
 import time

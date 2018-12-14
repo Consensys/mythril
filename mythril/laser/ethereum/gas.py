@@ -1,3 +1,4 @@
+"""This module contains functions for dynamic gas calculation and a gas cost table."""
 from ethereum import opcodes
 from ethereum.utils import ceil32
 

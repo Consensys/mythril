@@ -1,3 +1,4 @@
+"""This module contains the detection code for insecure delegate call usage."""
 import re
 import logging
 from typing import List
@@ -16,6 +17,9 @@ log = logging.getLogger(__name__)
 class DelegateCallModule(DetectionModule):
     """This module detects calldata being forwarded using DELEGATECALL."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="DELEGATECALL Usage in Fallback Function",
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,

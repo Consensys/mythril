@@ -1,3 +1,4 @@
+"""This module contains the detection code for reachable exceptions."""
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.exceptions import UnsatError
@@ -11,6 +12,11 @@ log = logging.getLogger(__name__)
 
 
 def _analyze_state(state) -> list:
+    """
+
+    :param state:
+    :return:
+    """
     log.info("Exceptions module: found ASSERT_FAIL instruction")
     node = state.node
 
@@ -54,6 +60,9 @@ class ReachableExceptionsModule(DetectionModule):
 
     """
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="Reachable Exceptions",
             swc_id=ASSERT_VIOLATION,

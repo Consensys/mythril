@@ -1,11 +1,15 @@
+"""This module contains an SMT abstraction of arrays.
+
+This includes an Array class to implement basic store and set operations, as well as
+as a K-array, which can be initialized with default values over a certain range.
+"""
+
 from mythril.laser.smt.bitvec import BitVec
 import z3
 
 
 class BaseArray:
-    """
-    Base array type, implements basic store and set operations
-    """
+    """Base array type, which implements basic store and set operations."""
 
     def __getitem__(self, item: BitVec):
         """ Gets item from the array, item can be symbolic"""
@@ -21,9 +25,7 @@ class BaseArray:
 
 
 class Array(BaseArray):
-    """
-
-    """
+    """A basic symbolic array."""
     def __init__(self, name: str, domain: int, value_range: int):
         """
         Initializes a symbolic array
@@ -37,9 +39,7 @@ class Array(BaseArray):
 
 
 class K(BaseArray):
-    """
-
-    """
+    """A basic symbolic array, which can be initialized with a default value."""
     def __init__(self, domain: int, value_range: int, value: int):
         """
         Initializes an array with a default value

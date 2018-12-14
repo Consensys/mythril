@@ -1,3 +1,9 @@
+"""This module includes classes used for annotating trace information.
+
+This includes the base StateAnnotation class, as well as an adaption, which will not be
+copied on every new state.
+"""
+
 class StateAnnotation:
     """
     The StateAnnotation class is used to persist information over traces. This allows modules to reason about traces

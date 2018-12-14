@@ -1,3 +1,4 @@
+"""This module provides a function to convert a state space into a set of state nodes and transition edges."""
 from z3 import Z3Exception
 from mythril.laser.smt import simplify
 from mythril.laser.ethereum.svm import NodeFlags

@@ -1,3 +1,4 @@
+"""This module implements wrappers around the pyethereum state for LevelDB."""
 import rlp
 import binascii
 from ethereum.utils import (
@@ -59,6 +60,15 @@ class Account(rlp.Serializable):
     ]
 
     def __init__(self, nonce, balance, storage, code_hash, db, addr):
+        """
+
+        :param nonce:
+        :param balance:
+        :param storage:
+        :param code_hash:
+        :param db:
+        :param addr:
+        """
         self.db = db
         self.address = addr
         super(Account, self).__init__(nonce, balance, storage, code_hash)
@@ -80,6 +90,9 @@ class Account(rlp.Serializable):
     def get_storage_data(self, key):
         """
         get storage data
+
+        :param key:
+        :return:
         """
         if key not in self.storage_cache:
             v = self.storage_trie.get(utils.encode_int32(key))
@@ -92,6 +105,10 @@ class Account(rlp.Serializable):
     def blank_account(cls, db, addr, initial_nonce=0):
         """
         creates a blank account
+        :param db:
+        :param addr:
+        :param initial_nonce:
+        :return:
         """
         db.put(BLANK_HASH, b"")
         o = cls(initial_nonce, 0, trie.BLANK_ROOT, BLANK_HASH, db, addr)
@@ -101,6 +118,7 @@ class Account(rlp.Serializable):
     def is_blank(self):
         """
         checks if is a blank account
+        :return:
         """
         return self.nonce == 0 and self.balance == 0 and self.code_hash == BLANK_HASH
 
@@ -111,6 +129,11 @@ class State:
     """
 
     def __init__(self, db, root):
+        """
+
+        :param db:
+        :param root:
+        """
         self.db = db
         self.trie = Trie(self.db, root)
         self.secure_trie = SecureTrie(self.trie)
@@ -118,7 +141,11 @@ class State:
         self.cache = {}
 
     def get_and_cache_account(self, addr):
-        """Gets and caches an account for an addres, creates blank if not found"""
+        """Gets and caches an account for an addres, creates blank if not found
+
+        :param addr:
+        :return:
+        """
 
         if addr in self.cache:
             return self.cache[addr]

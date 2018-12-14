@@ -1,3 +1,4 @@
+"""This module contains the detection code to find multiple sends occurring in a single transaction."""
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
@@ -7,6 +8,9 @@ from mythril.laser.ethereum.cfg import JumpType
 class MultipleSendsModule(DetectionModule):
     """This module checks for multiple sends in a single transaction."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="Multiple Sends",
             swc_id=MULTIPLE_SENDS,
@@ -61,12 +65,24 @@ class MultipleSendsModule(DetectionModule):
         return issues
 
     def _explore_nodes(self, call, statespace):
+        """
+
+        :param call:
+        :param statespace:
+        :return:
+        """
         children = self._child_nodes(statespace, call.node)
         sending_children = list(filter(lambda c: c.node in children, statespace.calls))
         return sending_children
 
     @staticmethod
     def _explore_states(call, statespace):
+        """
+
+        :param call:
+        :param statespace:
+        :return:
+        """
         other_calls = list(
             filter(
                 lambda other: other.node == call.node
@@ -77,6 +93,12 @@ class MultipleSendsModule(DetectionModule):
         return other_calls
 
     def _child_nodes(self, statespace, node):
+        """
+
+        :param statespace:
+        :param node:
+        :return:
+        """
         result = []
         children = [
             statespace.nodes[edge.node_to]

@@ -1,11 +1,13 @@
+"""This module contains a function manager to deal with symbolic Keccak values."""
 from mythril.laser.smt import Expression
 
 
 class KeccakFunctionManager:
-    """
-
-    """
+    """A keccak function manager for symbolic expressions."""
     def __init__(self):
+        """
+
+        """
         self.keccak_expression_mapping = {}
 
     def is_keccak(self, expression: Expression) -> bool:

@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-"""mythril.py: Function Signature Database
-"""
+"""The Mythril function signature database."""
 import os
 import time
 import logging
@@ -21,10 +18,10 @@ lock = multiprocessing.Lock()
 
 
 def synchronized(sync_lock):
-    """ Synchronization decorator """
+    """A decorator synchronizing multi-process access to a resource."""
 
     def wrapper(f):
-        """
+        """The decorator's core function.
 
         :param f:
         :return:
@@ -46,10 +43,20 @@ def synchronized(sync_lock):
 
 
 class Singleton(type):
+    """A metaclass type implementing the singleton pattern."""
     _instances = {}
 
     @synchronized(lock)
     def __call__(cls, *args, **kwargs):
+        """Delegate the call to an existing resource or a a new one.
+
+        This is not thread- or process-safe by default. It must be protected with
+        a lock.
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
@@ -71,16 +78,30 @@ class SQLiteDB(object):
     """
 
     def __init__(self, path):
+        """
+
+        :param path:
+        """
         self.path = path
         self.conn = None
         self.cursor = None
 
     def __enter__(self):
+        """
+
+        :return:
+        """
         self.conn = sqlite3.connect(self.path)
         self.cursor = self.conn.cursor()
         return self.cursor
 
     def __exit__(self, exc_class, exc, traceback):
+        """
+
+        :param exc_class:
+        :param exc:
+        :param traceback:
+        """
         self.conn.commit()
         self.conn.close()
 

@@ -1,3 +1,4 @@
+"""This module contains the detection code for integer overflows and underflows."""
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -24,6 +25,9 @@ log = logging.getLogger(__name__)
 class IntegerOverflowUnderflowModule(DetectionModule):
     """This module searches for integer over- and underflows."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="Integer Overflow and Underflow",
             swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
@@ -36,8 +40,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         )
 
     def execute(self, statespace):
-        """
-        Executes analysis module for integer underflow and integer overflow
+        """Executes analysis module for integer underflow and integer overflow
+
         :param statespace: Statespace to analyse
         :return: Found issues
         """
@@ -55,8 +59,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         return issues
 
     def _check_integer_overflow(self, statespace, state, node):
-        """
-        Checks for integer overflow
+        """Checks for integer overflow.
+
         :param statespace: statespace that is being examined
         :param state: state from node to examine
         :param node: node to examine
@@ -132,7 +136,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
     def _verify_integer_overflow(
         self, statespace, node, expr, state, model, constraint, op0, op1
     ):
-        """ Verifies existence of integer overflow """
+        """ Verifies existence of integer overflow
+
+        :param statespace:
+        :param node:
+        :param expr:
+        :param state:
+        :param model:
+        :param constraint:
+        :param op0:
+        :param op1:
+        :return:
+        """
         # If we get to this point then there has been an integer overflow
         # Find out if the overflowed value is actually used
         interesting_usages = self._search_children(
@@ -149,9 +164,10 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         return self._try_constraints(node.constraints, [Not(constraint)]) is not None
 
-    def _try_constraints(self, constraints, new_constraints):
-        """
-        Tries new constraints
+    @staticmethod
+    def _try_constraints(constraints, new_constraints):
+        """Tries new constraints.
+
         :return Model if satisfiable otherwise None
         """
         try:
@@ -163,6 +179,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
     def _check_integer_underflow(self, statespace, state, node):
         """
         Checks for integer underflow
+
+        :param statespace:
         :param state: state from node to examine
         :param node: node to examine
         :return: found issue
@@ -230,7 +248,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         return issues
 
     def _check_usage(self, state, taint_result):
-        """Delegates checks to _check_{instruction_name}()"""
+        """Delegates checks to _check_{instruction_name}()
+
+        :param state:
+        :param taint_result:
+        :return:
+        """
         opcode = state.get_current_instruction()["opcode"]
 
         if opcode == "JUMPI":
@@ -241,13 +264,25 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 return [state]
         return []
 
-    def _check_jumpi(self, state, taint_result):
-        """ Check if conditional jump is dependent on the result of expression"""
+    @staticmethod
+    def _check_jumpi(state, taint_result):
+        """ Check if conditional jump is dependent on the result of expression
+
+        :param state:
+        :param taint_result:
+        :return:
+        """
         assert state.get_current_instruction()["opcode"] == "JUMPI"
         return taint_result.check(state, -2)
 
-    def _check_sstore(self, state, taint_result):
-        """ Check if store operation is dependent on the result of expression"""
+    @staticmethod
+    def _check_sstore(state, taint_result):
+        """ Check if store operation is dependent on the result of expression
+
+        :param state:
+        :param taint_result:
+        :return:
+        """
         assert state.get_current_instruction()["opcode"] == "SSTORE"
         return taint_result.check(state, -2)
 
@@ -265,10 +300,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         Checks the statespace for children states, with JUMPI or SSTORE instuctions,
         for dependency on expression
+
         :param statespace: The statespace to explore
         :param node: Current node to explore from
         :param expression: Expression to look for
         :param taint_result: Result of taint analysis
+        :param constraint:
         :param index: Current state index node.states[index] == current_state
         :param depth: Current depth level
         :param max_depth: Max depth to explore

@@ -36,9 +36,7 @@ def exit_with_error(format_, message):
 
 
 def main():
-    """
-
-    """
+    """The main CLI interface entry point."""
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )

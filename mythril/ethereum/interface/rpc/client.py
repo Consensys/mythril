@@ -1,3 +1,7 @@
+"""This module contains a basic Ethereum RPC client.
+
+This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
+"""
 import json
 import logging
 import requests
@@ -20,17 +24,17 @@ PYETHAPP_DEFAULT_RPC_PORT = 4000
 MAX_RETRIES = 3
 JSON_MEDIA_TYPE = "application/json"
 
-"""
-This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
-"""
-
 
 class EthJsonRpc(BaseClient):
-    """
-    Ethereum JSON-RPC client class
-    """
+    """Ethereum JSON-RPC client class."""
 
     def __init__(self, host="localhost", port=GETH_DEFAULT_RPC_PORT, tls=False):
+        """
+
+        :param host:
+        :param port:
+        :param tls:
+        """
         self.host = host
         self.port = port
         self.tls = tls
@@ -38,7 +42,13 @@ class EthJsonRpc(BaseClient):
         self.session.mount(self.host, HTTPAdapter(max_retries=MAX_RETRIES))
 
     def _call(self, method, params=None, _id=1):
+        """
 
+        :param method:
+        :param params:
+        :param _id:
+        :return:
+        """
         params = params or []
         data = {"jsonrpc": "2.0", "method": method, "params": params, "id": _id}
         scheme = "http"
@@ -64,7 +74,5 @@ class EthJsonRpc(BaseClient):
             raise BadResponseError(response)
 
     def close(self):
-        """
-
-        """
+        """Close the RPC client's session."""
         self.session.close()

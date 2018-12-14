@@ -1,3 +1,5 @@
+"""This module contians the transaction models used throughout LASER's symbolic execution."""
+
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory

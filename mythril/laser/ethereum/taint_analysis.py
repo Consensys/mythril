@@ -1,3 +1,4 @@
+"""This module implements classes needed to perform taint analysis."""
 import logging
 import copy
 from typing import Union, List, Tuple
@@ -25,29 +26,47 @@ class TaintRecord:
         self.states = []
 
     def stack_tainted(self, index: int) -> Union[bool, None]:
-        """ Returns taint value of stack element at index"""
+        """ Returns taint value of stack element at index
+
+        :param index:
+        :return:
+        """
         if index < len(self.stack):
             return self.stack[index]
         return None
 
     def memory_tainted(self, index: int) -> bool:
-        """ Returns taint value of memory element at index"""
+        """ Returns taint value of memory element at index
+
+        :param index:
+        :return:
+        """
         if index in self.memory.keys():
             return self.memory[index]
         return False
 
     def storage_tainted(self, index: int) -> bool:
-        """ Returns taint value of storage element at index"""
+        """ Returns taint value of storage element at index
+
+        :param index:
+        :return:
+        """
         if index in self.storage.keys():
             return self.storage[index]
         return False
 
     def add_state(self, state: GlobalState) -> None:
-        """ Adds state with this taint record """
+        """ Adds state with this taint record
+
+        :param state:
+        """
         self.states.append(state)
 
     def clone(self) -> "TaintRecord":
-        """ Clones this record"""
+        """ Clones this record
+
+        :return:
+        """
         clone = TaintRecord()
         clone.stack = copy.deepcopy(self.stack)
         clone.memory = copy.deepcopy(self.memory)
@@ -59,11 +78,12 @@ class TaintResult:
     """ Taint analysis result obtained after having ran the taint runner"""
 
     def __init__(self):
+        """Create a new tains result."""
         self.records = []
 
     def check(self, state: GlobalState, stack_index: int) -> Union[bool, None]:
-        """
-        Checks if stack variable is tainted, before executing the instruction
+        """Checks if stack variable is tainted, before executing the instruction
+
         :param state: state to check variable in
         :param stack_index: index of stack variable
         :return: tainted
@@ -74,11 +94,18 @@ class TaintResult:
         return record.stack_tainted(stack_index)
 
     def add_records(self, records: List[TaintRecord]) -> None:
-        """ Adds records to this taint result """
+        """ Adds records to this taint result
+
+        :param records:
+        """
         self.records += records
 
     def _try_get_record(self, state: GlobalState) -> Union[TaintRecord, None]:
-        """ Finds record belonging to the state """
+        """ Finds record belonging to the state
+
+        :param state:
+        :return:
+        """
         for record in self.records:
             if state in record.states:
                 return record

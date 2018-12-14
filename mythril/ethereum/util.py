@@ -1,3 +1,4 @@
+"""This module contains various utility functions regarding unit conversion and solc integration."""
 from ethereum.abi import encode_abi, encode_int
 from ethereum.utils import zpad
 from ethereum.abi import method_id

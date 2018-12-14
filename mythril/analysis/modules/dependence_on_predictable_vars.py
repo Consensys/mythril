@@ -1,3 +1,4 @@
+"""This module contains the detection code for predictable variable dependence."""
 import re
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.ops import Call, VarType
@@ -15,6 +16,9 @@ log = logging.getLogger(__name__)
 class PredictableDependenceModule(DetectionModule):
     """This module detects whether Ether is sent using predictable parameters."""
     def __init__(self):
+        """
+
+        """
         super().__init__(
             name="Dependence of Predictable Variables",
             swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE),
@@ -51,6 +55,11 @@ detector = PredictableDependenceModule()
 
 
 def _analyze_states(state: GlobalState) -> list:
+    """
+
+    :param state:
+    :return:
+    """
     issues = []
     call = get_call_from_state(state)
     if call is None:

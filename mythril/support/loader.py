@@ -1,3 +1,4 @@
+"""This module contains the dynamic loader logic to get on-chain storage data and dependencies."""
 from mythril.disassembler.disassembly import Disassembly
 import logging
 import re
@@ -6,10 +7,14 @@ log = logging.getLogger(__name__)
 
 
 class DynLoader:
-    """
-
-    """
+    """The dynamic loader class."""
     def __init__(self, eth, contract_loading=True, storage_loading=True):
+        """
+
+        :param eth:
+        :param contract_loading:
+        :param storage_loading:
+        """
         self.eth = eth
         self.storage_cache = {}
         self.contract_loading = contract_loading

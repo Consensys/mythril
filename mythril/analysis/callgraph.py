@@ -1,3 +1,5 @@
+"""This module contains the configuration and functions to create call graphs."""
+
 import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape

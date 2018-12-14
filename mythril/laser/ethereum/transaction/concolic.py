@@ -1,3 +1,4 @@
+"""This module contains functions to set up and execute concolic message calls."""
 from typing import List, Union
 
 from mythril.disassembler.disassembly import Disassembly
@@ -22,7 +23,20 @@ def execute_message_call(
     value,
     track_gas=False,
 ) -> Union[None, List[GlobalState]]:
-    """ Executes a message call transaction from all open states """
+    """ Execute a message call transaction from all open states.
+
+    :param laser_evm:
+    :param callee_address:
+    :param caller_address:
+    :param origin_address:
+    :param code:
+    :param data:
+    :param gas_limit:
+    :param gas_price:
+    :param value:
+    :param track_gas:
+    :return:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
@@ -49,7 +63,11 @@ def execute_message_call(
 
 
 def _setup_global_state_for_execution(laser_evm, transaction) -> None:
-    """ Sets up global state and cfg for a transactions execution"""
+    """ Set up global state and cfg for a transactions execution.
+
+    :param laser_evm:
+    :param transaction:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))

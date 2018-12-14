@@ -1,3 +1,4 @@
+"""Don't ask."""
 #!/usr/bin/env python
 #
 # "THE BEER-WARE LICENSE" (Revision 43~maze)
@@ -52,9 +53,7 @@ COLOR_ANSI = (
 
 
 class LolCat(object):
-    """
-
-    """
+    """Cats lel"""
     def __init__(self, mode=256, output=sys.stdout):
         self.mode = mode
         self.output = output

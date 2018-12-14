@@ -1,11 +1,10 @@
+"""This module contains the ETH_DB class, which the base database used by pyethereum."""
 import plyvel
 from ethereum.db import BaseDB
 
 
 class ETH_DB(BaseDB):
-    """
-    adopts pythereum BaseDB using plyvel
-    """
+    """Adopts pythereum BaseDB using plyvel."""
 
     def __init__(self, path):
         self.db = plyvel.DB(path)

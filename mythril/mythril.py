@@ -265,9 +265,7 @@ class Mythril(object):
         return self.eth
 
     def set_api_rpc_infura(self):
-        """
-
-        """
+        """Set the RPC mode to INFURA on mainnet."""
         self.eth = EthJsonRpc("mainnet.infura.io", 443, True)
         log.info("Using INFURA for RPC queries")
 
@@ -299,16 +297,12 @@ class Mythril(object):
             raise CriticalError("Invalid RPC settings, check help for details.")
 
     def set_api_rpc_localhost(self):
-        """
-
-        """
+        """Set the RPC mode to a local instance."""
         self.eth = EthJsonRpc("localhost", 8545)
         log.info("Using default RPC settings: http://localhost:8545")
 
     def set_api_from_config_path(self):
-        """
-
-        """
+        """Set the RPC mode based on a given config file."""
         config = ConfigParser(allow_no_value=False)
         config.optionxform = str
         config.read(self.config_path, "utf-8")
@@ -417,7 +411,7 @@ class Mythril(object):
 
     def load_from_solidity(self, solidity_files):
         """
-        UPDATES self.sigs!
+
         :param solidity_files:
         :return:
         """

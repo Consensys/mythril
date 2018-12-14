@@ -1,3 +1,4 @@
+"""This module contains the representation for an execution state's environment."""
 from typing import Dict
 
 from z3 import ExprRef, BitVecVal
@@ -8,9 +9,7 @@ from mythril.laser.ethereum.state.calldata import CalldataType, BaseCalldata
 
 
 class Environment:
-    """
-    The environment class represents the current execution environment for the symbolic executor
-    """
+    """The environment class represents the current execution environment for the symbolic executor."""
 
     def __init__(
         self,
@@ -23,6 +22,17 @@ class Environment:
         code=None,
         calldata_type=CalldataType.SYMBOLIC,
     ):
+        """
+
+        :param active_account:
+        :param sender:
+        :param calldata:
+        :param gasprice:
+        :param callvalue:
+        :param origin:
+        :param code:
+        :param calldata_type:
+        """
         # Metadata
 
         self.active_account = active_account
@@ -41,6 +51,10 @@ class Environment:
         self.callvalue = callvalue
 
     def __str__(self) -> str:
+        """
+
+        :return:
+        """
         return str(self.as_dict)
 
     @property
