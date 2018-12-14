@@ -1,4 +1,5 @@
-"""This module contains functions to set up and execute concolic message calls."""
+"""This module contains functions to set up and execute concolic message
+calls."""
 from typing import List, Union
 
 from mythril.disassembler.disassembly import Disassembly
@@ -23,7 +24,7 @@ def execute_message_call(
     value,
     track_gas=False,
 ) -> Union[None, List[GlobalState]]:
-    """ Execute a message call transaction from all open states.
+    """Execute a message call transaction from all open states.
 
     :param laser_evm:
     :param callee_address:
@@ -63,7 +64,7 @@ def execute_message_call(
 
 
 def _setup_global_state_for_execution(laser_evm, transaction) -> None:
-    """ Set up global state and cfg for a transactions execution.
+    """Set up global state and cfg for a transactions execution.
 
     :param laser_evm:
     :param transaction:

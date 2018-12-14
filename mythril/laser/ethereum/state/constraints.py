@@ -1,10 +1,12 @@
-"""This module contains the class used to represent state-change constraints in the call graph."""
+"""This module contains the class used to represent state-change constraints in
+the call graph."""
 
 
 class Constraints(list):
-    """
-    This class should maintain a solver and it's constraints, This class tries to make the Constraints() object
-    as a simple list of constraints with some background processing.
+    """This class should maintain a solver and it's constraints, This class
+    tries to make the Constraints() object as a simple list of constraints with
+    some background processing.
+
     TODO: add the solver to this class after callback refactor
     """
 

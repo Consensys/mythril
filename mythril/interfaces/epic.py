@@ -21,9 +21,7 @@ PY3 = sys.version_info >= (3,)
 
 # Reset terminal colors at exit
 def reset():
-    """
-
-    """
+    """"""
     sys.stdout.write("\x1b[0m")
     sys.stdout.flush()
 
@@ -53,7 +51,7 @@ COLOR_ANSI = (
 
 
 class LolCat(object):
-    """Cats lel"""
+    """Cats lel."""
 
     def __init__(self, mode=256, output=sys.stdout):
         self.mode = mode
@@ -193,9 +191,7 @@ class LolCat(object):
 
 
 def detect_mode(term_hint="xterm-256color"):
-    """
-    Poor-mans color mode detection.
-    """
+    """Poor-mans color mode detection."""
     if "ANSICON" in os.environ:
         return 16
     elif os.environ.get("ConEmuANSI", "OFF") == "ON":

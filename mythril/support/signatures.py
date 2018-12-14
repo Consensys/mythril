@@ -75,8 +75,9 @@ except ImportError:
 
 
 class SQLiteDB(object):
-    """
-    Simple context manager for sqlite3 databases. Commits everything at exit.
+    """Simple context manager for sqlite3 databases.
+
+    Commits everything at exit.
     """
 
     def __init__(self, path):
@@ -112,9 +113,7 @@ class SQLiteDB(object):
 
 
 class SignatureDB(object, metaclass=Singleton):
-    """
-
-    """
+    """"""
 
     def __init__(self, enable_online_lookup: bool = False, path: str = None) -> None:
         """
@@ -146,8 +145,8 @@ class SignatureDB(object, metaclass=Singleton):
             )
 
     def __getitem__(self, item: str) -> List[str]:
-        """
-        Provide dict interface db[sighash]
+        """Provide dict interface db[sighash]
+
         :param item: 4-byte signature string
         :return: list of matching text signature strings
         """
@@ -155,8 +154,8 @@ class SignatureDB(object, metaclass=Singleton):
 
     @staticmethod
     def _normalize_byte_sig(byte_sig: str) -> str:
-        """
-        Adds a leading 0x to the byte signature if it's not already there.
+        """Adds a leading 0x to the byte signature if it's not already there.
+
         :param byte_sig: 4-byte signature string
         :return: normalized byte signature string
         """
@@ -184,10 +183,9 @@ class SignatureDB(object, metaclass=Singleton):
             )
 
     def get(self, byte_sig: str, online_timeout: int = 2) -> List[str]:
-        """
-        Get a function text signature for a byte signature
-        1) try local cache
-        2) try online lookup (if enabled; if not flagged as unavailable)
+        """Get a function text signature for a byte signature 1) try local
+        cache 2) try online lookup (if enabled; if not flagged as unavailable)
+
         :param byte_sig: function signature hash as hexstr
         :param online_timeout: online lookup timeout
         :return: list of matching function text signatures
@@ -235,8 +233,8 @@ class SignatureDB(object, metaclass=Singleton):
     def import_solidity_file(
         self, file_path: str, solc_binary: str = "solc", solc_args: str = None
     ):
-        """
-        Import Function Signatures from solidity source files
+        """Import Function Signatures from solidity source files.
+
         :param solc_binary:
         :param solc_args:
         :param file_path: solidity source code file path
@@ -283,8 +281,7 @@ class SignatureDB(object, metaclass=Singleton):
 
     @staticmethod
     def lookup_online(byte_sig: str, timeout: int, proxies=None) -> List[str]:
-        """
-        Lookup function signatures from 4byte.directory.
+        """Lookup function signatures from 4byte.directory.
 
         :param byte_sig: function signature hash as hexstr
         :param timeout: optional timeout for online lookup

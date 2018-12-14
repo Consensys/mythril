@@ -1,4 +1,5 @@
-"""This module contains the detection code to find the existence of transaction order dependence."""
+"""This module contains the detection code to find the existence of transaction
+order dependence."""
 import logging
 import re
 import copy
@@ -31,7 +32,7 @@ class TxOrderDependenceModule(DetectionModule):
         )
 
     def execute(self, statespace):
-        """ Executes the analysis module
+        """Executes the analysis module.
 
         :param statespace:
         :return:
@@ -76,7 +77,7 @@ class TxOrderDependenceModule(DetectionModule):
     # TODO: move to __init__ or util module
     @staticmethod
     def _get_states_with_opcode(statespace, opcode):
-        """ Gets all (state, node) tuples in statespace with opcode
+        """Gets all (state, node) tuples in statespace with opcode.
 
         :param statespace:
         :param opcode:
@@ -89,7 +90,8 @@ class TxOrderDependenceModule(DetectionModule):
 
     @staticmethod
     def _dependent_on_storage(expression):
-        """ Checks if expression is dependent on a storage symbol and returns the influencing storages
+        """Checks if expression is dependent on a storage symbol and returns
+        the influencing storages.
 
         :param expression:
         :return:
@@ -99,8 +101,8 @@ class TxOrderDependenceModule(DetectionModule):
 
     @staticmethod
     def _get_storage_variable(storage, state):
-        """
-        Get storage z3 object given storage name and the state
+        """Get storage z3 object given storage name and the state.
+
         :param storage: storage name example: storage_0
         :param state: state to retrieve the variable from
         :return: z3 object representing storage
@@ -112,7 +114,7 @@ class TxOrderDependenceModule(DetectionModule):
             return None
 
     def _can_change(self, constraints, variable):
-        """ Checks if the variable can change given some constraints
+        """Checks if the variable can change given some constraints.
 
         :param constraints:
         :param variable:
@@ -133,7 +135,8 @@ class TxOrderDependenceModule(DetectionModule):
             return False
 
     def _get_influencing_storages(self, call):
-        """ Examines a Call object and returns an iterator of all storages that influence the call value or direction
+        """Examines a Call object and returns an iterator of all storages that
+        influence the call value or direction.
 
         :param call:
         """
@@ -156,7 +159,7 @@ class TxOrderDependenceModule(DetectionModule):
                 yield storage
 
     def _get_influencing_sstores(self, statespace, interesting_storages):
-        """ Gets sstore (state, node) tuples that write to interesting_storages
+        """Gets sstore (state, node) tuples that write to interesting_storages.
 
         :param statespace:
         :param interesting_storages:
@@ -175,8 +178,8 @@ class TxOrderDependenceModule(DetectionModule):
     # TODO: remove
     @staticmethod
     def _try_constraints(constraints, new_constraints):
-        """
-        Tries new constraints
+        """Tries new constraints.
+
         :param constraints:
         :param new_constraints:
         :return Model if satisfiable otherwise None

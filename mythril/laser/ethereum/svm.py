@@ -36,10 +36,12 @@ class SVMError(Exception):
 class LaserEVM:
     """The LASER EVM.
 
-    Just as Mithril had to be mined at great efforts to provide the Dwarves with their exceptional armour,
-    LASER stands at the heart of Mythril, digging deep in the depths of call graphs, unearthing the most
-    precious symbolic call data, that is then hand-forged into beautiful and strong security issues by
-    the experienced smiths we call detection modules. It is truly a magnificent symbiosis.
+    Just as Mithril had to be mined at great efforts to provide the
+    Dwarves with their exceptional armour, LASER stands at the heart of
+    Mythril, digging deep in the depths of call graphs, unearthing the
+    most precious symbolic call data, that is then hand-forged into
+    beautiful and strong security issues by the experienced smiths we
+    call detection modules. It is truly a magnificent symbiosis.
     """
 
     def __init__(
@@ -166,8 +168,9 @@ class LaserEVM:
             log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
     def _execute_transactions(self, address):
-        """
-        This function executes multiple transactions on the address based on the coverage
+        """This function executes multiple transactions on the address based on
+        the coverage.
+
         :param address: Address of the contract
         :return:
         """
@@ -188,7 +191,8 @@ class LaserEVM:
             )
 
     def _get_covered_instructions(self) -> int:
-        """ Gets the total number of covered instructions for all accounts in the svm
+        """Gets the total number of covered instructions for all accounts in
+        the svm.
 
         :return:
         """

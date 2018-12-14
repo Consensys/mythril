@@ -14,24 +14,28 @@ class CompilerError(MythrilBaseException):
 
 
 class UnsatError(MythrilBaseException):
-    """A Mythril exception denoting the unsatisfiability of a series of constraints."""
+    """A Mythril exception denoting the unsatisfiability of a series of
+    constraints."""
 
     pass
 
 
 class NoContractFoundError(MythrilBaseException):
-    """A Mythril exception denoting that a given contract file was not found."""
+    """A Mythril exception denoting that a given contract file was not
+    found."""
 
     pass
 
 
 class CriticalError(MythrilBaseException):
-    """A Mythril exception denoting an unknown critical error has been encountered."""
+    """A Mythril exception denoting an unknown critical error has been
+    encountered."""
 
     pass
 
 
 class AddressNotFoundError(MythrilBaseException):
-    """A Mythril exception denoting the given smart contract address was not found."""
+    """A Mythril exception denoting the given smart contract address was not
+    found."""
 
     pass

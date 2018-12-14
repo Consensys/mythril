@@ -1,7 +1,6 @@
-"""
-This module contains the business logic used by Instruction in instructions.py
-to get the necessary elements from the stack and determine the parameters for the new global state.
-"""
+"""This module contains the business logic used by Instruction in
+instructions.py to get the necessary elements from the stack and determine the
+parameters for the new global state."""
 
 import logging
 from typing import Union
@@ -28,9 +27,9 @@ log = logging.getLogger(__name__)
 def get_call_parameters(
     global_state: GlobalState, dynamic_loader: DynLoader, with_value=False
 ):
-    """
-    Gets call parameters from global state
-    Pops the values from the stack and determines output parameters
+    """Gets call parameters from global state Pops the values from the stack
+    and determines output parameters.
+
     :param global_state: state to look in
     :param dynamic_loader: dynamic loader to use
     :param with_value: whether to pop the value argument from the stack
@@ -71,8 +70,8 @@ def get_callee_address(
     dynamic_loader: DynLoader,
     symbolic_to_address: Expression,
 ):
-    """
-    Gets the address of the callee
+    """Gets the address of the callee.
+
     :param global_state: state to look in
     :param dynamic_loader:  dynamic loader to use
     :param symbolic_to_address: The (symbolic) callee address
@@ -114,8 +113,8 @@ def get_callee_address(
 def get_callee_account(
     global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
 ):
-    """
-    Gets the callees account from the global_state
+    """Gets the callees account from the global_state.
+
     :param global_state: state to look in
     :param callee_address: address of the callee
     :param dynamic_loader: dynamic loader to use
@@ -158,8 +157,8 @@ def get_call_data(
     memory_start: Union[int, Expression],
     memory_size: Union[int, Expression],
 ):
-    """
-    Gets call_data from the global_state
+    """Gets call_data from the global_state.
+
     :param global_state: state to look in
     :param memory_start: Start index
     :param memory_size: Size

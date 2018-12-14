@@ -12,9 +12,7 @@ from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 
 class GlobalState:
-    """
-    GlobalState represents the current globalstate
-    """
+    """GlobalState represents the current globalstate."""
 
     def __init__(
         self,
@@ -26,7 +24,7 @@ class GlobalState:
         last_return_data=None,
         annotations=None,
     ):
-        """ Constructor for GlobalState
+        """Constructor for GlobalState.
 
         :param world_state:
         :param environment:
@@ -76,7 +74,7 @@ class GlobalState:
 
     # TODO: remove this, as two instructions are confusing
     def get_current_instruction(self) -> Dict:
-        """ Gets the current instruction for this GlobalState
+        """Gets the current instruction for this GlobalState.
 
         :return:
         """
@@ -135,9 +133,9 @@ class GlobalState:
         return self._annotations
 
     def get_annotations(self, annotation_type: type) -> Iterable[StateAnnotation]:
-        """
-        Filters annotations for the queried annotation type. Designed particularly for
-        modules with annotations: globalstate.get_annotations(MySpecificModuleAnnotation)
+        """Filters annotations for the queried annotation type. Designed
+        particularly for modules with annotations:
+        globalstate.get_annotations(MySpecificModuleAnnotation)
 
         :param annotation_type: The type to filter annotations for
         :return: filter of matching annotations

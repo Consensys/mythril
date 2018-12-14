@@ -304,7 +304,8 @@ def BVAddNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) 
 
 
 def BVMulNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
-    """Creates predicate that verifies that the multiplication doesn't overflow.
+    """Creates predicate that verifies that the multiplication doesn't
+    overflow.
 
     :param a:
     :param b:

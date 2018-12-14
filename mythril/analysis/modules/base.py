@@ -1,4 +1,5 @@
-"""This module contains the base class for all user-defined detection modules."""
+"""This module contains the base class for all user-defined detection
+modules."""
 
 import logging
 from typing import List
@@ -8,7 +9,7 @@ log = logging.getLogger(__name__)
 
 class DetectionModule:
     """The base detection module.
-    
+
     All custom-built detection modules must inherit from this class.
     """
 
@@ -22,11 +23,11 @@ class DetectionModule:
     ) -> None:
         """Initialize a new detection module.
 
-        :param name: 
-        :param swc_id: 
-        :param hooks: 
-        :param description: 
-        :param entrypoint: 
+        :param name:
+        :param swc_id:
+        :param hooks:
+        :param description:
+        :param entrypoint:
         """
         self.name = name
         self.swc_id = swc_id
@@ -40,7 +41,7 @@ class DetectionModule:
         self.entrypoint = entrypoint
 
     def execute(self, statespace):
-        """ The entry point for execution, which is being called by Mythril.
+        """The entry point for execution, which is being called by Mythril.
 
         :param statespace:
         :return:

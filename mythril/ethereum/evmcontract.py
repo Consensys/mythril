@@ -1,4 +1,5 @@
-"""This module contains the class representing EVM contracts, aka Smart Contracts."""
+"""This module contains the class representing EVM contracts, aka Smart
+Contracts."""
 from mythril.disassembler.disassembly import Disassembly
 from ethereum import utils
 import persistent
@@ -6,7 +7,8 @@ import re
 
 
 class EVMContract(persistent.Persistent):
-    """This class represents an address with associated code (Smart Contract)."""
+    """This class represents an address with associated code (Smart
+    Contract)."""
 
     def __init__(
         self, code="", creation_code="", name="Unknown", enable_online_lookup=False

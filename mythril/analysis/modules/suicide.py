@@ -59,7 +59,8 @@ def _analyze_state(state):
 
 
 class SuicideModule(DetectionModule):
-    """This module checks if the contact can be 'accidentally' killed by anyone."""
+    """This module checks if the contact can be 'accidentally' killed by
+    anyone."""
 
     def __init__(self):
         super().__init__(

@@ -1,7 +1,7 @@
 """This module contains account indexing functionality.
 
-This includes a sedes class for lists, account storage receipts for LevelDB
-and a class for updating account addresses.
+This includes a sedes class for lists, account storage receipts for
+LevelDB and a class for updating account addresses.
 """
 import logging
 from mythril import ethereum
@@ -20,6 +20,7 @@ BATCH_SIZE = 8 * 4096
 
 class CountableList(object):
     """A sedes for lists of arbitrary length.
+
     :param element_sedes: when (de-)serializing a list, this sedes will be applied to all of its elements
     """
 
@@ -50,9 +51,7 @@ class CountableList(object):
 
 
 class ReceiptForStorage(rlp.Serializable):
-    """
-    Receipt format stored in levelDB
-    """
+    """Receipt format stored in levelDB."""
 
     fields = [
         ("state_root", binary),
@@ -66,9 +65,7 @@ class ReceiptForStorage(rlp.Serializable):
 
 
 class AccountIndexer(object):
-    """
-    Updates address index
-    """
+    """Updates address index."""
 
     def __init__(self, ethDB):
         self.db = ethDB
@@ -78,9 +75,8 @@ class AccountIndexer(object):
         self.updateIfNeeded()
 
     def get_contract_by_hash(self, contract_hash):
-        """
-        get mapped contract_address by its hash, if not found try indexing
-        """
+        """get mapped contract_address by its hash, if not found try
+        indexing."""
         contract_address = self.db.reader._get_address_by_hash(contract_hash)
         if contract_address is not None:
             return contract_address
@@ -89,9 +85,7 @@ class AccountIndexer(object):
             raise AddressNotFoundError
 
     def _process(self, startblock):
-        """
-        Processesing method
-        """
+        """Processesing method."""
         log.debug("Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE))
 
         addresses = []
@@ -113,9 +107,7 @@ class AccountIndexer(object):
         return addresses
 
     def updateIfNeeded(self):
-        """
-        update address index
-        """
+        """update address index."""
         headBlock = self.db.reader._get_head_block()
         if headBlock is not None:
             # avoid restarting search if head block is same & we already initialized

@@ -158,9 +158,7 @@ class LevelDBReader(object):
 
 
 class LevelDBWriter(object):
-    """
-    level db writing interface
-    """
+    """level db writing interface."""
 
     def __init__(self, db):
         """
@@ -183,7 +181,7 @@ class LevelDBWriter(object):
         self.wb = self.db.write_batch()
 
     def _commit_batch(self):
-        """Commit a batch"""
+        """Commit a batch."""
         self.wb.write()
 
     def _store_account_address(self, address):
@@ -196,9 +194,7 @@ class LevelDBWriter(object):
 
 
 class EthLevelDB(object):
-    """
-    Go-Ethereum LevelDB client class
-    """
+    """Go-Ethereum LevelDB client class."""
 
     def __init__(self, path):
         """
@@ -235,10 +231,12 @@ class EthLevelDB(object):
                 try:
                     address = _encode_hex(indexer.get_contract_by_hash(address_hash))
                 except AddressNotFoundError:
-                    """
-                    The hash->address mapping does not exist in our index. If the index is up-to-date, this likely means
-                    that the contract was created by an internal transaction. Skip this contract as right now we don't
-                    have a good solution for this.
+                    """The hash->address mapping does not exist in our index.
+
+                    If the index is up-to-date, this likely means that
+                    the contract was created by an internal transaction.
+                    Skip this contract as right now we don't have a good
+                    solution for this.
                     """
 
                     continue

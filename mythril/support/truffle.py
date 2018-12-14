@@ -1,4 +1,5 @@
-"""This module contains functionality used to easily analyse Truffle projects."""
+"""This module contains functionality used to easily analyse Truffle
+projects."""
 import os
 from pathlib import PurePath
 import re

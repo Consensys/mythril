@@ -1,4 +1,5 @@
-"""This module contains the configuration and functions to create call graphs."""
+"""This module contains the configuration and functions to create call
+graphs."""
 
 import re
 

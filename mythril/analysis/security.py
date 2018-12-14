@@ -1,4 +1,5 @@
-"""This module contains functionality for hooking in detection modules and executing them."""
+"""This module contains functionality for hooking in detection modules and
+executing them."""
 from collections import defaultdict
 from ethereum.opcodes import opcodes
 from mythril.analysis import modules

@@ -1,4 +1,5 @@
-"""This module contains a wrapper around LASER for extended analysis purposes."""
+"""This module contains a wrapper around LASER for extended analysis
+purposes."""
 from mythril.analysis.security import get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
@@ -16,7 +17,8 @@ from mythril.laser.ethereum.strategy.basic import (
 class SymExecWrapper:
     """Wrapper class for the LASER Symbolic virtual machine.
 
-    Symbolically executes the code and does a bit of pre-analysis for convenience.
+    Symbolically executes the code and does a bit of pre-analysis for
+    convenience.
     """
 
     def __init__(

@@ -13,20 +13,19 @@ log = logging.getLogger(__name__)
 
 
 class TaintRecord:
-    """
-    TaintRecord contains tainting information for a specific (state, node)
-    the information specifies the taint status before executing the operation belonging to the state
-    """
+    """TaintRecord contains tainting information for a specific (state, node)
+    the information specifies the taint status before executing the operation
+    belonging to the state."""
 
     def __init__(self):
-        """ Builds a taint record """
+        """Builds a taint record."""
         self.stack = []
         self.memory = {}
         self.storage = {}
         self.states = []
 
     def stack_tainted(self, index: int) -> Union[bool, None]:
-        """ Returns taint value of stack element at index
+        """Returns taint value of stack element at index.
 
         :param index:
         :return:
@@ -36,7 +35,7 @@ class TaintRecord:
         return None
 
     def memory_tainted(self, index: int) -> bool:
-        """ Returns taint value of memory element at index
+        """Returns taint value of memory element at index.
 
         :param index:
         :return:
@@ -46,7 +45,7 @@ class TaintRecord:
         return False
 
     def storage_tainted(self, index: int) -> bool:
-        """ Returns taint value of storage element at index
+        """Returns taint value of storage element at index.
 
         :param index:
         :return:
@@ -56,14 +55,14 @@ class TaintRecord:
         return False
 
     def add_state(self, state: GlobalState) -> None:
-        """ Adds state with this taint record
+        """Adds state with this taint record.
 
         :param state:
         """
         self.states.append(state)
 
     def clone(self) -> "TaintRecord":
-        """ Clones this record
+        """Clones this record.
 
         :return:
         """
@@ -75,14 +74,15 @@ class TaintRecord:
 
 
 class TaintResult:
-    """ Taint analysis result obtained after having ran the taint runner"""
+    """Taint analysis result obtained after having ran the taint runner."""
 
     def __init__(self):
         """Create a new tains result."""
         self.records = []
 
     def check(self, state: GlobalState, stack_index: int) -> Union[bool, None]:
-        """Checks if stack variable is tainted, before executing the instruction
+        """Checks if stack variable is tainted, before executing the
+        instruction.
 
         :param state: state to check variable in
         :param stack_index: index of stack variable
@@ -94,14 +94,14 @@ class TaintResult:
         return record.stack_tainted(stack_index)
 
     def add_records(self, records: List[TaintRecord]) -> None:
-        """ Adds records to this taint result
+        """Adds records to this taint result.
 
         :param records:
         """
         self.records += records
 
     def _try_get_record(self, state: GlobalState) -> Union[TaintRecord, None]:
-        """ Finds record belonging to the state
+        """Finds record belonging to the state.
 
         :param state:
         :return:
@@ -113,16 +113,15 @@ class TaintResult:
 
 
 class TaintRunner:
-    """
-    Taint runner, is able to run taint analysis on symbolic execution result
-    """
+    """Taint runner, is able to run taint analysis on symbolic execution
+    result."""
 
     @staticmethod
     def execute(
         statespace: SymExecWrapper, node: Node, state: GlobalState, initial_stack=None
     ) -> TaintResult:
-        """
-        Runs taint analysis on the statespace
+        """Runs taint analysis on the statespace.
+
         :param initial_stack:
         :param statespace: symbolic statespace to run taint analysis on
         :param node: taint introduction node
@@ -196,8 +195,8 @@ class TaintRunner:
     def execute_node(
         node: Node, last_record: TaintRecord, state_index=0
     ) -> List[TaintRecord]:
-        """
-        Runs taint analysis on a given node
+        """Runs taint analysis on a given node.
+
         :param node: node to analyse
         :param last_record: last taint record to work from
         :param state_index: state index to start from

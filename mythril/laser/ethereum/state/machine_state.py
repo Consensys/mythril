@@ -1,4 +1,5 @@
-"""This module contains a representation of the EVM's machine state and its stack."""
+"""This module contains a representation of the EVM's machine state and its
+stack."""
 from copy import copy
 from typing import Union, Any, List, Dict
 
@@ -15,9 +16,7 @@ from mythril.laser.ethereum.state.memory import Memory
 
 
 class MachineStack(list):
-    """
-    Defines EVM stack, overrides the default list to handle overflows
-    """
+    """Defines EVM stack, overrides the default list to handle overflows."""
 
     STACK_LIMIT = 1024
 
@@ -68,24 +67,23 @@ class MachineStack(list):
             )
 
     def __add__(self, other):
-        """Implement list concatenation if needed
+        """Implement list concatenation if needed.
 
         :param other:
         """
         raise NotImplementedError("Implement this if needed")
 
     def __iadd__(self, other):
-        """
-        Implement list concatenation if needed
+        """Implement list concatenation if needed.
+
         :param other:
         """
         raise NotImplementedError("Implement this if needed")
 
 
 class MachineState:
-    """
-    MachineState represents current machine state also referenced to as \mu
-    """
+    """MachineState represents current machine state also referenced to as
+    \mu."""
 
     def __init__(
         self,
@@ -98,7 +96,7 @@ class MachineState:
         max_gas_used=0,
         min_gas_used=0,
     ):
-        """ Constructor for machineState
+        """Constructor for machineState.
 
         :param gas_limit:
         :param pc:
@@ -153,7 +151,7 @@ class MachineState:
             raise OutOfGasException()
 
     def mem_extend(self, start: int, size: int) -> None:
-        """Extends the memory of this machine state
+        """Extends the memory of this machine state.
 
         :param start: Start of memory extension
         :param size: Size of memory extension
@@ -167,7 +165,7 @@ class MachineState:
             self.memory.extend(m_extend)
 
     def memory_write(self, offset: int, data: List[int]) -> None:
-        """ Writes data to memory starting at offset
+        """Writes data to memory starting at offset.
 
         :param offset:
         :param data:
@@ -176,7 +174,7 @@ class MachineState:
         self.memory[offset : offset + len(data)] = data
 
     def pop(self, amount=1) -> Union[BitVec, List[BitVec]]:
-        """ Pops amount elements from the stack
+        """Pops amount elements from the stack.
 
         :param amount:
         :return:

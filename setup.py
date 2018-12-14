@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-install mythril and deploy source-dist and wheel to pypi.python.org
+"""install mythril and deploy source-dist and wheel to pypi.python.org.
 
 deps (requires up2date version):
     *) pip install --upgrade pip wheel setuptools twine
 publish to pypi w/o having to convert Readme.md to RST:
     1) #> python setup.py sdist bdist_wheel
     2) #> twine upload dist/*   #<specify bdist_wheel version to upload>; #optional --repository <testpypi> or  --repository-url <testpypi-url>
-
 """
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -27,14 +25,12 @@ exec(open(str(version_path), "r").read())
 
 
 class VerifyVersionCommand(install):
-    """Custom command to verify that the git tag matches our version"""
+    """Custom command to verify that the git tag matches our version."""
 
     description = "verify that the git tag matches our version"
 
     def run(self):
-        """
-
-        """
+        """"""
         tag = os.getenv("CIRCLE_TAG")
 
         if tag != VERSION:
@@ -45,8 +41,8 @@ class VerifyVersionCommand(install):
 
 
 def read_file(fname):
-    """
-    return file contents
+    """return file contents.
+
     :param fname: path relative to setup.py
     :return: file contents
     """

@@ -1,6 +1,4 @@
-"""
-This module implements basic symbolic execution search strategies
-"""
+"""This module implements basic symbolic execution search strategies."""
 from mythril.laser.ethereum.state.global_state import GlobalState
 from typing import List
 from random import randrange
@@ -16,8 +14,8 @@ except ImportError:
     from bisect import bisect
 
     def choices(population, weights=None):
-        """
-        Returns a random element out of the population based on weight.
+        """Returns a random element out of the population based on weight.
+
         If the relative weights or cumulative weights are not specified,
         the selections are made with equal probability.
         """
@@ -32,9 +30,9 @@ except ImportError:
 
 
 class DepthFirstSearchStrategy(BasicSearchStrategy):
-    """
-    Implements a depth first search strategy
-    I.E. Follow one path to a leaf, and then continue to the next one
+    """Implements a depth first search strategy I.E.
+
+    Follow one path to a leaf, and then continue to the next one
     """
 
     def get_strategic_global_state(self) -> GlobalState:
@@ -46,9 +44,9 @@ class DepthFirstSearchStrategy(BasicSearchStrategy):
 
 
 class BreadthFirstSearchStrategy(BasicSearchStrategy):
-    """
-    Implements a breadth first search strategy
-    I.E. Execute all states of a "level" before continuing
+    """Implements a breadth first search strategy I.E.
+
+    Execute all states of a "level" before continuing
     """
 
     def get_strategic_global_state(self) -> GlobalState:
@@ -60,9 +58,7 @@ class BreadthFirstSearchStrategy(BasicSearchStrategy):
 
 
 class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
-    """
-    chooses a random state from the worklist with equal likelihood
-    """
+    """chooses a random state from the worklist with equal likelihood."""
 
     def get_strategic_global_state(self) -> GlobalState:
         """
@@ -76,9 +72,8 @@ class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
 
 
 class ReturnWeightedRandomStrategy(BasicSearchStrategy):
-    """
-    chooses a random state from the worklist with likelihood based on inverse proportion to depth
-    """
+    """chooses a random state from the worklist with likelihood based on
+    inverse proportion to depth."""
 
     def get_strategic_global_state(self) -> GlobalState:
         """

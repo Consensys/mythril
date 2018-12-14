@@ -1,4 +1,5 @@
-"""This module contains the representation for an execution state's environment."""
+"""This module contains the representation for an execution state's
+environment."""
 from typing import Dict
 
 from z3 import ExprRef, BitVecVal
@@ -9,7 +10,8 @@ from mythril.laser.ethereum.state.calldata import CalldataType, BaseCalldata
 
 
 class Environment:
-    """The environment class represents the current execution environment for the symbolic executor."""
+    """The environment class represents the current execution environment for
+    the symbolic executor."""
 
     def __init__(
         self,

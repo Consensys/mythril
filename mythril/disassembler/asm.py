@@ -1,4 +1,5 @@
-"""This module contains various helper classes and functions to deal with EVM code disassembly."""
+"""This module contains various helper classes and functions to deal with EVM
+code disassembly."""
 
 import re
 from collections import Generator
@@ -12,7 +13,7 @@ opcodes[254] = ["ASSERT_FAIL", 0, 0, 0]
 
 
 class EvmInstruction:
-    """ Model to hold the information of the disassembly."""
+    """Model to hold the information of the disassembly."""
 
     def __init__(self, address, op_code, argument=None):
         self.address = address
@@ -60,7 +61,8 @@ def get_opcode_from_name(operation_name: str) -> int:
 
 
 def find_op_code_sequence(pattern: list, instruction_list: list) -> Generator:
-    """Returns all indices in instruction_list that point to instruction sequences following a pattern.
+    """Returns all indices in instruction_list that point to instruction
+    sequences following a pattern.
 
     :param pattern: The pattern to look for, e.g. [["PUSH1", "PUSH2"], ["EQ"]] where ["PUSH1", "EQ"] satisfies pattern
     :param instruction_list: List of instructions to look in

@@ -124,7 +124,7 @@ def identity(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def native_contracts(address: int, data: BaseCalldata):
-    """Takes integer address 1, 2, 3, 4
+    """Takes integer address 1, 2, 3, 4.
 
     :param address:
     :param data:

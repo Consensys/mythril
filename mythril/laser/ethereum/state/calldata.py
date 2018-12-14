@@ -18,10 +18,8 @@ class CalldataType(Enum):
 
 
 class BaseCalldata:
-    """
-    Base calldata class
-    This represents the calldata provided when sending a transaction to a contract
-    """
+    """Base calldata class This represents the calldata provided when sending a
+    transaction to a contract."""
 
     def __init__(self, tx_id):
         """
@@ -42,7 +40,7 @@ class BaseCalldata:
         return result
 
     def get_word_at(self, offset: int) -> Expression:
-        """ Gets word at offset
+        """Gets word at offset.
 
         :param offset:
         :return:
@@ -94,14 +92,14 @@ class BaseCalldata:
 
     @property
     def size(self) -> Union[Expression, int]:
-        """ Returns the exact size of this calldata, this is not normalized
+        """Returns the exact size of this calldata, this is not normalized.
 
         :return: unnormalized call data size
         """
         raise NotImplementedError()
 
     def concrete(self, model: Model) -> list:
-        """ Returns a concrete version of the calldata using the provided model
+        """Returns a concrete version of the calldata using the provided model.
 
         :param model:
         """
@@ -112,8 +110,7 @@ class ConcreteCalldata(BaseCalldata):
     """A concrete call data representation."""
 
     def __init__(self, tx_id: int, calldata: list):
-        """
-        Initializes the ConcreteCalldata object.
+        """Initializes the ConcreteCalldata object.
 
         :param tx_id: Id of the transaction that the calldata is for.
         :param calldata: The concrete calldata content
@@ -257,8 +254,8 @@ class BasicSymbolicCalldata(BaseCalldata):
     """A basic class representing symbolic call data."""
 
     def __init__(self, tx_id: int):
-        """
-        Initializes the SymbolicCalldata object
+        """Initializes the SymbolicCalldata object.
+
         :param tx_id: Id of the transaction that the calldata is for.
         """
         self._reads = []

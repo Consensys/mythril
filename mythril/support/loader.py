@@ -1,4 +1,5 @@
-"""This module contains the dynamic loader logic to get on-chain storage data and dependencies."""
+"""This module contains the dynamic loader logic to get on-chain storage data
+and dependencies."""
 from mythril.disassembler.disassembly import Disassembly
 import logging
 import re

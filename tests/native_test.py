@@ -87,9 +87,7 @@ def _test_natives(laser_info, test_list, test_name):
 class NativeTests(BaseTestCase):
     @staticmethod
     def runTest():
-        """
-
-        """
+        """"""
         disassembly = SolidityContract(
             "./tests/native_tests.sol", solc_binary=Mythril._init_solc_binary("0.5.0")
         ).disassembly

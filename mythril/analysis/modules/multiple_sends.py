@@ -1,4 +1,5 @@
-"""This module contains the detection code to find multiple sends occurring in a single transaction."""
+"""This module contains the detection code to find multiple sends occurring in
+a single transaction."""
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
@@ -9,9 +10,7 @@ class MultipleSendsModule(DetectionModule):
     """This module checks for multiple sends in a single transaction."""
 
     def __init__(self):
-        """
-
-        """
+        """"""
         super().__init__(
             name="Multiple Sends",
             swc_id=MULTIPLE_SENDS,

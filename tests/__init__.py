@@ -17,9 +17,7 @@ MYTHRIL_DIR = TESTS_DIR / "mythril_dir"
 
 class BaseTestCase(TestCase):
     def setUp(self):
-        """
-
-        """
+        """"""
         self.changed_files = []
 
     def compare_files_error_message(self):
@@ -46,9 +44,7 @@ class BaseTestCase(TestCase):
         self.changed_files.append((input_file, output_expected, output_current))
 
     def assert_and_show_changed_files(self):
-        """
-
-        """
+        """"""
         self.assertEqual(
             0, len(self.changed_files), msg=self.compare_files_error_message()
         )

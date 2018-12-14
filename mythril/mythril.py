@@ -77,7 +77,6 @@ class Mythril(object):
         mythril.dump_statespaces(args)
         mythril.disassemble(contract)
         mythril.get_state_variable_from_storage(args)
-
     """
 
     def __init__(
@@ -133,8 +132,8 @@ class Mythril(object):
         return mythril_dir
 
     def _init_config(self):
-        """
-        If no config file exists, create it and add default options.
+        """If no config file exists, create it and add default options.
+
         Default LevelDB path is specified based on OS
         dynamic loading is set to infura by default in the file
         Returns: leveldb directory

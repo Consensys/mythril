@@ -1,4 +1,5 @@
-"""This module contains a representation class for EVM instructions and transitions between them."""
+"""This module contains a representation class for EVM instructions and
+transitions between them."""
 import binascii
 import logging
 
@@ -63,9 +64,10 @@ keccak_function_manager = KeccakFunctionManager()
 class StateTransition(object):
     """Decorator that handles global state copy and original return.
 
-    This decorator calls the decorated instruction mutator function on a copy of the state that
-    is passed to it. After the call, the resulting new states' program counter is automatically
-    incremented if `increment_pc=True`.
+    This decorator calls the decorated instruction mutator function on a
+    copy of the state that is passed to it. After the call, the
+    resulting new states' program counter is automatically incremented
+    if `increment_pc=True`.
     """
 
     def __init__(self, increment_pc=True, enable_gas=True):
@@ -153,9 +155,8 @@ class StateTransition(object):
 
 
 class Instruction:
-    """
-    Instruction class is used to mutate a state according to the current instruction
-    """
+    """Instruction class is used to mutate a state according to the current
+    instruction."""
 
     def __init__(self, op_code: str, dynamic_loader: DynLoader):
         """
@@ -167,7 +168,7 @@ class Instruction:
         self.op_code = op_code.upper()
 
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
-        """ Performs the mutation for this instruction
+        """Performs the mutation for this instruction.
 
         :param global_state:
         :param post:

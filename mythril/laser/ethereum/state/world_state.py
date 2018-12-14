@@ -8,15 +8,13 @@ from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 
 class WorldState:
-    """
-    The WorldState class represents the world state as described in the yellow paper
-    """
+    """The WorldState class represents the world state as described in the
+    yellow paper."""
 
     def __init__(
         self, transaction_sequence=None, annotations: List[StateAnnotation] = None
     ) -> None:
-        """
-        Constructor for the world state. Initializes the accounts record
+        """Constructor for the world state. Initializes the accounts record.
 
         :param transaction_sequence:
         :param annotations:
@@ -27,8 +25,7 @@ class WorldState:
         self._annotations = annotations or []
 
     def __getitem__(self, item: str) -> Account:
-        """
-        Gets an account from the worldstate using item as key
+        """Gets an account from the worldstate using item as key.
 
         :param item: Address of the account to get
         :return: Account associated with the address
@@ -52,8 +49,7 @@ class WorldState:
     def create_account(
         self, balance=0, address=None, concrete_storage=False, dynamic_loader=None
     ) -> Account:
-        """
-        Create non-contract account
+        """Create non-contract account.
 
         :param address: The account's address
         :param balance: Initial balance for the account
@@ -72,9 +68,9 @@ class WorldState:
         return new_account
 
     def create_initialized_contract_account(self, contract_code, storage) -> None:
-        """
-        Creates a new contract account, based on the contract code and storage provided
-        The contract code only includes the runtime contract bytecode
+        """Creates a new contract account, based on the contract code and
+        storage provided The contract code only includes the runtime contract
+        bytecode.
 
         :param contract_code: Runtime bytecode for the contract
         :param storage: Initial storage for the contract
@@ -103,9 +99,9 @@ class WorldState:
         return self._annotations
 
     def get_annotations(self, annotation_type: type) -> Iterator[StateAnnotation]:
-        """
-        Filters annotations for the queried annotation type. Designed particularly for
-        modules with annotations: worldstate.get_annotations(MySpecificModuleAnnotation)
+        """Filters annotations for the queried annotation type. Designed
+        particularly for modules with annotations:
+        worldstate.get_annotations(MySpecificModuleAnnotation)
 
         :param annotation_type: The type to filter annotations for
         :return: filter of matching annotations
@@ -113,7 +109,7 @@ class WorldState:
         return filter(lambda x: isinstance(x, annotation_type), self.annotations)
 
     def _generate_new_address(self) -> str:
-        """ Generates a new address for the global state
+        """Generates a new address for the global state.
 
         :return:
         """

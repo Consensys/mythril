@@ -1,4 +1,5 @@
-"""This file contains constants used used by the Ethereum JSON RPC interface."""
+"""This file contains constants used used by the Ethereum JSON RPC
+interface."""
 BLOCK_TAG_EARLIEST = "earliest"
 BLOCK_TAG_LATEST = "latest"
 BLOCK_TAG_PENDING = "pending"

@@ -1,4 +1,5 @@
-"""This module contains detection code to find occurrences of calls whose return value remains unchecked."""
+"""This module contains detection code to find occurrences of calls whose
+return value remains unchecked."""
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
 from mythril.analysis.modules.base import DetectionModule

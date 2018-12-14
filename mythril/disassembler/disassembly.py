@@ -5,8 +5,7 @@ from mythril.support.signatures import SignatureDB
 
 
 class Disassembly(object):
-    """
-    Disassembly class
+    """Disassembly class.
 
     Stores bytecode, and its disassembly.
     Additionally it will gather the following information on the existing functions in the disassembled code:
@@ -58,10 +57,11 @@ class Disassembly(object):
 def get_function_info(
     index: int, instruction_list: list, signature_database: SignatureDB
 ) -> (str, int, str):
-    """
-    Finds the function information for a call table entry
-    Solidity uses the first 4 bytes of the calldata to indicate which function the message call should execute
-    The generated code that directs execution to the correct function looks like this:
+    """Finds the function information for a call table entry Solidity uses the
+    first 4 bytes of the calldata to indicate which function the message call
+    should execute The generated code that directs execution to the correct
+    function looks like this:
+
     - PUSH function_hash
     - EQ
     - PUSH entry_point

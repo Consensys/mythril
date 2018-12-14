@@ -60,9 +60,7 @@ class DeprecatedOperationsModule(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
 
     def __init__(self):
-        """
-
-        """
+        """"""
         super().__init__(
             name="Deprecated Operations",
             swc_id=DEPRICATED_FUNCTIONS_USAGE,

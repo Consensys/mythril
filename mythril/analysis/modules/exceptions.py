@@ -56,14 +56,10 @@ def _analyze_state(state) -> list:
 
 
 class ReachableExceptionsModule(DetectionModule):
-    """
-
-    """
+    """"""
 
     def __init__(self):
-        """
-
-        """
+        """"""
         super().__init__(
             name="Reachable Exceptions",
             swc_id=ASSERT_VIOLATION,

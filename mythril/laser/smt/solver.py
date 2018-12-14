@@ -8,20 +8,19 @@ class Solver:
     """An SMT solver object."""
 
     def __init__(self):
-        """
-
-        """
+        """"""
         self.raw = z3.Solver()
 
     def set_timeout(self, timeout: int) -> None:
-        """ Sets the timeout that will be used by this solver, timeout is in milliseconds
+        """Sets the timeout that will be used by this solver, timeout is in
+        milliseconds.
 
         :param timeout:
         """
         self.raw.set(timeout=timeout)
 
     def add(self, constraints: list) -> None:
-        """ Adds the constraints to this solver
+        """Adds the constraints to this solver.
 
         :param constraints:
         :return:
@@ -33,7 +32,7 @@ class Solver:
         self.raw.add(constraints)
 
     def append(self, constraints: list) -> None:
-        """ Adds the constraints to this solver
+        """Adds the constraints to this solver.
 
         :param constraints:
         :return:
@@ -45,14 +44,15 @@ class Solver:
         self.raw.add(constraints)
 
     def check(self):
-        """ Returns z3 smt check result
+        """Returns z3 smt check result.
 
         :return:
         """
         return self.raw.check()
 
     def model(self):
-        """ Returns z3 model for a solution
+        """Returns z3 model for a solution.
+
         :return:
         """
         return self.raw.model()
@@ -62,7 +62,7 @@ class Solver:
         self.raw.reset()
 
     def pop(self, num) -> None:
-        """ Pop num constraints from this solver
+        """Pop num constraints from this solver.
 
         :param num:
         """
@@ -70,9 +70,7 @@ class Solver:
 
 
 class Optimize(Solver):
-    """
-    An optimizing smt solver
-    """
+    """An optimizing smt solver."""
 
     def __init__(self):
         """Create a new optimizing solver instance."""
@@ -80,14 +78,14 @@ class Optimize(Solver):
         self.raw = z3.Optimize()
 
     def minimize(self, element: Expression):
-        """ In solving this solver will try to minimize the passed expression
+        """In solving this solver will try to minimize the passed expression.
 
         :param element:
         """
         self.raw.minimize(element.raw)
 
     def maximize(self, element: Expression):
-        """ In solving this solver will try to maximize the passed expression
+        """In solving this solver will try to maximize the passed expression.
 
         :param element:
         """

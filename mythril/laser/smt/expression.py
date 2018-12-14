@@ -4,7 +4,8 @@ import z3
 
 
 class Expression:
-    """This is the base symbol class and maintains functionality for simplification and annotations."""
+    """This is the base symbol class and maintains functionality for
+    simplification and annotations."""
 
     def __init__(self, raw, annotations=None):
         """
@@ -17,16 +18,16 @@ class Expression:
 
     @property
     def annotations(self):
-        """Gets the annotations for this expression 
-        
-        :return: 
+        """Gets the annotations for this expression.
+
+        :return:
         """
         return self._annotations
 
     def annotate(self, annotation):
-        """Annotates this expression with the given annotation
-        
-        :param annotation: 
+        """Annotates this expression with the given annotation.
+
+        :param annotation:
         """
         if isinstance(annotation, list):
             self._annotations += annotation
@@ -43,9 +44,9 @@ class Expression:
 
 def simplify(expression: Expression):
     """Simplify the expression .
-    
-    :param expression: 
-    :return: 
+
+    :param expression:
+    :return:
     """
     expression.simplify()
     return expression

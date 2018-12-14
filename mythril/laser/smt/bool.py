@@ -1,4 +1,5 @@
-"""This module provides classes for an SMT abstraction of boolean expressions."""
+"""This module provides classes for an SMT abstraction of boolean
+expressions."""
 
 import z3
 from typing import Union

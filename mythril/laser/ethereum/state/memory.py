@@ -17,9 +17,7 @@ class Memory:
     """A class representing contract memory with random access."""
 
     def __init__(self):
-        """
-
-        """
+        """"""
         self._memory = []
 
     def __len__(self):
@@ -37,7 +35,7 @@ class Memory:
         self._memory.extend(bytearray(size))
 
     def get_word_at(self, index: int) -> Union[int, BitVec]:
-        """Access a word from a specified memory index
+        """Access a word from a specified memory index.
 
         :param index: integer representing the index to access
         :return: 32 byte word at the specified index

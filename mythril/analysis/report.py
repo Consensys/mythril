@@ -156,7 +156,7 @@ class Report:
         return json.dumps(result, sort_keys=True)
 
     def as_swc_standard_format(self):
-        """ Format defined for integration and correlation
+        """Format defined for integration and correlation.
 
         :return:
         """

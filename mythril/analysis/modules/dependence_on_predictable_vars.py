@@ -1,4 +1,5 @@
-"""This module contains the detection code for predictable variable dependence."""
+"""This module contains the detection code for predictable variable
+dependence."""
 import re
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.ops import Call, VarType
@@ -14,12 +15,11 @@ log = logging.getLogger(__name__)
 
 
 class PredictableDependenceModule(DetectionModule):
-    """This module detects whether Ether is sent using predictable parameters."""
+    """This module detects whether Ether is sent using predictable
+    parameters."""
 
     def __init__(self):
-        """
-
-        """
+        """"""
         super().__init__(
             name="Dependence of Predictable Variables",
             swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE),
@@ -169,12 +169,15 @@ def _analyze_states(state: GlobalState) -> list:
                 r = re.search(r"storage_([a-z0-9_&^]+)", str(constraint))
                 if r:  # block.blockhash(storage_0)
 
-                    """
-                    We actually can do better here by adding a constraint blockhash_block_storage_0 == 0
-                    and checking model satisfiability. When this is done, severity can be raised
-                    from 'Informational' to 'Warning'.
-                    Checking that storage at given index can be tainted is not necessary, since it usually contains
-                    block.number of the 'commit' transaction in commit-reveal workflow.
+                    """We actually can do better here by adding a constraint
+                    blockhash_block_storage_0 == 0 and checking model
+                    satisfiability.
+
+                    When this is done, severity can be raised from
+                    'Informational' to 'Warning'. Checking that storage
+                    at given index can be tainted is not necessary,
+                    since it usually contains block.number of the
+                    'commit' transaction in commit-reveal workflow.
                     """
 
                     index = r.group(1)

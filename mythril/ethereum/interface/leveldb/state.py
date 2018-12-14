@@ -48,9 +48,7 @@ STATE_DEFAULTS = {
 
 
 class Account(rlp.Serializable):
-    """
-    adjusted account from ethereum.state
-    """
+    """adjusted account from ethereum.state."""
 
     fields = [
         ("nonce", big_endian_int),
@@ -82,14 +80,11 @@ class Account(rlp.Serializable):
 
     @property
     def code(self):
-        """
-        code rlp data
-        """
+        """code rlp data."""
         return self.db.get(self.code_hash)
 
     def get_storage_data(self, key):
-        """
-        get storage data
+        """get storage data.
 
         :param key:
         :return:
@@ -103,8 +98,8 @@ class Account(rlp.Serializable):
 
     @classmethod
     def blank_account(cls, db, addr, initial_nonce=0):
-        """
-        creates a blank account
+        """creates a blank account.
+
         :param db:
         :param addr:
         :param initial_nonce:
@@ -116,17 +111,15 @@ class Account(rlp.Serializable):
         return o
 
     def is_blank(self):
-        """
-        checks if is a blank account
+        """checks if is a blank account.
+
         :return:
         """
         return self.nonce == 0 and self.balance == 0 and self.code_hash == BLANK_HASH
 
 
 class State:
-    """
-    adjusted state from ethereum.state
-    """
+    """adjusted state from ethereum.state."""
 
     def __init__(self, db, root):
         """
@@ -141,7 +134,8 @@ class State:
         self.cache = {}
 
     def get_and_cache_account(self, addr):
-        """Gets and caches an account for an addres, creates blank if not found
+        """Gets and caches an account for an addres, creates blank if not
+        found.
 
         :param addr:
         :return:
@@ -165,9 +159,7 @@ class State:
         return o
 
     def get_all_accounts(self):
-        """
-        iterates through trie to and yields non-blank leafs as accounts
-        """
+        """iterates through trie to and yields non-blank leafs as accounts."""
         for address_hash, rlpdata in self.secure_trie.trie.iter_branch():
             if rlpdata != trie.BLANK_NODE:
                 yield rlp.decode(rlpdata, Account, db=self.db, address=address_hash)

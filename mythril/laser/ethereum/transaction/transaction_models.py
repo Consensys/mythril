@@ -1,4 +1,5 @@
-"""This module contians the transaction models used throughout LASER's symbolic execution."""
+"""This module contians the transaction models used throughout LASER's symbolic
+execution."""
 
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
@@ -30,7 +31,7 @@ def get_next_transaction_id() -> int:
 
 
 class TransactionEndSignal(Exception):
-    """ Exception raised when a transaction is finalized"""
+    """Exception raised when a transaction is finalized."""
 
     def __init__(self, global_state: GlobalState, revert=False):
         self.global_state = global_state
@@ -38,7 +39,7 @@ class TransactionEndSignal(Exception):
 
 
 class TransactionStartSignal(Exception):
-    """ Exception raised when a new transaction is started"""
+    """Exception raised when a new transaction is started."""
 
     def __init__(
         self,
@@ -119,13 +120,13 @@ class BaseTransaction:
 
 
 class MessageCallTransaction(BaseTransaction):
-    """ Transaction object models an transaction"""
+    """Transaction object models an transaction."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def initial_global_state(self) -> GlobalState:
-        """Initialize the execution environment"""
+        """Initialize the execution environment."""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -152,7 +153,7 @@ class MessageCallTransaction(BaseTransaction):
 
 
 class ContractCreationTransaction(BaseTransaction):
-    """ Transaction object models an transaction"""
+    """Transaction object models an transaction."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, init_call_data=False)
@@ -162,7 +163,7 @@ class ContractCreationTransaction(BaseTransaction):
         )
 
     def initial_global_state(self) -> GlobalState:
-        """Initialize the execution environment"""
+        """Initialize the execution environment."""
         environment = Environment(
             self.callee_account,
             self.caller,
