@@ -27,7 +27,8 @@ author = "Bernhard Mueller"
 # The short X.Y version
 version = ""
 # The full version, including alpha/beta/rc tags
-release = "0.19.9"
+from mythril.version import VERSION
+release = VERSION
 
 
 # -- General configuration ---------------------------------------------------
