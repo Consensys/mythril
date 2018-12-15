@@ -4,16 +4,18 @@ This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
 """
 import json
 import logging
+
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError as RequestsConnectionError
+
+from .base_client import BaseClient
 from .exceptions import (
-    ConnectionError,
-    BadStatusCodeError,
     BadJsonError,
     BadResponseError,
+    BadStatusCodeError,
+    ConnectionError,
 )
-from .base_client import BaseClient
 
 log = logging.getLogger(__name__)
 

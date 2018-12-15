@@ -5,35 +5,34 @@
    http://www.github.com/b-mueller/mythril
 """
 
-import logging
-import json
-import os
-import re
-from pathlib import Path
-
-from ethereum import utils
 import codecs
-from solc.exceptions import SolcError
-import solc
-from configparser import ConfigParser
+import logging
+import os
 import platform
+import re
+from configparser import ConfigParser
+from pathlib import Path
 from shutil import copyfile
 
+import solc
+from ethereum import utils
+from solc.exceptions import SolcError
+
+from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.report import Report
+from mythril.analysis.security import fire_lasers
+from mythril.analysis.symbolic import SymExecWrapper
+from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.ethereum import util
 from mythril.ethereum.evmcontract import EVMContract
-from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
+from mythril.exceptions import CompilerError, CriticalError, NoContractFoundError
+from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.support import signatures
-from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
-from mythril.exceptions import CompilerError, NoContractFoundError, CriticalError
-from mythril.analysis.symbolic import SymExecWrapper
-from mythril.analysis.callgraph import generate_graph
-from mythril.analysis.traceexplore import get_serializable_statespace
-from mythril.analysis.security import fire_lasers
-from mythril.analysis.report import Report
-from mythril.ethereum.interface.leveldb.client import EthLevelDB
+from mythril.support.truffle import analyze_truffle_project
 
 log = logging.getLogger(__name__)
 

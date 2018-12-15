@@ -1,21 +1,18 @@
 """This module contians the transaction models used throughout LASER's symbolic
 execution."""
 
-from typing import Union
-from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.smt import symbol_factory
-
-from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import (
-    BaseCalldata,
-    ConcreteCalldata,
-    SymbolicCalldata,
-)
-from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.world_state import WorldState
-from mythril.laser.ethereum.state.global_state import GlobalState
-from z3 import ExprRef
 import array
+from typing import Union
+
+from z3 import ExprRef
+
+from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.smt import symbol_factory
 
 _next_transaction_id = 0
 

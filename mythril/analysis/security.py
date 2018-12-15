@@ -1,11 +1,13 @@
 """This module contains functionality for hooking in detection modules and
 executing them."""
-from collections import defaultdict
-from ethereum.opcodes import opcodes
-from mythril.analysis import modules
-import pkgutil
 import importlib.util
 import logging
+import pkgutil
+from collections import defaultdict
+
+from ethereum.opcodes import opcodes
+
+from mythril.analysis import modules
 
 log = logging.getLogger(__name__)
 

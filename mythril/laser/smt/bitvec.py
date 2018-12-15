@@ -1,11 +1,12 @@
 """This module provides classes for an SMT abstraction of bit vectors."""
 
+from typing import Union
+
 import z3
 
-from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.bool import Bool
+from mythril.laser.smt.expression import Expression
 
-from typing import Union
 
 # fmt: off
 

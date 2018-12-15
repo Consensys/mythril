@@ -4,13 +4,15 @@ This includes a sedes class for lists, account storage receipts for
 LevelDB and a class for updating account addresses.
 """
 import logging
-from mythril import ethereum
 import time
-from ethereum.messages import Log
+
 import rlp
-from rlp.sedes import big_endian_int, binary
 from ethereum import utils
-from ethereum.utils import hash32, address, int256
+from ethereum.messages import Log
+from ethereum.utils import address, hash32, int256
+from rlp.sedes import big_endian_int, binary
+
+from mythril import ethereum
 from mythril.exceptions import AddressNotFoundError
 
 log = logging.getLogger(__name__)

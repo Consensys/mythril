@@ -1,14 +1,15 @@
 """This module contains various utility functions regarding unit conversion and
 solc integration."""
-from ethereum.abi import encode_abi, encode_int
-from ethereum.utils import zpad
-from ethereum.abi import method_id
-from mythril.exceptions import CompilerError
-from subprocess import Popen, PIPE
 import binascii
-import os
 import json
+import os
 from pathlib import Path
+from subprocess import PIPE, Popen
+
+from ethereum.abi import encode_abi, encode_int, method_id
+from ethereum.utils import zpad
+
+from mythril.exceptions import CompilerError
 
 
 def safe_decode(hex_encoded_string):

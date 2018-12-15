@@ -1,20 +1,21 @@
 """This module contains functionality used to easily analyse Truffle
 projects."""
-import os
-from pathlib import PurePath
-import re
-import sys
 import json
 import logging
+import os
+import re
+import sys
+from pathlib import PurePath
+
 from ethereum.utils import sha3
-from mythril.ethereum.evmcontract import EVMContract
-from mythril.solidity.soliditycontract import SourceMapping
+
+from mythril.analysis.report import Report
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
-from mythril.analysis.report import Report
-
 from mythril.ethereum import util
+from mythril.ethereum.evmcontract import EVMContract
 from mythril.laser.ethereum.util import get_instruction_index
+from mythril.solidity.soliditycontract import SourceMapping
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,8 @@
 """This module."""
-from flags import Flags
 from enum import Enum
 from typing import Dict
+
+from flags import Flags
 
 gbl_next_uid = 0  # node counter
 

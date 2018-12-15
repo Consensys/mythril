@@ -1,15 +1,16 @@
 """This module contains the detection code for predictable variable
 dependence."""
-import re
-from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.analysis.ops import Call, VarType
-from mythril.analysis import solver
-from mythril.analysis.report import Issue
-from mythril.analysis.call_helpers import get_call_from_state
-from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE
-from mythril.analysis.modules.base import DetectionModule
-from mythril.exceptions import UnsatError
 import logging
+import re
+
+from mythril.analysis import solver
+from mythril.analysis.call_helpers import get_call_from_state
+from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.ops import Call, VarType
+from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import PREDICTABLE_VARS_DEPENDENCE, TIMESTAMP_DEPENDENCE
+from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 log = logging.getLogger(__name__)
 

@@ -5,18 +5,20 @@
    http://www.github.com/ConsenSys/mythril
 """
 
-import logging, coloredlogs
+import argparse
 import json
+import logging
 import os
 import sys
-import argparse
 
-# logging.basicConfig(level=logging.DEBUG)
+import coloredlogs
 
-from mythril.exceptions import CriticalError, AddressNotFoundError
+import mythril.support.signatures as sigs
+from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
-import mythril.support.signatures as sigs
+
+# logging.basicConfig(level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
 

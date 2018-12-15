@@ -2,32 +2,10 @@
 transitions between them."""
 import binascii
 import logging
-
 from copy import copy, deepcopy
 from typing import Callable, List, Union
-from functools import reduce
 
 from ethereum import utils
-
-from mythril.laser.smt import (
-    Extract,
-    Expression,
-    UDiv,
-    simplify,
-    Concat,
-    ULT,
-    UGT,
-    BitVec,
-    is_true,
-    is_false,
-    URem,
-    SRem,
-    If,
-    Bool,
-    Or,
-    Not,
-)
-from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
@@ -49,9 +27,26 @@ from mythril.laser.ethereum.transaction import (
     TransactionStartSignal,
     ContractCreationTransaction,
 )
-
+from mythril.laser.smt import (
+    Extract,
+    Expression,
+    UDiv,
+    simplify,
+    Concat,
+    ULT,
+    UGT,
+    BitVec,
+    is_true,
+    is_false,
+    URem,
+    SRem,
+    If,
+    Bool,
+    Or,
+    Not,
+)
+from mythril.laser.smt import symbol_factory
 from mythril.support.loader import DynLoader
-from mythril.analysis.solver import get_model
 
 log = logging.getLogger(__name__)
 

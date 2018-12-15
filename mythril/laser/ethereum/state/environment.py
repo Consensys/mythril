@@ -2,11 +2,11 @@
 environment."""
 from typing import Dict
 
-from z3 import ExprRef, BitVecVal
+from z3 import ExprRef
 
-from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.calldata import CalldataType, BaseCalldata
+from mythril.laser.ethereum.state.calldata import BaseCalldata, CalldataType
+from mythril.laser.smt import symbol_factory
 
 
 class Environment:

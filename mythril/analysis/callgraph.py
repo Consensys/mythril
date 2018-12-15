@@ -4,8 +4,9 @@ graphs."""
 import re
 
 from jinja2 import Environment, PackageLoader, select_autoescape
-from mythril.laser.ethereum.svm import NodeFlags
 from z3 import Z3Exception
+
+from mythril.laser.ethereum.svm import NodeFlags
 from mythril.laser.smt import simplify
 
 default_opts = {

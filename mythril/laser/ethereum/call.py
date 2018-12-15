@@ -3,18 +3,19 @@ instructions.py to get the necessary elements from the stack and determine the
 parameters for the new global state."""
 
 import logging
+import re
 from typing import Union
-from mythril.laser.smt import simplify, Expression, symbol_factory
+
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import (
     CalldataType,
-    SymbolicCalldata,
     ConcreteCalldata,
+    SymbolicCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import Expression, simplify, symbol_factory
 from mythril.support.loader import DynLoader
-import re
 
 """
 This module contains the business logic used by Instruction in instructions.py

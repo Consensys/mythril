@@ -1,12 +1,13 @@
 """This module implements classes needed to perform taint analysis."""
-import logging
 import copy
-from typing import Union, List, Tuple
+import logging
+from typing import List, Tuple, Union
+
 import mythril.laser.ethereum.util as helper
+from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.ethereum.cfg import JumpType, Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.smt import Expression
 
 log = logging.getLogger(__name__)

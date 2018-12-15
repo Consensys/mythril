@@ -1,6 +1,6 @@
 """This module contains an abstract SMT representation of an SMT solver."""
 import z3
-from mythril.laser.smt.bool import Bool
+
 from mythril.laser.smt.expression import Expression
 
 

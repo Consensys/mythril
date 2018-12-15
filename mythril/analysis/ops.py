@@ -1,8 +1,9 @@
 """This module contains various helper methods for dealing with EVM
 operations."""
-from mythril.laser.smt import simplify
 from enum import Enum
+
 from mythril.laser.ethereum import util
+from mythril.laser.smt import simplify
 
 
 class VarType(Enum):

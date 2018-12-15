@@ -1,9 +1,11 @@
 """This module contains the class representing EVM contracts, aka Smart
 Contracts."""
-from mythril.disassembler.disassembly import Disassembly
-from ethereum import utils
-import persistent
 import re
+
+import persistent
+from ethereum import utils
+
+from mythril.disassembler.disassembly import Disassembly
 
 
 class EVMContract(persistent.Persistent):

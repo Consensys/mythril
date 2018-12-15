@@ -1,15 +1,22 @@
 """This module declares classes to represent call data."""
 
 from enum import Enum
-from typing import Union, Any
-
-from mythril.laser.smt import K, Array, If, simplify, Concat, Expression, BitVec
-
-from mythril.laser.smt import symbol_factory
-from mythril.laser.ethereum.util import get_concrete_int
+from typing import Any, Union
 
 from z3 import Model
 from z3.z3types import Z3Exception
+
+from mythril.laser.ethereum.util import get_concrete_int
+from mythril.laser.smt import (
+    Array,
+    BitVec,
+    Concat,
+    Expression,
+    If,
+    K,
+    simplify,
+    symbol_factory,
+)
 
 
 class CalldataType(Enum):

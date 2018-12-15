@@ -2,14 +2,14 @@
 
 import hashlib
 import logging
-from typing import Union, List
+from typing import List, Union
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
-from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
+from mythril.laser.ethereum.util import bytearray_to_int, sha3
 from mythril.laser.smt import Concat, simplify
 
 log = logging.getLogger(__name__)

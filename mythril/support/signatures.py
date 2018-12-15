@@ -1,16 +1,15 @@
 """The Mythril function signature database."""
-import os
-import time
-import logging
-import sqlite3
-import multiprocessing
 import functools
-from typing import List
+import logging
+import multiprocessing
+import os
+import sqlite3
+import time
 from collections import defaultdict
+from subprocess import PIPE, Popen
+from typing import List
 
-from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
-
 
 log = logging.getLogger(__name__)
 

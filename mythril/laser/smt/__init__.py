@@ -1,3 +1,6 @@
+import z3
+
+from mythril.laser.smt.array import K, Array, BaseArray
 from mythril.laser.smt.bitvec import (
     BitVec,
     If,
@@ -14,12 +17,9 @@ from mythril.laser.smt.bitvec import (
     BVMulNoOverflow,
     BVSubNoUnderflow,
 )
-from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not
-from mythril.laser.smt.array import K, Array, BaseArray
+from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.solver import Solver, Optimize
-
-import z3
 
 
 class SymbolFactory:

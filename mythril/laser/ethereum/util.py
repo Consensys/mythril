@@ -1,15 +1,11 @@
 """This module contains various utility conversion functions and constants for
 LASER."""
 import re
-
-from mythril.laser.smt import is_false, is_true, simplify, If, BitVec, Bool, Expression
-from mythril.laser.smt import symbol_factory
-
-import logging
-from typing import Union, List, Dict
+from typing import Dict, List, Union
 
 import sha3 as _sha3
 
+from mythril.laser.smt import BitVec, Bool, Expression, If, simplify, symbol_factory
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1

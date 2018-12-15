@@ -1,10 +1,12 @@
 """This module provides classes for an SMT abstraction of boolean
 expressions."""
 
-import z3
 from typing import Union
 
+import z3
+
 from mythril.laser.smt.expression import Expression
+
 
 # fmt: off
 

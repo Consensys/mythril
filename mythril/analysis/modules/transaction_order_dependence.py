@@ -1,16 +1,15 @@
 """This module contains the detection code to find the existence of transaction
 order dependence."""
+import copy
 import logging
 import re
-import copy
 
 from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
-from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
-
 
 log = logging.getLogger(__name__)
 

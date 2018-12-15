@@ -1,24 +1,22 @@
 """This module contains the detection code for integer overflows and
 underflows."""
+import copy
+import logging
+
 from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.taint_analysis import TaintRunner
-from mythril.analysis.modules.base import DetectionModule
-
 from mythril.laser.smt import (
-    BVAddNoOverflow,
-    BVSubNoUnderflow,
-    BVMulNoOverflow,
     BitVec,
-    symbol_factory,
+    BVAddNoOverflow,
+    BVMulNoOverflow,
+    BVSubNoUnderflow,
     Not,
+    symbol_factory,
 )
-
-import copy
-import logging
-
 
 log = logging.getLogger(__name__)
 

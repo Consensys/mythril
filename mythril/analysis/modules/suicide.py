@@ -1,10 +1,11 @@
+import logging
+
 from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
-from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
-import logging
 
 log = logging.getLogger(__name__)
 

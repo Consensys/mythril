@@ -5,7 +5,7 @@ This code is adapted from: https://github.com/ConsenSys/ethjsonrpc
 
 from abc import abstractmethod
 
-from .constants import BLOCK_TAGS, BLOCK_TAG_LATEST
+from .constants import BLOCK_TAG_LATEST, BLOCK_TAGS
 from .utils import hex_to_dec, validate_block
 
 GETH_DEFAULT_RPC_PORT = 8545

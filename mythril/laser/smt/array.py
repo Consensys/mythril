@@ -5,8 +5,9 @@ operations, as well as as a K-array, which can be initialized with
 default values over a certain range.
 """
 
-from mythril.laser.smt.bitvec import BitVec
 import z3
+
+from mythril.laser.smt.bitvec import BitVec
 
 
 class BaseArray:

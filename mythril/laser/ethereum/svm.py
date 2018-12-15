@@ -4,22 +4,19 @@ from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
 from functools import reduce
-from typing import List, Tuple, Union, Callable, Dict
+from typing import Callable, Dict, List, Tuple, Union
 
-from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
-from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
-from mythril.laser.ethereum.evm_exceptions import VmException
+from mythril.laser.ethereum.cfg import Edge, JumpType, Node, NodeFlags
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException, VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from mythril.laser.ethereum.transaction import (
-    TransactionStartSignal,
-    TransactionEndSignal,
     ContractCreationTransaction,
-)
-from mythril.laser.ethereum.transaction import (
+    TransactionEndSignal,
+    TransactionStartSignal,
     execute_contract_creation,
     execute_message_call,
 )

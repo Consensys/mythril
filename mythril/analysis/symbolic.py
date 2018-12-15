@@ -1,17 +1,18 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
+import copy
+
 from mythril.analysis.security import get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
-from mythril.solidity.soliditycontract import SolidityContract, EVMContract
-import copy
-from .ops import get_variable, SStore, Call, VarType
 from mythril.laser.ethereum.strategy.basic import (
-    DepthFirstSearchStrategy,
     BreadthFirstSearchStrategy,
+    DepthFirstSearchStrategy,
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
+from mythril.solidity.soliditycontract import EVMContract, SolidityContract
+from .ops import Call, SStore, VarType, get_variable
 
 
 class SymExecWrapper:

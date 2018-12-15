@@ -3,12 +3,12 @@
 This includes classes representing accounts and their storage.
 """
 
-from typing import Dict, Union, Any, KeysView
+from typing import Any, Dict, KeysView, Union
 
 from z3 import ExprRef
 
-from mythril.laser.smt import symbol_factory
 from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.smt import symbol_factory
 
 
 class Storage:
