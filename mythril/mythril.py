@@ -6,9 +6,9 @@
 """
 
 import logging
-import json
 import os
 import re
+import traceback
 from pathlib import Path
 
 from ethereum import utils
@@ -31,7 +31,7 @@ from mythril.exceptions import CompilerError, NoContractFoundError, CriticalErro
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
-from mythril.analysis.security import fire_lasers
+from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
@@ -481,23 +481,31 @@ class Mythril(object):
 
         all_issues = []
         for contract in contracts or self.contracts:
-            sym = SymExecWrapper(
-                contract,
-                address,
-                strategy,
-                dynloader=DynLoader(
-                    self.eth,
-                    storage_loading=self.onchain_storage_access,
-                    contract_loading=self.dynld,
-                ),
-                max_depth=max_depth,
-                execution_timeout=execution_timeout,
-                create_timeout=create_timeout,
-                transaction_count=transaction_count,
-                modules=modules,
-            )
-
-            issues = fire_lasers(sym, modules)
+            try:
+                sym = SymExecWrapper(
+                    contract,
+                    address,
+                    strategy,
+                    dynloader=DynLoader(
+                        self.eth,
+                        storage_loading=self.onchain_storage_access,
+                        contract_loading=self.dynld,
+                    ),
+                    max_depth=max_depth,
+                    execution_timeout=execution_timeout,
+                    create_timeout=create_timeout,
+                    transaction_count=transaction_count,
+                    modules=modules,
+                )
+                issues = fire_lasers(sym, modules)
+            except KeyboardInterrupt:
+                log.critical("Keyboard Interrupt")
+                issues = retrieve_callback_issues(modules)
+            except Exception:
+                log.critical(
+                    "Exception occurred, aborting analysis\n" + traceback.format_exc()
+                )
+                issues = retrieve_callback_issues(modules)
 
             if type(contract) == SolidityContract:
                 for issue in issues:
