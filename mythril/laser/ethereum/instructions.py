@@ -1004,7 +1004,7 @@ class Instruction:
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
             results = []
-            new = False
+            new = Bool(False)
 
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
