@@ -40,6 +40,8 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
     :return: returns the issues for that corresponding state
     """
     call = get_call_from_state(state)
+    if call is None:
+        return []
     issues = []
 
     if call.type is not "DELEGATECALL":
