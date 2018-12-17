@@ -1121,6 +1121,7 @@ class Instruction:
         negated = (
             simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
+        negated.simplify()
         if (type(negated) == bool and negated) or (
             isinstance(negated, Bool) and not is_false(negated)
         ):
@@ -1148,6 +1149,7 @@ class Instruction:
         instr = disassembly.instruction_list[index]
 
         condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
+        condi.simplify()
         if instr["opcode"] == "JUMPDEST":
             if (type(condi) == bool and condi) or (
                 isinstance(condi, Bool) and not is_false(condi)
