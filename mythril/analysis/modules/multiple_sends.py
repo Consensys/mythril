@@ -58,7 +58,9 @@ def _analyze_state(state: GlobalState):
     calls = annotations[0].calls
 
     if instruction["opcode"] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
-        calls += [get_call_from_state(state)]
+        call = get_call_from_state(state)
+        if call:
+            calls += [call]
 
     else:  # RETURN or STOP
         if len(calls) > 1:
