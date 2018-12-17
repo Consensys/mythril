@@ -75,7 +75,7 @@ class _SmtSymbolFactory(SymbolFactory):
         :return: The freshly created Bool()
         """
         raw = z3.Bool(value)
-        return Bool(raw)
+        return Bool(raw, annotations)
 
     @staticmethod
     def BitVecVal(value: int, size: int, annotations=None):
