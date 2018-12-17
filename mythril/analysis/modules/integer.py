@@ -119,7 +119,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
     def _handle_sstore(self, state):
         stack = state.mstate.stack
-        value: Expression = stack[-2]
+        value = stack[-2]
 
         if not isinstance(value, Expression):
             return
@@ -161,7 +161,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
     def _handle_jumpi(self, state):
         stack = state.mstate.stack
-        value: Expression = stack[-2]
+        value = stack[-2]
 
         for annotation in value.annotations:
             if not isinstance(annotation, OverUnderflowAnnotation):
