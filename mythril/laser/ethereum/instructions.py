@@ -3,7 +3,6 @@ import logging
 
 from copy import copy, deepcopy
 from typing import Callable, List, Union
-from functools import reduce
 
 from ethereum import utils
 
@@ -1004,7 +1003,7 @@ class Instruction:
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
             results = []
-            new = Bool(False)
+            new = symbol_factory.Bool(False)
 
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)

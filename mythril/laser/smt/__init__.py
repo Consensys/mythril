@@ -28,6 +28,16 @@ class SymbolFactory:
     """
 
     @staticmethod
+    def Bool(value: bool, annotations=None):
+        """
+        Creates a Bool with concrete value
+        :param value: The boolean value
+        :param annotations: The annotations to initialize the bool with
+        :return: The freshly created Bool()
+        """
+        raise NotImplementedError
+
+    @staticmethod
     def BitVecVal(value: int, size: int, annotations=None):
         """
         Creates a new bit vector with a concrete value
@@ -57,6 +67,17 @@ class _SmtSymbolFactory(SymbolFactory):
     """
 
     @staticmethod
+    def Bool(value: bool, annotations=None):
+        """
+        Creates a Bool with concrete value
+        :param value: The boolean value
+        :param annotations: The annotations to initialize the bool with
+        :return: The freshly created Bool()
+        """
+        raw = z3.Bool(value)
+        return Bool(raw)
+
+    @staticmethod
     def BitVecVal(value: int, size: int, annotations=None):
         """ Creates a new bit vector with a concrete value """
         raw = z3.BitVecVal(value, size)
@@ -74,6 +95,11 @@ class _Z3SymbolFactory(SymbolFactory):
     An implementation of a SymbolFactory that directly returns
     z3 symbols
     """
+
+    @staticmethod
+    def Bool(value: bool, annotations=None):
+        """ Creates a new bit vector with a concrete value """
+        return z3.Bool(value)
 
     @staticmethod
     def BitVecVal(value: int, size: int, annotations=None):
