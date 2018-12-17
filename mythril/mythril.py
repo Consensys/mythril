@@ -503,7 +503,7 @@ class Mythril(object):
                 issues = retrieve_callback_issues(modules)
             except Exception:
                 log.critical(
-                    "Exception occurred, aborting analysis\n" + traceback.format_exc()
+                    "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n" + traceback.format_exc()
                 )
                 issues = retrieve_callback_issues(modules)
 
