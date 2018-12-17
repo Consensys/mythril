@@ -1609,6 +1609,21 @@ class Instruction:
     def staticcall_(self, global_state: GlobalState) -> List[GlobalState]:
         # TODO: implement me
         instr = global_state.get_current_instruction()
+        try:
+            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+                global_state, self.dynamic_loader
+            )
+        except ValueError as e:
+            log.debug(
+                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
+                    e
+                )
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+            return [global_state]
+
         global_state.mstate.stack.append(
             global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         )
