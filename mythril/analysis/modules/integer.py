@@ -199,8 +199,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :return Model if satisfiable otherwise None
         """
         try:
-            model = solver.get_model(constraints + new_constraints)
-            return model
+            return solver.get_model(constraints + new_constraints)
         except UnsatError:
             return None
 
