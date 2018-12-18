@@ -54,7 +54,8 @@ class ReachableExceptionsModule(DetectionModule):
         super().__init__(
             name="Reachable Exceptions",
             swc_id=ASSERT_VIOLATION,
-            hooks=["ASSERT_FAIL"],
+            pre_hooks=["ASSERT_FAIL"],
+            post_hooks=[],
             description="Checks whether any exception states are reachable.",
             entrypoint="callback",
         )

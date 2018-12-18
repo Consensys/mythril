@@ -9,13 +9,15 @@ class DetectionModule:
         self,
         name: str,
         swc_id: str,
-        hooks: List[str],
+        pre_hooks: List[str],
+        post_hooks: List[str],
         description: str,
         entrypoint: str = "post",
     ):
         self.name = name
         self.swc_id = swc_id
-        self.hooks = hooks
+        self.pre_hooks = pre_hooks
+        self.post_hooks = post_hooks
         self.description = description
         if entrypoint not in ("post", "callback"):
             log.error(

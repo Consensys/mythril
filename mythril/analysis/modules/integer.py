@@ -34,7 +34,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         super().__init__(
             name="Integer Overflow and Underflow",
             swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
-            hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
+            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
+            post_hooks=[],
             description=(
                 "For every SUB instruction, check if there's a possible state "
                 "where op1 > op0. For every ADD, MUL instruction, check if "

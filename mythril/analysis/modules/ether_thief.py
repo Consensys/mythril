@@ -81,7 +81,8 @@ class EtherThief(DetectionModule):
         super().__init__(
             name="Ether Thief",
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-            hooks=["CALL"],
+            pre_hooks=["CALL"],
+            post_hooks=[],
             description=DESCRIPTION,
             entrypoint="callback",
         )

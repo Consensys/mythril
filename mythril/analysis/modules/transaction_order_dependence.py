@@ -18,7 +18,8 @@ class TxOrderDependenceModule(DetectionModule):
         super().__init__(
             name="Transaction Order Dependence",
             swc_id=TX_ORDER_DEPENDENCE,
-            hooks=[],
+            pre_hooks=[],
+            post_hooks=[],
             description=(
                 "This module finds the existance of transaction order dependence "
                 "vulnerabilities. The following webpage contains an extensive description "

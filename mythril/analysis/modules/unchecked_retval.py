@@ -14,7 +14,8 @@ class UncheckedRetvalModule(DetectionModule):
         super().__init__(
             name="Unchecked Return Value",
             swc_id=UNCHECKED_RET_VAL,
-            hooks=[],
+            pre_hooks=[],
+            post_hooks=[],
             description=(
                 "Test whether CALL return value is checked. "
                 "For direct calls, the Solidity compiler auto-generates this check. E.g.:\n"

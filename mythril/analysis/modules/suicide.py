@@ -63,7 +63,8 @@ class SuicideModule(DetectionModule):
         super().__init__(
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
-            hooks=["SUICIDE"],
+            pre_hooks=["SUICIDE"],
+            post_hooks=[],
             description=(DESCRIPTION),
             entrypoint="callback",
         )
