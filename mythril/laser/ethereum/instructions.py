@@ -458,8 +458,12 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = (val == False) if isinstance(val, Bool) else val == 0
-        state.stack.append(exp)
+        exp = Not(val) if isinstance(val, Bool) else val == 0
+
+        exp = If(
+            exp, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+        )
+        state.stack.append(simplify(exp))
 
         return [global_state]
 
@@ -1116,9 +1120,9 @@ class Instruction:
         negated = (
             simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
-
+        negated.simplify()
         if (type(negated) == bool and negated) or (
-            isinstance(condition, Bool) and not is_false(negated)
+            isinstance(negated, Bool) and not is_false(negated)
         ):
             new_state = copy(global_state)
             # add JUMPI gas cost
@@ -1144,6 +1148,7 @@ class Instruction:
         instr = disassembly.instruction_list[index]
 
         condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
+        condi.simplify()
         if instr["opcode"] == "JUMPDEST":
             if (type(condi) == bool and condi) or (
                 isinstance(condi, Bool) and not is_false(condi)
