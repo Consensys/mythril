@@ -27,10 +27,9 @@ from mythril.laser.smt import (
 )
 from mythril.laser.smt import symbol_factory
 
-import mythril.laser.ethereum.natives as natives
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
-from mythril.laser.ethereum.call import get_call_parameters
+from mythril.laser.ethereum.call import get_call_parameters, native_call
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
     StackUnderflowException,
@@ -40,7 +39,6 @@ from mythril.laser.ethereum.evm_exceptions import (
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
-from mythril.laser.ethereum.state.calldata import CalldataType
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -49,7 +47,6 @@ from mythril.laser.ethereum.transaction import (
 )
 
 from mythril.support.loader import DynLoader
-from mythril.analysis.solver import get_model
 
 log = logging.getLogger(__name__)
 
@@ -1297,48 +1294,13 @@ class Instruction:
         )
 
         if 0 < int(callee_address, 16) < 5:
-            log.debug("Native contract called: " + callee_address)
-            if call_data == [] and call_data_type == CalldataType.SYMBOLIC:
-                log.debug("CALL with symbolic data not supported")
-                return [global_state]
-
-            try:
-                mem_out_start = helper.get_concrete_int(memory_out_offset)
-                mem_out_sz = helper.get_concrete_int(memory_out_size)
-            except TypeError:
-                log.debug("CALL with symbolic start or offset not supported")
-                return [global_state]
-
-            contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
-            call_address_int = int(callee_address, 16)
-            native_gas_min, native_gas_max = OPCODE_GAS["NATIVE_COST"](
-                global_state.mstate.calculate_extension_size(mem_out_start, mem_out_sz),
-                contract_list[call_address_int - 1],
+            return native_call(
+                global_state,
+                callee_address,
+                call_data,
+                memory_out_offset,
+                memory_out_size,
             )
-            global_state.mstate.min_gas_used += native_gas_min
-            global_state.mstate.max_gas_used += native_gas_max
-            global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
-            try:
-                data = natives.native_contracts(call_address_int, call_data)
-            except natives.NativeContractException:
-                for i in range(mem_out_sz):
-                    global_state.mstate.memory[
-                        mem_out_start + i
-                    ] = global_state.new_bitvec(
-                        contract_list[call_address_int - 1]
-                        + "("
-                        + str(call_data)
-                        + ")",
-                        8,
-                    )
-                return [global_state]
-
-            for i in range(
-                min(len(data), mem_out_sz)
-            ):  # If more data is used then it's chopped off
-                global_state.mstate.memory[mem_out_start + i] = data[i]
-            # TODO: maybe use BitVec here constrained to 1
-            return [global_state]
 
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
@@ -1610,7 +1572,7 @@ class Instruction:
         # TODO: implement me
         instr = global_state.get_current_instruction()
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1627,4 +1589,13 @@ class Instruction:
         global_state.mstate.stack.append(
             global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         )
+        if 0 < int(callee_address, 16) < 5:
+            return native_call(
+                global_state,
+                callee_address,
+                call_data,
+                memory_out_offset,
+                memory_out_size,
+            )
+
         return [global_state]
