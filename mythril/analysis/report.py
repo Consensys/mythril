@@ -5,6 +5,8 @@ from jinja2 import PackageLoader, Environment
 import _pysha3 as sha3
 import hashlib
 
+log = logging.getLogger(__name__)
+
 
 class Issue:
     def __init__(
@@ -39,7 +41,7 @@ class Issue:
             keccak.update(bytes.fromhex(bytecode))
             self.bytecode_hash = "0x" + keccak.hexdigest()
         except ValueError:
-            logging.debug(
+            log.debug(
                 "Unable to change the bytecode to bytes. Bytecode: {}".format(bytecode)
             )
             self.bytecode_hash = ""

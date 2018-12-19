@@ -1,14 +1,19 @@
-from z3 import Solver, simplify, sat, unknown, FuncInterp, UGE, Optimize
+from z3 import sat, unknown, FuncInterp
+import z3
+
+from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 import logging
 
+log = logging.getLogger(__name__)
+
 
 def get_model(constraints, minimize=(), maximize=()):
     s = Optimize()
-    s.set("timeout", 100000)
+    s.set_timeout(100000)
 
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
@@ -27,7 +32,7 @@ def get_model(constraints, minimize=(), maximize=()):
     if result == sat:
         return s.model()
     elif result == unknown:
-        logging.debug("Timeout encountered while solving expression using z3")
+        log.debug("Timeout encountered while solving expression using z3")
     raise UnsatError
 
 
@@ -44,7 +49,7 @@ def pretty_print_model(model):
         try:
             condition = "0x%x" % model[d].as_long()
         except:
-            condition = str(simplify(model[d]))
+            condition = str(z3.simplify(model[d]))
 
         ret += "%s: %s\n" % (d.name(), condition)
 
@@ -76,19 +81,18 @@ def get_transaction_sequence(global_state, constraints):
     minimize = []
 
     transactions = []
-
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
             transactions.append(transaction)
             # Constrain calldatasize
-            max_calldatasize = 5000
-            if max_calldatasize != None:
-                tx_constraints.append(
-                    UGE(max_calldatasize, transaction.call_data.calldatasize)
-                )
+            max_calldatasize = symbol_factory.BitVecVal(5000, 256)
+            tx_constraints.append(
+                UGE(max_calldatasize, transaction.call_data.calldatasize)
+            )
 
             minimize.append(transaction.call_data.calldatasize)
+            minimize.append(transaction.call_value)
 
             concrete_transactions[tx_id] = tx_template.copy()
 
@@ -108,10 +112,11 @@ def get_transaction_sequence(global_state, constraints):
         )
 
         concrete_transactions[tx_id]["call_value"] = (
-            "0x%x" % model.eval(transaction.call_value, model_completion=True).as_long()
+            "0x%x"
+            % model.eval(transaction.call_value.raw, model_completion=True).as_long()
         )
         concrete_transactions[tx_id]["caller"] = "0x" + (
-            "%x" % model.eval(transaction.caller, model_completion=True).as_long()
+            "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
         ).zfill(40)
 
     return concrete_transactions

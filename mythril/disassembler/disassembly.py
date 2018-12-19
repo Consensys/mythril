@@ -1,7 +1,6 @@
 from mythril.ethereum import util
 from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDB
-import logging
 
 
 class Disassembly(object):
@@ -73,7 +72,7 @@ def get_function_info(
     function_names = signature_database.get(function_hash)
     if len(function_names) > 1:
         # In this case there was an ambiguous result
-        function_name = "**ambiguous** {}".format(function_names[0])
+        function_name = "[{}] (ambiguous)".format(", ".join(function_names))
     elif len(function_names) == 1:
         function_name = function_names[0]
     else:

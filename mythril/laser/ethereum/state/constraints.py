@@ -26,7 +26,7 @@ class Constraints(list):
         self.__possibility = None
         super(Constraints, self).append(constraint)
         if self.solver is not None:
-            self.solver.add(constraint)
+            self.solver.add(constraint.raw)
 
     def pop(self, index=-1):
         raise NotImplementedError
@@ -46,7 +46,7 @@ class Constraints(list):
         if self.solver is not None:
             solver = copy(self.solver)
             for constraint in constraints:
-                solver.add(constraint)
+                solver.add(constraint.raw)
         else:
             solver = None
         return Constraints(constraint_list=constraints_list, solver=solver)
@@ -56,5 +56,5 @@ class Constraints(list):
         if self.solver is None:
             return self
         for constraint in constraints:
-            self.solver.add(constraint)
+            self.solver.add(constraint.raw)
         return self

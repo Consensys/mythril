@@ -1,11 +1,13 @@
-from z3 import *
 from mythril.analysis.report import Issue
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
+from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 import logging
+
+log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
@@ -27,7 +29,7 @@ def _analyze_state(state):
     try:
         constraints = node.constraints
         transaction_sequence = solver.get_transaction_sequence(
-            state, constraints + [UGT(gas, 2300)]
+            state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
         )
 
         # Check whether we can also set the callee address
@@ -58,7 +60,7 @@ def _analyze_state(state):
 
         except UnsatError:
 
-            logging.debug(
+            log.debug(
                 "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
             )
 
@@ -82,7 +84,7 @@ def _analyze_state(state):
             )
 
     except UnsatError:
-        logging.debug("[EXTERNAL_CALLS] No model found.")
+        log.debug("[EXTERNAL_CALLS] No model found.")
         return []
 
     return [issue]

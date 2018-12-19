@@ -1,12 +1,14 @@
 import logging
 import copy
 from typing import Union, List, Tuple
-from z3 import ExprRef
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum.cfg import JumpType, Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis.symbolic import SymExecWrapper
+from mythril.laser.smt import Expression
+
+log = logging.getLogger(__name__)
 
 
 class TaintRecord:
@@ -204,7 +206,7 @@ class TaintRunner:
         elif op in ("CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"):
             TaintRunner.mutate_call(new_record, op)
         else:
-            logging.debug("Unknown operation encountered: {}".format(op))
+            log.debug("Unknown operation encountered: {}".format(op))
 
         return new_record
 
@@ -239,47 +241,47 @@ class TaintRunner:
         record.stack[l], record.stack[i] = record.stack[i], record.stack[l]
 
     @staticmethod
-    def mutate_mload(record: TaintRecord, op0: ExprRef) -> None:
+    def mutate_mload(record: TaintRecord, op0: Expression) -> None:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
         record.stack.append(record.memory_tainted(index))
 
     @staticmethod
-    def mutate_mstore(record: TaintRecord, op0: ExprRef) -> None:
+    def mutate_mstore(record: TaintRecord, op0: Expression) -> None:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.memory[index] = value_taint
 
     @staticmethod
-    def mutate_sload(record: TaintRecord, op0: ExprRef) -> None:
+    def mutate_sload(record: TaintRecord, op0: Expression) -> None:
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
         record.stack.append(record.storage_tainted(index))
 
     @staticmethod
-    def mutate_sstore(record: TaintRecord, op0: ExprRef) -> None:
+    def mutate_sstore(record: TaintRecord, op0: Expression) -> None:
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.storage[index] = value_taint

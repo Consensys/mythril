@@ -1,6 +1,7 @@
-import logging
 from typing import Union
 from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.smt import symbol_factory
+
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.calldata import (
     BaseCalldata,
@@ -10,7 +11,7 @@ from mythril.laser.ethereum.state.calldata import (
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
-from z3 import BitVec, ExprRef
+from z3 import ExprRef
 import array
 
 _next_transaction_id = 0
@@ -67,30 +68,33 @@ class BaseTransaction:
         self.gas_price = (
             gas_price
             if gas_price is not None
-            else BitVec("gasprice{}".format(identifier), 256)
+            else symbol_factory.BitVecSym("gasprice{}".format(identifier), 256)
         )
         self.gas_limit = gas_limit
 
         self.origin = (
-            origin if origin is not None else BitVec("origin{}".format(identifier), 256)
+            origin
+            if origin is not None
+            else symbol_factory.BitVecSym("origin{}".format(identifier), 256)
         )
         self.code = code
 
         self.caller = caller
         self.callee_account = callee_account
         if call_data is None and init_call_data:
-            self.call_data = ConcreteCalldata(self.id, call_data)
+            self.call_data = SymbolicCalldata(self.id)
         else:
             self.call_data = call_data if isinstance(call_data, BaseCalldata) else None
+
         self.call_data_type = (
             call_data_type
             if call_data_type is not None
-            else BitVec("call_data_type{}".format(identifier), 256)
+            else symbol_factory.BitVecSym("call_data_type{}".format(identifier), 256)
         )
         self.call_value = (
             call_value
             if call_value is not None
-            else BitVec("callvalue{}".format(identifier), 256)
+            else symbol_factory.BitVecSym("callvalue{}".format(identifier), 256)
         )
 
         self.return_data = None

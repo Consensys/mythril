@@ -1,9 +1,13 @@
 from enum import Enum
 from typing import Union, Any
-from z3 import BitVecVal, BitVecRef, BitVec, simplify, Concat, If, ExprRef
-from z3.z3types import Z3Exception, Model
 
+from mythril.laser.smt import K, Array, If, simplify, Concat, Expression, BitVec
+
+from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.util import get_concrete_int
+
+from z3 import Model
+from z3.z3types import Z3Exception
 
 
 class CalldataType(Enum):
@@ -21,21 +25,22 @@ class BaseCalldata:
         self.tx_id = tx_id
 
     @property
-    def calldatasize(self) -> ExprRef:
+    def calldatasize(self) -> Expression:
         """
         :return: Calldata size for this calldata object
         """
         result = self.size
         if isinstance(result, int):
-            return BitVecVal(result, 256)
+            return symbol_factory.BitVecVal(result, 256)
         return result
 
-    def get_word_at(self, offset: int) -> ExprRef:
+    def get_word_at(self, offset: int) -> Expression:
         """ Gets word at offset"""
-        return self[offset : offset + 32]
+        parts = self[offset : offset + 32]
+        return simplify(Concat(parts))
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
-        if isinstance(item, int) or isinstance(item, ExprRef):
+        if isinstance(item, int) or isinstance(item, Expression):
             return self._load(item)
 
         if isinstance(item, slice):
@@ -45,24 +50,30 @@ class BaseCalldata:
 
             try:
                 current_index = (
-                    start if isinstance(start, BitVecRef) else BitVecVal(start, 256)
+                    start
+                    if isinstance(start, Expression)
+                    else symbol_factory.BitVecVal(start, 256)
                 )
                 parts = []
                 while simplify(current_index != stop):
-                    parts.append(self._load(current_index))
+                    element = self._load(current_index)
+                    if not isinstance(element, Expression):
+                        element = symbol_factory.BitVecVal(element, 8)
+
+                    parts.append(element)
                     current_index = simplify(current_index + step)
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
 
-            return simplify(Concat(parts))
+            return parts
 
         raise ValueError
 
-    def _load(self, item: Union[int, ExprRef]) -> Any:
+    def _load(self, item: Union[int, Expression]) -> Any:
         raise NotImplementedError()
 
     @property
-    def size(self) -> Union[ExprRef, int]:
+    def size(self) -> Union[Expression, int]:
         """ Returns the exact size of this calldata, this is not normalized"""
         raise NotImplementedError()
 
@@ -78,17 +89,48 @@ class ConcreteCalldata(BaseCalldata):
         :param tx_id: Id of the transaction that the calldata is for.
         :param calldata: The concrete calldata content
         """
+        self._concrete_calldata = calldata
+        self._calldata = K(256, 8, 0)
+        for i, element in enumerate(calldata, 0):
+            element = (
+                symbol_factory.BitVecVal(element, 8)
+                if isinstance(element, int)
+                else element
+            )
+            self._calldata[symbol_factory.BitVecVal(i, 256)] = element
+
+        super().__init__(tx_id)
+
+    def _load(self, item: Union[int, Expression]) -> BitVec:
+        item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+        return simplify(self._calldata[item])
+
+    def concrete(self, model: Model) -> list:
+        return self._concrete_calldata
+
+    @property
+    def size(self) -> int:
+        return len(self._concrete_calldata)
+
+
+class BasicConcreteCalldata(BaseCalldata):
+    def __init__(self, tx_id: int, calldata: list):
+        """
+        Initializes the ConcreteCalldata object, that doesn't use z3 arrays
+        :param tx_id: Id of the transaction that the calldata is for.
+        :param calldata: The concrete calldata content
+        """
         self._calldata = calldata
         super().__init__(tx_id)
 
-    def _load(self, item: Union[int, ExprRef]) -> Any:
+    def _load(self, item: Union[int, Expression]) -> Any:
         if isinstance(item, int):
             try:
                 return self._calldata[item]
             except IndexError:
                 return 0
 
-        value = BitVecVal(0x0, 8)
+        value = symbol_factory.BitVecVal(0x0, 8)
         for i in range(self.size):
             value = If(item == i, self._calldata[i], value)
         return value
@@ -107,19 +149,53 @@ class SymbolicCalldata(BaseCalldata):
         Initializes the SymbolicCalldata object
         :param tx_id: Id of the transaction that the calldata is for.
         """
-        self._reads = []
-        self._size = BitVec("calldatasize", 256)
+        self._size = symbol_factory.BitVecSym(str(tx_id) + "_calldatasize", 256)
+        self._calldata = Array("{}_calldata".format(tx_id), 256, 8)
         super().__init__(tx_id)
 
-    def _load(self, item: Union[int, ExprRef], clean=False) -> Any:
-        x = BitVecVal(item, 256) if isinstance(item, int) else item
-
-        symbolic_base_value = If(
-            x > self._size,
-            BitVecVal(0, 8),
-            BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8),
+    def _load(self, item: Union[int, Expression]) -> Any:
+        item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+        return simplify(
+            If(
+                item < self._size,
+                simplify(self._calldata[item]),
+                symbol_factory.BitVecVal(0, 8),
+            )
         )
 
+    def concrete(self, model: Model) -> list:
+        concrete_length = model.eval(self.size.raw, model_completion=True).as_long()
+        result = []
+        for i in range(concrete_length):
+            value = self._load(i)
+            c_value = model.eval(value.raw, model_completion=True).as_long()
+            result.append(c_value)
+
+        return result
+
+    @property
+    def size(self) -> Expression:
+        return self._size
+
+
+class BasicSymbolicCalldata(BaseCalldata):
+    def __init__(self, tx_id: int):
+        """
+        Initializes the SymbolicCalldata object
+        :param tx_id: Id of the transaction that the calldata is for.
+        """
+        self._reads = []
+        self._size = BitVec(str(tx_id) + "_calldatasize", 256)
+        super().__init__(tx_id)
+
+    def _load(self, item: Union[int, Expression], clean=False) -> Any:
+        x = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+
+        symbolic_base_value = If(
+            x >= self._size,
+            symbol_factory.BitVecVal(0, 8),
+            BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8),
+        )
         return_value = symbolic_base_value
         for r_index, r_value in self._reads:
             return_value = If(r_index == item, r_value, return_value)
@@ -139,5 +215,5 @@ class SymbolicCalldata(BaseCalldata):
         return result
 
     @property
-    def size(self) -> ExprRef:
+    def size(self) -> Expression:
         return self._size
