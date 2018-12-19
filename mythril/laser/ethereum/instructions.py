@@ -3,7 +3,6 @@ import logging
 
 from copy import copy, deepcopy
 from typing import Callable, List, Union
-from functools import reduce
 
 from ethereum import utils
 
@@ -456,8 +455,12 @@ class Instruction:
         state = global_state.mstate
 
         val = state.stack.pop()
-        exp = (val == False) if isinstance(val, Bool) else val == 0
-        state.stack.append(exp)
+        exp = Not(val) if isinstance(val, Bool) else val == 0
+
+        exp = If(
+            exp, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+        )
+        state.stack.append(simplify(exp))
 
         return [global_state]
 
@@ -1001,7 +1004,7 @@ class Instruction:
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
             results = []
-            new = False
+            new = symbol_factory.Bool(False)
 
             for keccak_key in keccak_keys:
                 key_argument = keccak_function_manager.get_argument(keccak_key)
@@ -1114,9 +1117,9 @@ class Instruction:
         negated = (
             simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
-
+        negated.simplify()
         if (type(negated) == bool and negated) or (
-            isinstance(condition, Bool) and not is_false(negated)
+            isinstance(negated, Bool) and not is_false(negated)
         ):
             new_state = copy(global_state)
             # add JUMPI gas cost
@@ -1142,6 +1145,7 @@ class Instruction:
         instr = disassembly.instruction_list[index]
 
         condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
+        condi.simplify()
         if instr["opcode"] == "JUMPDEST":
             if (type(condi) == bool and condi) or (
                 isinstance(condi, Bool) and not is_false(condi)
