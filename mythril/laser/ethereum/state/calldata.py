@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Union, Any
 
 from mythril.laser.smt import K, Array, If, simplify, Concat, Expression, BitVec
@@ -8,11 +7,6 @@ from mythril.laser.ethereum.util import get_concrete_int
 
 from z3 import Model
 from z3.z3types import Z3Exception
-
-
-class CalldataType(Enum):
-    CONCRETE = 1
-    SYMBOLIC = 2
 
 
 class BaseCalldata:
