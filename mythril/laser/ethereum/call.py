@@ -201,7 +201,10 @@ def native_call(
     call_data: BaseCalldata,
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
-) -> List[GlobalState]:
+) -> Union[List[GlobalState], None]:
+    if not 0 < int(callee_address, 16) < 5:
+        return None
+
     log.debug("Native contract called: " + callee_address)
     try:
         mem_out_start = util.get_concrete_int(memory_out_offset)
