@@ -18,10 +18,9 @@ class DelegateCallModule(DetectionModule):
         super().__init__(
             name="DELEGATECALL Usage in Fallback Function",
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-            pre_hooks=["DELEGATECALL"],
-            post_hooks=[],
             description="Check for invocations of delegatecall(msg.data) in the fallback function.",
             entrypoint="callback",
+            pre_hooks=["DELEGATECALL"],
         )
         self._issues = []
 

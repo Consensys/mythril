@@ -17,14 +17,13 @@ class PredictableDependenceModule(DetectionModule):
         super().__init__(
             name="Dependence of Predictable Variables",
             swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE),
-            pre_hooks=["CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"],
-            post_hooks=[],
             description=(
                 "Check for CALLs that send >0 Ether as a result of computation "
                 "based on predictable variables such as block.coinbase, "
                 "block.gaslimit, block.timestamp, block.number"
             ),
             entrypoint="callback",
+            pre_hooks=["CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"],
         )
         self._issues = []
 

@@ -55,10 +55,9 @@ class DeprecatedOperationsModule(DetectionModule):
         super().__init__(
             name="Deprecated Operations",
             swc_id=DEPRICATED_FUNCTIONS_USAGE,
-            pre_hooks=["ORIGIN", "CALLCODE"],
-            post_hooks=[],
             description=(DESCRIPTION),
             entrypoint="callback",
+            pre_hooks=["ORIGIN", "CALLCODE"],
         )
         self._issues = []
 
