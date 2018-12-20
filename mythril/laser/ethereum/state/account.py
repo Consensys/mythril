@@ -31,11 +31,14 @@ class Storage:
                 and (self.dynld and self.dynld.storage_loading)
             ):
                 try:
-                    self._storage[item] = int(
-                        self.dynld.read_storage(
-                            contract_address=self.address, index=int(item)
+                    self._storage[item] = symbol_factory.BitVecVal(
+                        int(
+                            self.dynld.read_storage(
+                                contract_address=self.address, index=int(item)
+                            ),
+                            16,
                         ),
-                        16,
+                        256,
                     )
                     return self._storage[item]
                 except ValueError:
