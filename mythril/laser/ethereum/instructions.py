@@ -1570,7 +1570,7 @@ class Instruction:
         # TODO: implement me
         instr = global_state.get_current_instruction()
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
