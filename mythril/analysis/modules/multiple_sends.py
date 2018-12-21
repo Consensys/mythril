@@ -26,9 +26,16 @@ class MultipleSendsModule(DetectionModule):
         super().__init__(
             name="Multiple Sends",
             swc_id=MULTIPLE_SENDS,
-            hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE", "RETURN", "STOP"],
             description="Check for multiple sends in a single transaction",
             entrypoint="callback",
+            pre_hooks=[
+                "CALL",
+                "DELEGATECALL",
+                "STATICCALL",
+                "CALLCODE",
+                "RETURN",
+                "STOP",
+            ],
         )
         self._issues = []
 
