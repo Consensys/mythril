@@ -18,9 +18,9 @@ class DelegateCallModule(DetectionModule):
         super().__init__(
             name="DELEGATECALL Usage in Fallback Function",
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-            hooks=["DELEGATECALL"],
             description="Check for invocations of delegatecall(msg.data) in the fallback function.",
             entrypoint="callback",
+            pre_hooks=["DELEGATECALL"],
         )
         self._issues = []
 
@@ -40,6 +40,8 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
     :return: returns the issues for that corresponding state
     """
     call = get_call_from_state(state)
+    if call is None:
+        return []
     issues = []
 
     if call.type is not "DELEGATECALL":
