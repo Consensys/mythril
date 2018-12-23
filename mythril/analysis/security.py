@@ -1,13 +1,11 @@
 """This module contains functionality for hooking in detection modules and
 executing them."""
+from collections import defaultdict
+from ethereum.opcodes import opcodes
+from mythril.analysis import modules
+import pkgutil
 import importlib.util
 import logging
-import pkgutil
-from collections import defaultdict
-
-from ethereum.opcodes import opcodes
-
-from mythril.analysis import modules
 
 log = logging.getLogger(__name__)
 
@@ -21,16 +19,16 @@ def reset_callback_modules():
         module.detector._issues = []
 
 
-def get_detection_module_hooks(modules):
-    """
-
-    :param modules:
-    :return:
-    """
+def get_detection_module_hooks(modules, hook_type="pre"):
     hook_dict = defaultdict(list)
     _modules = get_detection_modules(entrypoint="callback", include_modules=modules)
     for module in _modules:
-        for op_code in map(lambda x: x.upper(), module.detector.hooks):
+        hooks = (
+            module.detector.pre_hooks
+            if hook_type == "pre"
+            else module.detector.post_hooks
+        )
+        for op_code in map(lambda x: x.upper(), hooks):
             if op_code in OPCODE_LIST:
                 hook_dict[op_code].append(module.detector.execute)
             elif op_code.endswith("*"):

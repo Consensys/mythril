@@ -1,11 +1,10 @@
-import logging
-
 from mythril.analysis import solver
-from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
+from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
+import logging
 
 log = logging.getLogger(__name__)
 
@@ -67,9 +66,9 @@ class SuicideModule(DetectionModule):
         super().__init__(
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
-            hooks=["SUICIDE"],
             description=DESCRIPTION,
             entrypoint="callback",
+            pre_hooks=["SUICIDE"],
         )
         self._issues = []
 

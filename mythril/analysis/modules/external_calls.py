@@ -3,12 +3,13 @@ calls."""
 import logging
 
 from mythril.analysis import solver
+from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
-from mythril.analysis.swc_data import REENTRANCY
-from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import UGT, symbol_factory
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.exceptions import UnsatError
+import logging
 
 log = logging.getLogger(__name__)
 
@@ -106,9 +107,9 @@ class ExternalCalls(DetectionModule):
         super().__init__(
             name="External calls",
             swc_id=REENTRANCY,
-            hooks=["CALL"],
             description=DESCRIPTION,
             entrypoint="callback",
+            pre_hooks=["CALL"],
         )
         self._issues = []
 

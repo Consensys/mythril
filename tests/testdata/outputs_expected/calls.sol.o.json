@@ -1,1 +1,102 @@
-{"error": null, "issues": [{"address": 661, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.", "function": "thisisfine()", "max_gas_used": 1254, "min_gas_used": 643, "swc-id": "107", "title": "External call", "type": "Informational"}, {"address": 666, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.", "function": "thisisfine()", "max_gas_used": 35963, "min_gas_used": 1352, "swc-id": "104", "title": "Unchecked CALL return value", "type": "Informational"}, {"address": 779, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.", "function": "callstoredaddress()", "max_gas_used": 1298, "min_gas_used": 687, "swc-id": "107", "title": "External call", "type": "Informational"}, {"address": 784, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.", "function": "callstoredaddress()", "max_gas_used": 36007, "min_gas_used": 1396, "swc-id": "104", "title": "Unchecked CALL return value", "type": "Informational"}, {"address": 858, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.", "function": "reentrancy()", "max_gas_used": 1320, "min_gas_used": 709, "swc-id": "107", "title": "External call", "type": "Informational"}, {"address": 871, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.", "function": "reentrancy()", "max_gas_used": 61043, "min_gas_used": 6432, "swc-id": "104", "title": "Unchecked CALL return value", "type": "Informational"}, {"address": 912, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes a function call with high gas to a user-supplied address. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent unanticipated effects on the contract state.", "function": "calluseraddress(address)", "max_gas_used": 616, "min_gas_used": 335, "swc-id": "107", "title": "External call to user-supplied address", "type": "Warning"}, {"address": 918, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.", "function": "calluseraddress(address)", "max_gas_used": 35327, "min_gas_used": 1046, "swc-id": "104", "title": "Unchecked CALL return value", "type": "Informational"}], "success": true}
+{
+  "error": null,
+  "issues": [
+    {
+      "address": 661,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.",
+      "function": "thisisfine()",
+      "max_gas_used": 1254,
+      "min_gas_used": 643,
+      "swc-id": "107",
+      "title": "External call",
+      "type": "Informational"
+    },
+    {
+      "address": 661,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
+      "function": "thisisfine()",
+      "max_gas_used": 35972,
+      "min_gas_used": 1361,
+      "swc-id": "104",
+      "title": "Unchecked CALL return value",
+      "type": "Informational"
+    },
+    {
+      "address": 779,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.",
+      "function": "callstoredaddress()",
+      "max_gas_used": 1298,
+      "min_gas_used": 687,
+      "swc-id": "107",
+      "title": "External call",
+      "type": "Informational"
+    },
+    {
+      "address": 779,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
+      "function": "callstoredaddress()",
+      "max_gas_used": 36016,
+      "min_gas_used": 1405,
+      "swc-id": "104",
+      "title": "Unchecked CALL return value",
+      "type": "Informational"
+    },
+    {
+      "address": 858,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The contract executes a function call to an external address. Verify that the code at this address is trusted and immutable.",
+      "function": "reentrancy()",
+      "max_gas_used": 1320,
+      "min_gas_used": 709,
+      "swc-id": "107",
+      "title": "External call",
+      "type": "Informational"
+    },
+    {
+      "address": 858,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
+      "function": "reentrancy()",
+      "max_gas_used": 61052,
+      "min_gas_used": 6441,
+      "swc-id": "104",
+      "title": "Unchecked CALL return value",
+      "type": "Informational"
+    },
+    {
+      "address": 912,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The contract executes a function call with high gas to a user-supplied address. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent unanticipated effects on the contract state.",
+      "function": "calluseraddress(address)",
+      "max_gas_used": 616,
+      "min_gas_used": 335,
+      "swc-id": "107",
+      "title": "External call to user-supplied address",
+      "type": "Warning"
+    },
+    {
+      "address": 912,
+      "contract": "Unknown",
+      "debug": "<DEBUG-DATA>",
+      "description": "The return value of an external call is not checked. Note that execution continue even if the called contract throws.",
+      "function": "calluseraddress(address)",
+      "max_gas_used": 35336,
+      "min_gas_used": 1055,
+      "swc-id": "104",
+      "title": "Unchecked CALL return value",
+      "type": "Informational"
+    }
+  ],
+  "success": true
+}

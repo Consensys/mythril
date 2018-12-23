@@ -1,5 +1,7 @@
 """This module contains analysis module helpers to solve path constraints."""
 from z3 import sat, unknown, FuncInterp
+import z3
+
 from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
@@ -59,7 +61,7 @@ def pretty_print_model(model):
         try:
             condition = "0x%x" % model[d].as_long()
         except:
-            condition = str(simplify(model[d]))
+            condition = str(z3.simplify(model[d]))
 
         ret += "%s: %s\n" % (d.name(), condition)
 

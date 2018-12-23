@@ -29,8 +29,8 @@ The contract executes a function call to an external address. Verify that the co
 - Type: Informational
 - Contract: Unknown
 - Function name: `callnotchecked()`
-- PC address: 290
-- Estimated Gas Usage: 1330 - 35941
+- PC address: 285
+- Estimated Gas Usage: 1339 - 35950
 
 ### Description
 

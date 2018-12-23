@@ -82,8 +82,8 @@ class MachineStack(list):
 
 
 class MachineState:
-    """MachineState represents current machine state also referenced to as
-    \mu."""
+    """MachineState represents current machine state also referenced to as \mu.
+    """
 
     def __init__(
         self,

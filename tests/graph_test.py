@@ -28,6 +28,7 @@ class GraphTest(BaseTestCase):
                 address=(util.get_indexed_address(0)),
                 strategy="dfs",
                 transaction_count=1,
+                execution_timeout=5,
             )
 
             html = generate_graph(sym)

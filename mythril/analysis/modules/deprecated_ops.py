@@ -4,7 +4,9 @@ import logging
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import DEPRICATED_FUNCTIONS_USAGE
+from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
+import logging
 
 log = logging.getLogger(__name__)
 
@@ -65,9 +67,9 @@ class DeprecatedOperationsModule(DetectionModule):
         super().__init__(
             name="Deprecated Operations",
             swc_id=DEPRICATED_FUNCTIONS_USAGE,
-            hooks=["ORIGIN", "CALLCODE"],
             description=DESCRIPTION,
             entrypoint="callback",
+            pre_hooks=["ORIGIN", "CALLCODE"],
         )
         self._issues = []
 
