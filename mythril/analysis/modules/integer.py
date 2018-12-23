@@ -5,6 +5,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.analysis.modules.base import DetectionModule
 
 
@@ -18,6 +19,7 @@ from mythril.laser.smt import (
     Expression,
 )
 
+import copy
 import logging
 
 
@@ -47,6 +49,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
+        self._issues = []
         self._issues = []
 
     @property
@@ -204,8 +207,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
     @staticmethod
     def _try_constraints(constraints, new_constraints):
-        """Tries new constraints.
-
+        """
+        Tries new constraints
         :return Model if satisfiable otherwise None
         """
         try:

@@ -1,6 +1,3 @@
-import z3
-
-from mythril.laser.smt.array import K, Array, BaseArray
 from mythril.laser.smt.bitvec import (
     BitVec,
     If,
@@ -17,19 +14,21 @@ from mythril.laser.smt.bitvec import (
     BVMulNoOverflow,
     BVSubNoUnderflow,
 )
-from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not
 from mythril.laser.smt.expression import Expression, simplify
+from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not
+from mythril.laser.smt.array import K, Array, BaseArray
 from mythril.laser.smt.solver import Solver, Optimize
+
+import z3
 
 
 class SymbolFactory:
-    """A symbol factory provides a default interface for all the components of
-    mythril to create symbols."""
+    """A symbol factory provides a default interface for all the components of mythril to create symbols"""
 
     @staticmethod
     def Bool(value: bool, annotations=None):
-        """Creates a Bool with concrete value.
-
+        """
+        Creates a Bool with concrete value
         :param value: The boolean value
         :param annotations: The annotations to initialize the bool with
         :return: The freshly created Bool()
@@ -60,13 +59,15 @@ class SymbolFactory:
 
 
 class _SmtSymbolFactory(SymbolFactory):
-    """An implementation of a SymbolFactory that creates symbols using the
-    classes in: mythril.laser.smt."""
+    """
+    An implementation of a SymbolFactory that creates symbols using
+    the classes in: mythril.laser.smt
+    """
 
     @staticmethod
     def Bool(value: bool, annotations=None):
-        """Creates a Bool with concrete value.
-
+        """
+        Creates a Bool with concrete value
         :param value: The boolean value
         :param annotations: The annotations to initialize the bool with
         :return: The freshly created Bool()
@@ -88,12 +89,14 @@ class _SmtSymbolFactory(SymbolFactory):
 
 
 class _Z3SymbolFactory(SymbolFactory):
-    """An implementation of a SymbolFactory that directly returns z3
-    symbols."""
+    """
+    An implementation of a SymbolFactory that directly returns
+    z3 symbols
+    """
 
     @staticmethod
     def Bool(value: bool, annotations=None):
-        """Creates a new bit vector with a concrete value."""
+        """ Creates a new bit vector with a concrete value """
         return z3.Bool(value)
 
     @staticmethod

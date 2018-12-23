@@ -1,11 +1,9 @@
 """This module contains the detection code for potentially insecure low-level
 calls."""
-import logging
 
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
-from mythril.analysis.report import Issue
 from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError

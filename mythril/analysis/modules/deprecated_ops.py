@@ -1,7 +1,4 @@
 """This module contains the detection code for deprecated op codes."""
-import logging
-
-from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import DEPRICATED_FUNCTIONS_USAGE
 from mythril.analysis.modules.base import DetectionModule

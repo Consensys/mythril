@@ -45,11 +45,6 @@ class MultipleSendsModule(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState):
-        """
-
-        :param state:
-        :return:
-        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
@@ -91,16 +86,20 @@ def _analyze_state(state: GlobalState):
                 _type="Informational",
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+
             issue.description = (
                 "Multiple sends are executed in a single transaction. "
                 "Try to isolate each external call into its own transaction,"
                 " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
             )
+
             for call in calls:
                 issue.description += "Call at address: {}\n".format(
                     call.state.get_current_instruction()["address"]
                 )
+
             return [issue]
+
     return []
 
 
