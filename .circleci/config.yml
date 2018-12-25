@@ -78,7 +78,7 @@ jobs:
           name: Call webhook
           command: |
             curl -X POST -H \
-              -d "https://circleci.com/api/v1/project/$ORGANIZATION/$PROJECT/tree/master?circle-token=$CIRCLE_TOKEN"
+              -d "https://circleci.com/api/v1/project/$ORGANIZATION/$WEBHOOK_PROJECT/tree/master?circle-token=$CIRCLE_TOKEN"
 
 
   pypi_release:
