@@ -45,7 +45,7 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
 
 
 class SolidityContract(EVMContract):
-    def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc-0.5.2"):
+    def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
         data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
 
         self.solidity_files = []
