@@ -2,6 +2,10 @@ from mythril.disassembler.disassembly import Disassembly
 from ethereum import utils
 import persistent
 import re
+import _pysha3 as sha3
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class EVMContract(persistent.Persistent):
@@ -23,6 +27,15 @@ class EVMContract(persistent.Persistent):
         self.creation_disassembly = Disassembly(
             creation_code, enable_online_lookup=enable_online_lookup
         )
+        try:
+            keccak = sha3.keccak_256()
+            keccak.update(bytes.fromhex(self.code[2:]))
+            self.bytecode_hash = "0x" + keccak.hexdigest()
+        except ValueError:
+            log.debug(
+                "Unable to change the bytecode to bytes. Bytecode: {}".format(code)
+            )
+            self.bytecode_hash = ""
 
     def as_dict(self):
 

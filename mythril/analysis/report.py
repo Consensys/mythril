@@ -5,6 +5,10 @@ from jinja2 import PackageLoader, Environment
 import _pysha3 as sha3
 import hashlib
 
+from mythril.solidity.soliditycontract import SolidityContract
+from mythril.analysis.swc_data import SWC_TO_TITLE
+from mythril.support.source_support import Source
+
 log = logging.getLogger(__name__)
 
 
@@ -35,16 +39,7 @@ class Issue:
         self.filename = None
         self.code = None
         self.lineno = None
-
-        try:
-            keccak = sha3.keccak_256()
-            keccak.update(bytes.fromhex(bytecode))
-            self.bytecode_hash = "0x" + keccak.hexdigest()
-        except ValueError:
-            log.debug(
-                "Unable to change the bytecode to bytes. Bytecode: {}".format(bytecode)
-            )
-            self.bytecode_hash = ""
+        self.source_mapping = None
 
     @property
     def as_dict(self):
@@ -60,6 +55,7 @@ class Issue:
             "debug": self.debug,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
+            "SourceMap": self.source_mapping,
         }
 
         if self.filename and self.lineno:
@@ -72,13 +68,16 @@ class Issue:
         return issue
 
     def add_code_info(self, contract):
-        if self.address:
+        if self.address and isinstance(self.contract, SolidityContract):
             codeinfo = contract.get_source_info(
                 self.address, constructor=(self.function == "constructor")
             )
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
+            self.source_mapping = codeinfo.solc_mapping
+        else:
+            self.source_mapping = self.address
 
 
 class Report:
@@ -86,10 +85,14 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, source=Source()):
         self.issues = {}
         self.verbose = verbose
-        pass
+        self.solc_version = ""
+        self.source_type = source.source_type
+        self.source_format = source.source_format
+        self.source_list = source.source_list
+        self.meta = source.meta
 
     def sorted_issues(self):
         issue_list = [issue.as_dict for key, issue in self.issues.items()]
@@ -108,7 +111,21 @@ class Report:
         )
 
     def as_json(self):
-        result = {"success": True, "error": None, "issues": self.sorted_issues()}
+        result = {
+            "issues": [
+                {
+                    "swcID": "SWC-{}".format(issue.swc_id),
+                    "swcTitle": SWC_TO_TITLE[issue.swc_id],
+                    "locations": [{"sourceMap": issue.source_mapping}],
+                    "extra": "",
+                }
+                for issue in self.issues.values()
+            ],
+            "sourceType": self.source_type,
+            "sourceFormat": self.source_format,
+            "sourceList": self.source_list,
+            "meta": self.meta,
+        }
         return json.dumps(result, sort_keys=True)
 
     def as_swc_standard_format(self):
@@ -116,12 +133,16 @@ class Report:
         result = {
             "issues": [
                 {
-                    "swc-id": "SWC-{}".format(issue.swc_id),
+                    "swcID": "SWC-{}".format(issue.swc_id),
+                    "swcTitle": SWC_TO_TITLE[issue.swc_id],
                     "bytecodeOffset": issue.address,
-                    "codeHash": issue.bytecode_hash,
                 }
                 for issue in self.issues.values()
-            ]
+            ],
+            "sourceType": self.source_type,
+            "sourceFormat": self.source_format,
+            "sourceList": self.source_list,
+            "meta": self.meta,
         }
         return json.dumps(result, sort_keys=True)
 
