@@ -77,9 +77,7 @@ jobs:
       - run:
           name: Call webhook
           command: |
-            echo 'export WEBHOOK_URL="https://circleci.com/api/v1/project/$ORGANIZATION/$WEBHOOK_PROJECT/tree/master?circle-token=$CIRCLE_TOKEN"' >> $BASH_ENV
-            source $BASH_ENV
-            curl -I -X POST -H -d $WEBHOOK_URL | head -n 1 | cut -d$' ' -f2
+            curl -I -X POST -H -d "https://circleci.com/api/v1/project/${ORGANIZATION}/${WEBHOOK_PROJECT}/tree/master?circle-token=${CIRCLE_TOKEN}" | head -n 1 | cut -d$' ' -f2
 
 
   pypi_release:
