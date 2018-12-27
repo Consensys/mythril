@@ -106,7 +106,7 @@ def main():
     outputs.add_argument(
         "-o",
         "--outform",
-        choices=["text", "markdown", "json"],
+        choices=["text", "markdown", "json", "jsonv2"],
         default="text",
         help="report output format",
         metavar="<text/markdown/json>",
@@ -423,6 +423,7 @@ def main():
                     )
                     outputs = {
                         "json": report.as_json(),
+                        "jsonv2": report.as_swc_standard_format(),
                         "text": report.as_text(),
                         "markdown": report.as_markdown(),
                     }
