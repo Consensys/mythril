@@ -63,7 +63,7 @@ def _analyze_state(state):
             title="Unprotected Ether Withdrawal",
             severity="High",
             bytecode=state.environment.code.bytecode,
-            description_head="It appears that anyone can withdraw Ether from the contract account.",
+            description_head="Anyone can withdraw ETH from the contract account.",
             description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
             + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
             + " a vulnerability.",

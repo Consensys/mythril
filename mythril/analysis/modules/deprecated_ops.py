@@ -17,8 +17,9 @@ def _analyze_state(state):
 
     if instruction["opcode"] == "ORIGIN":
         log.debug("ORIGIN in function " + node.function_name)
-        title = "Use of tx.origin"
-        description = (
+        title = "Use of tx.origin is deprecated."
+        description_head = "Use of tx.origin is deprecated."
+        description_tail = (
             "The function `{}` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. "
             "Use msg.sender instead.\nSee also: "
             "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin".format(
@@ -30,8 +31,9 @@ def _analyze_state(state):
     elif instruction["opcode"] == "CALLCODE":
         log.debug("CALLCODE in function " + node.function_name)
         title = "Use of Callcode"
-        description = (
-            "The function `{}` uses callcode. Callcode does not persist sender or value over the call. "
+        description_head = "Use of callcode is deprecated."
+        description_tail = (
+            "The function `{}` uses the callcode function. Callcode does not persist sender or value over the call. "
             "Use delegatecall instead.".format(node.function_name)
         )
         swc_id = DEPRICATED_FUNCTIONS_USAGE
@@ -44,8 +46,8 @@ def _analyze_state(state):
         bytecode=state.environment.code.bytecode,
         swc_id=swc_id,
         severity="Medium",
-        description_head="",
-        description_tail=description,
+        description_head=description_head,
+        description_tail=description_tail,
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
     )
     return [issue]

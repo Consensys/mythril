@@ -39,8 +39,8 @@ def _analyze_state(state):
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
             debug = str(transaction_sequence)
-            description_head =  "The contract executes a function call to a user-supplied address."
-            description_tail = "An external function call is executed. The callee address can be set by " \
+            description_head = "A call to a user-supplied address is executed."
+            description_tail = "The callee address of an external message call can be set by " \
                 "the caller. Note that the callee can contain arbitrary code and may re-enter any function " \
                 "in this contract. Review the business logic carefully to prevent averse effects on the" \
                 "contract state."
@@ -66,7 +66,7 @@ def _analyze_state(state):
             )
 
             debug = str(transaction_sequence)
-            description_head = "The contract executes a function call to an external address."
+            description_head = "The contract executes an external message call."
             description_tail = "An external function call to a fixed contract address is executed. Note" \
                 "that the callee contract should be reviewed carefully."
 

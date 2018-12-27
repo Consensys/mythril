@@ -19,9 +19,9 @@ def _analyze_state(state) -> list:
     try:
         address = state.get_current_instruction()["address"]
 
-        description = (
-            "A reachable exception (opcode 0xfe) has been detected. "
-            "This can be caused by type errors, division by zero, "
+        description_tail = (
+            "It is possible to trigger an exception (opcode 0xfe). "
+            "Exceptions can be caused by type errors, division by zero, "
             "out-of-bounds array access, or assert violations. "
             "Note that explicit `assert()` should only be used to check invariants. "
             "Use `require()` for regular input checking."
@@ -36,8 +36,8 @@ def _analyze_state(state) -> list:
             swc_id=ASSERT_VIOLATION,
             title="Exception State",
             severity="Low",
-            description_head="",
-            description_tail=description,
+            description_head="A reachable exception has been detected.",
+            description_tail=description_tail,
             bytecode=state.environment.code.bytecode,
             debug=debug,
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),

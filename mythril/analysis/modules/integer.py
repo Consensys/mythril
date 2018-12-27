@@ -128,13 +128,16 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             if not isinstance(annotation, OverUnderflowAnnotation):
                 continue
 
-            title = (
-                "integer underflow"
+            _type = (
+                "Underflow"
                 if annotation.operator == "subtraction"
-                else "integer overflow"
+                else "Overflow"
             )
             ostate = annotation.overflowing_state
             node = ostate.node
+
+            description_tail = "The binary {} operation can result in an integer {}.\n" \
+                               .format(annotation.operator, _type.lower())
 
             issue = Issue(
                 contract=node.contract_name,
@@ -142,11 +145,10 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title="Integer Underflow",
+                title="Integer {}".format(_type),
                 severity="High",
-                description_head= "The binary {} operation can result in an {}.\n".format(
-                    annotation.operator, title.lower()),
-                description_tail="",
+                description_head= "The {} can {}." .format(annotation.operator, _type.lower()),
+                description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
@@ -170,6 +172,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
             node = ostate.node
 
+            description_tail = "The binary {} operation can result in an integer overflow.\n" \
+                               .format(annotation.operator)
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
@@ -178,8 +183,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 bytecode=ostate.environment.code.bytecode,
                 title="Integer Overflow",
                 severity="High",
-                description_head="The binary {} operation can result in an integer overflow.\n".format(annotation.operator),
-                description_tail="",
+                description_head= "The {} can overflow.".format(annotation.operator),
+                description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 

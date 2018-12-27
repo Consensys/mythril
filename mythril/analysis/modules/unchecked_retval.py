@@ -71,9 +71,10 @@ def _analyze_state(state: GlobalState) -> list:
             except UnsatError:
                 continue
 
-            description = (
-                "The return value of an external call is not checked. "
-                "Note that execution continue even if the called contract throws."
+            description_tail = (
+                "External calls return a boolean value. If the callee contract halts with an exception, 'false' is "
+                "returned and execution continues in the caller. It is usually recommended to wrap external calls "
+                "into a require statement to prevent unexpected states."
             )
 
             issue = Issue(
@@ -81,11 +82,11 @@ def _analyze_state(state: GlobalState) -> list:
                 function_name=node.function_name,
                 address=retval["address"],
                 bytecode=state.environment.code.bytecode,
-                title="Unchecked CALL Return Value",
+                title="Unchecked Call Return Value",
                 swc_id=UNCHECKED_RET_VAL,
                 severity="Low",
-                description_head="",
-                description_tail=description,
+                description_head="The return value of a message call is not checked.",
+                description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
