@@ -39,22 +39,22 @@ def _analyze_state(state):
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
             debug = str(transaction_sequence)
-            description = (
-                "The contract executes a function call with high gas to a user-supplied address. "
-                "Note that the callee can contain arbitrary code and may re-enter any function in this contract. "
-                "Review the business logic carefully to prevent unanticipated effects on the contract state."
-            )
+            description_head =  "The contract executes a function call to a user-supplied address."
+            description_tail = "An external function call is executed. The callee address can be set by " \
+                "the caller. Note that the callee can contain arbitrary code and may re-enter any function " \
+                "in this contract. Review the business logic carefully to prevent averse effects on the" \
+                "contract state."
 
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=address,
                 swc_id=REENTRANCY,
-                title="External Call to User-supplied Address",
+                title="External Call To User-Supplied Address",
                 bytecode=state.environment.code.bytecode,
                 severity="Medium",
-                description_head="",
-                description_tail=description,
+                description_head=description_head,
+                description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
@@ -66,21 +66,20 @@ def _analyze_state(state):
             )
 
             debug = str(transaction_sequence)
-            description = (
-                "The contract executes a function call to an external address. "
-                "Verify that the code at this address is trusted and immutable."
-            )
+            description_head = "The contract executes a function call to an external address."
+            description_tail = "An external function call to a fixed contract address is executed. Note" \
+                "that the callee contract should be reviewed carefully."
 
             issue = Issue(
                 contract=node.contract_name,
                 function_name=state.node.function_name,
                 address=address,
                 swc_id=REENTRANCY,
-                title="External call",
+                title="External Call To Fixed Address",
                 bytecode=state.environment.code.bytecode,
                 severity="Low",
-                description_head="",
-                description_tail=description,
+                description_head=description_head ,
+                description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )

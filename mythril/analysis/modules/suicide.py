@@ -28,12 +28,12 @@ def _analyze_state(state):
                 state,
                 node.constraints + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
             )
-            description = "Anyone can kill this contract and withdraw its balance to their own account."
+            description_head = "Anyone can kill this contract and withdraw its balance to their own account."
         except UnsatError:
             transaction_sequence = solver.get_transaction_sequence(
                 state, node.constraints
             )
-            description = (
+            description_head = (
                 "The contract can be killed by anyone. Don't accidentally kill it."
             )
 
@@ -47,8 +47,8 @@ def _analyze_state(state):
             bytecode=state.environment.code.bytecode,
             title="Unprotected Selfdestruct",
             severity="High",
-            description_head="",
-            description_tail=description,
+            description_head=description_head,
+            description_tail="",
             debug=debug,
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )

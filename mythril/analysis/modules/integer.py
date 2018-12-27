@@ -129,16 +129,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             title = (
-                "Integer Underflow"
+                "integer underflow"
                 if annotation.operator == "subtraction"
-                else "Integer Overflow"
+                else "integer overflow"
             )
             ostate = annotation.overflowing_state
             node = ostate.node
-
-            description = "This binary {} operation can result in {}.\n".format(
-                annotation.operator, title.lower()
-            )
 
             issue = Issue(
                 contract=node.contract_name,
@@ -148,8 +144,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 bytecode=ostate.environment.code.bytecode,
                 title="Integer Underflow",
                 severity="High",
-                description_head="",
-                description_tail=description,
+                description_head= "The binary {} operation can result in an {}.\n".format(
+                    annotation.operator, title.lower()),
+                description_tail="",
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
@@ -173,10 +170,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
             node = ostate.node
 
-            description = "This binary {} operation can result in integer overflow.\n".format(
-                annotation.operator
-            )
-
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
@@ -185,8 +178,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 bytecode=ostate.environment.code.bytecode,
                 title="Integer Overflow",
                 severity="High",
-                description_head="",
-                description_tail=description,
+                description_head="The binary {} operation can result in an integer overflow.\n".format(annotation.operator),
+                description_tail="",
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
