@@ -55,7 +55,7 @@ class TxOrderDependenceModule(DetectionModule):
                     title="Transaction Order Dependence",
                     bytecode=call.state.environment.code.bytecode,
                     swc_id=TX_ORDER_DEPENDENCE,
-                    _type="Medium",
+                    severity="Medium",
                     description_head="",
                     description_tail=description,
                     gas_used=(

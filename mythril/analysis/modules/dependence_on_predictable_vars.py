@@ -72,7 +72,7 @@ def _analyze_states(state: GlobalState) -> list:
         for item in found:
             description += "- block.{}\n".format(item)
         if solve(call):
-            swc_type = (
+            swc_id = (
                 TIMESTAMP_DEPENDENCE
                 if item == "timestamp"
                 else PREDICTABLE_VARS_DEPENDENCE
@@ -81,10 +81,10 @@ def _analyze_states(state: GlobalState) -> list:
                 contract=call.node.contract_name,
                 function_name=call.node.function_name,
                 address=address,
-                swc_id=swc_type,
+                swc_id=swc_id,
                 bytecode=call.state.environment.code.bytecode,
                 title="Dependence on predictable environment variable",
-                _type="Warning",
+                severity="Warning",
                 description=description,
                 gas_used=(
                     call.state.mstate.min_gas_used,
@@ -134,7 +134,7 @@ def _analyze_states(state: GlobalState) -> list:
                         address=address,
                         bytecode=call.state.environment.code.bytecode,
                         title="Dependence on Predictable Variable",
-                        _type="Warning",
+                        severity="Warning",
                         description_head="",
                         description_tail=description,
                         swc_id=PREDICTABLE_VARS_DEPENDENCE,
@@ -170,7 +170,7 @@ def _analyze_states(state: GlobalState) -> list:
                             address=address,
                             bytecode=call.state.environment.code.bytecode,
                             title="Dependence on Predictable Variable",
-                            _type="Medium",
+                            severity="Medium",
                             description_head="",
                             description_tail=description,
                             swc_id=PREDICTABLE_VARS_DEPENDENCE,

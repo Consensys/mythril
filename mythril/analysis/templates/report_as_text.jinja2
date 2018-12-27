@@ -2,7 +2,7 @@
 {% for issue in issues %}
 ==== {{ issue.title }} ====
 SWC ID: {{ issue['swc-id'] }}
-Type: {{ issue.type }}
+Severity: {{ issue.severity }}
 Contract: {{ issue.contract | default("Unknown") }}
 Function name: {{ issue.function }}
 PC address: {{ issue.address }}

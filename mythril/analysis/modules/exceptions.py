@@ -35,7 +35,7 @@ def _analyze_state(state) -> list:
             address=address,
             swc_id=ASSERT_VIOLATION,
             title="Exception State",
-            _type="Low",
+            severity="Low",
             description_head="",
             description_tail=description,
             bytecode=state.environment.code.bytecode,

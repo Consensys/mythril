@@ -61,7 +61,7 @@ def _analyze_state(state):
             address=instruction["address"],
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
             title="Unprotected Ether Withdrawal",
-            _type="High",
+            severity="High",
             bytecode=state.environment.code.bytecode,
             description_head="It appears that anyone can withdraw Ether from the contract account.",
             description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"

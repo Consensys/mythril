@@ -23,7 +23,7 @@ class Issue:
         title,
         bytecode,
         gas_used=(None, None),
-        _type="Informational",
+        severity=None,
         description_head="",
         description_tail="",
         debug="",
@@ -36,7 +36,7 @@ class Issue:
         self.description_head = description_head,
         self.description_tail = description_tail,
         self.description = "%s %s" % (description_head, description_tail)
-        self.type = _type
+        self.severity = severity
         self.debug = debug
         self.swc_id = swc_id
         self.min_gas_used, self.max_gas_used = gas_used
@@ -64,7 +64,7 @@ class Issue:
             "contract": self.contract,
             "description": self.description,
             "function": self.function,
-            "type": self.type,
+            "severity": self.severity,
             "address": self.address,
             "debug": self.debug,
             "min_gas_used": self.min_gas_used,
@@ -169,7 +169,7 @@ class Report:
                         "head": issue.description_head,
                         "tail": issue.description_tail
                     },
-                    "severity": issue.type,
+                    "severity": issue.severity,
                     "locations": [
                         {
                             "sourceMap": "%d:1:%d" % (issue.address, idx)

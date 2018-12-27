@@ -83,7 +83,7 @@ def _analyze_state(state: GlobalState) -> list:
                 bytecode=state.environment.code.bytecode,
                 title="Unchecked CALL Return Value",
                 swc_id=UNCHECKED_RET_VAL,
-                _type="Low",
+                severity="Low",
                 description_head="",
                 description_tail=description,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),

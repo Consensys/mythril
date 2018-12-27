@@ -43,7 +43,7 @@ def _analyze_state(state):
         title=title,
         bytecode=state.environment.code.bytecode,
         swc_id=swc_id,
-        _type="Medium",
+        severity="Medium",
         description_head="",
         description_tail=description,
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),

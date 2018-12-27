@@ -46,7 +46,7 @@ def _analyze_state(state):
             swc_id=UNPROTECTED_SELFDESTRUCT,
             bytecode=state.environment.code.bytecode,
             title="Unprotected Selfdestruct",
-            _type="High",
+            severity="High",
             description_head="",
             description_tail=description,
             debug=debug,

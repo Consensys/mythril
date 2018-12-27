@@ -85,7 +85,7 @@ def _analyze_state(state: GlobalState):
                 swc_id=MULTIPLE_SENDS,
                 bytecode=state.environment.code.bytecode,
                 title="Multiple Calls in a Single Transaction",
-                _type="Medium",
+                severity="Medium",
                 description_head="",
                 description_tail=description,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
