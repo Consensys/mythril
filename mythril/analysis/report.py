@@ -9,6 +9,7 @@ from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
 
+
 log = logging.getLogger(__name__)
 
 
@@ -152,10 +153,15 @@ class Report:
             else:
                 idx = sourceList.index(issue.bytecode_hash)
 
+            try:
+                title = SWC_TO_TITLE[issue.swc_id]
+            except KeyError:
+                title = "Unspecified Security Issue"
+
             _issues.append(
                 {
                     "swcID": issue.swc_id,
-                    "swcTitle": issue.title,
+                    "swcTitle": title,
                     "description": {
                         "head": "",
                         "tail": ""
