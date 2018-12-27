@@ -55,7 +55,9 @@ def _analyze_states(state: GlobalState) -> list:
 
     address = call.state.get_current_instruction()["address"]
 
-    description = "The contract sends Ether depending on the values of the following variables:\n"
+    description = (
+        "The contract sends Ether depending on the values of the following variables:\n"
+    )
 
     # First check: look for predictable state variables in node & call recipient constraints
 
@@ -71,15 +73,13 @@ def _analyze_states(state: GlobalState) -> list:
         for item in found:
             description += "- block.{}\n".format(item)
         if solve(call):
-            swc_id = (
-                TIMESTAMP_DEPENDENCE
-                if item == "timestamp"
-                else WEAK_RANDOMNESS
-            )
+            swc_id = TIMESTAMP_DEPENDENCE if item == "timestamp" else WEAK_RANDOMNESS
 
-            description += "Note that the values of variables like coinbase, gaslimit, block number and timestamp " \
-                           "are predictable and/or can be manipulated by a malicious miner. "\
-                           "Don't use them for random number generation or to make critical decisions."
+            description += (
+                "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
+                "are predictable and/or can be manipulated by a malicious miner. "
+                "Don't use them for random number generation or to make critical decisions."
+            )
 
             issue = Issue(
                 contract=call.node.contract_name,

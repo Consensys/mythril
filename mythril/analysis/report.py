@@ -33,8 +33,8 @@ class Issue:
         self.contract = contract
         self.function = function_name
         self.address = address
-        self.description_head = description_head,
-        self.description_tail = description_tail,
+        self.description_head = (description_head,)
+        self.description_tail = (description_tail,)
         self.description = "%s %s" % (description_head, description_tail)
         self.severity = severity
         self.debug = debug
@@ -82,7 +82,7 @@ class Issue:
         return issue
 
     def add_code_info(self, contract):
-        if self.address and isinstance(self.contract, SolidityContract):
+        if self.address and isinstance(contract, SolidityContract):
             codeinfo = contract.get_source_info(
                 self.address, constructor=(self.function == "constructor")
             )
@@ -167,15 +167,11 @@ class Report:
                     "swcTitle": title,
                     "description": {
                         "head": issue.description_head,
-                        "tail": issue.description_tail
+                        "tail": issue.description_tail,
                     },
                     "severity": issue.severity,
-                    "locations": [
-                        {
-                            "sourceMap": "%d:1:%d" % (issue.address, idx)
-                        },
-                    ],
-                    "extra": {}
+                    "locations": [{"sourceMap": "%d:1:%d" % (issue.address, idx)}],
+                    "extra": {},
                 }
             )
 
@@ -184,7 +180,7 @@ class Report:
             "sourceType": "raw-bytecode",
             "sourceFormat": "evm-byzantium-bytecode",
             "sourceList": sourceList,
-            "meta": {}
+            "meta": {},
         }
 
         return json.dumps(result, sort_keys=True)

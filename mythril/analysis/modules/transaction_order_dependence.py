@@ -64,7 +64,6 @@ class TxOrderDependenceModule(DetectionModule):
                     ),
                 )
 
-
                 issues.append(issue)
 
         return issues

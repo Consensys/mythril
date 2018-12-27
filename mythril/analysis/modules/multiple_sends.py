@@ -72,7 +72,9 @@ def _analyze_state(state: GlobalState):
     else:  # RETURN or STOP
         if len(calls) > 1:
 
-            description_tail = "Consecutive calls are executed at the following bytecode offsets:\n"
+            description_tail = (
+                "Consecutive calls are executed at the following bytecode offsets:\n"
+            )
 
             for call in calls:
                 description_tail += "Offset: {}\n".format(

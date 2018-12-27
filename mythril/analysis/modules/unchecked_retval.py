@@ -67,7 +67,7 @@ def _analyze_state(state: GlobalState) -> list:
         issues = []
         for retval in retvals:
             try:
-               solver.get_model(node.constraints + [retval["retval"] == 0])
+                solver.get_model(node.constraints + [retval["retval"] == 0])
             except UnsatError:
                 continue
 
