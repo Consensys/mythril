@@ -24,7 +24,8 @@ class Issue:
         bytecode,
         gas_used=(None, None),
         _type="Informational",
-        description="",
+        description_head="",
+        description_tail="",
         debug="",
     ):
 
@@ -32,7 +33,9 @@ class Issue:
         self.contract = contract
         self.function = function_name
         self.address = address
-        self.description = description
+        self.description_head = description_head,
+        self.description_tail = description_tail,
+        self.description = "%s %s" % (description_head, description_tail)
         self.type = _type
         self.debug = debug
         self.swc_id = swc_id
@@ -163,8 +166,8 @@ class Report:
                     "swcID": issue.swc_id,
                     "swcTitle": title,
                     "description": {
-                        "head": "",
-                        "tail": ""
+                        "head": issue.description_head,
+                        "tail": issue.description_tail
                     },
                     "severity": issue.type,
                     "locations": [

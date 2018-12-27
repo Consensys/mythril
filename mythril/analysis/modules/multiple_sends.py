@@ -71,6 +71,13 @@ def _analyze_state(state: GlobalState):
 
     else:  # RETURN or STOP
         if len(calls) > 1:
+
+            description = (
+                "Multiple sends are executed in a single transaction. "
+                "Try to isolate each external call into its own transaction,"
+                " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
+            )
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
@@ -78,14 +85,10 @@ def _analyze_state(state: GlobalState):
                 swc_id=MULTIPLE_SENDS,
                 bytecode=state.environment.code.bytecode,
                 title="Multiple Calls",
-                _type="Informational",
+                _type="Medium",
+                description_head="",
+                description_tail=description,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            )
-
-            issue.description = (
-                "Multiple sends are executed in a single transaction. "
-                "Try to isolate each external call into its own transaction,"
-                " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
             )
 
             for call in calls:

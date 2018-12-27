@@ -42,9 +42,10 @@ def _analyze_state(state):
         address=instruction["address"],
         title=title,
         bytecode=state.environment.code.bytecode,
-        _type="Warning",
         swc_id=swc_id,
-        description=description,
+        _type="Medium",
+        description_head="",
+        description_tail=description,
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
     )
     return [issue]

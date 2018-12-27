@@ -78,13 +78,17 @@ def _concrete_call(
         address=address,
         swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
         bytecode=state.environment.code.bytecode,
-        title="Call data forwarded with delegatecall()",
-        _type="Informational",
+        title="Delegatecall Proxy",
+        _type="Low",
+        description_head="This contract forwards its call data via Delegatecall in its fallback function.",
+        description_tail="The smart contract implements the Delegatecall proxy pattern. Note that callers can execute "
+            + "arbitrary functions in the callee contract and that the callee contract can access the storage of the "
+            + "calling contract. Make sure that the callee contract is audited properly.",
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
     )
 
     issue.description = (
-        "This contract forwards its call data via DELEGATECALL in its fallback function. "
+        ""
         "This means that any function in the called contract can be executed. Note that the callee contract will have "
         "access to the storage of the calling contract.\n"
     )

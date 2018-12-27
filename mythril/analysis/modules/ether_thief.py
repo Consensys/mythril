@@ -60,10 +60,11 @@ def _analyze_state(state):
             function_name=node.function_name,
             address=instruction["address"],
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-            title="Ether thief",
-            _type="Warning",
+            title="Unprotected Ether Withdrawal",
+            _type="High",
             bytecode=state.environment.code.bytecode,
-            description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
+            description_head="It appears that anyone can withdraw Ether from the contract account.",
+            description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
             + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
             + " a vulnerability.",
             debug=debug,

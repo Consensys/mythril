@@ -46,8 +46,9 @@ def _analyze_state(state):
             swc_id=UNPROTECTED_SELFDESTRUCT,
             bytecode=state.environment.code.bytecode,
             title="Unchecked SUICIDE",
-            _type="Warning",
-            description=description,
+            _type="High",
+            description_head="",
+            description_tail=description,
             debug=debug,
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )

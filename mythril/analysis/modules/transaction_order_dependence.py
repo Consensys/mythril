@@ -39,6 +39,11 @@ class TxOrderDependenceModule(DetectionModule):
                 self._get_influencing_sstores(statespace, interesting_storages)
             )
 
+            description = (
+                "Possible transaction order dependence vulnerability: The value or "
+                "direction of the call statement is determined from a tainted storage location."
+            )
+
             # Build issue if necessary
             if len(changing_sstores) > 0:
                 node = call.node
@@ -50,17 +55,16 @@ class TxOrderDependenceModule(DetectionModule):
                     title="Transaction order dependence",
                     bytecode=call.state.environment.code.bytecode,
                     swc_id=TX_ORDER_DEPENDENCE,
-                    _type="Warning",
+                    _type="Medium",
+                    description_head="",
+                    description_tail=description,
                     gas_used=(
                         call.state.mstate.min_gas_used,
                         call.state.mstate.max_gas_used,
                     ),
                 )
 
-                issue.description = (
-                    "Possible transaction order dependence vulnerability: The value or "
-                    "direction of the call statement is determined from a tainted storage location."
-                )
+
                 issues.append(issue)
 
         return issues

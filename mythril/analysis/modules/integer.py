@@ -135,20 +135,23 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
             ostate = annotation.overflowing_state
             node = ostate.node
+
+            description = "This binary {} operation can result in {}.\n".format(
+                annotation.operator, title.lower()
+            )
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title=title,
-                _type="Warning",
+                _type="High",
+                description_head="",
+                description_tail=description,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
-            issue.description = "This binary {} operation can result in {}.\n".format(
-                annotation.operator, title.lower()
-            )
             try:
                 issue.debug = str(
                     solver.get_transaction_sequence(
@@ -168,6 +171,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
             ostate = annotation.overflowing_state
             node = ostate.node
+
+            description = "This binary {} operation can result in integer overflow.\n".format(
+                annotation.operator
+            )
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
@@ -175,13 +183,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
                 title="Integer Overflow",
-                _type="Warning",
+                _type="High",
+                description_head="",
+                description_tail=description,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
-            issue.description = "This binary {} operation can result in integer overflow.\n".format(
-                annotation.operator
-            )
             try:
                 issue.debug = str(
                     solver.get_transaction_sequence(

@@ -169,8 +169,9 @@ def _analyze_states(state: GlobalState) -> list:
                             address=address,
                             bytecode=call.state.environment.code.bytecode,
                             title="Dependence on predictable variable",
-                            _type="Informational",
-                            description=description,
+                            _type="Medium",
+                            description_head="",
+                            description_tail=description,
                             swc_id=PREDICTABLE_VARS_DEPENDENCE,
                             gas_used=(
                                 call.state.mstate.min_gas_used,
