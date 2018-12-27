@@ -147,7 +147,7 @@ class Report:
 
         for key, issue in self.issues.items():
 
-            if not issue.bytecode_hash in sourceList:
+            if issue.bytecode_hash not in sourceList:
                 idx = len(sourceList)
                 sourceList.append(issue.bytecode_hash)
             else:
@@ -169,7 +169,7 @@ class Report:
                     "severity": issue.type,
                     "locations": [
                         {
-                            "sourceMap": "%d:0:%d" % (issue.address, idx)
+                            "sourceMap": "%d:1:%d" % (issue.address, idx)
                         },
                     ],
                     "extra": {}
