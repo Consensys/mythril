@@ -34,7 +34,7 @@ def _analyze_state(state) -> list:
             function_name=node.function_name,
             address=address,
             swc_id=ASSERT_VIOLATION,
-            title="Exception state",
+            title="Exception State",
             _type="Low",
             description_head="",
             description_tail=description,

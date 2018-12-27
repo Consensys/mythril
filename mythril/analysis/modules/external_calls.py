@@ -50,7 +50,7 @@ def _analyze_state(state):
                 function_name=node.function_name,
                 address=address,
                 swc_id=REENTRANCY,
-                title="External call to user-supplied address",
+                title="External Call to User-supplied Address",
                 bytecode=state.environment.code.bytecode,
                 _type="Medium",
                 description_head="",

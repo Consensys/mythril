@@ -81,7 +81,7 @@ def _analyze_state(state: GlobalState) -> list:
                 function_name=node.function_name,
                 address=retval["address"],
                 bytecode=state.environment.code.bytecode,
-                title="Unchecked CALL return value",
+                title="Unchecked CALL Return Value",
                 swc_id=UNCHECKED_RET_VAL,
                 _type="Low",
                 description_head="",

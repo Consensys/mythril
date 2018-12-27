@@ -52,7 +52,7 @@ class TxOrderDependenceModule(DetectionModule):
                     contract=node.contract_name,
                     function_name=node.function_name,
                     address=instruction["address"],
-                    title="Transaction order dependence",
+                    title="Transaction Order Dependence",
                     bytecode=call.state.environment.code.bytecode,
                     swc_id=TX_ORDER_DEPENDENCE,
                     _type="Medium",

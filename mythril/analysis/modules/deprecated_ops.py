@@ -29,7 +29,7 @@ def _analyze_state(state):
 
     elif instruction["opcode"] == "CALLCODE":
         log.debug("CALLCODE in function " + node.function_name)
-        title = "Use of callcode"
+        title = "Use of Callcode"
         description = (
             "The function `{}` uses callcode. Callcode does not persist sender or value over the call. "
             "Use delegatecall instead.".format(node.function_name)

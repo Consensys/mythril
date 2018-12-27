@@ -45,7 +45,7 @@ def _analyze_state(state):
             address=instruction["address"],
             swc_id=UNPROTECTED_SELFDESTRUCT,
             bytecode=state.environment.code.bytecode,
-            title="Unchecked SUICIDE",
+            title="Unprotected Selfdestruct",
             _type="High",
             description_head="",
             description_tail=description,
@@ -62,7 +62,7 @@ def _analyze_state(state):
 class SuicideModule(DetectionModule):
     def __init__(self):
         super().__init__(
-            name="Unprotected Suicide",
+            name="Unprotected Selfdestruct",
             swc_id=UNPROTECTED_SELFDESTRUCT,
             description=(DESCRIPTION),
             entrypoint="callback",

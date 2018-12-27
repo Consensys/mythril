@@ -84,7 +84,7 @@ def _analyze_state(state: GlobalState):
                 address=instruction["address"],
                 swc_id=MULTIPLE_SENDS,
                 bytecode=state.environment.code.bytecode,
-                title="Multiple Calls",
+                title="Multiple Calls in a Single Transaction",
                 _type="Medium",
                 description_head="",
                 description_tail=description,

@@ -146,6 +146,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
+                title="Integer Underflow",
                 _type="High",
                 description_head="",
                 description_tail=description,
