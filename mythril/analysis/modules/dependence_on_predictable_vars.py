@@ -4,7 +4,7 @@ from mythril.analysis.ops import Call, VarType
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.call_helpers import get_call_from_state
-from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE
+from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
 import logging
@@ -16,7 +16,7 @@ class PredictableDependenceModule(DetectionModule):
     def __init__(self):
         super().__init__(
             name="Dependence of Predictable Variables",
-            swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, PREDICTABLE_VARS_DEPENDENCE),
+            swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS),
             description=(
                 "Check for CALLs that send >0 Ether as a result of computation "
                 "based on predictable variables such as block.coinbase, "
@@ -55,8 +55,7 @@ def _analyze_states(state: GlobalState) -> list:
 
     address = call.state.get_current_instruction()["address"]
 
-    description = "In the function `" + call.node.function_name + "` "
-    description += "the following predictable state variables are used to determine Ether recipient:\n"
+    description = "The contract sends Ether depending on the values of the following variables:\n"
 
     # First check: look for predictable state variables in node & call recipient constraints
 
@@ -75,8 +74,13 @@ def _analyze_states(state: GlobalState) -> list:
             swc_id = (
                 TIMESTAMP_DEPENDENCE
                 if item == "timestamp"
-                else PREDICTABLE_VARS_DEPENDENCE
+                else WEAK_RANDOMNESS
             )
+
+            description += "Note that the values of variables like coinbase, gaslimit, block number and timestamp " \
+                           "are predictable and/or can be manipulated by a malicious miner. "\
+                           "Don't use them for random number generation or to make critical decisions."
+
             issue = Issue(
                 contract=call.node.contract_name,
                 function_name=call.node.function_name,
@@ -84,8 +88,9 @@ def _analyze_states(state: GlobalState) -> list:
                 swc_id=swc_id,
                 bytecode=call.state.environment.code.bytecode,
                 title="Dependence on predictable environment variable",
-                severity="Warning",
-                description=description,
+                severity="Low",
+                description_head="Sending of Ether depends on a predictable variable.",
+                description_tail=description,
                 gas_used=(
                     call.state.mstate.min_gas_used,
                     call.state.mstate.max_gas_used,
@@ -97,7 +102,6 @@ def _analyze_states(state: GlobalState) -> list:
 
     for constraint in call.node.constraints[:] + [call.to]:
         if "blockhash" in str(constraint):
-            description = "In the function `" + call.node.function_name + "` "
             if "number" in str(constraint):
                 m = re.search(r"blockhash\w+(\s-\s(\d+))*", str(constraint))
                 if m and solve(call):
@@ -105,8 +109,8 @@ def _analyze_states(state: GlobalState) -> list:
                     found = m.group(1)
 
                     if found:  # block.blockhash(block.number - N)
-                        description += (
-                            "predictable expression 'block.blockhash(block.number - "
+                        description = (
+                            "The predictable expression 'block.blockhash(block.number - "
                             + m.group(2)
                             + ")' is used to determine Ether recipient"
                         )
@@ -117,13 +121,13 @@ def _analyze_states(state: GlobalState) -> list:
                     elif "storage" in str(
                         constraint
                     ):  # block.blockhash(block.number - storage_0)
-                        description += (
-                            "predictable expression 'block.blockhash(block.number - "
+                        description = (
+                            "The predictable expression 'block.blockhash(block.number - "
                             + "some_storage_var)' is used to determine Ether recipient"
                         )
                     else:  # block.blockhash(block.number)
-                        description += (
-                            "predictable expression 'block.blockhash(block.number)'"
+                        description = (
+                            "The predictable expression 'block.blockhash(block.number)'"
                             + " is used to determine Ether recipient"
                         )
                         description += ", this expression will always be equal to zero."
@@ -134,10 +138,10 @@ def _analyze_states(state: GlobalState) -> list:
                         address=address,
                         bytecode=call.state.environment.code.bytecode,
                         title="Dependence on Predictable Variable",
-                        severity="Warning",
-                        description_head="",
+                        severity="Low",
+                        description_head="Sending of Ether depends on the blockhash.",
                         description_tail=description,
-                        swc_id=PREDICTABLE_VARS_DEPENDENCE,
+                        swc_id=WEAK_RANDOMNESS,
                         gas_used=(
                             call.state.mstate.min_gas_used,
                             call.state.mstate.max_gas_used,
@@ -160,8 +164,8 @@ def _analyze_states(state: GlobalState) -> list:
 
                     index = r.group(1)
                     if index and solve(call):
-                        description += (
-                            "block.blockhash() is calculated using a value from storage "
+                        description = (
+                            "Block.blockhash() is calculated using a value from storage "
                             "at index {}".format(index)
                         )
                         issue = Issue(
@@ -170,10 +174,10 @@ def _analyze_states(state: GlobalState) -> list:
                             address=address,
                             bytecode=call.state.environment.code.bytecode,
                             title="Dependence on Predictable Variable",
-                            severity="Medium",
-                            description_head="",
+                            severity="Low",
+                            description_head="Sending of Ether depends on the blockhash.",
                             description_tail=description,
-                            swc_id=PREDICTABLE_VARS_DEPENDENCE,
+                            swc_id=WEAK_RANDOMNESS,
                             gas_used=(
                                 call.state.mstate.min_gas_used,
                                 call.state.mstate.max_gas_used,

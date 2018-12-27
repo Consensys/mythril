@@ -78,7 +78,7 @@ def _analyze_state(state):
                 title="External Call To Fixed Address",
                 bytecode=state.environment.code.bytecode,
                 severity="Low",
-                description_head=description_head ,
+                description_head=description_head,
                 description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
