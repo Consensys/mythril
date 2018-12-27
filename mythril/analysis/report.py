@@ -41,6 +41,16 @@ class Issue:
         self.lineno = None
         self.source_mapping = None
 
+        try:
+            keccak = sha3.keccak_256()
+            keccak.update(bytes.fromhex(bytecode))
+            self.bytecode_hash = "0x" + keccak.hexdigest()
+        except ValueError:
+            log.debug(
+                "Unable to change the bytecode to bytes. Bytecode: {}".format(bytecode)
+            )
+            self.bytecode_hash = ""
+
     @property
     def as_dict(self):
 
