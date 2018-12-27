@@ -130,20 +130,44 @@ class Report:
 
     def as_swc_standard_format(self):
         """ Format defined for integration and correlation"""
-        result = {
-            "issues": [
+
+        _issues = []
+        sourceList = []
+
+        for key, issue in self.issues.items():
+
+            if not issue.bytecode_hash in sourceList:
+                idx = len(sourceList)
+                sourceList.append(issue.bytecode_hash)
+            else:
+                idx = sourceList.index(issue.bytecode_hash)
+
+            _issues.append(
                 {
-                    "swcID": "SWC-{}".format(issue.swc_id),
-                    "swcTitle": SWC_TO_TITLE[issue.swc_id],
-                    "bytecodeOffset": issue.address,
+                    "swcID": issue.swc_id,
+                    "swcTitle": issue.title,
+                    "description": {
+                        "head": "",
+                        "tail": ""
+                    },
+                    "severity": issue.type,
+                    "locations": [
+                        {
+                            "sourceMap": "%d:0:%d" % (issue.address, idx)
+                        },
+                    ],
+                    "extra": {}
                 }
-                for issue in self.issues.values()
-            ],
-            "sourceType": self.source_type,
-            "sourceFormat": self.source_format,
-            "sourceList": self.source_list,
-            "meta": self.meta,
+            )
+
+        result = {
+            "issues": _issues,
+            "sourceType": "raw-bytecode",
+            "sourceFormat": "evm-byzantium-bytecode",
+            "sourceList": sourceList,
+            "meta": {}
         }
+
         return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):
