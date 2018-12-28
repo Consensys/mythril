@@ -1,8 +1,8 @@
 # Analysis results for test-filename.sol
 
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `_function_0x141f32ff`
 - PC address: 618
@@ -10,11 +10,12 @@
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## Use of callcode
+## Use of Callcode
 - SWC ID: 111
-- Type: Warning
+- Severity: Medium
 - Contract: Unknown
 - Function name: `_function_0x141f32ff`
 - PC address: 618
@@ -22,11 +23,12 @@ The return value of an external call is not checked. Note that execution continu
 
 ### Description
 
-The function `_function_0x141f32ff` uses callcode. Callcode does not persist sender or value over the call. Use delegatecall instead.
+Use of callcode is deprecated.
+The function `_function_0x141f32ff` uses the callcode function. Callcode does not persist sender or value over the call. Use delegatecall instead.
 
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `_function_0x9b58bc26`
 - PC address: 849
@@ -34,11 +36,12 @@ The function `_function_0x141f32ff` uses callcode. Callcode does not persist sen
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## External call to user-supplied address
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Type: Warning
+- Severity: Medium
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1038
@@ -46,11 +49,12 @@ The return value of an external call is not checked. Note that execution continu
 
 ### Description
 
-The contract executes a function call with high gas to a user-supplied address. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent unanticipated effects on the contract state.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on thecontract state.
 
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1038
@@ -58,4 +62,5 @@ The contract executes a function call with high gas to a user-supplied address. 
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.

@@ -2,7 +2,7 @@
 
 ## Integer Overflow
 - SWC ID: 101
-- Type: Warning
+- Severity: High
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 567
@@ -10,11 +10,12 @@
 
 ### Description
 
-This binary subtraction operation can result in integer overflow.
+The subtraction can overflow.
+The binary subtraction operation can result in an integer overflow.
 
 ## Integer Underflow
 - SWC ID: 101
-- Type: Warning
+- Severity: High
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 567
@@ -22,11 +23,12 @@ This binary subtraction operation can result in integer overflow.
 
 ### Description
 
-This binary subtraction operation can result in integer underflow.
+The subtraction can underflow.
+The binary subtraction operation can result in an integer underflow.
 
 ## Integer Underflow
 - SWC ID: 101
-- Type: Warning
+- Severity: High
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 649
@@ -34,4 +36,5 @@ This binary subtraction operation can result in integer underflow.
 
 ### Description
 
-This binary subtraction operation can result in integer underflow.
+The subtraction can underflow.
+The binary subtraction operation can result in an integer underflow.
