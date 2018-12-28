@@ -75,9 +75,8 @@ def _assert_empty(changed_files, postfix):
     assert message == "", message
 
 
-def _assert_empty_json(changed_files):
+def _assert_empty_json(changed_files, postfix=".json"):
     """ Asserts there are no changed files and otherwise builds error message"""
-    postfix = ".json"
     expected = []
     actual = []
 
@@ -121,9 +120,7 @@ def _get_changed_files(postfix, report_builder, reports):
             yield input_file
 
 
-def _get_changed_files_json(report_builder, reports):
-    postfix = ".json"
-
+def _get_changed_files_json(report_builder, reports, postfix=".json"):
     def ordered(obj):
         if isinstance(obj, dict):
             return sorted((k, ordered(v)) for k, v in obj.items())
@@ -170,11 +167,11 @@ def test_text_report(reports):
 
 
 def test_jsonv2_report(reports):
-    _assert_empty(
-        _get_changed_files(
-            ".jsonv2",
-            lambda report: _fix_path(report.as_swc_standard_format()),
+    _assert_empty_json(
+        _get_changed_files_json(
+            lambda report: _fix_path(report.as_swc_standard_format()).strip(),
             reports,
+            ".jsonv2",
         ),
         ".jsonv2",
     )
