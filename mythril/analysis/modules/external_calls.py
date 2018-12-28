@@ -70,8 +70,8 @@ def _analyze_state(state):
             debug = str(transaction_sequence)
             description_head = "The contract executes an external message call."
             description_tail = (
-                "An external function call to a fixed contract address is executed. Note"
-                "that the callee contract should be reviewed carefully."
+                "An external function call to a fixed contract address is executed. Make sure "
+                "that the callee contract has been reviewed carefully."
             )
 
             issue = Issue(
