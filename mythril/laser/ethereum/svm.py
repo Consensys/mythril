@@ -70,7 +70,7 @@ class LaserEVM:
         self.max_depth = max_depth
         self.transaction_count = transaction_count
 
-        self.execution_timeout = execution_timeout
+        self.execution_timeout = execution_timeout or 0
         self.create_timeout = create_timeout
 
         self.time = None
