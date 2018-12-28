@@ -125,21 +125,7 @@ class Report:
         )
 
     def as_json(self):
-        result = {
-            "issues": [
-                {
-                    "swcID": "SWC-{}".format(issue.swc_id),
-                    "swcTitle": SWC_TO_TITLE[issue.swc_id],
-                    "locations": [{"sourceMap": issue.source_mapping}],
-                    "extra": "",
-                }
-                for issue in self.issues.values()
-            ],
-            "sourceType": self.source_type,
-            "sourceFormat": self.source_format,
-            "sourceList": self.source_list,
-            "meta": self.meta,
-        }
+        result = {"success": True, "error": None, "issues": self.sorted_issues()}
         return json.dumps(result, sort_keys=True)
 
     def as_swc_standard_format(self):
