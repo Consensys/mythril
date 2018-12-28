@@ -44,7 +44,7 @@ class Storage:
                 except ValueError:
                     pass
         if self.concrete:
-            return 0
+            return symbol_factory.BitVecVal(0, 256)
         self._storage[item] = symbol_factory.BitVecVal(0, 256)
         return self._storage[item]
 
