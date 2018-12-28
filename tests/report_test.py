@@ -117,7 +117,6 @@ def _get_changed_files(postfix, report_builder, reports):
         output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + postfix)
         output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)
         output_current.write_text(report_builder(report))
-
         if not (output_expected.read_text() == output_current.read_text()):
             yield input_file
 
@@ -167,4 +166,15 @@ def test_text_report(reports):
             ".text", lambda report: _fix_path(report.as_text()), reports
         ),
         ".text",
+    )
+
+
+def test_jsonv2_report(reports):
+    _assert_empty(
+        _get_changed_files(
+            ".jsonv2",
+            lambda report: _fix_path(report.as_swc_standard_format()),
+            reports,
+        ),
+        ".jsonv2",
     )
