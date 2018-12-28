@@ -35,7 +35,7 @@ class Issue:
         self.address = address
         self.description_head = (description_head,)
         self.description_tail = (description_tail,)
-        self.description = "%s %s" % (description_head, description_tail)
+        self.description = "%s\n%s" % (description_head, description_tail)
         self.severity = severity
         self.debug = debug
         self.swc_id = swc_id
