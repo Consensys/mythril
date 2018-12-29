@@ -74,6 +74,12 @@ jobs:
       #     command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
       #     working_directory: /home
 
+      - run:
+          name: Call webhook
+          command: |
+            curl -I -X POST -H -d "https://circleci.com/api/v1/project/${ORGANIZATION}/${WEBHOOK_PROJECT}/tree/master?circle-token=${CIRCLE_TOKEN}" | head -n 1 | cut -d$' ' -f2
+
+
   pypi_release:
     <<: *defaults
     steps:
