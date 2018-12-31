@@ -496,6 +496,7 @@ class Mythril(object):
                     create_timeout=create_timeout,
                     transaction_count=transaction_count,
                     modules=modules,
+                    compulsory_statespace=False,
                 )
                 issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:
