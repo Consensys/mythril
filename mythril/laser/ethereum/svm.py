@@ -182,9 +182,12 @@ class LaserEVM:
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
         final_states = []
         for global_state in self.strategy:
-            if self.create_timeout and create:
-                if self.time + timedelta(seconds=self.create_timeout) <= datetime.now():
-                    return final_states + [global_state] if track_gas else None
+            if (
+                self.create_timeout
+                and create
+                and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
+            ):
+                return final_states + [global_state] if track_gas else None
 
             try:
                 new_states, op_code = self.execute_state(global_state)
