@@ -56,7 +56,7 @@ def analyze_truffle_project(sigs, args):
                 create_timeout=args.create_timeout,
                 execution_timeout=args.execution_timeout,
                 transaction_count=args.transaction_count,
-                modules=args.modules,
+                modules=args.modules or [],
                 compulsory_statespace=False,
             )
             issues = fire_lasers(sym)
