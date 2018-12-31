@@ -95,9 +95,9 @@ class ExternalCalls(DetectionModule):
         super().__init__(
             name="External calls",
             swc_id=REENTRANCY,
-            hooks=["CALL"],
             description=(DESCRIPTION),
             entrypoint="callback",
+            pre_hooks=["CALL"],
         )
         self._issues = []
 
