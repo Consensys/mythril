@@ -17,10 +17,11 @@ def _analyze_state(state):
 
     if instruction["opcode"] == "ORIGIN":
         log.debug("ORIGIN in function " + node.function_name)
-        title = "Use of tx.origin is deprecated."
+        title = "Use of tx.origin"
         description_head = "Use of tx.origin is deprecated."
         description_tail = (
-            "The function `{}` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. "
+            "The smart contract retrieves the transaction origin (tx.origin) using msg.origin. "
+            "Use of msg.origin is deprecated and the instruction may be removed in the future. "
             "Use msg.sender instead.\nSee also: "
             "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin".format(
                 node.function_name
@@ -33,8 +34,9 @@ def _analyze_state(state):
         title = "Use of Callcode"
         description_head = "Use of callcode is deprecated."
         description_tail = (
-            "The function `{}` uses the callcode function. Callcode does not persist sender or value over the call. "
-            "Use delegatecall instead.".format(node.function_name)
+            "The callcode method executes code of another contract in the context of the caller account. "
+            "Due to a bug in the implementation it does not persist sender and value over the call. It was "
+            "therefore deprecated and may be removed in the future. Use the delegatecall method instead."
         )
         swc_id = DEPRICATED_FUNCTIONS_USAGE
 

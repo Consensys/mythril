@@ -24,7 +24,7 @@ External calls return a boolean value. If the callee contract halts with an exce
 ### Description
 
 Use of callcode is deprecated.
-The function `_function_0x141f32ff` uses the callcode function. Callcode does not persist sender or value over the call. Use delegatecall instead.
+The callcode method executes code of another contract in the context of the caller account. Due to a bug in the implementation it does not persist sender and value over the call. It was therefore deprecated and may be removed in the future. Use the delegatecall method instead.
 
 ## Unchecked Call Return Value
 - SWC ID: 104

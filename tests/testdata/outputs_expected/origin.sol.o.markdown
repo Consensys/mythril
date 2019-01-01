@@ -1,6 +1,6 @@
 # Analysis results for test-filename.sol
 
-## Use of tx.origin is deprecated.
+## Use of tx.origin
 - SWC ID: 111
 - Severity: Medium
 - Contract: Unknown
@@ -11,5 +11,5 @@
 ### Description
 
 Use of tx.origin is deprecated.
-The function `transferOwnership(address)` retrieves the transaction origin (tx.origin) using the ORIGIN opcode. Use msg.sender instead.
+The smart contract retrieves the transaction origin (tx.origin) using msg.origin. Use of msg.origin is deprecated and the instruction may be removed in the future. Use msg.sender instead.
 See also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin
