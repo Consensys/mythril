@@ -29,4 +29,3 @@ class Source:
 
         else:
             assert False  # Fail hard
-        self.meta = ""
