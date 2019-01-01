@@ -88,12 +88,6 @@ def _concrete_call(
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
     )
 
-    issue.description = (
-        ""
-        "This means that any function in the called contract can be executed. Note that the callee contract will have "
-        "access to the storage of the calling contract.\n"
-    )
-
     target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
     issue.description += "DELEGATECALL target: {}".format(target)
 
