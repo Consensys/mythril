@@ -166,7 +166,9 @@ def _analyze_states(state: GlobalState) -> list:
                     if index and solve(call):
                         description = (
                             "A block hash is calculated using the block.blockhash(uint blockNumber) method. "
-                            "The block number is obtained from storage index {}".format(index)
+                            "The block number is obtained from storage index {}".format(
+                                index
+                            )
                         )
                         issue = Issue(
                             contract=call.node.contract_name,
