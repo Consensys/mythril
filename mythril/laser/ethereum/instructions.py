@@ -1281,7 +1281,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1315,7 +1315,6 @@ class Instruction:
             ),
             callee_account=callee_account,
             call_data=call_data,
-            call_data_type=call_data_type,
             call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
@@ -1388,7 +1387,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1411,7 +1410,6 @@ class Instruction:
             caller=environment.address,
             callee_account=environment.active_account,
             call_data=call_data,
-            call_data_type=call_data_type,
             call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
@@ -1421,7 +1419,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1482,7 +1480,7 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1505,7 +1503,6 @@ class Instruction:
             caller=environment.sender,
             callee_account=environment.active_account,
             call_data=call_data,
-            call_data_type=call_data_type,
             call_value=environment.callvalue,
         )
         raise TransactionStartSignal(transaction, self.op_code)
@@ -1515,7 +1512,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1575,7 +1572,7 @@ class Instruction:
         # TODO: implement me
         instr = global_state.get_current_instruction()
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
