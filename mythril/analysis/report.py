@@ -99,14 +99,20 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, source=Source()):
+    def __init__(self, verbose=False, source=None):
         self.issues = {}
         self.verbose = verbose
         self.solc_version = ""
-        self.source_type = source.source_type
-        self.source_format = source.source_format
-        self.source_list = source.source_list
-        self.meta = source.meta
+        self.meta = {}
+
+        if source is not None:
+            self.source = source
+        else:
+            self.source = Source()
+
+        self.source_type = self.source.source_type
+        self.source_format = self.source.source_format
+        self.source_list = self.source.source_list
 
     def sorted_issues(self):
         issue_list = [issue.as_dict for key, issue in self.issues.items()]
