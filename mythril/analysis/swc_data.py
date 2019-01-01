@@ -20,6 +20,12 @@ SHADOWING_STATE_VARIABLES = "119"
 WEAK_RANDOMNESS = "120"
 SIGNATURE_REPLAY = "121"
 IMPROPER_VERIFICATION_BASED_ON_MSG_SENDER = "122"
+REQUIREMENT_VIOLATION = "123"
+WRITE_TO__RBIRARY_STORAGE = "124"
+INCORRECT_INHERITANCE_ORDER = "125"
+ARBITRARY_JUMP = "127"
+DOS_WITH_BLOCK_GAS_LIMIT = "128"
+TYPOGRAPHICAL_ERROR = "129"
 
 PREDICTABLE_VARS_DEPENDENCE = (
     "N/A"
@@ -49,4 +55,10 @@ SWC_TO_TITLE = {
     "120": "Weak Sources of Randomness from Chain Attributes",
     "121": "Missing Protection against Signature Replay Attacks",
     "122": "Lack of Proper Signature Verification",
+    "123": "Requirement Violation",
+    "124": "Write to Arbitrary Storage Location",
+    "125": "Incorrect Inheritance Order",
+    "127": "Arbitrary Jump with Function Type Variable",
+    "128": "DoS With Block Gas Limit",
+    "129": "Typographical Error",
 }
