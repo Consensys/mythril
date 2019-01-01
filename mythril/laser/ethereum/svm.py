@@ -149,7 +149,11 @@ class LaserEVM:
             initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
-            log.info("Starting message call transaction, iteration: {}".format(i))
+            log.info(
+                "Starting message call transaction, iteration: {}, {} initial states".format(
+                    i, len(self.open_states)
+                )
+            )
 
             execute_message_call(self, address)
 
