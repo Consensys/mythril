@@ -1,1 +1,45 @@
-{"error": null, "issues": [{"SourceMap": null, "address": 567, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The subtraction can overflow.\nThe binary subtraction operation can result in an integer overflow.\n", "function": "sendeth(address,uint256)", "max_gas_used": 1053, "min_gas_used": 768, "severity": "High", "swc-id": "101", "title": "Integer Overflow"}, {"SourceMap": null, "address": 567, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The subtraction can underflow.\nThe binary subtraction operation can result in an integer underflow.\n", "function": "sendeth(address,uint256)", "max_gas_used": 1774, "min_gas_used": 1299, "severity": "High", "swc-id": "101", "title": "Integer Underflow"}, {"SourceMap": null, "address": 649, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The subtraction can underflow.\nThe binary subtraction operation can result in an integer underflow.\n", "function": "sendeth(address,uint256)", "max_gas_used": 1774, "min_gas_used": 1299, "severity": "High", "swc-id": "101", "title": "Integer Underflow"}], "success": true}
+{
+    "error": null,
+    "success": true,
+    "issues": [
+        {
+            "severity": "High",
+            "SourceMap": null,
+            "title": "Integer Overflow",
+            "max_gas_used": 1053,
+            "description": "The subtraction can overflow.\nThe binary subtraction operation can result in an integer overflow.\n",
+            "swc-id": "101",
+            "contract": "Unknown",
+            "function": "sendeth(address,uint256)",
+            "address": 567,
+            "min_gas_used": 768,
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "debug": "<DEBUG-DATA>",
+            "min_gas_used": 1299,
+            "function": "sendeth(address,uint256)",
+            "address": 567,
+            "contract": "Unknown",
+            "swc-id": "101",
+            "description": "The subtraction can underflow.\nThe binary subtraction operation can result in an integer underflow.\n",
+            "max_gas_used": 1774,
+            "SourceMap": null,
+            "title": "Integer Underflow",
+            "severity": "High"
+        },
+        {
+            "description": "The subtraction can underflow.\nThe binary subtraction operation can result in an integer underflow.\n",
+            "max_gas_used": 1774,
+            "title": "Integer Underflow",
+            "SourceMap": null,
+            "severity": "High",
+            "debug": "<DEBUG-DATA>",
+            "min_gas_used": 1299,
+            "address": 649,
+            "function": "sendeth(address,uint256)",
+            "contract": "Unknown",
+            "swc-id": "101"
+        }
+    ]
+}

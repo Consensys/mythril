@@ -1,1 +1,58 @@
-{"error": null, "issues": [{"SourceMap": null, "address": 446, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.", "function": "assert3(uint256)", "max_gas_used": 301, "min_gas_used": 206, "severity": "Low", "swc-id": "110", "title": "Exception State"}, {"SourceMap": null, "address": 484, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.", "function": "arrayaccess(uint256)", "max_gas_used": 351, "min_gas_used": 256, "severity": "Low", "swc-id": "110", "title": "Exception State"}, {"SourceMap": null, "address": 506, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.", "function": "divisionby0(uint256)", "max_gas_used": 367, "min_gas_used": 272, "severity": "Low", "swc-id": "110", "title": "Exception State"}, {"SourceMap": null, "address": 531, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.", "function": "assert1()", "max_gas_used": 363, "min_gas_used": 268, "severity": "Low", "swc-id": "110", "title": "Exception State"}], "success": true}
+{
+    "success": true,
+    "error": null,
+    "issues": [
+        {
+            "title": "Exception State",
+            "severity": "Low",
+            "max_gas_used": 301,
+            "function": "assert3(uint256)",
+            "address": 446,
+            "min_gas_used": 206,
+            "contract": "Unknown",
+            "swc-id": "110",
+            "SourceMap": null,
+            "debug": "<DEBUG-DATA>",
+            "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking."
+        },
+        {
+            "swc-id": "110",
+            "min_gas_used": 256,
+            "contract": "Unknown",
+            "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.",
+            "debug": "<DEBUG-DATA>",
+            "SourceMap": null,
+            "severity": "Low",
+            "max_gas_used": 351,
+            "title": "Exception State",
+            "address": 484,
+            "function": "arrayaccess(uint256)"
+        },
+        {
+            "max_gas_used": 367,
+            "severity": "Low",
+            "title": "Exception State",
+            "address": 506,
+            "function": "divisionby0(uint256)",
+            "swc-id": "110",
+            "min_gas_used": 272,
+            "contract": "Unknown",
+            "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.",
+            "debug": "<DEBUG-DATA>",
+            "SourceMap": null
+        },
+        {
+            "title": "Exception State",
+            "max_gas_used": 363,
+            "severity": "Low",
+            "function": "assert1()",
+            "address": 531,
+            "min_gas_used": 268,
+            "contract": "Unknown",
+            "swc-id": "110",
+            "SourceMap": null,
+            "debug": "<DEBUG-DATA>",
+            "description": "A reachable exception has been detected.\nIt is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking."
+        }
+    ]
+}

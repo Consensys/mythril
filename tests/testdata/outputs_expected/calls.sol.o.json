@@ -1,1 +1,110 @@
-{"error": null, "issues": [{"SourceMap": null, "address": 661, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.", "function": "thisisfine()", "max_gas_used": 1254, "min_gas_used": 643, "severity": "Low", "swc-id": "107", "title": "External Call To Fixed Address"}, {"SourceMap": null, "address": 661, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.", "function": "thisisfine()", "max_gas_used": 35972, "min_gas_used": 1361, "severity": "Low", "swc-id": "104", "title": "Unchecked Call Return Value"}, {"SourceMap": null, "address": 779, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.", "function": "callstoredaddress()", "max_gas_used": 1298, "min_gas_used": 687, "severity": "Low", "swc-id": "107", "title": "External Call To Fixed Address"}, {"SourceMap": null, "address": 779, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.", "function": "callstoredaddress()", "max_gas_used": 36016, "min_gas_used": 1405, "severity": "Low", "swc-id": "104", "title": "Unchecked Call Return Value"}, {"SourceMap": null, "address": 858, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.", "function": "reentrancy()", "max_gas_used": 1320, "min_gas_used": 709, "severity": "Low", "swc-id": "107", "title": "External Call To Fixed Address"}, {"SourceMap": null, "address": 858, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.", "function": "reentrancy()", "max_gas_used": 61052, "min_gas_used": 6441, "severity": "Low", "swc-id": "104", "title": "Unchecked Call Return Value"}, {"SourceMap": null, "address": 912, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on thecontract state.", "function": "calluseraddress(address)", "max_gas_used": 616, "min_gas_used": 335, "severity": "Medium", "swc-id": "107", "title": "External Call To User-Supplied Address"}, {"SourceMap": null, "address": 912, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.", "function": "calluseraddress(address)", "max_gas_used": 35336, "min_gas_used": 1055, "severity": "Low", "swc-id": "104", "title": "Unchecked Call Return Value"}], "success": true}
+{
+    "success": true,
+    "error": null,
+    "issues": [
+        {
+            "debug": "<DEBUG-DATA>",
+            "function": "thisisfine()",
+            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "title": "External Call To Fixed Address",
+            "min_gas_used": 643,
+            "severity": "Low",
+            "SourceMap": null,
+            "contract": "Unknown",
+            "swc-id": "107",
+            "max_gas_used": 1254,
+            "address": 661
+        },
+        {
+            "function": "thisisfine()",
+            "debug": "<DEBUG-DATA>",
+            "title": "Unchecked Call Return Value",
+            "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
+            "SourceMap": null,
+            "severity": "Low",
+            "min_gas_used": 1361,
+            "address": 661,
+            "max_gas_used": 35972,
+            "swc-id": "104",
+            "contract": "Unknown"
+        },
+        {
+            "max_gas_used": 1298,
+            "address": 779,
+            "contract": "Unknown",
+            "swc-id": "107",
+            "severity": "Low",
+            "SourceMap": null,
+            "min_gas_used": 687,
+            "title": "External Call To Fixed Address",
+            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "function": "callstoredaddress()",
+            "debug": "<DEBUG-DATA>"
+        },
+        {
+            "title": "Unchecked Call Return Value",
+            "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
+            "function": "callstoredaddress()",
+            "debug": "<DEBUG-DATA>",
+            "max_gas_used": 36016,
+            "address": 779,
+            "contract": "Unknown",
+            "swc-id": "104",
+            "severity": "Low",
+            "SourceMap": null,
+            "min_gas_used": 1405
+        },
+        {
+            "contract": "Unknown",
+            "swc-id": "107",
+            "max_gas_used": 1320,
+            "address": 858,
+            "min_gas_used": 709,
+            "severity": "Low",
+            "SourceMap": null,
+            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "title": "External Call To Fixed Address",
+            "debug": "<DEBUG-DATA>",
+            "function": "reentrancy()"
+        },
+        {
+            "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
+            "title": "Unchecked Call Return Value",
+            "debug": "<DEBUG-DATA>",
+            "function": "reentrancy()",
+            "contract": "Unknown",
+            "swc-id": "104",
+            "max_gas_used": 61052,
+            "address": 858,
+            "min_gas_used": 6441,
+            "severity": "Low",
+            "SourceMap": null
+        },
+        {
+            "severity": "Medium",
+            "SourceMap": null,
+            "min_gas_used": 335,
+            "max_gas_used": 616,
+            "address": 912,
+            "contract": "Unknown",
+            "swc-id": "107",
+            "function": "calluseraddress(address)",
+            "debug": "<DEBUG-DATA>",
+            "title": "External Call To User-Supplied Address",
+            "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on thecontract state."
+        },
+        {
+            "min_gas_used": 1055,
+            "SourceMap": null,
+            "severity": "Low",
+            "swc-id": "104",
+            "contract": "Unknown",
+            "address": 912,
+            "max_gas_used": 35336,
+            "debug": "<DEBUG-DATA>",
+            "function": "calluseraddress(address)",
+            "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
+            "title": "Unchecked Call Return Value"
+        }
+    ]
+}

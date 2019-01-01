@@ -13,7 +13,7 @@
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## Use of Callcode
+## Use of callcode
 - SWC ID: 111
 - Severity: Medium
 - Contract: Unknown

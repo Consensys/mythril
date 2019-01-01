@@ -8,7 +8,7 @@
             "function": "_function_0x4229616d",
             "type": "Warning",
             "address": 1599,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Ether send",
@@ -16,7 +16,7 @@
             "function": "_function_0xb4022950",
             "type": "Warning",
             "address": 1940,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Ether send",
@@ -24,7 +24,7 @@
             "function": "_function_0xb4022950",
             "type": "Warning",
             "address": 2582,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Exception state",
@@ -32,7 +32,7 @@
             "function": "_function_0x57d4021b",
             "type": "Informational",
             "address": 1653,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Exception state",
@@ -40,7 +40,7 @@
             "function": "_function_0x9dbc4f9b",
             "type": "Informational",
             "address": 2085,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -48,7 +48,7 @@
             "function": "fallback",
             "type": "Informational",
             "address": 3111,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -56,7 +56,7 @@
             "function": "fallback",
             "type": "Informational",
             "address": 3140,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -64,7 +64,7 @@
             "function": "fallback",
             "type": "Informational",
             "address": 2950,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -72,7 +72,7 @@
             "function": "fallback",
             "type": "Informational",
             "address": 1268,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -80,7 +80,7 @@
             "function": "_function_0x09dfdc71",
             "type": "Informational",
             "address": 310,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -88,7 +88,7 @@
             "function": "_function_0x09dfdc71",
             "type": "Informational",
             "address": 1316,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -96,7 +96,7 @@
             "function": "_function_0x253459e3",
             "type": "Informational",
             "address": 1375,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -104,7 +104,7 @@
             "function": "_function_0x4229616d",
             "type": "Informational",
             "address": 1511,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -112,7 +112,7 @@
             "function": "_function_0x57d4021b",
             "type": "Informational",
             "address": 1679,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -120,7 +120,7 @@
             "function": "_function_0x6fbaaa1e",
             "type": "Informational",
             "address": 618,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -128,7 +128,7 @@
             "function": "_function_0x8a5fb3ca",
             "type": "Informational",
             "address": 805,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Invariant branch condition",
@@ -136,7 +136,7 @@
             "function": "_function_0x9dbc4f9b",
             "type": "Informational",
             "address": 2187,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Unchecked CALL return value",
@@ -144,7 +144,7 @@
             "function": "_function_0x4229616d",
             "type": "Informational",
             "address": 1599,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Unchecked CALL return value",
@@ -152,7 +152,7 @@
             "function": "_function_0xb4022950",
             "type": "Informational",
             "address": 1940,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Unchecked CALL return value",
@@ -160,7 +160,7 @@
             "function": "_function_0xb4022950",
             "type": "Informational",
             "address": 2582,
-            "debug": "<DEBUG-DATA>",
-        },
-    ],
+            "debug": "<DEBUG-DATA>"
+        }
+    ]
 }

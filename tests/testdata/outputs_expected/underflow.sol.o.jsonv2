@@ -1,1 +1,67 @@
-{"issues": [{"description": {"head": ["The subtraction can overflow."], "tail": ["The binary subtraction operation can result in an integer overflow.\n"]}, "extra": {}, "locations": [{"sourceMap": "567:1:0"}], "severity": "High", "swcID": "101", "swcTitle": "Integer Overflow and Underflow"}, {"description": {"head": ["The subtraction can underflow."], "tail": ["The binary subtraction operation can result in an integer underflow.\n"]}, "extra": {}, "locations": [{"sourceMap": "567:1:0"}], "severity": "High", "swcID": "101", "swcTitle": "Integer Overflow and Underflow"}, {"description": {"head": ["The subtraction can underflow."], "tail": ["The binary subtraction operation can result in an integer underflow.\n"]}, "extra": {}, "locations": [{"sourceMap": "649:1:0"}], "severity": "High", "swcID": "101", "swcTitle": "Integer Overflow and Underflow"}], "meta": {}, "sourceFormat": "evm-byzantium-bytecode", "sourceList": ["0xabef56740bf7795a9f8732e4781ebd27f2977f8a4997e3ff11cee79a4ba6c0ce"], "sourceType": "raw-bytecode"}
+{
+    "issues": [
+        {
+            "description": {
+                "head": [
+                    "The subtraction can overflow."
+                ],
+                "tail": [
+                    "The binary subtraction operation can result in an integer overflow.\n"
+                ]
+            },
+            "extra": {},
+            "locations": [
+                {
+                    "sourceMap": "567:1:0"
+                }
+            ],
+            "severity": "High",
+            "swcID": "101",
+            "swcTitle": "Integer Overflow and Underflow"
+        },
+        {
+            "description": {
+                "head": [
+                    "The subtraction can underflow."
+                ],
+                "tail": [
+                    "The binary subtraction operation can result in an integer underflow.\n"
+                ]
+            },
+            "extra": {},
+            "locations": [
+                {
+                    "sourceMap": "567:1:0"
+                }
+            ],
+            "severity": "High",
+            "swcID": "101",
+            "swcTitle": "Integer Overflow and Underflow"
+        },
+        {
+            "description": {
+                "head": [
+                    "The subtraction can underflow."
+                ],
+                "tail": [
+                    "The binary subtraction operation can result in an integer underflow.\n"
+                ]
+            },
+            "extra": {},
+            "locations": [
+                {
+                    "sourceMap": "649:1:0"
+                }
+            ],
+            "severity": "High",
+            "swcID": "101",
+            "swcTitle": "Integer Overflow and Underflow"
+        }
+    ],
+    "meta": {},
+    "sourceFormat": "evm-byzantium-bytecode",
+    "sourceList": [
+        "0xabef56740bf7795a9f8732e4781ebd27f2977f8a4997e3ff11cee79a4ba6c0ce"
+    ],
+    "sourceType": "raw-bytecode"
+}
