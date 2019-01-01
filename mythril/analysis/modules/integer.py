@@ -34,13 +34,13 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         super().__init__(
             name="Integer Overflow and Underflow",
             swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
-            hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
             description=(
                 "For every SUB instruction, check if there's a possible state "
                 "where op1 > op0. For every ADD, MUL instruction, check if "
                 "there's a possible state where op1 + op0 > 2^32 - 1"
             ),
             entrypoint="callback",
+            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
         self._issues = []
 

@@ -371,7 +371,9 @@ class Instruction:
             )
         else:
 
-            state.stack.append(pow(base.value, exponent.value, 2 ** 256))
+            state.stack.append(
+                symbol_factory.BitVecVal(pow(base.value, exponent.value, 2 ** 256), 256)
+            )
 
         return [global_state]
 
