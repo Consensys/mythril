@@ -54,6 +54,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         address = state.get_current_instruction()["address"]
         has_overflow = self.overflow_cache.get(address, False)
         has_underflow = self.underflow_cache.get(address, False)
+
         if state.get_current_instruction()["opcode"] == "ADD" and not has_overflow:
             self._handle_add(state)
         elif state.get_current_instruction()["opcode"] == "MUL" and not has_overflow:
@@ -203,6 +204,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             issue.description = "This binary {} operation can result in integer overflow.\n".format(
                 annotation.operator
             )
+            address = ostate.get_current_instruction()["address"]
+
+            if annotation.operator == "subtraction" and self.underflow_cache.get(
+                address, False
+            ):
+                return
+            if annotation.operator != "subtraction" and self.overflow_cache.get(
+                address, False
+            ):
+                return
+
             try:
                 issue.debug = str(
                     solver.get_transaction_sequence(
@@ -211,6 +223,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 )
             except UnsatError:
                 return
+
+            if annotation.operator == "subtraction":
+                self.underflow_cache[address] = True
+            else:
+                self.overflow_cache[address] = True
+
             self._issues.append(issue)
 
     @staticmethod

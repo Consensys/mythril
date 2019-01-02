@@ -1,3 +1,4 @@
+from mythril.analysis.modules.integer import IntegerOverflowUnderflowModule
 from collections import defaultdict
 from ethereum.opcodes import opcodes
 from mythril.analysis import modules
@@ -14,6 +15,9 @@ def reset_callback_modules():
     modules = get_detection_modules("callback")
     for module in modules:
         module.detector._issues = []
+        if isinstance(module.detector, IntegerOverflowUnderflowModule):
+            module.detector.overflow_cache = {}
+            module.detector.underflow_cache = {}
 
 
 def get_detection_module_hooks(modules, hook_type="pre"):
