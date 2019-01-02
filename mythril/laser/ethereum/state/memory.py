@@ -43,8 +43,12 @@ class Memory:
         :return: 32 byte word at the specified index
         """
         try:
-            return util.concrete_int_from_bytes(
-                bytes([util.get_concrete_int(b) for b in self[index : index + 32]]), 0
+            return symbol_factory.BitVecVal(
+                util.concrete_int_from_bytes(
+                    bytes([util.get_concrete_int(b) for b in self[index : index + 32]]),
+                    0,
+                ),
+                256,
             )
         except:
             result = simplify(

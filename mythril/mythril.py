@@ -10,7 +10,7 @@ import logging
 import os
 import platform
 import re
-from configparser import ConfigParser
+import traceback
 from pathlib import Path
 from shutil import copyfile
 
@@ -32,7 +32,13 @@ from mythril.exceptions import CompilerError, CriticalError, NoContractFoundErro
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.support import signatures
 from mythril.support.loader import DynLoader
-from mythril.support.truffle import analyze_truffle_project
+from mythril.exceptions import CompilerError, NoContractFoundError, CriticalError
+from mythril.analysis.symbolic import SymExecWrapper
+from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.traceexplore import get_serializable_statespace
+from mythril.analysis.security import fire_lasers, retrieve_callback_issues
+from mythril.analysis.report import Report
+from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 log = logging.getLogger(__name__)
 
@@ -558,23 +564,33 @@ class Mythril(object):
         """
         all_issues = []
         for contract in contracts or self.contracts:
-            sym = SymExecWrapper(
-                contract,
-                address,
-                strategy,
-                dynloader=DynLoader(
-                    self.eth,
-                    storage_loading=self.onchain_storage_access,
-                    contract_loading=self.dynld,
-                ),
-                max_depth=max_depth,
-                execution_timeout=execution_timeout,
-                create_timeout=create_timeout,
-                transaction_count=transaction_count,
-                modules=modules,
-            )
-
-            issues = fire_lasers(sym, modules)
+            try:
+                sym = SymExecWrapper(
+                    contract,
+                    address,
+                    strategy,
+                    dynloader=DynLoader(
+                        self.eth,
+                        storage_loading=self.onchain_storage_access,
+                        contract_loading=self.dynld,
+                    ),
+                    max_depth=max_depth,
+                    execution_timeout=execution_timeout,
+                    create_timeout=create_timeout,
+                    transaction_count=transaction_count,
+                    modules=modules,
+                    compulsory_statespace=False,
+                )
+                issues = fire_lasers(sym, modules)
+            except KeyboardInterrupt:
+                log.critical("Keyboard Interrupt")
+                issues = retrieve_callback_issues(modules)
+            except Exception:
+                log.critical(
+                    "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n"
+                    + traceback.format_exc()
+                )
+                issues = retrieve_callback_issues(modules)
 
             if type(contract) == SolidityContract:
                 for issue in issues:

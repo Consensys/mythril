@@ -26,8 +26,13 @@ class NodeFlags(Flags):
 
 class Node:
     """The representation of a call graph node."""
-
-    def __init__(self, contract_name: str, start_addr=0, constraints=None):
+    def __init__(
+        self,
+        contract_name: str,
+        start_addr=0,
+        constraints=None,
+        function_name="unknown",
+    ):
         """
 
         :param contract_name:
@@ -39,7 +44,7 @@ class Node:
         self.start_addr = start_addr
         self.states = []
         self.constraints = constraints
-        self.function_name = "unknown"
+        self.function_name = function_name
         self.flags = NodeFlags()
 
         # Self-assign a unique ID

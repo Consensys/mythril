@@ -5,8 +5,7 @@ from typing import Dict
 from z3 import ExprRef
 
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.calldata import BaseCalldata, CalldataType
-from mythril.laser.smt import symbol_factory
+from mythril.laser.ethereum.state.calldata import BaseCalldata
 
 
 class Environment:
@@ -22,7 +21,6 @@ class Environment:
         callvalue: ExprRef,
         origin: ExprRef,
         code=None,
-        calldata_type=CalldataType.SYMBOLIC,
     ):
         """
 
@@ -47,7 +45,6 @@ class Environment:
 
         self.sender = sender
         self.calldata = calldata
-        self.calldata_type = calldata_type
         self.gasprice = gasprice
         self.origin = origin
         self.callvalue = callvalue
@@ -72,5 +69,4 @@ class Environment:
             gasprice=self.gasprice,
             callvalue=self.callvalue,
             origin=self.origin,
-            calldata_type=self.calldata_type,
         )

@@ -6,8 +6,11 @@ from datetime import datetime, timedelta
 from functools import reduce
 from typing import Callable, Dict, List, Tuple, Union
 
-from mythril.laser.ethereum.cfg import Edge, JumpType, Node, NodeFlags
-from mythril.laser.ethereum.evm_exceptions import StackUnderflowException, VmException
+from mythril import alarm
+from mythril.exceptions import OutOfTimeError
+from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
+from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -50,6 +53,7 @@ class LaserEVM:
         create_timeout=10,
         strategy=DepthFirstSearchStrategy,
         transaction_count=2,
+        requires_statespace=True,
     ):
         """
 
@@ -67,8 +71,6 @@ class LaserEVM:
         self.world_state = world_state
         self.open_states = [world_state]
 
-        self.nodes = {}
-        self.edges = []
         self.coverage = {}
 
         self.total_states = 0
@@ -79,8 +81,13 @@ class LaserEVM:
         self.max_depth = max_depth
         self.transaction_count = transaction_count
 
-        self.execution_timeout = execution_timeout
+        self.execution_timeout = execution_timeout or 0
         self.create_timeout = create_timeout
+
+        self.requires_statespace = requires_statespace
+        if self.requires_statespace:
+            self.nodes = {}
+            self.edges = []
 
         self.time = None
 
@@ -125,37 +132,46 @@ class LaserEVM:
         :param contract_name:
         """
         log.debug("Starting LASER execution")
-        self.time = datetime.now()
 
-        if main_address:
-            log.info("Starting message call transaction to {}".format(main_address))
-            self._execute_transactions(main_address)
+        try:
+            alarm.start_timeout(self.execution_timeout)
+            self.time = datetime.now()
 
-        elif creation_code:
-            log.info("Starting contract creation transaction")
-            created_account = execute_contract_creation(
-                self, creation_code, contract_name
-            )
-            log.info(
-                "Finished contract creation, found {} open states".format(
-                    len(self.open_states)
+            if main_address:
+                log.info("Starting message call transaction to {}".format(main_address))
+                self._execute_transactions(main_address)
+
+            elif creation_code:
+                log.info("Starting contract creation transaction")
+                created_account = execute_contract_creation(
+                    self, creation_code, contract_name
                 )
-            )
-            if len(self.open_states) == 0:
-                log.warning(
-                    "No contract was created during the execution of contract creation "
-                    "Increase the resources for creation execution (--max-depth or --create-timeout)"
+                log.info(
+                    "Finished contract creation, found {} open states".format(
+                        len(self.open_states)
+                    )
                 )
+                if len(self.open_states) == 0:
+                    log.warning(
+                        "No contract was created during the execution of contract creation "
+                        "Increase the resources for creation execution (--max-depth or --create-timeout)"
+                    )
 
-            self._execute_transactions(created_account.address)
+                self._execute_transactions(created_account.address)
+
+        except OutOfTimeError:
+            log.warning("Timeout occurred, ending symbolic execution")
+        finally:
+            alarm.disable_timeout()
 
         log.info("Finished symbolic execution")
-        log.info(
-            "%d nodes, %d edges, %d total states",
-            len(self.nodes),
-            len(self.edges),
-            self.total_states,
-        )
+        if self.requires_statespace:
+            log.info(
+                "%d nodes, %d edges, %d total states",
+                len(self.nodes),
+                len(self.edges),
+                self.total_states,
+            )
         for code, coverage in self.coverage.items():
             cov = (
                 reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1])
@@ -176,7 +192,11 @@ class LaserEVM:
             initial_coverage = self._get_covered_instructions()
 
             self.time = datetime.now()
-            log.info("Starting message call transaction, iteration: {}".format(i))
+            log.info(
+                "Starting message call transaction, iteration: {}, {} initial states".format(
+                    i, len(self.open_states)
+                )
+            )
 
             execute_message_call(self, address)
 
@@ -209,15 +229,12 @@ class LaserEVM:
         """
         final_states = []
         for global_state in self.strategy:
-            if self.execution_timeout and not create:
-                if (
-                    self.time + timedelta(seconds=self.execution_timeout)
-                    <= datetime.now()
-                ):
-                    return final_states + [global_state] if track_gas else None
-            elif self.create_timeout and create:
-                if self.time + timedelta(seconds=self.create_timeout) <= datetime.now():
-                    return final_states + [global_state] if track_gas else None
+            if (
+                self.create_timeout
+                and create
+                and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
+            ):
+                return final_states + [global_state] if track_gas else None
 
             try:
                 new_states, op_code = self.execute_state(global_state)
@@ -423,10 +440,13 @@ class LaserEVM:
         old_node = state.node
         state.node = new_node
         new_node.constraints = state.mstate.constraints
-        self.nodes[new_node.uid] = new_node
-        self.edges.append(
-            Edge(old_node.uid, new_node.uid, edge_type=edge_type, condition=condition)
-        )
+        if self.requires_statespace:
+            self.nodes[new_node.uid] = new_node
+            self.edges.append(
+                Edge(
+                    old_node.uid, new_node.uid, edge_type=edge_type, condition=condition
+                )
+            )
 
         if edge_type == JumpType.RETURN:
             new_node.flags |= NodeFlags.CALL_RETURN

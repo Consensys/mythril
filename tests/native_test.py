@@ -75,13 +75,8 @@ def _all_info(laser):
 
 
 def _test_natives(laser_info, test_list, test_name):
-    success = 0
     for i, j in test_list:
-        if (str(i) in laser_info or str(int(i, 16)) in laser_info) == j:
-            success += 1
-        else:
-            print("Failed:", str(int(i, 16)), str(j))
-    assert success == len(test_list)
+        assert (str(i) in laser_info or str(int(i, 16)) in laser_info) == j
 
 
 class NativeTests(BaseTestCase):
@@ -99,7 +94,6 @@ class NativeTests(BaseTestCase):
 
         laser_info = str(_all_info(laser))
 
-        print(laser_info)
         _test_natives(laser_info, SHA256_TEST, "SHA256")
         _test_natives(laser_info, RIPEMD160_TEST, "RIPEMD160")
         _test_natives(laser_info, ECRECOVER_TEST, "ECRECOVER")

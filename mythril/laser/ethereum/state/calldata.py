@@ -1,4 +1,7 @@
 """This module declares classes to represent call data."""
+from typing import Union, Any
+
+from mythril.laser.smt import K, Array, If, simplify, Concat, Expression, BitVec
 
 from enum import Enum
 from typing import Any, Union
@@ -17,11 +20,6 @@ from mythril.laser.smt import (
     simplify,
     symbol_factory,
 )
-
-
-class CalldataType(Enum):
-    CONCRETE = 1
-    SYMBOLIC = 2
 
 
 class BaseCalldata:

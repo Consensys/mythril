@@ -1,8 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
-import copy
 
-from mythril.analysis.security import get_detection_module_hooks
+from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.strategy.basic import (
@@ -33,6 +32,7 @@ class SymExecWrapper:
         create_timeout=None,
         transaction_count=2,
         modules=(),
+        compulsory_statespace=True,
     ):
         """
 
@@ -63,7 +63,9 @@ class SymExecWrapper:
             dynamic_loader=dynloader,
             contract_name=contract.name,
         )
-
+        requires_statespace = (
+            compulsory_statespace or len(get_detection_modules("post", modules)) > 0
+        )
         self.accounts = {address: account}
 
         self.laser = svm.LaserEVM(
@@ -74,6 +76,7 @@ class SymExecWrapper:
             strategy=s_strategy,
             create_timeout=create_timeout,
             transaction_count=transaction_count,
+            requires_statespace=requires_statespace,
         )
         self.laser.register_hooks(
             hook_type="pre",
@@ -94,6 +97,9 @@ class SymExecWrapper:
             )
         else:
             self.laser.sym_exec(address)
+
+        if not requires_statespace:
+            return
 
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges

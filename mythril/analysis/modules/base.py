@@ -48,7 +48,8 @@ class DetectionModule:
             "DetectionModule "
             "name={0.name} "
             "swc_id={0.swc_id} "
-            "hooks={0.hooks} "
+            "pre_hooks={0.pre_hooks} "
+            "post_hooks={0.post_hooks} "
             "description={0.description}"
             ">"
         ).format(self)

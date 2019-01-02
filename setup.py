@@ -86,7 +86,7 @@ setup(
         "eth-keyfile>=0.5.1",
         "eth-keys>=0.2.0b3",
         "eth-rlp>=0.1.0",
-        "eth-tester>=0.1.0b21",
+        "eth-tester==0.1.0b32",
         "eth-typing>=2.0.0",
         "coverage",
         "jinja2>=2.9",

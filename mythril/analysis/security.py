@@ -89,6 +89,12 @@ def fire_lasers(statespace, module_names=()):
         log.info("Executing " + module.detector.name)
         issues += module.detector.execute(statespace)
 
+    issues += retrieve_callback_issues(module_names)
+    return issues
+
+
+def retrieve_callback_issues(module_names=()):
+    issues = []
     for module in get_detection_modules(
         entrypoint="callback", include_modules=module_names
     ):
