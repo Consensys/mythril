@@ -26,6 +26,7 @@ class NodeFlags(Flags):
 
 class Node:
     """The representation of a call graph node."""
+
     def __init__(
         self,
         contract_name: str,

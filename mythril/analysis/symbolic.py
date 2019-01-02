@@ -1,6 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
+import copy
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account

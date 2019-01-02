@@ -12,6 +12,7 @@ from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 _next_transaction_id = 0

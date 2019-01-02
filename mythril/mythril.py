@@ -13,6 +13,7 @@ import re
 import traceback
 from pathlib import Path
 from shutil import copyfile
+from configparser import ConfigParser
 
 import solc
 from ethereum import utils
@@ -38,6 +39,7 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report
+from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 log = logging.getLogger(__name__)
@@ -223,8 +225,10 @@ class Mythril(object):
 
     @staticmethod
     def _init_solc_binary(version):
-        # Figure out solc binary and version
-        # Only proper versions are supported. No nightlies, commits etc (such as available in remix)
+        """Figure out solc binary and version.
+
+        Only proper versions are supported. No nightlies, commits etc (such as available in remix).
+        """
 
         if not version:
             return os.environ.get("SOLC") or "solc"
