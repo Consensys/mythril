@@ -2,6 +2,10 @@ class MythrilBaseException(Exception):
     pass
 
 
+class OutOfTimeError(MythrilBaseException):
+    pass
+
+
 class CompilerError(MythrilBaseException):
     pass
 
