@@ -42,6 +42,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
+        self.overflow_cache = {}
+        self.underflow_cache = {}
         self._issues = []
 
     @property
@@ -49,11 +51,14 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         return self._issues
 
     def execute(self, state: GlobalState):
-        if state.get_current_instruction()["opcode"] == "ADD":
+        address = state.get_current_instruction()["address"]
+        has_overflow = self.overflow_cache.get(address, False)
+        has_underflow = self.underflow_cache.get(address, False)
+        if state.get_current_instruction()["opcode"] == "ADD" and not has_overflow:
             self._handle_add(state)
-        elif state.get_current_instruction()["opcode"] == "MUL":
+        elif state.get_current_instruction()["opcode"] == "MUL" and not has_overflow:
             self._handle_mul(state)
-        elif state.get_current_instruction()["opcode"] == "SUB":
+        elif state.get_current_instruction()["opcode"] == "SUB" and not has_underflow:
             self._handle_sub(state)
         elif state.get_current_instruction()["opcode"] == "SSTORE":
             self._handle_sstore(state)
@@ -149,6 +154,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             issue.description = "This binary {} operation can result in {}.\n".format(
                 annotation.operator, title.lower()
             )
+            address = ostate.get_current_instruction()["address"]
+
+            if annotation.operator == "subtraction" and self.underflow_cache.get(
+                address, False
+            ):
+                return
+            if annotation.operator != "subtraction" and self.overflow_cache.get(
+                address, False
+            ):
+                return
+
             try:
                 issue.debug = str(
                     solver.get_transaction_sequence(
@@ -157,6 +173,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 )
             except UnsatError:
                 return
+            if annotation.operator == "subtraction":
+                self.underflow_cache[address] = True
+            else:
+                self.overflow_cache[address] = True
+
             self._issues.append(issue)
 
     def _handle_jumpi(self, state):
