@@ -103,8 +103,8 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
         function_name=global_state.environment.active_function_name,
     )
     if laser_evm.requires_statespace:
-      laser_evm.nodes[new_node.uid] = new_node
-      
+        laser_evm.nodes[new_node.uid] = new_node
+
     if transaction.world_state.node:
         if laser_evm.requires_statespace:
             laser_evm.edges.append(
