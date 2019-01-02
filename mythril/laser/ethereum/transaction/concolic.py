@@ -53,10 +53,14 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 
-    new_node = Node(global_state.environment.active_account.contract_name)
+    new_node = Node(
+        global_state.environment.active_account.contract_name,
+        function_name=global_state.environment.active_function_name,
+    )
 
-    laser_evm.nodes[new_node.uid] = new_node
-    if transaction.world_state.node:
+    if laser_evm.requires_statespace:
+        laser_evm.nodes[new_node.uid] = new_node
+    if transaction.world_state.node and laser_evm.requires_statespace:
         laser_evm.edges.append(
             Edge(
                 transaction.world_state.node.uid,
@@ -65,6 +69,7 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
                 condition=None,
             )
         )
+
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)

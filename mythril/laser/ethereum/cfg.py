@@ -19,13 +19,19 @@ class NodeFlags(Flags):
 
 
 class Node:
-    def __init__(self, contract_name: str, start_addr=0, constraints=None):
+    def __init__(
+        self,
+        contract_name: str,
+        start_addr=0,
+        constraints=None,
+        function_name="unknown",
+    ):
         constraints = constraints if constraints else []
         self.contract_name = contract_name
         self.start_addr = start_addr
         self.states = []
         self.constraints = constraints
-        self.function_name = "unknown"
+        self.function_name = function_name
         self.flags = NodeFlags()
 
         # Self-assign a unique ID
