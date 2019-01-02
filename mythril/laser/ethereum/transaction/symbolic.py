@@ -4,11 +4,7 @@ import logging
 from mythril.laser.smt import symbol_factory
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
-from mythril.laser.ethereum.state.calldata import (
-    CalldataType,
-    BaseCalldata,
-    SymbolicCalldata,
-)
+from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
@@ -47,7 +43,6 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
             caller=symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256),
             callee_account=open_world_state[callee_address],
             call_data=SymbolicCalldata(next_transaction_id),
-            call_data_type=CalldataType.SYMBOLIC,
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
@@ -87,7 +82,6 @@ def execute_contract_creation(
             caller=symbol_factory.BitVecVal(CREATOR_ADDRESS, 256),
             callee_account=new_account,
             call_data=[],
-            call_data_type=CalldataType.SYMBOLIC,
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
