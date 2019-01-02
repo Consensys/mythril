@@ -49,6 +49,7 @@ class LaserEVM:
         create_timeout=10,
         strategy=DepthFirstSearchStrategy,
         transaction_count=2,
+        requires_statespace=True,
     ):
         world_state = WorldState()
         world_state.accounts = accounts
@@ -56,8 +57,6 @@ class LaserEVM:
         self.world_state = world_state
         self.open_states = [world_state]
 
-        self.nodes = {}
-        self.edges = []
         self.coverage = {}
 
         self.total_states = 0
@@ -70,6 +69,11 @@ class LaserEVM:
 
         self.execution_timeout = execution_timeout
         self.create_timeout = create_timeout
+
+        self.requires_statespace = requires_statespace
+        if self.requires_statespace:
+            self.nodes = {}
+            self.edges = []
 
         self.time = None
 
@@ -124,12 +128,13 @@ class LaserEVM:
             self._execute_transactions(created_account.address)
 
         log.info("Finished symbolic execution")
-        log.info(
-            "%d nodes, %d edges, %d total states",
-            len(self.nodes),
-            len(self.edges),
-            self.total_states,
-        )
+        if self.requires_statespace:
+            log.info(
+                "%d nodes, %d edges, %d total states",
+                len(self.nodes),
+                len(self.edges),
+                self.total_states,
+            )
         for code, coverage in self.coverage.items():
             cov = (
                 reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1])
@@ -362,10 +367,13 @@ class LaserEVM:
         old_node = state.node
         state.node = new_node
         new_node.constraints = state.mstate.constraints
-        self.nodes[new_node.uid] = new_node
-        self.edges.append(
-            Edge(old_node.uid, new_node.uid, edge_type=edge_type, condition=condition)
-        )
+        if self.requires_statespace:
+            self.nodes[new_node.uid] = new_node
+            self.edges.append(
+                Edge(
+                    old_node.uid, new_node.uid, edge_type=edge_type, condition=condition
+                )
+            )
 
         if edge_type == JumpType.RETURN:
             new_node.flags |= NodeFlags.CALL_RETURN

@@ -102,17 +102,19 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
         global_state.environment.active_account.contract_name,
         function_name=global_state.environment.active_function_name,
     )
+    if laser_evm.requires_statespace:
+        laser_evm.nodes[new_node.uid] = new_node
 
-    laser_evm.nodes[new_node.uid] = new_node
     if transaction.world_state.node:
-        laser_evm.edges.append(
-            Edge(
-                transaction.world_state.node.uid,
-                new_node.uid,
-                edge_type=JumpType.Transaction,
-                condition=None,
+        if laser_evm.requires_statespace:
+            laser_evm.edges.append(
+                Edge(
+                    transaction.world_state.node.uid,
+                    new_node.uid,
+                    edge_type=JumpType.Transaction,
+                    condition=None,
+                )
             )
-        )
 
         global_state.mstate.constraints += transaction.world_state.node.constraints
         new_node.constraints = global_state.mstate.constraints
