@@ -3,11 +3,7 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import (
-    BaseCalldata,
-    ConcreteCalldata,
-    SymbolicCalldata,
-)
+from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -57,7 +53,6 @@ class BaseTransaction:
         gas_limit=None,
         origin=None,
         code=None,
-        call_data_type=None,
         call_value=None,
         init_call_data=True,
     ):
@@ -86,11 +81,6 @@ class BaseTransaction:
         else:
             self.call_data = call_data if isinstance(call_data, BaseCalldata) else None
 
-        self.call_data_type = (
-            call_data_type
-            if call_data_type is not None
-            else symbol_factory.BitVecSym("call_data_type{}".format(identifier), 256)
-        )
         self.call_value = (
             call_value
             if call_value is not None
@@ -122,7 +112,6 @@ class MessageCallTransaction(BaseTransaction):
             self.call_value,
             self.origin,
             code=self.code or self.callee_account.code,
-            calldata_type=self.call_data_type,
         )
         return super().initial_global_state_from_environment(
             environment, active_function="fallback"
@@ -153,7 +142,6 @@ class ContractCreationTransaction(BaseTransaction):
             self.call_value,
             self.origin,
             self.code,
-            calldata_type=self.call_data_type,
         )
         return super().initial_global_state_from_environment(
             environment, active_function="constructor"
