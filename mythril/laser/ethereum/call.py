@@ -7,10 +7,9 @@ from mythril.laser.smt import simplify, Expression, symbol_factory
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import (
-    CalldataType,
+    BaseCalldata,
     SymbolicCalldata,
     ConcreteCalldata,
-    BaseCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.support.loader import DynLoader
@@ -44,9 +43,7 @@ def get_call_parameters(
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
     callee_account = None
-    call_data, call_data_type = get_call_data(
-        global_state, memory_input_offset, memory_input_size
-    )
+    call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
         callee_account = get_callee_account(
@@ -58,7 +55,6 @@ def get_call_parameters(
         callee_account,
         call_data,
         value,
-        call_data_type,
         gas,
         memory_out_offset,
         memory_out_size,
@@ -185,14 +181,12 @@ def get_call_data(
             )
         ]
         call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
-        call_data_type = CalldataType.CONCRETE
         log.debug("Calldata: " + str(call_data))
     except TypeError:
         log.debug("Unsupported symbolic calldata offset")
-        call_data_type = CalldataType.SYMBOLIC
         call_data = SymbolicCalldata("{}_internalcall".format(transaction_id))
 
-    return call_data, call_data_type
+    return call_data
 
 
 def native_call(
