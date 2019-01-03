@@ -1,16 +1,22 @@
+"""This module contains the detection code for reachable exceptions."""
+import logging
+
+from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.exceptions import UnsatError
-from mythril.analysis import solver
-from mythril.analysis.modules.base import DetectionModule
-import logging
-
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 log = logging.getLogger(__name__)
 
 
 def _analyze_state(state) -> list:
+    """
+
+    :param state:
+    :return:
+    """
     log.info("Exceptions module: found ASSERT_FAIL instruction")
     node = state.node
 
@@ -50,7 +56,10 @@ def _analyze_state(state) -> list:
 
 
 class ReachableExceptionsModule(DetectionModule):
+    """"""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Reachable Exceptions",
             swc_id=ASSERT_VIOLATION,
@@ -61,11 +70,20 @@ class ReachableExceptionsModule(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
     @property
     def issues(self) -> list:
+        """
+
+        :return:
+        """
         return self._issues
 
 

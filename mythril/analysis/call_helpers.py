@@ -1,3 +1,5 @@
+"""This module provides helper functions for the analysis modules to deal with
+call functionality."""
 from typing import Union
 
 from mythril.analysis.ops import VarType, Call, get_variable
@@ -5,6 +7,11 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 def get_call_from_state(state: GlobalState) -> Union[Call, None]:
+    """
+
+    :param state:
+    :return:
+    """
     instruction = state.get_current_instruction()
 
     op = instruction["opcode"]

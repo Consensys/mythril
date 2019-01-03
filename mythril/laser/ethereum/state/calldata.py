@@ -1,26 +1,42 @@
+"""This module declares classes to represent call data."""
 from typing import Union, Any
 
 from mythril.laser.smt import K, Array, If, simplify, Concat, Expression, BitVec
 
-from mythril.laser.smt import symbol_factory
-from mythril.laser.ethereum.util import get_concrete_int
+from enum import Enum
+from typing import Any, Union
 
 from z3 import Model
 from z3.z3types import Z3Exception
 
+from mythril.laser.ethereum.util import get_concrete_int
+from mythril.laser.smt import (
+    Array,
+    BitVec,
+    Concat,
+    Expression,
+    If,
+    K,
+    simplify,
+    symbol_factory,
+)
+
 
 class BaseCalldata:
-    """
-    Base calldata class
-    This represents the calldata provided when sending a transaction to a contract
-    """
+    """Base calldata class This represents the calldata provided when sending a
+    transaction to a contract."""
 
     def __init__(self, tx_id):
+        """
+
+        :param tx_id:
+        """
         self.tx_id = tx_id
 
     @property
     def calldatasize(self) -> Expression:
         """
+
         :return: Calldata size for this calldata object
         """
         result = self.size
@@ -29,11 +45,20 @@ class BaseCalldata:
         return result
 
     def get_word_at(self, offset: int) -> Expression:
-        """ Gets word at offset"""
+        """Gets word at offset.
+
+        :param offset:
+        :return:
+        """
         parts = self[offset : offset + 32]
         return simplify(Concat(parts))
 
     def __getitem__(self, item: Union[int, slice]) -> Any:
+        """
+
+        :param item:
+        :return:
+        """
         if isinstance(item, int) or isinstance(item, Expression):
             return self._load(item)
 
@@ -64,22 +89,34 @@ class BaseCalldata:
         raise ValueError
 
     def _load(self, item: Union[int, Expression]) -> Any:
+        """
+
+        :param item:
+        """
         raise NotImplementedError()
 
     @property
     def size(self) -> Union[Expression, int]:
-        """ Returns the exact size of this calldata, this is not normalized"""
+        """Returns the exact size of this calldata, this is not normalized.
+
+        :return: unnormalized call data size
+        """
         raise NotImplementedError()
 
     def concrete(self, model: Model) -> list:
-        """ Returns a concrete version of the calldata using the provided model"""
+        """Returns a concrete version of the calldata using the provided model.
+
+        :param model:
+        """
         raise NotImplementedError
 
 
 class ConcreteCalldata(BaseCalldata):
+    """A concrete call data representation."""
+
     def __init__(self, tx_id: int, calldata: list):
-        """
-        Initializes the ConcreteCalldata object
+        """Initializes the ConcreteCalldata object.
+
         :param tx_id: Id of the transaction that the calldata is for.
         :param calldata: The concrete calldata content
         """
@@ -96,21 +133,37 @@ class ConcreteCalldata(BaseCalldata):
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, Expression]) -> BitVec:
+        """
+
+        :param item:
+        :return:
+        """
         item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
         return simplify(self._calldata[item])
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         return self._concrete_calldata
 
     @property
     def size(self) -> int:
+        """
+
+        :return:
+        """
         return len(self._concrete_calldata)
 
 
 class BasicConcreteCalldata(BaseCalldata):
+    """A base class to represent concrete call data."""
+
     def __init__(self, tx_id: int, calldata: list):
-        """
-        Initializes the ConcreteCalldata object, that doesn't use z3 arrays
+        """Initializes the ConcreteCalldata object, that doesn't use z3 arrays.
+
         :param tx_id: Id of the transaction that the calldata is for.
         :param calldata: The concrete calldata content
         """
@@ -118,6 +171,11 @@ class BasicConcreteCalldata(BaseCalldata):
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, Expression]) -> Any:
+        """
+
+        :param item:
+        :return:
+        """
         if isinstance(item, int):
             try:
                 return self._calldata[item]
@@ -130,17 +188,28 @@ class BasicConcreteCalldata(BaseCalldata):
         return value
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         return self._calldata
 
     @property
     def size(self) -> int:
+        """
+
+        :return:
+        """
         return len(self._calldata)
 
 
 class SymbolicCalldata(BaseCalldata):
+    """A class for representing symbolic call data."""
+
     def __init__(self, tx_id: int):
-        """
-        Initializes the SymbolicCalldata object
+        """Initializes the SymbolicCalldata object.
+
         :param tx_id: Id of the transaction that the calldata is for.
         """
         self._size = symbol_factory.BitVecSym(str(tx_id) + "_calldatasize", 256)
@@ -148,6 +217,11 @@ class SymbolicCalldata(BaseCalldata):
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, Expression]) -> Any:
+        """
+
+        :param item:
+        :return:
+        """
         item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
         return simplify(
             If(
@@ -158,6 +232,11 @@ class SymbolicCalldata(BaseCalldata):
         )
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         concrete_length = model.eval(self.size.raw, model_completion=True).as_long()
         result = []
         for i in range(concrete_length):
@@ -169,13 +248,19 @@ class SymbolicCalldata(BaseCalldata):
 
     @property
     def size(self) -> Expression:
+        """
+
+        :return:
+        """
         return self._size
 
 
 class BasicSymbolicCalldata(BaseCalldata):
+    """A basic class representing symbolic call data."""
+
     def __init__(self, tx_id: int):
-        """
-        Initializes the SymbolicCalldata object
+        """Initializes the SymbolicCalldata object.
+
         :param tx_id: Id of the transaction that the calldata is for.
         """
         self._reads = []
@@ -199,6 +284,11 @@ class BasicSymbolicCalldata(BaseCalldata):
         return simplify(return_value)
 
     def concrete(self, model: Model) -> list:
+        """
+
+        :param model:
+        :return:
+        """
         concrete_length = get_concrete_int(model.eval(self.size, model_completion=True))
         result = []
         for i in range(concrete_length):
@@ -210,4 +300,8 @@ class BasicSymbolicCalldata(BaseCalldata):
 
     @property
     def size(self) -> Expression:
+        """
+
+        :return:
+        """
         return self._size

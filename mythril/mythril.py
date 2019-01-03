@@ -5,27 +5,33 @@
    http://www.github.com/b-mueller/mythril
 """
 
+import codecs
 import logging
 import os
+import platform
 import re
 import traceback
 from pathlib import Path
-
-from ethereum import utils
-import codecs
-from solc.exceptions import SolcError
-import solc
-from configparser import ConfigParser
-import platform
 from shutil import copyfile
+from configparser import ConfigParser
 
+import solc
+from ethereum import utils
+from solc.exceptions import SolcError
+
+from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.report import Report
+from mythril.analysis.security import fire_lasers
+from mythril.analysis.symbolic import SymExecWrapper
+from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.ethereum import util
 from mythril.ethereum.evmcontract import EVMContract
-from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
+from mythril.exceptions import CompilerError, CriticalError, NoContractFoundError
+from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.support import signatures
-from mythril.support.truffle import analyze_truffle_project
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError, NoContractFoundError, CriticalError
 from mythril.analysis.symbolic import SymExecWrapper
@@ -33,21 +39,22 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report
+from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 
 log = logging.getLogger(__name__)
 
 
 class Mythril(object):
-    """
-    Mythril main interface class.
+    """Mythril main interface class.
 
     1. create mythril object
     2. set rpc or leveldb interface if needed
     3. load contracts (from solidity, bytecode, address)
     4. fire_lasers
 
-    Example:
+    .. code-block:: python
+
         mythril = Mythril()
         mythril.set_api_rpc_infura()
 
@@ -70,13 +77,13 @@ class Mythril(object):
 
         # (optional) graph
         for contract in mythril.contracts:
-            print(mythril.graph_html(args))  # prints html or save it to file
+            # prints html or save it to file
+            print(mythril.graph_html(args))
 
         # (optional) other funcs
         mythril.dump_statespaces(args)
         mythril.disassemble(contract)
         mythril.get_state_variable_from_storage(args)
-
     """
 
     def __init__(
@@ -132,8 +139,8 @@ class Mythril(object):
         return mythril_dir
 
     def _init_config(self):
-        """
-        If no config file exists, create it and add default options.
+        """If no config file exists, create it and add default options.
+
         Default LevelDB path is specified based on OS
         dynamic loading is set to infura by default in the file
         Returns: leveldb directory
@@ -206,14 +213,22 @@ class Mythril(object):
         config.set("defaults", "dynamic_loading", "infura")
 
     def analyze_truffle_project(self, *args, **kwargs):
+        """
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
         return analyze_truffle_project(
             self.sigs, *args, **kwargs
         )  # just passthru by passing signatures for now
 
     @staticmethod
     def _init_solc_binary(version):
-        # Figure out solc binary and version
-        # Only proper versions are supported. No nightlies, commits etc (such as available in remix)
+        """Figure out solc binary and version.
+
+        Only proper versions are supported. No nightlies, commits etc (such as available in remix).
+        """
 
         if not version:
             return os.environ.get("SOLC") or "solc"
@@ -248,15 +263,26 @@ class Mythril(object):
         return solc_binary
 
     def set_api_leveldb(self, leveldb):
+        """
+
+        :param leveldb:
+        :return:
+        """
         self.eth_db = EthLevelDB(leveldb)
         self.eth = self.eth_db
         return self.eth
 
     def set_api_rpc_infura(self):
+        """Set the RPC mode to INFURA on mainnet."""
         self.eth = EthJsonRpc("mainnet.infura.io", 443, True)
         log.info("Using INFURA for RPC queries")
 
     def set_api_rpc(self, rpc=None, rpctls=False):
+        """
+
+        :param rpc:
+        :param rpctls:
+        """
         if rpc == "ganache":
             rpcconfig = ("localhost", 8545, False)
         else:
@@ -279,10 +305,12 @@ class Mythril(object):
             raise CriticalError("Invalid RPC settings, check help for details.")
 
     def set_api_rpc_localhost(self):
+        """Set the RPC mode to a local instance."""
         self.eth = EthJsonRpc("localhost", 8545)
         log.info("Using default RPC settings: http://localhost:8545")
 
     def set_api_from_config_path(self):
+        """Set the RPC mode based on a given config file."""
         config = ConfigParser(allow_no_value=False)
         config.optionxform = str
         config.read(self.config_path, "utf-8")
@@ -298,7 +326,18 @@ class Mythril(object):
             self.set_api_rpc(dynamic_loading)
 
     def search_db(self, search):
+        """
+
+        :param search:
+        """
+
         def search_callback(_, address, balance):
+            """
+
+            :param _:
+            :param address:
+            :param balance:
+            """
             print("Address: " + address + ", balance: " + str(balance))
 
         try:
@@ -308,13 +347,23 @@ class Mythril(object):
             raise CriticalError("Syntax error in search expression.")
 
     def contract_hash_to_address(self, hash):
+        """
+
+        :param hash:
+        """
         if not re.match(r"0x[a-fA-F0-9]{64}", hash):
             raise CriticalError("Invalid address hash. Expected format is '0x...'.")
 
         print(self.eth_db.contract_hash_to_address(hash))
 
     def load_from_bytecode(self, code, bin_runtime=False, address=None):
+        """
 
+        :param code:
+        :param bin_runtime:
+        :param address:
+        :return:
+        """
         if address is None:
             address = util.get_indexed_address(0)
         if bin_runtime:
@@ -336,6 +385,11 @@ class Mythril(object):
         return address, self.contracts[-1]  # return address and contract object
 
     def load_from_address(self, address):
+        """
+
+        :param address:
+        :return:
+        """
         if not re.match(r"0x[a-fA-F0-9]{40}", address):
             raise CriticalError("Invalid contract address. Expected format is '0x...'.")
 
@@ -366,7 +420,7 @@ class Mythril(object):
 
     def load_from_solidity(self, solidity_files):
         """
-        UPDATES self.sigs!
+
         :param solidity_files:
         :return:
         """
@@ -423,7 +477,16 @@ class Mythril(object):
         execution_timeout=None,
         create_timeout=None,
     ):
+        """
 
+        :param strategy:
+        :param contract:
+        :param address:
+        :param max_depth:
+        :param execution_timeout:
+        :param create_timeout:
+        :return:
+        """
         sym = SymExecWrapper(
             contract,
             address,
@@ -451,6 +514,18 @@ class Mythril(object):
         execution_timeout=None,
         create_timeout=None,
     ):
+        """
+
+        :param strategy:
+        :param contract:
+        :param address:
+        :param max_depth:
+        :param enable_physics:
+        :param phrackify:
+        :param execution_timeout:
+        :param create_timeout:
+        :return:
+        """
         sym = SymExecWrapper(
             contract,
             address,
@@ -478,7 +553,19 @@ class Mythril(object):
         create_timeout=None,
         transaction_count=None,
     ):
+        """
 
+        :param strategy:
+        :param contracts:
+        :param address:
+        :param modules:
+        :param verbose_report:
+        :param max_depth:
+        :param execution_timeout:
+        :param create_timeout:
+        :param transaction_count:
+        :return:
+        """
         all_issues = []
         for contract in contracts or self.contracts:
             try:
@@ -523,6 +610,12 @@ class Mythril(object):
         return report
 
     def get_state_variable_from_storage(self, address, params=None):
+        """
+
+        :param address:
+        :param params:
+        :return:
+        """
         if params is None:
             params = []
         (position, length, mappings) = (0, 1, [])
@@ -603,8 +696,18 @@ class Mythril(object):
 
     @staticmethod
     def disassemble(contract):
+        """
+
+        :param contract:
+        :return:
+        """
         return contract.get_easm()
 
     @staticmethod
     def hash_for_function_signature(sig):
+        """
+
+        :param sig:
+        :return:
+        """
         return "0x%s" % utils.sha3(sig)[:4].hex()
