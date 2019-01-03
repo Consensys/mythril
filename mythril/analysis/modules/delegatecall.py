@@ -26,15 +26,6 @@ class DelegateCallModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["DELEGATECALL"],
         )
-        self._issues = []
-
-    @property
-    def issues(self) -> list:
-        """
-
-        :return:
-        """
-        return self._issues
 
     def execute(self, state: GlobalState) -> list:
         """

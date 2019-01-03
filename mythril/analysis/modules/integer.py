@@ -49,12 +49,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
-        self._issues = []
-        self._issues = []
-
-    @property
-    def issues(self):
-        return self._issues
 
     def execute(self, state: GlobalState):
         """Executes analysis module for integer underflow and integer overflow.
