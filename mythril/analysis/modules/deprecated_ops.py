@@ -59,15 +59,10 @@ class DeprecatedOperationsModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ORIGIN", "CALLCODE"],
         )
-        self._issues = []
 
     def execute(self, state: GlobalState):
         self._issues.extend(_analyze_state(state))
         return self.issues
-
-    @property
-    def issues(self):
-        return self._issues
 
 
 detector = DeprecatedOperationsModule()

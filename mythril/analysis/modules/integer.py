@@ -42,11 +42,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
-        self._issues = []
-
-    @property
-    def issues(self):
-        return self._issues
 
     def execute(self, state: GlobalState):
         if state.get_current_instruction()["opcode"] == "ADD":

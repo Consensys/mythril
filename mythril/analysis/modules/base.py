@@ -25,7 +25,14 @@ class DetectionModule:
                 self.name,
             )
         self.entrypoint = entrypoint
-        self.cache_addresses = {}
+        self._issues = []
+
+    @property
+    def issues(self):
+        return self._issues
+
+    def reset_module(self):
+        self._issues = []
 
     def execute(self, statespace):
         raise NotImplementedError()

@@ -58,15 +58,10 @@ class ReachableExceptionsModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ASSERT_FAIL"],
         )
-        self._issues = []
 
     def execute(self, state: GlobalState) -> list:
         self._issues.extend(_analyze_state(state))
         return self.issues
-
-    @property
-    def issues(self) -> list:
-        return self._issues
 
 
 detector = ReachableExceptionsModule()

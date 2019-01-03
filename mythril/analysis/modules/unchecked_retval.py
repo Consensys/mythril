@@ -41,15 +41,10 @@ class UncheckedRetvalModule(DetectionModule):
             pre_hooks=["STOP", "RETURN"],
             post_hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"],
         )
-        self._issues = []
 
     def execute(self, state: GlobalState) -> list:
         self._issues.extend(_analyze_state(state))
         return self.issues
-
-    @property
-    def issues(self):
-        return self._issues
 
 
 def _analyze_state(state: GlobalState) -> list:

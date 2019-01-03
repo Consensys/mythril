@@ -34,15 +34,15 @@ class EtherThief(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
-        self._issues = []
+        self.cache_addresses = {}
 
     def execute(self, state: GlobalState):
         self._issues.extend(self._analyze_state(state))
         return self.issues
 
-    @property
-    def issues(self):
-        return self._issues
+    def reset_module(self):
+        super().reset_module()
+        self.cache_addresses = {}
 
     def _analyze_state(self, state):
         instruction = state.get_current_instruction()

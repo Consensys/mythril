@@ -25,11 +25,6 @@ class PredictableDependenceModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"],
         )
-        self._issues = []
-
-    @property
-    def issues(self) -> list:
-        return self._issues
 
     def execute(self, state: GlobalState) -> list:
         log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
