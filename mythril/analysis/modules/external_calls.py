@@ -110,7 +110,6 @@ class ExternalCalls(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
-        self._issues = []
 
     def execute(self, state: GlobalState):
         """
@@ -120,14 +119,6 @@ class ExternalCalls(DetectionModule):
         """
         self._issues.extend(_analyze_state(state))
         return self.issues
-
-    @property
-    def issues(self):
-        """
-
-        :return:
-        """
-        return self._issues
 
 
 detector = ExternalCalls()
