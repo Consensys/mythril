@@ -5,8 +5,7 @@ import array
 from z3 import ExprRef
 from typing import Union
 
-from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.environment import Environment
@@ -88,7 +87,11 @@ class BaseTransaction:
         if call_data is None and init_call_data:
             self.call_data = SymbolicCalldata(self.id)
         else:
-            self.call_data = call_data if isinstance(call_data, BaseCalldata) else None
+            self.call_data = (
+                call_data
+                if isinstance(call_data, BaseCalldata)
+                else ConcreteCalldata(self.id, [])
+            )
 
         self.call_value = (
             call_value
