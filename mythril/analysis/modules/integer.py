@@ -175,13 +175,19 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
             ostate = annotation.overflowing_state
             node = ostate.node
+            title = (
+                "Integer Underflow"
+                if annotation.operator == "subtraction"
+                else "Integer Overflow"
+            )
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title="Integer Overflow",
+                title=title,
                 _type="Warning",
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
