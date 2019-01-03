@@ -1,7 +1,6 @@
 {
 	"error": null,
 	"issues": [{
-		"SourceMap": null,
 		"address": 567,
 		"contract": "Unknown",
 		"debug": "<DEBUG-DATA>",
@@ -10,10 +9,10 @@
 		"max_gas_used": 1774,
 		"min_gas_used": 1299,
 		"severity": "High",
+		"sourceMap": null,
 		"swc-id": "101",
 		"title": "Integer Underflow"
 	}, {
-		"SourceMap": null,
 		"address": 649,
 		"contract": "Unknown",
 		"debug": "<DEBUG-DATA>",
@@ -22,6 +21,7 @@
 		"max_gas_used": 1774,
 		"min_gas_used": 1299,
 		"severity": "High",
+		"sourceMap": null,
 		"swc-id": "101",
 		"title": "Integer Underflow"
 	}],

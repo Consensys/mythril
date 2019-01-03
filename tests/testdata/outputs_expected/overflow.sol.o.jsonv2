@@ -1,27 +1,27 @@
 {
 	"issues": [{
 		"description": {
-			"head": ["The subtraction can underflow."],
-			"tail": ["The binary subtraction operation can result in an integer underflow.\n"]
+			"head": "The subtraction can underflow.",
+			"tail": "The binary subtraction operation can result in an integer underflow.\n"
 		},
 		"extra": {},
 		"locations": [{
 			"sourceMap": "567:1:0"
 		}],
 		"severity": "High",
-		"swcID": "101",
+		"swcID": "SWC-101",
 		"swcTitle": "Integer Overflow and Underflow"
 	}, {
 		"description": {
-			"head": ["The subtraction can underflow."],
-			"tail": ["The binary subtraction operation can result in an integer underflow.\n"]
+			"head": "The subtraction can underflow.",
+			"tail": "The binary subtraction operation can result in an integer underflow.\n"
 		},
 		"extra": {},
 		"locations": [{
 			"sourceMap": "649:1:0"
 		}],
 		"severity": "High",
-		"swcID": "101",
+		"swcID": "SWC-101",
 		"swcTitle": "Integer Overflow and Underflow"
 	}],
 	"meta": {},
