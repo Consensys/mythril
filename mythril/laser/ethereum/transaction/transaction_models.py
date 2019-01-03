@@ -1,28 +1,35 @@
-from typing import Union
-from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import (
-    BaseCalldata,
-    ConcreteCalldata,
-    SymbolicCalldata,
-)
-from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.world_state import WorldState
-from mythril.laser.ethereum.state.global_state import GlobalState
-from z3 import BitVec, ExprRef
+"""This module contians the transaction models used throughout LASER's symbolic
+execution."""
+
 import array
+from z3 import ExprRef
+from typing import Union
+
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.smt import symbol_factory
 
 _next_transaction_id = 0
 
 
 def get_next_transaction_id() -> int:
+    """
+
+    :return:
+    """
     global _next_transaction_id
     _next_transaction_id += 1
     return _next_transaction_id
 
 
 class TransactionEndSignal(Exception):
-    """ Exception raised when a transaction is finalized"""
+    """Exception raised when a transaction is finalized."""
 
     def __init__(self, global_state: GlobalState, revert=False):
         self.global_state = global_state
@@ -30,7 +37,7 @@ class TransactionEndSignal(Exception):
 
 
 class TransactionStartSignal(Exception):
-    """ Exception raised when a new transaction is started"""
+    """Exception raised when a new transaction is started."""
 
     def __init__(
         self,
@@ -55,7 +62,6 @@ class BaseTransaction:
         gas_limit=None,
         origin=None,
         code=None,
-        call_data_type=None,
         call_value=None,
         init_call_data=True,
     ):
@@ -66,12 +72,14 @@ class BaseTransaction:
         self.gas_price = (
             gas_price
             if gas_price is not None
-            else BitVec("gasprice{}".format(identifier), 256)
+            else symbol_factory.BitVecSym("gasprice{}".format(identifier), 256)
         )
         self.gas_limit = gas_limit
 
         self.origin = (
-            origin if origin is not None else BitVec("origin{}".format(identifier), 256)
+            origin
+            if origin is not None
+            else symbol_factory.BitVecSym("origin{}".format(identifier), 256)
         )
         self.code = code
 
@@ -86,20 +94,21 @@ class BaseTransaction:
                 else ConcreteCalldata(self.id, [])
             )
 
-        self.call_data_type = (
-            call_data_type
-            if call_data_type is not None
-            else BitVec("call_data_type{}".format(identifier), 256)
-        )
         self.call_value = (
             call_value
             if call_value is not None
-            else BitVec("callvalue{}".format(identifier), 256)
+            else symbol_factory.BitVecSym("callvalue{}".format(identifier), 256)
         )
 
         self.return_data = None
 
     def initial_global_state_from_environment(self, environment, active_function):
+        """
+
+        :param environment:
+        :param active_function:
+        :return:
+        """
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
@@ -107,13 +116,13 @@ class BaseTransaction:
 
 
 class MessageCallTransaction(BaseTransaction):
-    """ Transaction object models an transaction"""
+    """Transaction object models an transaction."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def initial_global_state(self) -> GlobalState:
-        """Initialize the execution environment"""
+        """Initialize the execution environment."""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -122,19 +131,24 @@ class MessageCallTransaction(BaseTransaction):
             self.call_value,
             self.origin,
             code=self.code or self.callee_account.code,
-            calldata_type=self.call_data_type,
         )
         return super().initial_global_state_from_environment(
             environment, active_function="fallback"
         )
 
     def end(self, global_state: GlobalState, return_data=None, revert=False) -> None:
+        """
+
+        :param global_state:
+        :param return_data:
+        :param revert:
+        """
         self.return_data = return_data
         raise TransactionEndSignal(global_state, revert)
 
 
 class ContractCreationTransaction(BaseTransaction):
-    """ Transaction object models an transaction"""
+    """Transaction object models an transaction."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, init_call_data=False)
@@ -144,7 +158,7 @@ class ContractCreationTransaction(BaseTransaction):
         )
 
     def initial_global_state(self) -> GlobalState:
-        """Initialize the execution environment"""
+        """Initialize the execution environment."""
         environment = Environment(
             self.callee_account,
             self.caller,
@@ -153,14 +167,18 @@ class ContractCreationTransaction(BaseTransaction):
             self.call_value,
             self.origin,
             self.code,
-            calldata_type=self.call_data_type,
         )
         return super().initial_global_state_from_environment(
             environment, active_function="constructor"
         )
 
     def end(self, global_state: GlobalState, return_data=None, revert=False):
+        """
 
+        :param global_state:
+        :param return_data:
+        :param revert:
+        """
         if (
             not all([isinstance(element, int) for element in return_data])
             or len(return_data) == 0

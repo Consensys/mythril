@@ -1,87 +1,106 @@
+"""This module contains the detection code to find multiple sends occurring in
+a single transaction."""
+from copy import copy
+
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
-from mythril.laser.ethereum.cfg import JumpType
+from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.laser.ethereum.state.global_state import GlobalState
+import logging
+from mythril.analysis.call_helpers import get_call_from_state
+
+log = logging.getLogger(__name__)
+
+
+class MultipleSendsAnnotation(StateAnnotation):
+    def __init__(self):
+        self.calls = []
+
+    def __copy__(self):
+        result = MultipleSendsAnnotation()
+        result.calls = copy(self.calls)
+        return result
 
 
 class MultipleSendsModule(DetectionModule):
+    """This module checks for multiple sends in a single transaction."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Multiple Sends",
             swc_id=MULTIPLE_SENDS,
-            hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"],
             description="Check for multiple sends in a single transaction",
+            entrypoint="callback",
+            pre_hooks=[
+                "CALL",
+                "DELEGATECALL",
+                "STATICCALL",
+                "CALLCODE",
+                "RETURN",
+                "STOP",
+            ],
         )
+        self._issues = []
 
-    def execute(self, statespace):
-        issues = []
+    def execute(self, state: GlobalState):
+        self._issues.extend(_analyze_state(state))
+        return self.issues
 
-        for call in statespace.calls:
-            findings = []
-            # explore state
-            findings += self._explore_states(call, statespace)
-            # explore nodes
-            findings += self._explore_nodes(call, statespace)
+    @property
+    def issues(self):
+        return self._issues
 
-            if len(findings) > 0:
-                node = call.node
-                instruction = call.state.get_current_instruction()
-                issue = Issue(
-                    contract=node.contract_name,
-                    function_name=node.function_name,
-                    address=instruction["address"],
-                    swc_id=MULTIPLE_SENDS,
-                    bytecode=call.state.environment.code.bytecode,
-                    title="Multiple Calls",
-                    _type="Informational",
-                    gas_used=(
-                        call.state.mstate.min_gas_used,
-                        call.state.mstate.max_gas_used,
-                    ),
-                )
 
-                issue.description = (
-                    "Multiple sends are executed in a single transaction. "
-                    "Try to isolate each external call into its own transaction,"
-                    " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
-                )
+def _analyze_state(state: GlobalState):
+    """
+    :param state: the current state
+    :return: returns the issues for that corresponding state
+    """
+    node = state.node
+    instruction = state.get_current_instruction()
 
-                for finding in findings:
-                    issue.description += "Call at address: {}\n".format(
-                        finding.state.get_current_instruction()["address"]
-                    )
+    annotations = [a for a in state.get_annotations(MultipleSendsAnnotation)]
+    if len(annotations) == 0:
+        log.debug("Creating annotation for state")
+        state.annotate(MultipleSendsAnnotation())
+        annotations = [a for a in state.get_annotations(MultipleSendsAnnotation)]
 
-                issues.append(issue)
-        return issues
+    calls = annotations[0].calls
 
-    def _explore_nodes(self, call, statespace):
-        children = self._child_nodes(statespace, call.node)
-        sending_children = list(filter(lambda c: c.node in children, statespace.calls))
-        return sending_children
+    if instruction["opcode"] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
+        call = get_call_from_state(state)
+        if call:
+            calls += [call]
 
-    def _explore_states(self, call, statespace):
-        other_calls = list(
-            filter(
-                lambda other: other.node == call.node
-                and other.state_index > call.state_index,
-                statespace.calls,
+    else:  # RETURN or STOP
+        if len(calls) > 1:
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=instruction["address"],
+                swc_id=MULTIPLE_SENDS,
+                bytecode=state.environment.code.bytecode,
+                title="Multiple Calls",
+                _type="Informational",
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
-        )
-        return other_calls
 
-    def _child_nodes(self, statespace, node):
-        result = []
-        children = [
-            statespace.nodes[edge.node_to]
-            for edge in statespace.edges
-            if edge.node_from == node.uid and edge.type != JumpType.Transaction
-        ]
+            issue.description = (
+                "Multiple sends are executed in a single transaction. "
+                "Try to isolate each external call into its own transaction,"
+                " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
+            )
 
-        for child in children:
-            result.append(child)
-            result += self._child_nodes(statespace, child)
+            for call in calls:
+                issue.description += "Call at address: {}\n".format(
+                    call.state.get_current_instruction()["address"]
+                )
 
-        return result
+            return [issue]
+
+    return []
 
 
 detector = MultipleSendsModule()

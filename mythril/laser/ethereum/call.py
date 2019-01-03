@@ -1,10 +1,17 @@
+"""This module contains the business logic used by Instruction in
+instructions.py to get the necessary elements from the stack and determine the
+parameters for the new global state."""
+
 import logging
-from typing import Union
-from z3 import simplify, ExprRef, Extract
+from typing import Union, List
+
+from mythril.laser.ethereum import natives
+from mythril.laser.ethereum.gas import OPCODE_GAS
+from mythril.laser.smt import simplify, Expression, symbol_factory
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import (
-    CalldataType,
+    BaseCalldata,
     SymbolicCalldata,
     ConcreteCalldata,
 )
@@ -23,9 +30,9 @@ log = logging.getLogger(__name__)
 def get_call_parameters(
     global_state: GlobalState, dynamic_loader: DynLoader, with_value=False
 ):
-    """
-    Gets call parameters from global state
-    Pops the values from the stack and determines output parameters
+    """Gets call parameters from global state Pops the values from the stack
+    and determines output parameters.
+
     :param global_state: state to look in
     :param dynamic_loader: dynamic loader to use
     :param with_value: whether to pop the value argument from the stack
@@ -40,9 +47,7 @@ def get_call_parameters(
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
     callee_account = None
-    call_data, call_data_type = get_call_data(
-        global_state, memory_input_offset, memory_input_size
-    )
+    call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
 
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
         callee_account = get_callee_account(
@@ -54,7 +59,6 @@ def get_call_parameters(
         callee_account,
         call_data,
         value,
-        call_data_type,
         gas,
         memory_out_offset,
         memory_out_size,
@@ -62,10 +66,12 @@ def get_call_parameters(
 
 
 def get_callee_address(
-    global_state: GlobalState, dynamic_loader: DynLoader, symbolic_to_address: ExprRef
+    global_state: GlobalState,
+    dynamic_loader: DynLoader,
+    symbolic_to_address: Expression,
 ):
-    """
-    Gets the address of the callee
+    """Gets the address of the callee.
+
     :param global_state: state to look in
     :param dynamic_loader:  dynamic loader to use
     :param symbolic_to_address: The (symbolic) callee address
@@ -107,8 +113,8 @@ def get_callee_address(
 def get_callee_account(
     global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
 ):
-    """
-    Gets the callees account from the global_state
+    """Gets the callees account from the global_state.
+
     :param global_state: state to look in
     :param callee_address: address of the callee
     :param dynamic_loader: dynamic loader to use
@@ -148,11 +154,11 @@ def get_callee_account(
 
 def get_call_data(
     global_state: GlobalState,
-    memory_start: Union[int, ExprRef],
-    memory_size: Union[int, ExprRef],
+    memory_start: Union[int, Expression],
+    memory_size: Union[int, Expression],
 ):
-    """
-    Gets call_data from the global_state
+    """Gets call_data from the global_state.
+
     :param global_state: state to look in
     :param memory_start: Start index
     :param memory_size: Size
@@ -160,20 +166,72 @@ def get_call_data(
     """
     state = global_state.mstate
     transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
+
+    memory_start = (
+        symbol_factory.BitVecVal(memory_start, 256)
+        if isinstance(memory_start, int)
+        else memory_start
+    )
+    memory_size = (
+        symbol_factory.BitVecVal(memory_size, 256)
+        if isinstance(memory_size, int)
+        else memory_size
+    )
+
     try:
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
                 memory_start + memory_size
             )
         ]
-        i = 0
-
         call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
-        call_data_type = CalldataType.CONCRETE
         log.debug("Calldata: " + str(call_data))
     except TypeError:
         log.debug("Unsupported symbolic calldata offset")
-        call_data_type = CalldataType.SYMBOLIC
         call_data = SymbolicCalldata("{}_internalcall".format(transaction_id))
 
-    return call_data, call_data_type
+    return call_data
+
+
+def native_call(
+    global_state: GlobalState,
+    callee_address: str,
+    call_data: BaseCalldata,
+    memory_out_offset: Union[int, Expression],
+    memory_out_size: Union[int, Expression],
+) -> Union[List[GlobalState], None]:
+    if not 0 < int(callee_address, 16) < 5:
+        return None
+
+    log.debug("Native contract called: " + callee_address)
+    try:
+        mem_out_start = util.get_concrete_int(memory_out_offset)
+        mem_out_sz = util.get_concrete_int(memory_out_size)
+    except TypeError:
+        log.debug("CALL with symbolic start or offset not supported")
+        return [global_state]
+
+    contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
+    call_address_int = int(callee_address, 16)
+    native_gas_min, native_gas_max = OPCODE_GAS["NATIVE_COST"](
+        global_state.mstate.calculate_extension_size(mem_out_start, mem_out_sz),
+        contract_list[call_address_int - 1],
+    )
+    global_state.mstate.min_gas_used += native_gas_min
+    global_state.mstate.max_gas_used += native_gas_max
+    global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+    try:
+        data = natives.native_contracts(call_address_int, call_data)
+    except natives.NativeContractException:
+        for i in range(mem_out_sz):
+            global_state.mstate.memory[mem_out_start + i] = global_state.new_bitvec(
+                contract_list[call_address_int - 1] + "(" + str(call_data) + ")", 8
+            )
+        return [global_state]
+
+    for i in range(
+        min(len(data), mem_out_sz)
+    ):  # If more data is used then it's chopped off
+        global_state.mstate.memory[mem_out_start + i] = data[i]
+    # TODO: maybe use BitVec here constrained to 1
+    return [global_state]

@@ -15,7 +15,7 @@ Mythril Classic is an open-source security analysis tool for Ethereum smart cont
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs.
 
-Oh and by the way, we're also building an easy-to-use security analysis platform (a.k.a. "the INFURA for smart contract security") that anybody can use to create purpose-built security tools. It's called [Mythril Platform](https://mythril.ai) and you should definitely [check it out](https://media.consensys.net/mythril-platform-api-is-upping-the-smart-contract-security-game-eee1d2642488).
+Oh and by the way, we're also building an [easy-to-use security analysis platform called MythX](https://mythx.io) that integrates seamlessly with Truffle, Visual Studio Code, Github and other environments. If you're looking for tooling to plug into your SDLC you should check it out. 
 
 ## Installation and setup
 
@@ -38,6 +38,16 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 Instructions for using Mythril Classic are found on the [Wiki](https://github.com/ConsenSys/mythril-classic/wiki). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
+
+## Bulding the Documentation
+Mythril Classic's documentation is contained in the `docs` folder. It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
+
+```
+cd docs
+make html
+```
+
+This will create a `build` output directory containing the HTML output. Alternatively, PDF documentation can be built with `make latexpdf`. The available output format options can be seen with `make help`.
 
 ## Vulnerability Remediation
 

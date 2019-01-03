@@ -6,11 +6,11 @@
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 567
-- Estimated Gas Usage: 750 - 1035
+- Estimated Gas Usage: 1299 - 1774
 
 ### Description
 
-The subtraction can result in an integer underflow.
+This binary subtraction operation can result in integer underflow.
 
 ## Integer Underflow
 - SWC ID: 101
@@ -18,8 +18,8 @@ The subtraction can result in an integer underflow.
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 649
-- Estimated Gas Usage: 1283 - 1758
+- Estimated Gas Usage: 1299 - 1774
 
 ### Description
 
-The subtraction can result in an integer underflow.
+This binary subtraction operation can result in integer underflow.

@@ -14,12 +14,12 @@ IDENTITY_TEST = [(0, False) for _ in range(2)]
 # These are Random numbers to check whether the 'if condition' is entered or not
 # (True means entered)
 SHA256_TEST[0] = (hex(5555555555555555), True)
-SHA256_TEST[1] = (hex(323232325445454546), True)
+SHA256_TEST[1] = (hex(323232325445454546), False)
 SHA256_TEST[2] = (hex(34756834765834658), True)
-SHA256_TEST[3] = (hex(8756476956956795876987), True)
+SHA256_TEST[3] = (hex(8756476956956795876987), False)
 
 RIPEMD160_TEST[0] = (hex(999999999999999999993), True)
-RIPEMD160_TEST[1] = (hex(1111111111112), True)
+RIPEMD160_TEST[1] = (hex(1111111111112), False)
 
 ECRECOVER_TEST[0] = (hex(674837568743979857398564869), True)
 ECRECOVER_TEST[1] = (hex(3487683476979311), False)
@@ -75,19 +75,14 @@ def _all_info(laser):
 
 
 def _test_natives(laser_info, test_list, test_name):
-    success = 0
     for i, j in test_list:
-        if (str(i) in laser_info or str(int(i, 16)) in laser_info) == j:
-            success += 1
-        else:
-            print("Failed:", str(int(i, 16)), str(j))
-    assert success == len(test_list)
+        assert (str(i) in laser_info or str(int(i, 16)) in laser_info) == j
 
 
 class NativeTests(BaseTestCase):
     @staticmethod
     def runTest():
-
+        """"""
         disassembly = SolidityContract(
             "./tests/native_tests.sol", solc_binary=Mythril._init_solc_binary("0.5.0")
         ).disassembly
@@ -99,7 +94,6 @@ class NativeTests(BaseTestCase):
 
         laser_info = str(_all_info(laser))
 
-        print(laser_info)
         _test_natives(laser_info, SHA256_TEST, "SHA256")
         _test_natives(laser_info, RIPEMD160_TEST, "RIPEMD160")
         _test_natives(laser_info, ECRECOVER_TEST, "ECRECOVER")

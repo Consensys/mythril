@@ -1,4 +1,8 @@
-from z3 import Solver, simplify, sat, unknown, FuncInterp, UGE, Optimize
+"""This module contains analysis module helpers to solve path constraints."""
+from z3 import sat, unknown, FuncInterp
+import z3
+
+from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -9,8 +13,15 @@ log = logging.getLogger(__name__)
 
 
 def get_model(constraints, minimize=(), maximize=()):
+    """
+
+    :param constraints:
+    :param minimize:
+    :param maximize:
+    :return:
+    """
     s = Optimize()
-    s.set("timeout", 100000)
+    s.set_timeout(100000)
 
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
@@ -34,7 +45,11 @@ def get_model(constraints, minimize=(), maximize=()):
 
 
 def pretty_print_model(model):
+    """
 
+    :param model:
+    :return:
+    """
     ret = ""
 
     for d in model.decls():
@@ -46,7 +61,7 @@ def pretty_print_model(model):
         try:
             condition = "0x%x" % model[d].as_long()
         except:
-            condition = str(simplify(model[d]))
+            condition = str(z3.simplify(model[d]))
 
         ret += "%s: %s\n" % (d.name(), condition)
 
@@ -54,13 +69,10 @@ def pretty_print_model(model):
 
 
 def get_transaction_sequence(global_state, constraints):
-    """
-    Generate concrete transaction sequence
+    """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
-    :param caller: address of caller
-    :param max_callvalue: maximum callvalue for a transaction
     """
 
     transaction_sequence = global_state.world_state.transaction_sequence
@@ -83,7 +95,7 @@ def get_transaction_sequence(global_state, constraints):
         if not isinstance(transaction, ContractCreationTransaction):
             transactions.append(transaction)
             # Constrain calldatasize
-            max_calldatasize = 5000
+            max_calldatasize = symbol_factory.BitVecVal(5000, 256)
             tx_constraints.append(
                 UGE(max_calldatasize, transaction.call_data.calldatasize)
             )
@@ -109,10 +121,11 @@ def get_transaction_sequence(global_state, constraints):
         )
 
         concrete_transactions[tx_id]["call_value"] = (
-            "0x%x" % model.eval(transaction.call_value, model_completion=True).as_long()
+            "0x%x"
+            % model.eval(transaction.call_value.raw, model_completion=True).as_long()
         )
         concrete_transactions[tx_id]["caller"] = "0x" + (
-            "%x" % model.eval(transaction.caller, model_completion=True).as_long()
+            "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
         ).zfill(40)
 
     return concrete_transactions

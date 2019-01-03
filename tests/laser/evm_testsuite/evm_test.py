@@ -2,6 +2,7 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.account import Account
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
+from mythril.laser.smt import Expression, BitVec
 from mythril.analysis.solver import get_model
 from datetime import datetime
 
@@ -25,6 +26,11 @@ test_types = [
 
 
 def load_test_data(designations):
+    """
+
+    :param designations:
+    :return:
+    """
     return_data = []
     for designation in designations:
         for file_reference in (evm_test_dir / designation).iterdir():
@@ -133,11 +139,9 @@ def test_vmtest(
             for index, value in details["storage"].items():
                 expected = int(value, 16)
                 actual = account.storage[int(index, 16)]
-                if isinstance(actual, ExprRef):
-                    actual = model.eval(actual)
-                    actual = (
-                        1 if actual == True else 0 if actual == False else actual
-                    )  # Comparisons should be done with == than 'is' here as actual can be a BoolRef
+                if isinstance(actual, Expression):
+                    actual = actual.value
+                    actual = 1 if actual is True else 0 if actual is False else actual
                 else:
                     if type(actual) == bytes:
                         actual = int(binascii.b2a_hex(actual), 16)

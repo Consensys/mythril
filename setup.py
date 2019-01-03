@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-install mythril and deploy source-dist and wheel to pypi.python.org
+"""install mythril and deploy source-dist and wheel to pypi.python.org.
 
 deps (requires up2date version):
     *) pip install --upgrade pip wheel setuptools twine
 publish to pypi w/o having to convert Readme.md to RST:
     1) #> python setup.py sdist bdist_wheel
     2) #> twine upload dist/*   #<specify bdist_wheel version to upload>; #optional --repository <testpypi> or  --repository-url <testpypi-url>
-
 """
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -27,11 +25,12 @@ exec(open(str(version_path), "r").read())
 
 
 class VerifyVersionCommand(install):
-    """Custom command to verify that the git tag matches our version"""
+    """Custom command to verify that the git tag matches our version."""
 
     description = "verify that the git tag matches our version"
 
     def run(self):
+        """"""
         tag = os.getenv("CIRCLE_TAG")
 
         if tag != VERSION:
@@ -42,8 +41,8 @@ class VerifyVersionCommand(install):
 
 
 def read_file(fname):
-    """
-    return file contents
+    """return file contents.
+
     :param fname: path relative to setup.py
     :return: file contents
     """
@@ -87,7 +86,7 @@ setup(
         "eth-keyfile>=0.5.1",
         "eth-keys>=0.2.0b3",
         "eth-rlp>=0.1.0",
-        "eth-tester>=0.1.0b21",
+        "eth-tester==0.1.0b32",
         "eth-typing>=2.0.0",
         "coverage",
         "jinja2>=2.9",
@@ -102,7 +101,7 @@ setup(
     tests_require=["pytest>=3.6.0", "pytest_mock", "pytest-cov"],
     python_requires=">=3.5",
     extras_require={},
-    package_data={"mythril.analysis.templates": ["*"]},
+    package_data={"mythril.analysis.templates": ["*"], "": ["signatures.db"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
     cmdclass={"verify": VerifyVersionCommand},

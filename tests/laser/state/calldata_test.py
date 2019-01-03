@@ -1,6 +1,7 @@
 import pytest
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCalldata
-from z3 import Solver, simplify, BitVec, sat, unsat
+from mythril.laser.smt import Solver, symbol_factory
+from z3 import sat, unsat
 from z3.z3types import Z3Exception
 from mock import MagicMock
 
@@ -32,7 +33,7 @@ def test_concrete_calldata_calldatasize():
     # Act
     solver.check()
     model = solver.model()
-    result = model.eval(calldata.calldatasize)
+    result = model.eval(calldata.calldatasize.raw)
 
     # Assert
     assert result == 7
@@ -75,8 +76,8 @@ def test_symbolic_calldata_constrain_index():
 def test_symbolic_calldata_equal_indices():
     calldata = SymbolicCalldata(0)
 
-    index_a = BitVec("index_a", 256)
-    index_b = BitVec("index_b", 256)
+    index_a = symbol_factory.BitVecSym("index_a", 256)
+    index_b = symbol_factory.BitVecSym("index_b", 256)
 
     # Act
     a = calldata[index_a]

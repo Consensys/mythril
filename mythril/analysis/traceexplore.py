@@ -1,4 +1,7 @@
-from z3 import Z3Exception, simplify
+"""This module provides a function to convert a state space into a set of state
+nodes and transition edges."""
+from z3 import Z3Exception
+from mythril.laser.smt import simplify
 from mythril.laser.ethereum.svm import NodeFlags
 import re
 
@@ -47,6 +50,11 @@ colors = [
 
 
 def get_serializable_statespace(statespace):
+    """
+
+    :param statespace:
+    :return:
+    """
     nodes = []
     edges = []
 
@@ -77,6 +85,11 @@ def get_serializable_statespace(statespace):
         color = color_map[node.get_cfg_dict()["contract_name"]]
 
         def get_state_accounts(node_state):
+            """
+
+            :param node_state:
+            :return:
+            """
             state_accounts = []
             for key in node_state.accounts:
                 account = node_state.accounts[key].as_dict

@@ -4,8 +4,8 @@ Type: Warning
 Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 567
-Estimated Gas Usage: 750 - 1035
-The subtraction can result in an integer underflow.
+Estimated Gas Usage: 1299 - 1774
+This binary subtraction operation can result in integer underflow.
 
 --------------------
 
@@ -15,8 +15,8 @@ Type: Warning
 Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 649
-Estimated Gas Usage: 1283 - 1758
-The subtraction can result in an integer underflow.
+Estimated Gas Usage: 1299 - 1774
+This binary subtraction operation can result in integer underflow.
 
 --------------------
 

@@ -1,24 +1,26 @@
+"""This module contains the detection code to find the existence of transaction
+order dependence."""
+import copy
 import logging
 import re
-import copy
 
 from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
-from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
-
 
 log = logging.getLogger(__name__)
 
 
 class TxOrderDependenceModule(DetectionModule):
+    """This module finds the existence of transaction order dependence."""
+
     def __init__(self):
         super().__init__(
             name="Transaction Order Dependence",
             swc_id=TX_ORDER_DEPENDENCE,
-            hooks=[],
             description=(
                 "This module finds the existance of transaction order dependence "
                 "vulnerabilities. The following webpage contains an extensive description "
@@ -28,7 +30,11 @@ class TxOrderDependenceModule(DetectionModule):
         )
 
     def execute(self, statespace):
-        """ Executes the analysis module"""
+        """Executes the analysis module.
+
+        :param statespace:
+        :return:
+        """
         log.debug("Executing module: TOD")
 
         issues = []
@@ -67,22 +73,34 @@ class TxOrderDependenceModule(DetectionModule):
         return issues
 
     # TODO: move to __init__ or util module
-    def _get_states_with_opcode(self, statespace, opcode):
-        """ Gets all (state, node) tuples in statespace with opcode"""
+    @staticmethod
+    def _get_states_with_opcode(statespace, opcode):
+        """Gets all (state, node) tuples in statespace with opcode.
+
+        :param statespace:
+        :param opcode:
+        """
         for k in statespace.nodes:
             node = statespace.nodes[k]
             for state in node.states:
                 if state.get_current_instruction()["opcode"] == opcode:
                     yield state, node
 
-    def _dependent_on_storage(self, expression):
-        """ Checks if expression is dependent on a storage symbol and returns the influencing storages"""
+    @staticmethod
+    def _dependent_on_storage(expression):
+        """Checks if expression is dependent on a storage symbol and returns
+        the influencing storages.
+
+        :param expression:
+        :return:
+        """
         pattern = re.compile(r"storage_[a-z0-9_&^]*[0-9]+")
         return pattern.findall(str(simplify(expression)))
 
-    def _get_storage_variable(self, storage, state):
-        """
-        Get storage z3 object given storage name and the state
+    @staticmethod
+    def _get_storage_variable(storage, state):
+        """Get storage z3 object given storage name and the state.
+
         :param storage: storage name example: storage_0
         :param state: state to retrieve the variable from
         :return: z3 object representing storage
@@ -94,7 +112,12 @@ class TxOrderDependenceModule(DetectionModule):
             return None
 
     def _can_change(self, constraints, variable):
-        """ Checks if the variable can change given some constraints """
+        """Checks if the variable can change given some constraints.
+
+        :param constraints:
+        :param variable:
+        :return:
+        """
         _constraints = copy.deepcopy(constraints)
         try:
             model = solver.get_model(_constraints)
@@ -110,7 +133,11 @@ class TxOrderDependenceModule(DetectionModule):
             return False
 
     def _get_influencing_storages(self, call):
-        """ Examines a Call object and returns an iterator of all storages that influence the call value or direction"""
+        """Examines a Call object and returns an iterator of all storages that
+        influence the call value or direction.
+
+        :param call:
+        """
         state = call.state
         node = call.node
 
@@ -130,7 +157,11 @@ class TxOrderDependenceModule(DetectionModule):
                 yield storage
 
     def _get_influencing_sstores(self, statespace, interesting_storages):
-        """ Gets sstore (state, node) tuples that write to interesting_storages"""
+        """Gets sstore (state, node) tuples that write to interesting_storages.
+
+        :param statespace:
+        :param interesting_storages:
+        """
         for sstore_state, node in self._get_states_with_opcode(statespace, "SSTORE"):
             index, value = sstore_state.mstate.stack[-1], sstore_state.mstate.stack[-2]
             try:
@@ -143,9 +174,12 @@ class TxOrderDependenceModule(DetectionModule):
             yield sstore_state, node
 
     # TODO: remove
-    def _try_constraints(self, constraints, new_constraints):
-        """
-        Tries new constraints
+    @staticmethod
+    def _try_constraints(constraints, new_constraints):
+        """Tries new constraints.
+
+        :param constraints:
+        :param new_constraints:
         :return Model if satisfiable otherwise None
         """
         _constraints = copy.deepcopy(constraints)
