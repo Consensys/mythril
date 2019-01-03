@@ -1,27 +1,34 @@
-# -*- coding: utf8 -*-
+"""This nodule defines helper functions to deal with native calls."""
 
 import hashlib
 import logging
-from typing import Union, List
+from typing import List, Union
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
-from mythril.laser.ethereum.util import bytearray_to_int, sha3, get_concrete_int
+from mythril.laser.ethereum.util import bytearray_to_int, sha3
 from mythril.laser.smt import Concat, simplify
 
 log = logging.getLogger(__name__)
 
 
 class NativeContractException(Exception):
+    """An exception denoting an error during a native call."""
+
     pass
 
 
 def int_to_32bytes(
     i: int
 ) -> bytes:  # used because int can't fit as bytes function's input
+    """
+
+    :param i:
+    :return:
+    """
     o = [0] * 32
     for x in range(32):
         o[31 - x] = i & 0xFF
@@ -30,6 +37,12 @@ def int_to_32bytes(
 
 
 def extract32(data: bytearray, i: int) -> int:
+    """
+
+    :param data:
+    :param i:
+    :return:
+    """
     if i >= len(data):
         return 0
     o = data[i : min(i + 32, len(data))]
@@ -38,6 +51,11 @@ def extract32(data: bytearray, i: int) -> int:
 
 
 def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     # TODO: Add type hints
     try:
         data = bytearray(data)
@@ -60,6 +78,11 @@ def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def sha256(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     try:
         data = bytes(data)
     except TypeError:
@@ -68,6 +91,11 @@ def sha256(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     try:
         data = bytes(data)
     except TypeError:
@@ -78,6 +106,11 @@ def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def identity(data: Union[bytes, str, List[int]]) -> bytes:
+    """
+
+    :param data:
+    :return:
+    """
     # Group up into an array of 32 byte words instead
     # of an array of bytes. If saved to memory, 32 byte
     # words are currently needed, but a correct memory
@@ -91,8 +124,11 @@ def identity(data: Union[bytes, str, List[int]]) -> bytes:
 
 
 def native_contracts(address: int, data: BaseCalldata):
-    """
-    takes integer address 1, 2, 3, 4
+    """Takes integer address 1, 2, 3, 4.
+
+    :param address:
+    :param data:
+    :return:
     """
     functions = (ecrecover, sha256, ripemd160, identity)
 

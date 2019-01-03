@@ -1,13 +1,15 @@
-from mythril.analysis.ops import *
-from mythril.analysis import solver
-from mythril.analysis.report import Issue
-from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
-from mythril.analysis.modules.base import DetectionModule
-from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.exceptions import UnsatError
-from mythril.laser.smt import symbol_factory, UGT, Sum, BVAddNoOverflow
+"""This module contains the detection code for unauthorized ether
+withdrawal."""
 import logging
 from copy import copy
+
+from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
+from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import UGT, BVAddNoOverflow, Sum, symbol_factory
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +28,11 @@ An issue is reported if:
 
 
 def _analyze_state(state):
+    """
+
+    :param state:
+    :return:
+    """
     instruction = state.get_current_instruction()
     node = state.node
 
@@ -77,7 +84,11 @@ def _analyze_state(state):
 
 
 class EtherThief(DetectionModule):
+    """This module search for cases where Ether can be withdrawn to a user-
+    specified address."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Ether Thief",
             swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
@@ -88,11 +99,20 @@ class EtherThief(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState):
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
     @property
     def issues(self):
+        """
+
+        :return:
+        """
         return self._issues
 
 

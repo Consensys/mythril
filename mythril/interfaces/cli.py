@@ -5,23 +5,30 @@
    http://www.github.com/ConsenSys/mythril
 """
 
-import logging, coloredlogs
+import argparse
 import json
+import logging
 import os
 import sys
-import argparse
 
-# logging.basicConfig(level=logging.DEBUG)
+import coloredlogs
 
-from mythril.exceptions import CriticalError, AddressNotFoundError
+import mythril.support.signatures as sigs
+from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
-import mythril.support.signatures as sigs
+
+# logging.basicConfig(level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
 
 
 def exit_with_error(format_, message):
+    """
+
+    :param format_:
+    :param message:
+    """
     if format_ == "text" or format_ == "markdown":
         log.error(message)
     else:
@@ -31,6 +38,7 @@ def exit_with_error(format_, message):
 
 
 def main():
+    """The main CLI interface entry point."""
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )

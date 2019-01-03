@@ -1,8 +1,16 @@
+"""This module contains functions for dynamic gas calculation and a gas cost
+table."""
 from ethereum import opcodes
 from ethereum.utils import ceil32
 
 
 def calculate_native_gas(size: int, contract: str):
+    """
+
+    :param size:
+    :param contract:
+    :return:
+    """
     gas_value = None
     word_num = ceil32(size) // 32
     if contract == "ecrecover":
@@ -19,6 +27,11 @@ def calculate_native_gas(size: int, contract: str):
 
 
 def calculate_sha3_gas(length: int):
+    """
+
+    :param length:
+    :return:
+    """
     gas_val = 30 + opcodes.GSHA3WORD * (ceil32(length) // 32)
     return gas_val, gas_val
 

@@ -1,7 +1,10 @@
-from mythril.analysis.report import Issue
+"""This module contains the detection code for potentially insecure low-level
+calls."""
+
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.report import Issue
 from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
@@ -19,7 +22,11 @@ an informational issue.
 
 
 def _analyze_state(state):
+    """
 
+    :param state:
+    :return:
+    """
     node = state.node
     gas = state.mstate.stack[-1]
     to = state.mstate.stack[-2]
@@ -91,22 +98,35 @@ def _analyze_state(state):
 
 
 class ExternalCalls(DetectionModule):
+    """This module searches for low level calls (e.g. call.value()) that
+    forward all gas to the callee."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="External calls",
             swc_id=REENTRANCY,
-            description=(DESCRIPTION),
+            description=DESCRIPTION,
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
         self._issues = []
 
     def execute(self, state: GlobalState):
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 
     @property
     def issues(self):
+        """
+
+        :return:
+        """
         return self._issues
 
 
