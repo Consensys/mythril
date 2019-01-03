@@ -26,6 +26,11 @@ test_types = [
 
 
 def load_test_data(designations):
+    """
+
+    :param designations:
+    :return:
+    """
     return_data = []
     for designation in designations:
         for file_reference in (evm_test_dir / designation).iterdir():

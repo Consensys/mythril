@@ -1,3 +1,5 @@
+"""This module contains a representation class for EVM instructions and
+transitions between them."""
 import binascii
 import logging
 
@@ -58,21 +60,39 @@ keccak_function_manager = KeccakFunctionManager()
 class StateTransition(object):
     """Decorator that handles global state copy and original return.
 
-    This decorator calls the decorated instruction mutator function on a copy of the state that
-    is passed to it. After the call, the resulting new states' program counter is automatically
-    incremented if `increment_pc=True`.
+    This decorator calls the decorated instruction mutator function on a
+    copy of the state that is passed to it. After the call, the
+    resulting new states' program counter is automatically incremented
+    if `increment_pc=True`.
     """
 
     def __init__(self, increment_pc=True, enable_gas=True):
+        """
+
+        :param increment_pc:
+        :param enable_gas:
+        """
         self.increment_pc = increment_pc
         self.enable_gas = enable_gas
 
     @staticmethod
     def call_on_state_copy(func: Callable, func_obj: "Instruction", state: GlobalState):
+        """
+
+        :param func:
+        :param func_obj:
+        :param state:
+        :return:
+        """
         global_state_copy = copy(state)
         return func(func_obj, global_state_copy)
 
     def increment_states_pc(self, states: List[GlobalState]) -> List[GlobalState]:
+        """
+
+        :param states:
+        :return:
+        """
         if self.increment_pc:
             for state in states:
                 state.mstate.pc += 1
@@ -80,6 +100,11 @@ class StateTransition(object):
 
     @staticmethod
     def check_gas_usage_limit(global_state: GlobalState):
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.check_gas()
         if isinstance(global_state.current_transaction.gas_limit, BitVec):
             value = global_state.current_transaction.gas_limit.value
@@ -93,6 +118,11 @@ class StateTransition(object):
             raise OutOfGasException()
 
     def accumulate_gas(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        :return:
+        """
         if not self.enable_gas:
             return global_state
         opcode = global_state.instruction["opcode"]
@@ -105,6 +135,12 @@ class StateTransition(object):
         def wrapper(
             func_obj: "Instruction", global_state: GlobalState
         ) -> List[GlobalState]:
+            """
+
+            :param func_obj:
+            :param global_state:
+            :return:
+            """
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
             new_global_states = [
                 self.accumulate_gas(state) for state in new_global_states
@@ -115,16 +151,25 @@ class StateTransition(object):
 
 
 class Instruction:
-    """
-    Instruction class is used to mutate a state according to the current instruction
-    """
+    """Instruction class is used to mutate a state according to the current
+    instruction."""
 
     def __init__(self, op_code: str, dynamic_loader: DynLoader):
+        """
+
+        :param op_code:
+        :param dynamic_loader:
+        """
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code.upper()
 
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
-        """ Performs the mutation for this instruction """
+        """Performs the mutation for this instruction.
+
+        :param global_state:
+        :param post:
+        :return:
+        """
         # Generalize some ops
         log.debug("Evaluating {}".format(self.op_code))
         op = self.op_code.lower()
@@ -150,10 +195,20 @@ class Instruction:
 
     @StateTransition()
     def jumpdest_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         return [global_state]
 
     @StateTransition()
     def push_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         push_instruction = global_state.get_current_instruction()
         push_value = push_instruction["argument"][2:]
 
@@ -170,12 +225,22 @@ class Instruction:
 
     @StateTransition()
     def dup_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         value = int(global_state.get_current_instruction()["opcode"][3:], 10)
         global_state.mstate.stack.append(global_state.mstate.stack[-value])
         return [global_state]
 
     @StateTransition()
     def swap_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         depth = int(self.op_code[4:])
         stack = global_state.mstate.stack
         stack[-depth - 1], stack[-1] = stack[-1], stack[-depth - 1]
@@ -183,11 +248,21 @@ class Instruction:
 
     @StateTransition()
     def pop_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.pop()
         return [global_state]
 
     @StateTransition()
     def and_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
         if isinstance(op1, Bool):
@@ -208,6 +283,11 @@ class Instruction:
 
     @StateTransition()
     def or_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         stack = global_state.mstate.stack
         op1, op2 = stack.pop(), stack.pop()
 
@@ -227,18 +307,33 @@ class Instruction:
 
     @StateTransition()
     def xor_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         mstate = global_state.mstate
         mstate.stack.append(mstate.stack.pop() ^ mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
     def not_(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        :return:
+        """
         mstate = global_state.mstate
         mstate.stack.append(symbol_factory.BitVecVal(TT256M1, 256) - mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
     def byte_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         mstate = global_state.mstate
         op0, op1 = mstate.stack.pop(), mstate.stack.pop()
         if not isinstance(op1, Expression):
@@ -267,6 +362,11 @@ class Instruction:
     # Arithmetic
     @StateTransition()
     def add_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(
             (
                 helper.pop_bitvec(global_state.mstate)
@@ -277,6 +377,11 @@ class Instruction:
 
     @StateTransition()
     def sub_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(
             (
                 helper.pop_bitvec(global_state.mstate)
@@ -287,6 +392,11 @@ class Instruction:
 
     @StateTransition()
     def mul_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(
             (
                 helper.pop_bitvec(global_state.mstate)
@@ -297,6 +407,11 @@ class Instruction:
 
     @StateTransition()
     def div_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         op0, op1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -309,6 +424,11 @@ class Instruction:
 
     @StateTransition()
     def sdiv_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         s0, s1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -321,6 +441,11 @@ class Instruction:
 
     @StateTransition()
     def mod_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         s0, s1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -330,6 +455,11 @@ class Instruction:
 
     @StateTransition()
     def smod_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         s0, s1 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -339,6 +469,11 @@ class Instruction:
 
     @StateTransition()
     def addmod_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         s0, s1, s2 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -349,6 +484,11 @@ class Instruction:
 
     @StateTransition()
     def mulmod_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         s0, s1, s2 = (
             util.pop_bitvec(global_state.mstate),
             util.pop_bitvec(global_state.mstate),
@@ -359,6 +499,11 @@ class Instruction:
 
     @StateTransition()
     def exp_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
@@ -379,6 +524,11 @@ class Instruction:
 
     @StateTransition()
     def signextend_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         s0, s1 = state.stack.pop(), state.stack.pop()
 
@@ -402,6 +552,11 @@ class Instruction:
     # Comparisons
     @StateTransition()
     def lt_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         exp = ULT(util.pop_bitvec(state), util.pop_bitvec(state))
         state.stack.append(exp)
@@ -409,6 +564,11 @@ class Instruction:
 
     @StateTransition()
     def gt_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         op1, op2 = util.pop_bitvec(state), util.pop_bitvec(state)
         exp = UGT(op1, op2)
@@ -417,6 +577,11 @@ class Instruction:
 
     @StateTransition()
     def slt_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         exp = util.pop_bitvec(state) < util.pop_bitvec(state)
         state.stack.append(exp)
@@ -424,6 +589,11 @@ class Instruction:
 
     @StateTransition()
     def sgt_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
 
         exp = util.pop_bitvec(state) > util.pop_bitvec(state)
@@ -432,6 +602,11 @@ class Instruction:
 
     @StateTransition()
     def eq_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
 
         op1 = state.stack.pop()
@@ -454,6 +629,11 @@ class Instruction:
 
     @StateTransition()
     def iszero_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
 
         val = state.stack.pop()
@@ -469,6 +649,11 @@ class Instruction:
     # Call data
     @StateTransition()
     def callvalue_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.callvalue)
@@ -477,6 +662,11 @@ class Instruction:
 
     @StateTransition()
     def calldataload_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         op0 = state.stack.pop()
@@ -489,6 +679,11 @@ class Instruction:
 
     @StateTransition()
     def calldatasize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.calldata.calldatasize)
@@ -496,6 +691,11 @@ class Instruction:
 
     @StateTransition()
     def calldatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -590,6 +790,11 @@ class Instruction:
     # Environment
     @StateTransition()
     def address_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.address)
@@ -597,6 +802,11 @@ class Instruction:
 
     @StateTransition()
     def balance_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         address = state.stack.pop()
         state.stack.append(global_state.new_bitvec("balance_at_" + str(address), 256))
@@ -604,6 +814,11 @@ class Instruction:
 
     @StateTransition()
     def origin_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.origin)
@@ -611,6 +826,11 @@ class Instruction:
 
     @StateTransition()
     def caller_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.sender)
@@ -618,6 +838,11 @@ class Instruction:
 
     @StateTransition()
     def codesize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
@@ -626,6 +851,11 @@ class Instruction:
 
     @StateTransition(enable_gas=False)
     def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global keccak_function_manager
 
         state = global_state.mstate
@@ -676,11 +906,21 @@ class Instruction:
 
     @StateTransition()
     def gasprice_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
         return [global_state]
 
     @StateTransition()
     def codecopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         memory_offset, code_offset, size = (
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
@@ -767,6 +1007,11 @@ class Instruction:
 
     @StateTransition()
     def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         addr = state.stack.pop()
         environment = global_state.environment
@@ -793,6 +1038,11 @@ class Instruction:
 
     @StateTransition()
     def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         # FIXME: not implemented
         state = global_state.mstate
         addr = state.stack.pop()
@@ -802,6 +1052,11 @@ class Instruction:
 
     @StateTransition()
     def returndatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         # FIXME: not implemented
         state = global_state.mstate
         start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -810,11 +1065,21 @@ class Instruction:
 
     @StateTransition()
     def returndatasize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.new_bitvec("returndatasize", 256))
         return [global_state]
 
     @StateTransition()
     def blockhash_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         blocknumber = state.stack.pop()
         state.stack.append(
@@ -824,21 +1089,41 @@ class Instruction:
 
     @StateTransition()
     def coinbase_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.new_bitvec("coinbase", 256))
         return [global_state]
 
     @StateTransition()
     def timestamp_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.new_bitvec("timestamp", 256))
         return [global_state]
 
     @StateTransition()
     def number_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
         return [global_state]
 
     @StateTransition()
     def difficulty_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(
             global_state.new_bitvec("block_difficulty", 256)
         )
@@ -846,12 +1131,22 @@ class Instruction:
 
     @StateTransition()
     def gaslimit_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.mstate.gas_limit)
         return [global_state]
 
     # Memory operations
     @StateTransition()
     def mload_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         op0 = state.stack.pop()
 
@@ -875,6 +1170,11 @@ class Instruction:
 
     @StateTransition()
     def mstore_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -897,6 +1197,11 @@ class Instruction:
 
     @StateTransition()
     def mstore8_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         op0, value = state.stack.pop(), state.stack.pop()
 
@@ -920,6 +1225,11 @@ class Instruction:
 
     @StateTransition()
     def sload_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global keccak_function_manager
 
         state = global_state.mstate
@@ -966,6 +1276,13 @@ class Instruction:
     def _sload_helper(
         global_state: GlobalState, index: Union[int, Expression], constraints=None
     ):
+        """
+
+        :param global_state:
+        :param index:
+        :param constraints:
+        :return:
+        """
         try:
             data = global_state.environment.active_account.storage[index]
         except KeyError:
@@ -980,6 +1297,12 @@ class Instruction:
 
     @staticmethod
     def _get_constraints(keccak_keys, this_key, argument):
+        """
+
+        :param keccak_keys:
+        :param this_key:
+        :param argument:
+        """
         global keccak_function_manager
         for keccak_key in keccak_keys:
             if keccak_key == this_key:
@@ -989,6 +1312,11 @@ class Instruction:
 
     @StateTransition()
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
@@ -1044,6 +1372,14 @@ class Instruction:
 
     @staticmethod
     def _sstore_helper(global_state, index, value, constraint=None):
+        """
+
+        :param global_state:
+        :param index:
+        :param value:
+        :param constraint:
+        :return:
+        """
         try:
             global_state.environment.active_account = deepcopy(
                 global_state.environment.active_account
@@ -1065,6 +1401,11 @@ class Instruction:
 
     @StateTransition(increment_pc=False, enable_gas=False)
     def jump_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         disassembly = global_state.environment.code
         try:
@@ -1099,6 +1440,11 @@ class Instruction:
 
     @StateTransition(increment_pc=False, enable_gas=False)
     def jumpi_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         state = global_state.mstate
         disassembly = global_state.environment.code
         min_gas, max_gas = OPCODE_GAS["JUMPI"]
@@ -1169,22 +1515,42 @@ class Instruction:
 
     @StateTransition()
     def pc_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.mstate.pc - 1)
         return [global_state]
 
     @StateTransition()
     def msize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
         return [global_state]
 
     @StateTransition()
     def gas_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         # TODO: Push a Constrained variable which lies between min gas and max gas
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
     @StateTransition()
     def log_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         # TODO: implement me
         state = global_state.mstate
         dpth = int(self.op_code[3:])
@@ -1195,6 +1561,11 @@ class Instruction:
 
     @StateTransition()
     def create_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         # TODO: implement me
         state = global_state.mstate
         state.stack.pop(), state.stack.pop(), state.stack.pop()
@@ -1204,6 +1575,10 @@ class Instruction:
 
     @StateTransition()
     def return_(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 8)]
@@ -1217,6 +1592,10 @@ class Instruction:
 
     @StateTransition()
     def suicide_(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        """
         target = global_state.mstate.stack.pop()
         account_created = False
         # Often the target of the suicide instruction will be symbolic
@@ -1248,6 +1627,10 @@ class Instruction:
 
     @StateTransition()
     def revert_(self, global_state: GlobalState) -> None:
+        """
+
+        :param global_state:
+        """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 8)]
@@ -1263,25 +1646,41 @@ class Instruction:
 
     @StateTransition()
     def assert_fail_(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        """
         # 0xfe: designated invalid opcode
         raise InvalidInstruction
 
     @StateTransition()
     def invalid_(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        """
         raise InvalidInstruction
 
     @StateTransition()
     def stop_(self, global_state: GlobalState):
+        """
+
+        :param global_state:
+        """
         global_state.current_transaction.end(global_state)
 
     @StateTransition()
     def call_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
 
+        :param global_state:
+        :return:
+        """
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1315,13 +1714,17 @@ class Instruction:
             ),
             callee_account=callee_account,
             call_data=call_data,
-            call_data_type=call_data_type,
             call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
     @StateTransition()
     def call_post(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         instr = global_state.get_current_instruction()
 
         try:
@@ -1384,11 +1787,16 @@ class Instruction:
 
     @StateTransition()
     def callcode_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1411,17 +1819,21 @@ class Instruction:
             caller=environment.address,
             callee_account=environment.active_account,
             call_data=call_data,
-            call_data_type=call_data_type,
             call_value=value,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
     @StateTransition()
     def callcode_post(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -1478,11 +1890,16 @@ class Instruction:
 
     @StateTransition()
     def delegatecall_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, _, _ = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1505,17 +1922,21 @@ class Instruction:
             caller=environment.sender,
             callee_account=environment.active_account,
             call_data=call_data,
-            call_data_type=call_data_type,
             call_value=environment.callvalue,
         )
         raise TransactionStartSignal(transaction, self.op_code)
 
     @StateTransition()
     def delegatecall_post(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:
@@ -1572,10 +1993,15 @@ class Instruction:
 
     @StateTransition()
     def staticcall_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
         # TODO: implement me
         instr = global_state.get_current_instruction()
         try:
-            callee_address, callee_account, call_data, value, call_data_type, gas, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
         except ValueError as e:

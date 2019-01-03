@@ -1,3 +1,5 @@
+"""This module maps SWC IDs to their registry equivalents."""
+
 DEFAULT_FUNCTION_VISIBILITY = "100"
 INTEGER_OVERFLOW_AND_UNDERFLOW = "101"
 OUTDATED_COMPILER_VERSION = "102"

@@ -1,19 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-"""mythril.py: Function Signature Database
-"""
-import os
-import time
-import logging
-import sqlite3
-import multiprocessing
+"""The Mythril function signature database."""
 import functools
-from typing import List
+import logging
+import multiprocessing
+import os
+import sqlite3
+import time
 from collections import defaultdict
+from subprocess import PIPE, Popen
+from typing import List
 
-from subprocess import Popen, PIPE
 from mythril.exceptions import CompilerError
-
 
 log = logging.getLogger(__name__)
 
@@ -21,11 +17,23 @@ lock = multiprocessing.Lock()
 
 
 def synchronized(sync_lock):
-    """ Synchronization decorator """
+    """A decorator synchronizing multi-process access to a resource."""
 
     def wrapper(f):
+        """The decorator's core function.
+
+        :param f:
+        :return:
+        """
+
         @functools.wraps(f)
         def inner_wrapper(*args, **kw):
+            """
+
+            :param args:
+            :param kw:
+            :return:
+            """
             with sync_lock:
                 return f(*args, **kw)
 
@@ -35,10 +43,21 @@ def synchronized(sync_lock):
 
 
 class Singleton(type):
+    """A metaclass type implementing the singleton pattern."""
+
     _instances = {}
 
     @synchronized(lock)
     def __call__(cls, *args, **kwargs):
+        """Delegate the call to an existing resource or a a new one.
+
+        This is not thread- or process-safe by default. It must be protected with
+        a lock.
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
@@ -55,21 +74,36 @@ except ImportError:
 
 
 class SQLiteDB(object):
-    """
-    Simple context manager for sqlite3 databases. Commits everything at exit.
+    """Simple context manager for sqlite3 databases.
+
+    Commits everything at exit.
     """
 
     def __init__(self, path):
+        """
+
+        :param path:
+        """
         self.path = path
         self.conn = None
         self.cursor = None
 
     def __enter__(self):
+        """
+
+        :return:
+        """
         self.conn = sqlite3.connect(self.path)
         self.cursor = self.conn.cursor()
         return self.cursor
 
     def __exit__(self, exc_class, exc, traceback):
+        """
+
+        :param exc_class:
+        :param exc:
+        :param traceback:
+        """
         self.conn.commit()
         self.conn.close()
 
@@ -78,7 +112,13 @@ class SQLiteDB(object):
 
 
 class SignatureDB(object, metaclass=Singleton):
+    """"""
+
     def __init__(self, enable_online_lookup: bool = False, path: str = None) -> None:
+        """
+        :param enable_online_lookup:
+        :param path:
+        """
         self.enable_online_lookup = enable_online_lookup
         self.online_lookup_miss = set()
         self.online_lookup_timeout = 0
@@ -104,8 +144,8 @@ class SignatureDB(object, metaclass=Singleton):
             )
 
     def __getitem__(self, item: str) -> List[str]:
-        """
-        Provide dict interface db[sighash]
+        """Provide dict interface db[sighash]
+
         :param item: 4-byte signature string
         :return: list of matching text signature strings
         """
@@ -113,8 +153,8 @@ class SignatureDB(object, metaclass=Singleton):
 
     @staticmethod
     def _normalize_byte_sig(byte_sig: str) -> str:
-        """
-        Adds a leading 0x to the byte signature if it's not already there.
+        """Adds a leading 0x to the byte signature if it's not already there.
+
         :param byte_sig: 4-byte signature string
         :return: normalized byte signature string
         """
@@ -142,10 +182,9 @@ class SignatureDB(object, metaclass=Singleton):
             )
 
     def get(self, byte_sig: str, online_timeout: int = 2) -> List[str]:
-        """
-        Get a function text signature for a byte signature
-        1) try local cache
-        2) try online lookup (if enabled; if not flagged as unavailable)
+        """Get a function text signature for a byte signature 1) try local
+        cache 2) try online lookup (if enabled; if not flagged as unavailable)
+
         :param byte_sig: function signature hash as hexstr
         :param online_timeout: online lookup timeout
         :return: list of matching function text signatures
@@ -193,8 +232,10 @@ class SignatureDB(object, metaclass=Singleton):
     def import_solidity_file(
         self, file_path: str, solc_binary: str = "solc", solc_args: str = None
     ):
-        """
-        Import Function Signatures from solidity source files
+        """Import Function Signatures from solidity source files.
+
+        :param solc_binary:
+        :param solc_args:
         :param file_path: solidity source code file path
         :return:
         """
@@ -239,11 +280,7 @@ class SignatureDB(object, metaclass=Singleton):
 
     @staticmethod
     def lookup_online(byte_sig: str, timeout: int, proxies=None) -> List[str]:
-        """
-        Lookup function signatures from 4byte.directory.
-        //tintinweb: the smart-contract-sanctuary project dumps contracts from etherscan.io and feeds them into
-                     4bytes.directory.
-                     https://github.com/tintinweb/smart-contract-sanctuary
+        """Lookup function signatures from 4byte.directory.
 
         :param byte_sig: function signature hash as hexstr
         :param timeout: optional timeout for online lookup

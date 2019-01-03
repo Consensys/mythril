@@ -1,3 +1,5 @@
+"""This module contains representation classes for Solidity files, contracts
+and source mappings."""
 import mythril.laser.ethereum.util as helper
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.util import get_solc_json
@@ -6,6 +8,8 @@ from mythril.exceptions import NoContractFoundError
 
 class SourceMapping:
     def __init__(self, solidity_file_idx, offset, length, lineno, mapping):
+        """Representation of a source mapping for a Solidity file."""
+
         self.solidity_file_idx = solidity_file_idx
         self.offset = offset
         self.length = length
@@ -14,6 +18,8 @@ class SourceMapping:
 
 
 class SolidityFile:
+    """Representation of a file containing Solidity code."""
+
     def __init__(self, filename, data):
         self.filename = filename
         self.data = data
@@ -21,6 +27,8 @@ class SolidityFile:
 
 class SourceCodeInfo:
     def __init__(self, filename, lineno, code, mapping):
+        """Metadata class containing a code reference for a specific file."""
+
         self.filename = filename
         self.lineno = lineno
         self.code = code
@@ -28,6 +36,12 @@ class SourceCodeInfo:
 
 
 def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
+    """
+
+    :param input_file:
+    :param solc_args:
+    :param solc_binary:
+    """
     data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
 
     try:
@@ -45,6 +59,8 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
 
 
 class SolidityContract(EVMContract):
+    """Representation of a Solidity contract."""
+
     def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
         data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
 
@@ -102,6 +118,12 @@ class SolidityContract(EVMContract):
         super().__init__(code, creation_code, name=name)
 
     def get_source_info(self, address, constructor=False):
+        """
+
+        :param address:
+        :param constructor:
+        :return:
+        """
         disassembly = self.creation_disassembly if constructor else self.disassembly
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
@@ -123,6 +145,11 @@ class SolidityContract(EVMContract):
         return SourceCodeInfo(filename, lineno, code, mappings[index].solc_mapping)
 
     def _get_solc_mappings(self, srcmap, constructor=False):
+        """
+
+        :param srcmap:
+        :param constructor:
+        """
         mappings = self.constructor_mappings if constructor else self.mappings
         prev_item = ""
         for item in srcmap:

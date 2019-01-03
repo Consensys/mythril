@@ -1,14 +1,12 @@
+"""This module contains functions setting up and executing transactions with
+symbolic values."""
 import logging
 
 
 from mythril.laser.smt import symbol_factory
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
-from mythril.laser.ethereum.state.calldata import (
-    CalldataType,
-    BaseCalldata,
-    SymbolicCalldata,
-)
+from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
@@ -23,7 +21,11 @@ ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 
 
 def execute_message_call(laser_evm, callee_address: str) -> None:
-    """ Executes a message call transaction from all open states """
+    """Executes a message call transaction from all open states.
+
+    :param laser_evm:
+    :param callee_address:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
@@ -47,7 +49,6 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
             caller=symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256),
             callee_account=open_world_state[callee_address],
             call_data=SymbolicCalldata(next_transaction_id),
-            call_data_type=CalldataType.SYMBOLIC,
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
@@ -60,7 +61,13 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
 def execute_contract_creation(
     laser_evm, contract_initialization_code, contract_name=None
 ) -> Account:
-    """ Executes a contract creation transaction from all open states"""
+    """Executes a contract creation transaction from all open states.
+
+    :param laser_evm:
+    :param contract_initialization_code:
+    :param contract_name:
+    :return:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
@@ -87,7 +94,6 @@ def execute_contract_creation(
             caller=symbol_factory.BitVecVal(CREATOR_ADDRESS, 256),
             callee_account=new_account,
             call_data=[],
-            call_data_type=CalldataType.SYMBOLIC,
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
@@ -99,23 +105,32 @@ def execute_contract_creation(
 
 
 def _setup_global_state_for_execution(laser_evm, transaction) -> None:
-    """ Sets up global state and cfg for a transactions execution"""
+    """Sets up global state and cfg for a transactions execution.
+
+    :param laser_evm:
+    :param transaction:
+    """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 
-    new_node = Node(global_state.environment.active_account.contract_name)
+    new_node = Node(
+        global_state.environment.active_account.contract_name,
+        function_name=global_state.environment.active_function_name,
+    )
+    if laser_evm.requires_statespace:
+        laser_evm.nodes[new_node.uid] = new_node
 
-    laser_evm.nodes[new_node.uid] = new_node
     if transaction.world_state.node:
-        laser_evm.edges.append(
-            Edge(
-                transaction.world_state.node.uid,
-                new_node.uid,
-                edge_type=JumpType.Transaction,
-                condition=None,
+        if laser_evm.requires_statespace:
+            laser_evm.edges.append(
+                Edge(
+                    transaction.world_state.node.uid,
+                    new_node.uid,
+                    edge_type=JumpType.Transaction,
+                    condition=None,
+                )
             )
-        )
 
         global_state.mstate.constraints += transaction.world_state.node.constraints
         new_node.constraints = global_state.mstate.constraints

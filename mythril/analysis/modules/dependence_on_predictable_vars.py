@@ -1,19 +1,26 @@
-import re
-from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.analysis.ops import Call, VarType
-from mythril.analysis import solver
-from mythril.analysis.report import Issue
-from mythril.analysis.call_helpers import get_call_from_state
-from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
-from mythril.analysis.modules.base import DetectionModule
-from mythril.exceptions import UnsatError
+"""This module contains the detection code for predictable variable
+dependence."""
 import logging
+import re
+
+from mythril.analysis import solver
+from mythril.analysis.call_helpers import get_call_from_state
+from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.ops import Call, VarType
+from mythril.analysis.report import Issue
+from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
+from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 log = logging.getLogger(__name__)
 
 
 class PredictableDependenceModule(DetectionModule):
+    """This module detects whether Ether is sent using predictable
+    parameters."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Dependence of Predictable Variables",
             swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS),
@@ -25,13 +32,13 @@ class PredictableDependenceModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"],
         )
-        self._issues = []
-
-    @property
-    def issues(self) -> list:
-        return self._issues
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
         self._issues.extend(_analyze_states(state))
         return self.issues
@@ -41,6 +48,11 @@ detector = PredictableDependenceModule()
 
 
 def _analyze_states(state: GlobalState) -> list:
+    """
+
+    :param state:
+    :return:
+    """
     issues = []
     call = get_call_from_state(state)
     if call is None:
@@ -154,12 +166,15 @@ def _analyze_states(state: GlobalState) -> list:
                 r = re.search(r"storage_([a-z0-9_&^]+)", str(constraint))
                 if r:  # block.blockhash(storage_0)
 
-                    """
-                    We actually can do better here by adding a constraint blockhash_block_storage_0 == 0
-                    and checking model satisfiability. When this is done, severity can be raised
-                    from 'Informational' to 'Warning'.
-                    Checking that storage at given index can be tainted is not necessary, since it usually contains
-                    block.number of the 'commit' transaction in commit-reveal workflow.
+                    """We actually can do better here by adding a constraint
+                    blockhash_block_storage_0 == 0 and checking model
+                    satisfiability.
+
+                    When this is done, severity can be raised from
+                    'Informational' to 'Warning'. Checking that storage
+                    at given index can be tainted is not necessary,
+                    since it usually contains block.number of the
+                    'commit' transaction in commit-reveal workflow.
                     """
 
                     index = r.group(1)
@@ -191,6 +206,11 @@ def _analyze_states(state: GlobalState) -> list:
 
 
 def solve(call: Call) -> bool:
+    """
+
+    :param call:
+    :return:
+    """
     try:
         model = solver.get_model(call.node.constraints)
         log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))

@@ -5,6 +5,11 @@ MYTH = str(PROJECT_DIR / "myth")
 
 
 def output_of(command):
+    """
+
+    :param command:
+    :return:
+    """
     return check_output(command, shell=True).decode("UTF-8")
 
 

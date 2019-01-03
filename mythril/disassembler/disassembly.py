@@ -1,20 +1,25 @@
+"""This module contains the class used to represent disassembly code."""
 from mythril.ethereum import util
 from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDB
 
 
 class Disassembly(object):
-    """
-    Disassembly class
+    """Disassembly class.
 
     Stores bytecode, and its disassembly.
     Additionally it will gather the following information on the existing functions in the disassembled code:
-     - function hashes
-     - function name to entry point mapping
-     - function entry point to function name mapping
+    - function hashes
+    - function name to entry point mapping
+    - function entry point to function name mapping
     """
 
     def __init__(self, code: str, enable_online_lookup: bool = False):
+        """
+
+        :param code:
+        :param enable_online_lookup:
+        """
         self.bytecode = code
         self.instruction_list = asm.disassemble(util.safe_decode(code))
 
@@ -42,16 +47,21 @@ class Disassembly(object):
                 self.address_to_function_name[jump_target] = function_name
 
     def get_easm(self):
+        """
+
+        :return:
+        """
         return asm.instruction_list_to_easm(self.instruction_list)
 
 
 def get_function_info(
     index: int, instruction_list: list, signature_database: SignatureDB
 ) -> (str, int, str):
-    """
-    Finds the function information for a call table entry
-    Solidity uses the first 4 bytes of the calldata to indicate which function the message call should execute
-    The generated code that directs execution to the correct function looks like this:
+    """Finds the function information for a call table entry Solidity uses the
+    first 4 bytes of the calldata to indicate which function the message call
+    should execute The generated code that directs execution to the correct
+    function looks like this:
+
     - PUSH function_hash
     - EQ
     - PUSH entry_point

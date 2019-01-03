@@ -1,24 +1,31 @@
-import os
-from pathlib import PurePath
-import re
-import sys
+"""This module contains functionality used to easily analyse Truffle
+projects."""
 import json
 import logging
+import os
+import re
+import sys
+from pathlib import PurePath
+
 from ethereum.utils import sha3
-from mythril.ethereum.evmcontract import EVMContract
-from mythril.solidity.soliditycontract import SourceMapping
+
+from mythril.analysis.report import Report
 from mythril.analysis.security import fire_lasers
 from mythril.analysis.symbolic import SymExecWrapper
-from mythril.analysis.report import Report
-
 from mythril.ethereum import util
+from mythril.ethereum.evmcontract import EVMContract
 from mythril.laser.ethereum.util import get_instruction_index
+from mythril.solidity.soliditycontract import SourceMapping
 
 log = logging.getLogger(__name__)
 
 
 def analyze_truffle_project(sigs, args):
+    """
 
+    :param sigs:
+    :param args:
+    """
     project_root = os.getcwd()
 
     build_dir = os.path.join(project_root, "build", "contracts")
@@ -56,6 +63,8 @@ def analyze_truffle_project(sigs, args):
                 create_timeout=args.create_timeout,
                 execution_timeout=args.execution_timeout,
                 transaction_count=args.transaction_count,
+                modules=args.modules or [],
+                compulsory_statespace=False,
             )
             issues = fire_lasers(sym)
 
@@ -133,6 +142,11 @@ def analyze_truffle_project(sigs, args):
 
 
 def get_sigs_from_truffle(sigs, contract_data):
+    """
+
+    :param sigs:
+    :param contract_data:
+    """
     abis = contract_data["abi"]
     for abi in abis:
         if abi["type"] != "function":
@@ -144,6 +158,12 @@ def get_sigs_from_truffle(sigs, contract_data):
 
 
 def get_mappings(source, deployed_source_map):
+    """
+
+    :param source:
+    :param deployed_source_map:
+    :return:
+    """
     mappings = []
     prev_item = ""
     for item in deployed_source_map:

@@ -1,15 +1,3 @@
-==== Integer Overflow ====
-SWC ID: 101
-Severity: High
-Contract: Unknown
-Function name: sendeth(address,uint256)
-PC address: 567
-Estimated Gas Usage: 768 - 1053
-The subtraction can overflow.
-The binary subtraction operation can result in an integer overflow.
-
---------------------
-
 ==== Integer Underflow ====
 SWC ID: 101
 Severity: High
