@@ -81,10 +81,10 @@ def _analyze_state(state: GlobalState):
                     call.state.get_current_instruction()["address"]
                 )
 
-                description_tail = (
-                    "Try to isolate each external call into its own transaction,"
-                    " as external calls can fail accidentally or deliberately.\n"
-                )
+            description_tail += (
+                "Try to isolate each external call into its own transaction,"
+                " as external calls can fail accidentally or deliberately.\n"
+            )
 
             issue = Issue(
                 contract=node.contract_name,

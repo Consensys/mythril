@@ -48,8 +48,8 @@ class Issue:
         self.contract = contract
         self.function = function_name
         self.address = address
-        self.description_head = (description_head,)
-        self.description_tail = (description_tail,)
+        self.description_head = description_head
+        self.description_tail = description_tail
         self.description = "%s\n%s" % (description_head, description_tail)
         self.severity = severity
         self.debug = debug
@@ -87,7 +87,7 @@ class Issue:
             "debug": self.debug,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
-            "SourceMap": self.source_mapping,
+            "sourceMap": self.source_mapping,
         }
 
         if self.filename and self.lineno:
@@ -201,7 +201,7 @@ class Report:
 
             _issues.append(
                 {
-                    "swcID": issue.swc_id,
+                    "swcID": "SWC-" + issue.swc_id,
                     "swcTitle": title,
                     "description": {
                         "head": issue.description_head,
