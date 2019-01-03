@@ -59,16 +59,24 @@ def _analyze_state(state):
 
 
 class SuicideModule(DetectionModule):
+    """This module checks if the contact can be 'accidentally' killed by
+    anyone."""
+
     def __init__(self):
         super().__init__(
             name="Unprotected Suicide",
             swc_id=UNPROTECTED_SELFDESTRUCT,
-            description=(DESCRIPTION),
+            description=DESCRIPTION,
             entrypoint="callback",
             pre_hooks=["SUICIDE"],
         )
 
     def execute(self, state: GlobalState):
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 

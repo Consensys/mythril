@@ -1,3 +1,5 @@
+"""This module contains detection code to find occurrences of calls whose
+return value remains unchecked."""
 from copy import copy
 
 from mythril.analysis import solver
@@ -24,6 +26,8 @@ class UncheckedRetvalAnnotation(StateAnnotation):
 
 
 class UncheckedRetvalModule(DetectionModule):
+    """A detection module to test whether CALL return value is checked."""
+
     def __init__(self):
         super().__init__(
             name="Unchecked Return Value",
@@ -43,6 +47,11 @@ class UncheckedRetvalModule(DetectionModule):
         )
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
 

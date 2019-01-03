@@ -1,11 +1,18 @@
+"""This module contains account indexing functionality.
+
+This includes a sedes class for lists, account storage receipts for
+LevelDB and a class for updating account addresses.
+"""
 import logging
-from mythril import ethereum
 import time
-from ethereum.messages import Log
+
 import rlp
-from rlp.sedes import big_endian_int, binary
 from ethereum import utils
-from ethereum.utils import hash32, address, int256
+from ethereum.messages import Log
+from ethereum.utils import address, hash32, int256
+from rlp.sedes import big_endian_int, binary
+
+from mythril import ethereum
 from mythril.exceptions import AddressNotFoundError
 
 log = logging.getLogger(__name__)
@@ -15,17 +22,27 @@ BATCH_SIZE = 8 * 4096
 
 class CountableList(object):
     """A sedes for lists of arbitrary length.
-    :param element_sedes: when (de-)serializing a list, this sedes will be
-                          applied to all of its elements
+
+    :param element_sedes: when (de-)serializing a list, this sedes will be applied to all of its elements
     """
 
     def __init__(self, element_sedes):
         self.element_sedes = element_sedes
 
     def serialize(self, obj):
+        """
+
+        :param obj:
+        :return:
+        """
         return [self.element_sedes.serialize(e) for e in obj]
 
     def deserialize(self, serial):
+        """
+
+        :param serial:
+        :return:
+        """
         # needed for 2 reasons:
         # 1. empty lists are not zero elements
         # 2. underlying logs are stored as list - if empty will also except and receipts will be lost
@@ -36,9 +53,7 @@ class CountableList(object):
 
 
 class ReceiptForStorage(rlp.Serializable):
-    """
-    Receipt format stored in levelDB
-    """
+    """Receipt format stored in levelDB."""
 
     fields = [
         ("state_root", binary),
@@ -52,9 +67,7 @@ class ReceiptForStorage(rlp.Serializable):
 
 
 class AccountIndexer(object):
-    """
-    Updates address index
-    """
+    """Updates address index."""
 
     def __init__(self, ethDB):
         self.db = ethDB
@@ -64,9 +77,8 @@ class AccountIndexer(object):
         self.updateIfNeeded()
 
     def get_contract_by_hash(self, contract_hash):
-        """
-        get mapped contract_address by its hash, if not found try indexing
-        """
+        """get mapped contract_address by its hash, if not found try
+        indexing."""
         contract_address = self.db.reader._get_address_by_hash(contract_hash)
         if contract_address is not None:
             return contract_address
@@ -75,9 +87,7 @@ class AccountIndexer(object):
             raise AddressNotFoundError
 
     def _process(self, startblock):
-        """
-        Processesing method
-        """
+        """Processesing method."""
         log.debug("Processing blocks %d to %d" % (startblock, startblock + BATCH_SIZE))
 
         addresses = []
@@ -99,9 +109,7 @@ class AccountIndexer(object):
         return addresses
 
     def updateIfNeeded(self):
-        """
-        update address index
-        """
+        """update address index."""
         headBlock = self.db.reader._get_head_block()
         if headBlock is not None:
             # avoid restarting search if head block is same & we already initialized

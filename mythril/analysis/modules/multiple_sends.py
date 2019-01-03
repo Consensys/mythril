@@ -1,3 +1,5 @@
+"""This module contains the detection code to find multiple sends occurring in
+a single transaction."""
 from copy import copy
 
 from mythril.analysis.report import Issue
@@ -22,7 +24,10 @@ class MultipleSendsAnnotation(StateAnnotation):
 
 
 class MultipleSendsModule(DetectionModule):
+    """This module checks for multiple sends in a single transaction."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Multiple Sends",
             swc_id=MULTIPLE_SENDS,

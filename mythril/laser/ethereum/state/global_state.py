@@ -1,3 +1,4 @@
+"""This module contains a representation of the global execution state."""
 from typing import Dict, Union, List, Iterable
 
 from copy import copy, deepcopy
@@ -11,9 +12,7 @@ from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 
 class GlobalState:
-    """
-    GlobalState represents the current globalstate
-    """
+    """GlobalState represents the current globalstate."""
 
     def __init__(
         self,
@@ -25,7 +24,16 @@ class GlobalState:
         last_return_data=None,
         annotations=None,
     ):
-        """ Constructor for GlobalState"""
+        """Constructor for GlobalState.
+
+        :param world_state:
+        :param environment:
+        :param node:
+        :param machine_state:
+        :param transaction_stack:
+        :param last_return_data:
+        :param annotations:
+        """
         self.node = node
         self.world_state = world_state
         self.environment = environment
@@ -38,6 +46,10 @@ class GlobalState:
         self._annotations = annotations or []
 
     def __copy__(self) -> "GlobalState":
+        """
+
+        :return:
+        """
         world_state = copy(self.world_state)
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
@@ -54,11 +66,18 @@ class GlobalState:
 
     @property
     def accounts(self) -> Dict:
+        """
+
+        :return:
+        """
         return self.world_state.accounts
 
     # TODO: remove this, as two instructions are confusing
     def get_current_instruction(self) -> Dict:
-        """ Gets the current instruction for this GlobalState"""
+        """Gets the current instruction for this GlobalState.
+
+        :return:
+        """
 
         instructions = self.environment.code.instruction_list
         return instructions[self.mstate.pc]
@@ -67,6 +86,10 @@ class GlobalState:
     def current_transaction(
         self
     ) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
+        """
+
+        :return:
+        """
         # TODO: Remove circular to transaction package to import Transaction classes
         try:
             return self.transaction_stack[-1][0]
@@ -75,13 +98,27 @@ class GlobalState:
 
     @property
     def instruction(self) -> Dict:
+        """
+
+        :return:
+        """
         return self.get_current_instruction()
 
     def new_bitvec(self, name: str, size=256) -> BitVec:
+        """
+
+        :param name:
+        :param size:
+        :return:
+        """
         transaction_id = self.current_transaction.id
         return symbol_factory.BitVecSym("{}_{}".format(transaction_id, name), size)
 
     def annotate(self, annotation: StateAnnotation) -> None:
+        """
+
+        :param annotation:
+        """
         self._annotations.append(annotation)
 
         if annotation.persist_to_world_state:
@@ -89,12 +126,17 @@ class GlobalState:
 
     @property
     def annotations(self) -> List[StateAnnotation]:
+        """
+
+        :return:
+        """
         return self._annotations
 
     def get_annotations(self, annotation_type: type) -> Iterable[StateAnnotation]:
-        """
-        Filters annotations for the queried annotation type. Designed particularly for
-        modules with annotations: globalstate.get_annotations(MySpecificModuleAnnotation)
+        """Filters annotations for the queried annotation type. Designed
+        particularly for modules with annotations:
+        globalstate.get_annotations(MySpecificModuleAnnotation)
+
         :param annotation_type: The type to filter annotations for
         :return: filter of matching annotations
         """

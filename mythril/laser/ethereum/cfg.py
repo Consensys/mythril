@@ -1,11 +1,15 @@
-from flags import Flags
+"""This module."""
 from enum import Enum
 from typing import Dict
+
+from flags import Flags
 
 gbl_next_uid = 0  # node counter
 
 
 class JumpType(Enum):
+    """An enum to represent the types of possible JUMP scenarios."""
+
     CONDITIONAL = 1
     UNCONDITIONAL = 2
     CALL = 3
@@ -14,11 +18,15 @@ class JumpType(Enum):
 
 
 class NodeFlags(Flags):
+    """A collection of flags to denote the type a call graph node can have."""
+
     FUNC_ENTRY = 1
     CALL_RETURN = 2
 
 
 class Node:
+    """The representation of a call graph node."""
+
     def __init__(
         self,
         contract_name: str,
@@ -26,6 +34,12 @@ class Node:
         constraints=None,
         function_name="unknown",
     ):
+        """
+
+        :param contract_name:
+        :param start_addr:
+        :param constraints:
+        """
         constraints = constraints if constraints else []
         self.contract_name = contract_name
         self.start_addr = start_addr
@@ -41,6 +55,10 @@ class Node:
         gbl_next_uid += 1
 
     def get_cfg_dict(self) -> Dict:
+        """
+
+        :return:
+        """
         code = ""
         for state in self.states:
             instruction = state.get_current_instruction()
@@ -60,6 +78,8 @@ class Node:
 
 
 class Edge:
+    """The respresentation of a call graph edge."""
+
     def __init__(
         self,
         node_from: int,
@@ -67,14 +87,29 @@ class Edge:
         edge_type=JumpType.UNCONDITIONAL,
         condition=None,
     ):
+        """
+
+        :param node_from:
+        :param node_to:
+        :param edge_type:
+        :param condition:
+        """
         self.node_from = node_from
         self.node_to = node_to
         self.type = edge_type
         self.condition = condition
 
     def __str__(self) -> str:
+        """
+
+        :return:
+        """
         return str(self.as_dict)
 
     @property
     def as_dict(self) -> Dict[str, int]:
+        """
+
+        :return:
+        """
         return {"from": self.node_from, "to": self.node_to}

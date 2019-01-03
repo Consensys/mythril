@@ -1,8 +1,11 @@
+"""This module contains the detection code for integer overflows and
+underflows."""
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.analysis.modules.base import DetectionModule
 
 
@@ -16,6 +19,7 @@ from mythril.laser.smt import (
     Expression,
 )
 
+import copy
 import logging
 
 
@@ -30,7 +34,10 @@ class OverUnderflowAnnotation:
 
 
 class IntegerOverflowUnderflowModule(DetectionModule):
+    """This module searches for integer over- and underflows."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Integer Overflow and Underflow",
             swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
@@ -44,6 +51,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         )
 
     def execute(self, state: GlobalState):
+        """Executes analysis module for integer underflow and integer overflow.
+
+        :param state: Statespace to analyse
+        :return: Found issues
+        """
         if state.get_current_instruction()["opcode"] == "ADD":
             self._handle_add(state)
         elif state.get_current_instruction()["opcode"] == "MUL":
