@@ -25,6 +25,7 @@ class DetectionModule:
                 self.name,
             )
         self.entrypoint = entrypoint
+        self.cache_addresses = {}
 
     def execute(self, statespace):
         raise NotImplementedError()

@@ -25,57 +25,6 @@ An issue is reported if:
 """
 
 
-def _analyze_state(state):
-    instruction = state.get_current_instruction()
-    node = state.node
-
-    if instruction["opcode"] != "CALL":
-        return []
-
-    call_value = state.mstate.stack[-3]
-    target = state.mstate.stack[-2]
-
-    eth_sent_total = symbol_factory.BitVecVal(0, 256)
-
-    constraints = copy(node.constraints)
-
-    for tx in state.world_state.transaction_sequence:
-        if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
-
-            # There's sometimes no overflow check on balances added.
-            # But we don't care about attacks that require more 2^^256 ETH to be sent.
-
-            constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
-            eth_sent_total = Sum(eth_sent_total, tx.call_value)
-    constraints += [UGT(call_value, eth_sent_total), target == state.environment.sender]
-
-    try:
-
-        transaction_sequence = solver.get_transaction_sequence(state, constraints)
-
-        debug = str(transaction_sequence)
-
-        issue = Issue(
-            contract=node.contract_name,
-            function_name=node.function_name,
-            address=instruction["address"],
-            swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-            title="Ether thief",
-            _type="Warning",
-            bytecode=state.environment.code.bytecode,
-            description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
-            + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
-            + " a vulnerability.",
-            debug=debug,
-            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-        )
-    except UnsatError:
-        log.debug("[ETHER_THIEF] no model found")
-        return []
-
-    return [issue]
-
-
 class EtherThief(DetectionModule):
     def __init__(self):
         super().__init__(
@@ -88,12 +37,69 @@ class EtherThief(DetectionModule):
         self._issues = []
 
     def execute(self, state: GlobalState):
-        self._issues.extend(_analyze_state(state))
+        self._issues.extend(self._analyze_state(state))
         return self.issues
 
     @property
     def issues(self):
         return self._issues
+
+    def _analyze_state(self, state):
+        instruction = state.get_current_instruction()
+        node = state.node
+
+        if instruction["opcode"] != "CALL":
+            return []
+
+        address = instruction["address"]
+        if self.cache_addresses.get(address, False):
+            return []
+        call_value = state.mstate.stack[-3]
+        target = state.mstate.stack[-2]
+
+        eth_sent_total = symbol_factory.BitVecVal(0, 256)
+
+        constraints = copy(node.constraints)
+
+        for tx in state.world_state.transaction_sequence:
+            if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
+                # There's sometimes no overflow check on balances added.
+                # But we don't care about attacks that require more 2^^256 ETH to be sent.
+
+                constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
+                eth_sent_total = Sum(eth_sent_total, tx.call_value)
+        constraints += [
+            UGT(call_value, eth_sent_total),
+            target == state.environment.sender,
+        ]
+
+        try:
+
+            transaction_sequence = solver.get_transaction_sequence(state, constraints)
+
+            debug = str(transaction_sequence)
+
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=address,
+                swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
+                title="Ether thief",
+                _type="Warning",
+                bytecode=state.environment.code.bytecode,
+                description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
+                + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
+                + " a vulnerability.",
+                debug=debug,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+        except UnsatError:
+            log.debug("[ETHER_THIEF] no model found")
+            return []
+
+        self.cache_addresses[address] = True
+
+        return [issue]
 
 
 detector = EtherThief()

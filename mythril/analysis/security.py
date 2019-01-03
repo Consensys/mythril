@@ -14,6 +14,7 @@ def reset_callback_modules():
     modules = get_detection_modules("callback")
     for module in modules:
         module.detector._issues = []
+        module.detector.cache_addresses = {}
 
 
 def get_detection_module_hooks(modules, hook_type="pre"):
