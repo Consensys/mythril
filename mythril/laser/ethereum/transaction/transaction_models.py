@@ -5,8 +5,7 @@ import array
 from z3 import ExprRef
 from typing import Union
 
-from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.environment import Environment
