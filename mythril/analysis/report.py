@@ -155,7 +155,7 @@ class Report:
 
             _issues.append(
                 {
-                    "swcID": issue.swc_id,
+                    "swcID": "SWC-" + issue.swc_id,
                     "swcTitle": title,
                     "description": {
                         "head": issue.description_head,
