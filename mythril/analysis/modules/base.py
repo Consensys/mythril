@@ -26,7 +26,7 @@ class DetectionModule:
             )
         self.entrypoint = entrypoint
         self._issues = []
-        self.cache_addresses = {}
+        self._cache_addresses = {}
 
     @property
     def issues(self):
@@ -34,7 +34,7 @@ class DetectionModule:
 
     def reset_module(self):
         self._issues = []
-        self.cache_addresses = {}
+        self._cache_addresses = {}
 
     def execute(self, statespace):
         raise NotImplementedError()

@@ -47,7 +47,7 @@ class EtherThief(DetectionModule):
             return []
 
         address = instruction["address"]
-        if self.cache_addresses.get(address, False):
+        if self._cache_addresses.get(address, False):
             return []
         call_value = state.mstate.stack[-3]
         target = state.mstate.stack[-2]
@@ -92,7 +92,7 @@ class EtherThief(DetectionModule):
             log.debug("[ETHER_THIEF] no model found")
             return []
 
-        self.cache_addresses[address] = True
+        self._cache_addresses[address] = True
 
         return [issue]
 
