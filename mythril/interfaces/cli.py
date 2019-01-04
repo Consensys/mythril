@@ -117,7 +117,7 @@ def main():
         choices=["text", "markdown", "json", "jsonv2"],
         default="text",
         help="report output format",
-        metavar="<text/markdown/json>",
+        metavar="<text/markdown/json/jsonv2>",
     )
     outputs.add_argument(
         "--verbose-report",
