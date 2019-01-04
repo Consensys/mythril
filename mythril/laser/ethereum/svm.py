@@ -236,6 +236,9 @@ class LaserEVM:
             ):
                 return final_states + [global_state] if track_gas else None
 
+            if self.time + timedelta(seconds=self.execution_timeout / self.transaction_count) <= datetime.now() and not create:
+                return final_states + [global_state] if track_gas else None
+
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
