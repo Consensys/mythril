@@ -80,7 +80,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if model is None:
             return
 
-        annotation = OverUnderflowAnnotation(state, "add", c)
+        annotation = OverUnderflowAnnotation(state, "addition", c)
         op0.annotate(annotation)
 
     def _handle_mul(self, state):
@@ -97,7 +97,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if model is None:
             return
 
-        annotation = OverUnderflowAnnotation(state, "multiply", c)
+        annotation = OverUnderflowAnnotation(state, "multiplication", c)
         op0.annotate(annotation)
 
     def _handle_sub(self, state):
@@ -139,8 +139,14 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
             node = ostate.node
 
-            description_tail = "The binary {} operation can result in an integer {}.\n".format(
+            description_head = "The binary {} can {}.".format(
                 annotation.operator, _type.lower()
+            )
+
+            description_tail = "The operands of the {} operation are not sufficiently constrained. " \
+                "The {} could therefore result in an integer {}. Prevent the {} by checking inputs " \
+                "or ensure sure that the {} is caught by an assertion.".format(
+                annotation.operator, annotation.operator,  _type.lower(), _type.lower(), _type.lower()
             )
 
             issue = Issue(
@@ -151,9 +157,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 bytecode=ostate.environment.code.bytecode,
                 title="Integer {}".format(_type),
                 severity="High",
-                description_head="The {} can {}.".format(
-                    annotation.operator, _type.lower()
-                ),
+                description_head=description_head,
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )

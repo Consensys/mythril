@@ -5,9 +5,8 @@ Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 567
 Estimated Gas Usage: 1299 - 1774
-The subtraction can underflow.
-The binary subtraction operation can result in an integer underflow.
-
+The binary subtraction can underflow.
+The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.
 --------------------
 
 ==== Integer Underflow ====
@@ -17,8 +16,7 @@ Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 649
 Estimated Gas Usage: 1299 - 1774
-The subtraction can underflow.
-The binary subtraction operation can result in an integer underflow.
-
+The binary subtraction can underflow.
+The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.
 --------------------
 
