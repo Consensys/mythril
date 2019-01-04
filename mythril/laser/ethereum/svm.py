@@ -16,6 +16,7 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from mythril.laser.ethereum.plugins.signals import PluginSignal, PluginSkipWorldState
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -96,23 +97,7 @@ class LaserEVM:
         self._add_world_state_hooks = []
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
-    def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
-        """
 
-        :param hook_type:
-        :param hook_dict:
-        """
-        if hook_type == "pre":
-            entrypoint = self.pre_hooks
-        elif hook_type == "post":
-            entrypoint = self.post_hooks
-        else:
-            raise ValueError(
-                "Invalid hook type %s. Must be one of {pre, post}", hook_type
-            )
-
-        for op_code, funcs in hook_dict.items():
-            entrypoint[op_code].extend(funcs)
 
     @property
     def accounts(self) -> Dict[str, Account]:
