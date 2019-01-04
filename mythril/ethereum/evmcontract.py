@@ -40,15 +40,24 @@ class EVMContract(persistent.Persistent):
         self.creation_disassembly = Disassembly(
             creation_code, enable_online_lookup=enable_online_lookup
         )
+        self._bytecode_hash = None
+
+    @property
+    def bytecode_hash(self):
+        if self._bytecode_hash is not None:
+            return self._bytecode_hash
+
         try:
             keccak = sha3.keccak_256()
             keccak.update(bytes.fromhex(self.code[2:]))
-            self.bytecode_hash = "0x" + keccak.hexdigest()
+            self._bytecode_hash = "0x" + keccak.hexdigest()
         except ValueError:
             log.debug(
                 "Unable to change the bytecode to bytes. Bytecode: {}".format(code)
             )
-            self.bytecode_hash = ""
+            self._bytecode_hash = ""
+
+        return self._bytecode_hash
 
     def as_dict(self):
         """
