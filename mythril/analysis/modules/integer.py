@@ -143,10 +143,16 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 annotation.operator, _type.lower()
             )
 
-            description_tail = "The operands of the {} operation are not sufficiently constrained. " \
-                "The {} could therefore result in an integer {}. Prevent the {} by checking inputs " \
+            description_tail = (
+                "The operands of the {} operation are not sufficiently constrained. "
+                "The {} could therefore result in an integer {}. Prevent the {} by checking inputs "
                 "or ensure sure that the {} is caught by an assertion.".format(
-                annotation.operator, annotation.operator,  _type.lower(), _type.lower(), _type.lower()
+                    annotation.operator,
+                    annotation.operator,
+                    _type.lower(),
+                    _type.lower(),
+                    _type.lower(),
+                )
             )
 
             issue = Issue(
