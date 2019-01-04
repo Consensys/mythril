@@ -134,7 +134,7 @@ class Report:
         self.meta = {}
 
         if source is not None:
-             self.source = source or Source()
+            self.source = source or Source()
         else:
             self.source = Source()
 
