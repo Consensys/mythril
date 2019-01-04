@@ -184,15 +184,15 @@ class Report:
         :return:
         """
         _issues = []
-        sourceList = []
+        source_list = []
 
         for key, issue in self.issues.items():
 
-            if issue.bytecode_hash not in sourceList:
-                idx = len(sourceList)
-                sourceList.append(issue.bytecode_hash)
+            if issue.bytecode_hash not in source_list:
+                idx = len(source_list)
+                source_list.append(issue.bytecode_hash)
             else:
-                idx = sourceList.index(issue.bytecode_hash)
+                idx = source_list.index(issue.bytecode_hash)
 
             try:
                 title = SWC_TO_TITLE[issue.swc_id]
@@ -217,7 +217,7 @@ class Report:
             "issues": _issues,
             "sourceType": "raw-bytecode",
             "sourceFormat": "evm-byzantium-bytecode",
-            "sourceList": sourceList,
+            "sourceList": source_list,
             "meta": {},
         }
 
