@@ -93,7 +93,7 @@ class LaserEVM:
 
         self.pre_hooks = defaultdict(list)
         self.post_hooks = defaultdict(list)
-
+        self._add_world_state_hooks = []
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
@@ -253,6 +253,17 @@ class LaserEVM:
             self.total_states += len(new_states)
         return final_states if track_gas else None
 
+    def _add_world_state(self, global_state: GlobalState):
+        """ Stores the world_state of the passed global state in the open states"""
+        _global_state = global_state
+        for hook in self._add_world_state_hooks:
+            try:
+                hook(_global_state)
+            except PluginSkipWorldState:
+                return
+
+        self.open_states.append(global_state.world_state)
+
     def execute_state(
         self, global_state: GlobalState
     ) -> Tuple[List[GlobalState], Union[str, None]]:
@@ -265,7 +276,7 @@ class LaserEVM:
         try:
             op_code = instructions[global_state.mstate.pc]["opcode"]
         except IndexError:
-            self.open_states.append(global_state.world_state)
+            self._add_world_state(global_state)
             return [], None
 
         self._execute_pre_hook(op_code, global_state)
@@ -317,7 +328,7 @@ class LaserEVM:
                     or transaction.return_data
                 ) and not end_signal.revert:
                     end_signal.global_state.world_state.node = global_state.node
-                    self.open_states.append(end_signal.global_state.world_state)
+                    self._add_world_state(end_signal.global_state)
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
