@@ -127,11 +127,7 @@ class SolidityContract(EVMContract):
         disassembly = self.creation_disassembly if constructor else self.disassembly
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
-        if index is None:
-            index = helper.get_instruction_index(
-                self.creation_disassembly.instruction_list, address
-            )
-            mappings = self.constructor_mappings
+
         solidity_file = self.solidity_files[mappings[index].solidity_file_idx]
         filename = solidity_file.filename
 
