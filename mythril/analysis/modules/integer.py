@@ -170,9 +170,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             try:
 
-                transaction_sequence =  olver.get_transaction_sequence(
-                        state, node.constraints + [annotation.constraint]
-                    )
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, node.constraints + [annotation.constraint]
+                )
 
                 issue.debug = json.dumps(transaction_sequence, indent=4)
 
