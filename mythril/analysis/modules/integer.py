@@ -124,6 +124,29 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         stack[index] = symbol_factory.BitVecVal(value, 256)
         return stack[index]
 
+    @staticmethod
+    def _get_description_head(annotation, _type):
+        return "The binary {} can {}.".format(annotation.operator, _type.lower())
+
+    @staticmethod
+    def _get_description_tail(annotation, _type):
+
+        return (
+            "The operands of the {} operation are not sufficiently constrained. "
+            "The {} could therefore result in an integer {}. Prevent the {} by checking inputs "
+            "or ensure sure that the {} is caught by an assertion.".format(
+                annotation.operator,
+                annotation.operator,
+                _type.lower(),
+                _type.lower(),
+                _type.lower(),
+            )
+        )
+
+    @staticmethod
+    def _get_title(_type):
+        return "Integer {}".format(_type)
+
     def _handle_sstore(self, state):
         stack = state.mstate.stack
         value = stack[-2]
@@ -139,32 +162,16 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
             node = ostate.node
 
-            description_head = "The binary {} can {}.".format(
-                annotation.operator, _type.lower()
-            )
-
-            description_tail = (
-                "The operands of the {} operation are not sufficiently constrained. "
-                "The {} could therefore result in an integer {}. Prevent the {} by checking inputs "
-                "or ensure sure that the {} is caught by an assertion.".format(
-                    annotation.operator,
-                    annotation.operator,
-                    _type.lower(),
-                    _type.lower(),
-                    _type.lower(),
-                )
-            )
-
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title="Integer {}".format(_type),
+                title=self._get_title(_type),
                 severity="High",
-                description_head=description_head,
-                description_tail=description_tail,
+                description_head=self._get_description_head(annotation, _type),
+                description_tail=self._get_description_tail(annotation, _type),
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
@@ -190,25 +197,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
             node = ostate.node
 
-            description_tail = "The binary {} operation can result in an integer overflow.\n".format(
-                annotation.operator
-            )
-            title = (
-                "Integer Underflow"
-                if annotation.operator == "subtraction"
-                else "Integer Overflow"
-            )
-
+            _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title=title,
+                title=self._get_title(_type),
                 severity="High",
-                description_head="The {} can overflow.".format(annotation.operator),
-                description_tail=description_tail,
+                description_head=self._get_description_head(annotation, _type),
+                description_tail=self._get_description_tail(annotation, _type),
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
