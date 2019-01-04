@@ -40,8 +40,6 @@ class EVMContract(persistent.Persistent):
         self.creation_disassembly = Disassembly(
             creation_code, enable_online_lookup=enable_online_lookup
         )
-        self._bytecode_hash = None
-        self._creation_bytecode_hash = None
 
     @property
     def bytecode_hash(self):
@@ -49,11 +47,7 @@ class EVMContract(persistent.Persistent):
 
         :return: runtime bytecode hash
         """
-        if self._bytecode_hash is not None:
-            return self._bytecode_hash
-        self._bytecode_hash = self._get_hash(self.code[2:])
-
-        return self._bytecode_hash
+        return self._get_hash(self.code[2:])
 
     @property
     def creation_bytecode_hash(self):
@@ -61,12 +55,7 @@ class EVMContract(persistent.Persistent):
 
         :return: Creation bytecode hash
         """
-        if self._creation_bytecode_hash is not None:
-            return self._creation_bytecode_hash
-
-        self._creation_bytecode_hash = self._get_hash(self.creation_code[2:])
-
-        return self._creation_bytecode_hash
+        return self._get_hash(self.creation_code[2:])
 
     @staticmethod
     def _get_hash(code):
