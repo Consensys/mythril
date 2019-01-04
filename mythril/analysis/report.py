@@ -138,10 +138,6 @@ class Report:
         else:
             self.source = Source()
 
-        self.source_type = self.source.source_type
-        self.source_format = self.source.source_format
-        self.source_list = self.source.source_list
-
     def sorted_issues(self):
         """
 

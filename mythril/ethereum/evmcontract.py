@@ -41,23 +41,48 @@ class EVMContract(persistent.Persistent):
             creation_code, enable_online_lookup=enable_online_lookup
         )
         self._bytecode_hash = None
+        self._creation_bytecode_hash = None
 
     @property
     def bytecode_hash(self):
+        """
+
+        :return: runtime bytecode hash
+        """
         if self._bytecode_hash is not None:
             return self._bytecode_hash
+        self._bytecode_hash = self._get_hash(self.code[2:])
 
+        return self._bytecode_hash
+
+    @property
+    def creation_bytecode_hash(self):
+        """
+
+        :return: Creation bytecode hash
+        """
+        if self._creation_bytecode_hash is not None:
+            return self._creation_bytecode_hash
+
+        self._creation_bytecode_hash = self._get_hash(self.creation_code[2:])
+
+        return self._creation_bytecode_hash
+
+    @staticmethod
+    def _get_hash(code):
+        """
+        :param code: bytecode
+        :return: Returns hash of the given bytecode
+        """
         try:
             keccak = sha3.keccak_256()
-            keccak.update(bytes.fromhex(self.code[2:]))
-            self._bytecode_hash = "0x" + keccak.hexdigest()
+            keccak.update(bytes.fromhex(code[2:]))
+            return "0x" + keccak.hexdigest()
         except ValueError:
             log.debug(
                 "Unable to change the bytecode to bytes. Bytecode: {}".format(code)
             )
-            self._bytecode_hash = ""
-
-        return self._bytecode_hash
+            return ""
 
     def as_dict(self):
         """
