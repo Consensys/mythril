@@ -516,7 +516,7 @@ class LaserEVM:
             :param func: Decorated function
             """
             self.register_laser_hooks(hook_type, func)
-
+            return func
         return hook_decorator
 
     def _execute_pre_hook(self, op_code: str, global_state: GlobalState) -> None:
