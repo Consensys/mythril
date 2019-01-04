@@ -16,7 +16,7 @@ class Source:
         """
         self.source_type = source_type
         self.source_format = source_format
-        self.source_list = []
+        self.source_list = source_list or []
         self.meta = meta
 
     def get_source_from_contracts_list(self, contracts):
@@ -38,7 +38,10 @@ class Source:
                 "raw-bytecode" if contracts[0].name == "MAIN" else "ethereum-address"
             )
             for contract in contracts:
-                self.source_list.append(contract.bytecode_hash)
+                if contract.creation_code:
+                    self.source_list.append(contract.creation_bytecode_hash)
+                else:
+                    self.source_list.append(contract.bytecode_hash)
 
         else:
             assert False  # Fail hard
