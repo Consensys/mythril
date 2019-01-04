@@ -97,8 +97,6 @@ class LaserEVM:
         self._add_world_state_hooks = []
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
-
-
     @property
     def accounts(self) -> Dict[str, Account]:
         """
@@ -221,7 +219,12 @@ class LaserEVM:
             ):
                 return final_states + [global_state] if track_gas else None
 
-            if self.time + timedelta(seconds=self.execution_timeout / self.transaction_count) <= datetime.now() and not create:
+            if (
+                self.time
+                + timedelta(seconds=self.execution_timeout / self.transaction_count)
+                <= datetime.now()
+                and not create
+            ):
                 return final_states + [global_state] if track_gas else None
 
             try:
@@ -517,6 +520,7 @@ class LaserEVM:
             """
             self.register_laser_hooks(hook_type, func)
             return func
+
         return hook_decorator
 
     def _execute_pre_hook(self, op_code: str, global_state: GlobalState) -> None:
