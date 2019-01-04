@@ -1,5 +1,6 @@
 """This module contains the detection code for reachable exceptions."""
 import logging
+import json
 
 from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
@@ -33,7 +34,8 @@ def _analyze_state(state) -> list:
             "Use `require()` for regular input checking."
         )
 
-        debug = str(solver.get_transaction_sequence(state, node.constraints))
+        transaction_sequence = solver.get_transaction_sequence(state, node.constraints)
+        debug = json.dumps(transaction_sequence, indent=4)
 
         issue = Issue(
             contract=node.contract_name,

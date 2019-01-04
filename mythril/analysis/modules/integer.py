@@ -1,13 +1,14 @@
 """This module contains the detection code for integer overflows and
 underflows."""
+
+import json
+
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.taint_analysis import TaintRunner
 from mythril.analysis.modules.base import DetectionModule
-
 
 from mythril.laser.smt import (
     BVAddNoOverflow,
@@ -19,7 +20,6 @@ from mythril.laser.smt import (
     Expression,
 )
 
-import copy
 import logging
 
 
@@ -169,11 +169,13 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
 
             try:
-                issue.debug = str(
-                    solver.get_transaction_sequence(
+
+                transaction_sequence =  olver.get_transaction_sequence(
                         state, node.constraints + [annotation.constraint]
                     )
-                )
+
+                issue.debug = json.dumps(transaction_sequence, indent=4)
+
             except UnsatError:
                 return
             self._issues.append(issue)
@@ -211,11 +213,13 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
 
             try:
-                issue.debug = str(
-                    solver.get_transaction_sequence(
-                        state, node.constraints + [annotation.constraint]
-                    )
+
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, node.constraints + [annotation.constraint]
                 )
+
+                issue.debug = json.dumps(transaction_sequence, indent=4)
+
             except UnsatError:
                 return
             self._issues.append(issue)

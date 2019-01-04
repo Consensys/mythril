@@ -5,6 +5,7 @@ from mythril.exceptions import UnsatError
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
+import json
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def _analyze_state(state):
                 "the contract balance is sent."
             )
 
-        debug = str(transaction_sequence)
+        debug = json.dumps(transaction_sequence, indent=4)
 
         issue = Issue(
             contract=node.contract_name,

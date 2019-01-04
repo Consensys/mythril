@@ -1,6 +1,7 @@
 """This module contains the detection code for unauthorized ether
 withdrawal."""
 import logging
+import json
 from copy import copy
 
 from mythril.analysis import solver
@@ -88,7 +89,7 @@ class EtherThief(DetectionModule):
 
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = str(transaction_sequence)
+            debug = json.dumps(transaction_sequence, indent=4)
 
             issue = Issue(
                 contract=node.contract_name,

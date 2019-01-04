@@ -9,6 +9,7 @@ from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 import logging
+import json
 
 log = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ def _analyze_state(state):
             constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = str(transaction_sequence)
+            debug = json.dumps(transaction_sequence, indent=4)
             description_head = "A call to a user-supplied address is executed."
             description_tail = (
                 "The callee address of an external message call can be set by "
@@ -74,7 +75,7 @@ def _analyze_state(state):
                 "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
             )
 
-            debug = str(transaction_sequence)
+            debug = json.dumps(transaction_sequence, indent=4)
             description_head = "The contract executes an external message call."
             description_tail = (
                 "An external function call to a fixed contract address is executed. Make sure "
