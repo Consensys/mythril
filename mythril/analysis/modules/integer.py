@@ -1,3 +1,5 @@
+"""This module contains the detection code for integer overflows and
+underflows."""
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -30,7 +32,10 @@ class OverUnderflowAnnotation:
 
 
 class IntegerOverflowUnderflowModule(DetectionModule):
+    """This module searches for integer over- and underflows."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Integer Overflow and Underflow",
             swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
@@ -42,24 +47,34 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
-        self.overflow_cache = {}
-        self.underflow_cache = {}
-        self._issues = []
+        self._overflow_cache = {}
+        self._underflow_cache = {}
 
-    @property
-    def issues(self):
-        return self._issues
+    def reset_module(self):
+        """
+        Resets the module
+        :return:
+        """
+        super().reset_module()
+        self._overflow_cache = {}
+        self._underflow_cache = {}
 
     def execute(self, state: GlobalState):
-        address = state.get_current_instruction()["address"]
-        has_overflow = self.overflow_cache.get(address, False)
-        has_underflow = self.underflow_cache.get(address, False)
+        """Executes analysis module for integer underflow and integer overflow.
 
-        if state.get_current_instruction()["opcode"] == "ADD" and not has_overflow:
+        :param state: Statespace to analyse
+        :return: Found issues
+        """
+        address = state.get_current_instruction()["address"]
+        has_overflow = self._overflow_cache.get(address, False)
+        has_underflow = self._underflow_cache.get(address, False)
+        if has_overflow or has_underflow:
+            return
+        if state.get_current_instruction()["opcode"] == "ADD":
             self._handle_add(state)
-        elif state.get_current_instruction()["opcode"] == "MUL" and not has_overflow:
+        elif state.get_current_instruction()["opcode"] == "MUL":
             self._handle_mul(state)
-        elif state.get_current_instruction()["opcode"] == "SUB" and not has_underflow:
+        elif state.get_current_instruction()["opcode"] == "SUB":
             self._handle_sub(state)
         elif state.get_current_instruction()["opcode"] == "SSTORE":
             self._handle_sstore(state)
@@ -129,7 +144,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         if not isinstance(value, Expression):
             return
-
         for annotation in value.annotations:
             if not isinstance(annotation, OverUnderflowAnnotation):
                 continue
@@ -157,14 +171,14 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
             address = ostate.get_current_instruction()["address"]
 
-            if annotation.operator == "subtraction" and self.underflow_cache.get(
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
                 address, False
             ):
-                return
-            if annotation.operator != "subtraction" and self.overflow_cache.get(
+                continue
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
                 address, False
             ):
-                return
+                continue
 
             try:
                 issue.debug = str(
@@ -173,11 +187,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     )
                 )
             except UnsatError:
-                return
+                continue
             if annotation.operator == "subtraction":
-                self.underflow_cache[address] = True
+                self._underflow_cache[address] = True
             else:
-                self.overflow_cache[address] = True
+                self._overflow_cache[address] = True
 
             self._issues.append(issue)
 
@@ -190,30 +204,44 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
             ostate = annotation.overflowing_state
             node = ostate.node
+            title = (
+                "Integer Underflow"
+                if annotation.operator == "subtraction"
+                else "Integer Overflow"
+            )
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title="Integer Overflow",
+                title=title,
                 _type="Warning",
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
-            issue.description = "This binary {} operation can result in integer overflow.\n".format(
-                annotation.operator
+            issue.description = "This binary {} operation can result in {}.\n".format(
+                annotation.operator, title.lower()
             )
             address = ostate.get_current_instruction()["address"]
+            print(
+                self._overflow_cache,
+                self._underflow_cache,
+                address,
+                issue.address,
+                [_issue.address for _issue in self._issues],
+            )
 
-            if annotation.operator == "subtraction" and self.underflow_cache.get(
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
                 address, False
             ):
-                return
-            if annotation.operator != "subtraction" and self.overflow_cache.get(
+                continue
+
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
                 address, False
             ):
-                return
+                continue
 
             try:
                 issue.debug = str(
@@ -222,13 +250,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     )
                 )
             except UnsatError:
-                return
+                continue
 
             if annotation.operator == "subtraction":
-                self.underflow_cache[address] = True
+                self._underflow_cache[address] = True
             else:
-                self.overflow_cache[address] = True
-
+                self._overflow_cache[address] = True
             self._issues.append(issue)
 
     @staticmethod

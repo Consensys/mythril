@@ -1,4 +1,5 @@
-from mythril.analysis.modules.integer import IntegerOverflowUnderflowModule
+"""This module contains functionality for hooking in detection modules and
+executing them."""
 from collections import defaultdict
 from ethereum.opcodes import opcodes
 from mythril.analysis import modules
@@ -12,12 +13,10 @@ OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 
 
 def reset_callback_modules():
+    """Clean the issue records of every callback-based module."""
     modules = get_detection_modules("callback")
     for module in modules:
-        module.detector._issues = []
-        if isinstance(module.detector, IntegerOverflowUnderflowModule):
-            module.detector.overflow_cache = {}
-            module.detector.underflow_cache = {}
+        module.detector.reset_module()
 
 
 def get_detection_module_hooks(modules, hook_type="pre"):
@@ -29,6 +28,7 @@ def get_detection_module_hooks(modules, hook_type="pre"):
             if hook_type == "pre"
             else module.detector.post_hooks
         )
+
         for op_code in map(lambda x: x.upper(), hooks):
             if op_code in OPCODE_LIST:
                 hook_dict[op_code].append(module.detector.execute)
@@ -46,6 +46,12 @@ def get_detection_module_hooks(modules, hook_type="pre"):
 
 
 def get_detection_modules(entrypoint, include_modules=()):
+    """
+
+    :param entrypoint:
+    :param include_modules:
+    :return:
+    """
     include_modules = list(include_modules)
 
     _modules = []
@@ -69,6 +75,12 @@ def get_detection_modules(entrypoint, include_modules=()):
 
 
 def fire_lasers(statespace, module_names=()):
+    """
+
+    :param statespace:
+    :param module_names:
+    :return:
+    """
     log.info("Starting analysis")
 
     issues = []
