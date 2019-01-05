@@ -808,6 +808,8 @@ class Instruction:
             state.stack.pop(),
             state.stack.pop(),
         )
+        concrete_size = None
+        concrete_return_offset = None
 
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
