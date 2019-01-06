@@ -225,13 +225,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 annotation.operator, title.lower()
             )
             address = ostate.get_current_instruction()["address"]
-            print(
-                self._overflow_cache,
-                self._underflow_cache,
-                address,
-                issue.address,
-                [_issue.address for _issue in self._issues],
-            )
 
             if annotation.operator == "subtraction" and self._underflow_cache.get(
                 address, False
