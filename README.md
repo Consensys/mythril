@@ -39,6 +39,16 @@ Instructions for using Mythril Classic are found on the [Wiki](https://github.co
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
+## Bulding the Documentation
+Mythril Classic's documentation is contained in the `docs` folder. It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
+
+```
+cd docs
+make html
+```
+
+This will create a `build` output directory containing the HTML output. Alternatively, PDF documentation can be built with `make latexpdf`. The available output format options can be seen with `make help`.
+
 ## Vulnerability Remediation
 
 Visit the [Smart Contract Vulnerability Classification Registry](https://smartcontractsecurity.github.io/SWC-registry/) to find detailed information and remediation guidance for the vulnerabilities reported.

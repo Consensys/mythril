@@ -1,3 +1,4 @@
+"""Don't ask."""
 #!/usr/bin/env python
 #
 # "THE BEER-WARE LICENSE" (Revision 43~maze)
@@ -20,6 +21,7 @@ PY3 = sys.version_info >= (3,)
 
 # Reset terminal colors at exit
 def reset():
+    """"""
     sys.stdout.write("\x1b[0m")
     sys.stdout.flush()
 
@@ -49,6 +51,8 @@ COLOR_ANSI = (
 
 
 class LolCat(object):
+    """Cats lel."""
+
     def __init__(self, mode=256, output=sys.stdout):
         self.mode = mode
         self.output = output
@@ -57,6 +61,11 @@ class LolCat(object):
         return sum(map(lambda c: (c[0] - c[1]) ** 2, zip(rgb1, rgb2)))
 
     def ansi(self, rgb):
+        """
+
+        :param rgb:
+        :return:
+        """
         r, g, b = rgb
 
         if self.mode in (8, 16):
@@ -93,15 +102,31 @@ class LolCat(object):
             return "38;5;%d" % (color,)
 
     def wrap(self, *codes):
+        """
+
+        :param codes:
+        :return:
+        """
         return "\x1b[%sm" % ("".join(codes),)
 
     def rainbow(self, freq, i):
+        """
+
+        :param freq:
+        :param i:
+        :return:
+        """
         r = math.sin(freq * i) * 127 + 128
         g = math.sin(freq * i + 2 * math.pi / 3) * 127 + 128
         b = math.sin(freq * i + 4 * math.pi / 3) * 127 + 128
         return [r, g, b]
 
     def cat(self, fd, options):
+        """
+
+        :param fd:
+        :param options:
+        """
         if options.animate:
             self.output.write("\x1b[?25l")
 
@@ -113,6 +138,11 @@ class LolCat(object):
             self.output.write("\x1b[?25h")
 
     def println(self, s, options):
+        """
+
+        :param s:
+        :param options:
+        """
         s = s.rstrip()
         if options.force or self.output.isatty():
             s = STRIP_ANSI.sub("", s)
@@ -126,6 +156,12 @@ class LolCat(object):
         self.output.flush()
 
     def println_ani(self, s, options):
+        """
+
+        :param s:
+        :param options:
+        :return:
+        """
         if not s:
             return
 
@@ -137,6 +173,11 @@ class LolCat(object):
             time.sleep(1.0 / options.speed)
 
     def println_plain(self, s, options):
+        """
+
+        :param s:
+        :param options:
+        """
         for i, c in enumerate(s if PY3 else s.decode(options.charset_py2, "replace")):
             rgb = self.rainbow(options.freq, options.os + i / options.spread)
             self.output.write(
@@ -150,9 +191,7 @@ class LolCat(object):
 
 
 def detect_mode(term_hint="xterm-256color"):
-    """
-    Poor-mans color mode detection.
-    """
+    """Poor-mans color mode detection."""
     if "ANSICON" in os.environ:
         return 16
     elif os.environ.get("ConEmuANSI", "OFF") == "ON":
