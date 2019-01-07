@@ -179,29 +179,23 @@ def get_call_data(
         else memory_size
     )
 
-    try:
-        uses_entire_calldata = False
-        try:
-            uses_entire_calldata = simplify(
-                memory_size - global_state.environment.calldata.calldatasize == 0
-            )
-        except Z3Exception:
-            pass
+    uses_entire_calldata = simplify(
+        memory_size - global_state.environment.calldata.calldatasize == 0
+    )
 
-        if uses_entire_calldata:
-            call_data = global_state.environment.calldata
-        else:
-            calldata_from_mem = state.memory[
-                util.get_concrete_int(memory_start) : util.get_concrete_int(
-                    memory_start + memory_size
-                )
-            ]
-            call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
+    if uses_entire_calldata == True:
+        return global_state.environment.calldata
+
+    try:
+        calldata_from_mem = state.memory[
+            util.get_concrete_int(memory_start) : util.get_concrete_int(
+                memory_start + memory_size
+            )
+        ]
+        return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
         log.debug("Unsupported symbolic calldata offset")
-        call_data = SymbolicCalldata(transaction_id)
-
-    return call_data
+        return SymbolicCalldata(transaction_id)
 
 
 def native_call(
