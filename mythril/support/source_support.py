@@ -40,7 +40,7 @@ class Source:
             for contract in contracts:
                 if contract.creation_code:
                     self.source_list.append(contract.creation_bytecode_hash)
-                else:
+                if contract.code:
                     self.source_list.append(contract.bytecode_hash)
 
         else:
