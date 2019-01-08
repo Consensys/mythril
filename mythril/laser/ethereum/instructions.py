@@ -2053,9 +2053,6 @@ class Instruction:
             )
             return [global_state]
 
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-        )
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
