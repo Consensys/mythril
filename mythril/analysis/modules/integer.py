@@ -65,7 +65,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :param state: Statespace to analyse
         :return: Found issues
         """
-        address = state.get_current_instruction()["address"]
+        address = _get_address_from_state(state)
         has_overflow = self._overflow_cache.get(address, False)
         has_underflow = self._underflow_cache.get(address, False)
         if has_overflow or has_underflow:
@@ -169,7 +169,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             issue.description = "This binary {} operation can result in {}.\n".format(
                 annotation.operator, title.lower()
             )
-            address = ostate.get_current_instruction()["address"]
+            address = _get_address_from_state(ostate)
 
             if annotation.operator == "subtraction" and self._underflow_cache.get(
                 address, False
@@ -224,7 +224,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             issue.description = "This binary {} operation can result in {}.\n".format(
                 annotation.operator, title.lower()
             )
-            address = ostate.get_current_instruction()["address"]
+            address = _get_address_from_state(ostate)
 
             if annotation.operator == "subtraction" and self._underflow_cache.get(
                 address, False
@@ -264,3 +264,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
 
 detector = IntegerOverflowUnderflowModule()
+
+
+def _get_address_from_state(state):
+    return state.get_current_instruction()["address"]
