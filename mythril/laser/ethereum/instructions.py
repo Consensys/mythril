@@ -808,8 +808,6 @@ class Instruction:
             state.stack.pop(),
             state.stack.pop(),
         )
-        concrete_size = None
-        concrete_return_offset = None
 
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
@@ -821,17 +819,15 @@ class Instruction:
             concrete_return_offset = helper.get_concrete_int(return_offset)
         except TypeError:
             log.debug("Unsupported symbolic return offset in RETURNDATACOPY")
+            return [global_state]
 
         try:
             concrete_size = helper.get_concrete_int(size)
         except TypeError:
             log.debug("Unsupported symbolic max_length offset in RETURNDATACOPY")
+            return [global_state]
 
-        if (
-            concrete_size is None
-            or global_state.last_return_data is None
-            or concrete_return_offset is None
-        ):
+        if global_state.last_return_data is None:
             return [global_state]
 
         global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
@@ -1345,9 +1341,6 @@ class Instruction:
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
         if native_result:
-            global_state.mstate.stack.append(
-                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-            )
             return native_result
 
         transaction = MessageCallTransaction(
