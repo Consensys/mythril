@@ -1,19 +1,22 @@
-from typing import Dict, Union, Any, KeysView
+"""This module contains account-related functionality.
+
+This includes classes representing accounts and their storage.
+"""
+
+from typing import Any, Dict, KeysView, Union
 
 from z3 import ExprRef
 
-from mythril.laser.smt import symbol_factory
 from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.smt import symbol_factory
 
 
 class Storage:
-    """
-    Storage class represents the storage of an Account
-    """
+    """Storage class represents the storage of an Account."""
 
     def __init__(self, concrete=False, address=None, dynamic_loader=None):
-        """
-        Constructor for Storage
+        """Constructor for Storage.
+
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
         self._storage = {}
@@ -52,13 +55,15 @@ class Storage:
         self._storage[key] = value
 
     def keys(self) -> KeysView:
+        """
+
+        :return:
+        """
         return self._storage.keys()
 
 
 class Account:
-    """
-    Account class representing ethereum accounts
-    """
+    """Account class representing ethereum accounts."""
 
     def __init__(
         self,
@@ -69,8 +74,8 @@ class Account:
         concrete_storage=False,
         dynamic_loader=None,
     ):
-        """
-        Constructor for account
+        """Constructor for account.
+
         :param address: Address of the account
         :param code: The contract code of the account
         :param contract_name: The name associated with the account
@@ -98,13 +103,25 @@ class Account:
         return str(self.as_dict)
 
     def set_balance(self, balance: ExprRef) -> None:
+        """
+
+        :param balance:
+        """
         self.balance = balance
 
     def add_balance(self, balance: ExprRef) -> None:
+        """
+
+        :param balance:
+        """
         self.balance += balance
 
     @property
     def as_dict(self) -> Dict:
+        """
+
+        :return:
+        """
         return {
             "nonce": self.nonce,
             "code": self.code,

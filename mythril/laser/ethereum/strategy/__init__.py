@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 
 class BasicSearchStrategy(ABC):
+    """"""
+
     __slots__ = "work_list", "max_depth"
 
     def __init__(self, work_list, max_depth):
@@ -13,6 +15,7 @@ class BasicSearchStrategy(ABC):
 
     @abstractmethod
     def get_strategic_global_state(self):
+        """"""
         raise NotImplementedError("Must be implemented by a subclass")
 
     def __next__(self):

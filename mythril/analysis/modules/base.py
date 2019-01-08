@@ -1,3 +1,6 @@
+"""This module contains the base class for all user-defined detection
+modules."""
+
 import logging
 from typing import List
 
@@ -5,6 +8,11 @@ log = logging.getLogger(__name__)
 
 
 class DetectionModule:
+    """The base detection module.
+
+    All custom-built detection modules must inherit from this class.
+    """
+
     def __init__(
         self,
         name: str,
@@ -25,11 +33,32 @@ class DetectionModule:
                 self.name,
             )
         self.entrypoint = entrypoint
+        self._issues = []
+        self._cache_addresses = {}
+
+    @property
+    def issues(self):
+        """
+        Returns the issues
+        """
+        return self._issues
+
+    def reset_module(self):
+        """
+        Resets issues and cache addresses
+        """
+        self._issues = []
+        self._cache_addresses = {}
 
     def execute(self, statespace):
+        """The entry point for execution, which is being called by Mythril.
+
+        :param statespace:
+        :return:
+        """
         raise NotImplementedError()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<"
             "DetectionModule "

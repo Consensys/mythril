@@ -1,3 +1,4 @@
+"""This module contains analysis module helpers to solve path constraints."""
 from z3 import sat, unknown, FuncInterp
 import z3
 
@@ -12,6 +13,13 @@ log = logging.getLogger(__name__)
 
 
 def get_model(constraints, minimize=(), maximize=()):
+    """
+
+    :param constraints:
+    :param minimize:
+    :param maximize:
+    :return:
+    """
     s = Optimize()
     s.set_timeout(100000)
 
@@ -37,7 +45,11 @@ def get_model(constraints, minimize=(), maximize=()):
 
 
 def pretty_print_model(model):
+    """
 
+    :param model:
+    :return:
+    """
     ret = ""
 
     for d in model.decls():
@@ -57,13 +69,10 @@ def pretty_print_model(model):
 
 
 def get_transaction_sequence(global_state, constraints):
-    """
-    Generate concrete transaction sequence
+    """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
-    :param caller: address of caller
-    :param max_callvalue: maximum callvalue for a transaction
     """
 
     transaction_sequence = global_state.world_state.transaction_sequence

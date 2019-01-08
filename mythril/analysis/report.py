@@ -1,3 +1,4 @@
+"""This module provides classes that make up an issue report."""
 import logging
 import json
 import operator
@@ -9,6 +10,8 @@ log = logging.getLogger(__name__)
 
 
 class Issue:
+    """Representation of an issue and its location."""
+
     def __init__(
         self,
         contract,
@@ -22,7 +25,19 @@ class Issue:
         description="",
         debug="",
     ):
+        """
 
+        :param contract:
+        :param function_name:
+        :param address:
+        :param swc_id:
+        :param title:
+        :param bytecode:
+        :param gas_used:
+        :param _type:
+        :param description:
+        :param debug:
+        """
         self.title = title
         self.contract = contract
         self.function = function_name
@@ -52,7 +67,10 @@ class Issue:
 
     @property
     def as_dict(self):
+        """
 
+        :return:
+        """
         issue = {
             "title": self.title,
             "swc-id": self.swc_id,
@@ -76,6 +94,10 @@ class Issue:
         return issue
 
     def add_code_info(self, contract):
+        """
+
+        :param contract:
+        """
         if self.address:
             codeinfo = contract.get_source_info(
                 self.address, constructor=(self.function == "constructor")
@@ -86,25 +108,43 @@ class Issue:
 
 
 class Report:
+    """A report containing the content of multiple issues."""
+
     environment = Environment(
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
     def __init__(self, verbose=False):
+        """
+
+        :param verbose:
+        """
         self.issues = {}
         self.verbose = verbose
         pass
 
     def sorted_issues(self):
+        """
+
+        :return:
+        """
         issue_list = [issue.as_dict for key, issue in self.issues.items()]
         return sorted(issue_list, key=operator.itemgetter("address", "title"))
 
     def append_issue(self, issue):
+        """
+
+        :param issue:
+        """
         m = hashlib.md5()
         m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
         self.issues[m.digest()] = issue
 
     def as_text(self):
+        """
+
+        :return:
+        """
         name = self._file_name()
         template = Report.environment.get_template("report_as_text.jinja2")
         return template.render(
@@ -112,11 +152,18 @@ class Report:
         )
 
     def as_json(self):
+        """
+
+        :return:
+        """
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
         return json.dumps(result, sort_keys=True)
 
     def as_swc_standard_format(self):
-        """ Format defined for integration and correlation"""
+        """Format defined for integration and correlation.
+
+        :return:
+        """
         result = {
             "issues": [
                 {
@@ -130,6 +177,10 @@ class Report:
         return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):
+        """
+
+        :return:
+        """
         filename = self._file_name()
         template = Report.environment.get_template("report_as_markdown.jinja2")
         return template.render(
@@ -137,5 +188,9 @@ class Report:
         )
 
     def _file_name(self):
+        """
+
+        :return:
+        """
         if len(self.issues.values()) > 0:
             return list(self.issues.values())[0].filename
