@@ -132,11 +132,7 @@ class Report:
         self.verbose = verbose
         self.solc_version = ""
         self.meta = {}
-
-        if source is not None:
-            self.source = source or Source()
-        else:
-            self.source = Source()
+        self.source = source or Source()
 
     def sorted_issues(self):
         """

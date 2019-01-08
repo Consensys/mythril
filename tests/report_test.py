@@ -79,7 +79,6 @@ def _assert_empty(changed_files, postfix):
 def _assert_empty_json(changed_files, postfix=".json"):
     """Asserts there are no changed files and otherwise builds error
     message."""
-    postfix = ".json"
     expected = []
     actual = []
 
