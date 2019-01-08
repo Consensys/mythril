@@ -2059,4 +2059,7 @@ class Instruction:
         if native_result:
             return native_result
 
+        global_state.mstate.stack.append(
+            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+        )
         return [global_state]
