@@ -259,6 +259,7 @@ class LaserEVM:
         :return:
         """
         instructions = global_state.environment.code.instruction_list
+
         try:
             op_code = instructions[global_state.mstate.pc]["opcode"]
         except IndexError:
