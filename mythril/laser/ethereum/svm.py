@@ -220,7 +220,8 @@ class LaserEVM:
                 return final_states + [global_state] if track_gas else None
 
             if (
-                self.time
+                self.execution_timeout
+                and self.time
                 + timedelta(seconds=self.execution_timeout / self.transaction_count)
                 <= datetime.now()
                 and not create
