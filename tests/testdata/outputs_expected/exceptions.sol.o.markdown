@@ -1,8 +1,8 @@
 # Analysis results for test-filename.sol
 
-## Exception state
+## Exception State
 - SWC ID: 110
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `assert3(uint256)`
 - PC address: 446
@@ -10,11 +10,12 @@
 
 ### Description
 
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
+A reachable exception has been detected.
+It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
 
-## Exception state
+## Exception State
 - SWC ID: 110
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `arrayaccess(uint256)`
 - PC address: 484
@@ -22,11 +23,12 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 
 ### Description
 
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
+A reachable exception has been detected.
+It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
 
-## Exception state
+## Exception State
 - SWC ID: 110
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `divisionby0(uint256)`
 - PC address: 506
@@ -34,11 +36,12 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 
 ### Description
 
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
+A reachable exception has been detected.
+It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
 
-## Exception state
+## Exception State
 - SWC ID: 110
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
 - Function name: `assert1()`
 - PC address: 531
@@ -46,4 +49,5 @@ A reachable exception (opcode 0xfe) has been detected. This can be caused by typ
 
 ### Description
 
-A reachable exception (opcode 0xfe) has been detected. This can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
+A reachable exception has been detected.
+It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking.
