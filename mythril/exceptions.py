@@ -7,10 +7,6 @@ class MythrilBaseException(Exception):
     pass
 
 
-class OutOfTimeError(MythrilBaseException):
-    pass
-
-
 class CompilerError(MythrilBaseException):
     """A Mythril exception denoting an error during code compilation."""
 
