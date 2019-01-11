@@ -4,24 +4,26 @@
 		"address": 567,
 		"contract": "Unknown",
 		"debug": "<DEBUG-DATA>",
-		"description": "This binary subtraction operation can result in integer underflow.\n",
+		"description": "The binary subtraction can underflow.\nThe operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.",
 		"function": "sendeth(address,uint256)",
 		"max_gas_used": 1053,
 		"min_gas_used": 768,
+		"severity": "High",
+		"sourceMap": null,
 		"swc-id": "101",
-		"title": "Integer Underflow",
-		"type": "Warning"
+		"title": "Integer Underflow"
 	}, {
 		"address": 649,
 		"contract": "Unknown",
 		"debug": "<DEBUG-DATA>",
-		"description": "This binary subtraction operation can result in integer underflow.\n",
+		"description": "The binary subtraction can underflow.\nThe operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.",
 		"function": "sendeth(address,uint256)",
 		"max_gas_used": 1774,
 		"min_gas_used": 1299,
+		"severity": "High",
+		"sourceMap": null,
 		"swc-id": "101",
-		"title": "Integer Underflow",
-		"type": "Warning"
+		"title": "Integer Underflow"
 	}],
 	"success": true
 }

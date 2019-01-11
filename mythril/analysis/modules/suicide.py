@@ -5,6 +5,7 @@ from mythril.exceptions import UnsatError
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
+import json
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class SuicideModule(DetectionModule):
 
     def __init__(self):
         super().__init__(
-            name="Unprotected Suicide",
+            name="Unprotected Selfdestruct",
             swc_id=UNPROTECTED_SELFDESTRUCT,
             description=DESCRIPTION,
             entrypoint="callback",
@@ -55,6 +56,8 @@ class SuicideModule(DetectionModule):
 
         log.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
+        description_head = "The contract can be killed by anyone."
+
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
@@ -62,27 +65,29 @@ class SuicideModule(DetectionModule):
                     node.constraints
                     + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
                 )
-                description = "Anyone can kill this contract and withdraw its balance to their own account."
+                description_tail = "Arbitrary senders can kill this contract and withdraw its balance to their own account."
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
                     state, node.constraints
                 )
-                description = (
-                    "The contract can be killed by anyone. Don't accidentally kill it."
+                description_tail = (
+                    "Arbitrary senders can kill this contract but it is not possible to set the target address to which"
+                    "the contract balance is sent."
                 )
 
-            debug = str(transaction_sequence)
-
+            debug = json.dumps(transaction_sequence, indent=4)
             self._cache_address[instruction["address"]] = True
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=instruction["address"],
                 swc_id=UNPROTECTED_SELFDESTRUCT,
                 bytecode=state.environment.code.bytecode,
-                title="Unchecked SUICIDE",
-                _type="Warning",
-                description=description,
+                title="Unprotected Selfdestruct",
+                severity="High",
+                description_head=description_head,
+                description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )

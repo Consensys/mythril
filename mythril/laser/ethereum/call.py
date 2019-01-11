@@ -4,6 +4,7 @@ parameters for the new global state."""
 
 import logging
 from typing import Union, List
+from z3 import Z3Exception
 
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS
@@ -178,19 +179,23 @@ def get_call_data(
         else memory_size
     )
 
+    uses_entire_calldata = simplify(
+        memory_size - global_state.environment.calldata.calldatasize == 0
+    )
+
+    if uses_entire_calldata == True:
+        return global_state.environment.calldata
+
     try:
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
                 memory_start + memory_size
             )
         ]
-        call_data = ConcreteCalldata(transaction_id, calldata_from_mem)
-        log.debug("Calldata: " + str(call_data))
+        return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
         log.debug("Unsupported symbolic calldata offset")
-        call_data = SymbolicCalldata("{}_internalcall".format(transaction_id))
-
-    return call_data
+        return SymbolicCalldata(transaction_id)
 
 
 def native_call(

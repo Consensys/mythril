@@ -71,24 +71,29 @@ def _analyze_state(state: GlobalState) -> list:
         issues = []
         for retval in retvals:
             try:
-                model = solver.get_model(node.constraints + [retval["retval"] == 0])
+                solver.get_model(node.constraints + [retval["retval"] == 0])
             except UnsatError:
                 continue
+
+            description_tail = (
+                "External calls return a boolean value. If the callee contract halts with an exception, 'false' is "
+                "returned and execution continues in the caller. It is usually recommended to wrap external calls "
+                "into a require statement to prevent unexpected states."
+            )
 
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=retval["address"],
                 bytecode=state.environment.code.bytecode,
-                title="Unchecked CALL return value",
+                title="Unchecked Call Return Value",
                 swc_id=UNCHECKED_RET_VAL,
+                severity="Low",
+                description_head="The return value of a message call is not checked.",
+                description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
-            issue.description = (
-                "The return value of an external call is not checked. "
-                "Note that execution continue even if the called contract throws."
-            )
             issues.append(issue)
 
         return issues
