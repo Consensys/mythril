@@ -5,6 +5,7 @@ from copy import copy
 from datetime import datetime, timedelta
 from functools import reduce
 from typing import Callable, Dict, List, Tuple, Union
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -120,7 +121,7 @@ class LaserEVM:
         """
         return self.world_state.accounts
 
-    def sym_exec(
+    def _sym_exec(
         self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
         """
@@ -169,6 +170,22 @@ class LaserEVM:
                 * 100
             )
             log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
+
+    def sym_exec(
+        self, main_address=None, creation_code=None, contract_name=None, timeout=None
+    ) -> None:
+        timeout = timeout or self.execution_timeout
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            f_results = executor.submit(
+                self._sym_exec,
+                main_address=main_address,
+                creation_code=creation_code,
+                contract_name=contract_name,
+            )
+            try:
+                return f_results.result(timeout)
+            except TimeoutError:
+                return
 
     def _execute_transactions(self, address):
         """This function executes multiple transactions on the address based on
