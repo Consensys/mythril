@@ -6,6 +6,11 @@ from jinja2 import PackageLoader, Environment
 import _pysha3 as sha3
 import hashlib
 
+from mythril.solidity.soliditycontract import SolidityContract
+from mythril.analysis.swc_data import SWC_TO_TITLE
+from mythril.support.source_support import Source
+
+
 log = logging.getLogger(__name__)
 
 
@@ -21,8 +26,9 @@ class Issue:
         title,
         bytecode,
         gas_used=(None, None),
-        _type="Informational",
-        description="",
+        severity=None,
+        description_head="",
+        description_tail="",
         debug="",
     ):
         """
@@ -42,14 +48,17 @@ class Issue:
         self.contract = contract
         self.function = function_name
         self.address = address
-        self.description = description
-        self.type = _type
+        self.description_head = description_head
+        self.description_tail = description_tail
+        self.description = "%s\n%s" % (description_head, description_tail)
+        self.severity = severity
         self.debug = debug
         self.swc_id = swc_id
         self.min_gas_used, self.max_gas_used = gas_used
         self.filename = None
         self.code = None
         self.lineno = None
+        self.source_mapping = None
 
         try:
             keccak = sha3.keccak_256()
@@ -73,11 +82,12 @@ class Issue:
             "contract": self.contract,
             "description": self.description,
             "function": self.function,
-            "type": self.type,
+            "severity": self.severity,
             "address": self.address,
             "debug": self.debug,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
+            "sourceMap": self.source_mapping,
         }
 
         if self.filename and self.lineno:
@@ -94,13 +104,16 @@ class Issue:
 
         :param contract:
         """
-        if self.address:
+        if self.address and isinstance(contract, SolidityContract):
             codeinfo = contract.get_source_info(
                 self.address, constructor=(self.function == "constructor")
             )
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
+            self.source_mapping = codeinfo.solc_mapping
+        else:
+            self.source_mapping = self.address
 
 
 class Report:
@@ -110,14 +123,16 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, source=None):
         """
 
         :param verbose:
         """
         self.issues = {}
         self.verbose = verbose
-        pass
+        self.solc_version = ""
+        self.meta = {}
+        self.source = source or Source()
 
     def sorted_issues(self):
         """
@@ -160,16 +175,44 @@ class Report:
 
         :return:
         """
-        result = {
-            "issues": [
+        _issues = []
+        source_list = []
+
+        for key, issue in self.issues.items():
+
+            if issue.bytecode_hash not in source_list:
+                idx = len(source_list)
+                source_list.append(issue.bytecode_hash)
+            else:
+                idx = source_list.index(issue.bytecode_hash)
+
+            try:
+                title = SWC_TO_TITLE[issue.swc_id]
+            except KeyError:
+                title = "Unspecified Security Issue"
+
+            _issues.append(
                 {
-                    "swc-id": "SWC-{}".format(issue.swc_id),
-                    "bytecodeOffset": issue.address,
-                    "codeHash": issue.bytecode_hash,
+                    "swcID": "SWC-" + issue.swc_id,
+                    "swcTitle": title,
+                    "description": {
+                        "head": issue.description_head,
+                        "tail": issue.description_tail,
+                    },
+                    "severity": issue.severity,
+                    "locations": [{"sourceMap": "%d:1:%d" % (issue.address, idx)}],
+                    "extra": {},
                 }
-                for issue in self.issues.values()
-            ]
+            )
+
+        result = {
+            "issues": _issues,
+            "sourceType": "raw-bytecode",
+            "sourceFormat": "evm-byzantium-bytecode",
+            "sourceList": source_list,
+            "meta": {},
         }
+
         return json.dumps(result, sort_keys=True)
 
     def as_markdown(self):

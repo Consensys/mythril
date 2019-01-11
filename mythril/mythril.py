@@ -32,6 +32,7 @@ from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.exceptions import CompilerError, CriticalError, NoContractFoundError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.support import signatures
+from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError, NoContractFoundError, CriticalError
 from mythril.analysis.symbolic import SymExecWrapper
@@ -602,14 +603,15 @@ class Mythril(object):
                 )
                 issues = retrieve_callback_issues(modules)
 
-            if type(contract) == SolidityContract:
-                for issue in issues:
-                    issue.add_code_info(contract)
+            for issue in issues:
+                issue.add_code_info(contract)
 
             all_issues += issues
 
+        source_data = Source()
+        source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report)
+        report = Report(verbose_report, source_data)
         for issue in all_issues:
             report.append_issue(issue)
 

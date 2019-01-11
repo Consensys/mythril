@@ -71,27 +71,33 @@ def _analyze_state(state: GlobalState):
 
     else:  # RETURN or STOP
         if len(calls) > 1:
+
+            description_tail = (
+                "Consecutive calls are executed at the following bytecode offsets:\n"
+            )
+
+            for call in calls:
+                description_tail += "Offset: {}\n".format(
+                    call.state.get_current_instruction()["address"]
+                )
+
+            description_tail += (
+                "Try to isolate each external call into its own transaction,"
+                " as external calls can fail accidentally or deliberately.\n"
+            )
+
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
                 address=instruction["address"],
                 swc_id=MULTIPLE_SENDS,
                 bytecode=state.environment.code.bytecode,
-                title="Multiple Calls",
-                _type="Informational",
+                title="Multiple Calls in a Single Transaction",
+                severity="Medium",
+                description_head="Multiple sends are executed in one transaction.",
+                description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
-
-            issue.description = (
-                "Multiple sends are executed in a single transaction. "
-                "Try to isolate each external call into its own transaction,"
-                " as external calls can fail accidentally or deliberately.\nConsecutive calls: \n"
-            )
-
-            for call in calls:
-                issue.description += "Call at address: {}\n".format(
-                    call.state.get_current_instruction()["address"]
-                )
 
             return [issue]
 
