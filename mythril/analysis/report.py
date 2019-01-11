@@ -205,13 +205,13 @@ class Report:
                 }
             )
 
-        result = {
+        result = [{
             "issues": _issues,
             "sourceType": "raw-bytecode",
             "sourceFormat": "evm-byzantium-bytecode",
             "sourceList": source_list,
             "meta": {},
-        }
+        }]
 
         return json.dumps(result, sort_keys=True)
 
