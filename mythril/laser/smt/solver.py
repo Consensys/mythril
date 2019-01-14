@@ -10,7 +10,7 @@ class Solver:
 
     def __init__(self) -> None:
         """"""
-        self.raw = z3.Solver() # type: Union[z3.Solver, z3.Optimize]
+        self.raw = z3.Solver()  # type: Union[z3.Solver, z3.Optimize]
 
     def set_timeout(self, timeout: int) -> None:
         """Sets the timeout that will be used by this solver, timeout is in

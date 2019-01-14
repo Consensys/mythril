@@ -3,15 +3,15 @@ from typing import Optional, List, Any, TypeVar, Generic, cast
 import z3
 
 
-Annotations=List[Any]
-T = TypeVar('T', bound=z3.ExprRef)
+Annotations = List[Any]
+T = TypeVar("T", bound=z3.ExprRef)
 
 
 class Expression(Generic[T]):
     """This is the base symbol class and maintains functionality for
     simplification and annotations."""
 
-    def __init__(self, raw: T, annotations: Optional[Annotations]=None):
+    def __init__(self, raw: T, annotations: Optional[Annotations] = None):
         """
 
         :param raw: 

@@ -13,6 +13,7 @@ from mythril.laser.smt.bitvec import BitVec
 
 class BaseArray:
     """Base array type, which implements basic store and set operations."""
+
     domain: z3.SortRef
     range: z3.SortRef
     raw: z3.ArrayRef

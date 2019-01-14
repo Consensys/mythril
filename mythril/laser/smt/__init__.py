@@ -30,7 +30,9 @@ class SymbolFactory:
     """A symbol factory provides a default interface for all the components of mythril to create symbols"""
 
     @staticmethod
-    def Bool(value: __builtins__.bool, annotations: Annotations=None) -> Union[bool.Bool, z3.BoolRef]:
+    def Bool(
+        value: __builtins__.bool, annotations: Annotations = None
+    ) -> Union[bool.Bool, z3.BoolRef]:
         """
         Creates a Bool with concrete value
         :param value: The boolean value
@@ -40,7 +42,9 @@ class SymbolFactory:
         raise NotImplementedError
 
     @staticmethod
-    def BitVecVal(value: int, size: int, annotations: Annotations=None) -> Union[BitVec, z3.BitVecRef]:
+    def BitVecVal(
+        value: int, size: int, annotations: Annotations = None
+    ) -> Union[BitVec, z3.BitVecRef]:
         """Creates a new bit vector with a concrete value.
 
         :param value: The concrete value to set the bit vector to
@@ -51,7 +55,9 @@ class SymbolFactory:
         raise NotImplementedError()
 
     @staticmethod
-    def BitVecSym(name: str, size: int, annotations: Annotations=None) -> Union[BitVec, z3.BitVecRef]:
+    def BitVecSym(
+        name: str, size: int, annotations: Annotations = None
+    ) -> Union[BitVec, z3.BitVecRef]:
         """Creates a new bit vector with a symbolic value.
 
         :param name: The name of the symbolic bit vector
@@ -69,7 +75,9 @@ class _SmtSymbolFactory(SymbolFactory):
     """
 
     @staticmethod
-    def Bool(value: __builtins__.bool, annotations: Annotations=None) -> Union[bool.Bool, z3.BoolRef]:
+    def Bool(
+        value: __builtins__.bool, annotations: Annotations = None
+    ) -> Union[bool.Bool, z3.BoolRef]:
         """
         Creates a Bool with concrete value
         :param value: The boolean value
@@ -80,13 +88,17 @@ class _SmtSymbolFactory(SymbolFactory):
         return Bool(raw, annotations)
 
     @staticmethod
-    def BitVecVal(value: int, size: int, annotations: Annotations=None) -> Union[BitVec, z3.BitVecRef]:
+    def BitVecVal(
+        value: int, size: int, annotations: Annotations = None
+    ) -> Union[BitVec, z3.BitVecRef]:
         """Creates a new bit vector with a concrete value."""
         raw = z3.BitVecVal(value, size)
         return BitVec(raw, annotations)
 
     @staticmethod
-    def BitVecSym(name: str, size: int, annotations: Annotations=None) -> Union[BitVec, z3.BitVecRef]:
+    def BitVecSym(
+        name: str, size: int, annotations: Annotations = None
+    ) -> Union[BitVec, z3.BitVecRef]:
         """Creates a new bit vector with a symbolic value."""
         raw = z3.BitVec(name, size)
         return BitVec(raw, annotations)
@@ -99,17 +111,23 @@ class _Z3SymbolFactory(SymbolFactory):
     """
 
     @staticmethod
-    def Bool(value: __builtins__.bool, annotations: Annotations=None) -> Union[bool.Bool, z3.BoolRef]:
+    def Bool(
+        value: __builtins__.bool, annotations: Annotations = None
+    ) -> Union[bool.Bool, z3.BoolRef]:
         """ Creates a new bit vector with a concrete value """
         return z3.BoolVal(value)
 
     @staticmethod
-    def BitVecVal(value: int, size: int, annotations: Annotations=None) -> Union[BitVec, z3.BitVecRef]:
+    def BitVecVal(
+        value: int, size: int, annotations: Annotations = None
+    ) -> Union[BitVec, z3.BitVecRef]:
         """Creates a new bit vector with a concrete value."""
         return z3.BitVecVal(value, size)
 
     @staticmethod
-    def BitVecSym(name: str, size: int, annotations: Annotations=None) -> Union[BitVec, z3.BitVecRef]:
+    def BitVecSym(
+        name: str, size: int, annotations: Annotations = None
+    ) -> Union[BitVec, z3.BitVecRef]:
         """Creates a new bit vector with a symbolic value."""
         return z3.BitVec(name, size)
 
