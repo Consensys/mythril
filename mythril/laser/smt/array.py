@@ -14,21 +14,17 @@ from mythril.laser.smt.bitvec import BitVec
 class BaseArray:
     """Base array type, which implements basic store and set operations."""
 
-    domain: z3.SortRef
-    range: z3.SortRef
-    raw: z3.ArrayRef
-
     def __getitem__(self, item: BitVec) -> BitVec:
         """Gets item from the array, item can be symbolic."""
         if isinstance(item, slice):
             raise ValueError(
                 "Instance of BaseArray, does not support getitem with slices"
             )
-        return BitVec(cast(z3.BitVecRef, z3.Select(self.raw, item.raw)))
+        return BitVec(cast(z3.BitVecRef, z3.Select(self.raw, item.raw)))  # type: ignore
 
     def __setitem__(self, key: BitVec, value: BitVec) -> None:
         """Sets an item in the array, key can be symbolic."""
-        self.raw = z3.Store(self.raw, key.raw, value.raw)
+        self.raw = z3.Store(self.raw, key.raw, value.raw)  # type: ignore
 
 
 class Array(BaseArray):
