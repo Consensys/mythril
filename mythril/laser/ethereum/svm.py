@@ -5,7 +5,6 @@ from copy import copy
 from datetime import datetime, timedelta
 from functools import reduce
 from typing import Callable, Dict, List, Tuple, Union
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -22,6 +21,8 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
+from multiprocessing.pool import ThreadPool
+from multiprocessing import TimeoutError
 
 log = logging.getLogger(__name__)
 
@@ -175,17 +176,19 @@ class LaserEVM:
         self, main_address=None, creation_code=None, contract_name=None, timeout=None
     ) -> None:
         timeout = timeout or self.execution_timeout
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            f_results = executor.submit(
-                self._sym_exec,
-                main_address=main_address,
-                creation_code=creation_code,
-                contract_name=contract_name,
+
+        pool = ThreadPool(1)
+        try:
+            result = pool.apply_async(
+                self._sym_exec, args=[main_address, creation_code, contract_name]
             )
             try:
-                return f_results.result(timeout)
+                result.get(timeout)
             except TimeoutError:
+                log.debug("Reached timeout for symbolic execution, halting...")
                 return
+        finally:
+            pool.terminate()
 
     def _execute_transactions(self, address):
         """This function executes multiple transactions on the address based on
