@@ -31,7 +31,7 @@ class SymbolFactory:
 
     @staticmethod
     def Bool(
-        value: __builtins__.bool, annotations: Annotations = None
+        value: "__builtins__.bool", annotations: Annotations = None
     ) -> Union[bool.Bool, z3.BoolRef]:
         """
         Creates a Bool with concrete value
@@ -76,7 +76,7 @@ class _SmtSymbolFactory(SymbolFactory):
 
     @staticmethod
     def Bool(
-        value: __builtins__.bool, annotations: Annotations = None
+        value: "__builtins__.bool", annotations: Annotations = None
     ) -> Union[bool.Bool, z3.BoolRef]:
         """
         Creates a Bool with concrete value
@@ -112,7 +112,7 @@ class _Z3SymbolFactory(SymbolFactory):
 
     @staticmethod
     def Bool(
-        value: __builtins__.bool, annotations: Annotations = None
+        value: "__builtins__.bool", annotations: Annotations = None
     ) -> Union[bool.Bool, z3.BoolRef]:
         """ Creates a new bit vector with a concrete value """
         return z3.BoolVal(value)

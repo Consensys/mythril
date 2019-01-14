@@ -49,7 +49,7 @@ class BitVec(Expression[z3.BitVecRef]):
         assert isinstance(self.raw, z3.BitVecNumRef)
         return self.raw.as_long()
 
-    def __add__(self, other: Union[int, BitVec]) -> "BitVec":
+    def __add__(self, other: Union[int, "BitVec"]) -> "BitVec":
         """Create an addition expression.
 
         :param other:
@@ -61,7 +61,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw + other.raw, annotations=union)
 
-    def __sub__(self, other: Union[int, BitVec]) -> "BitVec":
+    def __sub__(self, other: Union[int, "BitVec"]) -> "BitVec":
         """Create a subtraction expression.
 
         :param other:
@@ -74,7 +74,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw - other.raw, annotations=union)
 
-    def __mul__(self, other: BitVec) -> "BitVec":
+    def __mul__(self, other: "BitVec") -> "BitVec":
         """Create a multiplication expression.
 
         :param other:
@@ -83,7 +83,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw * other.raw, annotations=union)
 
-    def __truediv__(self, other: BitVec) -> "BitVec":
+    def __truediv__(self, other: "BitVec") -> "BitVec":
         """Create a signed division expression.
 
         :param other:
@@ -92,7 +92,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw / other.raw, annotations=union)
 
-    def __and__(self, other: Union[int, BitVec]) -> "BitVec":
+    def __and__(self, other: Union[int, "BitVec"]) -> "BitVec":
         """Create an and expression.
 
         :param other:
@@ -103,7 +103,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw & other.raw, annotations=union)
 
-    def __or__(self, other: BitVec) -> "BitVec":
+    def __or__(self, other: "BitVec") -> "BitVec":
         """Create an or expression.
 
         :param other:
@@ -112,7 +112,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw | other.raw, annotations=union)
 
-    def __xor__(self, other: BitVec) -> "BitVec":
+    def __xor__(self, other: "BitVec") -> "BitVec":
         """Create a xor expression.
 
         :param other:
@@ -121,7 +121,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return BitVec(self.raw ^ other.raw, annotations=union)
 
-    def __lt__(self, other: BitVec) -> Bool:
+    def __lt__(self, other: "BitVec") -> Bool:
         """Create a signed less than expression.
 
         :param other:
@@ -130,7 +130,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return Bool(self.raw < other.raw, annotations=union)
 
-    def __gt__(self, other: BitVec) -> Bool:
+    def __gt__(self, other: "BitVec") -> Bool:
         """Create a signed greater than expression.
 
         :param other:
@@ -140,7 +140,7 @@ class BitVec(Expression[z3.BitVecRef]):
         return Bool(self.raw > other.raw, annotations=union)
 
     #MYPY: fix complains about overriding __eq__
-    def __eq__(self, other: Union[int, BitVec]) -> Bool:  # type: ignore
+    def __eq__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
         """Create an equality expression.
 
         :param other:
@@ -154,7 +154,7 @@ class BitVec(Expression[z3.BitVecRef]):
         return Bool(cast(z3.BoolRef, self.raw == other.raw), annotations=union)
 
     #MYPY: fix complains about overriding __ne__
-    def __ne__(self, other: Union[int, BitVec]) -> Bool:  # type: ignore
+    def __ne__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
         """Create an inequality expression.
 
         :param other:
