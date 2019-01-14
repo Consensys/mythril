@@ -165,7 +165,11 @@ def get_mappings(source, deployed_source_map):
     :return:
     """
     mappings = []
+    prev_item = ""
     for item in deployed_source_map:
+        if item == "":
+            item = prev_item
+
         mapping = item.split(":")
 
         if len(mapping) > 0 and len(mapping[0]) > 0:
@@ -178,7 +182,8 @@ def get_mappings(source, deployed_source_map):
             idx = int(mapping[2])
 
         lineno = source.encode("utf-8")[0:offset].count("\n".encode("utf-8")) + 1
+        prev_item = item
 
-        mappings.append(SourceMapping(idx, offset, length, lineno))
+        mappings.append(SourceMapping(idx, offset, length, lineno, item))
 
     return mappings

@@ -7,13 +7,14 @@ from mythril.exceptions import NoContractFoundError
 
 
 class SourceMapping:
-    """Representation of a source mapping for a Solidity file."""
+    def __init__(self, solidity_file_idx, offset, length, lineno, mapping):
+        """Representation of a source mapping for a Solidity file."""
 
-    def __init__(self, solidity_file_idx, offset, length, lineno):
         self.solidity_file_idx = solidity_file_idx
         self.offset = offset
         self.length = length
         self.lineno = lineno
+        self.solc_mapping = mapping
 
 
 class SolidityFile:
@@ -25,12 +26,13 @@ class SolidityFile:
 
 
 class SourceCodeInfo:
-    """Metadata class containing a code reference for a specific file."""
+    def __init__(self, filename, lineno, code, mapping):
+        """Metadata class containing a code reference for a specific file."""
 
-    def __init__(self, filename, lineno, code):
         self.filename = filename
         self.lineno = lineno
         self.code = code
+        self.solc_mapping = mapping
 
 
 def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
@@ -60,7 +62,6 @@ class SolidityContract(EVMContract):
     """Representation of a Solidity contract."""
 
     def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
-
         data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
 
         self.solidity_files = []
@@ -126,8 +127,8 @@ class SolidityContract(EVMContract):
         disassembly = self.creation_disassembly if constructor else self.disassembly
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
-        solidity_file = self.solidity_files[mappings[index].solidity_file_idx]
 
+        solidity_file = self.solidity_files[mappings[index].solidity_file_idx]
         filename = solidity_file.filename
 
         offset = mappings[index].offset
@@ -137,8 +138,7 @@ class SolidityContract(EVMContract):
             "utf-8", errors="ignore"
         )
         lineno = mappings[index].lineno
-
-        return SourceCodeInfo(filename, lineno, code)
+        return SourceCodeInfo(filename, lineno, code, mappings[index].solc_mapping)
 
     def _get_solc_mappings(self, srcmap, constructor=False):
         """
@@ -147,7 +147,10 @@ class SolidityContract(EVMContract):
         :param constructor:
         """
         mappings = self.constructor_mappings if constructor else self.mappings
+        prev_item = ""
         for item in srcmap:
+            if item == "":
+                item = prev_item
             mapping = item.split(":")
 
             if len(mapping) > 0 and len(mapping[0]) > 0:
@@ -164,5 +167,5 @@ class SolidityContract(EVMContract):
                 .count("\n".encode("utf-8"))
                 + 1
             )
-
-            mappings.append(SourceMapping(idx, offset, length, lineno))
+            prev_item = item
+            mappings.append(SourceMapping(idx, offset, length, lineno, item))

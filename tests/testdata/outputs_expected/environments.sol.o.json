@@ -9,7 +9,7 @@
             "function": "_function_0x83f12fec",
             "swc-id": "101",
             "title": "Integer Overflow",
-            "type": "Warning",
+            "type": "Warning"
         },
         {
             "address": 278,
@@ -19,7 +19,7 @@
             "function": "_function_0x83f12fec",
             "swc-id": "101",
             "title": "Integer Overflow",
-            "type": "Warning",
+            "type": "Warning"
         },
         {
             "address": 378,
@@ -29,8 +29,8 @@
             "function": "_function_0x83f12fec",
             "swc-id": "101",
             "title": "Integer Underflow",
-            "type": "Warning",
-        },
+            "type": "Warning"
+        }
     ],
-    "success": true,
+    "success": true
 }

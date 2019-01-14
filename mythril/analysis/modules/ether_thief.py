@@ -1,6 +1,7 @@
 """This module contains the detection code for unauthorized ether
 withdrawal."""
 import logging
+import json
 from copy import copy
 
 from mythril.analysis import solver
@@ -40,6 +41,15 @@ class EtherThief(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
+        self._cache_addresses = {}
+
+    def reset_module(self):
+        """
+        Resets the module by clearing everything
+        :return:
+        """
+        super().reset_module()
+        self._cache_addresses = {}
 
     def execute(self, state: GlobalState):
         """
@@ -88,17 +98,18 @@ class EtherThief(DetectionModule):
 
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = str(transaction_sequence)
+            debug = json.dumps(transaction_sequence, indent=4)
 
             issue = Issue(
                 contract=node.contract_name,
                 function_name=node.function_name,
-                address=address,
+                address=instruction["address"],
                 swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-                title="Ether thief",
-                _type="Warning",
+                title="Unprotected Ether Withdrawal",
+                severity="High",
                 bytecode=state.environment.code.bytecode,
-                description="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
+                description_head="Anyone can withdraw ETH from the contract account.",
+                description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
                 + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
                 + " a vulnerability.",
                 debug=debug,

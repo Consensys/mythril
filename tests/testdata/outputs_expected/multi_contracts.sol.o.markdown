@@ -1,8 +1,8 @@
 # Analysis results for test-filename.sol
 
-## Ether thief
+## Unprotected Ether Withdrawal
 - SWC ID: 105
-- Type: Warning
+- Severity: High
 - Contract: Unknown
 - Function name: `transfer()`
 - PC address: 142
@@ -10,4 +10,5 @@
 
 ### Description
 
+Anyone can withdraw ETH from the contract account.
 Arbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability.
