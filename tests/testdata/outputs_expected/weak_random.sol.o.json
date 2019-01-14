@@ -8,7 +8,7 @@
             "function": "_function_0xe9874106",
             "type": "Warning",
             "address": 1285,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Ether send",
@@ -16,7 +16,7 @@
             "function": "_function_0xe9874106",
             "type": "Warning",
             "address": 1285,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Exception state",
@@ -24,7 +24,7 @@
             "function": "fallback",
             "type": "Informational",
             "address": 356,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Exception state",
@@ -32,7 +32,7 @@
             "function": "_function_0xe9874106",
             "type": "Informational",
             "address": 146,
-            "debug": "<DEBUG-DATA>",
+            "debug": "<DEBUG-DATA>"
         },
         {
             "title": "Transaction order dependence",
@@ -40,7 +40,7 @@
             "function": "_function_0xe9874106",
             "type": "Warning",
             "address": 1285,
-            "debug": "<DEBUG-DATA>",
-        },
-    ],
+            "debug": "<DEBUG-DATA>"
+        }
+    ]
 }

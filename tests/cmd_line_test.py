@@ -34,7 +34,7 @@ class TruffleTestCase(BaseTestCase):
         command = "cd {}; truffle compile; python3 {} --truffle -t 2".format(
             truffle_project_root, MYTH
         )
-        self.assertIn("=== Ether thief ====", output_of(command))
+        self.assertIn("=== Unprotected Ether Withdrawal ====", output_of(command))
 
 
 class InfuraTestCase(BaseTestCase):

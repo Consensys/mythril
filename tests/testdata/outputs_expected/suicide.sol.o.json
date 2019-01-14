@@ -1,18 +1,1 @@
-{
-  "error": null,
-  "issues": [
-    {
-      "address": 146,
-      "contract": "Unknown",
-      "debug": "<DEBUG-DATA>",
-      "description": "Anyone can kill this contract and withdraw its balance to their own account.",
-      "function": "kill(address)",
-      "max_gas_used": 263,
-      "min_gas_used": 168,
-      "swc-id": "106",
-      "title": "Unchecked SUICIDE",
-      "type": "Warning"
-    }
-  ],
-  "success": true
-}
+{"error": null, "issues": [{"address": 146, "contract": "Unknown", "debug": "<DEBUG-DATA>", "description": "The contract can be killed by anyone.\nArbitrary senders can kill this contract and withdraw its balance to their own account.", "function": "kill(address)", "max_gas_used": 263, "min_gas_used": 168, "severity": "High", "sourceMap": null, "swc-id": "106", "title": "Unprotected Selfdestruct"}], "success": true}
