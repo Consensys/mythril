@@ -34,7 +34,6 @@ class DetectionModule:
             )
         self.entrypoint = entrypoint
         self._issues = []
-        self._cache_addresses = {}
 
     @property
     def issues(self):
@@ -45,10 +44,9 @@ class DetectionModule:
 
     def reset_module(self):
         """
-        Resets issues and cache addresses
+        Resets issues
         """
         self._issues = []
-        self._cache_addresses = {}
 
     def execute(self, statespace):
         """The entry point for execution, which is being called by Mythril.
