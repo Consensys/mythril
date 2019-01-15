@@ -6,7 +6,7 @@
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 567
-- Estimated Gas Usage: 1299 - 1774
+- Estimated Gas Usage: 768 - 1053
 
 ### Description
 

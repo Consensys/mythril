@@ -49,6 +49,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
+        self._overflow_cache = {}
+        self._underflow_cache = {}
+
+    def reset_module(self):
+        """
+        Resets the module
+        :return:
+        """
+        super().reset_module()
+        self._overflow_cache = {}
+        self._underflow_cache = {}
 
     def execute(self, state: GlobalState):
         """Executes analysis module for integer underflow and integer overflow.
@@ -56,6 +67,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :param state: Statespace to analyse
         :return: Found issues
         """
+        address = _get_address_from_state(state)
+        has_overflow = self._overflow_cache.get(address, False)
+        has_underflow = self._underflow_cache.get(address, False)
+        if has_overflow or has_underflow:
+            return
         if state.get_current_instruction()["opcode"] == "ADD":
             self._handle_add(state)
         elif state.get_current_instruction()["opcode"] == "MUL":
@@ -153,7 +169,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         if not isinstance(value, Expression):
             return
-
         for annotation in value.annotations:
             if not isinstance(annotation, OverUnderflowAnnotation):
                 continue
@@ -175,6 +190,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
+            address = _get_address_from_state(ostate)
+
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
+                address, False
+            ):
+                continue
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
+                address, False
+            ):
+                continue
+
             try:
 
                 transaction_sequence = solver.get_transaction_sequence(
@@ -184,7 +210,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 issue.debug = json.dumps(transaction_sequence, indent=4)
 
             except UnsatError:
-                return
+                continue
+            if annotation.operator == "subtraction":
+                self._underflow_cache[address] = True
+            else:
+                self._overflow_cache[address] = True
+
             self._issues.append(issue)
 
     def _handle_jumpi(self, state):
@@ -211,6 +242,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
+            address = _get_address_from_state(ostate)
+
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
+                address, False
+            ):
+                continue
+
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
+                address, False
+            ):
+                continue
+
             try:
 
                 transaction_sequence = solver.get_transaction_sequence(
@@ -220,7 +263,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 issue.debug = json.dumps(transaction_sequence, indent=4)
 
             except UnsatError:
-                return
+                continue
+
+            if annotation.operator == "subtraction":
+                self._underflow_cache[address] = True
+            else:
+                self._overflow_cache[address] = True
             self._issues.append(issue)
 
     @staticmethod
@@ -236,3 +284,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
 
 detector = IntegerOverflowUnderflowModule()
+
+
+def _get_address_from_state(state):
+    return state.get_current_instruction()["address"]
