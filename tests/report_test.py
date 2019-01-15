@@ -103,7 +103,7 @@ def _assert_empty_json(changed_files, postfix=".json"):
             (TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)).read_text()
         )
 
-        if not ordered(output_expected.items()) == ordered(output_current.items()):
+        if not ordered(output_expected) == ordered(output_current):
             expected.append(output_expected)
             actual.append(output_current)
             print("Found difference in {}".format(str(input_file)))
