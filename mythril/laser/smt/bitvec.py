@@ -139,7 +139,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations + other.annotations
         return Bool(self.raw > other.raw, annotations=union)
 
-    #MYPY: fix complains about overriding __eq__
+    # MYPY: fix complains about overriding __eq__
     def __eq__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
         """Create an equality expression.
 
@@ -153,7 +153,7 @@ class BitVec(Expression[z3.BitVecRef]):
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw == other.raw), annotations=union)
 
-    #MYPY: fix complains about overriding __ne__
+    # MYPY: fix complains about overriding __ne__
     def __ne__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
         """Create an inequality expression.
 

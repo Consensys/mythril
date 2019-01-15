@@ -46,7 +46,7 @@ class Bool(Expression[z3.BoolRef]):
         else:
             return None
 
-    #MYPY: complains about overloading __eq__ # noqa
+    # MYPY: complains about overloading __eq__ # noqa
     def __eq__(self, other: object) -> "Bool":  # type: ignore
         """
 
@@ -58,7 +58,7 @@ class Bool(Expression[z3.BoolRef]):
                         self.annotations + other.annotations)
         return Bool(cast(z3.BoolRef, self.raw == other), self.annotations)
 
-    #MYPY: complains about overloading __ne__ # noqa
+    # MYPY: complains about overloading __ne__ # noqa
     def __ne__(self, other: object) -> "Bool":  # type: ignore
         """
 
