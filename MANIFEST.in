@@ -1,2 +1,2 @@
-include mythril/support/signatures.db
+include mythril/support/assets/*
 include mythril/analysis/templates/*
