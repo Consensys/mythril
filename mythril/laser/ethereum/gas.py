@@ -94,7 +94,7 @@ OPCODE_GAS = {
     "MSTORE8": (3, 98),
     # assume 64 byte r/w cost as upper bound
     "SLOAD": (400, 400),
-    "SSTORE": (5000, 25000),
+    "SSTORE": (200, 25000),
     "JUMP": (8, 8),
     "JUMPI": (10, 10),
     "PC": (2, 2),
@@ -170,10 +170,10 @@ OPCODE_GAS = {
     # allows, but let's stick to the reasonable standard here.
     # https://ethereum.stackexchange.com/a/1691
     "LOG0": (375, 375 + 8 * 32),
-    "LOG1": (2 * 375, 2 * 375 + 8 * 32),
-    "LOG2": (3 * 375, 3 * 375 + 8 * 32),
-    "LOG3": (4 * 375, 4 * 375 + 8 * 32),
-    "LOG4": (5 * 375, 5 * 375 + 8 * 32),
+    "LOG1": (375, 2 * 375 + 8 * 32),
+    "LOG2": (375, 3 * 375 + 8 * 32),
+    "LOG3": (375, 4 * 375 + 8 * 32),
+    "LOG4": (375, 5 * 375 + 8 * 32),
     "CREATE": (32000, 32000),
     "CALL": (700, 700 + 9000 + 25000),
     "NATIVE_COST": calculate_native_gas,

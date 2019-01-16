@@ -3,7 +3,7 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.transaction_models import (
-    ContractCreationTransaction,
+    MessageCallTransaction,
 )
 
 
@@ -48,9 +48,5 @@ class MutationPruner:
 
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(global_state: GlobalState):
-            if isinstance(
-                global_state.current_transaction, ContractCreationTransaction
-            ):
-                return
-            if len(list(global_state.get_annotations(MutationAnnotation))) == 0:
-                raise PluginSkipWorldState
+            if isinstance(global_state.current_transaction, MessageCallTransaction) and len(list(global_state.get_annotations(MutationAnnotation))) == 0:
+                    raise PluginSkipWorldState
