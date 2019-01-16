@@ -353,6 +353,13 @@ class LaserEVM:
         :param return_data:
         :return:
         """
+        return_global_state.transaction_stack = [
+            tx
+            for tx in return_global_state.transaction_stack
+            if not tx[0].callee_account.deleted
+        ]
+        if len(return_global_state.transaction_stack) == 0:
+            return []
 
         return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
