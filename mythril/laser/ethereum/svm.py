@@ -327,9 +327,8 @@ class LaserEVM:
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
-
                 new_global_states = self._end_message_call(
-                    return_global_state,
+                    copy(return_global_state),
                     global_state,
                     revert_changes=False or end_signal.revert,
                     return_data=transaction.return_data,
@@ -354,6 +353,8 @@ class LaserEVM:
         :param return_data:
         :return:
         """
+
+        return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[
             return_global_state.mstate.pc
