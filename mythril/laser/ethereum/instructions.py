@@ -967,6 +967,8 @@ class Instruction:
             return [global_state]
 
         bytecode = global_state.environment.code.bytecode
+        if bytecode[0:2] == "0x":
+            bytecode = bytecode[2:]
 
         if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
