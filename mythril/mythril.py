@@ -477,6 +477,7 @@ class Mythril(object):
         max_depth=None,
         execution_timeout=None,
         create_timeout=None,
+        enable_iprof=False,
     ):
         """
 
@@ -500,6 +501,7 @@ class Mythril(object):
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
+            enable_iprof=enable_iprof,
         )
 
         return get_serializable_statespace(sym)
@@ -514,6 +516,7 @@ class Mythril(object):
         phrackify=False,
         execution_timeout=None,
         create_timeout=None,
+        enable_iprof=False,
     ):
         """
 
@@ -539,6 +542,7 @@ class Mythril(object):
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
+            enable_iprof=enable_iprof,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
@@ -553,6 +557,7 @@ class Mythril(object):
         execution_timeout=None,
         create_timeout=None,
         transaction_count=None,
+        enable_iprof=False,
     ):
         """
 
@@ -585,6 +590,7 @@ class Mythril(object):
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
+                    enable_iprof=enable_iprof,
                 )
                 issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:
