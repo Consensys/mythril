@@ -1,111 +1,105 @@
 # Analysis results for test-filename.sol
 
-## Message call to external contract
+## External Call To Fixed Address
 - SWC ID: 107
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0x5a6814ec`
+- Function name: `thisisfine()`
 - PC address: 661
+- Estimated Gas Usage: 643 - 1254
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes an external message call.
+An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
 
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0x5a6814ec`
-- PC address: 666
+- Function name: `thisisfine()`
+- PC address: 661
+- Estimated Gas Usage: 1361 - 35972
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## Message call to external contract
+## External Call To Fixed Address
 - SWC ID: 107
-- Type: Warning
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xd24b08cc`
+- Function name: `callstoredaddress()`
 - PC address: 779
+- Estimated Gas Usage: 687 - 1298
 
 ### Description
 
-This contract executes a message call to an address found at storage slot 1. This storage slot can be written to by calling the function `_function_0x2776b163`. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
+The contract executes an external message call.
+An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
 
-## Transaction order dependence
-- SWC ID: 114
-- Type: Warning
-- Contract: Unknown
-- Function name: `_function_0xd24b08cc`
-- PC address: 779
-
-### Description
-
-A possible transaction order dependence vulnerability exists in function _function_0xd24b08cc. The value or direction of the call statement is determined from a tainted storage location
-
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xd24b08cc`
-- PC address: 784
+- Function name: `callstoredaddress()`
+- PC address: 779
+- Estimated Gas Usage: 1405 - 36016
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## Message call to external contract
+## External Call To Fixed Address
 - SWC ID: 107
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
+- Function name: `reentrancy()`
 - PC address: 858
+- Estimated Gas Usage: 709 - 1320
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes an external message call.
+An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
 
-## State change after external call
-- SWC ID: 107
-- Type: Warning
-- Contract: Unknown
-- Function name: `_function_0xe11f493e`
-- PC address: 869
-
-### Description
-
-The contract account state is changed after an external call. Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.
-
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xe11f493e`
-- PC address: 871
+- Function name: `reentrancy()`
+- PC address: 858
+- Estimated Gas Usage: 6441 - 61052
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## Message call to external contract
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Type: Warning
+- Severity: Medium
 - Contract: Unknown
-- Function name: `_function_0xe1d10f79`
+- Function name: `calluseraddress(address)`
 - PC address: 912
+- Estimated Gas Usage: 335 - 616
 
 ### Description
 
-This contract executes a message call to an address provided as a function argument. Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on thecontract state.
 
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xe1d10f79`
-- PC address: 918
+- Function name: `calluseraddress(address)`
+- PC address: 912
+- Estimated Gas Usage: 1055 - 35336
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.

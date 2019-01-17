@@ -1,291 +1,290 @@
-from z3 import *
+"""This module contains the detection code for integer overflows and
+underflows."""
+
+import json
+
 from mythril.analysis import solver
-from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.taint_analysis import TaintRunner
-import re
-import copy
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.analysis.modules.base import DetectionModule
+
+from mythril.laser.smt import (
+    BVAddNoOverflow,
+    BVSubNoUnderflow,
+    BVMulNoOverflow,
+    BitVec,
+    symbol_factory,
+    Not,
+    Expression,
+)
+
 import logging
 
-'''
-MODULE DESCRIPTION:
 
-Check for integer underflows.
-For every SUB instruction, check if there's a possible state where op1 > op0.
-For every ADD, MUL instruction, check if there's a possible state where op1 + op0 > 2^32 - 1
-'''
+log = logging.getLogger(__name__)
 
 
-def execute(statespace):
-    """
-    Executes analysis module for integer underflow and integer overflow
-    :param statespace: Statespace to analyse
-    :return: Found issues
-    """
-    logging.debug("Executing module: INTEGER")
-
-    issues = []
-
-    for k in statespace.nodes:
-        node = statespace.nodes[k]
-
-        for state in node.states:
-            issues += _check_integer_underflow(statespace, state, node)
-            issues += _check_integer_overflow(statespace, state, node)
-
-    return issues
+class OverUnderflowAnnotation:
+    def __init__(self, overflowing_state: GlobalState, operator: str, constraint):
+        self.overflowing_state = overflowing_state
+        self.operator = operator
+        self.constraint = constraint
 
 
-def _check_integer_overflow(statespace, state, node):
-    """
-    Checks for integer overflow
-    :param statespace: statespace that is being examined
-    :param state: state from node to examine
-    :param node: node to examine
-    :return: found issue
-    """
-    issues = []
+class IntegerOverflowUnderflowModule(DetectionModule):
+    """This module searches for integer over- and underflows."""
 
-    # Check the instruction
-    instruction = state.get_current_instruction()
-    if instruction['opcode'] not in ("ADD", "MUL"):
-        return issues
+    def __init__(self):
+        """"""
+        super().__init__(
+            name="Integer Overflow and Underflow",
+            swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
+            description=(
+                "For every SUB instruction, check if there's a possible state "
+                "where op1 > op0. For every ADD, MUL instruction, check if "
+                "there's a possible state where op1 + op0 > 2^32 - 1"
+            ),
+            entrypoint="callback",
+            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
+        )
+        self._overflow_cache = {}
+        self._underflow_cache = {}
 
-    # Formulate overflow constraints
-    stack = state.mstate.stack
-    op0, op1 = stack[-1], stack[-2]
+    def reset_module(self):
+        """
+        Resets the module
+        :return:
+        """
+        super().reset_module()
+        self._overflow_cache = {}
+        self._underflow_cache = {}
 
-    # An integer overflow is possible if op0 + op1 or op0 * op1 > MAX_UINT
-    # Do a type check
-    allowed_types = [int, BitVecRef, BitVecNumRef]
-    if not (type(op0) in allowed_types and type(op1) in allowed_types):
-        return issues
+    def execute(self, state: GlobalState):
+        """Executes analysis module for integer underflow and integer overflow.
 
-    # Change ints to BitVec
-    if type(op0) is int:
-        op0 = BitVecVal(op0, 256)
-    if type(op1) is int:
-        op1 = BitVecVal(op1, 256)
+        :param state: Statespace to analyse
+        :return: Found issues
+        """
+        address = _get_address_from_state(state)
+        has_overflow = self._overflow_cache.get(address, False)
+        has_underflow = self._underflow_cache.get(address, False)
+        if has_overflow or has_underflow:
+            return
+        if state.get_current_instruction()["opcode"] == "ADD":
+            self._handle_add(state)
+        elif state.get_current_instruction()["opcode"] == "MUL":
+            self._handle_mul(state)
+        elif state.get_current_instruction()["opcode"] == "SUB":
+            self._handle_sub(state)
+        elif state.get_current_instruction()["opcode"] == "SSTORE":
+            self._handle_sstore(state)
+        elif state.get_current_instruction()["opcode"] == "JUMPI":
+            self._handle_jumpi(state)
 
-    # Formulate expression
-    if instruction['opcode'] == "ADD":
-        expr = op0 + op1
-    else:
-        expr = op1 * op0
-
-    # Check satisfiable
-    constraint = Or(And(ULT(expr, op0), op1 != 0), And(ULT(expr, op1), op0 != 0))
-    model = _try_constraints(node.constraints, [constraint])
-
-    if model is None:
-        logging.debug("[INTEGER_OVERFLOW] no model found")
-        return issues
-
-    if not _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
-        return issues
-
-    # Build issue
-    issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
-                  swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW, title="Integer Overflow", _type="Warning")
-
-    issue.description = "A possible integer overflow exists in the function `{}`.\n" \
-                        "The addition or multiplication may result in a value higher than the maximum representable integer.".format(
-        node.function_name)
-    issue.debug = solver.pretty_print_model(model)
-    issues.append(issue)
-
-    return issues
-
-
-def _verify_integer_overflow(statespace, node, expr, state, model, constraint, op0, op1):
-    """ Verifies existence of integer overflow """
-    # If we get to this point then there has been an integer overflow
-    # Find out if the overflowed value is actually used
-    interesting_usages = _search_children(statespace, node, expr, constraint=[constraint], index=node.states.index(state))
-
-    # Stop if it isn't
-    if len(interesting_usages) == 0:
-        return False
-
-    return _try_constraints(node.constraints, [Not(constraint)]) is not None
-
-def _try_constraints(constraints, new_constraints):
-    """
-    Tries new constraints
-    :return Model if satisfiable otherwise None
-    """
-    _constraints = copy.deepcopy(constraints)
-    for constraint in new_constraints:
-        _constraints.append(copy.deepcopy(constraint))
-    try:
-        model = solver.get_model(_constraints)
-        return model
-    except UnsatError:
-        return None
-
-
-def _check_integer_underflow(statespace, state, node):
-    """
-    Checks for integer underflow
-    :param state: state from node to examine
-    :param node: node to examine
-    :return: found issue
-    """
-    issues = []
-    instruction = state.get_current_instruction()
-    if instruction['opcode'] == "SUB":
-
+    def _handle_add(self, state):
         stack = state.mstate.stack
+        op0, op1 = (
+            self._make_bitvec_if_not(stack, -1),
+            self._make_bitvec_if_not(stack, -2),
+        )
+        c = Not(BVAddNoOverflow(op0, op1, False))
 
-        op0 = stack[-1]
-        op1 = stack[-2]
+        # Check satisfiable
+        model = self._try_constraints(state.node.constraints, [c])
+        if model is None:
+            return
 
-        constraints = copy.deepcopy(node.constraints)
+        annotation = OverUnderflowAnnotation(state, "addition", c)
+        op0.annotate(annotation)
 
-        # Filter for patterns that indicate benign underflows
+    def _handle_mul(self, state):
+        stack = state.mstate.stack
+        op0, op1 = (
+            self._make_bitvec_if_not(stack, -1),
+            self._make_bitvec_if_not(stack, -2),
+        )
 
-        # Pattern 1: (96 + calldatasize_MAIN) - (96), where (96 + calldatasize_MAIN) would underflow if calldatasize is very large.
-        # Pattern 2: (256*If(1 & storage_0 == 0, 1, 0)) - 1, this would underlow if storage_0 = 0
-        if type(op0) == int and type(op1) == int:
-            return []
-        if re.search(r'calldatasize_', str(op0)):
-            return []
-        if re.search(r'256\*.*If\(1', str(op0), re.DOTALL) or re.search(r'256\*.*If\(1', str(op1), re.DOTALL):
-            return []
-        if re.search(r'32 \+.*calldata', str(op0), re.DOTALL) or re.search(r'32 \+.*calldata', str(op1), re.DOTALL):
-            return []
+        c = Not(BVMulNoOverflow(op0, op1, False))
 
-        logging.debug("[INTEGER_UNDERFLOW] Checking SUB {0}, {1} at address {2}".format(str(op0), str(op1),
-                                                                                        str(instruction['address'])))
-        allowed_types = [int, BitVecRef, BitVecNumRef]
+        # Check satisfiable
+        model = self._try_constraints(state.node.constraints, [c])
+        if model is None:
+            return
 
-        if type(op0) in allowed_types and type(op1) in allowed_types:
-            constraints.append(UGT(op1, op0))
+        annotation = OverUnderflowAnnotation(state, "multiplication", c)
+        op0.annotate(annotation)
+
+    def _handle_sub(self, state):
+        stack = state.mstate.stack
+        op0, op1 = (
+            self._make_bitvec_if_not(stack, -1),
+            self._make_bitvec_if_not(stack, -2),
+        )
+        c = Not(BVSubNoUnderflow(op0, op1, False))
+
+        # Check satisfiable
+        model = self._try_constraints(state.node.constraints, [c])
+        if model is None:
+            return
+
+        annotation = OverUnderflowAnnotation(state, "subtraction", c)
+        op0.annotate(annotation)
+
+    @staticmethod
+    def _make_bitvec_if_not(stack, index):
+        value = stack[index]
+        if isinstance(value, BitVec):
+            return value
+        stack[index] = symbol_factory.BitVecVal(value, 256)
+        return stack[index]
+
+    @staticmethod
+    def _get_description_head(annotation, _type):
+        return "The binary {} can {}.".format(annotation.operator, _type.lower())
+
+    @staticmethod
+    def _get_description_tail(annotation, _type):
+
+        return (
+            "The operands of the {} operation are not sufficiently constrained. "
+            "The {} could therefore result in an integer {}. Prevent the {} by checking inputs "
+            "or ensure sure that the {} is caught by an assertion.".format(
+                annotation.operator,
+                annotation.operator,
+                _type.lower(),
+                _type.lower(),
+                _type.lower(),
+            )
+        )
+
+    @staticmethod
+    def _get_title(_type):
+        return "Integer {}".format(_type)
+
+    def _handle_sstore(self, state):
+        stack = state.mstate.stack
+        value = stack[-2]
+
+        if not isinstance(value, Expression):
+            return
+        for annotation in value.annotations:
+            if not isinstance(annotation, OverUnderflowAnnotation):
+                continue
+
+            _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
+            ostate = annotation.overflowing_state
+            node = ostate.node
+
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=ostate.get_current_instruction()["address"],
+                swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
+                bytecode=ostate.environment.code.bytecode,
+                title=self._get_title(_type),
+                severity="High",
+                description_head=self._get_description_head(annotation, _type),
+                description_tail=self._get_description_tail(annotation, _type),
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+
+            address = _get_address_from_state(ostate)
+
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
+                address, False
+            ):
+                continue
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
+                address, False
+            ):
+                continue
 
             try:
 
-                model = solver.get_model(constraints)
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, node.constraints + [annotation.constraint]
+                )
 
-                # If we get to this point then there has been an integer overflow
-                # Find out if the overflowed value is actually used
-                interesting_usages = _search_children(statespace, node, (op0 - op1), index=node.states.index(state))
-
-                # Stop if it isn't
-                if len(interesting_usages) == 0:
-                    return issues
-
-                issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
-                              swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW, title="Integer Underflow", _type="Warning")
-
-                issue.description = "A possible integer underflow exists in the function `" + node.function_name + "`.\n" \
-                                                                                                                   "The subtraction may result in a value < 0."
-
-                issue.debug = solver.pretty_print_model(model)
-                issues.append(issue)
+                issue.debug = json.dumps(transaction_sequence, indent=4)
 
             except UnsatError:
-                logging.debug("[INTEGER_UNDERFLOW] no model found")
-    return issues
-
-
-def _check_usage(state, taint_result):
-    """Delegates checks to _check_{instruction_name}()"""
-    opcode = state.get_current_instruction()['opcode']
-
-    if opcode == 'JUMPI':
-        if _check_jumpi(state, taint_result):
-            return [state]
-    elif opcode == 'SSTORE':
-        if _check_sstore(state, taint_result):
-            return [state]
-    return []
-
-def _check_jumpi(state, taint_result):
-    """ Check if conditional jump is dependent on the result of expression"""
-    assert state.get_current_instruction()['opcode'] == 'JUMPI'
-    return taint_result.check(state, -2)
-
-
-def _check_sstore(state, taint_result):
-    """ Check if store operation is dependent on the result of expression"""
-    assert state.get_current_instruction()['opcode'] == 'SSTORE'
-    return taint_result.check(state, -2)
-
-
-def _search_children(statespace, node, expression, taint_result=None, constraint=None, index=0, depth=0, max_depth=64):
-    """
-    Checks the statespace for children states, with JUMPI or SSTORE instuctions,
-    for dependency on expression
-    :param statespace: The statespace to explore
-    :param node: Current node to explore from
-    :param expression: Expression to look for
-    :param taint_result: Result of taint analysis
-    :param index: Current state index node.states[index] == current_state
-    :param depth: Current depth level
-    :param max_depth: Max depth to explore
-    :return: List of states that match the opcodes and are dependent on expression
-    """
-    if constraint is None:
-        constraint = []
-
-    logging.debug("SEARCHING NODE for usage of an overflowed variable %d", node.uid)
-
-    if taint_result is None:
-        state = node.states[index]
-        taint_stack = [False for _ in state.mstate.stack]
-        taint_stack[-1] = True
-        taint_result = TaintRunner.execute(statespace, node, state, initial_stack=taint_stack)
-
-    results = []
-
-    if depth >= max_depth:
-        return []
-
-    # Explore current node from index
-    for j in range(index, len(node.states)):
-        current_state = node.states[j]
-        current_instruction = current_state.get_current_instruction()
-        if current_instruction['opcode'] in ('JUMPI', 'SSTORE'):
-            element = _check_usage(current_state, taint_result)
-            if len(element) < 1:
                 continue
-            if _check_requires(element[0], node, statespace, constraint):
-                 continue
-            results += element
+            if annotation.operator == "subtraction":
+                self._underflow_cache[address] = True
+            else:
+                self._overflow_cache[address] = True
 
-    # Recursively search children
-    children = \
-        [
-            statespace.nodes[edge.node_to]
-            for edge in statespace.edges
-            if edge.node_from == node.uid
-            # and _try_constraints(statespace.nodes[edge.node_to].constraints, constraint) is not None
-        ]
+            self._issues.append(issue)
 
-    for child in children:
-        results += _search_children(statespace, child, expression, taint_result, depth=depth + 1, max_depth=max_depth)
+    def _handle_jumpi(self, state):
+        stack = state.mstate.stack
+        value = stack[-2]
 
-    return results
+        for annotation in value.annotations:
+            if not isinstance(annotation, OverUnderflowAnnotation):
+                continue
+            ostate = annotation.overflowing_state
+            node = ostate.node
+
+            _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=ostate.get_current_instruction()["address"],
+                swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
+                bytecode=ostate.environment.code.bytecode,
+                title=self._get_title(_type),
+                severity="High",
+                description_head=self._get_description_head(annotation, _type),
+                description_tail=self._get_description_tail(annotation, _type),
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+
+            address = _get_address_from_state(ostate)
+
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
+                address, False
+            ):
+                continue
+
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
+                address, False
+            ):
+                continue
+
+            try:
+
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, node.constraints + [annotation.constraint]
+                )
+
+                issue.debug = json.dumps(transaction_sequence, indent=4)
+
+            except UnsatError:
+                continue
+
+            if annotation.operator == "subtraction":
+                self._underflow_cache[address] = True
+            else:
+                self._overflow_cache[address] = True
+            self._issues.append(issue)
+
+    @staticmethod
+    def _try_constraints(constraints, new_constraints):
+        """
+        Tries new constraints
+        :return Model if satisfiable otherwise None
+        """
+        try:
+            return solver.get_model(constraints + new_constraints)
+        except UnsatError:
+            return None
 
 
-def _check_requires(state, node, statespace, constraint):
-    """Checks if usage of overflowed statement results in a revert statement"""
-    instruction = state.get_current_instruction()
-    if instruction['opcode'] is not "JUMPI":
-        return False
-    children = [
-            statespace.nodes[edge.node_to]
-            for edge in statespace.edges
-            if edge.node_from == node.uid
-        ]
+detector = IntegerOverflowUnderflowModule()
 
-    for child in children:
-        opcodes = [s.get_current_instruction()['opcode'] for s in child.states]
-        if "REVERT" in opcodes or "ASSERT_FAIL" in opcodes:
-            return True
-    # I added the following case, bc of false positives if the max depth is not high enough
-    if len(children) == 0:
-        return True
-    return False
+
+def _get_address_from_state(state):
+    return state.get_current_instruction()["address"]

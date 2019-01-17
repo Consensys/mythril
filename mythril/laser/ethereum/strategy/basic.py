@@ -1,56 +1,88 @@
-"""
-This module implements basic symbolic execution search strategies
-"""
-from ..state import GlobalState
-from typing import List
+"""This module implements basic symbolic execution search strategies."""
+from random import randrange
+
+from mythril.laser.ethereum.state.global_state import GlobalState
+from . import BasicSearchStrategy
+
+try:
+    from random import choices
+except ImportError:
+
+    # This is for supporting python versions < 3.6
+    from itertools import accumulate
+    from random import random
+    from bisect import bisect
+
+    def choices(population, weights=None):
+        """Returns a random element out of the population based on weight.
+
+        If the relative weights or cumulative weights are not specified,
+        the selections are made with equal probability.
+        """
+        if weights is None:
+            return [population[int(random() * len(population))]]
+        cum_weights = accumulate(weights)
+        return [
+            population[
+                bisect(cum_weights, random() * cum_weights[-1], 0, len(population) - 1)
+            ]
+        ]
 
 
-class DepthFirstSearchStrategy:
+class DepthFirstSearchStrategy(BasicSearchStrategy):
+    """Implements a depth first search strategy I.E.
+
+    Follow one path to a leaf, and then continue to the next one
     """
-    Implements a depth first search strategy
-    I.E. Follow one path to a leaf, and then continue to the next one
+
+    def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
+        return self.work_list.pop()
+
+
+class BreadthFirstSearchStrategy(BasicSearchStrategy):
+    """Implements a breadth first search strategy I.E.
+
+    Execute all states of a "level" before continuing
     """
-    def __init__(self, work_list: List[GlobalState], max_depth: float):
-        self.work_list = work_list
-        self.max_depth = max_depth
 
-    def __iter__(self):
-        return self
+    def get_strategic_global_state(self) -> GlobalState:
+        """
 
-    def __next__(self) -> GlobalState:
-        """ Picks the next state to execute """
-        try:
-            # This strategies assumes that new states are appended at the end of the work_list
-            # By taking the last element we effectively pick the "newest" states, which amounts to dfs
-            global_state = self.work_list.pop()
-            if global_state.mstate.depth >= self.max_depth:
-                return self.__next__()
-            return global_state
-        except IndexError:
-            raise StopIteration()
+        :return:
+        """
+        return self.work_list.pop(0)
 
 
-class BreadthFirstSearchStrategy:
-    """
-    Implements a breadth first search strategy
-    I.E. Execute all states of a "level" before continuing
-    """
-    def __init__(self, work_list: List[GlobalState], max_depth: float):
-        self.work_list = work_list
-        self.max_depth = max_depth
+class ReturnRandomNaivelyStrategy(BasicSearchStrategy):
+    """chooses a random state from the worklist with equal likelihood."""
 
-    def __iter__(self) -> "BreadthFirstSearchStrategy":
-        return self
+    def get_strategic_global_state(self) -> GlobalState:
+        """
 
-    def __next__(self) -> GlobalState:
-        """ Picks the next state to execute """
-        try:
-            # This strategies assumes that new states are appended at the end of the work_list
-            # By taking the first element we effectively pick the "oldest" states, which amounts to bfs
-            global_state = self.work_list.pop(0)
-            if global_state.mstate.depth >= self.max_depth:
-                return self.__next__()
-            return global_state
-        except IndexError:
-            raise StopIteration()
+        :return:
+        """
+        if len(self.work_list) > 0:
+            return self.work_list.pop(randrange(len(self.work_list)))
+        else:
+            raise IndexError
 
+
+class ReturnWeightedRandomStrategy(BasicSearchStrategy):
+    """chooses a random state from the worklist with likelihood based on
+    inverse proportion to depth."""
+
+    def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
+        probability_distribution = [
+            1 / (global_state.mstate.depth + 1) for global_state in self.work_list
+        ]
+        return self.work_list.pop(
+            choices(range(len(self.work_list)), probability_distribution)[0]
+        )

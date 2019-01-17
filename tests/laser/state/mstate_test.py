@@ -1,19 +1,21 @@
 import pytest
-from mythril.laser.ethereum.state import MachineState
+from mythril.laser.smt import simplify, symbol_factory
+
+from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
+from mythril.laser.ethereum.state.memory import Memory
 
-memory_extension_test_data = [
-    (0, 0, 10),
-    (0, 30, 10),
-    (100, 22, 8)
-]
+memory_extension_test_data = [(0, 0, 10), (0, 30, 10), (100, 22, 8)]
 
 
-@pytest.mark.parametrize("initial_size,start,extension_size", memory_extension_test_data)
+@pytest.mark.parametrize(
+    "initial_size,start,extension_size", memory_extension_test_data
+)
 def test_memory_extension(initial_size, start, extension_size):
     # Arrange
-    machine_state = MachineState(0)
-    machine_state.memory = [0] * initial_size
+    machine_state = MachineState(gas_limit=8000000)
+    machine_state.memory = Memory()
+    machine_state.memory.extend(initial_size)
 
     # Act
     machine_state.mem_extend(start, extension_size)
@@ -23,18 +25,13 @@ def test_memory_extension(initial_size, start, extension_size):
     assert machine_state.memory_size == max(initial_size, start + extension_size)
 
 
-stack_pop_too_many_test_data = [
-    (0, 1),
-    (0, 2),
-    (5, 1),
-    (5, 10)
-]
+stack_pop_too_many_test_data = [(0, 1), (0, 2), (5, 1), (5, 10)]
 
 
 @pytest.mark.parametrize("initial_size,overflow", stack_pop_too_many_test_data)
 def test_stack_pop_too_many(initial_size, overflow):
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = [42] * initial_size
 
     # Act + Assert
@@ -44,14 +41,14 @@ def test_stack_pop_too_many(initial_size, overflow):
 
 stack_pop_test_data = [
     ([1, 2, 3], 2, [3, 2]),
-    ([1, 3, 4, 7, 7, 1, 2], 5, [2, 1, 7, 7, 4])
+    ([1, 3, 4, 7, 7, 1, 2], 5, [2, 1, 7, 7, 4]),
 ]
 
 
 @pytest.mark.parametrize("initial_stack,amount,expected", stack_pop_test_data)
 def test_stack_multiple_pop(initial_stack, amount, expected):
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = initial_stack[:]
 
     # Act
@@ -65,7 +62,7 @@ def test_stack_multiple_pop(initial_stack, amount, expected):
 
 def test_stack_multiple_pop_():
     # Arrange
-    machine_state = MachineState(0)
+    machine_state = MachineState(8000000)
     machine_state.stack = [1, 2, 3]
 
     # Act
@@ -78,8 +75,8 @@ def test_stack_multiple_pop_():
 
 def test_stack_single_pop():
     # Arrange
-    machine_state = MachineState(0)
-    machine_state.stack = [1,2,3]
+    machine_state = MachineState(8000000)
+    machine_state.stack = [1, 2, 3]
 
     # Act
     result = machine_state.pop()
@@ -88,22 +85,39 @@ def test_stack_single_pop():
     assert isinstance(result, int)
 
 
-memory_write_test_data = [
-    (5, 10, [1, 2, 3]),
-    (0, 0, [3, 4]),
-    (20, 1, [2, 4, 10])
-]
-
-
-@pytest.mark.parametrize("initial_size, memory_offset, data", memory_write_test_data)
-def test_memory_write(initial_size, memory_offset, data):
+def test_memory_zeroed():
     # Arrange
-    machine_state = MachineState(0)
-    machine_state.memory = [0]*initial_size
+    mem = Memory()
+    mem.extend(2000 + 32)
 
     # Act
-    machine_state.memory_write(memory_offset, data)
+    mem[11] = 10
+    mem.write_word_at(2000, 0x12345)
 
     # Assert
-    assert len(machine_state.memory) == max(initial_size, memory_offset+len(data))
-    assert machine_state.memory[memory_offset:memory_offset+len(data)] == data
+    assert mem[10] == 0
+    assert mem[100] == 0
+    assert mem.get_word_at(1000) == 0
+
+
+def test_memory_write():
+    # Arrange
+    mem = Memory()
+    mem.extend(200 + 32)
+
+    a = symbol_factory.BitVecSym("a", 256)
+    b = symbol_factory.BitVecSym("b", 8)
+
+    # Act
+    mem[11] = 10
+    mem[12] = b
+    mem.write_word_at(200, 0x12345)
+    mem.write_word_at(100, a)
+
+    # Assert
+    assert mem[0] == 0
+    assert mem[11] == 10
+    assert mem[200 + 31] == 0x45
+    assert mem.get_word_at(200) == 0x12345
+    assert simplify(a == mem.get_word_at(100))
+    assert simplify(b == mem[12])

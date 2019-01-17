@@ -1,16 +1,15 @@
 import pytest
 
-from mythril.laser.ethereum.state import MachineStack
+from mythril.laser.ethereum.state.machine_state import MachineStack
 from mythril.laser.ethereum.evm_exceptions import *
 from tests import BaseTestCase
 
 
 class MachineStackTest(BaseTestCase):
-
     @staticmethod
     def test_mstack_constructor():
         mstack = MachineStack([1, 2])
-        assert(mstack == [1, 2])
+        assert mstack == [1, 2]
 
     @staticmethod
     def test_mstack_append_single_element():
@@ -18,7 +17,7 @@ class MachineStackTest(BaseTestCase):
 
         mstack.append(0)
 
-        assert(mstack == [0])
+        assert mstack == [0]
 
     @staticmethod
     def test_mstack_append_multiple_elements():
@@ -45,7 +44,7 @@ class MachineStackTest(BaseTestCase):
         mstack = MachineStack([0, 1])
 
         with pytest.raises(NotImplementedError):
-            mstack = mstack + [2]
+            mstack + [2]
 
     @staticmethod
     def test_mstack_no_support_iadd():
@@ -53,4 +52,3 @@ class MachineStackTest(BaseTestCase):
 
         with pytest.raises(NotImplementedError):
             mstack += mstack
-

@@ -34,6 +34,12 @@ jobs:
             - /root/.cache/pip/wheels/
 
       - run:
+          name: Black style check
+          command: |
+            pip3 install --user black
+            python3 -m black --check /home/mythril/
+
+      - run:
           background: true
           name: Launch of background geth instance
           command: geth --syncmode full --rpc --shh
@@ -42,9 +48,11 @@ jobs:
           name: Unit-testing
           command: tox
           working_directory: /home/mythril
+          no_output_timeout: 10m
           environment:
             LC_ALL: en_US.ASCII
             LANG: en_US.ASCII
+            MYTHRIL_DIR: '/home/mythril'
 
       - store_test_results:
           path: /home/mythril/.tox/output
@@ -61,10 +69,16 @@ jobs:
           name: Sonar analysis
           command: if [ -z "$CIRCLE_PR_NUMBER" ]; then if [ -z "$CIRCLE_TAG" ]; then sonar-scanner -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.organization=$SONAR_ORGANIZATION -Dsonar.branch.name=$CIRCLE_BRANCH -Dsonar.projectBaseDir=/home/mythril -Dsonar.sources=mythril -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.tests=/home/mythril/tests -Dsonar.login=$SONAR_LOGIN; fi; fi
 
+      # - run:
+      #     name: Integration tests
+      #     command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
+      #     working_directory: /home
+
       - run:
-          name: Integration tests
-          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
-          working_directory: /home
+          name: Call webhook
+          command: |
+            curl -I -X POST -H -d "https://circleci.com/api/v1/project/${ORGANIZATION}/${WEBHOOK_PROJECT}/tree/master?circle-token=${CIRCLE_TOKEN}" | head -n 1 | cut -d$' ' -f2
+
 
   pypi_release:
     <<: *defaults
@@ -84,6 +98,8 @@ jobs:
           command: twine upload dist/*
           working_directory: /home/mythril
 
+  # Release of the mainstream (current stable) version as mythril/myth
+  # container.
   dockerhub_release:
     docker:
       - image: docker:stable
@@ -92,7 +108,18 @@ jobs:
       - setup_remote_docker
       - run:
           name: Building Docker Image
-          command: ./docker_build_and_deploy.sh
+          command: ./docker_build_and_deploy.sh mythril/myth
+
+  # Release of the latest development version as mythril/myth-dev container.
+  dockerhub_dev_release:
+    docker:
+      - image: docker:stable
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Building Docker Image
+          command: ./docker_build_and_deploy.sh mythril/myth-dev
 
 workflows:
   version: 2
@@ -110,6 +137,12 @@ workflows:
               only: /v[0-9]+(\.[0-9]+)*/
           requires:
             - test
+      - dockerhub_dev_release:
+          filters:
+            branches:
+              only: develop
+          # requires:
+          #  - test
       - dockerhub_release:
           filters:
             branches:

@@ -1,50 +1,72 @@
-import logging
+"""This module implements classes needed to perform taint analysis."""
 import copy
-from typing import Union, List, Tuple
-from z3 import BitVecNumRef
+import logging
+from typing import List, Tuple, Union
+
 import mythril.laser.ethereum.util as helper
-from mythril.laser.ethereum.cfg import JumpType, Node
-from mythril.laser.ethereum.state import GlobalState, Environment
 from mythril.analysis.symbolic import SymExecWrapper
+from mythril.laser.ethereum.cfg import JumpType, Node
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import Expression
+
+log = logging.getLogger(__name__)
 
 
 class TaintRecord:
-    """
-    TaintRecord contains tainting information for a specific (state, node)
-    the information specifies the taint status before executing the operation belonging to the state
-    """
+    """TaintRecord contains tainting information for a specific (state, node)
+    the information specifies the taint status before executing the operation
+    belonging to the state."""
 
     def __init__(self):
-        """ Builds a taint record """
+        """Builds a taint record."""
         self.stack = []
         self.memory = {}
         self.storage = {}
         self.states = []
 
     def stack_tainted(self, index: int) -> Union[bool, None]:
-        """ Returns taint value of stack element at index"""
+        """Returns taint value of stack element at index.
+
+        :param index:
+        :return:
+        """
         if index < len(self.stack):
             return self.stack[index]
         return None
 
     def memory_tainted(self, index: int) -> bool:
-        """ Returns taint value of memory element at index"""
+        """Returns taint value of memory element at index.
+
+        :param index:
+        :return:
+        """
         if index in self.memory.keys():
             return self.memory[index]
         return False
 
     def storage_tainted(self, index: int) -> bool:
-        """ Returns taint value of storage element at index"""
+        """Returns taint value of storage element at index.
+
+        :param index:
+        :return:
+        """
         if index in self.storage.keys():
             return self.storage[index]
         return False
 
     def add_state(self, state: GlobalState) -> None:
-        """ Adds state with this taint record """
+        """Adds state with this taint record.
+
+        :param state:
+        """
         self.states.append(state)
 
     def clone(self) -> "TaintRecord":
-        """ Clones this record"""
+        """Clones this record.
+
+        :return:
+        """
         clone = TaintRecord()
         clone.stack = copy.deepcopy(self.stack)
         clone.memory = copy.deepcopy(self.memory)
@@ -53,14 +75,16 @@ class TaintRecord:
 
 
 class TaintResult:
-    """ Taint analysis result obtained after having ran the taint runner"""
+    """Taint analysis result obtained after having ran the taint runner."""
 
     def __init__(self):
+        """Create a new tains result."""
         self.records = []
 
     def check(self, state: GlobalState, stack_index: int) -> Union[bool, None]:
-        """
-        Checks if stack variable is tainted, before executing the instruction
+        """Checks if stack variable is tainted, before executing the
+        instruction.
+
         :param state: state to check variable in
         :param stack_index: index of stack variable
         :return: tainted
@@ -71,11 +95,18 @@ class TaintResult:
         return record.stack_tainted(stack_index)
 
     def add_records(self, records: List[TaintRecord]) -> None:
-        """ Adds records to this taint result """
+        """Adds records to this taint result.
+
+        :param records:
+        """
         self.records += records
 
     def _try_get_record(self, state: GlobalState) -> Union[TaintRecord, None]:
-        """ Finds record belonging to the state """
+        """Finds record belonging to the state.
+
+        :param state:
+        :return:
+        """
         for record in self.records:
             if state in record.states:
                 return record
@@ -83,18 +114,19 @@ class TaintResult:
 
 
 class TaintRunner:
-    """
-    Taint runner, is able to run taint analysis on symbolic execution result
-    """
+    """Taint runner, is able to run taint analysis on symbolic execution
+    result."""
 
     @staticmethod
-    def execute(statespace: SymExecWrapper, node: Node, state: GlobalState, initial_stack=None) -> TaintResult:
-        """
-        Runs taint analysis on the statespace
+    def execute(
+        statespace: SymExecWrapper, node: Node, state: GlobalState, initial_stack=None
+    ) -> TaintResult:
+        """Runs taint analysis on the statespace.
+
+        :param initial_stack:
         :param statespace: symbolic statespace to run taint analysis on
         :param node: taint introduction node
         :param state: taint introduction state
-        :param stack_indexes: stack indexes to introduce taint
         :return: TaintResult object containing analysis results
         """
         if initial_stack is None:
@@ -115,9 +147,11 @@ class TaintRunner:
             records = TaintRunner.execute_node(node, record, index)
 
             result.add_records(records)
-            if len(records) == 0:          # continue if there is no record to work on
+            if len(records) == 0:  # continue if there is no record to work on
                 continue
-            children = TaintRunner.children(node, statespace, environment, transaction_stack_length)
+            children = TaintRunner.children(
+                node, statespace, environment, transaction_stack_length
+            )
             for child in children:
                 current_nodes.append((child, records[-1], 0))
         return result
@@ -127,21 +161,43 @@ class TaintRunner:
         node: Node,
         statespace: SymExecWrapper,
         environment: Environment,
-        transaction_stack_length: int
+        transaction_stack_length: int,
     ) -> List[Node]:
-        direct_children = [statespace.nodes[edge.node_to] for edge in statespace.edges if edge.node_from == node.uid and edge.type != JumpType.Transaction]
+        """
+
+        :param node:
+        :param statespace:
+        :param environment:
+        :param transaction_stack_length:
+        :return:
+        """
+        direct_children = [
+            statespace.nodes[edge.node_to]
+            for edge in statespace.edges
+            if edge.node_from == node.uid and edge.type != JumpType.Transaction
+        ]
         children = []
         for child in direct_children:
-            if all(len(state.transaction_stack) == transaction_stack_length for state in child.states):
+            if all(
+                len(state.transaction_stack) == transaction_stack_length
+                for state in child.states
+            ):
                 children.append(child)
-            elif all(len(state.transaction_stack) > transaction_stack_length for state in child.states):
-                children += TaintRunner.children(child, statespace, environment, transaction_stack_length)
+            elif all(
+                len(state.transaction_stack) > transaction_stack_length
+                for state in child.states
+            ):
+                children += TaintRunner.children(
+                    child, statespace, environment, transaction_stack_length
+                )
         return children
 
     @staticmethod
-    def execute_node(node: Node, last_record: TaintRecord, state_index=0) -> List[TaintRecord]:
-        """
-        Runs taint analysis on a given node
+    def execute_node(
+        node: Node, last_record: TaintRecord, state_index=0
+    ) -> List[TaintRecord]:
+        """Runs taint analysis on a given node.
+
         :param node: node to analyse
         :param last_record: last taint record to work from
         :param state_index: state index to start from
@@ -155,13 +211,19 @@ class TaintRunner:
 
     @staticmethod
     def execute_state(record: TaintRecord, state: GlobalState) -> TaintRecord:
+        """
+
+        :param record:
+        :param state:
+        :return:
+        """
         assert len(state.mstate.stack) == len(record.stack)
         """ Runs taint analysis on a state """
         record.add_state(state)
         new_record = record.clone()
 
         # Apply Change
-        op = state.get_current_instruction()['opcode']
+        op = state.get_current_instruction()["opcode"]
 
         if op in TaintRunner.stack_taint_table.keys():
             mutator = TaintRunner.stack_taint_table[op]
@@ -182,15 +244,20 @@ class TaintRunner:
             TaintRunner.mutate_sstore(new_record, state.mstate.stack[-1])
         elif op.startswith("LOG"):
             TaintRunner.mutate_log(new_record, op)
-        elif op in ('CALL', 'CALLCODE', 'DELEGATECALL', 'STATICCALL'):
+        elif op in ("CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"):
             TaintRunner.mutate_call(new_record, op)
         else:
-            logging.debug("Unknown operation encountered: {}".format(op))
+            log.debug("Unknown operation encountered: {}".format(op))
 
         return new_record
 
     @staticmethod
     def mutate_stack(record: TaintRecord, mutator: Tuple[int, int]) -> None:
+        """
+
+        :param record:
+        :param mutator:
+        """
         pop, push = mutator
 
         values = []
@@ -204,77 +271,126 @@ class TaintRunner:
 
     @staticmethod
     def mutate_push(op: str, record: TaintRecord) -> None:
+        """
+
+        :param op:
+        :param record:
+        """
         TaintRunner.mutate_stack(record, (0, 1))
 
     @staticmethod
     def mutate_dup(op: str, record: TaintRecord) -> None:
+        """
+
+        :param op:
+        :param record:
+        """
         depth = int(op[3:])
         index = len(record.stack) - depth
         record.stack.append(record.stack[index])
 
     @staticmethod
     def mutate_swap(op: str, record: TaintRecord) -> None:
+        """
+
+        :param op:
+        :param record:
+        """
         depth = int(op[4:])
         l = len(record.stack) - 1
         i = l - depth
         record.stack[l], record.stack[i] = record.stack[i], record.stack[l]
 
     @staticmethod
-    def mutate_mload(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_mload(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
         record.stack.append(record.memory_tainted(index))
 
     @staticmethod
-    def mutate_mstore(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_mstore(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.memory[index] = value_taint
 
     @staticmethod
-    def mutate_sload(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_sload(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _ = record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't MLOAD taint track symbolically")
+            log.debug("Can't MLOAD taint track symbolically")
             record.stack.append(False)
             return
 
         record.stack.append(record.storage_tainted(index))
 
     @staticmethod
-    def mutate_sstore(record: TaintRecord, op0: BitVecNumRef) -> None:
+    def mutate_sstore(record: TaintRecord, op0: Expression) -> None:
+        """
+
+        :param record:
+        :param op0:
+        :return:
+        """
         _, value_taint = record.stack.pop(), record.stack.pop()
         try:
             index = helper.get_concrete_int(op0)
         except TypeError:
-            logging.debug("Can't mstore taint track symbolically")
+            log.debug("Can't mstore taint track symbolically")
             return
 
         record.storage[index] = value_taint
 
     @staticmethod
     def mutate_log(record: TaintRecord, op: str) -> None:
+        """
+
+        :param record:
+        :param op:
+        """
         depth = int(op[3:])
         for _ in range(depth + 2):
             record.stack.pop()
 
     @staticmethod
     def mutate_call(record: TaintRecord, op: str) -> None:
+        """
+
+        :param record:
+        :param op:
+        """
         pops = 6
-        if op in ('CALL', 'CALLCODE'):
+        if op in ("CALL", "CALLCODE"):
             pops += 1
         for _ in range(pops):
             record.stack.pop()
@@ -283,55 +399,55 @@ class TaintRunner:
 
     stack_taint_table = {
         # instruction: (taint source, taint target)
-        'POP': (1, 0),
-        'ADD': (2, 1),
-        'MUL': (2, 1),
-        'SUB': (2, 1),
-        'AND': (2, 1),
-        'OR':  (2, 1),
-        'XOR': (2, 1),
-        'NOT': (1, 1),
-        'BYTE': (2, 1),
-        'DIV': (2, 1),
-        'MOD': (2, 1),
-        'SDIV': (2, 1),
-        'SMOD': (2, 1),
-        'ADDMOD': (3, 1),
-        'MULMOD': (3, 1),
-        'EXP': (2, 1),
-        'SIGNEXTEND': (2, 1),
-        'LT': (2, 1),
-        'GT': (2, 1),
-        'SLT': (2, 1),
-        'SGT': (2, 1),
-        'EQ': (2, 1),
-        'ISZERO': (1, 1),
-        'CALLVALUE': (0, 1),
-        'CALLDATALOAD': (1, 1),
-        'CALLDATACOPY': (3, 0),  # todo
-        'CALLDATASIZE': (0, 1),
-        'ADDRESS': (0, 1),
-        'BALANCE': (1, 1),
-        'ORIGIN': (0, 1),
-        'CALLER': (0, 1),
-        'CODESIZE': (0, 1),
-        'SHA3': (2, 1),
-        'GASPRICE': (0, 1),
-        'CODECOPY': (3, 0),
-        'EXTCODESIZE': (1, 1),
-        'EXTCODECOPY': (4, 0),
-        'RETURNDATASIZE': (0, 1),
-        'BLOCKHASH': (1, 1),
-        'COINBASE': (0, 1),
-        'TIMESTAMP': (0, 1),
-        'NUMBER': (0, 1),
-        'DIFFICULTY': (0, 1),
-        'GASLIMIT': (0, 1),
-        'JUMP': (1, 0),
-        'JUMPI': (2, 0),
-        'PC': (0, 1),
-        'MSIZE': (0, 1),
-        'GAS': (0, 1),
-        'CREATE': (3, 1),
-        'RETURN': (2, 0)
+        "POP": (1, 0),
+        "ADD": (2, 1),
+        "MUL": (2, 1),
+        "SUB": (2, 1),
+        "AND": (2, 1),
+        "OR": (2, 1),
+        "XOR": (2, 1),
+        "NOT": (1, 1),
+        "BYTE": (2, 1),
+        "DIV": (2, 1),
+        "MOD": (2, 1),
+        "SDIV": (2, 1),
+        "SMOD": (2, 1),
+        "ADDMOD": (3, 1),
+        "MULMOD": (3, 1),
+        "EXP": (2, 1),
+        "SIGNEXTEND": (2, 1),
+        "LT": (2, 1),
+        "GT": (2, 1),
+        "SLT": (2, 1),
+        "SGT": (2, 1),
+        "EQ": (2, 1),
+        "ISZERO": (1, 1),
+        "CALLVALUE": (0, 1),
+        "CALLDATALOAD": (1, 1),
+        "CALLDATACOPY": (3, 0),  # todo
+        "CALLDATASIZE": (0, 1),
+        "ADDRESS": (0, 1),
+        "BALANCE": (1, 1),
+        "ORIGIN": (0, 1),
+        "CALLER": (0, 1),
+        "CODESIZE": (0, 1),
+        "SHA3": (2, 1),
+        "GASPRICE": (0, 1),
+        "CODECOPY": (3, 0),
+        "EXTCODESIZE": (1, 1),
+        "EXTCODECOPY": (4, 0),
+        "RETURNDATASIZE": (0, 1),
+        "BLOCKHASH": (1, 1),
+        "COINBASE": (0, 1),
+        "TIMESTAMP": (0, 1),
+        "NUMBER": (0, 1),
+        "DIFFICULTY": (0, 1),
+        "GASLIMIT": (0, 1),
+        "JUMP": (1, 0),
+        "JUMPI": (2, 0),
+        "PC": (0, 1),
+        "MSIZE": (0, 1),
+        "GAS": (0, 1),
+        "CREATE": (3, 1),
+        "RETURN": (2, 0),
     }

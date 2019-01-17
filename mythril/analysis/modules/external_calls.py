@@ -1,134 +1,130 @@
-from z3 import *
-from mythril.analysis.ops import *
-from mythril.analysis.report import Issue
+"""This module contains the detection code for potentially insecure low-level
+calls."""
+
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
-import re
+from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.report import Issue
+from mythril.laser.smt import UGT, symbol_factory
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.exceptions import UnsatError
 import logging
+import json
+
+log = logging.getLogger(__name__)
+
+DESCRIPTION = """
+
+Search for low level calls (e.g. call.value()) that forward all gas to the callee.
+Report a warning if the callee address can be set by the sender, otherwise create 
+an informational issue.
+
+"""
 
 
-'''
-MODULE DESCRIPTION:
+def _analyze_state(state):
+    """
 
-Check for call.value()() to external addresses
-'''
+    :param state:
+    :return:
+    """
+    node = state.node
+    gas = state.mstate.stack[-1]
+    to = state.mstate.stack[-2]
 
-MAX_SEARCH_DEPTH = 64
+    address = state.get_current_instruction()["address"]
+
+    try:
+        constraints = node.constraints
+        transaction_sequence = solver.get_transaction_sequence(
+            state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
+        )
+
+        # Check whether we can also set the callee address
+
+        try:
+            constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
+            transaction_sequence = solver.get_transaction_sequence(state, constraints)
+
+            debug = json.dumps(transaction_sequence, indent=4)
+            description_head = "A call to a user-supplied address is executed."
+            description_tail = (
+                "The callee address of an external message call can be set by "
+                "the caller. Note that the callee can contain arbitrary code and may re-enter any function "
+                "in this contract. Review the business logic carefully to prevent averse effects on the"
+                "contract state."
+            )
+
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=address,
+                swc_id=REENTRANCY,
+                title="External Call To User-Supplied Address",
+                bytecode=state.environment.code.bytecode,
+                severity="Medium",
+                description_head=description_head,
+                description_tail=description_tail,
+                debug=debug,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+
+        except UnsatError:
+
+            log.debug(
+                "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
+            )
+
+            debug = json.dumps(transaction_sequence, indent=4)
+            description_head = "The contract executes an external message call."
+            description_tail = (
+                "An external function call to a fixed contract address is executed. Make sure "
+                "that the callee contract has been reviewed carefully."
+            )
+
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=state.node.function_name,
+                address=address,
+                swc_id=REENTRANCY,
+                title="External Call To Fixed Address",
+                bytecode=state.environment.code.bytecode,
+                severity="Low",
+                description_head=description_head,
+                description_tail=description_tail,
+                debug=debug,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+
+    except UnsatError:
+        log.debug("[EXTERNAL_CALLS] No model found.")
+        return []
+
+    return [issue]
 
 
-def search_children(statespace, node, start_index=0, depth=0, results=None):
-    if results is None:
-        results = []
-    logging.debug("SEARCHING NODE %d", node.uid)
+class ExternalCalls(DetectionModule):
+    """This module searches for low level calls (e.g. call.value()) that
+    forward all gas to the callee."""
 
-    if depth < MAX_SEARCH_DEPTH:
+    def __init__(self):
+        """"""
+        super().__init__(
+            name="External calls",
+            swc_id=REENTRANCY,
+            description=DESCRIPTION,
+            entrypoint="callback",
+            pre_hooks=["CALL"],
+        )
 
-        n_states = len(node.states)
+    def execute(self, state: GlobalState):
+        """
 
-        if n_states > start_index:
-
-            for j in range(start_index, n_states):
-                if node.states[j].get_current_instruction()['opcode'] == 'SSTORE':
-                    results.append(node.states[j].get_current_instruction()['address'])
-
-        children = []
-
-        for edge in statespace.edges:
-            if edge.node_from == node.uid:
-                children.append(statespace.nodes[edge.node_to])
-
-        if len(children):
-            for node in children:
-                return search_children(statespace, node, depth=depth + 1, results=results)
-
-    return results
+        :param state:
+        :return:
+        """
+        self._issues.extend(_analyze_state(state))
+        return self.issues
 
 
-calls_visited = []
-
-
-def execute(statespace):
-
-    issues = []
-
-    for call in statespace.calls:
-
-        state = call.state
-        address = state.get_current_instruction()['address']
-
-        if call.type == "CALL":
-
-            logging.info("[EXTERNAL_CALLS] Call to: %s, value = %s, gas = %s" % (str(call.to), str(call.value), str(call.gas)))
-
-            if call.to.type == VarType.SYMBOLIC and (call.gas.type == VarType.CONCRETE and call.gas.val > 2300) or (call.gas.type == VarType.SYMBOLIC and "2300" not in str(call.gas)):
-
-                description = "This contract executes a message call to "
-
-                target = str(call.to)
-                user_supplied = False
-
-                if "calldata" in target or "caller" in target:
-
-                    if "calldata" in target:
-                        description += "an address provided as a function argument. "
-                    else:
-                        description += "the address of the transaction sender. "
-
-                    user_supplied = True
-                else:
-                    m = re.search(r'storage_([a-z0-9_&^]+)', str(call.to))
-
-                    if m:
-                        idx = m.group(1)
-
-                        func = statespace.find_storage_write(state.environment.active_account.address, idx)
-
-                        if func:
-
-                            description += \
-                                "an address found at storage slot " + str(idx) + ". " + \
-                                "This storage slot can be written to by calling the function `" + func + "`. "
-                            user_supplied = True
-
-                if user_supplied:
-
-                    description += "Generally, it is not recommended to call user-supplied addresses using Solidity's call() construct. " \
-                                   "Note that attackers might leverage reentrancy attacks to exploit race conditions or manipulate this contract's state."
-
-                    issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
-                                  address=address, title="Message call to external contract", _type="Warning",
-                                  description=description, swc_id=REENTRANCY)
-
-                else:
-
-                    description += "to another contract. Make sure that the called contract is trusted and does not execute user-supplied code."
-
-                    issue = Issue(contract=call.node.contract_name, function=call.node.function_name, address=address,
-                                  title="Message call to external contract", _type="Informational",
-                                  description=description, swc_id=REENTRANCY)
-
-                issues.append(issue)
-
-                if address not in calls_visited:
-                    calls_visited.append(address)
-
-                    logging.debug("[EXTERNAL_CALLS] Checking for state changes starting from " + call.node.function_name)
-
-                    # Check for SSTORE in remaining instructions in current node & nodes down the CFG
-
-                    state_change_addresses = search_children(statespace, call.node, call.state_index + 1, depth=0, results=[])
-
-                    logging.debug("[EXTERNAL_CALLS] Detected state changes at addresses: " + str(state_change_addresses))
-
-                    if len(state_change_addresses):
-                        for address in state_change_addresses:
-                            description = "The contract account state is changed after an external call. " \
-                                          "Consider that the called contract could re-enter the function before this " \
-                                          "state change takes place. This can lead to business logic vulnerabilities."
-
-                            issue = Issue(contract=call.node.contract_name, function=call.node.function_name,
-                                          address=address, title="State change after external call", _type="Warning",
-                                          description=description, swc_id=REENTRANCY)
-                            issues.append(issue)
-
-    return issues
+detector = ExternalCalls()

@@ -1,74 +1,101 @@
 from mythril.analysis import solver
-from mythril.analysis.ops import *
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
+from mythril.analysis.modules.base import DetectionModule
+from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
+import json
+
+log = logging.getLogger(__name__)
+
+DESCRIPTION = """
+Check if the contact can be 'accidentally' killed by anyone.
+For kill-able contracts, also check whether it is possible to direct the contract balance to the attacker.
+"""
 
 
-'''
-MODULE DESCRIPTION:
+class SuicideModule(DetectionModule):
+    """This module checks if the contact can be 'accidentally' killed by
+    anyone."""
 
-Check for SUICIDE instructions that either can be reached by anyone, or where msg.sender is checked against a tainted storage index 
-(i.e. there's a write to that index is unconstrained by msg.sender).
-'''
+    def __init__(self):
+        super().__init__(
+            name="Unprotected Selfdestruct",
+            swc_id=UNPROTECTED_SELFDESTRUCT,
+            description=DESCRIPTION,
+            entrypoint="callback",
+            pre_hooks=["SUICIDE"],
+        )
+        self._cache_address = {}
 
+    def reset_module(self):
+        """
+        Resets the module
+        :return:
+        """
+        super().reset_module()
+        self._cache_address = {}
 
-def execute(state_space):
+    def execute(self, state: GlobalState):
+        """
 
-    logging.debug("Executing module: UNCHECKED_SUICIDE")
+        :param state:
+        :return:
+        """
+        self._issues.extend(self._analyze_state(state))
+        return self.issues
 
-    issues = []
+    def _analyze_state(self, state):
+        log.info("Suicide module: Analyzing suicide instruction")
+        node = state.node
+        instruction = state.get_current_instruction()
+        if self._cache_address.get(instruction["address"], False):
+            return []
+        to = state.mstate.stack[-1]
 
-    for k in state_space.nodes:
-        node = state_space.nodes[k]
+        log.debug("[SUICIDE] SUICIDE in function " + node.function_name)
 
-        for state in node.states:
-            issues += _analyze_state(state, node)
+        description_head = "The contract can be killed by anyone."
 
-    return issues
+        try:
+            try:
+                transaction_sequence = solver.get_transaction_sequence(
+                    state,
+                    node.constraints
+                    + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
+                )
+                description_tail = "Arbitrary senders can kill this contract and withdraw its balance to their own account."
+            except UnsatError:
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, node.constraints
+                )
+                description_tail = (
+                    "Arbitrary senders can kill this contract but it is not possible to set the target address to which"
+                    "the contract balance is sent."
+                )
 
+            debug = json.dumps(transaction_sequence, indent=4)
+            self._cache_address[instruction["address"]] = True
 
-def _analyze_state(state, node):
-    issues = []
-    instruction = state.get_current_instruction()
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=instruction["address"],
+                swc_id=UNPROTECTED_SELFDESTRUCT,
+                bytecode=state.environment.code.bytecode,
+                title="Unprotected Selfdestruct",
+                severity="High",
+                description_head=description_head,
+                description_tail=description_tail,
+                debug=debug,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+            return [issue]
+        except UnsatError:
+            log.info("[UNCHECKED_SUICIDE] no model found")
 
-    if instruction['opcode'] != "SUICIDE":
         return []
 
-    to = state.mstate.stack[-1]
 
-    logging.debug("[UNCHECKED_SUICIDE] suicide in function " + node.function_name)
-    description = "The function `" + node.function_name + "` executes the SUICIDE instruction. "
-
-    if "caller" in str(to):
-        description += "The remaining Ether is sent to the caller's address.\n"
-    elif "storage" in str(to):
-        description += "The remaining Ether is sent to a stored address.\n"
-    elif "calldata" in str(to):
-        description += "The remaining Ether is sent to an address provided as a function argument.\n"
-    elif type(to) == BitVecNumRef:
-        description += "The remaining Ether is sent to: " + hex(to.as_long()) + "\n"
-    else:
-        description += "The remaining Ether is sent to: " + str(to) + "\n"
-
-    not_creator_constraints = []
-    if len(state.world_state.transaction_sequence) > 1:
-        creator = state.world_state.transaction_sequence[0].caller
-        for transaction in state.world_state.transaction_sequence[1:]:
-            not_creator_constraints.append(Not(Extract(159, 0, transaction.caller) == Extract(159, 0, creator)))
-            not_creator_constraints.append(Not(Extract(159, 0, transaction.caller) == 0))
-
-    try:
-        model = solver.get_model(node.constraints + not_creator_constraints)
-
-        debug = "SOLVER OUTPUT:\n" + solver.pretty_print_model(model)
-
-        issue = Issue(contract=node.contract_name, function=node.function_name, address=instruction['address'],
-                      swc_id=UNPROTECTED_SELFDESTRUCT, title="Unchecked SUICIDE", _type="Warning",
-                      description=description, debug=debug)
-        issues.append(issue)
-    except UnsatError:
-            logging.debug("[UNCHECKED_SUICIDE] no model found")
-
-    return issues
+detector = SuicideModule()

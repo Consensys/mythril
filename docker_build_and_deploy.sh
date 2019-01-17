@@ -1,9 +1,17 @@
 #!/bin/sh
+
 set -eo pipefail
 
-NAME=mythril/myth
+NAME=$1
 
-VERSION_TAG=${NAME}:${CIRCLE_TAG#?}
+if [ ! -z $CIRCLE_TAG ];
+then
+  VERSION=${CIRCLE_TAG#?}
+else
+  VERSION=${CIRCLE_SHA1}
+fi
+
+VERSION_TAG=${NAME}:${VERSION}
 LATEST_TAG=${NAME}:latest
 
 docker build -t ${VERSION_TAG} .

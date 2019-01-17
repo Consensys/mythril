@@ -3,8 +3,12 @@ import pytest
 from pytest_mock import mocker
 from mythril.laser.ethereum.taint_analysis import *
 from mythril.laser.ethereum.cfg import Node, Edge
-from mythril.laser.ethereum.state import MachineState, Account, Environment, GlobalState
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.environment import Environment
+from mythril.laser.ethereum.state.machine_state import MachineState
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
+
 
 def test_execute_state(mocker):
     record = TaintRecord()
@@ -12,7 +16,7 @@ def test_execute_state(mocker):
 
     state = GlobalState(None, None, None)
     state.mstate.stack = [1, 2, 3]
-    mocker.patch.object(state, 'get_current_instruction')
+    mocker.patch.object(state, "get_current_instruction")
     state.get_current_instruction.return_value = {"opcode": "ADD"}
 
     # Act
@@ -30,12 +34,12 @@ def test_execute_node(mocker):
     state_1 = GlobalState(None, None, None)
     state_1.mstate.stack = [1, 2, 3, 1]
     state_1.mstate.pc = 1
-    mocker.patch.object(state_1, 'get_current_instruction')
+    mocker.patch.object(state_1, "get_current_instruction")
     state_1.get_current_instruction.return_value = {"opcode": "SWAP1"}
 
     state_2 = GlobalState(None, 1, None)
     state_2.mstate.stack = [1, 2, 4, 1]
-    mocker.patch.object(state_2, 'get_current_instruction')
+    mocker.patch.object(state_2, "get_current_instruction")
     state_2.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node = Node("Test contract")
@@ -54,27 +58,25 @@ def test_execute_node(mocker):
     assert state_1 in record.states
 
 
-
-
 def test_execute(mocker):
-    active_account = Account('0x00')
+    active_account = Account("0x00")
     environment = Environment(active_account, None, None, None, None, None)
-    state_1 = GlobalState(None, environment, None, MachineState(gas=10000000))
+    state_1 = GlobalState(None, environment, None, MachineState(gas_limit=8000000))
     state_1.mstate.stack = [1, 2]
-    mocker.patch.object(state_1, 'get_current_instruction')
+    mocker.patch.object(state_1, "get_current_instruction")
     state_1.get_current_instruction.return_value = {"opcode": "PUSH"}
 
-    state_2 = GlobalState(None, environment, None, MachineState(gas=10000000))
+    state_2 = GlobalState(None, environment, None, MachineState(gas_limit=8000000))
     state_2.mstate.stack = [1, 2, 3]
-    mocker.patch.object(state_2, 'get_current_instruction')
+    mocker.patch.object(state_2, "get_current_instruction")
     state_2.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node_1 = Node("Test contract")
     node_1.states = [state_1, state_2]
 
-    state_3 = GlobalState(None, environment, None, MachineState(gas=10000000))
+    state_3 = GlobalState(None, environment, None, MachineState(gas_limit=8000000))
     state_3.mstate.stack = [1, 2]
-    mocker.patch.object(state_3, 'get_current_instruction')
+    mocker.patch.object(state_3, "get_current_instruction")
     state_3.get_current_instruction.return_value = {"opcode": "ADD"}
 
     node_2 = Node("Test contract")

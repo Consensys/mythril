@@ -1,0 +1,42 @@
+[
+    {
+        "issues": [
+            {
+                "description": {
+                    "head": "The binary subtraction can underflow.",
+                    "tail": "The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion."
+                },
+                "extra": {},
+                "locations": [
+                    {
+                        "sourceMap": "567:1:0"
+                    }
+                ],
+                "severity": "High",
+                "swcID": "SWC-101",
+                "swcTitle": "Integer Overflow and Underflow"
+            },
+            {
+                "description": {
+                    "head": "The binary subtraction can underflow.",
+                    "tail": "The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion."
+                },
+                "extra": {},
+                "locations": [
+                    {
+                        "sourceMap": "649:1:0"
+                    }
+                ],
+                "severity": "High",
+                "swcID": "SWC-101",
+                "swcTitle": "Integer Overflow and Underflow"
+            }
+        ],
+        "meta": {},
+        "sourceFormat": "evm-byzantium-bytecode",
+        "sourceList": [
+            "0xf230bec502569e8b7e7737616d0ad0f200c436624e3c223e5398c0615cd2d6b9"
+        ],
+        "sourceType": "raw-bytecode"
+    }
+]

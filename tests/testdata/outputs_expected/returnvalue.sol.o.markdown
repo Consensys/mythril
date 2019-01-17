@@ -1,34 +1,40 @@
 # Analysis results for test-filename.sol
 
-## Message call to external contract
+## External Call To Fixed Address
 - SWC ID: 107
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0x633ab5e0`
+- Function name: `callchecked()`
 - PC address: 196
+- Estimated Gas Usage: 599 - 1210
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes an external message call.
+An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
 
-## Message call to external contract
+## External Call To Fixed Address
 - SWC ID: 107
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xe3bea282`
+- Function name: `callnotchecked()`
 - PC address: 285
+- Estimated Gas Usage: 621 - 1232
 
 ### Description
 
-This contract executes a message call to to another contract. Make sure that the called contract is trusted and does not execute user-supplied code.
+The contract executes an external message call.
+An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
 
-## Unchecked CALL return value
+## Unchecked Call Return Value
 - SWC ID: 104
-- Type: Informational
+- Severity: Low
 - Contract: Unknown
-- Function name: `_function_0xe3bea282`
-- PC address: 290
+- Function name: `callnotchecked()`
+- PC address: 285
+- Estimated Gas Usage: 1339 - 35950
 
 ### Description
 
-The return value of an external call is not checked. Note that execution continue even if the called contract throws.
+The return value of a message call is not checked.
+External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.

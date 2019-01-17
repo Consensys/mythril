@@ -6,7 +6,7 @@ about: Tell us about a new feature that would make Mythril better
 
 ## Description
 
-<!-- Replace this text with a short description of the feature. -->
+<!-- Give a short description of the feature. -->
 
 ## Background
 
@@ -17,10 +17,10 @@ feature, for example: user scenarios, or the value of the feature. -->
 
 <!-- This section is optional.
 
-Replace this text with suggestions on how to test the feature,
-if it is not obvious. This might require certain Solidity source,
-bytecode, or a Truffle project. You can also provide
-links to existing code.
+Suggestion how to test the feature, if it is not obvious.
+
+This might require certain Solidity source, bytecode, or a Truffle
+project. You can also provide links to existing code.
 
 Thanks for helping!
 

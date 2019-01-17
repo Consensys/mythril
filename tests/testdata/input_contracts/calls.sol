@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity 0.5.0;
 
 
 contract Caller {
@@ -8,29 +8,30 @@ contract Caller {
 
 	uint256 statevar;
 
-	function Caller(address addr) {
-		fixed_address = addr;
+	constructor(address addr) public {
+		fixed_address = address(0x552254CbAaF32613C6c0450CF19524594eF84044);
 	}
 
 	function thisisfine() public {
-	    fixed_address.call();
+	    fixed_address.call("");
 	}
 
 	function reentrancy() public {
-	    fixed_address.call();
+	    fixed_address.call("");
 	    statevar = 0;
 	}
-	
-	function calluseraddress(address addr) {
-	    addr.call();
+
+	function calluseraddress(address addr) public {
+	    addr.call("");
 	}
 
-	function callstoredaddress() {
-	    stored_address.call();
-	}	
-	
-	function setstoredaddress(address addr) {
+	function callstoredaddress() public {
+	    stored_address.call("");
+	    statevar = 0;
+	}
+
+	function setstoredaddress(address addr) public {
 	    stored_address = addr;
-	}	
-	
+	}
+
 }

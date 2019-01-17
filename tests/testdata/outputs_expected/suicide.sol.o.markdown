@@ -1,12 +1,14 @@
 # Analysis results for test-filename.sol
 
-## Unchecked SUICIDE
+## Unprotected Selfdestruct
 - SWC ID: 106
-- Type: Warning
+- Severity: High
 - Contract: Unknown
-- Function name: `_function_0xcbf0b0c0`
+- Function name: `kill(address)`
 - PC address: 146
+- Estimated Gas Usage: 168 - 263
 
 ### Description
 
-The function `_function_0xcbf0b0c0` executes the SUICIDE instruction. The remaining Ether is sent to an address provided as a function argument.
+The contract can be killed by anyone.
+Arbitrary senders can kill this contract and withdraw its balance to their own account.

@@ -1,30 +1,22 @@
 ==== Integer Underflow ====
 SWC ID: 101
-Type: Warning
+Severity: High
 Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 567
-A possible integer underflow exists in the function `sendeth(address,uint256)`.
-The subtraction may result in a value < 0.
+Estimated Gas Usage: 768 - 1053
+The binary subtraction can underflow.
+The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.
 --------------------
 
 ==== Integer Underflow ====
 SWC ID: 101
-Type: Warning
+Severity: High
 Contract: Unknown
 Function name: sendeth(address,uint256)
 PC address: 649
-A possible integer underflow exists in the function `sendeth(address,uint256)`.
-The subtraction may result in a value < 0.
---------------------
-
-==== Integer Overflow ====
-SWC ID: 101
-Type: Warning
-Contract: Unknown
-Function name: sendeth(address,uint256)
-PC address: 725
-A possible integer overflow exists in the function `sendeth(address,uint256)`.
-The addition or multiplication may result in a value higher than the maximum representable integer.
+Estimated Gas Usage: 1299 - 1774
+The binary subtraction can underflow.
+The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.
 --------------------
 

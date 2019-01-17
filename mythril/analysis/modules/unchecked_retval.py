@@ -1,100 +1,111 @@
+"""This module contains detection code to find occurrences of calls whose
+return value remains unchecked."""
+from copy import copy
+
+from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
+from mythril.analysis.modules.base import DetectionModule
+from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.laser.ethereum.state.global_state import GlobalState
 
-from mythril.laser.ethereum.svm import NodeFlags
 import logging
-import re
+
+log = logging.getLogger(__name__)
 
 
-'''
-MODULE DESCRIPTION:
+class UncheckedRetvalAnnotation(StateAnnotation):
+    def __init__(self):
+        self.retvals = []
 
-Test whether CALL return value is checked.
-
-For direct calls, the Solidity compiler auto-generates this check. E.g.:
-
-    Alice c = Alice(address);
-    c.ping(42);
-
-Here the CALL will be followed by IZSERO(retval), if retval = ZERO then state is reverted.
-
-For low-level-calls this check is omitted. E.g.:
-
-    c.call.value(0)(bytes4(sha3("ping(uint256)")),1);
-
-'''
+    def __copy__(self):
+        result = UncheckedRetvalAnnotation()
+        result.retvals = copy(self.retvals)
+        return result
 
 
-def execute(statespace):
+class UncheckedRetvalModule(DetectionModule):
+    """A detection module to test whether CALL return value is checked."""
 
-    logging.debug("Executing module: UNCHECKED_RETVAL")
+    def __init__(self):
+        super().__init__(
+            name="Unchecked Return Value",
+            swc_id=UNCHECKED_RET_VAL,
+            description=(
+                "Test whether CALL return value is checked. "
+                "For direct calls, the Solidity compiler auto-generates this check. E.g.:\n"
+                "    Alice c = Alice(address);\n"
+                "    c.ping(42);\n"
+                "Here the CALL will be followed by IZSERO(retval), if retval = ZERO then state is reverted. "
+                "For low-level-calls this check is omitted. E.g.:\n"
+                '    c.call.value(0)(bytes4(sha3("ping(uint256)")),1);'
+            ),
+            entrypoint="callback",
+            pre_hooks=["STOP", "RETURN"],
+            post_hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"],
+        )
 
-    issues = []
+    def execute(self, state: GlobalState) -> list:
+        """
 
-    for k in statespace.nodes:
+        :param state:
+        :return:
+        """
+        self._issues.extend(_analyze_state(state))
+        return self.issues
 
-        node = statespace.nodes[k]
 
-        if NodeFlags.CALL_RETURN in node.flags:
+def _analyze_state(state: GlobalState) -> list:
+    instruction = state.get_current_instruction()
+    node = state.node
 
-            retval_checked = False
+    annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]
+    if len(annotations) == 0:
+        state.annotate(UncheckedRetvalAnnotation())
+        annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]
 
-            for state in node.states:
+    retvals = annotations[0].retvals
 
-                instr = state.get_current_instruction()
+    if instruction["opcode"] in ("STOP", "RETURN"):
+        issues = []
+        for retval in retvals:
+            try:
+                solver.get_model(node.constraints + [retval["retval"] == 0])
+            except UnsatError:
+                continue
 
-                if instr['opcode'] == 'ISZERO' and re.search(r'retval', str(state.mstate.stack[-1])):
-                    retval_checked = True
-                    break
+            description_tail = (
+                "External calls return a boolean value. If the callee contract halts with an exception, 'false' is "
+                "returned and execution continues in the caller. It is usually recommended to wrap external calls "
+                "into a require statement to prevent unexpected states."
+            )
 
-            if not retval_checked:
+            issue = Issue(
+                contract=node.contract_name,
+                function_name=node.function_name,
+                address=retval["address"],
+                bytecode=state.environment.code.bytecode,
+                title="Unchecked Call Return Value",
+                swc_id=UNCHECKED_RET_VAL,
+                severity="Low",
+                description_head="The return value of a message call is not checked.",
+                description_tail=description_tail,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
 
-                address = state.get_current_instruction()['address']
-                issue = Issue(contract=node.contract_name, function=node.function_name, address=address,
-                              title="Unchecked CALL return value", swc_id=UNCHECKED_RET_VAL)
+            issues.append(issue)
 
-                issue.description = \
-                    "The return value of an external call is not checked. " \
-                    "Note that execution continue even if the called contract throws."
+        return issues
+    else:
+        log.debug("End of call, extracting retval")
+        assert state.environment.code.instruction_list[state.mstate.pc - 1][
+            "opcode"
+        ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
+        retval = state.mstate.stack[-1]
+        retvals.append({"address": state.instruction["address"] - 1, "retval": retval})
 
-                issues.append(issue)
+    return []
 
-        else:
 
-            n_states = len(node.states)
-
-            for idx in range(0, n_states - 1):  # Ignore CALLs at last position in a node
-
-                state = node.states[idx]
-                instr = state.get_current_instruction()
-
-                if instr['opcode'] == 'CALL':
-
-                    retval_checked = False
-
-                    for _idx in range(idx, idx + 10):
-
-                        try:
-                            _state = node.states[_idx]
-                            _instr = _state.get_current_instruction()
-
-                            if _instr['opcode'] == 'ISZERO' and re.search(r'retval', str(_state .mstate.stack[-1])):
-                                retval_checked = True
-                                break
-
-                        except IndexError:
-                            break
-
-                    if not retval_checked:
-
-                        address = instr['address']
-                        issue = Issue(contract=node.contract_name, function=node.function_name,
-                                      address=address, title="Unchecked CALL return value", swc_id=UNCHECKED_RET_VAL)
-
-                        issue.description = \
-                            "The return value of an external call is not checked. " \
-                            "Note that execution continue even if the called contract throws."
-
-                        issues.append(issue)
-
-    return issues
+detector = UncheckedRetvalModule()

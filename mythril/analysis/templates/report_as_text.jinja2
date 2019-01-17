@@ -1,11 +1,12 @@
 {% if issues %}
 {% for issue in issues %}
 ==== {{ issue.title }} ====
-SWC ID: {{ issue.swc_id }}
-Type: {{ issue.type }}
+SWC ID: {{ issue['swc-id'] }}
+Severity: {{ issue.severity }}
 Contract: {{ issue.contract | default("Unknown") }}
 Function name: {{ issue.function }}
 PC address: {{ issue.address }}
+Estimated Gas Usage: {{ issue.min_gas_used }} - {{ issue.max_gas_used }}
 {{ issue.description }}
 --------------------
 {% if issue.filename and issue.lineno %}
@@ -19,7 +20,7 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 {% endif %}
 {% if verbose and issue.debug %}
 --------------------
-DEBUGGING INFORMATION:
+Transaction Sequence:
 
 {{ issue.debug }}
 {% endif %}

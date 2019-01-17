@@ -2,6 +2,9 @@ FROM ubuntu:bionic
 
 RUN apt-get update \
   && apt-get install -y \
+     libsqlite3-0 \
+     libsqlite3-dev \
+  && apt-get install -y \
      build-essential \
      locales \
      python-pip-whl=9.0.1-2 \
@@ -16,6 +19,7 @@ RUN apt-get update \
      python3-dev \
      pandoc \
      git \
+     wget \
   && ln -s /usr/bin/python3 /usr/local/bin/python
 
 COPY ./requirements.txt /opt/mythril/requirements.txt
@@ -32,4 +36,5 @@ COPY . /opt/mythril
 RUN cd /opt/mythril \
   && python setup.py install
 
+COPY signatures.db /root/.mythril/signatures.db
 ENTRYPOINT ["/usr/local/bin/myth"]
