@@ -1253,7 +1253,7 @@ class Instruction:
 
         except TypeError:
             if not keccak_function_manager.is_keccak(index):
-                return self._sload_helper(global_state, index)
+                return self._sload_helper(global_state, str(index))
 
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))

@@ -14,7 +14,7 @@ from mythril.laser.smt import symbol_factory
 class Storage:
     """Storage class represents the storage of an Account."""
 
-    def __init__(self, concrete=False, address=None, dynamic_loader=None):
+    def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
         """Constructor for Storage.
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
@@ -73,7 +73,7 @@ class Account:
         balance=None,
         concrete_storage=False,
         dynamic_loader=None,
-    ):
+    ) -> None:
         """Constructor for account.
 
         :param address: Address of the account

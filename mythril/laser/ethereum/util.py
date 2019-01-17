@@ -108,6 +108,8 @@ def get_concrete_int(item: Union[int, Expression]) -> int:
             raise TypeError("Symbolic boolref encountered")
         return value
 
+    assert False, "Unhandled type {} encountered".format(str(type(item)))
+
 
 def concrete_int_from_bytes(
     concrete_bytes: Union[List[Union[BitVec, int]], bytes], start_index: int
@@ -124,7 +126,8 @@ def concrete_int_from_bytes(
     ]
     integer_bytes = concrete_bytes[start_index : start_index + 32]
 
-    return int.from_bytes(integer_bytes, byteorder="big")
+    # The below statement is expected to fail in some circumstances
+    return int.from_bytes(integer_bytes, byteorder="big")  # type: ignore
 
 
 def concrete_int_to_bytes(val):

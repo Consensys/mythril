@@ -1,5 +1,5 @@
 """This module contains a representation of a smart contract's memory."""
-from typing import Union
+from typing import cast, List, Union
 
 from z3 import Z3Exception
 
@@ -45,17 +45,24 @@ class Memory:
         try:
             return symbol_factory.BitVecVal(
                 util.concrete_int_from_bytes(
-                    bytes([util.get_concrete_int(b) for b in self[index : index + 32]]),
+                    bytes(
+                        [
+                            util.get_concrete_int(b)
+                            for b in self[index : index + 32]  # type: ignore
+                        ]
+                    ),
                     0,
                 ),
                 256,
             )
-        except:
+        except TypeError:
             result = simplify(
                 Concat(
                     [
                         b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
-                        for b in self[index : index + 32]
+                        for b in cast(
+                            List[Union[int, BitVec]], self[index : index + 32]
+                        )
                     ]
                 )
             )
@@ -79,7 +86,7 @@ class Memory:
             else:
                 _bytes = util.concrete_int_to_bytes(value)
             assert len(_bytes) == 32
-            self[index : index + 32] = _bytes
+            self[index : index + 32] = list(bytearray(_bytes))
         except (Z3Exception, AttributeError):  # BitVector or BoolRef
             if isinstance(value, Bool):
                 value_to_write = If(
@@ -94,7 +101,9 @@ class Memory:
             for i in range(0, value_to_write.size(), 8):
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
 
-    def __getitem__(self, item: Union[int, slice]) -> Union[BitVec, int, list]:
+    def __getitem__(
+        self, item: Union[int, slice]
+    ) -> Union[BitVec, int, List[Union[int, BitVec]]]:
         """
 
         :param item:
@@ -108,14 +117,18 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
-            return [self[i] for i in range(start, stop, step)]
+            return [cast(Union[int, BitVec], self[i]) for i in range(start, stop, step)]
 
         try:
             return self._memory[item]
         except IndexError:
             return 0
 
-    def __setitem__(self, key: Union[int, slice], value: Union[BitVec, int, list]):
+    def __setitem__(
+        self,
+        key: Union[int, slice],
+        value: Union[BitVec, int, List[Union[int, BitVec]]],
+    ):
         """
 
         :param key:
@@ -130,9 +143,9 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
-
+            assert type(value) == list
             for i in range(0, stop - start, step):
-                self[start + i] = value[i]
+                self[start + i] = cast(List[Union[int, BitVec]], value)[i]
 
         else:
             if isinstance(value, int):
