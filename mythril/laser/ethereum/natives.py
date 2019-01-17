@@ -59,23 +59,23 @@ def ecrecover(data: List[int]) -> List[int]:
     """
     # TODO: Add type hints
     try:
-        data = bytearray(data)
-        v = extract32(data, 32)
-        r = extract32(data, 64)
-        s = extract32(data, 96)
+        byte_data = bytearray(data)
+        v = extract32(byte_data, 32)
+        r = extract32(byte_data, 64)
+        s = extract32(byte_data, 96)
     except TypeError:
         raise NativeContractException
 
-    message = b"".join([ALL_BYTES[x] for x in data[0:32]])
+    message = b"".join([ALL_BYTES[x] for x in byte_data[0:32]])
     if r >= secp256k1n or s >= secp256k1n or v < 27 or v > 28:
         return []
     try:
         pub = ecrecover_to_pub(message, v, r, s)
     except Exception as e:
-        log.debug("An error has occured while extracting public key: " + e)
+        log.debug("An error has occured while extracting public key: " + str(e))
         return []
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
-    return o
+    return list(bytearray(o))
 
 
 def sha256(data: List[int]) -> List[int]:
@@ -85,25 +85,25 @@ def sha256(data: List[int]) -> List[int]:
     :return:
     """
     try:
-        data = bytes(data)
+        byte_data = bytes(data)
     except TypeError:
         raise NativeContractException
-    return hashlib.sha256(data).digest()
+    return list(bytearray(hashlib.sha256(byte_data).digest()))
 
 
-def ripemd160(data: List[int]) -> bytes:
+def ripemd160(data: List[int]) -> List[int]:
     """
 
     :param data:
     :return:
     """
     try:
-        data = bytes(data)
+        bytes_data = bytes(data)
     except TypeError:
         raise NativeContractException
-    digest = hashlib.new("ripemd160", data).digest()
+    digest = hashlib.new("ripemd160", bytes_data).digest()
     padded = 12 * [0] + list(digest)
-    return bytes(padded)
+    return list(bytearray(bytes(padded)))
 
 
 def identity(data: List[int]) -> List[int]:
@@ -118,13 +118,9 @@ def identity(data: List[int]) -> List[int]:
     # implementation would be byte indexed for the most
     # part.
     return data
-    result = []
-    for i in range(0, len(data), 32):
-        result.append(simplify(Concat(data[i : i + 32])))
-    return result
 
 
-def native_contracts(address: int, data: BaseCalldata):
+def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     """Takes integer address 1, 2, 3, 4.
 
     :param address:
@@ -134,8 +130,8 @@ def native_contracts(address: int, data: BaseCalldata):
     functions = (ecrecover, sha256, ripemd160, identity)
 
     if isinstance(data, ConcreteCalldata):
-        data = data.concrete(None)
+        concrete_data = data.concrete(None)
     else:
         raise NativeContractException()
 
-    return functions[address - 1](data)
+    return functions[address - 1](concrete_data)
