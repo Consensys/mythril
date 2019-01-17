@@ -51,7 +51,7 @@ class Storage:
         self._storage[item] = symbol_factory.BitVecVal(0, 256)
         return self._storage[item]
 
-    def __setitem__(self, key: str, value: ExprRef) -> None:
+    def __setitem__(self, key: int, value: ExprRef) -> None:
         self._storage[key] = value
 
     def keys(self) -> KeysView:

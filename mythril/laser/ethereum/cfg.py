@@ -24,7 +24,7 @@ class NodeFlags(Flags):
     """A collection of flags to denote the type a call graph node can have."""
 
     def __or__(self, other) -> "NodeFlags":
-        return super().__or__(self, other)
+        return super().__or__(other)
 
     FUNC_ENTRY = 1
     CALL_RETURN = 2

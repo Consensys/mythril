@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import Callable, List, Union
+from typing import cast, Callable, List, Union, Tuple
 from datetime import datetime
 
 from ethereum import utils
@@ -127,7 +127,7 @@ class StateTransition(object):
         if not self.enable_gas:
             return global_state
         opcode = global_state.instruction["opcode"]
-        min_gas, max_gas = OPCODE_GAS[opcode]
+        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
         return global_state
@@ -155,7 +155,7 @@ class Instruction:
     """Instruction class is used to mutate a state according to the current
     instruction."""
 
-    def __init__(self, op_code: str, dynamic_loader: DynLoader, iprof=None):
+    def __init__(self, op_code: str, dynamic_loader: DynLoader, iprof=None) -> None:
         """
 
         :param op_code:
@@ -1253,12 +1253,12 @@ class Instruction:
 
         except TypeError:
             if not keccak_function_manager.is_keccak(index):
-                return self._sload_helper(global_state, str(index))
+                return self._sload_helper(global_state, index)
 
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
 
-            results = []
+            results = []  # type: List[GlobalState]
             constraints = []
 
             for keccak_key in keccak_keys:
@@ -1281,11 +1281,11 @@ class Instruction:
             if len(results) > 0:
                 return results
 
-            return self._sload_helper(global_state, str(index))
+            return self._sload_helper(global_state, int(index))
 
     @staticmethod
     def _sload_helper(
-        global_state: GlobalState, index: Union[int, Expression], constraints=None
+        global_state: GlobalState, index: int, constraints=None
     ):
         """
 
@@ -1344,7 +1344,7 @@ class Instruction:
             storage_keys = global_state.environment.active_account.storage.keys()
             keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
-            results = []
+            results = []  # type: List[GlobalState]
             new = symbol_factory.Bool(False)
 
             for keccak_key in keccak_keys:
@@ -1870,12 +1870,12 @@ class Instruction:
         try:
             memory_out_offset = (
                 util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, ExprRef)
+                if isinstance(memory_out_offset, Expression)
                 else memory_out_offset
             )
             memory_out_size = (
                 util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, ExprRef)
+                if isinstance(memory_out_size, Expression)
                 else memory_out_size
             )
         except TypeError:

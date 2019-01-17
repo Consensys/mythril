@@ -2,6 +2,7 @@
 table."""
 from ethereum import opcodes
 from ethereum.utils import ceil32
+from typing import Callable, Dict, Tuple, Union
 
 
 def calculate_native_gas(size: int, contract: str):
@@ -185,4 +186,4 @@ OPCODE_GAS = {
     "SUICIDE": (5000, 30000),
     "ASSERT_FAIL": (0, 0),
     "INVALID": (0, 0),
-}
+}  # type: Dict[str, Union[Tuple[int, int], Callable]]
