@@ -1,24 +1,16 @@
 """This module contains various utility conversion functions and constants for
 LASER."""
 import re
-from typing import Dict, List, Union
+from typing import Dict, List, Union, TYPE_CHECKING
 
-import sha3 as _sha3
+if TYPE_CHECKING:
+    from mythril.laser.ethereum.state.machine_state import MachineState
 
 from mythril.laser.smt import BitVec, Bool, Expression, If, simplify, symbol_factory
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
-
-
-def sha3(seed: str) -> bytes:
-    """
-
-    :param seed:
-    :return:
-    """
-    return _sha3.keccak_256(bytes(seed)).digest()
 
 
 def safe_decode(hex_encoded_string: str) -> bytes:
@@ -117,7 +109,9 @@ def get_concrete_int(item: Union[int, Expression]) -> int:
         return value
 
 
-def concrete_int_from_bytes(concrete_bytes: bytes, start_index: int) -> int:
+def concrete_int_from_bytes(
+    concrete_bytes: List[Union[BitVec, int]], start_index: int
+) -> int:
     """
 
     :param concrete_bytes:

@@ -20,7 +20,7 @@ class MachineStack(list):
 
     STACK_LIMIT = 1024
 
-    def __init__(self, default_list=None):
+    def __init__(self, default_list=None) -> None:
         """
 
         :param default_list:
@@ -95,7 +95,7 @@ class MachineState:
         depth=0,
         max_gas_used=0,
         min_gas_used=0,
-    ):
+    ) -> None:
         """Constructor for machineState.
 
         :param gas_limit:

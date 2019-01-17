@@ -9,7 +9,8 @@ from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
-from mythril.laser.ethereum.util import bytearray_to_int, sha3
+from mythril.laser.ethereum.util import bytearray_to_int
+from ethereum.utils import sha3
 from mythril.laser.smt import Concat, simplify
 
 log = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def extract32(data: bytearray, i: int) -> int:
     return bytearray_to_int(o)
 
 
-def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
+def ecrecover(data: List[int]) -> List[int]:
     """
 
     :param data:
@@ -77,7 +78,7 @@ def ecrecover(data: Union[bytes, str, List[int]]) -> bytes:
     return o
 
 
-def sha256(data: Union[bytes, str, List[int]]) -> bytes:
+def sha256(data: List[int]) -> List[int]:
     """
 
     :param data:
@@ -90,7 +91,7 @@ def sha256(data: Union[bytes, str, List[int]]) -> bytes:
     return hashlib.sha256(data).digest()
 
 
-def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
+def ripemd160(data: List[int]) -> bytes:
     """
 
     :param data:
@@ -105,7 +106,7 @@ def ripemd160(data: Union[bytes, str, List[int]]) -> bytes:
     return bytes(padded)
 
 
-def identity(data: Union[bytes, str, List[int]]) -> bytes:
+def identity(data: List[int]) -> List[int]:
     """
 
     :param data:
