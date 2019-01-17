@@ -2,19 +2,20 @@
 
 ## Integer Underflow
 - SWC ID: 101
-- Type: Warning
+- Severity: High
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 567
-- Estimated Gas Usage: 1299 - 1774
+- Estimated Gas Usage: 768 - 1053
 
 ### Description
 
-This binary subtraction operation can result in integer underflow.
+The binary subtraction can underflow.
+The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.
 
 ## Integer Underflow
 - SWC ID: 101
-- Type: Warning
+- Severity: High
 - Contract: Unknown
 - Function name: `sendeth(address,uint256)`
 - PC address: 649
@@ -22,4 +23,5 @@ This binary subtraction operation can result in integer underflow.
 
 ### Description
 
-This binary subtraction operation can result in integer underflow.
+The binary subtraction can underflow.
+The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.

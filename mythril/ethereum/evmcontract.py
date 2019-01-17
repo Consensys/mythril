@@ -1,6 +1,10 @@
 """This module contains the class representing EVM contracts, aka Smart
 Contracts."""
 import re
+import _pysha3 as sha3
+import logging
+
+log = logging.getLogger(__name__)
 
 import persistent
 from ethereum import utils
@@ -36,6 +40,38 @@ class EVMContract(persistent.Persistent):
         self.creation_disassembly = Disassembly(
             creation_code, enable_online_lookup=enable_online_lookup
         )
+
+    @property
+    def bytecode_hash(self):
+        """
+
+        :return: runtime bytecode hash
+        """
+        return self._get_hash(self.code[2:])
+
+    @property
+    def creation_bytecode_hash(self):
+        """
+
+        :return: Creation bytecode hash
+        """
+        return self._get_hash(self.creation_code[2:])
+
+    @staticmethod
+    def _get_hash(code):
+        """
+        :param code: bytecode
+        :return: Returns hash of the given bytecode
+        """
+        try:
+            keccak = sha3.keccak_256()
+            keccak.update(bytes.fromhex(code[2:]))
+            return "0x" + keccak.hexdigest()
+        except ValueError:
+            log.debug(
+                "Unable to change the bytecode to bytes. Bytecode: {}".format(code)
+            )
+            return ""
 
     def as_dict(self):
         """
