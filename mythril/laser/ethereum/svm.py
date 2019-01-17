@@ -507,7 +507,9 @@ class LaserEVM:
         if hook_type == "add_world_state":
             self._add_world_state_hooks.append(hook)
         else:
-            raise NotImplementedError
+            raise ValueError(
+                "Invalid hook type %s. Must be one of {add_world_state}", hook_type
+            )
 
     def laser_hook(self, hook_type: str) -> Callable:
         """Registers the annotated function with register_laser_hooks
