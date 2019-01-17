@@ -19,7 +19,7 @@ class PredictableDependenceModule(DetectionModule):
     """This module detects whether Ether is sent using predictable
     parameters."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """"""
         super().__init__(
             name="Dependence of Predictable Variables",
@@ -119,6 +119,7 @@ def _analyze_states(state: GlobalState) -> list:
                 if m and solve(call):
 
                     found = m.group(1)
+                    print(type(found))
 
                     if found:  # block.blockhash(block.number - N)
                         description = (

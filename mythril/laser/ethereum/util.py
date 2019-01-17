@@ -110,7 +110,7 @@ def get_concrete_int(item: Union[int, Expression]) -> int:
 
 
 def concrete_int_from_bytes(
-    concrete_bytes: List[Union[BitVec, int]], start_index: int
+    concrete_bytes: Union[List[Union[BitVec, int]], bytes], start_index: int
 ) -> int:
     """
 

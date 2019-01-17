@@ -1,12 +1,15 @@
 """This module contains detection code to find occurrences of calls whose
 return value remains unchecked."""
 from copy import copy
+from typing import Dict, List
 
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
+from mythril.laser.smt.bitvec import BitVec
+
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 
@@ -16,8 +19,8 @@ log = logging.getLogger(__name__)
 
 
 class UncheckedRetvalAnnotation(StateAnnotation):
-    def __init__(self):
-        self.retvals = []
+    def __init__(self) -> None:
+        self.retvals = []  # type: List[Dict[str, Union[int, BitVec]]]
 
     def __copy__(self):
         result = UncheckedRetvalAnnotation()
@@ -60,7 +63,7 @@ def _analyze_state(state: GlobalState) -> list:
     instruction = state.get_current_instruction()
     node = state.node
 
-    annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]
+    annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]  # type: List[UncheckedRetvalAnnotation]
     if len(annotations) == 0:
         state.annotate(UncheckedRetvalAnnotation())
         annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]

@@ -1281,11 +1281,11 @@ class Instruction:
             if len(results) > 0:
                 return results
 
-            return self._sload_helper(global_state, int(index))
+            return self._sload_helper(global_state, str(index))
 
     @staticmethod
     def _sload_helper(
-        global_state: GlobalState, index: int, constraints=None
+        global_state: GlobalState, index: Union[str, int], constraints=None
     ):
         """
 
@@ -1295,10 +1295,10 @@ class Instruction:
         :return:
         """
         try:
-            data = global_state.environment.active_account.storage[index]
+            data = global_state.environment.active_account.storage[str(index)]
         except KeyError:
             data = global_state.new_bitvec("storage_" + str(index), 256)
-            global_state.environment.active_account.storage[index] = data
+            global_state.environment.active_account.storage[str(index)] = data
 
         if constraints is not None:
             global_state.mstate.constraints += constraints

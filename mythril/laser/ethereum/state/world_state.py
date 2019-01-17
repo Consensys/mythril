@@ -1,7 +1,7 @@
 """This module contains a representation of the EVM's world state."""
 from copy import copy
 from random import randint
-from typing import List, Iterator
+from typing import Dict, List, Iterator
 
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
@@ -19,7 +19,7 @@ class WorldState:
         :param transaction_sequence:
         :param annotations:
         """
-        self.accounts = {}
+        self.accounts = {}  # type: Dict[str, Account]
         self.node = None
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []

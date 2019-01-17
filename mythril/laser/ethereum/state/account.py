@@ -24,7 +24,7 @@ class Storage:
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item: Union[int, slice]) -> Any:
+    def __getitem__(self, item: Union[str, int, slice]) -> Any:
         try:
             return self._storage[item]
         except KeyError:

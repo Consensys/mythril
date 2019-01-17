@@ -183,7 +183,7 @@ def get_call_data(
         memory_size - global_state.environment.calldata.calldatasize == 0
     )
 
-    if uses_entire_calldata == True:
+    if uses_entire_calldata is True:
         return global_state.environment.calldata
 
     try:
