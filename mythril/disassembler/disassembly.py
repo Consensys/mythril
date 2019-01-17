@@ -3,7 +3,7 @@ from mythril.ethereum import util
 from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDB
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 class Disassembly(object):
@@ -57,7 +57,7 @@ class Disassembly(object):
 
 def get_function_info(
     index: int, instruction_list: list, signature_database: SignatureDB
-) -> (str, int, str):
+) -> Tuple[str, int, str]:
     """Finds the function information for a call table entry Solidity uses the
     first 4 bytes of the calldata to indicate which function the message call
     should execute The generated code that directs execution to the correct

@@ -7,7 +7,7 @@ import sqlite3
 import time
 from collections import defaultdict
 from subprocess import PIPE, Popen
-from typing import List, Dict, Set
+from typing import List, Set, DefaultDict
 
 from mythril.exceptions import CompilerError
 
@@ -121,12 +121,12 @@ class SignatureDB(object, metaclass=Singleton):
         :param path:
         """
         self.enable_online_lookup = enable_online_lookup
-        self.online_lookup_miss = set()
+        self.online_lookup_miss = set()  # type: Set[str]
         self.online_lookup_timeout = 0
 
         # if we're analysing a Solidity file, store its hashes
         # here to prevent unnecessary lookups
-        self.solidity_sigs = defaultdict(list)
+        self.solidity_sigs = defaultdict(list)  # type: DefaultDict[str, List[str]]
         if path is None:
             self.path = os.environ.get("MYTHRIL_DIR") or os.path.join(
                 os.path.expanduser("~"), ".mythril"
@@ -226,7 +226,7 @@ class SignatureDB(object, metaclass=Singleton):
                 return text_sigs
         except FourByteDirectoryOnlineLookupError as fbdole:
             # wait at least 2 mins to try again
-            self.online_lookup_timeout = time.time() + 2 * 60
+            self.online_lookup_timeout = int(time.time()) + 2 * 60
             log.warning("Online lookup failed, not retrying for 2min: %s", fbdole)
             return []
 
