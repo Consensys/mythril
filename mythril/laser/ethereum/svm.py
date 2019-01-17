@@ -502,6 +502,7 @@ class LaserEVM:
             entrypoint[op_code].extend(funcs)
 
     def register_laser_hooks(self, hook_type: str, hook: Callable):
+        """registers the hook with this Laser VM"""
         if hook_type == "add_world_state":
             self._add_world_state_hooks.append(hook)
         else:
