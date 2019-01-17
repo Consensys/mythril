@@ -1295,10 +1295,10 @@ class Instruction:
         :return:
         """
         try:
-            data = global_state.environment.active_account.storage[str(index)]
+            data = global_state.environment.active_account.storage[index]
         except KeyError:
             data = global_state.new_bitvec("storage_" + str(index), 256)
-            global_state.environment.active_account.storage[str(index)] = data
+            global_state.environment.active_account.storage[index] = data
 
         if constraints is not None:
             global_state.mstate.constraints += constraints
