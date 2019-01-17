@@ -27,7 +27,9 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
-    def __init__(self, overflowing_state: GlobalState, operator: str, constraint) -> None:
+    def __init__(
+        self, overflowing_state: GlobalState, operator: str, constraint
+    ) -> None:
         self.overflowing_state = overflowing_state
         self.operator = operator
         self.constraint = constraint

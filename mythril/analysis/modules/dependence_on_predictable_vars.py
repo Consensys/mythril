@@ -118,10 +118,9 @@ def _analyze_states(state: GlobalState) -> list:
                 m = re.search(r"blockhash\w+(\s-\s(\d+))*", str(constraint))
                 if m and solve(call):
 
-                    found = m.group(1)
-                    print(type(found))
+                    found_item = m.group(1)
 
-                    if found:  # block.blockhash(block.number - N)
+                    if found_item:  # block.blockhash(block.number - N)
                         description = (
                             "The predictable expression 'block.blockhash(block.number - "
                             + m.group(2)

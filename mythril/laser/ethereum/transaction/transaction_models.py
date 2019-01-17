@@ -30,7 +30,7 @@ def get_next_transaction_id() -> int:
 class TransactionEndSignal(Exception):
     """Exception raised when a transaction is finalized."""
 
-    def __init__(self, global_state: GlobalState, revert=False):
+    def __init__(self, global_state: GlobalState, revert=False) -> None:
         self.global_state = global_state
         self.revert = revert
 
@@ -42,7 +42,7 @@ class TransactionStartSignal(Exception):
         self,
         transaction: Union["MessageCallTransaction", "ContractCreationTransaction"],
         op_code: str,
-    ):
+    ) -> None:
         self.transaction = transaction
         self.op_code = op_code
 
@@ -63,7 +63,7 @@ class BaseTransaction:
         code=None,
         call_value=None,
         init_call_data=True,
-    ):
+    ) -> None:
         assert isinstance(world_state, WorldState)
         self.world_state = world_state
         self.id = identifier or get_next_transaction_id()
@@ -99,7 +99,7 @@ class BaseTransaction:
             else symbol_factory.BitVecSym("callvalue{}".format(identifier), 256)
         )
 
-        self.return_data = None
+        self.return_data = None  # type: str
 
     def initial_global_state_from_environment(self, environment, active_function):
         """
@@ -117,7 +117,7 @@ class BaseTransaction:
 class MessageCallTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def initial_global_state(self) -> GlobalState:
@@ -149,7 +149,7 @@ class MessageCallTransaction(BaseTransaction):
 class ContractCreationTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs, init_call_data=False)
         # TODO: set correct balance for new account
         self.callee_account = self.callee_account or self.world_state.create_account(

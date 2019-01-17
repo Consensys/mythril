@@ -1,7 +1,7 @@
 """This module contains detection code to find occurrences of calls whose
 return value remains unchecked."""
 from copy import copy
-from typing import Dict, List
+from typing import cast, Dict, List, Union
 
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
@@ -63,10 +63,16 @@ def _analyze_state(state: GlobalState) -> list:
     instruction = state.get_current_instruction()
     node = state.node
 
-    annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]  # type: List[UncheckedRetvalAnnotation]
+    annotations = cast(
+        List[UncheckedRetvalAnnotation],
+        [a for a in state.get_annotations(UncheckedRetvalAnnotation)],
+    )
     if len(annotations) == 0:
         state.annotate(UncheckedRetvalAnnotation())
-        annotations = [a for a in state.get_annotations(UncheckedRetvalAnnotation)]
+        annotations = cast(
+            List[UncheckedRetvalAnnotation],
+            [a for a in state.get_annotations(UncheckedRetvalAnnotation)],
+        )
 
     retvals = annotations[0].retvals
 

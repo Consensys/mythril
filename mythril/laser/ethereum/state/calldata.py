@@ -114,7 +114,7 @@ class BaseCalldata:
 class ConcreteCalldata(BaseCalldata):
     """A concrete call data representation."""
 
-    def __init__(self, tx_id: int, calldata: list):
+    def __init__(self, tx_id: str, calldata: list):
         """Initializes the ConcreteCalldata object.
 
         :param tx_id: Id of the transaction that the calldata is for.
@@ -161,7 +161,7 @@ class ConcreteCalldata(BaseCalldata):
 class BasicConcreteCalldata(BaseCalldata):
     """A base class to represent concrete call data."""
 
-    def __init__(self, tx_id: int, calldata: list):
+    def __init__(self, tx_id: str, calldata: list):
         """Initializes the ConcreteCalldata object, that doesn't use z3 arrays.
 
         :param tx_id: Id of the transaction that the calldata is for.
@@ -207,7 +207,7 @@ class BasicConcreteCalldata(BaseCalldata):
 class SymbolicCalldata(BaseCalldata):
     """A class for representing symbolic call data."""
 
-    def __init__(self, tx_id: int):
+    def __init__(self, tx_id: str):
         """Initializes the SymbolicCalldata object.
 
         :param tx_id: Id of the transaction that the calldata is for.

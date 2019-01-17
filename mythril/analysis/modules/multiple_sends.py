@@ -1,8 +1,9 @@
 """This module contains the detection code to find multiple sends occurring in
 a single transaction."""
 from copy import copy
-from typing import List
+from typing import cast, List, Union
 
+from mythril.analysis.ops import Call
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
@@ -16,7 +17,7 @@ log = logging.getLogger(__name__)
 
 class MultipleSendsAnnotation(StateAnnotation):
     def __init__(self) -> None:
-        self.calls = []
+        self.calls = []  # type: List[Union[Call, None]]
 
     def __copy__(self):
         result = MultipleSendsAnnotation()
@@ -57,11 +58,17 @@ def _analyze_state(state: GlobalState):
     node = state.node
     instruction = state.get_current_instruction()
 
-    annotations = [a for a in state.get_annotations(MultipleSendsAnnotation)]  # type: List[MultipleSendsAnnotation]
+    annotations = cast(
+        List[MultipleSendsAnnotation],
+        [a for a in state.get_annotations(MultipleSendsAnnotation)],
+    )
     if len(annotations) == 0:
         log.debug("Creating annotation for state")
         state.annotate(MultipleSendsAnnotation())
-        annotations = [a for a in state.get_annotations(MultipleSendsAnnotation)]
+        annotations = cast(
+            List[MultipleSendsAnnotation],
+            [a for a in state.get_annotations(MultipleSendsAnnotation)],
+        )
 
     calls = annotations[0].calls
 

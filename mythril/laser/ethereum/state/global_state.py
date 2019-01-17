@@ -12,7 +12,10 @@ from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.world_state import WorldState
-    from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction, ContractCreationTransaction
+    from mythril.laser.ethereum.transaction.transaction_models import (
+        MessageCallTransaction,
+        ContractCreationTransaction,
+    )
 
 
 class GlobalState:
