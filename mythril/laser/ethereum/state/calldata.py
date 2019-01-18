@@ -1,7 +1,6 @@
 """This module declares classes to represent call data."""
-from typing import Union, Any
+from typing import cast, Union, Tuple, List
 
-from mythril.laser.smt import K, Array, If, simplify, Concat, Expression, BitVec
 
 from enum import Enum
 from typing import Any, Union
@@ -88,7 +87,7 @@ class BaseCalldata:
 
         raise ValueError
 
-    def _load(self, item: Union[int, Expression]) -> Any:
+    def _load(self, item: Union[int, BitVec]) -> Any:
         """
 
         :param item:
@@ -96,7 +95,7 @@ class BaseCalldata:
         raise NotImplementedError()
 
     @property
-    def size(self) -> Union[Expression, int]:
+    def size(self) -> Union[BitVec, int]:
         """Returns the exact size of this calldata, this is not normalized.
 
         :return: unnormalized call data size
@@ -132,13 +131,16 @@ class ConcreteCalldata(BaseCalldata):
 
         super().__init__(tx_id)
 
-    def _load(self, item: Union[int, Expression]) -> BitVec:
+    def _load(self, item: Union[int, BitVec]) -> BitVec:
         """
 
         :param item:
         :return:
         """
-        item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+        item = cast(
+            BitVec,
+            symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item,
+        )
         return simplify(self._calldata[item])
 
     def concrete(self, model: Model) -> list:
@@ -216,7 +218,7 @@ class SymbolicCalldata(BaseCalldata):
         self._calldata = Array("{}_calldata".format(tx_id), 256, 8)
         super().__init__(tx_id)
 
-    def _load(self, item: Union[int, Expression]) -> Any:
+    def _load(self, item: Union[int, BitVec]) -> Any:
         """
 
         :param item:
@@ -226,7 +228,7 @@ class SymbolicCalldata(BaseCalldata):
         return simplify(
             If(
                 item < self._size,
-                simplify(self._calldata[item]),
+                simplify(self._calldata[cast(BitVec, item)]),
                 symbol_factory.BitVecVal(0, 8),
             )
         )
@@ -247,7 +249,7 @@ class SymbolicCalldata(BaseCalldata):
         return result
 
     @property
-    def size(self) -> Expression:
+    def size(self) -> BitVec:
         """
 
         :return:
@@ -263,11 +265,11 @@ class BasicSymbolicCalldata(BaseCalldata):
 
         :param tx_id: Id of the transaction that the calldata is for.
         """
-        self._reads = []
+        self._reads = []  # type: List[Tuple[Union[int, BitVec], BitVec]]
         self._size = BitVec(str(tx_id) + "_calldatasize", 256)
         super().__init__(tx_id)
 
-    def _load(self, item: Union[int, Expression], clean=False) -> Any:
+    def _load(self, item: Union[int, BitVec], clean=False) -> Any:
         x = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
 
         symbolic_base_value = If(
@@ -278,7 +280,6 @@ class BasicSymbolicCalldata(BaseCalldata):
         return_value = symbolic_base_value
         for r_index, r_value in self._reads:
             return_value = If(r_index == item, r_value, return_value)
-
         if not clean:
             self._reads.append((item, symbolic_base_value))
         return simplify(return_value)
@@ -299,7 +300,7 @@ class BasicSymbolicCalldata(BaseCalldata):
         return result
 
     @property
-    def size(self) -> Expression:
+    def size(self) -> BitVec:
         """
 
         :return:

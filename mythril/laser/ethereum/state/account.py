@@ -19,12 +19,12 @@ class Storage:
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        self._storage = {}
+        self._storage = {}  # type: Dict[Union[int, str], Any]
         self.concrete = concrete
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item: Union[str, int, slice]) -> Any:
+    def __getitem__(self, item: Union[str, int]) -> Any:
         try:
             return self._storage[item]
         except KeyError:
@@ -37,7 +37,8 @@ class Storage:
                     self._storage[item] = symbol_factory.BitVecVal(
                         int(
                             self.dynld.read_storage(
-                                contract_address=self.address, index=int(item)
+                                contract_address=self.address,
+                                index=int(item),  # type: ignore
                             ),
                             16,
                         ),
@@ -51,7 +52,7 @@ class Storage:
         self._storage[item] = symbol_factory.BitVecVal(0, 256)
         return self._storage[item]
 
-    def __setitem__(self, key: int, value: ExprRef) -> None:
+    def __setitem__(self, key: Union[int, str], value: Any) -> None:
         self._storage[key] = value
 
     def keys(self) -> KeysView:

@@ -778,7 +778,9 @@ class Instruction:
                     new_memory.append(value)
 
                     i_data = (
-                        i_data + 1 if isinstance(i_data, int) else simplify(i_data + 1)
+                        i_data + 1
+                        if isinstance(i_data, int)
+                        else simplify(cast(BitVec, i_data) + 1)
                     )
                 for i in range(len(new_memory)):
                     state.memory[i + mstart] = new_memory[i]
@@ -881,11 +883,12 @@ class Instruction:
             state.stack.append(
                 symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
             )
-            state.min_gas_used += OPCODE_GAS["SHA3"][0]
-            state.max_gas_used += OPCODE_GAS["SHA3"][1]
+            gas_tuple = cast(Tuple, OPCODE_GAS["SHA3"])
+            state.min_gas_used += gas_tuple[0]
+            state.max_gas_used += gas_tuple[1]
             return [global_state]
 
-        min_gas, max_gas = OPCODE_GAS["SHA3_FUNC"](length)
+        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
         state.min_gas_used += min_gas
         state.max_gas_used += max_gas
         StateTransition.check_gas_usage_limit(global_state)
@@ -1225,7 +1228,9 @@ class Instruction:
         state.mem_extend(offset, 1)
 
         try:
-            value_to_write = util.get_concrete_int(value) ^ 0xFF
+            value_to_write = (
+                util.get_concrete_int(value) ^ 0xFF
+            )  # type: Union[int, BitVec]
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
         log.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
@@ -1348,13 +1353,17 @@ class Instruction:
             new = symbol_factory.Bool(False)
 
             for keccak_key in keccak_keys:
-                key_argument = keccak_function_manager.get_argument(keccak_key)
-                index_argument = keccak_function_manager.get_argument(index)
+                key_argument = keccak_function_manager.get_argument(
+                    keccak_key
+                )  # type: Expression
+                index_argument = keccak_function_manager.get_argument(
+                    index
+                )  # type: Expression
                 condition = key_argument == index_argument
                 condition = (
                     condition
                     if type(condition) == bool
-                    else is_true(simplify(condition))
+                    else is_true(simplify(cast(Bool, condition)))
                 )
                 if condition:
                     return self._sstore_helper(
@@ -1371,7 +1380,7 @@ class Instruction:
                     key_argument == index_argument,
                 )
 
-                new = Or(new, key_argument != index_argument)
+                new = Or(new, cast(Bool, key_argument != index_argument))
 
             if len(results) > 0:
                 results += self._sstore_helper(
@@ -1439,7 +1448,7 @@ class Instruction:
 
         new_state = copy(global_state)
         # add JUMP gas cost
-        min_gas, max_gas = OPCODE_GAS["JUMP"]
+        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS["JUMP"])
         new_state.mstate.min_gas_used += min_gas
         new_state.mstate.max_gas_used += max_gas
 
@@ -1458,7 +1467,7 @@ class Instruction:
         """
         state = global_state.mstate
         disassembly = global_state.environment.code
-        min_gas, max_gas = OPCODE_GAS["JUMPI"]
+        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS["JUMPI"])
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()

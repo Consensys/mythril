@@ -20,7 +20,7 @@ class Memory:
 
     def __init__(self):
         """"""
-        self._memory = []
+        self._memory = []  # type: List[Union[int, BitVec]]
 
     def __len__(self):
         """
@@ -152,4 +152,4 @@ class Memory:
                 assert 0 <= value <= 0xFF
             if isinstance(value, BitVec):
                 assert value.size() == 8
-            self._memory[key] = value
+            self._memory[key] = cast(Union[int, BitVec], value)

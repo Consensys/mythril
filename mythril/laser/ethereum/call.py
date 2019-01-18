@@ -3,9 +3,9 @@ instructions.py to get the necessary elements from the stack and determine the
 parameters for the new global state."""
 
 import logging
-from typing import Union, List
+from typing import Union, List, cast, Callable
 from z3 import Z3Exception
-
+from mythril.laser.smt import BitVec
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.smt import simplify, Expression, symbol_factory
@@ -155,8 +155,8 @@ def get_callee_account(
 
 def get_call_data(
     global_state: GlobalState,
-    memory_start: Union[int, Expression],
-    memory_size: Union[int, Expression],
+    memory_start: Union[int, BitVec],
+    memory_size: Union[int, BitVec],
 ):
     """Gets call_data from the global_state.
 
@@ -168,15 +168,21 @@ def get_call_data(
     state = global_state.mstate
     transaction_id = "{}_internalcall".format(global_state.current_transaction.id)
 
-    memory_start = (
-        symbol_factory.BitVecVal(memory_start, 256)
-        if isinstance(memory_start, int)
-        else memory_start
+    memory_start = cast(
+        BitVec,
+        (
+            symbol_factory.BitVecVal(memory_start, 256)
+            if isinstance(memory_start, int)
+            else memory_start
+        ),
     )
-    memory_size = (
-        symbol_factory.BitVecVal(memory_size, 256)
-        if isinstance(memory_size, int)
-        else memory_size
+    memory_size = cast(
+        BitVec,
+        (
+            symbol_factory.BitVecVal(memory_size, 256)
+            if isinstance(memory_size, int)
+            else memory_size
+        ),
     )
 
     uses_entire_calldata = simplify(
@@ -218,7 +224,7 @@ def native_call(
 
     contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
     call_address_int = int(callee_address, 16)
-    native_gas_min, native_gas_max = OPCODE_GAS["NATIVE_COST"](
+    native_gas_min, native_gas_max = cast(Callable, OPCODE_GAS["NATIVE_COST"])(
         global_state.mstate.calculate_extension_size(mem_out_start, mem_out_sz),
         contract_list[call_address_int - 1],
     )

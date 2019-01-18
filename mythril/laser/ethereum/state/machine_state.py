@@ -1,9 +1,9 @@
 """This module contains a representation of the EVM's machine state and its
 stack."""
 from copy import copy
-from typing import Union, Any, List, Dict
+from typing import cast, Sized, Union, Any, List, Dict, Optional
 
-from z3 import BitVec
+from mythril.laser.smt import Expression
 
 from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
@@ -29,7 +29,7 @@ class MachineStack(list):
             default_list = []
         super(MachineStack, self).__init__(default_list)
 
-    def append(self, element: BitVec) -> None:
+    def append(self, element: Expression) -> None:
         """
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
@@ -41,7 +41,7 @@ class MachineStack(list):
             )
         super(MachineStack, self).append(element)
 
-    def pop(self, index=-1) -> BitVec:
+    def pop(self, index=-1) -> Expression:
         """
         :param index:index to be popped, same as the list() class.
         :returns popped value
@@ -90,7 +90,7 @@ class MachineState:
         gas_limit: int,
         pc=0,
         stack=None,
-        memory=None,
+        memory: Optional[Memory] = None,
         constraints=None,
         depth=0,
         max_gas_used=0,
@@ -164,7 +164,7 @@ class MachineState:
             self.check_gas()
             self.memory.extend(m_extend)
 
-    def memory_write(self, offset: int, data: List[int]) -> None:
+    def memory_write(self, offset: int, data: List[Union[int, BitVec]]) -> None:
         """Writes data to memory starting at offset.
 
         :param offset:
@@ -217,7 +217,7 @@ class MachineState:
 
         :return:
         """
-        return len(self.memory)
+        return len(cast(Sized, self.memory))
 
     @property
     def as_dict(self) -> Dict:
