@@ -3,7 +3,7 @@ execution."""
 
 import array
 from z3 import ExprRef
-from typing import Union
+from typing import Union, Optional
 
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
@@ -17,14 +17,14 @@ from mythril.laser.smt import symbol_factory
 _next_transaction_id = 0
 
 
-def get_next_transaction_id() -> int:
+def get_next_transaction_id() -> str:
     """
 
     :return:
     """
     global _next_transaction_id
     _next_transaction_id += 1
-    return _next_transaction_id
+    return str(_next_transaction_id)
 
 
 class TransactionEndSignal(Exception):
@@ -56,7 +56,7 @@ class BaseTransaction:
         callee_account: Account = None,
         caller: ExprRef = None,
         call_data=None,
-        identifier=None,
+        identifier: Optional[str] = None,
         gas_price=None,
         gas_limit=None,
         origin=None,
@@ -85,7 +85,9 @@ class BaseTransaction:
         self.caller = caller
         self.callee_account = callee_account
         if call_data is None and init_call_data:
-            self.call_data = SymbolicCalldata(self.id)
+            self.call_data = SymbolicCalldata(
+                self.id
+            )  # type: Union[SymbolicCalldata, ConcreteCalldata]
         else:
             self.call_data = (
                 call_data

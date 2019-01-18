@@ -18,7 +18,7 @@ class KeccakFunctionManager:
         """
         return str(expression) in self.keccak_expression_mapping.keys()
 
-    def get_argument(self, expression: str) -> Expression:
+    def get_argument(self, expression: Expression) -> Expression:
         """
 
         :param expression:

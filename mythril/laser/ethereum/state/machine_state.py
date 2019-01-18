@@ -3,7 +3,7 @@ stack."""
 from copy import copy
 from typing import cast, Sized, Union, Any, List, Dict, Optional
 
-from mythril.laser.smt import Expression
+from mythril.laser.smt import BitVec, Expression
 
 from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
