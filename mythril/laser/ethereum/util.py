@@ -1,7 +1,7 @@
 """This module contains various utility conversion functions and constants for
 LASER."""
 import re
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import Dict, List, Union, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.machine_state import MachineState
@@ -77,15 +77,10 @@ def pop_bitvec(state: "MachineState") -> BitVec:
 
     if type(item) == Bool:
         return If(
-            item, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            cast(Bool, item),
+            symbol_factory.BitVecVal(1, 256),
+            symbol_factory.BitVecVal(0, 256),
         )
-    elif type(item) == bool:
-        if item:
-            return symbol_factory.BitVecVal(1, 256)
-        else:
-            return symbol_factory.BitVecVal(0, 256)
-    elif type(item) == int:
-        return symbol_factory.BitVecVal(item, 256)
     else:
         return simplify(item)
 

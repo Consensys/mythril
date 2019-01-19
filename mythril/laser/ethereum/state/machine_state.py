@@ -25,15 +25,14 @@ class MachineStack(list):
 
         :param default_list:
         """
-        if default_list is None:
-            default_list = []
-        super(MachineStack, self).__init__(default_list)
+        super(MachineStack, self).__init__(default_list or [])
 
     def append(self, element: Expression) -> None:
         """
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
+        assert isinstance(element, Expression)
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
             raise StackOverflowException(
                 "Reached the EVM stack limit of {}, you can't append more "

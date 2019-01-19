@@ -12,6 +12,7 @@ from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.smt import (
     Array,
     BitVec,
+    Bool,
     Concat,
     Expression,
     If,
@@ -186,7 +187,7 @@ class BasicConcreteCalldata(BaseCalldata):
 
         value = symbol_factory.BitVecVal(0x0, 8)
         for i in range(self.size):
-            value = If(item == i, self._calldata[i], value)
+            value = If(cast(Union[BitVec, Bool], item) == i, self._calldata[i], value)
         return value
 
     def concrete(self, model: Model) -> list:
@@ -270,18 +271,20 @@ class BasicSymbolicCalldata(BaseCalldata):
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, BitVec], clean=False) -> Any:
-        x = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+        expr_item = (
+            symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+        )
 
         symbolic_base_value = If(
-            x >= self._size,
+            expr_item >= self._size,
             symbol_factory.BitVecVal(0, 8),
             BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8),
         )
         return_value = symbolic_base_value
         for r_index, r_value in self._reads:
-            return_value = If(r_index == item, r_value, return_value)
+            return_value = If(r_index == expr_item, r_value, return_value)
         if not clean:
-            self._reads.append((item, symbolic_base_value))
+            self._reads.append((expr_item, symbolic_base_value))
         return simplify(return_value)
 
     def concrete(self, model: Model) -> list:
