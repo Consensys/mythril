@@ -14,9 +14,9 @@ except ImportError:
     from random import random
     from bisect import bisect
 
-    def choices(
+    def choices(  # type: ignore
         population: List, weights: List[int] = None
-    ) -> List[int]:  # type: ignore
+    ) -> List[int]:
         """Returns a random element out of the population based on weight.
 
         If the relative weights or cumulative weights are not specified,

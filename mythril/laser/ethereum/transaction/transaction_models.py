@@ -152,7 +152,7 @@ class ContractCreationTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs, init_call_data=False)
+        super().__init__(*args, **kwargs, init_call_data=False)      # type: ignore
         # TODO: set correct balance for new account
         self.callee_account = self.callee_account or self.world_state.create_account(
             0, concrete_storage=True
