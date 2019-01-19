@@ -36,5 +36,5 @@ COPY . /opt/mythril
 RUN cd /opt/mythril \
   && python setup.py install
 
-COPY signatures.db /root/.mythril/signatures.db
+COPY ./mythril/support/assets/signatures.db /root/.mythril/signatures.db
 ENTRYPOINT ["/usr/local/bin/myth"]
