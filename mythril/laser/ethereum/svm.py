@@ -308,9 +308,9 @@ class LaserEVM:
             return [new_global_state], op_code
 
         except TransactionEndSignal as end_signal:
-            transaction, return_global_state = (
-                end_signal.global_state.transaction_stack.pop()
-            )
+            transaction, return_global_state = end_signal.global_state.transaction_stack[
+                -1
+            ]
 
             if return_global_state is None:
                 if (
