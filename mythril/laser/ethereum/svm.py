@@ -24,6 +24,7 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
+from mythril.laser.ethereum.iprof import InstructionProfiler
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ class LaserEVM:
         strategy=DepthFirstSearchStrategy,
         transaction_count=2,
         requires_statespace=True,
+        enable_iprof=False,
     ):
         """
 
@@ -95,6 +97,8 @@ class LaserEVM:
         self.pre_hooks = defaultdict(list)
         self.post_hooks = defaultdict(list)
         self._add_world_state_hooks = []
+        self.iprof = InstructionProfiler() if enable_iprof else None
+
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     @property
@@ -162,6 +166,9 @@ class LaserEVM:
                 * 100
             )
             log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
+
+        if self.iprof is not None:
+            log.info("Instruction Statistics:\n{}".format(self.iprof))
 
     def _execute_transactions(self, address):
         """This function executes multiple transactions on the address based on
@@ -271,9 +278,9 @@ class LaserEVM:
         self._execute_pre_hook(op_code, global_state)
         try:
             self._measure_coverage(global_state)
-            new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(
-                global_state
-            )
+            new_global_states = Instruction(
+                op_code, self.dynamic_loader, self.iprof
+            ).evaluate(global_state)
 
         except VmException as e:
             transaction, return_global_state = global_state.transaction_stack.pop()
@@ -324,7 +331,7 @@ class LaserEVM:
                 self._execute_post_hook(op_code, [end_signal.global_state])
 
                 new_global_states = self._end_message_call(
-                    return_global_state,
+                    copy(return_global_state),
                     global_state,
                     revert_changes=False or end_signal.revert,
                     return_data=transaction.return_data,
@@ -349,6 +356,8 @@ class LaserEVM:
         :param return_data:
         :return:
         """
+
+        return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[
             return_global_state.mstate.pc
@@ -363,9 +372,9 @@ class LaserEVM:
             ]
 
         # Execute the post instruction handler
-        new_global_states = Instruction(op_code, self.dynamic_loader).evaluate(
-            return_global_state, True
-        )
+        new_global_states = Instruction(
+            op_code, self.dynamic_loader, self.iprof
+        ).evaluate(return_global_state, True)
 
         # In order to get a nice call graph we need to set the nodes here
         for state in new_global_states:

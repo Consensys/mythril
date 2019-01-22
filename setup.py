@@ -101,7 +101,7 @@ setup(
     tests_require=["pytest>=3.6.0", "pytest_mock", "pytest-cov"],
     python_requires=">=3.5",
     extras_require={},
-    package_data={"mythril.analysis.templates": ["*"], "": ["signatures.db"]},
+    package_data={"mythril.analysis.templates": ["*"], "mythril.support.assets": ["*"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
     cmdclass={"verify": VerifyVersionCommand},

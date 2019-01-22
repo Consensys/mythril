@@ -37,6 +37,7 @@ class SymExecWrapper:
         transaction_count=2,
         modules=(),
         compulsory_statespace=True,
+        enable_iprof=False,
     ):
         """
 
@@ -81,6 +82,7 @@ class SymExecWrapper:
             create_timeout=create_timeout,
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
+            enable_iprof=enable_iprof,
         )
         mutation_plugin = MutationPruner()
 
