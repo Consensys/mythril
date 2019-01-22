@@ -244,10 +244,9 @@ class LaserEVM:
 
     def _add_world_state(self, global_state: GlobalState):
         """ Stores the world_state of the passed global state in the open states"""
-        _global_state = global_state
         for hook in self._add_world_state_hooks:
             try:
-                hook(_global_state)
+                hook(global_state)
             except PluginSkipWorldState:
                 return
 
