@@ -31,9 +31,6 @@ class MutationPruner:
 
     """
 
-    def __init__(self):
-        pass
-
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the mutation pruner
 
