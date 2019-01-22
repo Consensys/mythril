@@ -114,8 +114,11 @@ def _analyze_state(state: GlobalState) -> list:
         retval = state.mstate.stack[-1]
         # Use Typed Dict after release of mypy 0.670 and remove type ignore
         retvals.append(
-            {"address": state.instruction["address"] - 1, "retval": retval}
-        )  # type: ignore
+            {  # type: ignore
+                "address": state.instruction["address"] - 1,
+                "retval": retval,
+            }
+        )
 
     return []
 

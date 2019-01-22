@@ -7,7 +7,7 @@ import sqlite3
 import time
 from collections import defaultdict
 from subprocess import PIPE, Popen
-from typing import List, Set, DefaultDict
+from typing import List, Set, DefaultDict, Dict
 
 from mythril.exceptions import CompilerError
 
@@ -45,7 +45,7 @@ def synchronized(sync_lock):
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
 
-    _instances = dict()
+    _instances = dict()  # type: Dict[Singleton, Singleton]
 
     @synchronized(lock)
     def __call__(cls, *args, **kwargs):

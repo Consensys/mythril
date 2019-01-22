@@ -27,12 +27,11 @@ class MachineStack(list):
         """
         super(MachineStack, self).__init__(default_list or [])
 
-    def append(self, element: Expression) -> None:
+    def append(self, element: Union[int, Expression]) -> None:
         """
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
-        assert isinstance(element, Expression)
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
             raise StackOverflowException(
                 "Reached the EVM stack limit of {}, you can't append more "
@@ -40,7 +39,7 @@ class MachineStack(list):
             )
         super(MachineStack, self).append(element)
 
-    def pop(self, index=-1) -> Expression:
+    def pop(self, index=-1) -> Union[int, Expression]:
         """
         :param index:index to be popped, same as the list() class.
         :returns popped value

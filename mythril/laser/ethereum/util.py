@@ -81,6 +81,8 @@ def pop_bitvec(state: "MachineState") -> BitVec:
             symbol_factory.BitVecVal(1, 256),
             symbol_factory.BitVecVal(0, 256),
         )
+    elif isinstance(item, int):
+        return symbol_factory.BitVecVal(item, 256)
     else:
         return simplify(item)
 
