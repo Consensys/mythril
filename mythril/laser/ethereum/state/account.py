@@ -38,6 +38,7 @@ class Storage:
                         int(
                             self.dynld.read_storage(
                                 contract_address=self.address,
+                                # The line below is expected to raise a ValueError
                                 index=int(item),  # type: ignore
                             ),
                             16,

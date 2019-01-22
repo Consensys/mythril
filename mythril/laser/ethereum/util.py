@@ -121,7 +121,7 @@ def concrete_int_from_bytes(
     ]
     integer_bytes = concrete_bytes[start_index : start_index + 32]
 
-    # The below statement is expected to fail in some circumstances
+    # The below statement is expected to fail in some circumstances whose error is caught
     return int.from_bytes(integer_bytes, byteorder="big")  # type: ignore
 
 

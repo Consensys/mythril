@@ -14,6 +14,7 @@ except ImportError:
     from random import random
     from bisect import bisect
 
+    # Remove ignore after this has been fixed: https://github.com/python/mypy/issues/1297
     def choices(  # type: ignore
         population: List, weights: List[int] = None
     ) -> List[int]:

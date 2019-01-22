@@ -1,5 +1,5 @@
 """This module contains a representation of a smart contract's memory."""
-from typing import cast, List, Union
+from typing import cast, List, Union, overload
 
 from z3 import Z3Exception
 
@@ -45,12 +45,7 @@ class Memory:
         try:
             return symbol_factory.BitVecVal(
                 util.concrete_int_from_bytes(
-                    bytes(
-                        [
-                            util.get_concrete_int(b)
-                            for b in self[index : index + 32]  # type: ignore
-                        ]
-                    ),
+                    bytes([util.get_concrete_int(b) for b in self[index : index + 32]]),
                     0,
                 ),
                 256,
@@ -100,6 +95,14 @@ class Memory:
 
             for i in range(0, value_to_write.size(), 8):
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
+
+    @overload
+    def __getitem__(self, item: int) -> Union[int, BitVec]:
+        ...
+
+    @overload
+    def __getitem__(self, item: slice) -> List[Union[int, BitVec]]:
+        ...
 
     def __getitem__(
         self, item: Union[int, slice]

@@ -1,7 +1,7 @@
 """This module contains detection code to find occurrences of calls whose
 return value remains unchecked."""
 from copy import copy
-from typing import cast, Dict, List, Union
+from typing import cast, List, Union, Mapping
 
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 class UncheckedRetvalAnnotation(StateAnnotation):
     def __init__(self) -> None:
-        self.retvals = []  # type: List[Dict[str, Union[int, BitVec]]]
+        self.retvals = []  # type: List[Mapping[str, Union[int, BitVec]]]
 
     def __copy__(self):
         result = UncheckedRetvalAnnotation()
@@ -112,7 +112,10 @@ def _analyze_state(state: GlobalState) -> list:
             "opcode"
         ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
         retval = state.mstate.stack[-1]
-        retvals.append({"address": state.instruction["address"] - 1, "retval": retval})
+        # Use Typed Dict after release of mypy 0.670 and remove type ignore
+        retvals.append(
+            {"address": state.instruction["address"] - 1, "retval": retval}
+        )  # type: ignore
 
     return []
 

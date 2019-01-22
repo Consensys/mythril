@@ -3,7 +3,7 @@ execution."""
 
 import array
 from z3 import ExprRef
-from typing import Union, Optional
+from typing import Union, Optional, cast
 
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
@@ -90,7 +90,7 @@ class BaseTransaction:
             )  # type: Union[SymbolicCalldata, ConcreteCalldata]
         else:
             self.call_data = (
-                call_data
+                cast(Union[SymbolicCalldata, ConcreteCalldata], call_data)
                 if isinstance(call_data, BaseCalldata)
                 else ConcreteCalldata(self.id, [])
             )
@@ -152,7 +152,8 @@ class ContractCreationTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs, init_call_data=False)      # type: ignore
+        # Remove ignore after https://github.com/python/mypy/issues/4335 is fixed
+        super().__init__(*args, **kwargs, init_call_data=False)  # type: ignore
         # TODO: set correct balance for new account
         self.callee_account = self.callee_account or self.world_state.create_account(
             0, concrete_storage=True
