@@ -5,6 +5,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
+from mythril.laser.smt import And, symbol_factory
 
 
 class MutationAnnotation(StateAnnotation):
@@ -45,6 +46,14 @@ class MutationPruner:
 
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(global_state: GlobalState):
+            if And(
+                *global_state.mstate.constraints[:]
+                + [
+                    global_state.environment.callvalue
+                    > symbol_factory.BitVecVal(0, 256)
+                ]
+            ).is_false:
+                return
             if isinstance(
                 global_state.current_transaction, ContractCreationTransaction
             ):

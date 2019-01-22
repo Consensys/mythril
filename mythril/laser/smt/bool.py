@@ -77,6 +77,14 @@ class Bool(Expression):
             return False
 
 
+def And(*args):
+    """Create an And expression."""
+    union = []
+    for arg in args:
+        union.append(arg.annotations)
+    return Bool(z3.And([a.raw for a in args]), union)
+
+
 def Or(a: Bool, b: Bool):
     """Create an or expression.
 
