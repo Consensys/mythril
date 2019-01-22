@@ -3,6 +3,7 @@ graphs."""
 
 import re
 
+# ignore exists due to some problem in the typeshed https://github.com/python/mypy/issues/3589
 from jinja2 import Environment, PackageLoader, select_autoescape  # type: ignore
 from z3 import Z3Exception
 
