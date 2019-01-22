@@ -19,20 +19,21 @@ from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not
 from mythril.laser.smt.array import K, Array, BaseArray
 from mythril.laser.smt.solver import Solver, Optimize
 
-from typing import Union, Any, Optional, List
+from typing import Union, Any, Optional, List, TypeVar, Generic
 import z3
 
 
 Annotations = Optional[List[Any]]
+T=TypeVar("T", bound=Union[bool.Bool, z3.BoolRef])
+U=TypeVar("U", bound=Union[BitVec, z3.BitVecRef])
 
-
-class SymbolFactory:
+class SymbolFactory(Generic[T, U]):
     """A symbol factory provides a default interface for all the components of mythril to create symbols"""
 
     @staticmethod
     def Bool(
         value: "__builtins__.bool", annotations: Annotations = None
-    ) -> Union[bool.Bool, z3.BoolRef]:
+    ) -> T:
         """
         Creates a Bool with concrete value
         :param value: The boolean value
@@ -44,7 +45,7 @@ class SymbolFactory:
     @staticmethod
     def BitVecVal(
         value: int, size: int, annotations: Annotations = None
-    ) -> Union[BitVec, z3.BitVecRef]:
+    ) -> U:
         """Creates a new bit vector with a concrete value.
 
         :param value: The concrete value to set the bit vector to
@@ -57,7 +58,7 @@ class SymbolFactory:
     @staticmethod
     def BitVecSym(
         name: str, size: int, annotations: Annotations = None
-    ) -> Union[BitVec, z3.BitVecRef]:
+    ) -> U:
         """Creates a new bit vector with a symbolic value.
 
         :param name: The name of the symbolic bit vector
@@ -68,7 +69,7 @@ class SymbolFactory:
         raise NotImplementedError()
 
 
-class _SmtSymbolFactory(SymbolFactory):
+class _SmtSymbolFactory(SymbolFactory[bool.Bool, BitVec]):
     """
     An implementation of a SymbolFactory that creates symbols using
     the classes in: mythril.laser.smt
@@ -77,7 +78,7 @@ class _SmtSymbolFactory(SymbolFactory):
     @staticmethod
     def Bool(
         value: "__builtins__.bool", annotations: Annotations = None
-    ) -> Union[bool.Bool, z3.BoolRef]:
+    ) -> bool.Bool:
         """
         Creates a Bool with concrete value
         :param value: The boolean value
@@ -90,7 +91,7 @@ class _SmtSymbolFactory(SymbolFactory):
     @staticmethod
     def BitVecVal(
         value: int, size: int, annotations: Annotations = None
-    ) -> Union[BitVec, z3.BitVecRef]:
+    ) -> BitVec:
         """Creates a new bit vector with a concrete value."""
         raw = z3.BitVecVal(value, size)
         return BitVec(raw, annotations)
@@ -98,13 +99,13 @@ class _SmtSymbolFactory(SymbolFactory):
     @staticmethod
     def BitVecSym(
         name: str, size: int, annotations: Annotations = None
-    ) -> Union[BitVec, z3.BitVecRef]:
+    ) -> BitVec:
         """Creates a new bit vector with a symbolic value."""
         raw = z3.BitVec(name, size)
         return BitVec(raw, annotations)
 
 
-class _Z3SymbolFactory(SymbolFactory):
+class _Z3SymbolFactory(SymbolFactory[z3.BoolRef, z3.BitVecRef]):
     """
     An implementation of a SymbolFactory that directly returns
     z3 symbols
@@ -113,21 +114,21 @@ class _Z3SymbolFactory(SymbolFactory):
     @staticmethod
     def Bool(
         value: "__builtins__.bool", annotations: Annotations = None
-    ) -> Union[bool.Bool, z3.BoolRef]:
+    ) -> z3.BoolRef:
         """ Creates a new bit vector with a concrete value """
         return z3.BoolVal(value)
 
     @staticmethod
     def BitVecVal(
         value: int, size: int, annotations: Annotations = None
-    ) -> Union[BitVec, z3.BitVecRef]:
+    ) -> z3.BitVecRef:
         """Creates a new bit vector with a concrete value."""
         return z3.BitVecVal(value, size)
 
     @staticmethod
     def BitVecSym(
         name: str, size: int, annotations: Annotations = None
-    ) -> Union[BitVec, z3.BitVecRef]:
+    ) -> z3.BitVecRef:
         """Creates a new bit vector with a symbolic value."""
         return z3.BitVec(name, size)
 
