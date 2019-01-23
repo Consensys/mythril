@@ -41,7 +41,7 @@ class BaseCalldata:
         """
         result = self.size
         if isinstance(result, int):
-            return BitVec(symbol_factory.BitVecVal(result, 256))
+            return symbol_factory.BitVecVal(result, 256)
         return result
 
     def get_word_at(self, offset: int) -> Expression:
@@ -138,10 +138,7 @@ class ConcreteCalldata(BaseCalldata):
         :param item:
         :return:
         """
-        item = cast(
-            BitVec,
-            symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item,
-        )
+        item = symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
         return simplify(self._calldata[item])
 
     def concrete(self, model: Model) -> list:

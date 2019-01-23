@@ -11,6 +11,7 @@ Annotations = List[Any]
 
 # fmt: off
 
+
 class BitVec(Expression[z3.BitVecRef]):
     """A bit vector symbol."""
 
