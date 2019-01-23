@@ -53,7 +53,7 @@ class BaseCalldata:
         parts = self[offset : offset + 32]
         return simplify(Concat(parts))
 
-    def __getitem__(self, item: Union[int, slice]) -> Any:
+    def __getitem__(self, item: Union[int, slice, BitVec]) -> Any:
         """
 
         :param item:
@@ -273,7 +273,7 @@ class BasicSymbolicCalldata(BaseCalldata):
     def _load(self, item: Union[int, BitVec], clean=False) -> Any:
         expr_item = (
             symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
-        )
+        )  # type: BitVec
 
         symbolic_base_value = If(
             expr_item >= self._size,

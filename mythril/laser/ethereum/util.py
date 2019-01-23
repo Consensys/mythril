@@ -75,7 +75,7 @@ def pop_bitvec(state: "MachineState") -> BitVec:
 
     item = state.stack.pop()
 
-    if type(item) == Bool:
+    if isinstance(item, Bool):
         return If(
             cast(Bool, item),
             symbol_factory.BitVecVal(1, 256),
