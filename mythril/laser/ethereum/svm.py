@@ -97,7 +97,7 @@ class LaserEVM:
         self.pre_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
         self.post_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
 
-        self._add_world_state_hooks = []
+        self._add_world_state_hooks = []    # type: List[Callable]
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))

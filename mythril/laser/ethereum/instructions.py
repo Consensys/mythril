@@ -358,7 +358,7 @@ class Instruction:
                         symbol_factory.BitVecVal(0, 248),
                         Extract(offset + 7, offset, op1),
                     )
-                )
+                )  # type: Union[int, Expression]
             else:
                 result = 0
         except TypeError:
@@ -717,17 +717,15 @@ class Instruction:
             log.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
-        dstart_sym = False
         try:
-            dstart = util.get_concrete_int(op1)
+            dstart = util.get_concrete_int(op1)      # type: Union[int, Expression]
         except TypeError:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
-            dstart_sym = True
 
         size_sym = False
         try:
-            size = util.get_concrete_int(op2)
+            size = util.get_concrete_int(op2)    # type: Union[int, Expression]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
             size = simplify(op2)
