@@ -83,6 +83,7 @@ class Memory:
             assert len(_bytes) == 32
             self[index : index + 32] = list(bytearray(_bytes))
         except (Z3Exception, AttributeError):  # BitVector or BoolRef
+            value = cast(Union[BitVec, Bool], value)
             if isinstance(value, Bool):
                 value_to_write = If(
                     value,

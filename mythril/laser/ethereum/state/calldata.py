@@ -34,14 +34,14 @@ class BaseCalldata:
         self.tx_id = tx_id
 
     @property
-    def calldatasize(self) -> Expression:
+    def calldatasize(self) -> BitVec:
         """
 
         :return: Calldata size for this calldata object
         """
         result = self.size
         if isinstance(result, int):
-            return symbol_factory.BitVecVal(result, 256)
+            return BitVec(symbol_factory.BitVecVal(result, 256))
         return result
 
     def get_word_at(self, offset: int) -> Expression:
@@ -267,18 +267,24 @@ class BasicSymbolicCalldata(BaseCalldata):
         :param tx_id: Id of the transaction that the calldata is for.
         """
         self._reads = []  # type: List[Tuple[Union[int, BitVec], BitVec]]
-        self._size = BitVec(str(tx_id) + "_calldatasize", 256)
+        self._size = BitVec(symbol_factory.BitVecSym(str(tx_id) + "_calldatasize", 256))
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, BitVec], clean=False) -> Any:
         expr_item = (
-            symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
+            BitVec(symbol_factory.BitVecVal(item, 256))
+            if isinstance(item, int)
+            else item
         )  # type: BitVec
 
         symbolic_base_value = If(
             expr_item >= self._size,
             symbol_factory.BitVecVal(0, 8),
-            BitVec("{}_calldata_{}".format(self.tx_id, str(item)), 8),
+            BitVec(
+                symbol_factory.BitVecSym(
+                    "{}_calldata_{}".format(self.tx_id, str(item)), 8
+                )
+            ),
         )
         return_value = symbolic_base_value
         for r_index, r_value in self._reads:

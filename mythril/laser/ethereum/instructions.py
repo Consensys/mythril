@@ -718,14 +718,14 @@ class Instruction:
             return [global_state]
 
         try:
-            dstart = util.get_concrete_int(op1)      # type: Union[int, BitVec]
+            dstart = util.get_concrete_int(op1)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
 
         size_sym = False
         try:
-            size = util.get_concrete_int(op2)    # type: Union[int, BitVec]
+            size = util.get_concrete_int(op2)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
             size = simplify(op2)
