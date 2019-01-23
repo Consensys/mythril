@@ -28,6 +28,7 @@ def get_detection_module_hooks(modules, hook_type="pre"):
             if hook_type == "pre"
             else module.detector.post_hooks
         )
+
         for op_code in map(lambda x: x.upper(), hooks):
             if op_code in OPCODE_LIST:
                 hook_dict[op_code].append(module.detector.execute)

@@ -41,6 +41,15 @@ class EtherThief(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
+        self._cache_addresses = {}
+
+    def reset_module(self):
+        """
+        Resets the module by clearing everything
+        :return:
+        """
+        super().reset_module()
+        self._cache_addresses = {}
 
     def execute(self, state: GlobalState):
         """

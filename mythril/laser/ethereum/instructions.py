@@ -5,6 +5,7 @@ import logging
 
 from copy import copy, deepcopy
 from typing import Callable, List, Union
+from datetime import datetime
 
 from ethereum import utils
 
@@ -154,14 +155,16 @@ class Instruction:
     """Instruction class is used to mutate a state according to the current
     instruction."""
 
-    def __init__(self, op_code: str, dynamic_loader: DynLoader):
+    def __init__(self, op_code: str, dynamic_loader: DynLoader, iprof=None):
         """
 
         :param op_code:
         :param dynamic_loader:
+        :param iprof:
         """
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code.upper()
+        self.iprof = iprof
 
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """Performs the mutation for this instruction.
@@ -191,7 +194,15 @@ class Instruction:
         if instruction_mutator is None:
             raise NotImplementedError
 
-        return instruction_mutator(global_state)
+        if self.iprof is None:
+            result = instruction_mutator(global_state)
+        else:
+            start_time = datetime.now()
+            result = instruction_mutator(global_state)
+            end_time = datetime.now()
+            self.iprof.record(op, start_time, end_time)
+
+        return result
 
     @StateTransition()
     def jumpdest_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -967,6 +978,8 @@ class Instruction:
             return [global_state]
 
         bytecode = global_state.environment.code.bytecode
+        if bytecode[0:2] == "0x":
+            bytecode = bytecode[2:]
 
         if size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
