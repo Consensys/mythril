@@ -1,16 +1,23 @@
+"""This module contains the detection code for reachable exceptions."""
+import logging
+import json
+
+from mythril.analysis import solver
+from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.exceptions import UnsatError
-from mythril.analysis import solver
-from mythril.analysis.modules.base import DetectionModule
-import logging
-
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 log = logging.getLogger(__name__)
 
 
 def _analyze_state(state) -> list:
+    """
+
+    :param state:
+    :return:
+    """
     log.info("Exceptions module: found ASSERT_FAIL instruction")
     node = state.node
 
@@ -19,24 +26,26 @@ def _analyze_state(state) -> list:
     try:
         address = state.get_current_instruction()["address"]
 
-        description = (
-            "A reachable exception (opcode 0xfe) has been detected. "
-            "This can be caused by type errors, division by zero, "
+        description_tail = (
+            "It is possible to trigger an exception (opcode 0xfe). "
+            "Exceptions can be caused by type errors, division by zero, "
             "out-of-bounds array access, or assert violations. "
             "Note that explicit `assert()` should only be used to check invariants. "
             "Use `require()` for regular input checking."
         )
 
-        debug = str(solver.get_transaction_sequence(state, node.constraints))
+        transaction_sequence = solver.get_transaction_sequence(state, node.constraints)
+        debug = json.dumps(transaction_sequence, indent=4)
 
         issue = Issue(
             contract=node.contract_name,
             function_name=node.function_name,
             address=address,
             swc_id=ASSERT_VIOLATION,
-            title="Exception state",
-            _type="Informational",
-            description=description,
+            title="Exception State",
+            severity="Low",
+            description_head="A reachable exception has been detected.",
+            description_tail=description_tail,
             bytecode=state.environment.code.bytecode,
             debug=debug,
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
@@ -50,7 +59,10 @@ def _analyze_state(state) -> list:
 
 
 class ReachableExceptionsModule(DetectionModule):
+    """"""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="Reachable Exceptions",
             swc_id=ASSERT_VIOLATION,
@@ -58,15 +70,15 @@ class ReachableExceptionsModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ASSERT_FAIL"],
         )
-        self._issues = []
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         self._issues.extend(_analyze_state(state))
         return self.issues
-
-    @property
-    def issues(self) -> list:
-        return self._issues
 
 
 detector = ReachableExceptionsModule()

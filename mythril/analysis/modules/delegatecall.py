@@ -1,3 +1,4 @@
+"""This module contains the detection code for insecure delegate call usage."""
 import re
 import logging
 from typing import List
@@ -14,7 +15,10 @@ log = logging.getLogger(__name__)
 
 
 class DelegateCallModule(DetectionModule):
+    """This module detects calldata being forwarded using DELEGATECALL."""
+
     def __init__(self):
+        """"""
         super().__init__(
             name="DELEGATECALL Usage in Fallback Function",
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
@@ -22,13 +26,13 @@ class DelegateCallModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["DELEGATECALL"],
         )
-        self._issues = []
-
-    @property
-    def issues(self) -> list:
-        return self._issues
 
     def execute(self, state: GlobalState) -> list:
+        """
+
+        :param state:
+        :return:
+        """
         log.debug("Executing module: DELEGATE_CALL")
         self._issues.extend(_analyze_states(state))
         return self.issues
@@ -78,15 +82,14 @@ def _concrete_call(
         address=address,
         swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
         bytecode=state.environment.code.bytecode,
-        title="Call data forwarded with delegatecall()",
-        _type="Informational",
+        title="Delegatecall Proxy",
+        severity="Low",
+        description_head="The contract implements a delegatecall proxy.",
+        description_tail="The smart contract forwards the received calldata via delegatecall. Note that callers"
+        "can execute arbitrary functions in the callee contract and that the callee contract "
+        "can access the storage of the calling contract. "
+        "Make sure that the callee contract is audited properly.",
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-    )
-
-    issue.description = (
-        "This contract forwards its call data via DELEGATECALL in its fallback function. "
-        "This means that any function in the called contract can be executed. Note that the callee contract will have "
-        "access to the storage of the calling contract.\n"
     )
 
     target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)

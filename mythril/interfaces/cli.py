@@ -5,23 +5,30 @@
    http://www.github.com/ConsenSys/mythril
 """
 
-import logging, coloredlogs
+import argparse
 import json
+import logging
 import os
 import sys
-import argparse
 
-# logging.basicConfig(level=logging.DEBUG)
+import coloredlogs
 
-from mythril.exceptions import CriticalError, AddressNotFoundError
+import mythril.support.signatures as sigs
+from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import Mythril
 from mythril.version import VERSION
-import mythril.support.signatures as sigs
+
+# logging.basicConfig(level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
 
 
 def exit_with_error(format_, message):
+    """
+
+    :param format_:
+    :param message:
+    """
     if format_ == "text" or format_ == "markdown":
         log.error(message)
     else:
@@ -31,6 +38,7 @@ def exit_with_error(format_, message):
 
 
 def main():
+    """The main CLI interface entry point."""
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
@@ -106,10 +114,10 @@ def main():
     outputs.add_argument(
         "-o",
         "--outform",
-        choices=["text", "markdown", "json"],
+        choices=["text", "markdown", "json", "jsonv2"],
         default="text",
         help="report output format",
-        metavar="<text/markdown/json>",
+        metavar="<text/markdown/json/jsonv2>",
     )
     outputs.add_argument(
         "--verbose-report",
@@ -202,6 +210,9 @@ def main():
         action="store_true",
         help="Lookup function signatures through www.4byte.directory",
     )
+    options.add_argument(
+        "--enable-iprof", action="store_true", help="enable the instruction profiler"
+    )
 
     rpc = parser.add_argument_group("RPC options")
 
@@ -273,6 +284,18 @@ def main():
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
+            )
+
+    if args.enable_iprof:
+        if args.v < 4:
+            exit_with_error(
+                args.outform,
+                "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
+            )
+        elif not (args.graph or args.fire_lasers or args.statespace_json):
+            exit_with_error(
+                args.outform,
+                "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
             )
 
     # -- commands --
@@ -399,6 +422,7 @@ def main():
                     max_depth=args.max_depth,
                     execution_timeout=args.execution_timeout,
                     create_timeout=args.create_timeout,
+                    enable_iprof=args.enable_iprof,
                 )
 
                 try:
@@ -420,9 +444,11 @@ def main():
                         execution_timeout=args.execution_timeout,
                         create_timeout=args.create_timeout,
                         transaction_count=args.transaction_count,
+                        enable_iprof=args.enable_iprof,
                     )
                     outputs = {
                         "json": report.as_json(),
+                        "jsonv2": report.as_swc_standard_format(),
                         "text": report.as_text(),
                         "markdown": report.as_markdown(),
                     }
@@ -446,6 +472,7 @@ def main():
                 max_depth=args.max_depth,
                 execution_timeout=args.execution_timeout,
                 create_timeout=args.create_timeout,
+                enable_iprof=args.enable_iprof,
             )
 
             try:

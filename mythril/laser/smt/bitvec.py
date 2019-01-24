@@ -1,47 +1,72 @@
+"""This module provides classes for an SMT abstraction of bit vectors."""
+
+from typing import Union, overload, List, cast, Any, Optional
+
 import z3
 
-from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.bool import Bool
+from mythril.laser.smt.expression import Expression
 
-from typing import Union
+Annotations = List[Any]
 
 # fmt: off
 
+class BitVec(Expression[z3.BitVecRef]):
+    """A bit vector symbol."""
 
-class BitVec(Expression):
-    """
-    Bit vector symbol
-    """
-    def __init__(self, raw, annotations=None):
+    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations]=None):
+        """
+
+        :param raw:
+        :param annotations:
+        """
         super().__init__(raw, annotations)
 
-    def size(self):
+    def size(self) -> int:
+        """TODO: documentation
+
+        :return:
+        """
         return self.raw.size()
 
     @property
-    def symbolic(self):
-        """ Returns whether this symbol doesn't have a concrete value """
+    def symbolic(self) -> bool:
+        """Returns whether this symbol doesn't have a concrete value.
+
+        :return:
+        """
         self.simplify()
         return not isinstance(self.raw, z3.BitVecNumRef)
 
     @property
-    def value(self):
-        """ Returns the value of this symbol if concrete, otherwise None"""
+    def value(self) -> Optional[int]:
+        """Returns the value of this symbol if concrete, otherwise None.
+
+        :return:
+        """
         if self.symbolic:
             return None
         assert isinstance(self.raw, z3.BitVecNumRef)
         return self.raw.as_long()
 
-    def __add__(self, other) -> "BitVec":
-        """ Create an addition expression """
+    def __add__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """Create an addition expression.
+
+        :param other:
+        :return:
+        """
         if isinstance(other, int):
             return BitVec(self.raw + other, annotations=self.annotations)
 
         union = self.annotations + other.annotations
         return BitVec(self.raw + other.raw, annotations=union)
 
-    def __sub__(self, other) -> "BitVec":
-        """ Create a subtraction expression """
+    def __sub__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """Create a subtraction expression.
+
+        :param other:
+        :return:
+        """
 
         if isinstance(other, int):
             return BitVec(self.raw - other, annotations=self.annotations)
@@ -49,158 +74,277 @@ class BitVec(Expression):
         union = self.annotations + other.annotations
         return BitVec(self.raw - other.raw, annotations=union)
 
-    def __mul__(self, other) -> "BitVec":
-        """ Create a multiplication expression """
+    def __mul__(self, other: "BitVec") -> "BitVec":
+        """Create a multiplication expression.
+
+        :param other:
+        :return:
+        """
         union = self.annotations + other.annotations
         return BitVec(self.raw * other.raw, annotations=union)
 
-    def __truediv__(self, other) -> "BitVec":
-        """ Create a signed division expression """
+    def __truediv__(self, other: "BitVec") -> "BitVec":
+        """Create a signed division expression.
+
+        :param other:
+        :return:
+        """
         union = self.annotations + other.annotations
         return BitVec(self.raw / other.raw, annotations=union)
 
-    def __and__(self, other) -> "BitVec":
-        """ Create an and expression """
+    def __and__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """Create an and expression.
+
+        :param other:
+        :return:
+        """
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, 256))
         union = self.annotations + other.annotations
         return BitVec(self.raw & other.raw, annotations=union)
 
-    def __or__(self, other) -> "BitVec":
-        """ Create an or expression """
+    def __or__(self, other: "BitVec") -> "BitVec":
+        """Create an or expression.
+
+        :param other:
+        :return:
+        """
         union = self.annotations + other.annotations
         return BitVec(self.raw | other.raw, annotations=union)
 
-    def __xor__(self, other) -> "BitVec":
-        """ Create a xor expression """
+    def __xor__(self, other: "BitVec") -> "BitVec":
+        """Create a xor expression.
+
+        :param other:
+        :return:
+        """
         union = self.annotations + other.annotations
         return BitVec(self.raw ^ other.raw, annotations=union)
 
-    def __lt__(self, other) -> Bool:
-        """ Create a signed less than expression """
+    def __lt__(self, other: "BitVec") -> Bool:
+        """Create a signed less than expression.
+
+        :param other:
+        :return:
+        """
         union = self.annotations + other.annotations
         return Bool(self.raw < other.raw, annotations=union)
 
-    def __gt__(self, other) -> Bool:
-        """ Create a signed greater than expression """
+    def __gt__(self, other: "BitVec") -> Bool:
+        """Create a signed greater than expression.
+
+        :param other:
+        :return:
+        """
         union = self.annotations + other.annotations
         return Bool(self.raw > other.raw, annotations=union)
 
-    def __eq__(self, other) -> Bool:
-        """ Create an equality expression """
+    # MYPY: fix complains about overriding __eq__
+    def __eq__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
+        """Create an equality expression.
+
+        :param other:
+        :return:
+        """
         if not isinstance(other, BitVec):
-            return Bool(self.raw == other, annotations=self.annotations)
+            return Bool(cast(z3.BoolRef, self.raw == other), annotations=self.annotations)
 
         union = self.annotations + other.annotations
-        return Bool(self.raw == other.raw, annotations=union)
+        # MYPY: fix complaints due to z3 overriding __eq__
+        return Bool(cast(z3.BoolRef, self.raw == other.raw), annotations=union)
 
-    def __ne__(self, other) -> Bool:
-        """ Create an inequality expression """
+    # MYPY: fix complains about overriding __ne__
+    def __ne__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
+        """Create an inequality expression.
+
+        :param other:
+        :return:
+        """
         if not isinstance(other, BitVec):
-            return Bool(self.raw != other, annotations=self.annotations)
+            return Bool(cast(z3.BoolRef, self.raw != other), annotations=self.annotations)
 
         union = self.annotations + other.annotations
-        return Bool(self.raw != other.raw, annotations=union)
+        # MYPY: fix complaints due to z3 overriding __eq__
+        return Bool(cast(z3.BoolRef, self.raw != other.raw), annotations=union)
 
 
-def If(a: Bool, b: BitVec, c: BitVec):
-    """ Create an if-then-else expression """
-    if not isinstance(a, Expression):
+def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> BitVec:
+    """Create an if-then-else expression.
+
+    :param a:
+    :param b:
+    :param c:
+    :return:
+    """
+    if not isinstance(a, Bool):
         a = Bool(z3.BoolVal(a))
-    if not isinstance(b, Expression):
+    if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))
-    if not isinstance(c, Expression):
+    if not isinstance(c, BitVec):
         c = BitVec(z3.BitVecVal(c, 256))
     union = a.annotations + b.annotations + c.annotations
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
 
 def UGT(a: BitVec, b: BitVec) -> Bool:
-    """ Create an unsigned greater than expression """
+    """Create an unsigned greater than expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
     annotations = a.annotations + b.annotations
     return Bool(z3.UGT(a.raw, b.raw), annotations)
 
 
 def UGE(a: BitVec, b:BitVec) -> Bool:
+    """Create an unsigned greater or equals expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
     annotations = a.annotations + b.annotations
     return Bool(z3.UGE(a.raw, b.raw), annotations)
 
 
 def ULT(a: BitVec, b: BitVec) -> Bool:
-    """ Create an unsigned less than expression """
+    """Create an unsigned less than expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
     annotations = a.annotations + b.annotations
     return Bool(z3.ULT(a.raw, b.raw), annotations)
 
 
-def Concat(*args) -> BitVec:
-    """ Create a concatenation expression """
+@overload
+def Concat(*args: List[BitVec]) -> BitVec:    ...
+
+
+@overload
+def Concat(*args: BitVec) -> BitVec:    ...
+
+
+def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
+    """Create a concatenation expression.
+
+    :param args:
+    :return:
+    """
 
     # The following statement is used if a list is provided as an argument to concat
     if len(args) == 1 and isinstance(args[0], list):
-        args = args[0]
+        bvs = args[0] # type: List[BitVec]
+    else:
+        bvs = cast(List[BitVec], args)
 
-    nraw = z3.Concat([a.raw for a in args])
-    annotations = []
-    for bv in args:
+    nraw = z3.Concat([a.raw for a in bvs])
+    annotations = [] # type: Annotations
+    for bv in bvs:
         annotations += bv.annotations
     return BitVec(nraw, annotations)
 
 
 def Extract(high: int, low: int, bv: BitVec) -> BitVec:
-    """ Create an extract expression"""
+    """Create an extract expression.
+
+    :param high:
+    :param low:
+    :param bv:
+    :return:
+    """
     return BitVec(z3.Extract(high, low, bv.raw), annotations=bv.annotations)
 
 
 def URem(a: BitVec, b: BitVec) -> BitVec:
-    """ Create an unsigned remainder expression"""
+    """Create an unsigned remainder expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
     union = a.annotations + b.annotations
     return BitVec(z3.URem(a.raw, b.raw), annotations=union)
 
 
 def SRem(a: BitVec, b: BitVec) -> BitVec:
-    """ Create a signed remainder expression"""
+    """Create a signed remainder expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
     union = a.annotations + b.annotations
     return BitVec(z3.SRem(a.raw, b.raw), annotations=union)
 
 
 def UDiv(a: BitVec, b: BitVec) -> BitVec:
-    """ Create an unsigned division expression """
+    """Create an unsigned division expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
     union = a.annotations + b.annotations
     return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
 
 
-def Sum(*args) -> BitVec:
-    """ Create sum expression"""
+def Sum(*args: BitVec) -> BitVec:
+    """Create sum expression.
+
+    :return:
+    """
     nraw = z3.Sum([a.raw for a in args])
-    annotations = []
+    annotations = [] # type: Annotations
     for bv in args:
         annotations += bv.annotations
     return BitVec(nraw, annotations)
 
 
 def BVAddNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
-    """Creates predicate that verifies that the addition doesn't overflow"""
-    if not isinstance(a, Expression):
+    """Creates predicate that verifies that the addition doesn't overflow.
+
+    :param a:
+    :param b:
+    :param signed:
+    :return:
+    """
+    if not isinstance(a, BitVec):
         a = BitVec(z3.BitVecVal(a, 256))
-    if not isinstance(b, Expression):
+    if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))
     return Bool(z3.BVAddNoOverflow(a.raw, b.raw, signed))
 
 
 def BVMulNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
-    """Creates predicate that verifies that the multiplication doesn't overflow"""
-    if not isinstance(a, Expression):
+    """Creates predicate that verifies that the multiplication doesn't
+    overflow.
+
+    :param a:
+    :param b:
+    :param signed:
+    :return:
+    """
+    if not isinstance(a, BitVec):
         a = BitVec(z3.BitVecVal(a, 256))
-    if not isinstance(b, Expression):
+    if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))
     return Bool(z3.BVMulNoOverflow(a.raw, b.raw, signed))
 
 
 def BVSubNoUnderflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
-    """Creates predicate that verifies that the subtraction doesn't overflow"""
-    if not isinstance(a, Expression):
+    """Creates predicate that verifies that the subtraction doesn't overflow.
+
+    :param a:
+    :param b:
+    :param signed:
+    :return:
+    """
+    if not isinstance(a, BitVec):
         a = BitVec(z3.BitVecVal(a, 256))
-    if not isinstance(b, Expression):
+    if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))

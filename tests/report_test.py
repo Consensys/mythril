@@ -41,7 +41,7 @@ def _generate_report(input_file):
 
 @pytest.fixture(scope="module")
 def reports():
-    """ Fixture that analyses all reports"""
+    """Fixture that analyses all reports."""
     reset_callback_modules()
     pool = Pool(cpu_count())
     input_files = sorted(
@@ -53,7 +53,8 @@ def reports():
 
 
 def _assert_empty(changed_files, postfix):
-    """ Asserts there are no changed files and otherwise builds error message"""
+    """Asserts there are no changed files and otherwise builds error
+    message."""
     message = ""
     for input_file in changed_files:
         output_expected = (
@@ -75,13 +76,18 @@ def _assert_empty(changed_files, postfix):
     assert message == "", message
 
 
-def _assert_empty_json(changed_files):
-    """ Asserts there are no changed files and otherwise builds error message"""
-    postfix = ".json"
+def _assert_empty_json(changed_files, postfix=".json"):
+    """Asserts there are no changed files and otherwise builds error
+    message."""
     expected = []
     actual = []
 
     def ordered(obj):
+        """
+
+        :param obj:
+        :return:
+        """
         if isinstance(obj, dict):
             return sorted((k, ordered(v)) for k, v in obj.items())
         elif isinstance(obj, list):
@@ -97,7 +103,7 @@ def _assert_empty_json(changed_files):
             (TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)).read_text()
         )
 
-        if not ordered(output_expected.items()) == ordered(output_current.items()):
+        if not ordered(output_expected) == ordered(output_current):
             expected.append(output_expected)
             actual.append(output_current)
             print("Found difference in {}".format(str(input_file)))
@@ -106,8 +112,8 @@ def _assert_empty_json(changed_files):
 
 
 def _get_changed_files(postfix, report_builder, reports):
-    """
-    Returns a generator for all unexpected changes in generated reports
+    """Returns a generator for all unexpected changes in generated reports.
+
     :param postfix: The applicable postfix
     :param report_builder: serialization function
     :param reports: The reports to serialize
@@ -117,15 +123,17 @@ def _get_changed_files(postfix, report_builder, reports):
         output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + postfix)
         output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + postfix)
         output_current.write_text(report_builder(report))
-
         if not (output_expected.read_text() == output_current.read_text()):
             yield input_file
 
 
-def _get_changed_files_json(report_builder, reports):
-    postfix = ".json"
-
+def _get_changed_files_json(report_builder, reports, postfix=".json"):
     def ordered(obj):
+        """
+
+        :param obj:
+        :return:
+        """
         if isinstance(obj, dict):
             return sorted((k, ordered(v)) for k, v in obj.items())
         elif isinstance(obj, list):
@@ -167,4 +175,15 @@ def test_text_report(reports):
             ".text", lambda report: _fix_path(report.as_text()), reports
         ),
         ".text",
+    )
+
+
+def test_jsonv2_report(reports):
+    _assert_empty_json(
+        _get_changed_files_json(
+            lambda report: _fix_path(report.as_swc_standard_format()).strip(),
+            reports,
+            ".jsonv2",
+        ),
+        ".jsonv2",
     )

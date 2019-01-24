@@ -8,9 +8,11 @@ class RpcTest(BaseTestCase):
     client = None
 
     def setUp(self):
+        """"""
         self.client = EthJsonRpc()
 
     def tearDown(self):
+        """"""
         self.client.close()
 
     def test_eth_coinbase(self):

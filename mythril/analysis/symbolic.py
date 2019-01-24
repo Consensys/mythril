@@ -1,21 +1,28 @@
-from mythril.analysis.security import get_detection_module_hooks
+"""This module contains a wrapper around LASER for extended analysis
+purposes."""
+
+import copy
+from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
-from mythril.solidity.soliditycontract import SolidityContract, EVMContract
-import copy
-from .ops import get_variable, SStore, Call, VarType
 from mythril.laser.ethereum.strategy.basic import (
-    DepthFirstSearchStrategy,
     BreadthFirstSearchStrategy,
+    DepthFirstSearchStrategy,
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
 
+from mythril.laser.ethereum.plugins.mutation_pruner import MutationPruner
+
+from mythril.solidity.soliditycontract import EVMContract, SolidityContract
+from .ops import Call, SStore, VarType, get_variable
+
 
 class SymExecWrapper:
+    """Wrapper class for the LASER Symbolic virtual machine.
 
-    """
-    Wrapper class for the LASER Symbolic virtual machine. Symbolically executes the code and does a bit of pre-analysis for convenience.
+    Symbolically executes the code and does a bit of pre-analysis for
+    convenience.
     """
 
     def __init__(
@@ -29,8 +36,21 @@ class SymExecWrapper:
         create_timeout=None,
         transaction_count=2,
         modules=(),
+        compulsory_statespace=True,
+        enable_iprof=False,
     ):
+        """
 
+        :param contract:
+        :param address:
+        :param strategy:
+        :param dynloader:
+        :param max_depth:
+        :param execution_timeout:
+        :param create_timeout:
+        :param transaction_count:
+        :param modules:
+        """
         if strategy == "dfs":
             s_strategy = DepthFirstSearchStrategy
         elif strategy == "bfs":
@@ -48,7 +68,9 @@ class SymExecWrapper:
             dynamic_loader=dynloader,
             contract_name=contract.name,
         )
-
+        requires_statespace = (
+            compulsory_statespace or len(get_detection_modules("post", modules)) > 0
+        )
         self.accounts = {address: account}
 
         self.laser = svm.LaserEVM(
@@ -59,7 +81,13 @@ class SymExecWrapper:
             strategy=s_strategy,
             create_timeout=create_timeout,
             transaction_count=transaction_count,
+            requires_statespace=requires_statespace,
+            enable_iprof=enable_iprof,
         )
+        mutation_plugin = MutationPruner()
+
+        mutation_plugin.initialize(self.laser)
+
         self.laser.register_hooks(
             hook_type="pre",
             hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
@@ -79,6 +107,9 @@ class SymExecWrapper:
             )
         else:
             self.laser.sym_exec(address)
+
+        if not requires_statespace:
+            return
 
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
@@ -184,7 +215,12 @@ class SymExecWrapper:
                 state_index += 1
 
     def find_storage_write(self, address, index):
+        """
 
+        :param address:
+        :param index:
+        :return:
+        """
         # Find an SSTOR not constrained by caller that writes to storage index "index"
 
         try:
