@@ -1,8 +1,8 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 
-from z3 import Solver, unsat
-from copy import copy
+from mythril.laser.smt import Solver
+from z3 import unsat
 
 
 class Constraints(list):
@@ -13,23 +13,23 @@ class Constraints(list):
     TODO: add the solver to this class after callback refactor
     """
 
-    def __init__(self, constraint_list=None, solver=None, possibility=None):
+    def __init__(self, constraint_list=None, possibility=None):
         """
 
         :param constraint_list:
-        :param solver:
         :param possibility:
         """
         super(Constraints, self).__init__(constraint_list or [])
-        self.solver = solver or Solver()
-        self.solver.set("timeout", 1)
         self.__possibility = possibility
 
     def check_possibility(self):
-        if self.__possibility is None:
-            self.__possibility = self.solver.check() != unsat
-        if self.__possibility is False:
-            self.solver = None
+        if self.__possibility is not None:
+            return self.__possibility
+        solver = Solver()
+        solver.set_timeout(10)
+        for constraint in self[:]:
+            solver.add(constraint)
+        self.__possibility = solver.check() != unsat
         return self.__possibility
 
     def append(self, constraint):
@@ -38,8 +38,7 @@ class Constraints(list):
         :param constraint:
         """
         super(Constraints, self).append(constraint)
-        if self.solver is not None:
-            self.solver.add(constraint.raw)
+        self.__possibility = None
 
     def pop(self, index=-1):
         """
@@ -54,10 +53,7 @@ class Constraints(list):
         :return:
         """
         constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, self.solver)
-
-    def copy_solver(self):
-        self.solver = copy(self.solver)
+        return Constraints(constraint_list, possibility=self.__possibility)
 
     def __deepcopy__(self, memodict=None):
         """
@@ -74,13 +70,7 @@ class Constraints(list):
         :return:
         """
         constraints_list = super(Constraints, self).__add__(constraints)
-        if self.solver is not None:
-            solver = copy(self.solver)
-            for constraint in constraints:
-                solver.add(constraint.raw)
-        else:
-            solver = None
-        return Constraints(constraint_list=constraints_list, solver=solver)
+        return Constraints(constraint_list=constraints_list, possibility=None)
 
     def __iadd__(self, constraints):
         """
@@ -89,8 +79,5 @@ class Constraints(list):
         :return:
         """
         super(Constraints, self).__iadd__(constraints)
-        if self.solver is None:
-            return self
-        for constraint in constraints:
-            self.solver.add(constraint.raw)
+        self.__possibility = None
         return self

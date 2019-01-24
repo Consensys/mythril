@@ -114,15 +114,6 @@ class GlobalState:
         transaction_id = self.current_transaction.id
         return symbol_factory.BitVecSym("{}_{}".format(transaction_id, name), size)
 
-    def split_global_state(self):
-        global_state1 = copy(self)
-        global_state2 = copy(self)
-
-        global_state1.mstate.constraints.copy_solver()
-        global_state2.mstate.constraints.copy_solver()
-
-        return global_state1, global_state2
-
     def annotate(self, annotation: StateAnnotation) -> None:
         """
 

@@ -1494,10 +1494,7 @@ class Instruction:
         )
         branched = False
 
-        if index and negated_cond and positive_cond:
-            new_state1, new_state2 = global_state.split_global_state()
-        else:
-            new_state1, new_state2 = copy(global_state), copy(global_state)
+        new_state1, new_state2 = copy(global_state), copy(global_state)
 
         if negated_cond:
             new_state = copy(global_state)
