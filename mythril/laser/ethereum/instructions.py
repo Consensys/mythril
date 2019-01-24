@@ -1492,21 +1492,18 @@ class Instruction:
         positive_cond = (type(condi) == bool and condi) or (
             isinstance(condi, Bool) and not is_false(condi)
         )
-        branched = False
-
-        new_state1, new_state2 = copy(global_state), copy(global_state)
 
         if negated_cond:
             new_state = copy(global_state)
             # add JUMPI gas cost
-            new_state1.mstate.min_gas_used += min_gas
-            new_state1.mstate.max_gas_used += max_gas
+            new_state.mstate.min_gas_used += min_gas
+            new_state.mstate.max_gas_used += max_gas
 
             # manually increment PC
-            new_state1.mstate.depth += 1
-            new_state1.mstate.pc += 1
-            new_state1.mstate.constraints.append(negated)
-            states.append(new_state1)
+            new_state.mstate.depth += 1
+            new_state.mstate.pc += 1
+            new_state.mstate.constraints.append(negated)
+            states.append(new_state)
         else:
             log.debug("Pruned unreachable states.")
 
@@ -1520,19 +1517,18 @@ class Instruction:
 
         if instr["opcode"] == "JUMPDEST":
             if positive_cond:
-                new_state2 = copy(global_state)
+                new_state = copy(global_state)
                 # add JUMPI gas cost
-                new_state2.mstate.min_gas_used += min_gas
-                new_state2.mstate.max_gas_used += max_gas
+                new_state.mstate.min_gas_used += min_gas
+                new_state.mstate.max_gas_used += max_gas
 
                 # manually set PC to destination
-                new_state2.mstate.pc = index
-                new_state2.mstate.depth += 1
-                new_state2.mstate.constraints.append(condi)
-                states.append(new_state2)
+                new_state.mstate.pc = index
+                new_state.mstate.depth += 1
+                new_state.mstate.constraints.append(condi)
+                states.append(new_state)
             else:
                 log.debug("Pruned unreachable states.")
-        del global_state
         return states
 
     @StateTransition()

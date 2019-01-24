@@ -255,8 +255,6 @@ class LaserEVM:
                 final_states.append(global_state)
             self.total_states += len(new_states)
 
-            global_state.mstate.constraints.solver = None
-
         return final_states if track_gas else None
 
     def _add_world_state(self, global_state: GlobalState):

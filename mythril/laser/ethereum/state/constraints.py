@@ -56,6 +56,12 @@ class Constraints(list):
         """
         raise NotImplementedError
 
+    def get_list(self) -> List[Bool]:
+        """
+        :return: returns the list of constraints
+        """
+        return self[:]
+
     def __copy__(self) -> "Constraints":
         """
 
@@ -81,7 +87,7 @@ class Constraints(list):
         constraints_list = super(Constraints, self).__add__(constraints)
         return Constraints(constraint_list=constraints_list, is_possible=None)
 
-    def __iadd__(self, constraints: List[Bool]) -> None:
+    def __iadd__(self, constraints: List[Bool]) -> "Constraints":
         """
 
         :param constraints:
@@ -89,3 +95,4 @@ class Constraints(list):
         """
         super(Constraints, self).__iadd__(constraints)
         self.__is_possible = None
+        return self
