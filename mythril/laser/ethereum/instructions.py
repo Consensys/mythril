@@ -1483,9 +1483,6 @@ class Instruction:
         condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
         condi.simplify()
 
-        # Get jump destination
-        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
-
         negated_cond = (type(negated) == bool and negated) or (
             isinstance(negated, Bool) and not is_false(negated)
         )
@@ -1508,6 +1505,9 @@ class Instruction:
             log.debug("Pruned unreachable states.")
 
         # True case
+
+        # Get jump destination
+        index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
         if not index:
             log.debug("Invalid jump destination: " + str(jump_addr))
