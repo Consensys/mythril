@@ -22,7 +22,7 @@ def get_model(constraints, minimize=(), maximize=()):
     :return:
     """
     s = Optimize()
-    timeout = min(100000, time_handler.time_remaining()-500)
+    timeout = min(100000, time_handler.time_remaining() - 500)
     if timeout < 0:
         raise UnsatError
     s.set_timeout(timeout)

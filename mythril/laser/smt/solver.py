@@ -20,7 +20,7 @@ class BaseSolver(Generic[T]):
 
         :param timeout:
         """
-        assert timeout > 0     # timeout <= 0 isn't supported by z3
+        assert timeout > 0  # timeout <= 0 isn't supported by z3
         self.raw.set(timeout=timeout)
 
     def add(self, constraints: Union[Bool, List[Bool]]) -> None:
