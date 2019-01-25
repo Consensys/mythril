@@ -5,7 +5,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-from mythril.laser.smt import And, symbol_factory
+from mythril.laser.smt import And, symbol_factory, Bool
 
 
 class MutationAnnotation(StateAnnotation):
