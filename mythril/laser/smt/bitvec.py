@@ -210,10 +210,6 @@ class BitVecFunc(BitVec):
         :param input:
         """
 
-        from mythril.laser.smt import symbol_factory
-
-        self.symbol_factory = symbol_factory
-
         self.name = name
         self.input = input
         super().__init__(raw, annotations)
