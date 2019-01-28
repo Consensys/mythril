@@ -27,10 +27,17 @@ class Model:
          If item is a declaration, then the interpretation is returned
          """
         for internal_model in self.raw:
+            is_last_model = self.raw.index(internal_model) == len(self.raw) - 1
+
             try:
-                return internal_model[item]
-            except KeyError:
+                result = internal_model[item]
+                if result is None:
+                    continue
+            except IndexError:
+                if is_last_model:
+                    raise
                 continue
+            return None
 
     def eval(self, expression: z3.ExprRef, model_completion: bool = False):
         """ Evaluate the expression using this model
