@@ -22,14 +22,14 @@ def _get_expr_variables(expression: z3.ExprRef):
 class DependenceBucket:
     """ Bucket object to contain a set of conditions that are dependent on each other """
 
-    def __init__(self, variables=None, condition=None):
+    def __init__(self, variables=None, conditions=None):
         """
         Initializes a DependenceBucket object
-        :param variables: Variables contained in the expressions
-        :param expressions: The expressions that are dependent on each other
+        :param variables: Variables contained in the conditions
+        :param conditions: The conditions that are dependent on each other
         """
         self.variables = variables or []
-        self.expressions = condition or []
+        self.conditions = conditions or []
 
 
 class DependenceMap:
@@ -67,13 +67,13 @@ class DependenceMap:
     def merge_buckets(self, bucket_list: List[DependenceBucket]):
         """ Merges the buckets in bucket list """
         variables = []
-        expressions = []
+        conditions = []
         for bucket in bucket_list:
             self.buckets.remove(bucket)
             variables += bucket.variables
-            expressions += bucket.expressions
+            conditions += bucket.conditions
 
-        new_bucket = DependenceBucket(variables, expressions)
+        new_bucket = DependenceBucket(variables, conditions)
         self.buckets.append(new_bucket)
 
         return new_bucket
@@ -126,7 +126,7 @@ class IndependenceSolver:
         self.models = []
         for bucket in dependence_map.buckets:
             self.raw.reset()
-            self.raw.append(*bucket.expressions)
+            self.raw.append(*bucket.conditions)
             check_result = self.raw.check()
             if check_result == z3.unsat:
                 return z3.unsat
