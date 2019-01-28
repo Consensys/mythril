@@ -1,5 +1,6 @@
 import z3
 
+from mythril.laser.smt import Model
 
 def get_expr_variables(expression: z3.ExprRef):
     """
@@ -124,7 +125,7 @@ class IndependenceSolver:
 
         :return:
         """
-        return self.models
+        return Model(self.models)
 
     def reset(self) -> None:
         """Reset this solver."""
