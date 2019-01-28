@@ -1,7 +1,7 @@
 import z3
 
 from mythril.laser.smt import Model
-
+from typing import List
 
 def _get_expr_variables(expression: z3.ExprRef):
     """
@@ -19,17 +19,29 @@ def _get_expr_variables(expression: z3.ExprRef):
 
 
 class DependenceBucket:
-    def __init__(self, variables=None, expressions=None):
+    """ Bucket object to contain a set of conditions that are dependent on each other """
+    def __init__(self, variables=None, condition=None):
+        """
+        Initializes a DependenceBucket object
+        :param variables: Variables contained in the expressions
+        :param expressions: The expressions that are dependent on each other
+        """
         self.variables = variables or []
-        self.expressions = expressions or []
+        self.expressions = condition or []
 
 
 class DependenceMap:
+    """ DependenceMap object that maintains a set of dependence buckets, used to separate independent smt queries """
     def __init__(self):
+        """ Initializes a DependenceMap object """
         self.buckets = []
         self.variable_map = {}
 
-    def add_condition(self, condition):
+    def add_condition(self, condition: z3.BoolRef):
+        """
+        Add condition to the dependence map
+        :param condition: The condition that is to be added to the dependence map
+        """
         variables = _get_expr_variables(condition)
         relevant_buckets = []
         for variable in variables:
@@ -49,7 +61,8 @@ class DependenceMap:
         for variable in variables:
             self.variable_map[str(variable)] = new_bucket
 
-    def merge_buckets(self, bucket_list):
+    def merge_buckets(self, bucket_list: List[DependenceBucket]):
+        """ Merges the buckets in bucket list """
         variables = []
         expressions = []
         for bucket in bucket_list:
