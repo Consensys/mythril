@@ -1,4 +1,4 @@
-from mythril.laser.smt.independence_solver import _get_expr_variables
+from mythril.laser.smt.independence_solver import _get_expr_variables, DependenceBucket, DependenceMap
 import z3
 
 
@@ -30,3 +30,16 @@ def test_get_expr_variables_num():
 
     # Assert
     assert [b] == variables
+
+
+def test_create_bucket():
+    # Arrange
+    x = z3.Bool('x')
+
+    # Act
+    bucket = DependenceBucket([x], [x])
+
+    # Assert
+    assert [x] == bucket.variables
+    assert [x] == bucket.expressions
+
