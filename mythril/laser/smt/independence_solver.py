@@ -2,7 +2,8 @@ import z3
 
 from mythril.laser.smt import Model
 
-def get_expr_variables(expression: z3.ExprRef):
+
+def _get_expr_variables(expression: z3.ExprRef):
     """
     Get's the variables that make up the current expression
     :param expression:
@@ -12,7 +13,7 @@ def get_expr_variables(expression: z3.ExprRef):
     if not expression.children() and not isinstance(expression, z3.BitVecNumRef):
         result.append(expression)
     for child in expression.children():
-        c_children = get_expr_variables(child)
+        c_children = _get_expr_variables(child)
         result.extend(c_children)
     return result
 
@@ -29,7 +30,7 @@ class DependenceMap:
         self.variable_map = {}
 
     def add_condition(self, condition):
-        variables = get_expr_variables(condition)
+        variables = _get_expr_variables(condition)
         relevant_buckets = []
         for variable in variables:
             try:
