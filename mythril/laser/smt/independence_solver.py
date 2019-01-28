@@ -1,7 +1,7 @@
 import z3
 
 from mythril.laser.smt import Model
-from typing import List
+from typing import Set
 
 
 def _get_expr_variables(expression: z3.ExprRef):
@@ -45,12 +45,12 @@ class DependenceMap:
         Add condition to the dependence map
         :param condition: The condition that is to be added to the dependence map
         """
-        variables = _get_expr_variables(condition)
-        relevant_buckets = []
+        variables = set(_get_expr_variables(condition))
+        relevant_buckets = set()
         for variable in variables:
             try:
                 bucket = self.variable_map[str(variable)]
-                relevant_buckets.append(bucket)
+                relevant_buckets.add(bucket)
             except KeyError:
                 continue
 
@@ -59,12 +59,13 @@ class DependenceMap:
 
         if relevant_buckets:
             # Merge buckets, and rewrite variable map accordingly
-            new_bucket = self.merge_buckets(relevant_buckets + [new_bucket])
+            relevant_buckets.add(new_bucket)
+            new_bucket = self.merge_buckets(relevant_buckets)
 
         for variable in variables:
             self.variable_map[str(variable)] = new_bucket
 
-    def merge_buckets(self, bucket_list: List[DependenceBucket]):
+    def merge_buckets(self, bucket_list: Set[DependenceBucket]):
         """ Merges the buckets in bucket list """
         variables = []
         conditions = []
@@ -80,7 +81,7 @@ class DependenceMap:
 
 
 class IndependenceSolver:
-    """An SMT solver object."""
+    """An SMT solver object that uses independence optimization"""
 
     def __init__(self):
         """"""
@@ -99,8 +100,7 @@ class IndependenceSolver:
     def add(self, constraints: list) -> None:
         """Adds the constraints to this solver.
 
-        :param constraints:
-        :return:
+        :param constraints: constraints to add
         """
         constraints = [c.raw for c in constraints]
         self.constraints.extend(constraints)
@@ -108,17 +108,13 @@ class IndependenceSolver:
     def append(self, constraints: list) -> None:
         """Adds the constraints to this solver.
 
-        :param constraints:
-        :return:
+        :param constraints: constraints to add
         """
         constraints = [c.raw for c in constraints]
         self.constraints.extend(constraints)
 
     def check(self):
-        """Returns z3 smt check result.
-
-        :return:
-        """
+        """Returns z3 smt check result. """
         dependence_map = DependenceMap()
         for constraint in self.constraints:
             dependence_map.add_condition(constraint)
@@ -138,10 +134,7 @@ class IndependenceSolver:
         return z3.sat
 
     def model(self):
-        """Returns z3 model for a solution.
-
-        :return:
-        """
+        """Returns z3 model for a solution. """
         return Model(self.models)
 
     def reset(self) -> None:
@@ -150,22 +143,5 @@ class IndependenceSolver:
 
     def pop(self, num) -> None:
         """Pop num constraints from this solver.
-
-        :param num:
         """
         self.constraints.pop(num)
-
-
-from mythril.laser.smt import symbol_factory
-
-a = symbol_factory.BitVecSym("a", 256)
-c = symbol_factory.BitVecSym("c", 256)
-b = c == (a + symbol_factory.BitVecVal(1, 256))
-
-e = symbol_factory.BitVecSym("d", 256) == symbol_factory.BitVecVal(3, 256)
-
-solver = IndependenceSolver()
-solver.add([b, e])
-result = solver.check()
-
-print("hello")
