@@ -3,6 +3,7 @@ import z3
 from mythril.laser.smt import Model
 from typing import List
 
+
 def _get_expr_variables(expression: z3.ExprRef):
     """
     Get's the variables that make up the current expression
@@ -20,6 +21,7 @@ def _get_expr_variables(expression: z3.ExprRef):
 
 class DependenceBucket:
     """ Bucket object to contain a set of conditions that are dependent on each other """
+
     def __init__(self, variables=None, condition=None):
         """
         Initializes a DependenceBucket object
@@ -32,6 +34,7 @@ class DependenceBucket:
 
 class DependenceMap:
     """ DependenceMap object that maintains a set of dependence buckets, used to separate independent smt queries """
+
     def __init__(self):
         """ Initializes a DependenceMap object """
         self.buckets = []
@@ -154,11 +157,12 @@ class IndependenceSolver:
 
 
 from mythril.laser.smt import symbol_factory
-a = symbol_factory.BitVecSym('a', 256)
-c = symbol_factory.BitVecSym('c', 256)
+
+a = symbol_factory.BitVecSym("a", 256)
+c = symbol_factory.BitVecSym("c", 256)
 b = c == (a + symbol_factory.BitVecVal(1, 256))
 
-e = symbol_factory.BitVecSym('d', 256) == symbol_factory.BitVecVal(3, 256)
+e = symbol_factory.BitVecSym("d", 256) == symbol_factory.BitVecVal(3, 256)
 
 solver = IndependenceSolver()
 solver.add([b, e])

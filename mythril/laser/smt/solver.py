@@ -4,6 +4,7 @@ import z3
 from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.model import Model
 
+
 class Solver:
     """An SMT solver object."""
 

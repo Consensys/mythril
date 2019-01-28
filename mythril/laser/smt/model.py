@@ -7,6 +7,7 @@ class Model:
     This implementation allows for multiple internal models, this is required for the use of an independence solver
     which has models for multiple queries which need an uniform output.
     """
+
     def __init__(self, models=None):
         """
         Initialize a model object
