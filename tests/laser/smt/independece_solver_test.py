@@ -1,4 +1,7 @@
-from mythril.laser.smt.independence_solver import _get_expr_variables, DependenceBucket, DependenceMap
+from mythril.laser.smt.independence_solver import _get_expr_variables, DependenceBucket, DependenceMap,\
+    IndependenceSolver
+from mythril.laser.smt import symbol_factory
+
 import z3
 
 
@@ -78,3 +81,77 @@ def test_dependence_map():
     assert b in dependence_map.buckets[1].variables
 
     assert conditions[2] in dependence_map.buckets[1].conditions
+
+
+def test_Independence_solver_unsat():
+    # Arrange
+    x = symbol_factory.BitVecSym('x', 256)
+    y = symbol_factory.BitVecSym('y', 256)
+    z = symbol_factory.BitVecSym('z', 256)
+    a = symbol_factory.BitVecSym('a', 256)
+    b = symbol_factory.BitVecSym('b', 256)
+
+    conditions = [
+        x > y,
+        y == z,
+        y != z,
+        a == b
+    ]
+
+    solver = IndependenceSolver()
+
+    # Act
+    solver.add(conditions)
+    result = solver.check()
+
+    # Assert
+    assert z3.unsat == result
+
+
+def test_independence_solver_unsat_in_second_bucket():
+    # Arrange
+    x = symbol_factory.BitVecSym('x', 256)
+    y = symbol_factory.BitVecSym('y', 256)
+    z = symbol_factory.BitVecSym('z', 256)
+    a = symbol_factory.BitVecSym('a', 256)
+    b = symbol_factory.BitVecSym('b', 256)
+
+    conditions = [
+        x > y,
+        y == z,
+        a == b,
+        a != b
+    ]
+
+    solver = IndependenceSolver()
+
+    # Act
+    solver.add(conditions)
+    result = solver.check()
+
+    # Assert
+    assert z3.unsat == result
+
+
+def test_independence_solver_sat():
+    # Arrange
+    x = symbol_factory.BitVecSym('x', 256)
+    y = symbol_factory.BitVecSym('y', 256)
+    z = symbol_factory.BitVecSym('z', 256)
+    a = symbol_factory.BitVecSym('a', 256)
+    b = symbol_factory.BitVecSym('b', 256)
+
+    conditions = [
+        x > y,
+        y == z,
+        a == b,
+    ]
+
+    solver = IndependenceSolver()
+
+    # Act
+    solver.add(conditions)
+    result = solver.check()
+
+    # Assert
+    assert z3.sat == result
