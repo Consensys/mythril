@@ -1,5 +1,9 @@
-from mythril.laser.smt.independence_solver import _get_expr_variables, DependenceBucket, DependenceMap,\
-    IndependenceSolver
+from mythril.laser.smt.independence_solver import (
+    _get_expr_variables,
+    DependenceBucket,
+    DependenceMap,
+    IndependenceSolver,
+)
 from mythril.laser.smt import symbol_factory
 
 import z3
@@ -7,10 +11,10 @@ import z3
 
 def test_get_expr_variables():
     # Arrange
-    x = z3.Bool('x')
-    y = z3.BitVec('y', 256)
-    z = z3.BitVec('z', 256)
-    b = z3.BitVec('b', 256)
+    x = z3.Bool("x")
+    y = z3.BitVec("y", 256)
+    z = z3.BitVec("z", 256)
+    b = z3.BitVec("b", 256)
     expression = z3.If(x, y, z + b)
 
     # Act
@@ -25,7 +29,7 @@ def test_get_expr_variables():
 
 def test_get_expr_variables_num():
     # Arrange
-    b = z3.BitVec('b', 256)
+    b = z3.BitVec("b", 256)
     expression = b + z3.BitVecVal(2, 256)
 
     # Act
@@ -37,7 +41,7 @@ def test_get_expr_variables_num():
 
 def test_create_bucket():
     # Arrange
-    x = z3.Bool('x')
+    x = z3.Bool("x")
 
     # Act
     bucket = DependenceBucket([x], [x])
@@ -49,17 +53,13 @@ def test_create_bucket():
 
 def test_dependence_map():
     # Arrange
-    x = z3.BitVec('x', 256)
-    y = z3.BitVec('y', 256)
-    z = z3.BitVec('z', 256)
-    a = z3.BitVec('a', 256)
-    b = z3.BitVec('b', 256)
+    x = z3.BitVec("x", 256)
+    y = z3.BitVec("y", 256)
+    z = z3.BitVec("z", 256)
+    a = z3.BitVec("a", 256)
+    b = z3.BitVec("b", 256)
 
-    conditions = [
-        x > y,
-        y == z,
-        a == b
-    ]
+    conditions = [x > y, y == z, a == b]
 
     dependence_map = DependenceMap()
 
@@ -85,18 +85,13 @@ def test_dependence_map():
 
 def test_Independence_solver_unsat():
     # Arrange
-    x = symbol_factory.BitVecSym('x', 256)
-    y = symbol_factory.BitVecSym('y', 256)
-    z = symbol_factory.BitVecSym('z', 256)
-    a = symbol_factory.BitVecSym('a', 256)
-    b = symbol_factory.BitVecSym('b', 256)
+    x = symbol_factory.BitVecSym("x", 256)
+    y = symbol_factory.BitVecSym("y", 256)
+    z = symbol_factory.BitVecSym("z", 256)
+    a = symbol_factory.BitVecSym("a", 256)
+    b = symbol_factory.BitVecSym("b", 256)
 
-    conditions = [
-        x > y,
-        y == z,
-        y != z,
-        a == b
-    ]
+    conditions = [x > y, y == z, y != z, a == b]
 
     solver = IndependenceSolver()
 
@@ -110,18 +105,13 @@ def test_Independence_solver_unsat():
 
 def test_independence_solver_unsat_in_second_bucket():
     # Arrange
-    x = symbol_factory.BitVecSym('x', 256)
-    y = symbol_factory.BitVecSym('y', 256)
-    z = symbol_factory.BitVecSym('z', 256)
-    a = symbol_factory.BitVecSym('a', 256)
-    b = symbol_factory.BitVecSym('b', 256)
+    x = symbol_factory.BitVecSym("x", 256)
+    y = symbol_factory.BitVecSym("y", 256)
+    z = symbol_factory.BitVecSym("z", 256)
+    a = symbol_factory.BitVecSym("a", 256)
+    b = symbol_factory.BitVecSym("b", 256)
 
-    conditions = [
-        x > y,
-        y == z,
-        a == b,
-        a != b
-    ]
+    conditions = [x > y, y == z, a == b, a != b]
 
     solver = IndependenceSolver()
 
@@ -135,17 +125,13 @@ def test_independence_solver_unsat_in_second_bucket():
 
 def test_independence_solver_sat():
     # Arrange
-    x = symbol_factory.BitVecSym('x', 256)
-    y = symbol_factory.BitVecSym('y', 256)
-    z = symbol_factory.BitVecSym('z', 256)
-    a = symbol_factory.BitVecSym('a', 256)
-    b = symbol_factory.BitVecSym('b', 256)
+    x = symbol_factory.BitVecSym("x", 256)
+    y = symbol_factory.BitVecSym("y", 256)
+    z = symbol_factory.BitVecSym("z", 256)
+    a = symbol_factory.BitVecSym("a", 256)
+    b = symbol_factory.BitVecSym("b", 256)
 
-    conditions = [
-        x > y,
-        y == z,
-        a == b,
-    ]
+    conditions = [x > y, y == z, a == b]
 
     solver = IndependenceSolver()
 

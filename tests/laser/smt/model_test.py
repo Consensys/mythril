@@ -5,8 +5,8 @@ import z3
 def test_decls():
     # Arrange
     solver = Solver()
-    x = symbol_factory.BitVecSym('x', 256)
-    expression = x == symbol_factory.BitVecVal(2 , 256)
+    x = symbol_factory.BitVecSym("x", 256)
+    expression = x == symbol_factory.BitVecVal(2, 256)
 
     # Act
     solver.add(expression)
@@ -23,7 +23,7 @@ def test_decls():
 def test_get_item():
     # Arrange
     solver = Solver()
-    x = symbol_factory.BitVecSym('x', 256)
+    x = symbol_factory.BitVecSym("x", 256)
     expression = x == symbol_factory.BitVecVal(2, 256)
 
     # Act
@@ -41,7 +41,7 @@ def test_get_item():
 def test_as_long():
     # Arrange
     solver = Solver()
-    x = symbol_factory.BitVecSym('x', 256)
+    x = symbol_factory.BitVecSym("x", 256)
     expression = x == symbol_factory.BitVecVal(2, 256)
 
     # Act
