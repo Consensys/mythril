@@ -20,6 +20,7 @@ class Model:
         result = []
         for internal_model in self.raw:
             result.extend(internal_model.decls())
+        return result
 
     def __getitem__(self, item):
         """ Get declaration from model
@@ -31,13 +32,13 @@ class Model:
 
             try:
                 result = internal_model[item]
-                if result is None:
-                    continue
+                if result is not None:
+                    return result
             except IndexError:
                 if is_last_model:
                     raise
                 continue
-            return None
+        return None
 
     def eval(self, expression: z3.ExprRef, model_completion: bool = False):
         """ Evaluate the expression using this model
