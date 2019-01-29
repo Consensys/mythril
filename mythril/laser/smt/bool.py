@@ -1,7 +1,7 @@
 """This module provides classes for an SMT abstraction of boolean
 expressions."""
 
-from typing import Union, cast
+from typing import Union, cast, List
 
 import z3
 
@@ -81,13 +81,13 @@ class Bool(Expression[z3.BoolRef]):
             return False
 
 
-def And(*args: Bool) -> Bool:
+def And(*args: Union[Bool, bool]) -> Bool:
     """Create an And expression."""
     union = []
-    args = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
-    for arg in args:
+    args_list = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]  # type: List[Bool]
+    for arg in args_list:
         union.append(arg.annotations)
-    return Bool(z3.And([a.raw for a in args]), union)
+    return Bool(z3.And([a.raw for a in args_list]), union)
 
 
 def Or(a: Bool, b: Bool) -> Bool:

@@ -1,10 +1,10 @@
 """This module contains utility functions for the Mythril support package."""
-
+from typing import Dict
 
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
 
-    _instances = {}
+    _instances = {}  # type: Dict
 
     def __call__(cls, *args, **kwargs):
         """Delegate the call to an existing resource or a a new one.
