@@ -25,21 +25,21 @@ class Constraints(list):
         :param is_possible: Whether it is possible to satisfy the constraints or not
         """
         super(Constraints, self).__init__(constraint_list or [])
-        self.__default_timeout = 10
-        self.__is_possible = is_possible
+        self._default_timeout = 100
+        self._is_possible = is_possible
 
     def check_possibility(self) -> bool:
         """
         :return: True/False based on the existence of solution of constraints
         """
-        if self.__is_possible is not None:
-            return self.__is_possible
+        if self._is_possible is not None:
+            return self._is_possible
         solver = Solver()
-        solver.set_timeout(self.__default_timeout)
+        solver.set_timeout(self._default_timeout)
         for constraint in self[:]:
             solver.add(constraint)
-        self.__is_possible = solver.check() != unsat
-        return self.__is_possible
+        self._is_possible = solver.check() != unsat
+        return self._is_possible
 
     def append(self, constraint: Bool) -> None:
         """
@@ -47,7 +47,7 @@ class Constraints(list):
         :param constraint: The constraint to be appended
         """
         super(Constraints, self).append(constraint)
-        self.__is_possible = None
+        self._is_possible = None
 
     def pop(self, index: int = -1) -> None:
         """
@@ -69,7 +69,7 @@ class Constraints(list):
         :return: The copied constraint List
         """
         constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, is_possible=self.__is_possible)
+        return Constraints(constraint_list, is_possible=self._is_possible)
 
     def __deepcopy__(self, memodict=None) -> "Constraints":
         """
@@ -95,5 +95,5 @@ class Constraints(list):
         :return:
         """
         super(Constraints, self).__iadd__(constraints)
-        self.__is_possible = None
+        self._is_possible = None
         return self
