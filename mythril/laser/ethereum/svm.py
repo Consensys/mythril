@@ -16,6 +16,7 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.plugins.signals import PluginSignal, PluginSkipWorldState
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
@@ -121,6 +122,7 @@ class LaserEVM:
         log.debug("Starting LASER execution")
 
         try:
+            time_handler.start_execution(self.execution_timeout)
             alarm.start_timeout(self.execution_timeout)
             self.time = datetime.now()
 
