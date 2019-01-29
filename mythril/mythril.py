@@ -19,17 +19,10 @@ import solc
 from ethereum import utils
 from solc.exceptions import SolcError
 
-from mythril.analysis.callgraph import generate_graph
-from mythril.analysis.report import Report
-from mythril.analysis.security import fire_lasers
-from mythril.analysis.symbolic import SymExecWrapper
-from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.ethereum import util
 from mythril.ethereum.evmcontract import EVMContract
-from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
-from mythril.exceptions import CompilerError, CriticalError, NoContractFoundError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.support import signatures
 from mythril.support.source_support import Source
@@ -134,8 +127,8 @@ class Mythril(object):
         if not os.path.exists(db_path):
             # if the default mythril dir doesn't contain a signature DB
             # initialize it with the default one from the project root
-            parent_dir = Path(__file__).parent.parent
-            copyfile(str(parent_dir / "signatures.db"), db_path)
+            asset_dir = Path(__file__).parent / "support" / "assets"
+            copyfile(str(asset_dir / "signatures.db"), db_path)
 
         return mythril_dir
 
