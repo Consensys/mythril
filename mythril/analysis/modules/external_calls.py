@@ -9,6 +9,7 @@ from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 import logging
+import json
 
 log = logging.getLogger(__name__)
 
@@ -45,11 +46,13 @@ def _analyze_state(state):
             constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = str(transaction_sequence)
-            description = (
-                "The contract executes a function call with high gas to a user-supplied address. "
-                "Note that the callee can contain arbitrary code and may re-enter any function in this contract. "
-                "Review the business logic carefully to prevent unanticipated effects on the contract state."
+            debug = json.dumps(transaction_sequence, indent=4)
+            description_head = "A call to a user-supplied address is executed."
+            description_tail = (
+                "The callee address of an external message call can be set by "
+                "the caller. Note that the callee can contain arbitrary code and may re-enter any function "
+                "in this contract. Review the business logic carefully to prevent averse effects on the"
+                "contract state."
             )
 
             issue = Issue(
@@ -57,10 +60,11 @@ def _analyze_state(state):
                 function_name=node.function_name,
                 address=address,
                 swc_id=REENTRANCY,
-                title="External call to user-supplied address",
-                _type="Warning",
+                title="External Call To User-Supplied Address",
                 bytecode=state.environment.code.bytecode,
-                description=description,
+                severity="Medium",
+                description_head=description_head,
+                description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
@@ -71,10 +75,11 @@ def _analyze_state(state):
                 "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
             )
 
-            debug = str(transaction_sequence)
-            description = (
-                "The contract executes a function call to an external address. "
-                "Verify that the code at this address is trusted and immutable."
+            debug = json.dumps(transaction_sequence, indent=4)
+            description_head = "The contract executes an external message call."
+            description_tail = (
+                "An external function call to a fixed contract address is executed. Make sure "
+                "that the callee contract has been reviewed carefully."
             )
 
             issue = Issue(
@@ -82,10 +87,11 @@ def _analyze_state(state):
                 function_name=state.node.function_name,
                 address=address,
                 swc_id=REENTRANCY,
-                title="External call",
-                _type="Informational",
+                title="External Call To Fixed Address",
                 bytecode=state.environment.code.bytecode,
-                description=description,
+                severity="Low",
+                description_head=description_head,
+                description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )

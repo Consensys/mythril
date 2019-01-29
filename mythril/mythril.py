@@ -19,19 +19,13 @@ import solc
 from ethereum import utils
 from solc.exceptions import SolcError
 
-from mythril.analysis.callgraph import generate_graph
-from mythril.analysis.report import Report
-from mythril.analysis.security import fire_lasers
-from mythril.analysis.symbolic import SymExecWrapper
-from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.ethereum import util
 from mythril.ethereum.evmcontract import EVMContract
-from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
-from mythril.exceptions import CompilerError, CriticalError, NoContractFoundError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from mythril.support import signatures
+from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
 from mythril.exceptions import CompilerError, NoContractFoundError, CriticalError
 from mythril.analysis.symbolic import SymExecWrapper
@@ -133,8 +127,8 @@ class Mythril(object):
         if not os.path.exists(db_path):
             # if the default mythril dir doesn't contain a signature DB
             # initialize it with the default one from the project root
-            parent_dir = Path(__file__).parent.parent
-            copyfile(str(parent_dir / "signatures.db"), db_path)
+            asset_dir = Path(__file__).parent / "support" / "assets"
+            copyfile(str(asset_dir / "signatures.db"), db_path)
 
         return mythril_dir
 
@@ -476,6 +470,7 @@ class Mythril(object):
         max_depth=None,
         execution_timeout=None,
         create_timeout=None,
+        enable_iprof=False,
     ):
         """
 
@@ -499,6 +494,7 @@ class Mythril(object):
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
+            enable_iprof=enable_iprof,
         )
 
         return get_serializable_statespace(sym)
@@ -513,6 +509,7 @@ class Mythril(object):
         phrackify=False,
         execution_timeout=None,
         create_timeout=None,
+        enable_iprof=False,
     ):
         """
 
@@ -538,6 +535,7 @@ class Mythril(object):
             max_depth=max_depth,
             execution_timeout=execution_timeout,
             create_timeout=create_timeout,
+            enable_iprof=enable_iprof,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
@@ -552,6 +550,7 @@ class Mythril(object):
         execution_timeout=None,
         create_timeout=None,
         transaction_count=None,
+        enable_iprof=False,
     ):
         """
 
@@ -584,6 +583,7 @@ class Mythril(object):
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
+                    enable_iprof=enable_iprof,
                 )
                 issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:
@@ -596,14 +596,15 @@ class Mythril(object):
                 )
                 issues = retrieve_callback_issues(modules)
 
-            if type(contract) == SolidityContract:
-                for issue in issues:
-                    issue.add_code_info(contract)
+            for issue in issues:
+                issue.add_code_info(contract)
 
             all_issues += issues
 
+        source_data = Source()
+        source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report)
+        report = Report(verbose_report, source_data)
         for issue in all_issues:
             report.append_issue(issue)
 
