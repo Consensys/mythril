@@ -133,7 +133,7 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
             )
 
         global_state.mstate.constraints += transaction.world_state.node.constraints
-        new_node.constraints = global_state.mstate.constraints.as_list()
+        new_node.constraints = global_state.mstate.constraints.as_list
 
     global_state.world_state.transaction_sequence.append(transaction)
     global_state.node = new_node
