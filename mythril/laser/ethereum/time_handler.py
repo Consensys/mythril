@@ -1,7 +1,8 @@
 import time
+from mythril.support.support_utils import Singleton
 
 
-class TimeHandler:
+class TimeHandler(object, metaclass=Singleton):
     def __init__(self):
         self._start_time = None
         self._execution_time = None
