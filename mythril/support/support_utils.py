@@ -1,6 +1,7 @@
 """This module contains utility functions for the Mythril support package."""
 from typing import Dict
 
+
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
 
