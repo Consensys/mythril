@@ -84,6 +84,7 @@ class Bool(Expression[z3.BoolRef]):
 def And(*args: Bool) -> Bool:
     """Create an And expression."""
     union = []
+    args = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
     for arg in args:
         union.append(arg.annotations)
     return Bool(z3.And([a.raw for a in args]), union)
