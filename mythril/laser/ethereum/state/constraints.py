@@ -56,7 +56,8 @@ class Constraints(list):
         """
         raise NotImplementedError
 
-    def get_list(self) -> List[Bool]:
+    @property
+    def as_list(self) -> List[Bool]:
         """
         :return: returns the list of constraints
         """
