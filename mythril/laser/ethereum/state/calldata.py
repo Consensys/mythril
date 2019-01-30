@@ -269,9 +269,7 @@ class BasicSymbolicCalldata(BaseCalldata):
 
     def _load(self, item: Union[int, BitVec], clean=False) -> Any:
         expr_item = (
-            BitVec(symbol_factory.BitVecVal(item, 256))
-            if isinstance(item, int)
-            else item
+            symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
         )  # type: BitVec
 
         symbolic_base_value = If(
