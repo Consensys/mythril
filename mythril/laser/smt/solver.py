@@ -3,6 +3,9 @@ import z3
 
 from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.model import Model
+from mythril.laser.smt.bool import Bool
+
+from typing import List
 
 
 class Solver:
@@ -20,27 +23,21 @@ class Solver:
         """
         self.raw.set(timeout=timeout)
 
-    def add(self, constraints: list) -> None:
+    def add(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        if not isinstance(constraints, list):
-            self.raw.add(constraints.raw)
-            return
         constraints = [c.raw for c in constraints]
         self.raw.add(constraints)
 
-    def append(self, constraints: list) -> None:
+    def append(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        if not isinstance(constraints, list):
-            self.raw.append(constraints.raw)
-            return
         constraints = [c.raw for c in constraints]
         self.raw.add(constraints)
 

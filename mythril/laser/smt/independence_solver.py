@@ -1,7 +1,8 @@
 import z3
 
-from mythril.laser.smt import Model
-from typing import Set, List, Dict
+from mythril.laser.smt.model import Model
+from mythril.laser.smt.bool import Bool
+from typing import Set, List, Dict, Union
 
 
 def _get_expr_variables(expression: z3.ExprRef) -> List[z3.ExprRef]:
@@ -97,7 +98,7 @@ class IndependenceSolver:
         """
         self.raw.set(timeout=timeout)
 
-    def add(self, constraints: list) -> None:
+    def add(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints: constraints to add
@@ -105,7 +106,7 @@ class IndependenceSolver:
         constraints = [c.raw for c in constraints]
         self.constraints.extend(constraints)
 
-    def append(self, constraints: list) -> None:
+    def append(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints: constraints to add

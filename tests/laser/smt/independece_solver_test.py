@@ -96,7 +96,7 @@ def test_Independence_solver_unsat():
     solver = IndependenceSolver()
 
     # Act
-    solver.add(conditions)
+    solver.add(*conditions)
     result = solver.check()
 
     # Assert
@@ -116,7 +116,7 @@ def test_independence_solver_unsat_in_second_bucket():
     solver = IndependenceSolver()
 
     # Act
-    solver.add(conditions)
+    solver.add(*conditions)
     result = solver.check()
 
     # Assert
@@ -136,7 +136,7 @@ def test_independence_solver_sat():
     solver = IndependenceSolver()
 
     # Act
-    solver.add(conditions)
+    solver.add(*conditions)
     result = solver.check()
 
     # Assert
