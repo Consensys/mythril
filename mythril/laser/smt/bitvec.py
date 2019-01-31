@@ -194,7 +194,7 @@ class BitVec(Expression[z3.BitVecRef]):
 
 
 class BitVecFunc(BitVec):
-    """A bit vector symbol."""
+    """A bit vector function symbol. Used in place of functions like sha3."""
 
     def __init__(
         self,
@@ -214,7 +214,7 @@ class BitVecFunc(BitVec):
         self.input = input
         super().__init__(raw, annotations)
 
-    def __add__(self, other: Union[int, "BitVec"]) -> "BitVec":
+    def __add__(self, other: Union[int, "BitVec"]) -> "BitVecFunc":
         """Create an addition expression.
 
         :param other:
@@ -322,7 +322,7 @@ class BitVecFunc(BitVec):
 
         return BitVecFunc(raw=raw, name=self.name, input=self.input, annotations=union)
 
-    def __xor__(self, other: "BitVec") -> "BitVec":
+    def __xor__(self, other: "BitVec") -> "BitVecFunc":
         """Create a xor expression.
 
         :param other:
@@ -398,6 +398,63 @@ class BitVecFunc(BitVec):
             self.input != other.input,
         )
 
+    def __le__(self, other: "BitVec") -> Bool:
+        """Create a signed less than expression.
+
+        :param other:
+        :return:
+        """
+        # Is there some hack for these comparisons?
+
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
+
+        union = self.annotations + other.annotations
+
+        if not self.symbolic and not other.symbolic:
+            return Bool(z3.BoolVal(self.value <= other.value), annotations=union)
+
+        if (
+            not isinstance(other, BitVecFunc)
+            or not self.name
+            or not self.input
+            or not self.name == other.name
+        ):
+            return Bool(z3.BoolVal(False), annotations=union)
+
+        return And(
+            Bool(cast(z3.BoolRef, self.raw <= other.raw), annotations=union),
+            self.input != other.input,
+            )
+
+    def __ge__(self, other: "BitVec") -> Bool:
+        """Create a signed greater than expression.
+
+        :param other:
+        :return:
+        """
+        # Is there some hack for these comparisons?
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
+
+        union = self.annotations + other.annotations
+
+        if not self.symbolic and not other.symbolic:
+            return Bool(z3.BoolVal(self.value >= other.value), annotations=union)
+
+        if (
+            not isinstance(other, BitVecFunc)
+            or not self.name
+            or not self.input
+            or not self.name == other.name
+        ):
+            return Bool(z3.BoolVal(False), annotations=union)
+
+        return And(
+            Bool(cast(z3.BoolRef, self.raw >= other.raw), annotations=union),
+            self.input != other.input,
+        )
+
     # MYPY: fix complains about overriding __eq__
     def __eq__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
         """Create an equality expression.
@@ -466,6 +523,10 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
     :return:
     """
     # TODO: Handle BitVecFunc
+    if isinstance(b, BitVecFunc):
+        die()
+    elif isinstance(c, BitVecFunc):
+        die()
 
     if not isinstance(a, Bool):
         a = Bool(z3.BoolVal(a))
@@ -588,7 +649,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
 
     if bitvecfunc:
         # Is there a better value to set name and input to in this case?
-        return BitVecFunc(raw=nraw, name=None, input=None, annotations=bv.annotations)
+        return BitVecFunc(raw=nraw, name=None, input=None, annotations=annotations)
 
     return BitVec(nraw, annotations)
 
