@@ -6,7 +6,7 @@ from typing import Set, List, Dict
 
 def _get_expr_variables(expression: z3.ExprRef) -> List[z3.ExprRef]:
     """
-    Get's the variables that make up the current expression
+    Gets the variables that make up the current expression
     :param expression:
     :return:
     """
