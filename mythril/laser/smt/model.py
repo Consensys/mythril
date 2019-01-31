@@ -42,7 +42,9 @@ class Model:
                 continue
         return None
 
-    def eval(self, expression: z3.ExprRef, model_completion: bool = False) -> Union[None, z3.ExprRef]:
+    def eval(
+        self, expression: z3.ExprRef, model_completion: bool = False
+    ) -> Union[None, z3.ExprRef]:
         """ Evaluate the expression using this model
 
         :param expression: The expression to evaluate
