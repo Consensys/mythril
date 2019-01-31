@@ -125,12 +125,10 @@ class IndependenceSolver:
             self.raw.reset()
             self.raw.append(*bucket.conditions)
             check_result = self.raw.check()
-            if check_result == z3.unsat:
-                return z3.unsat
-            elif check_result == z3.unknown:
-                return z3.unknown
-            else:
+            if check_result == z3.sat:
                 self.models.append(self.raw.model())
+            else:
+                return check_result
 
         return z3.sat
 
