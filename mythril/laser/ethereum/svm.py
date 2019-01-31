@@ -6,8 +6,6 @@ from datetime import datetime, timedelta
 from functools import reduce
 from typing import Callable, Dict, List, Tuple, Union
 
-from mythril import alarm
-from mythril.exceptions import OutOfTimeError
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
@@ -121,37 +119,30 @@ class LaserEVM:
         """
         log.debug("Starting LASER execution")
 
-        try:
-            time_handler.start_execution(self.execution_timeout)
-            alarm.start_timeout(self.execution_timeout)
-            self.time = datetime.now()
+        time_handler.start_execution(self.execution_timeout)
+        self.time = datetime.now()
 
-            if main_address:
-                log.info("Starting message call transaction to {}".format(main_address))
-                self._execute_transactions(main_address)
+        if main_address:
+            log.info("Starting message call transaction to {}".format(main_address))
+            self._execute_transactions(main_address)
 
-            elif creation_code:
-                log.info("Starting contract creation transaction")
-                created_account = execute_contract_creation(
-                    self, creation_code, contract_name
+        elif creation_code:
+            log.info("Starting contract creation transaction")
+            created_account = execute_contract_creation(
+                self, creation_code, contract_name
+            )
+            log.info(
+                "Finished contract creation, found {} open states".format(
+                    len(self.open_states)
                 )
-                log.info(
-                    "Finished contract creation, found {} open states".format(
-                        len(self.open_states)
-                    )
+            )
+            if len(self.open_states) == 0:
+                log.warning(
+                    "No contract was created during the execution of contract creation "
+                    "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
-                if len(self.open_states) == 0:
-                    log.warning(
-                        "No contract was created during the execution of contract creation "
-                        "Increase the resources for creation execution (--max-depth or --create-timeout)"
-                    )
 
-                self._execute_transactions(created_account.address)
-
-        except OutOfTimeError:
-            log.warning("Timeout occurred, ending symbolic execution")
-        finally:
-            alarm.disable_timeout()
+            self._execute_transactions(created_account.address)
 
         log.info("Finished symbolic execution")
         if self.requires_statespace:

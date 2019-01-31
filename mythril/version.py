@@ -4,4 +4,4 @@ This file is suitable for sourcing inside POSIX shell, e.g. bash as well
 as for importing into Python.
 """
 
-VERSION = "v0.19.11"  # NOQA
+VERSION = "v0.20.0"  # NOQA
