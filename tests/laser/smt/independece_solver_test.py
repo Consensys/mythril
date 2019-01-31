@@ -73,12 +73,14 @@ def test_dependence_map():
     assert x in dependence_map.buckets[0].variables
     assert y in dependence_map.buckets[0].variables
     assert z in dependence_map.buckets[0].variables
+    assert len(set(dependence_map.buckets[0].variables)) == 3
 
     assert conditions[0] in dependence_map.buckets[0].conditions
     assert conditions[1] in dependence_map.buckets[0].conditions
 
     assert a in dependence_map.buckets[1].variables
     assert b in dependence_map.buckets[1].variables
+    assert len(set(dependence_map.buckets[1].variables)) == 2
 
     assert conditions[2] in dependence_map.buckets[1].conditions
 
