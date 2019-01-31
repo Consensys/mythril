@@ -238,5 +238,10 @@ def native_call(
         min(len(data), mem_out_sz)
     ):  # If more data is used then it's chopped off
         global_state.mstate.memory[mem_out_start + i] = data[i]
-    # TODO: maybe use BitVec here constrained to 1
+
+    retval = global_state.new_bitvec(
+        "retval_" + str(global_state.get_current_instruction()["address"]), 256
+    )
+    global_state.mstate.stack.append(retval)
+    global_state.node.constraints.append(retval == 1)
     return [global_state]
