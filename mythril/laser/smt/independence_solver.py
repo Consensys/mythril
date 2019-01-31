@@ -1,10 +1,10 @@
 import z3
 
 from mythril.laser.smt import Model
-from typing import Set
+from typing import Set, List
 
 
-def _get_expr_variables(expression: z3.ExprRef):
+def _get_expr_variables(expression: z3.ExprRef) -> List[z3.ExprRef]:
     """
     Get's the variables that make up the current expression
     :param expression:
@@ -40,7 +40,7 @@ class DependenceMap:
         self.buckets = []
         self.variable_map = {}
 
-    def add_condition(self, condition: z3.BoolRef):
+    def add_condition(self, condition: z3.BoolRef) -> None:
         """
         Add condition to the dependence map
         :param condition: The condition that is to be added to the dependence map
@@ -65,7 +65,7 @@ class DependenceMap:
         for variable in variables:
             self.variable_map[str(variable)] = new_bucket
 
-    def merge_buckets(self, bucket_list: Set[DependenceBucket]):
+    def merge_buckets(self, bucket_list: Set[DependenceBucket]) -> DependenceBucket:
         """ Merges the buckets in bucket list """
         variables = []
         conditions = []
@@ -113,7 +113,7 @@ class IndependenceSolver:
         constraints = [c.raw for c in constraints]
         self.constraints.extend(constraints)
 
-    def check(self):
+    def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result. """
         dependence_map = DependenceMap()
         for constraint in self.constraints:
@@ -133,7 +133,7 @@ class IndependenceSolver:
 
         return z3.sat
 
-    def model(self):
+    def model(self) -> Model:
         """Returns z3 model for a solution. """
         return Model(self.models)
 
