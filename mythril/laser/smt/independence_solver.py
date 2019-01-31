@@ -61,12 +61,12 @@ class DependenceMap:
         if relevant_buckets:
             # Merge buckets, and rewrite variable map accordingly
             relevant_buckets.add(new_bucket)
-            new_bucket = self.merge_buckets(relevant_buckets)
+            new_bucket = self._merge_buckets(relevant_buckets)
 
         for variable in variables:
             self.variable_map[str(variable)] = new_bucket
 
-    def merge_buckets(self, bucket_list: Set[DependenceBucket]) -> DependenceBucket:
+    def _merge_buckets(self, bucket_list: Set[DependenceBucket]) -> DependenceBucket:
         """ Merges the buckets in bucket list """
         variables = []
         conditions = []
