@@ -13,18 +13,21 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def get_model(constraints, minimize=(), maximize=()):
+def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
     """
 
     :param constraints:
     :param minimize:
     :param maximize:
+    :param enforce_execution_time: Bool variable which enforces --execution-timeout's time
     :return:
     """
     s = Optimize()
-    timeout = min(100000, time_handler.time_remaining() - 500)
-    if timeout <= 0:
-        raise UnsatError
+    timeout = 100000
+    if enforce_execution_time:
+        timeout = min(timeout, time_handler.time_remaining() - 500)
+        if timeout <= 0:
+            raise UnsatError
     s.set_timeout(timeout)
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
