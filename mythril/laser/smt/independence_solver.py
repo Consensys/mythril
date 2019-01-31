@@ -1,7 +1,7 @@
 import z3
 
 from mythril.laser.smt import Model
-from typing import Set, List
+from typing import Set, List, Dict
 
 
 def _get_expr_variables(expression: z3.ExprRef) -> List[z3.ExprRef]:
@@ -28,8 +28,8 @@ class DependenceBucket:
         :param variables: Variables contained in the conditions
         :param conditions: The conditions that are dependent on each other
         """
-        self.variables = variables or []
-        self.conditions = conditions or []
+        self.variables = variables or []  # type: List[z3.ExprRef]
+        self.conditions = conditions or []  # type: List[z3.ExprRef]
 
 
 class DependenceMap:
@@ -37,8 +37,8 @@ class DependenceMap:
 
     def __init__(self):
         """ Initializes a DependenceMap object """
-        self.buckets = []
-        self.variable_map = {}
+        self.buckets = []  # type: List[DependenceBucket]
+        self.variable_map = {}  # type: Dict[str, DependenceBucket]
 
     def add_condition(self, condition: z3.BoolRef) -> None:
         """
