@@ -1,5 +1,7 @@
 import z3
 
+from typing import Union, List
+
 
 class Model:
     """ The model class wraps a z3 model
@@ -8,21 +10,21 @@ class Model:
     which has models for multiple queries which need an uniform output.
     """
 
-    def __init__(self, models=None):
+    def __init__(self, models: List[z3.ModelRef] = None):
         """
         Initialize a model object
         :param models: the internal z3 models that this model should use
         """
         self.raw = models or []
 
-    def decls(self):
+    def decls(self) -> List[z3.ExprRef]:
         """Get the declarations for this model"""
         result = []
         for internal_model in self.raw:
             result.extend(internal_model.decls())
         return result
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> Union[None, z3.ExprRef]:
         """ Get declaration from model
          If item is an int, then the declaration at offset item is returned
          If item is a declaration, then the interpretation is returned
@@ -40,7 +42,7 @@ class Model:
                 continue
         return None
 
-    def eval(self, expression: z3.ExprRef, model_completion: bool = False):
+    def eval(self, expression: z3.ExprRef, model_completion: bool = False) -> Union[None, z3.ExprRef]:
         """ Evaluate the expression using this model
 
         :param expression: The expression to evaluate
