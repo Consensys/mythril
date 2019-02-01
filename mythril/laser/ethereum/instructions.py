@@ -1071,9 +1071,41 @@ class Instruction:
         :param global_state:
         :return:
         """
-        # FIXME: not implemented
         state = global_state.mstate
-        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
+        memory_offset, return_offset, size = (
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+        )
+
+        try:
+            concrete_memory_offset = helper.get_concrete_int(memory_offset)
+        except TypeError:
+            log.debug("Unsupported symbolic memory offset in RETURNDATACOPY")
+            return [global_state]
+
+        try:
+            concrete_return_offset = helper.get_concrete_int(return_offset)
+        except TypeError:
+            log.debug("Unsupported symbolic return offset in RETURNDATACOPY")
+            return [global_state]
+
+        try:
+            concrete_size = helper.get_concrete_int(size)
+        except TypeError:
+            log.debug("Unsupported symbolic max_length offset in RETURNDATACOPY")
+            return [global_state]
+
+        if global_state.last_return_data is None:
+            return [global_state]
+
+        global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+        for i in range(concrete_size):
+            global_state.mstate.memory[concrete_memory_offset + i] = (
+                global_state.last_return_data[concrete_return_offset + i]
+                if i < len(global_state.last_return_data)
+                else 0
+            )
 
         return [global_state]
 
@@ -1084,7 +1116,16 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("returndatasize", 256))
+        if global_state.last_return_data is None:
+            log.debug(
+                "No last_return_data found, adding an unconstrained bitvec to the stack"
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("returndatasize", 256)
+            )
+        else:
+            global_state.mstate.stack.append(len(global_state.last_return_data))
+
         return [global_state]
 
     @StateTransition()
@@ -1714,9 +1755,6 @@ class Instruction:
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
             return [global_state]
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-        )
 
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
@@ -1748,7 +1786,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, _, memory_out_offset, memory_out_size = get_call_parameters(
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
         except ValueError as e:
@@ -2035,13 +2073,13 @@ class Instruction:
             )
             return [global_state]
 
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-        )
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
         if native_result:
             return native_result
 
+        global_state.mstate.stack.append(
+            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+        )
         return [global_state]
