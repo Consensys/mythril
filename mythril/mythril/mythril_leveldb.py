@@ -4,24 +4,31 @@ from mythril.exceptions import CriticalError
 
 class MythrilLevelDB(object):
     """
-    Class which does operations on leveldb
+    Class which does search operations on leveldb
+    There are two DBs
+    1) Key value pairs of hashes and it's corresponding address
+    2) The LevelDB Trie
     """
 
     def __init__(self, leveldb):
+        """
+
+        :param leveldb: Leveldb path
+        """
         self.level_db = leveldb
 
     def search_db(self, search):
         """
-        Searches 
-        :param search:
+        Searches the corresponding code
+        :param search: The code part to be searched
         """
 
         def search_callback(_, address, balance):
             """
 
             :param _:
-            :param address:
-            :param balance:
+            :param address: The address of the contract with the code in search
+            :param balance: The balance of the corresponding contract
             """
             print("Address: " + address + ", balance: " + str(balance))
 

@@ -124,7 +124,7 @@ class MythrilConfig(object):
     def set_api_leveldb(self, leveldb_path):
         """
 
-        :param leveldb:
+        :param leveldb_path:
         :return:
         """
         self.eth = EthLevelDB(leveldb_path)
@@ -161,7 +161,7 @@ class MythrilConfig(object):
         else:
             raise CriticalError("Invalid RPC settings, check help for details.")
 
-    def set_api_rpc_localhost():
+    def set_api_rpc_localhost(self):
         """Set the RPC mode to a local instance."""
         log.info("Using default RPC settings: http://localhost:8545")
         self.eth = EthJsonRpc("localhost", 8545)

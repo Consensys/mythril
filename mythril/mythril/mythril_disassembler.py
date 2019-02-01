@@ -30,9 +30,10 @@ class MythrilDisassembler:
 
     @staticmethod
     def _init_solc_binary(version):
-        """Figure out solc binary and version.
-
+        """
         Only proper versions are supported. No nightlies, commits etc (such as available in remix).
+        :param version: Version of the solc binary required
+        :return: The solc binary of the corresponding version
         """
 
         if not version:
@@ -69,11 +70,11 @@ class MythrilDisassembler:
 
     def load_from_bytecode(self, code, bin_runtime=False, address=None):
         """
-
-        :param code:
-        :param bin_runtime:
-        :param address:
-        :return:
+        Returns the address and the contract class for the given bytecode
+        :param code: Bytecode
+        :param bin_runtime: Whether the code is runtime code or creation code
+        :param address: address of contract
+        :return: tuple(address, Contract class)
         """
         if address is None:
             address = util.get_indexed_address(0)
@@ -97,9 +98,9 @@ class MythrilDisassembler:
 
     def load_from_address(self, address):
         """
-
-        :param address:
-        :return:
+        Returns the contract given it's on chain address
+        :param address: The on chain address of a contract
+        :return: tuple(address, contract)
         """
         if not re.match(r"0x[a-fA-F0-9]{40}", address):
             raise CriticalError("Invalid contract address. Expected format is '0x...'.")
@@ -132,8 +133,8 @@ class MythrilDisassembler:
     def load_from_solidity(self, solidity_files):
         """
 
-        :param solidity_files:
-        :return:
+        :param solidity_files: List of solidity_files
+        :return: tuple of address, contract class list
         """
         address = util.get_indexed_address(0)
         contracts = []
@@ -193,19 +194,19 @@ class MythrilDisassembler:
     def disassemble(contract):
         """
 
-        :param contract:
-        :return:
+        :param contract: the Contract
+        :return: It's disassembly
         """
         return contract.get_easm()
 
     @staticmethod
-    def hash_for_function_signature(sig):
+    def hash_for_function_signature(func):
         """
-
-        :param sig:
-        :return:
+        Return function name's corresponding signature hash
+        :param func: function name
+        :return: It's hash signature
         """
-        return "0x%s" % utils.sha3(sig)[:4].hex()
+        return "0x%s" % utils.sha3(func)[:4].hex()
 
     def get_state_variable_from_storage(self, address, params=None):
         """
