@@ -235,9 +235,7 @@ class LaserEVM:
                 continue
 
             new_states = [
-                state
-                for state in new_states
-                if state.mstate.constraints.check_possibility()
+                state for state in new_states if state.mstate.constraints.is_possible
             ]
 
             self.manage_cfg(op_code, new_states)

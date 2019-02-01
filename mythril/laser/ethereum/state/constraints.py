@@ -28,7 +28,8 @@ class Constraints(list):
         self._default_timeout = 100
         self._is_possible = is_possible
 
-    def check_possibility(self) -> bool:
+    @property
+    def is_possible(self) -> bool:
         """
         :return: True/False based on the existence of solution of constraints
         """
