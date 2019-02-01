@@ -21,6 +21,7 @@ class MythrilConfig(object):
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
         self.leveldb_dir = self._init_config()
         self.eth = None
+        self.eth_db = None
 
     @staticmethod
     def _init_mythril_dir():
@@ -148,7 +149,7 @@ class MythrilConfig(object):
     def set_api_leveldb(self, leveldb_path):
         """
         """
-        self.eth = EthLevelDB(leveldb_path)
+        self.eth_db = EthLevelDB(leveldb_path)
 
     def set_api_rpc_infura(self):
         """Set the RPC mode to INFURA on Mainnet."""

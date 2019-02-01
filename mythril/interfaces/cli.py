@@ -341,7 +341,7 @@ def parse_args(parser, args):
             )
 
         if args.search or args.contract_hash_to_address:
-            leveldb_sercher = MythrilLevelDB(config.leveldb_dir)
+            leveldb_sercher = MythrilLevelDB(config.eth_db)
             if args.search:
                 # Database search ops
                 leveldb_sercher.search_db(args.search)
