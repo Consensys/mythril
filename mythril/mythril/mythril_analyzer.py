@@ -23,6 +23,7 @@ class MythrilAnalyzer(object):
     The Mythril Analyzer class
     Responsible for the analysis of the smart contracts
     """
+
     def __init__(self, disassembler, requires_dynld=False, onchain_storage_access=True):
         """
 
