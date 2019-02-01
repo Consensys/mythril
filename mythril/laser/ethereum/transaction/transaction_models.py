@@ -87,10 +87,10 @@ class BaseTransaction:
         if call_data is None and init_call_data:
             self.call_data = SymbolicCalldata(
                 self.id
-            )  # type: Union[SymbolicCalldata, ConcreteCalldata]
+            )  # type: BaseCalldata
         else:
             self.call_data = (
-                cast(Union[SymbolicCalldata, ConcreteCalldata], call_data)
+                call_data
                 if isinstance(call_data, BaseCalldata)
                 else ConcreteCalldata(self.id, [])
             )
