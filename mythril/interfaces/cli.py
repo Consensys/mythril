@@ -15,7 +15,12 @@ import coloredlogs
 
 import mythril.support.signatures as sigs
 from mythril.exceptions import AddressNotFoundError, CriticalError
-from mythril.mythril import Mythril
+from mythril.mythril import (
+    MythrilAnalyzer,
+    MythrilDisassembler,
+    MythrilConfig,
+    MythrilLevelDB,
+)
 from mythril.version import VERSION
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -42,6 +47,19 @@ def main():
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
+    create_parser(parser)
+
+    # Get config values
+
+    args = parser.parse_args()
+    parse_args(parser=parser, args=args)
+
+
+if __name__ == "__main__":
+    main()
+
+
+def create_parser(parser):
     parser.add_argument("solidity_file", nargs="*")
 
     commands = parser.add_argument_group("commands")
@@ -227,10 +245,8 @@ def main():
     )
     parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
 
-    # Get config values
 
-    args = parser.parse_args()
-
+def parse_args(parser, args):
     if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
         sys.argv.remove("--epic")
@@ -280,7 +296,7 @@ def main():
             )
 
     if args.query_signature:
-        if sigs.ethereum_input_decoder == None:
+        if sigs.ethereum_input_decoder is None:
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
@@ -300,55 +316,57 @@ def main():
 
     # -- commands --
     if args.hash:
-        print(Mythril.hash_for_function_signature(args.hash))
+        print(MythrilDisassembler.hash_for_function_signature(args.hash))
         sys.exit()
 
     try:
         # the mythril object should be our main interface
         # infura = None, rpc = None, rpctls = None
         # solc_args = None, dynld = None, max_recursion_depth = 12):
-
-        mythril = Mythril(
-            solv=args.solv,
-            dynld=args.dynld,
-            onchain_storage_access=(not args.no_onchain_storage_access),
-            solc_args=args.solc_args,
-            enable_online_lookup=args.query_signature,
-        )
+        config = MythrilConfig()
         if (
             args.dynld
             or not args.no_onchain_storage_access
             and not (args.rpc or args.i)
         ):
-            mythril.set_api_from_config_path()
+            config.set_api_from_config_path()
 
         if args.address:
             # Establish RPC connection if necessary
-            mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
+            config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
         elif args.search or args.contract_hash_to_address:
             # Open LevelDB if necessary
-            mythril.set_api_leveldb(
-                mythril.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
+            config.set_api_leveldb(
+                config.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
             )
 
-        if args.search:
-            # Database search ops
-            mythril.search_db(args.search)
+        if args.search or args.contract_hash_to_address:
+            leveldb_sercher = MythrilLevelDB(config.leveldb_dir)
+            if args.search:
+                # Database search ops
+                leveldb_sercher.search_db(args.search)
+
+            else:
+                # search corresponding address
+                try:
+                    leveldb_sercher.contract_hash_to_address(
+                        args.contract_hash_to_address
+                    )
+                except AddressNotFoundError:
+                    print("Address not found.")
+
             sys.exit()
 
-        if args.contract_hash_to_address:
-            # search corresponding address
-            try:
-                mythril.contract_hash_to_address(args.contract_hash_to_address)
-            except AddressNotFoundError:
-                print("Address not found.")
-
-            sys.exit()
-
+        dissasembler = MythrilDisassembler(
+            eth=config.eth,
+            solc_version=args.solv,
+            solc_args=args.solc_args,
+            enable_online_lookup=args.query_signature,
+        )
         if args.truffle:
             try:
                 # not really pythonic atm. needs refactoring
-                mythril.analyze_truffle_project(args)
+                dissasembler.analyze_truffle_project(args)
             except FileNotFoundError:
                 print(
                     "Build directory not found. Make sure that you start the analysis from the project root, and that 'truffle compile' has executed successfully."
@@ -361,14 +379,14 @@ def main():
         if args.code:
             # Load from bytecode
             code = args.code[2:] if args.code.startswith("0x") else args.code
-            address, _ = mythril.load_from_bytecode(code, args.bin_runtime)
+            address, _ = dissasembler.load_from_bytecode(code, args.bin_runtime)
         elif args.codefile:
             bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
             bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
-            address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
+            address, _ = dissasembler.load_from_bytecode(bytecode, args.bin_runtime)
         elif args.address:
             # Get bytecode from a contract address
-            address, _ = mythril.load_from_address(args.address)
+            address, _ = dissasembler.load_from_address(args.address)
         elif args.solidity_file:
             # Compile Solidity source file(s)
             if args.graph and len(args.solidity_file) > 1:
@@ -376,13 +394,20 @@ def main():
                     args.outform,
                     "Cannot generate call graphs from multiple input files. Please do it one at a time.",
                 )
-            address, _ = mythril.load_from_solidity(args.solidity_file)  # list of files
+            address, _ = dissasembler.load_from_solidity(
+                args.solidity_file
+            )  # list of files
         else:
             exit_with_error(
                 args.outform,
                 "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES",
             )
 
+        analyzer = MythrilAnalyzer(
+            disassembler=dissasembler,
+            dynld=args.dynld,
+            onchain_storage_access=not args.no_onchain_storage_access,
+        )
         # Commands
 
         if args.storage:
@@ -392,7 +417,7 @@ def main():
                     "To read storage, provide the address of a deployed contract with the -a option.",
                 )
 
-            storage = mythril.get_state_variable_from_storage(
+            storage = dissasembler.get_state_variable_from_storage(
                 address=address,
                 params=[a.strip() for a in args.storage.strip().split(",")],
             )
@@ -401,21 +426,21 @@ def main():
         elif args.disassemble:
             # or mythril.disassemble(mythril.contracts[0])
 
-            if mythril.contracts[0].code:
-                print("Runtime Disassembly: \n" + mythril.contracts[0].get_easm())
-            if mythril.contracts[0].creation_code:
-                print("Disassembly: \n" + mythril.contracts[0].get_creation_easm())
+            if dissasembler.contracts[0].code:
+                print("Runtime Disassembly: \n" + dissasembler.contracts[0].get_easm())
+            if dissasembler.contracts[0].creation_code:
+                print("Disassembly: \n" + dissasembler.contracts[0].get_creation_easm())
 
         elif args.graph or args.fire_lasers:
-            if not mythril.contracts:
+            if not dissasembler.contracts:
                 exit_with_error(
                     args.outform, "input files do not contain any valid contracts"
                 )
 
             if args.graph:
-                html = mythril.graph_html(
+                html = analyzer.graph_html(
                     strategy=args.strategy,
-                    contract=mythril.contracts[0],
+                    contract=analyzer.contracts[0],
                     address=address,
                     enable_physics=args.enable_physics,
                     phrackify=args.phrack,
@@ -433,7 +458,7 @@ def main():
 
             else:
                 try:
-                    report = mythril.fire_lasers(
+                    report = analyzer.fire_lasers(
                         strategy=args.strategy,
                         address=address,
                         modules=[m.strip() for m in args.modules.strip().split(",")]
@@ -460,14 +485,14 @@ def main():
 
         elif args.statespace_json:
 
-            if not mythril.contracts:
+            if not analyzer.contracts:
                 exit_with_error(
                     args.outform, "input files do not contain any valid contracts"
                 )
 
-            statespace = mythril.dump_statespace(
+            statespace = analyzer.dump_statespace(
                 strategy=args.strategy,
-                contract=mythril.contracts[0],
+                contract=analyzer.contracts[0],
                 address=address,
                 max_depth=args.max_depth,
                 execution_timeout=args.execution_timeout,
@@ -486,7 +511,3 @@ def main():
 
     except CriticalError as ce:
         exit_with_error(args.outform, str(ce))
-
-
-if __name__ == "__main__":
-    main()
