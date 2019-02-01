@@ -405,7 +405,6 @@ def parse_args(parser, args):
 
         analyzer = MythrilAnalyzer(
             disassembler=dissasembler,
-            dynld=args.dynld,
             onchain_storage_access=not args.no_onchain_storage_access,
         )
         # Commands

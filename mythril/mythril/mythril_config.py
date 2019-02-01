@@ -24,6 +24,10 @@ class MythrilConfig(object):
 
     @staticmethod
     def _init_mythril_dir():
+        """
+        Initializes the mythril dir and config.ini file
+        :return: The mythril dir's path
+        """
         try:
             mythril_dir = os.environ["MYTHRIL_DIR"]
         except KeyError:
@@ -38,7 +42,7 @@ class MythrilConfig(object):
         if not os.path.exists(db_path):
             # if the default mythril dir doesn't contain a signature DB
             # initialize it with the default one from the project root
-            asset_dir = Path(__file__).parent / "support" / "assets"
+            asset_dir = Path(__file__).parent.parent / "support" / "assets"
             copyfile(str(asset_dir / "signatures.db"), db_path)
 
         return mythril_dir
@@ -48,7 +52,7 @@ class MythrilConfig(object):
 
         Default LevelDB path is specified based on OS
         dynamic loading is set to infura by default in the file
-        Returns: leveldb directory
+        Returns: LevelDB directory
         """
 
         leveldb_fallback_dir = self._get_fallback_dir()
@@ -79,6 +83,10 @@ class MythrilConfig(object):
 
     @staticmethod
     def _get_fallback_dir():
+        """
+        Returns the LevelDB path
+        :return: The LevelDB path
+        """
         system = platform.system().lower()
         leveldb_fallback_dir = os.path.expanduser("~")
         if system.startswith("darwin"):
@@ -95,10 +103,21 @@ class MythrilConfig(object):
 
     @staticmethod
     def _add_default_options(config):
+        """
+        Adds defaults option to config.ini
+        :param config: The config file object
+        :return: None
+        """
         config.add_section("defaults")
 
     @staticmethod
     def _add_leveldb_option(config, leveldb_fallback_dir):
+        """
+        Sets a default leveldb path in .mythril/config.ini file
+        :param config: The config file object
+        :param leveldb_fallback_dir: The leveldb dir to use by default for searches
+        :return: None
+        """
         config.set("defaults", "#Default chaindata locations:")
         config.set("defaults", "#– Mac: ~/Library/Ethereum/geth/chaindata")
         config.set("defaults", "#– Linux: ~/.ethereum/geth/chaindata")
@@ -110,6 +129,11 @@ class MythrilConfig(object):
 
     @staticmethod
     def _add_dynamic_loading_option(config):
+        """
+        Sets the dynamic loading config option in .mythril/config.ini file
+        :param config: The config file object
+        :return: None
+        """
         config.set("defaults", "#– To connect to Infura use dynamic_loading: infura")
         config.set(
             "defaults",
@@ -171,8 +195,8 @@ class MythrilConfig(object):
         else:
             dynamic_loading = "infura"
         if dynamic_loading == "infura":
-            return self.set_api_rpc_infura()
+            self.set_api_rpc_infura()
         elif dynamic_loading == "localhost":
-            return self.set_api_rpc_localhost()
+            self.set_api_rpc_localhost()
         else:
-            return self.set_api_rpc(dynamic_loading)
+            self.set_api_rpc(dynamic_loading)
