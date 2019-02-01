@@ -2,7 +2,7 @@
 underflows."""
 
 import json
-
+from typing import Dict
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -27,7 +27,9 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
-    def __init__(self, overflowing_state: GlobalState, operator: str, constraint):
+    def __init__(
+        self, overflowing_state: GlobalState, operator: str, constraint
+    ) -> None:
         self.overflowing_state = overflowing_state
         self.operator = operator
         self.constraint = constraint
@@ -36,7 +38,7 @@ class OverUnderflowAnnotation:
 class IntegerOverflowUnderflowModule(DetectionModule):
     """This module searches for integer over- and underflows."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """"""
         super().__init__(
             name="Integer Overflow and Underflow",
@@ -49,8 +51,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
         )
-        self._overflow_cache = {}
-        self._underflow_cache = {}
+        self._overflow_cache = {}  # type: Dict[int, bool]
+        self._underflow_cache = {}  # type: Dict[int, bool]
 
     def reset_module(self):
         """

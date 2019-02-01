@@ -3,6 +3,8 @@ from mythril.ethereum import util
 from mythril.disassembler import asm
 from mythril.support.signatures import SignatureDB
 
+from typing import Dict, List, Tuple
+
 
 class Disassembly(object):
     """Disassembly class.
@@ -14,7 +16,7 @@ class Disassembly(object):
     - function entry point to function name mapping
     """
 
-    def __init__(self, code: str, enable_online_lookup: bool = False):
+    def __init__(self, code: str, enable_online_lookup: bool = False) -> None:
         """
 
         :param code:
@@ -23,9 +25,9 @@ class Disassembly(object):
         self.bytecode = code
         self.instruction_list = asm.disassemble(util.safe_decode(code))
 
-        self.func_hashes = []
-        self.function_name_to_address = {}
-        self.address_to_function_name = {}
+        self.func_hashes = []  # type: List[str]
+        self.function_name_to_address = {}  # type: Dict[str, int]
+        self.address_to_function_name = {}  # type: Dict[int, str]
 
         # open from default locations
         # control if you want to have online signature hash lookups
@@ -41,7 +43,6 @@ class Disassembly(object):
                 index, self.instruction_list, signatures
             )
             self.func_hashes.append(function_hash)
-
             if jump_target is not None and function_name is not None:
                 self.function_name_to_address[function_name] = jump_target
                 self.address_to_function_name[jump_target] = function_name
@@ -56,7 +57,7 @@ class Disassembly(object):
 
 def get_function_info(
     index: int, instruction_list: list, signature_database: SignatureDB
-) -> (str, int, str):
+) -> Tuple[str, int, str]:
     """Finds the function information for a call table entry Solidity uses the
     first 4 bytes of the calldata to indicate which function the message call
     should execute The generated code that directs execution to the correct

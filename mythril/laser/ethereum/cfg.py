@@ -1,8 +1,11 @@
 """This module."""
 from enum import Enum
-from typing import Dict
+from typing import Dict, List, TYPE_CHECKING
 
 from flags import Flags
+
+if TYPE_CHECKING:
+    from mythril.laser.ethereum.state.global_state import GlobalState
 
 gbl_next_uid = 0  # node counter
 
@@ -20,6 +23,9 @@ class JumpType(Enum):
 class NodeFlags(Flags):
     """A collection of flags to denote the type a call graph node can have."""
 
+    def __or__(self, other) -> "NodeFlags":
+        return super().__or__(other)
+
     FUNC_ENTRY = 1
     CALL_RETURN = 2
 
@@ -33,7 +39,7 @@ class Node:
         start_addr=0,
         constraints=None,
         function_name="unknown",
-    ):
+    ) -> None:
         """
 
         :param contract_name:
@@ -43,7 +49,7 @@ class Node:
         constraints = constraints if constraints else []
         self.contract_name = contract_name
         self.start_addr = start_addr
-        self.states = []
+        self.states = []  # type: List[GlobalState]
         self.constraints = constraints
         self.function_name = function_name
         self.flags = NodeFlags()
@@ -86,7 +92,7 @@ class Edge:
         node_to: int,
         edge_type=JumpType.UNCONDITIONAL,
         condition=None,
-    ):
+    ) -> None:
         """
 
         :param node_from:
