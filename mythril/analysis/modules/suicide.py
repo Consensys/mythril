@@ -65,16 +65,15 @@ class SuicideModule(DetectionModule):
                     node.constraints
                     + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
                 )
-                description_tail = "Anyone can kill this contract and withdraw its balance to an arbitrary "
-                "account."
+                description_tail = (
+                    "Anyone can kill this contract and withdraw its balance to an arbitrary "
+                    "address."
+                )
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
                     state, node.constraints
                 )
-                description_tail = (
-                    "Arbitrary senders can kill this contract."
-
-                )
+                description_tail = "Arbitrary senders can kill this contract."
 
             debug = json.dumps(transaction_sequence, indent=4)
             self._cache_address[instruction["address"]] = True
