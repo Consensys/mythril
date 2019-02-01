@@ -62,7 +62,11 @@ class Issue:
 
         try:
             keccak = sha3.keccak_256()
-            keccak.update(bytes.fromhex(bytecode))
+            keccak.update(
+                bytes.fromhex(bytecode[2:])
+                if bytecode[:2] == "0x"
+                else bytes.fromhex(bytecode)
+            )
             self.bytecode_hash = "0x" + keccak.hexdigest()
         except ValueError:
             log.debug(

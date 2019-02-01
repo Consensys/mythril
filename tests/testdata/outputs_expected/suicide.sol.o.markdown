@@ -11,4 +11,4 @@
 ### Description
 
 The contract can be killed by anyone.
-Arbitrary senders can kill this contract and withdraw its balance to their own account.
+Anyone can kill this contract and withdraw its balance to an arbitrary address.
