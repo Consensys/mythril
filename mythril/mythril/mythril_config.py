@@ -123,22 +123,17 @@ class MythrilConfig(object):
 
     def set_api_leveldb(self, leveldb_path):
         """
-
-        :param leveldb_path:
-        :return:
         """
         self.eth = EthLevelDB(leveldb_path)
 
     def set_api_rpc_infura(self):
-        """Set the RPC mode to INFURA on mainnet."""
-        log.info("Using INFURA for RPC queries")
+        """Set the RPC mode to INFURA on Mainnet."""
+        log.info("Using INFURA Main Net for RPC queries")
         self.eth = EthJsonRpc("mainnet.infura.io", 443, True)
 
     def set_api_rpc(self, rpc=None, rpctls=False):
         """
-
-        :param rpc:
-        :param rpctls:
+        Sets the RPC mode to either ganache or infura
         """
         if rpc == "ganache":
             rpcconfig = ("localhost", 8545, False)
