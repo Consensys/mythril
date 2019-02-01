@@ -19,30 +19,21 @@ log = logging.getLogger(__name__)
 
 
 class MythrilAnalyzer(object):
-    """Mythril main interface class.
-    .. code-block:: python
-
-        mythril = Mythril()
-
-        # analyze
-        print(mythril.fire_lasers(args).as_text())
-
-        # (optional) graph
-        for contract in mythril.contracts:
-            # prints html or save it to file
-            print(mythril.graph_html(args))
-
-        # (optional) other funcs
-        mythril.dump_statespaces(args)
-        mythril.disassemble(contract)
-        mythril.get_state_variable_from_storage(args)
     """
+    The Mythril Analyzer class
+    Responsible for the analysis of the smart contracts
+    """
+    def __init__(self, disassembler, requires_dynld=False, onchain_storage_access=True):
+        """
 
-    def __init__(self, disassembler, dynld=False, onchain_storage_access=True):
+        :param disassembler: The MythrilDisassembler class
+        :param requires_dynld: whether dynamic loading should be done or not
+        :param onchain_storage_access: Whether onchain access should be done or not
+        """
         self.eth = disassembler.eth
         self.contracts = disassembler.contracts or []
         self.enable_online_lookup = disassembler.enable_online_lookup
-        self.dynld = dynld
+        self.dynld = requires_dynld
         self.onchain_storage_access = onchain_storage_access
 
     def dump_statespace(
@@ -56,15 +47,15 @@ class MythrilAnalyzer(object):
         enable_iprof=False,
     ):
         """
-
-        :param strategy:
-        :param contract:
-        :param address:
-        :param max_depth:
-        :param execution_timeout:
-        :param create_timeout:
-        :param enable_iprof:
-        :return:
+        Returns serializable statespace of the contract
+        :param strategy: The search strategy to go through the CFG
+        :param contract: The Contract on which the analysis should be done
+        :param address: The Contract address
+        :param max_depth: The max depth till which the CFG should be constructed
+        :param execution_timeout: The total execution timeout of the contract
+        :param create_timeout: The total contract creation timeout
+        :param enable_iprof: Enables/disables instruction profiler
+        :return: The serialized state space
         """
         sym = SymExecWrapper(
             contract,
@@ -97,16 +88,16 @@ class MythrilAnalyzer(object):
     ):
         """
 
-        :param strategy:
-        :param contract:
-        :param address:
-        :param max_depth:
-        :param enable_physics:
-        :param phrackify:
-        :param execution_timeout:
-        :param create_timeout:
-        :param enable_iprof:
-        :return:
+        :param strategy: The search strategy to go through the CFG
+        :param contract: The Contract on which the analysis should be done
+        :param address: The Contract address
+        :param max_depth: The max depth till which the CFG should be constructed
+        :param enable_physics: If true then enables the graph physics simulation
+        :param phrackify: If true generates Phrack-style call graph
+        :param execution_timeout: The total execution timeout of the contract
+        :param create_timeout: The total contract creation timeout
+        :param enable_iprof: Enables/disables instruction profiler
+        :return: The generated graph in html format
         """
         sym = SymExecWrapper(
             contract,
@@ -138,18 +129,17 @@ class MythrilAnalyzer(object):
         enable_iprof=False,
     ):
         """
-
-        :param strategy:
-        :param contracts:
-        :param address:
-        :param modules:
-        :param verbose_report:
-        :param max_depth:
-        :param execution_timeout:
-        :param create_timeout:
-        :param transaction_count:
-        :param enable_iprof:
-        :return:
+        :param strategy: The search strategy to go through the CFG
+        :param contracts: The Contracts list on which the analysis should be done
+        :param address: The Contract address
+        :param modules: The analysis modules which should be executed
+        :param verbose_report: Gives out the transaction sequence of the vulnerability
+        :param max_depth: The max depth till which the CFG should be constructed
+        :param execution_timeout: The total execution timeout of the contract
+        :param create_timeout: The total contract creation timeout
+        :param transaction_count: The amount of transactions to be executed
+        :param enable_iprof: Enables/disables instruction profiler
+        :return: The Report class which contains the all the issues/vulnerabilities
         """
         all_issues = []
         for contract in contracts or self.contracts:
