@@ -5,8 +5,9 @@ import os
 
 from ethereum import utils
 from solc.exceptions import SolcError
-from typing import List, Optional
+from typing import List, Tuple, Optional
 from mythril.ethereum import util
+from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
 from mythril.support.truffle import analyze_truffle_project
@@ -19,17 +20,21 @@ log = logging.getLogger(__name__)
 
 class MythrilDisassembler:
     def __init__(
-        self, eth, solc_version=None, solc_args=None, enable_online_lookup=False
-    ):
+        self,
+        eth: Optional[EthJsonRpc],
+        solc_version: str = None,
+        solc_args: str = None,
+        enable_online_lookup: bool = False,
+    ) -> None:
         self.solc_binary = self._init_solc_binary(solc_version)
         self.solc_args = solc_args
         self.eth = eth
         self.enable_online_lookup = enable_online_lookup
         self.sigs = signatures.SignatureDB(enable_online_lookup=enable_online_lookup)
-        self.contracts = []
+        self.contracts = []  # type: List[EVMContract]
 
     @staticmethod
-    def _init_solc_binary(version):
+    def _init_solc_binary(version: str) -> str:
         """
         Only proper versions are supported. No nightlies, commits etc (such as available in remix).
         :param version: Version of the solc binary required
@@ -68,7 +73,9 @@ class MythrilDisassembler:
 
         return solc_binary
 
-    def load_from_bytecode(self, code, bin_runtime=False, address=None):
+    def load_from_bytecode(
+        self, code: str, bin_runtime: bool = False, address: Optional[str] = None
+    ) -> Tuple[str, EVMContract]:
         """
         Returns the address and the contract class for the given bytecode
         :param code: Bytecode
@@ -96,7 +103,7 @@ class MythrilDisassembler:
             )
         return address, self.contracts[-1]  # return address and contract object
 
-    def load_from_address(self, address):
+    def load_from_address(self, address: str) -> Tuple[str, EVMContract]:
         """
         Returns the contract given it's on chain address
         :param address: The on chain address of a contract
@@ -130,7 +137,9 @@ class MythrilDisassembler:
                 )
         return address, self.contracts[-1]  # return address and contract object
 
-    def load_from_solidity(self, solidity_files):
+    def load_from_solidity(
+        self, solidity_files: List[str]
+    ) -> Tuple[str, List[SolidityContract]]:
         """
 
         :param solidity_files: List of solidity_files
@@ -180,18 +189,18 @@ class MythrilDisassembler:
 
         return address, contracts
 
-    def analyze_truffle_project(self, *args, **kwargs):
+    def analyze_truffle_project(self, *args, **kwargs) -> None:
         """
         :param args:
         :param kwargs:
         :return:
         """
-        return analyze_truffle_project(
+        analyze_truffle_project(
             self.sigs, *args, **kwargs
         )  # just passthru by passing signatures for now
 
     @staticmethod
-    def hash_for_function_signature(func):
+    def hash_for_function_signature(func: str) -> str:
         """
         Return function name's corresponding signature hash
         :param func: function name

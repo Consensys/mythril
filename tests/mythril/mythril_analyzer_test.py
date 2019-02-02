@@ -1,6 +1,5 @@
-import pytest
 from pathlib import Path
-from mythril.mythril import *
+from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 
 
 def test_fire_lasers():

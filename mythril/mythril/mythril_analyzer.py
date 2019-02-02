@@ -7,6 +7,9 @@
 
 import logging
 import traceback
+from typing import Optional, List
+
+from . import MythrilDisassembler
 from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
 from mythril.analysis.symbolic import SymExecWrapper
@@ -14,17 +17,23 @@ from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report
+from mythril.ethereum.evmcontract import EVMContract
 
 log = logging.getLogger(__name__)
 
 
-class MythrilAnalyzer(object):
+class MythrilAnalyzer:
     """
     The Mythril Analyzer class
     Responsible for the analysis of the smart contracts
     """
 
-    def __init__(self, disassembler, requires_dynld=False, onchain_storage_access=True):
+    def __init__(
+        self,
+        disassembler: MythrilDisassembler,
+        requires_dynld: bool = False,
+        onchain_storage_access: bool = True,
+    ):
         """
 
         :param disassembler: The MythrilDisassembler class
@@ -32,21 +41,21 @@ class MythrilAnalyzer(object):
         :param onchain_storage_access: Whether onchain access should be done or not
         """
         self.eth = disassembler.eth
-        self.contracts = disassembler.contracts or []
+        self.contracts = disassembler.contracts or []  # type: List[EVMContract]
         self.enable_online_lookup = disassembler.enable_online_lookup
         self.dynld = requires_dynld
         self.onchain_storage_access = onchain_storage_access
 
     def dump_statespace(
         self,
-        strategy,
-        contract,
-        address=None,
-        max_depth=None,
-        execution_timeout=None,
-        create_timeout=None,
-        enable_iprof=False,
-    ):
+        strategy: str,
+        contract: List[EVMContract],
+        address: Optional[str] = None,
+        max_depth: Optional[int] = None,
+        execution_timeout: Optional[int] = None,
+        create_timeout: Optional[int] = None,
+        enable_iprof: bool = False,
+    ) -> str:
         """
         Returns serializable statespace of the contract
         :param strategy: The search strategy to go through the CFG
@@ -77,16 +86,16 @@ class MythrilAnalyzer(object):
 
     def graph_html(
         self,
-        strategy,
-        contract,
-        address,
-        max_depth=None,
-        enable_physics=False,
-        phrackify=False,
-        execution_timeout=None,
-        create_timeout=None,
-        enable_iprof=False,
-    ):
+        strategy: str,
+        contract: List[EVMContract],
+        address: str,
+        max_depth: Optional[int] = None,
+        enable_physics: bool = False,
+        phrackify: bool = False,
+        execution_timeout: Optional[int] = None,
+        create_timeout: Optional[int] = None,
+        enable_iprof: bool = False,
+    ) -> str:
         """
 
         :param strategy: The search strategy to go through the CFG
@@ -118,17 +127,17 @@ class MythrilAnalyzer(object):
 
     def fire_lasers(
         self,
-        strategy,
-        contracts=None,
-        address=None,
-        modules=None,
-        verbose_report=False,
-        max_depth=None,
-        execution_timeout=None,
-        create_timeout=None,
-        transaction_count=None,
-        enable_iprof=False,
-    ):
+        strategy: str,
+        contracts: Optional[List[EVMContract]] = None,
+        address: Optional[str] = None,
+        modules: Optional[List[str]] = None,
+        verbose_report: bool = False,
+        max_depth: Optional[int] = None,
+        execution_timeout: Optional[int] = None,
+        create_timeout: Optional[int] = None,
+        transaction_count: Optional[int] = None,
+        enable_iprof: bool = False,
+    ) -> Report:
         """
         :param strategy: The search strategy to go through the CFG
         :param contracts: The Contracts list on which the analysis should be done

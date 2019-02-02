@@ -2,7 +2,7 @@ import re
 from mythril.exceptions import CriticalError
 
 
-class MythrilLevelDB(object):
+class MythrilLevelDB:
     """
     Class which does search operations on leveldb
     There are two DBs

@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from shutil import copyfile
 from configparser import ConfigParser
+from typing import Optional
 
 from mythril.exceptions import CriticalError
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
@@ -15,16 +16,16 @@ from mythril.ethereum.interface.leveldb.client import EthLevelDB
 log = logging.getLogger(__name__)
 
 
-class MythrilConfig(object):
+class MythrilConfig:
     def __init__(self):
         self.mythril_dir = self._init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
         self.leveldb_dir = self._init_config()
-        self.eth = None
-        self.eth_db = None
+        self.eth = None  # type: Optional[EthJsonRpc]
+        self.eth_db = None  # type: Optional[EthLevelDB]
 
     @staticmethod
-    def _init_mythril_dir():
+    def _init_mythril_dir() -> str:
         """
         Initializes the mythril dir and config.ini file
         :return: The mythril dir's path
@@ -48,7 +49,7 @@ class MythrilConfig(object):
 
         return mythril_dir
 
-    def _init_config(self):
+    def _init_config(self) -> str:
         """If no config file exists, create it and add default options.
 
         Default LevelDB path is specified based on OS
@@ -83,7 +84,7 @@ class MythrilConfig(object):
         return os.path.expanduser(leveldb_dir)
 
     @staticmethod
-    def _get_fallback_dir():
+    def _get_fallback_dir() -> str:
         """
         Returns the LevelDB path
         :return: The LevelDB path
@@ -103,7 +104,7 @@ class MythrilConfig(object):
         return os.path.join(leveldb_fallback_dir, "geth", "chaindata")
 
     @staticmethod
-    def _add_default_options(config):
+    def _add_default_options(config: ConfigParser) -> None:
         """
         Adds defaults option to config.ini
         :param config: The config file object
@@ -112,7 +113,7 @@ class MythrilConfig(object):
         config.add_section("defaults")
 
     @staticmethod
-    def _add_leveldb_option(config, leveldb_fallback_dir):
+    def _add_leveldb_option(config: ConfigParser, leveldb_fallback_dir: str) -> None:
         """
         Sets a default leveldb path in .mythril/config.ini file
         :param config: The config file object
@@ -129,7 +130,7 @@ class MythrilConfig(object):
         config.set("defaults", "leveldb_dir", leveldb_fallback_dir)
 
     @staticmethod
-    def _add_dynamic_loading_option(config):
+    def _add_dynamic_loading_option(config: ConfigParser) -> None:
         """
         Sets the dynamic loading config option in .mythril/config.ini file
         :param config: The config file object
@@ -146,17 +147,17 @@ class MythrilConfig(object):
         )
         config.set("defaults", "dynamic_loading", "infura")
 
-    def set_api_leveldb(self, leveldb_path):
+    def set_api_leveldb(self, leveldb_path: str) -> None:
         """
         """
         self.eth_db = EthLevelDB(leveldb_path)
 
-    def set_api_rpc_infura(self):
+    def set_api_rpc_infura(self) -> None:
         """Set the RPC mode to INFURA on Mainnet."""
         log.info("Using INFURA Main Net for RPC queries")
         self.eth = EthJsonRpc("mainnet.infura.io", 443, True)
 
-    def set_api_rpc(self, rpc=None, rpctls=False):
+    def set_api_rpc(self, rpc: str = None, rpctls: bool = False) -> None:
         """
         Sets the RPC mode to either ganache or infura
         """
@@ -181,12 +182,12 @@ class MythrilConfig(object):
         else:
             raise CriticalError("Invalid RPC settings, check help for details.")
 
-    def set_api_rpc_localhost(self):
+    def set_api_rpc_localhost(self) -> None:
         """Set the RPC mode to a local instance."""
         log.info("Using default RPC settings: http://localhost:8545")
         self.eth = EthJsonRpc("localhost", 8545)
 
-    def set_api_from_config_path(self):
+    def set_api_from_config_path(self) -> None:
         """Set the RPC mode based on a given config file."""
         config = ConfigParser(allow_no_value=False)
         config.optionxform = str
