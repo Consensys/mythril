@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 class MythrilDisassembler:
     def __init__(
         self,
-        eth: Optional[EthJsonRpc],
+        eth: Optional[EthJsonRpc] = None,
         solc_version: str = None,
         solc_args: str = None,
         enable_online_lookup: bool = False,

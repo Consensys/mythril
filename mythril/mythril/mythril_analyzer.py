@@ -49,7 +49,7 @@ class MythrilAnalyzer:
     def dump_statespace(
         self,
         strategy: str,
-        contract: List[EVMContract],
+        contract: List[EVMContract] = None,
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
         execution_timeout: Optional[int] = None,
@@ -68,7 +68,7 @@ class MythrilAnalyzer:
         :return: The serialized state space
         """
         sym = SymExecWrapper(
-            contract,
+            contract or self.contracts[0],
             address,
             strategy,
             dynloader=DynLoader(
@@ -87,13 +87,14 @@ class MythrilAnalyzer:
     def graph_html(
         self,
         strategy: str,
-        contract: List[EVMContract],
         address: str,
+        contract: List[EVMContract] = None,
         max_depth: Optional[int] = None,
         enable_physics: bool = False,
         phrackify: bool = False,
         execution_timeout: Optional[int] = None,
         create_timeout: Optional[int] = None,
+        transaction_count: Optional[int] = None,
         enable_iprof: bool = False,
     ) -> str:
         """
@@ -106,11 +107,12 @@ class MythrilAnalyzer:
         :param phrackify: If true generates Phrack-style call graph
         :param execution_timeout: The total execution timeout of the contract
         :param create_timeout: The total contract creation timeout
+        :param transaction_count: The amount of transactions to be executed
         :param enable_iprof: Enables/disables instruction profiler
         :return: The generated graph in html format
         """
         sym = SymExecWrapper(
-            contract,
+            contract or self.contracts[0],
             address,
             strategy,
             dynloader=DynLoader(
@@ -120,6 +122,7 @@ class MythrilAnalyzer:
             ),
             max_depth=max_depth,
             execution_timeout=execution_timeout,
+            transaction_count=transaction_count,
             create_timeout=create_timeout,
             enable_iprof=enable_iprof,
         )

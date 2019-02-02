@@ -4,8 +4,6 @@ from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 
 def test_fire_lasers():
     disassembler = MythrilDisassembler(eth=None)
-    print(str((Path(__file__).parent.parent / "testdata/input_contracts/origin.sol")))
-    print(Path(__file__))
     disassembler.load_from_solidity(
         [
             str(
