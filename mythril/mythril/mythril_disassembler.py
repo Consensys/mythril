@@ -5,7 +5,7 @@ import os
 
 from ethereum import utils
 from solc.exceptions import SolcError
-
+from typing import List, Optional
 from mythril.ethereum import util
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
@@ -208,13 +208,18 @@ class MythrilDisassembler:
         """
         return "0x%s" % utils.sha3(func)[:4].hex()
 
-    def get_state_variable_from_storage(self, address, params=None):
+    def get_state_variable_from_storage(
+        self, address: str, params: Optional[List[str]] = None
+    ) -> str:
         """
-
-        :param address:
-        :param params:
-        :return:
+        Get variables from the storage
+        :param address: The contract address
+        :param params: The list of parameters
+                        param types: [position, length] or ["mapping", position, key1, key2, ...  ]
+                        or [position, length, array]
+        :return: The corresponding storage slot and it's value
         """
+        print(address, params, type(address))
         if params is None:
             params = []
         (position, length, mappings) = (0, 1, [])
@@ -285,6 +290,7 @@ class MythrilDisassembler:
                                 hex(i), self.eth.eth_getStorageAt(address, i)
                             )
                         )
+            print(outtxt)
         except FileNotFoundError as e:
             raise CriticalError("IPC error: " + str(e))
         except ConnectionError:
