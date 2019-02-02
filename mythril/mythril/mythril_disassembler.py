@@ -191,15 +191,6 @@ class MythrilDisassembler:
         )  # just passthru by passing signatures for now
 
     @staticmethod
-    def disassemble(contract):
-        """
-
-        :param contract: the Contract
-        :return: It's disassembly
-        """
-        return contract.get_easm()
-
-    @staticmethod
     def hash_for_function_signature(func):
         """
         Return function name's corresponding signature hash
@@ -219,8 +210,7 @@ class MythrilDisassembler:
                         or [position, length, array]
         :return: The corresponding storage slot and it's value
         """
-        if params is None:
-            params = []
+        params = params or []
         (position, length, mappings) = (0, 1, [])
         try:
             if params[0] == "mapping":
