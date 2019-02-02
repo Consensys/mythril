@@ -219,7 +219,6 @@ class MythrilDisassembler:
                         or [position, length, array]
         :return: The corresponding storage slot and it's value
         """
-        print(address, params, type(address))
         if params is None:
             params = []
         (position, length, mappings) = (0, 1, [])
@@ -290,11 +289,11 @@ class MythrilDisassembler:
                                 hex(i), self.eth.eth_getStorageAt(address, i)
                             )
                         )
-            print(outtxt)
         except FileNotFoundError as e:
             raise CriticalError("IPC error: " + str(e))
         except ConnectionError:
             raise CriticalError(
-                "Could not connect to RPC server. Make sure that your node is running and that RPC parameters are set correctly."
+                "Could not connect to RPC server. "
+                "Make sure that your node is running and that RPC parameters are set correctly."
             )
         return "\n".join(outtxt)
