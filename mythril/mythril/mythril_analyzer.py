@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""mythril.py: Bug hunting on the Ethereum blockchain
-
-   http://www.github.com/b-mueller/mythril
-"""
 
 import logging
 import traceback
