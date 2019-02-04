@@ -103,16 +103,20 @@ class IndependenceSolver:
 
         :param constraints: constraints to add
         """
-        constraints = [c.raw for c in cast(Tuple[Bool], constraints)]
-        self.constraints.extend(constraints)
+        raw_constraints = [
+            c.raw for c in cast(Tuple[Bool], constraints)
+        ]  # type: List[z3.BoolRef]
+        self.constraints.extend(raw_constraints)
 
     def append(self, *constraints: Tuple[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints: constraints to add
         """
-        constraints = [c.raw for c in cast(Tuple[Bool], constraints)]
-        self.constraints.extend(constraints)
+        raw_constraints = [
+            c.raw for c in cast(Tuple[Bool], constraints)
+        ]  # type: List[z3.BoolRef]
+        self.constraints.extend(raw_constraints)
 
     def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result. """
