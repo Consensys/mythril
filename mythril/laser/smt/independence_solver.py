@@ -2,7 +2,7 @@ import z3
 
 from mythril.laser.smt.model import Model
 from mythril.laser.smt.bool import Bool
-from typing import Set, List, Dict, Union
+from typing import Set, List, Dict, Union, cast
 
 
 def _get_expr_variables(expression: z3.ExprRef) -> List[z3.ExprRef]:
@@ -68,8 +68,8 @@ class DependenceMap:
 
     def _merge_buckets(self, bucket_list: Set[DependenceBucket]) -> DependenceBucket:
         """ Merges the buckets in bucket list """
-        variables = []
-        conditions = []
+        variables = []  # type: List[str]
+        conditions = []  # type: List[z3.BoolRef]
         for bucket in bucket_list:
             self.buckets.remove(bucket)
             variables += bucket.variables
@@ -103,7 +103,7 @@ class IndependenceSolver:
 
         :param constraints: constraints to add
         """
-        constraints = [c.raw for c in constraints]
+        constraints = [c.raw for c in cast(List[Bool], constraints)]
         self.constraints.extend(constraints)
 
     def append(self, *constraints: List[Bool]) -> None:
@@ -111,7 +111,7 @@ class IndependenceSolver:
 
         :param constraints: constraints to add
         """
-        constraints = [c.raw for c in constraints]
+        constraints = [c.raw for c in cast(List[Bool], constraints)]
         self.constraints.extend(constraints)
 
     def check(self) -> z3.CheckSatResult:
