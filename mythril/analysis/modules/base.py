@@ -3,6 +3,7 @@ modules."""
 
 import logging
 from typing import List
+from mythril.analysis.report import Issue
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class DetectionModule:
         entrypoint: str = "post",
         pre_hooks: List[str] = None,
         post_hooks: List[str] = None,
-    ):
+    ) -> None:
         self.name = name
         self.swc_id = swc_id
         self.pre_hooks = pre_hooks if pre_hooks else []
@@ -33,7 +34,7 @@ class DetectionModule:
                 self.name,
             )
         self.entrypoint = entrypoint
-        self._issues = []
+        self._issues = []  # type: List[Issue]
 
     @property
     def issues(self):

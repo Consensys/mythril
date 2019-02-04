@@ -14,17 +14,17 @@ from mythril.laser.smt import symbol_factory
 class Storage:
     """Storage class represents the storage of an Account."""
 
-    def __init__(self, concrete=False, address=None, dynamic_loader=None):
+    def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
         """Constructor for Storage.
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        self._storage = {}
+        self._storage = {}  # type: Dict[Union[int, str], Any]
         self.concrete = concrete
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item: Union[int, slice]) -> Any:
+    def __getitem__(self, item: Union[str, int]) -> Any:
         try:
             return self._storage[item]
         except KeyError:
@@ -51,7 +51,7 @@ class Storage:
         self._storage[item] = symbol_factory.BitVecVal(0, 256)
         return self._storage[item]
 
-    def __setitem__(self, key: str, value: ExprRef) -> None:
+    def __setitem__(self, key: Union[int, str], value: Any) -> None:
         self._storage[key] = value
 
     def keys(self) -> KeysView:
@@ -73,7 +73,7 @@ class Account:
         balance=None,
         concrete_storage=False,
         dynamic_loader=None,
-    ):
+    ) -> None:
         """Constructor for account.
 
         :param address: Address of the account

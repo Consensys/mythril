@@ -1,77 +1,100 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 
+from mythril.laser.smt import Solver, Bool
+
+from typing import Iterable, List, Optional
+from z3 import unsat
+
 
 class Constraints(list):
     """This class should maintain a solver and it's constraints, This class
     tries to make the Constraints() object as a simple list of constraints with
     some background processing.
 
-    TODO: add the solver to this class after callback refactor
     """
 
-    def __init__(self, constraint_list=None, solver=None, possibility=None):
+    def __init__(
+        self,
+        constraint_list: Optional[List[Bool]] = None,
+        is_possible: Optional[bool] = None,
+    ) -> None:
         """
 
-        :param constraint_list:
-        :param solver:
-        :param possibility:
+        :param constraint_list: List of constraints
+        :param is_possible: Whether it is possible to satisfy the constraints or not
         """
         super(Constraints, self).__init__(constraint_list or [])
-        self.solver = solver
-        self.__possibility = possibility
+        self._default_timeout = 100
+        self._is_possible = is_possible
 
-    def check_possibility(self):
+    @property
+    def is_possible(self) -> bool:
+        """
+        :return: True/False based on the existence of solution of constraints
+        """
+        if self._is_possible is not None:
+            return self._is_possible
+        solver = Solver()
+        solver.set_timeout(self._default_timeout)
+        for constraint in self[:]:
+            solver.add(constraint)
+        self._is_possible = solver.check() != unsat
+        return self._is_possible
+
+    def append(self, constraint: Bool) -> None:
         """
 
-        :return:
-        """
-        return True
-
-    def append(self, constraint):
-        """
-
-        :param constraint:
+        :param constraint: The constraint to be appended
         """
         super(Constraints, self).append(constraint)
+        self._is_possible = None
 
-    def pop(self, index=-1):
+    def pop(self, index: int = -1) -> None:
         """
 
-        :param index:
+        :param index: Index to be popped from the list
         """
         raise NotImplementedError
 
-    def __copy__(self):
+    @property
+    def as_list(self) -> List[Bool]:
+        """
+        :return: returns the list of constraints
+        """
+        return self[:]
+
+    def __copy__(self) -> "Constraints":
         """
 
-        :return:
+        :return: The copied constraint List
         """
         constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list)
+        return Constraints(constraint_list, is_possible=self._is_possible)
 
-    def __deepcopy__(self, memodict=None):
+    def __deepcopy__(self, memodict=None) -> "Constraints":
         """
 
         :param memodict:
-        :return:
+        :return: The copied constraint List
         """
         return self.__copy__()
 
-    def __add__(self, constraints):
+    def __add__(self, constraints: List[Bool]) -> "Constraints":
         """
 
         :param constraints:
-        :return:
+        :return: the new list after the + operation
         """
         constraints_list = super(Constraints, self).__add__(constraints)
-        return Constraints(constraint_list=constraints_list)
+        return Constraints(constraint_list=constraints_list, is_possible=None)
 
-    def __iadd__(self, constraints):
+    def __iadd__(self, constraints: Iterable[Bool]) -> "Constraints":
         """
 
         :param constraints:
         :return:
         """
         super(Constraints, self).__iadd__(constraints)
+        self._is_possible = None
         return self
