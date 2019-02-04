@@ -2,7 +2,7 @@
 underflows."""
 
 import json
-from typing import Dict
+from typing import Dict, cast, List
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -61,7 +61,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 "there's a possible state where op1 + op0 > 2^32 - 1"
             ),
             entrypoint="callback",
-            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
+            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
         self._overflow_cache = {}  # type: Dict[int, bool]
         self._underflow_cache = {}  # type: Dict[int, bool]
@@ -96,6 +96,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             self._handle_sstore(state)
         elif state.get_current_instruction()["opcode"] == "JUMPI":
             self._handle_jumpi(state)
+        elif state.get_current_instruction()["opcode"] in ("RETURN", "STOP"):
+            self._handle_transaction_end(state)
 
     def _handle_add(self, state):
         stack = state.mstate.stack
