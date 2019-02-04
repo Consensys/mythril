@@ -229,6 +229,11 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
+
+            new_states = [
+                state for state in new_states if state.mstate.constraints.is_possible
+            ]
+
             self.manage_cfg(op_code, new_states)
 
             if new_states:
@@ -236,6 +241,7 @@ class LaserEVM:
             elif track_gas:
                 final_states.append(global_state)
             self.total_states += len(new_states)
+
         return final_states if track_gas else None
 
     def _add_world_state(self, global_state: GlobalState):
