@@ -56,3 +56,4 @@ class Model:
             is_relevant_model = expression.decl() in list(internal_model.decls())
             if is_relevant_model or is_last_model:
                 return internal_model.eval(expression, model_completion)
+        return None
