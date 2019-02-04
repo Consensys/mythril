@@ -16,7 +16,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
-from mythril.analysis.report import Report
+from mythril.analysis.report import Report, Issue
 from mythril.ethereum.evmcontract import EVMContract
 
 log = logging.getLogger(__name__)
@@ -154,7 +154,7 @@ class MythrilAnalyzer:
         :param enable_iprof: Enables/disables instruction profiler
         :return: The Report class which contains the all the issues/vulnerabilities
         """
-        all_issues = []
+        all_issues = []  # type: List[Issue]
         for contract in contracts or self.contracts:
             try:
                 sym = SymExecWrapper(

@@ -64,7 +64,8 @@ class MythrilConfig:
             open(self.config_path, "a").close()
 
         config = ConfigParser(allow_no_value=True)
-        config.optionxform = str
+        # TODO: Remove this after this issue https://github.com/python/mypy/issues/2427 is closed
+        config.optionxform = str  # type:ignore
         config.read(self.config_path, "utf-8")
         if "defaults" not in config.sections():
             self._add_default_options(config)
@@ -120,12 +121,13 @@ class MythrilConfig:
         :param leveldb_fallback_dir: The leveldb dir to use by default for searches
         :return: None
         """
-        config.set("defaults", "#Default chaindata locations:")
-        config.set("defaults", "#– Mac: ~/Library/Ethereum/geth/chaindata")
-        config.set("defaults", "#– Linux: ~/.ethereum/geth/chaindata")
+        config.set("defaults", "#Default chaindata locations:", None)
+        config.set("defaults", "#– Mac: ~/Library/Ethereum/geth/chaindata", None)
+        config.set("defaults", "#– Linux: ~/.ethereum/geth/chaindata", None)
         config.set(
             "defaults",
             "#– Windows: %USERPROFILE%\\AppData\\Roaming\\Ethereum\\geth\\chaindata",
+            None,
         )
         config.set("defaults", "leveldb_dir", leveldb_fallback_dir)
 
@@ -136,14 +138,19 @@ class MythrilConfig:
         :param config: The config file object
         :return: None
         """
-        config.set("defaults", "#– To connect to Infura use dynamic_loading: infura")
+        config.set(
+            "defaults", "#– To connect to Infura use dynamic_loading: infura", None
+        )
         config.set(
             "defaults",
             "#– To connect to Rpc use "
             "dynamic_loading: HOST:PORT / ganache / infura-[network_name]",
+            None,
         )
         config.set(
-            "defaults", "#– To connect to local host use dynamic_loading: localhost"
+            "defaults",
+            "#– To connect to local host use dynamic_loading: localhost",
+            None,
         )
         config.set("defaults", "dynamic_loading", "infura")
 
@@ -190,7 +197,8 @@ class MythrilConfig:
     def set_api_from_config_path(self) -> None:
         """Set the RPC mode based on a given config file."""
         config = ConfigParser(allow_no_value=False)
-        config.optionxform = str
+        # TODO: Remove this after this issue https://github.com/python/mypy/issues/2427 is closed
+        config.optionxform = str  # type:ignore
         config.read(self.config_path, "utf-8")
         if config.has_option("defaults", "dynamic_loading"):
             dynamic_loading = config.get("defaults", "dynamic_loading")
