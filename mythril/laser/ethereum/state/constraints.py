@@ -3,7 +3,7 @@ the call graph."""
 
 from mythril.laser.smt import Solver, Bool
 
-from typing import List, Optional
+from typing import Iterable, List, Optional
 from z3 import unsat
 
 
@@ -89,7 +89,7 @@ class Constraints(list):
         constraints_list = super(Constraints, self).__add__(constraints)
         return Constraints(constraint_list=constraints_list, is_possible=None)
 
-    def __iadd__(self, constraints: List[Bool]) -> "Constraints":
+    def __iadd__(self, constraints: Iterable[Bool]) -> "Constraints":
         """
 
         :param constraints:
