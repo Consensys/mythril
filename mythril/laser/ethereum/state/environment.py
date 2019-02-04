@@ -22,7 +22,7 @@ class Environment:
         callvalue: ExprRef,
         origin: ExprRef,
         code=None,
-    ):
+    ) -> None:
         """
 
         :param active_account:

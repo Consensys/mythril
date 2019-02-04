@@ -1,5 +1,5 @@
 """This module contains a representation of the global execution state."""
-from typing import Dict, Union, List, Iterable
+from typing import Dict, Union, List, Iterable, TYPE_CHECKING
 
 from copy import copy, deepcopy
 from z3 import BitVec
@@ -9,6 +9,13 @@ from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
+
+if TYPE_CHECKING:
+    from mythril.laser.ethereum.state.world_state import WorldState
+    from mythril.laser.ethereum.transaction.transaction_models import (
+        MessageCallTransaction,
+        ContractCreationTransaction,
+    )
 
 
 class GlobalState:
@@ -23,7 +30,7 @@ class GlobalState:
         transaction_stack=None,
         last_return_data=None,
         annotations=None,
-    ):
+    ) -> None:
         """Constructor for GlobalState.
 
         :param world_state:
