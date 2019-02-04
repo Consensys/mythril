@@ -90,7 +90,7 @@ def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool
     return True
 
 
-def disassemble(bytecode: str) -> list:
+def disassemble(bytecode: bytes) -> list:
     """Disassembles evm bytecode and returns a list of instructions.
 
     :param bytecode:

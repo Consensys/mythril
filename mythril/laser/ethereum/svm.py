@@ -4,7 +4,7 @@ from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
 from functools import reduce
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Dict, DefaultDict, List, Tuple, Union
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -56,7 +56,7 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         enable_iprof=False,
-    ):
+    ) -> None:
         """
 
         :param accounts:
@@ -73,12 +73,12 @@ class LaserEVM:
         self.world_state = world_state
         self.open_states = [world_state]
 
-        self.coverage = {}
+        self.coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
 
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
-        self.work_list = []
+        self.work_list = []  # type: List[GlobalState]
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
         self.transaction_count = transaction_count
@@ -88,14 +88,15 @@ class LaserEVM:
 
         self.requires_statespace = requires_statespace
         if self.requires_statespace:
-            self.nodes = {}
-            self.edges = []
+            self.nodes = {}  # type: Dict[int, Node]
+            self.edges = []  # type: List[Edge]
 
-        self.time = None
+        self.time = None  # type: datetime
 
-        self.pre_hooks = defaultdict(list)
-        self.post_hooks = defaultdict(list)
-        self._add_world_state_hooks = []
+        self.pre_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
+        self.post_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
+
+        self._add_world_state_hooks = []  # type: List[Callable]
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -153,11 +154,8 @@ class LaserEVM:
                 self.total_states,
             )
         for code, coverage in self.coverage.items():
-            cov = (
-                reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1])
-                / float(coverage[0])
-                * 100
-            )
+            cov = sum(coverage[1]) / float(coverage[0]) * 100
+
             log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
         if self.iprof is not None:
@@ -198,9 +196,7 @@ class LaserEVM:
         """
         total_covered_instructions = 0
         for _, cv in self.coverage.items():
-            total_covered_instructions += reduce(
-                lambda sum_, val: sum_ + 1 if val else sum_, cv[1]
-            )
+            total_covered_instructions += sum(cv[1])
         return total_covered_instructions
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
@@ -210,7 +206,7 @@ class LaserEVM:
         :param track_gas:
         :return:
         """
-        final_states = []
+        final_states = []  # type: List[GlobalState]
         for global_state in self.strategy:
             if (
                 self.create_timeout
@@ -391,10 +387,10 @@ class LaserEVM:
         instruction_index = global_state.mstate.pc
 
         if code not in self.coverage.keys():
-            self.coverage[code] = [
+            self.coverage[code] = (
                 number_of_instructions,
                 [False] * number_of_instructions,
-            ]
+            )
 
         self.coverage[code][1][instruction_index] = True
 

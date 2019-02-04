@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 class DelegateCallModule(DetectionModule):
     """This module detects calldata being forwarded using DELEGATECALL."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """"""
         super().__init__(
             name="DELEGATECALL Usage in Fallback Function",
@@ -46,7 +46,7 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
     call = get_call_from_state(state)
     if call is None:
         return []
-    issues = []
+    issues = []  # type: List[Issue]
 
     if call.type is not "DELEGATECALL":
         return []

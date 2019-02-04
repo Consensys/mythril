@@ -1,24 +1,16 @@
 """This module contains various utility conversion functions and constants for
 LASER."""
 import re
-from typing import Dict, List, Union
+from typing import Dict, List, Union, TYPE_CHECKING, cast
 
-import sha3 as _sha3
+if TYPE_CHECKING:
+    from mythril.laser.ethereum.state.machine_state import MachineState
 
 from mythril.laser.smt import BitVec, Bool, Expression, If, simplify, symbol_factory
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 TT255 = 2 ** 255
-
-
-def sha3(seed: str) -> bytes:
-    """
-
-    :param seed:
-    :return:
-    """
-    return _sha3.keccak_256(bytes(seed)).digest()
 
 
 def safe_decode(hex_encoded_string: str) -> bytes:
@@ -83,18 +75,16 @@ def pop_bitvec(state: "MachineState") -> BitVec:
 
     item = state.stack.pop()
 
-    if type(item) == Bool:
+    if isinstance(item, Bool):
         return If(
-            item, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
+            cast(Bool, item),
+            symbol_factory.BitVecVal(1, 256),
+            symbol_factory.BitVecVal(0, 256),
         )
-    elif type(item) == bool:
-        if item:
-            return symbol_factory.BitVecVal(1, 256)
-        else:
-            return symbol_factory.BitVecVal(0, 256)
-    elif type(item) == int:
+    elif isinstance(item, int):
         return symbol_factory.BitVecVal(item, 256)
     else:
+        item = cast(BitVec, item)
         return simplify(item)
 
 
@@ -116,8 +106,12 @@ def get_concrete_int(item: Union[int, Expression]) -> int:
             raise TypeError("Symbolic boolref encountered")
         return value
 
+    assert False, "Unhandled type {} encountered".format(str(type(item)))
 
-def concrete_int_from_bytes(concrete_bytes: bytes, start_index: int) -> int:
+
+def concrete_int_from_bytes(
+    concrete_bytes: Union[List[Union[BitVec, int]], bytes], start_index: int
+) -> int:
     """
 
     :param concrete_bytes:
@@ -130,7 +124,8 @@ def concrete_int_from_bytes(concrete_bytes: bytes, start_index: int) -> int:
     ]
     integer_bytes = concrete_bytes[start_index : start_index + 32]
 
-    return int.from_bytes(integer_bytes, byteorder="big")
+    # The below statement is expected to fail in some circumstances whose error is caught
+    return int.from_bytes(integer_bytes, byteorder="big")  # type: ignore
 
 
 def concrete_int_to_bytes(val):
