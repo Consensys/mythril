@@ -60,14 +60,14 @@ def _analyze_state(state: GlobalState):
 
     annotations = cast(
         List[MultipleSendsAnnotation],
-        [a for a in state.get_annotations(MultipleSendsAnnotation)],
+        list(state.get_annotations(MultipleSendsAnnotation)),
     )
     if len(annotations) == 0:
         log.debug("Creating annotation for state")
         state.annotate(MultipleSendsAnnotation())
         annotations = cast(
             List[MultipleSendsAnnotation],
-            [a for a in state.get_annotations(MultipleSendsAnnotation)],
+            list(state.get_annotations(MultipleSendsAnnotation)),
         )
 
     calls = annotations[0].calls
