@@ -4,10 +4,8 @@ from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
 from functools import reduce
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Dict, DefaultDict, List, Tuple, Union
 
-from mythril import alarm
-from mythril.exceptions import OutOfTimeError
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
@@ -16,6 +14,8 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from mythril.laser.ethereum.time_handler import time_handler
+from mythril.laser.ethereum.plugins.signals import PluginSignal, PluginSkipWorldState
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -56,7 +56,7 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         enable_iprof=False,
-    ):
+    ) -> None:
         """
 
         :param accounts:
@@ -73,12 +73,12 @@ class LaserEVM:
         self.world_state = world_state
         self.open_states = [world_state]
 
-        self.coverage = {}
+        self.coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
 
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
-        self.work_list = []
+        self.work_list = []  # type: List[GlobalState]
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
         self.transaction_count = transaction_count
@@ -88,35 +88,18 @@ class LaserEVM:
 
         self.requires_statespace = requires_statespace
         if self.requires_statespace:
-            self.nodes = {}
-            self.edges = []
+            self.nodes = {}  # type: Dict[int, Node]
+            self.edges = []  # type: List[Edge]
 
-        self.time = None
+        self.time = None  # type: datetime
 
-        self.pre_hooks = defaultdict(list)
-        self.post_hooks = defaultdict(list)
+        self.pre_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
+        self.post_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
 
+        self._add_world_state_hooks = []  # type: List[Callable]
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
-
-    def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
-        """
-
-        :param hook_type:
-        :param hook_dict:
-        """
-        if hook_type == "pre":
-            entrypoint = self.pre_hooks
-        elif hook_type == "post":
-            entrypoint = self.post_hooks
-        else:
-            raise ValueError(
-                "Invalid hook type %s. Must be one of {pre, post}", hook_type
-            )
-
-        for op_code, funcs in hook_dict.items():
-            entrypoint[op_code].extend(funcs)
 
     @property
     def accounts(self) -> Dict[str, Account]:
@@ -137,36 +120,30 @@ class LaserEVM:
         """
         log.debug("Starting LASER execution")
 
-        try:
-            alarm.start_timeout(self.execution_timeout)
-            self.time = datetime.now()
+        time_handler.start_execution(self.execution_timeout)
+        self.time = datetime.now()
 
-            if main_address:
-                log.info("Starting message call transaction to {}".format(main_address))
-                self._execute_transactions(main_address)
+        if main_address:
+            log.info("Starting message call transaction to {}".format(main_address))
+            self._execute_transactions(main_address)
 
-            elif creation_code:
-                log.info("Starting contract creation transaction")
-                created_account = execute_contract_creation(
-                    self, creation_code, contract_name
+        elif creation_code:
+            log.info("Starting contract creation transaction")
+            created_account = execute_contract_creation(
+                self, creation_code, contract_name
+            )
+            log.info(
+                "Finished contract creation, found {} open states".format(
+                    len(self.open_states)
                 )
-                log.info(
-                    "Finished contract creation, found {} open states".format(
-                        len(self.open_states)
-                    )
+            )
+            if len(self.open_states) == 0:
+                log.warning(
+                    "No contract was created during the execution of contract creation "
+                    "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
-                if len(self.open_states) == 0:
-                    log.warning(
-                        "No contract was created during the execution of contract creation "
-                        "Increase the resources for creation execution (--max-depth or --create-timeout)"
-                    )
 
-                self._execute_transactions(created_account.address)
-
-        except OutOfTimeError:
-            log.warning("Timeout occurred, ending symbolic execution")
-        finally:
-            alarm.disable_timeout()
+            self._execute_transactions(created_account.address)
 
         log.info("Finished symbolic execution")
         if self.requires_statespace:
@@ -177,11 +154,8 @@ class LaserEVM:
                 self.total_states,
             )
         for code, coverage in self.coverage.items():
-            cov = (
-                reduce(lambda sum_, val: sum_ + 1 if val else sum_, coverage[1])
-                / float(coverage[0])
-                * 100
-            )
+            cov = sum(coverage[1]) / float(coverage[0]) * 100
+
             log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
         if self.iprof is not None:
@@ -222,9 +196,7 @@ class LaserEVM:
         """
         total_covered_instructions = 0
         for _, cv in self.coverage.items():
-            total_covered_instructions += reduce(
-                lambda sum_, val: sum_ + 1 if val else sum_, cv[1]
-            )
+            total_covered_instructions += sum(cv[1])
         return total_covered_instructions
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
@@ -234,7 +206,7 @@ class LaserEVM:
         :param track_gas:
         :return:
         """
-        final_states = []
+        final_states = []  # type: List[GlobalState]
         for global_state in self.strategy:
             if (
                 self.create_timeout
@@ -243,11 +215,25 @@ class LaserEVM:
             ):
                 return final_states + [global_state] if track_gas else None
 
+            if (
+                self.execution_timeout
+                and self.time
+                + timedelta(seconds=self.execution_timeout / self.transaction_count)
+                <= datetime.now()
+                and not create
+            ):
+                return final_states + [global_state] if track_gas else None
+
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
+
+            new_states = [
+                state for state in new_states if state.mstate.constraints.is_possible
+            ]
+
             self.manage_cfg(op_code, new_states)
 
             if new_states:
@@ -255,7 +241,18 @@ class LaserEVM:
             elif track_gas:
                 final_states.append(global_state)
             self.total_states += len(new_states)
+
         return final_states if track_gas else None
+
+    def _add_world_state(self, global_state: GlobalState):
+        """ Stores the world_state of the passed global state in the open states"""
+        for hook in self._add_world_state_hooks:
+            try:
+                hook(global_state)
+            except PluginSkipWorldState:
+                return
+
+        self.open_states.append(global_state.world_state)
 
     def execute_state(
         self, global_state: GlobalState
@@ -270,7 +267,7 @@ class LaserEVM:
         try:
             op_code = instructions[global_state.mstate.pc]["opcode"]
         except IndexError:
-            self.open_states.append(global_state.world_state)
+            self._add_world_state(global_state)
             return [], None
 
         self._execute_pre_hook(op_code, global_state)
@@ -312,9 +309,9 @@ class LaserEVM:
             return [new_global_state], op_code
 
         except TransactionEndSignal as end_signal:
-            transaction, return_global_state = (
-                end_signal.global_state.transaction_stack.pop()
-            )
+            transaction, return_global_state = end_signal.global_state.transaction_stack[
+                -1
+            ]
 
             if return_global_state is None:
                 if (
@@ -322,11 +319,12 @@ class LaserEVM:
                     or transaction.return_data
                 ) and not end_signal.revert:
                     end_signal.global_state.world_state.node = global_state.node
-                    self.open_states.append(end_signal.global_state.world_state)
+                    self._add_world_state(end_signal.global_state)
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
+
                 new_global_states = self._end_message_call(
                     copy(return_global_state),
                     global_state,
@@ -389,10 +387,10 @@ class LaserEVM:
         instruction_index = global_state.mstate.pc
 
         if code not in self.coverage.keys():
-            self.coverage[code] = [
+            self.coverage[code] = (
                 number_of_instructions,
                 [False] * number_of_instructions,
-            ]
+            )
 
         self.coverage[code][1][instruction_index] = True
 
@@ -488,6 +486,50 @@ class LaserEVM:
             environment.active_function_name = "fallback"
 
         new_node.function_name = environment.active_function_name
+
+    def register_hooks(self, hook_type: str, hook_dict: Dict[str, List[Callable]]):
+        """
+
+        :param hook_type:
+        :param hook_dict:
+        """
+        if hook_type == "pre":
+            entrypoint = self.pre_hooks
+        elif hook_type == "post":
+            entrypoint = self.post_hooks
+        else:
+            raise ValueError(
+                "Invalid hook type %s. Must be one of {pre, post}", hook_type
+            )
+
+        for op_code, funcs in hook_dict.items():
+            entrypoint[op_code].extend(funcs)
+
+    def register_laser_hooks(self, hook_type: str, hook: Callable):
+        """registers the hook with this Laser VM"""
+        if hook_type == "add_world_state":
+            self._add_world_state_hooks.append(hook)
+        else:
+            raise ValueError(
+                "Invalid hook type %s. Must be one of {add_world_state}", hook_type
+            )
+
+    def laser_hook(self, hook_type: str) -> Callable:
+        """Registers the annotated function with register_laser_hooks
+
+        :param hook_type:
+        :return: hook decorator
+        """
+
+        def hook_decorator(func: Callable):
+            """ Hook decorator generated by laser_hook
+
+            :param func: Decorated function
+            """
+            self.register_laser_hooks(hook_type, func)
+            return func
+
+        return hook_decorator
 
     def _execute_pre_hook(self, op_code: str, global_state: GlobalState) -> None:
         """

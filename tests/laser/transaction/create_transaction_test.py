@@ -41,7 +41,10 @@ def test_sym_exec():
     )
 
     sym = SymExecWrapper(
-        contract, address=(util.get_indexed_address(0)), strategy="dfs"
+        contract,
+        address=(util.get_indexed_address(0)),
+        strategy="dfs",
+        execution_timeout=10,
     )
     issues = fire_lasers(sym)
 

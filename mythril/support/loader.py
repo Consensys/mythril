@@ -22,7 +22,7 @@ class DynLoader:
         self.contract_loading = contract_loading
         self.storage_loading = storage_loading
 
-    def read_storage(self, contract_address, index):
+    def read_storage(self, contract_address: str, index: int):
         """
 
         :param contract_address:

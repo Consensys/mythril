@@ -3,6 +3,7 @@ from z3 import sat, unknown, FuncInterp
 import z3
 
 from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
+from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -12,17 +13,22 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def get_model(constraints, minimize=(), maximize=()):
+def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
     """
 
     :param constraints:
     :param minimize:
     :param maximize:
+    :param enforce_execution_time: Bool variable which enforces --execution-timeout's time
     :return:
     """
     s = Optimize()
-    s.set_timeout(100000)
-
+    timeout = 100000
+    if enforce_execution_time:
+        timeout = min(timeout, time_handler.time_remaining() - 500)
+        if timeout <= 0:
+            raise UnsatError
+    s.set_timeout(timeout)
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
             raise UnsatError

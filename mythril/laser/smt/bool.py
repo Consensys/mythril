@@ -1,7 +1,7 @@
 """This module provides classes for an SMT abstraction of boolean
 expressions."""
 
-from typing import Union
+from typing import Union, cast, List
 
 import z3
 
@@ -11,7 +11,7 @@ from mythril.laser.smt.expression import Expression
 # fmt: off
 
 
-class Bool(Expression):
+class Bool(Expression[z3.BoolRef]):
     """This is a Bool expression."""
 
     @property
@@ -46,27 +46,31 @@ class Bool(Expression):
         else:
             return None
 
-    def __eq__(self, other):
+    # MYPY: complains about overloading __eq__ # noqa
+    def __eq__(self, other: object) -> "Bool":  # type: ignore
         """
 
         :param other:
         :return:
         """
         if isinstance(other, Expression):
-            return Bool(self.raw == other.raw, self.annotations + other.annotations)
-        return Bool(self.raw == other, self.annotations)
+            return Bool(cast(z3.BoolRef, self.raw == other.raw),
+                        self.annotations + other.annotations)
+        return Bool(cast(z3.BoolRef, self.raw == other), self.annotations)
 
-    def __ne__(self, other):
+    # MYPY: complains about overloading __ne__ # noqa
+    def __ne__(self, other: object) -> "Bool":  # type: ignore
         """
 
         :param other:
         :return:
         """
         if isinstance(other, Expression):
-            return Bool(self.raw != other.raw, self.annotations + other.annotations)
-        return Bool(self.raw != other, self.annotations)
+            return Bool(cast(z3.BoolRef, self.raw != other.raw),
+                        self.annotations + other.annotations)
+        return Bool(cast(z3.BoolRef, self.raw != other), self.annotations)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
 
         :return:
@@ -77,7 +81,16 @@ class Bool(Expression):
             return False
 
 
-def Or(a: Bool, b: Bool):
+def And(*args: Union[Bool, bool]) -> Bool:
+    """Create an And expression."""
+    union = []
+    args_list = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
+    for arg in args_list:
+        union.append(arg.annotations)
+    return Bool(z3.And([a.raw for a in args_list]), union)
+
+
+def Or(a: Bool, b: Bool) -> Bool:
     """Create an or expression.
 
     :param a:
@@ -88,7 +101,7 @@ def Or(a: Bool, b: Bool):
     return Bool(z3.Or(a.raw, b.raw), annotations=union)
 
 
-def Not(a: Bool):
+def Not(a: Bool) -> Bool:
     """Create a Not expression.
 
     :param a:
