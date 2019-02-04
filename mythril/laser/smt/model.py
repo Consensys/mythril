@@ -19,7 +19,7 @@ class Model:
 
     def decls(self) -> List[z3.ExprRef]:
         """Get the declarations for this model"""
-        result = []
+        result = []  # type: List[z3.ExprRef]
         for internal_model in self.raw:
             result.extend(internal_model.decls())
         return result
