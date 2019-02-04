@@ -38,7 +38,7 @@ class BaseSolver(Generic[T]):
         :param constraints:
         :return:
         """
-        self.add(constraints)
+        self.add(*constraints)
 
     def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result.
