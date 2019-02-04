@@ -8,6 +8,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 
 from mythril.laser.smt import (
@@ -27,6 +28,17 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
+    """ Symbol Annotation used if a BitVector can overflow"""
+    def __init__(
+        self, overflowing_state: GlobalState, operator: str, constraint
+    ) -> None:
+        self.overflowing_state = overflowing_state
+        self.operator = operator
+        self.constraint = constraint
+
+
+class OverUnderflowStateAnnotation(StateAnnotation):
+    """ State Annotation used if an overflow both possible and used in the annotated path"""
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint
     ) -> None:
