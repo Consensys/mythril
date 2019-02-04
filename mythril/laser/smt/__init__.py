@@ -1,6 +1,5 @@
 from mythril.laser.smt.bitvec import (
     BitVec,
-    BitVecFunc,
     If,
     UGT,
     ULT,
@@ -15,6 +14,7 @@ from mythril.laser.smt.bitvec import (
     BVMulNoOverflow,
     BVSubNoUnderflow,
 )
+from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not, And
 from mythril.laser.smt.array import K, Array, BaseArray
