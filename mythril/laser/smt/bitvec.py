@@ -228,13 +228,13 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
         if (
             not isinstance(b, BitVecFunc)
             or not a.func_name
-            or not a.input
+            or not a.input_
             or not a.func_name == b.func_name
         ):
             return Bool(z3.BoolVal(False), annotations=annotations)
 
         return And(
-            Bool(z3.UGT(a.raw, b.raw), annotations=annotations), a.input != b.input
+            Bool(z3.UGT(a.raw, b.raw), annotations=annotations), a.input_ != b.input_
         )
 
     return Bool(z3.UGT(a.raw, b.raw), annotations)
@@ -255,13 +255,13 @@ def UGE(a: BitVec, b: BitVec) -> Bool:
         if (
             not isinstance(b, BitVecFunc)
             or not a.func_name
-            or not a.input
+            or not a.input_
             or not a.func_name == b.func_name
         ):
             return Bool(z3.BoolVal(False), annotations=annotations)
 
         return And(
-            Bool(z3.UGE(a.raw, b.raw), annotations=annotations), a.input != b.input
+            Bool(z3.UGE(a.raw, b.raw), annotations=annotations), a.input_ != b.input_
         )
 
     return Bool(z3.UGE(a.raw, b.raw), annotations)
@@ -282,13 +282,13 @@ def ULT(a: BitVec, b: BitVec) -> Bool:
         if (
             not isinstance(b, BitVecFunc)
             or not a.func_name
-            or not a.input
+            or not a.input_
             or not a.func_name == b.func_name
         ):
             return Bool(z3.BoolVal(False), annotations=annotations)
 
         return And(
-            Bool(z3.ULT(a.raw, b.raw), annotations=annotations), a.input != b.input
+            Bool(z3.ULT(a.raw, b.raw), annotations=annotations), a.input_ != b.input_
         )
 
     return Bool(z3.ULT(a.raw, b.raw), annotations)
@@ -324,7 +324,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
 
     if bitvecfunc:
         # Is there a better value to set func_name and input to in this case?
-        return BitVecFunc(raw=nraw, func_name=None, input=None, annotations=annotations)
+        return BitVecFunc(raw=nraw, func_name=None, input_=None, annotations=annotations)
 
     return BitVec(nraw, annotations)
 
@@ -340,7 +340,7 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     raw = z3.Extract(high, low, bv.raw)
     if isinstance(bv, BitVecFunc):
         # Is there a better value to set func_name and input to in this case?
-        return BitVecFunc(raw=raw, func_name=None, input=None, annotations=bv.annotations)
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=bv.annotations)
 
     return BitVec(raw, annotations=bv.annotations)
 
@@ -356,11 +356,11 @@ def URem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
 
     if isinstance(a, BitVecFunc) and isinstance(b, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=None, input=None, annotations=union)
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
     elif isinstance(a, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=a.func_name, input=a.input, annotations=union)
+        return BitVecFunc(raw=raw, func_name=a.func_name, input_=a.input_, annotations=union)
     elif isinstance(b, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=b.func_name, input=b.input, annotations=union)
+        return BitVecFunc(raw=raw, func_name=b.func_name, input_=b.input_, annotations=union)
 
     return BitVec(raw, annotations=union)
 
@@ -376,11 +376,11 @@ def SRem(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
 
     if isinstance(a, BitVecFunc) and isinstance(b, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=None, input=None, annotations=union)
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
     elif isinstance(a, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=a.func_name, input=a.input, annotations=union)
+        return BitVecFunc(raw=raw, func_name=a.func_name, input_=a.input_, annotations=union)
     elif isinstance(b, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=b.func_name, input=b.input, annotations=union)
+        return BitVecFunc(raw=raw, func_name=b.func_name, input_=b.input_, annotations=union)
 
     return BitVec(raw, annotations=union)
 
@@ -396,11 +396,11 @@ def UDiv(a: BitVec, b: BitVec) -> BitVec:
     union = a.annotations + b.annotations
 
     if isinstance(a, BitVecFunc) and isinstance(b, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=None, input=None, annotations=union)
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
     elif isinstance(a, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=a.func_name, input=a.input, annotations=union)
+        return BitVecFunc(raw=raw, func_name=a.func_name, input_=a.input_, annotations=union)
     elif isinstance(b, BitVecFunc):
-        return BitVecFunc(raw=raw, func_name=b.func_name, input=b.input, annotations=union)
+        return BitVecFunc(raw=raw, func_name=b.func_name, input_=b.input_, annotations=union)
 
     return BitVec(raw, annotations=union)
 
@@ -420,12 +420,12 @@ def Sum(*args: BitVec) -> BitVec:
             bitvecfuncs.append(bv)
 
     if len(bitvecfuncs) >= 2:
-        return BitVecFunc(raw=raw, func_name=None, input=None, annotations=annotations)
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=annotations)
     elif len(bitvecfuncs) == 1:
         return BitVecFunc(
             raw=raw,
             func_name=bitvecfuncs[0].func_name,
-            input=bitvecfuncs[0].input,
+            input_=bitvecfuncs[0].input_,
             annotations=annotations,
         )
 

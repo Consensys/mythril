@@ -906,7 +906,7 @@ class Instruction:
         if data.symbolic:
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str), "keccak256", 256, input=data
+                "KECCAC[{}]".format(argument_str), "keccak256", 256, input_=data
             )
             log.debug("Created BitVecFunc hash.")
 
@@ -914,7 +914,7 @@ class Instruction:
         else:
             keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
             result = symbol_factory.BitVecFuncVal(
-                "keccak256", util.concrete_int_from_bytes(keccak, 0), 256, input=data
+                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
             )
             log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 

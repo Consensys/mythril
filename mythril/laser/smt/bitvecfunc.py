@@ -27,9 +27,11 @@ def _arithmetic_helper(
 
     if isinstance(b, BitVecFunc):
         # TODO: Find better value to set input and name to in this case?
-        return BitVecFunc(raw=raw, func_name=None, input=None, annotations=union)
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
 
-    return BitVecFunc(raw=raw, func_name=a.func_name, input=a.input, annotations=union)
+    return BitVecFunc(
+        raw=raw, func_name=a.func_name, input_=a.input_, annotations=union
+    )
 
 
 def _comparison_helper(
@@ -59,14 +61,14 @@ def _comparison_helper(
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
-        or not a.input
+        or not a.input_
         or not a.func_name == b.func_name
     ):
         return Bool(z3.BoolVal(default_value), annotations=union)
 
     return And(
         Bool(cast(z3.BoolRef, operation(a.raw, b.raw)), annotations=union),
-        a.input == b.input if inputs_equal else a.input != b.input,
+        a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
 
 
@@ -77,7 +79,7 @@ class BitVecFunc(BitVec):
         self,
         raw: z3.BitVecRef,
         func_name: Optional[str],
-        input: Union[int, "BitVec"] = None,
+        input_: Union[int, "BitVec"] = None,
         annotations: Optional[Annotations] = None,
     ):
         """
@@ -89,7 +91,7 @@ class BitVecFunc(BitVec):
         """
 
         self.func_name = func_name
-        self.input = input
+        self.input_ = input_
         super().__init__(raw, annotations)
 
     def __add__(self, other: Union[int, "BitVec"]) -> "BitVecFunc":
