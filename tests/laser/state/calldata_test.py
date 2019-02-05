@@ -48,7 +48,7 @@ def test_concrete_calldata_constrain_index():
     value = calldata[2]
     constraint = value == 3
 
-    solver.add([constraint])
+    solver.add(constraint)
     result = solver.check()
 
     # Assert
@@ -65,7 +65,7 @@ def test_symbolic_calldata_constrain_index():
 
     constraints = [value == 1, calldata.calldatasize == 50]
 
-    solver.add(constraints)
+    solver.add(*constraints)
 
     result = solver.check()
 
