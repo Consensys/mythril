@@ -18,6 +18,7 @@ from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not, And
 from mythril.laser.smt.array import K, Array, BaseArray
 from mythril.laser.smt.solver import Solver, Optimize
+from mythril.laser.smt.model import Model
 
 from typing import Union, Any, Optional, List, TypeVar, Generic
 import z3
