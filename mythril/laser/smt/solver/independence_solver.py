@@ -2,6 +2,8 @@ import z3
 
 from mythril.laser.smt.model import Model
 from mythril.laser.smt.bool import Bool
+from mythril.laser.smt.solver.solver_statistics import stat_smt_query
+
 from typing import Set, Tuple, Dict, List, cast
 
 
@@ -118,6 +120,7 @@ class IndependenceSolver:
         ]  # type: List[z3.BoolRef]
         self.constraints.extend(raw_constraints)
 
+    @stat_smt_query
     def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result. """
         dependence_map = DependenceMap()

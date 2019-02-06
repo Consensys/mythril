@@ -5,7 +5,7 @@ from typing import Union, cast, TypeVar, Generic, List, Sequence
 from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.model import Model
 from mythril.laser.smt.bool import Bool
-
+from mythril.laser.smt.solver.solver_statistics import stat_smt_query
 
 T = TypeVar("T", bound=Union[z3.Solver, z3.Optimize])
 
@@ -42,6 +42,7 @@ class BaseSolver(Generic[T]):
         """
         self.add(*constraints)
 
+    @stat_smt_query
     def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result.
 
