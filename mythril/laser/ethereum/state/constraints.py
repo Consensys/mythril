@@ -1,7 +1,7 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 
-from mythril.laser.smt import Solver, Bool
+from mythril.laser.smt import Solver, Bool, symbol_factory
 
 from typing import Iterable, List, Optional
 from z3 import unsat
@@ -38,6 +38,7 @@ class Constraints(list):
         solver = Solver()
         solver.set_timeout(self._default_timeout)
         for constraint in self[:]:
+            constraint = symbol_factory.Bool(constraint) if isinstance(constraint, bool) else constraint
             solver.add(constraint)
         self._is_possible = solver.check() != unsat
         return self._is_possible
