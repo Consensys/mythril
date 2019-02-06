@@ -602,7 +602,7 @@ class Mythril(object):
                 issue.add_code_info(contract)
 
             all_issues += issues
-            log.info("Solver statistics: \n: {}".format(str(SolverStatistics())))
+            log.info("Solver statistics: \n{}".format(str(SolverStatistics())))
 
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
