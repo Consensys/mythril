@@ -18,7 +18,7 @@ def stat_smt_query(func: Callable):
         result = func(*args, **kwargs)
 
         end = time()
-        stat_store.solver_time += (end - begin)
+        stat_store.solver_time += end - begin
 
         return result
 
@@ -32,4 +32,6 @@ class SolverStatistics(object, metaclass=Singleton):
         self.solver_time = 0
 
     def __repr__(self):
-        return "Query count: {} \nSolver time: {}".format(self.query_count, self.solver_time)
+        return "Query count: {} \nSolver time: {}".format(
+            self.query_count, self.solver_time
+        )

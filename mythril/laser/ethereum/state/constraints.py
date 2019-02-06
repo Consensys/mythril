@@ -38,7 +38,11 @@ class Constraints(list):
         solver = Solver()
         solver.set_timeout(self._default_timeout)
         for constraint in self[:]:
-            constraint = symbol_factory.Bool(constraint) if isinstance(constraint, bool) else constraint
+            constraint = (
+                symbol_factory.Bool(constraint)
+                if isinstance(constraint, bool)
+                else constraint
+            )
             solver.add(constraint)
         self._is_possible = solver.check() != unsat
         return self._is_possible
