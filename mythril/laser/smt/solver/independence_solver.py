@@ -63,7 +63,7 @@ class DependenceMap:
             relevant_buckets.add(new_bucket)
             new_bucket = self._merge_buckets(relevant_buckets)
 
-        for variable in variables:
+        for variable in new_bucket.variables:
             self.variable_map[str(variable)] = new_bucket
 
     def _merge_buckets(self, bucket_list: Set[DependenceBucket]) -> DependenceBucket:
