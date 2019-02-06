@@ -3,7 +3,6 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
-from functools import reduce
 from typing import Callable, Dict, DefaultDict, List, Tuple, Union
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
@@ -15,7 +14,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from mythril.laser.ethereum.time_handler import time_handler
-from mythril.laser.ethereum.plugins.signals import PluginSignal, PluginSkipWorldState
+from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -97,6 +96,10 @@ class LaserEVM:
         self.post_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
 
         self._add_world_state_hooks = []  # type: List[Callable]
+        self._execute_state_hooks = []  # type: List[Callable]
+        self._start_sym_exec_hooks = []  # type: List[Callable]
+        self._stop_sym_exec_hooks = []  # type: List[Callable]
+
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -119,6 +122,8 @@ class LaserEVM:
         :param contract_name:
         """
         log.debug("Starting LASER execution")
+        for hook in self._start_sym_exec_hooks:
+            hook()
 
         time_handler.start_execution(self.execution_timeout)
         self.time = datetime.now()
@@ -160,6 +165,9 @@ class LaserEVM:
 
         if self.iprof is not None:
             log.info("Instruction Statistics:\n{}".format(self.iprof))
+
+        for hook in self._stop_sym_exec_hooks:
+            hook()
 
     def _execute_transactions(self, address):
         """This function executes multiple transactions on the address based on
@@ -262,6 +270,10 @@ class LaserEVM:
         :param global_state:
         :return:
         """
+        # Execute hooks
+        for hook in self._execute_state_hooks:
+            hook(global_state)
+
         instructions = global_state.environment.code.instruction_list
 
         try:
@@ -509,6 +521,12 @@ class LaserEVM:
         """registers the hook with this Laser VM"""
         if hook_type == "add_world_state":
             self._add_world_state_hooks.append(hook)
+        elif hook_type == "execute_state":
+            self._execute_state_hooks.append(hook)
+        elif hook_type == "start_sym_exec":
+            self._start_sym_exec_hooks.append(hook)
+        elif hook_type == "stop_sym_exec":
+            self._stop_sym_exec_hooks.append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type
