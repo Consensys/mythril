@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 class DynLoader:
     """The dynamic loader class."""
 
-    def __init__(self, eth, contract_loading=True, storage_loading=True):
+    def __init__(self, eth, contract_loading=True, storage_loading=True, block="latest"):
         """
 
         :param eth:
@@ -21,6 +21,7 @@ class DynLoader:
         self.storage_cache = {}
         self.contract_loading = contract_loading
         self.storage_loading = storage_loading
+        self.block = block
 
     def read_storage(self, contract_address: str, index: int):
         """
@@ -43,7 +44,7 @@ class DynLoader:
             self.storage_cache[contract_address] = {}
 
             data = self.eth.eth_getStorageAt(
-                contract_address, position=index, block="latest"
+                contract_address, position=index, block=self.block
             )
 
             self.storage_cache[contract_address][index] = data
@@ -51,7 +52,7 @@ class DynLoader:
         except IndexError:
 
             data = self.eth.eth_getStorageAt(
-                contract_address, position=index, block="latest"
+                contract_address, position=index, block=self.block
             )
 
             self.storage_cache[contract_address][index] = data
@@ -85,7 +86,7 @@ class DynLoader:
 
         log.debug("Dependency address: " + dependency_address)
 
-        code = self.eth.eth_getCode(dependency_address)
+        code = self.eth.eth_getCode(dependency_address, block=self.block)
 
         if code == "0x":
             return None

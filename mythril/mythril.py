@@ -87,6 +87,7 @@ class Mythril(object):
         dynld=False,
         enable_online_lookup=False,
         onchain_storage_access=True,
+        block='latest',
     ):
 
         self.solv = solv
@@ -108,6 +109,7 @@ class Mythril(object):
 
         self.eth = None  # ethereum API client
         self.eth_db = None  # ethereum LevelDB client
+        self.block = block
 
         self.contracts = []  # loaded contracts
 
@@ -388,7 +390,8 @@ class Mythril(object):
             raise CriticalError("Invalid contract address. Expected format is '0x...'.")
 
         try:
-            code = self.eth.eth_getCode(address)
+            # should realy use dyn loader for consistency
+            code = self.eth.eth_getCode(address, block = self.block)
         except FileNotFoundError as e:
             raise CriticalError("IPC error: " + str(e))
         except ConnectionError:
