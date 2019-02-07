@@ -7,7 +7,9 @@ from mythril.mythril import MythrilLevelDB, MythrilConfig
 from mythril.exceptions import CriticalError
 
 config = MythrilConfig()
-config.set_api_leveldb(str(Path(__file__).parent / "../leveldb_dir/geth/chaindata"))
+config.set_api_leveldb(
+    str(Path(__file__).parent.parent / "testdata/leveldb_dir/geth/chaindata")
+)
 
 
 def test_leveldb_code_search():

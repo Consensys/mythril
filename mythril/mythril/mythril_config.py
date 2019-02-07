@@ -30,6 +30,7 @@ class MythrilConfig:
         Initializes the mythril dir and config.ini file
         :return: The mythril dir's path
         """
+
         try:
             mythril_dir = os.environ["MYTHRIL_DIR"]
         except KeyError:
@@ -121,13 +122,13 @@ class MythrilConfig:
         :param leveldb_fallback_dir: The leveldb dir to use by default for searches
         :return: None
         """
-        config.set("defaults", "#Default chaindata locations:", None)
-        config.set("defaults", "#– Mac: ~/Library/Ethereum/geth/chaindata", None)
-        config.set("defaults", "#– Linux: ~/.ethereum/geth/chaindata", None)
+        config.set("defaults", "#Default chaindata locations:", "")
+        config.set("defaults", "#– Mac: ~/Library/Ethereum/geth/chaindata", "")
+        config.set("defaults", "#– Linux: ~/.ethereum/geth/chaindata", "")
         config.set(
             "defaults",
             "#– Windows: %USERPROFILE%\\AppData\\Roaming\\Ethereum\\geth\\chaindata",
-            None,
+            "",
         )
         config.set("defaults", "leveldb_dir", leveldb_fallback_dir)
 
@@ -139,18 +140,16 @@ class MythrilConfig:
         :return: None
         """
         config.set(
-            "defaults", "#– To connect to Infura use dynamic_loading: infura", None
+            "defaults", "#– To connect to Infura use dynamic_loading: infura", ""
         )
         config.set(
             "defaults",
             "#– To connect to Rpc use "
             "dynamic_loading: HOST:PORT / ganache / infura-[network_name]",
-            None,
+            "",
         )
         config.set(
-            "defaults",
-            "#– To connect to local host use dynamic_loading: localhost",
-            None,
+            "defaults", "#– To connect to local host use dynamic_loading: localhost", ""
         )
         config.set("defaults", "dynamic_loading", "infura")
 
@@ -166,7 +165,8 @@ class MythrilConfig:
 
     def set_api_rpc(self, rpc: str = None, rpctls: bool = False) -> None:
         """
-        Sets the RPC mode to either ganache or infura
+        Sets the RPC mode to either of ganache or infura
+        :param rpc: either of the strings - ganache, infura-mainnet, infura-rinkeby, infura-kovan, infura-ropsten
         """
         if rpc == "ganache":
             rpcconfig = ("localhost", 8545, False)
@@ -204,9 +204,17 @@ class MythrilConfig:
             dynamic_loading = config.get("defaults", "dynamic_loading")
         else:
             dynamic_loading = "infura"
-        if dynamic_loading == "infura":
+        self._set_rpc(dynamic_loading)
+
+    def _set_rpc(self, rpc_type: str) -> None:
+        """
+        Sets rpc based on the type
+        :param rpc_type: The type of connection: like infura, ganache, localhost
+        :return:
+        """
+        if rpc_type == "infura":
             self.set_api_rpc_infura()
-        elif dynamic_loading == "localhost":
+        elif rpc_type == "localhost":
             self.set_api_rpc_localhost()
         else:
-            self.set_api_rpc(dynamic_loading)
+            self.set_api_rpc(rpc_type)

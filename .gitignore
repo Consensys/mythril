@@ -175,7 +175,8 @@ lol*
 coverage_html_report/
 tests/testdata/outputs_current/
 tests/testdata/outputs_current_laser_result/
-tests/mythril_dir/signatures.db
+tests/testdata/mythril_dir/signatures.db
+tests/testdata/leveldb_dir/
 
 # VSCode
 .vscode
