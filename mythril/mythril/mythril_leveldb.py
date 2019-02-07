@@ -15,7 +15,7 @@ class MythrilLevelDB:
 
         :param leveldb: Leveldb path
         """
-        self.level_db = leveldb
+        self.leveldb = leveldb
 
     def search_db(self, search):
         """
@@ -33,17 +33,17 @@ class MythrilLevelDB:
             print("Address: " + address + ", balance: " + str(balance))
 
         try:
-            self.level_db.search(search, search_callback)
+            self.leveldb.search(search, search_callback)
 
         except SyntaxError:
             raise CriticalError("Syntax error in search expression.")
 
-    def contract_hash_to_address(self, hash):
+    def contract_hash_to_address(self, contract_hash):
         """
         Returns address of the corresponding hash by searching the leveldb
-        :param hash: Hash to be searched
+        :param contract_hash: Hash to be searched
         """
-        if not re.match(r"0x[a-fA-F0-9]{64}", hash):
+        if not re.match(r"0x[a-fA-F0-9]{64}", contract_hash):
             raise CriticalError("Invalid address hash. Expected format is '0x...'.")
 
-        print(self.level_db.contract_hash_to_address(hash))
+        print(self.leveldb.contract_hash_to_address(contract_hash))
