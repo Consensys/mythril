@@ -33,6 +33,9 @@ def validate_block(block):
             raise ValueError("invalid block tag")
     if isinstance(block, int):
         block = hex(block)
+        if len(block) % 2 is not 0:
+            block = "0x0{}".format(block[2:])
+            
     return block
 
 

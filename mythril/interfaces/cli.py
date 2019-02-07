@@ -100,6 +100,13 @@ def main():
         help="auto-load dependencies from the blockchain",
     )
     inputs.add_argument(
+        "-b",
+        "--block",
+        type=int,
+        help="specify a specific block for loading from the blockchain, must have dynamic loading enabled",
+        default="latest",
+    )
+    inputs.add_argument(
         "--no-onchain-storage-access",
         action="store_true",
         help="turns off getting the data from onchain contracts",
@@ -314,6 +321,7 @@ def main():
             onchain_storage_access=(not args.no_onchain_storage_access),
             solc_args=args.solc_args,
             enable_online_lookup=args.query_signature,
+            block=args.block,
         )
         if (
             args.dynld

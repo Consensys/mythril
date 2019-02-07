@@ -70,16 +70,14 @@ class BaseClient(object):
         block = validate_block(block)
         return self._call("eth_getStorageAt", [address, hex(position), block])
 
-    def eth_getCode(self, address, default_block=BLOCK_TAG_LATEST):
+    def eth_getCode(self, address, block=BLOCK_TAG_LATEST):
         """TODO: documentation
 
         https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getcode
 
         NEEDS TESTING
         """
-        if isinstance(default_block, str):
-            if default_block not in BLOCK_TAGS:
-                raise ValueError
+        block = validate_block(block)
         return self._call("eth_getCode", [address, default_block])
 
     def eth_getBlockByNumber(self, block=BLOCK_TAG_LATEST, tx_objects=True):
