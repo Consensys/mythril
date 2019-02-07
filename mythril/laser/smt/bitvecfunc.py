@@ -1,4 +1,4 @@
-from typing import Optional, Union, cast
+from typing import Optional, Union, cast, Callable
 
 import z3
 
@@ -9,7 +9,7 @@ import operator
 
 
 def _arithmetic_helper(
-    a: "BitVecFunc", b: Union[BitVec, int], operation: callable
+    a: "BitVecFunc", b: Union[BitVec, int], operation: Callable
 ) -> "BitVecFunc":
     """
     Helper function for arithmetic operations on BitVecFuncs.
@@ -37,7 +37,7 @@ def _arithmetic_helper(
 def _comparison_helper(
     a: "BitVecFunc",
     b: Union[BitVec, int],
-    operation: callable,
+    operation: Callable,
     default_value: bool,
     inputs_equal: bool,
 ) -> Bool:

@@ -892,14 +892,14 @@ class Instruction:
         StateTransition.check_gas_usage_limit(global_state)
 
         state.mem_extend(index, length)
-        data = [
+        data_list = [
             b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
             for b in state.memory[index : index + length]
         ]
-        if len(data) > 1:
-            data = simplify(Concat(data))
-        elif len(data) == 1:
-            data = data[0]
+        if len(data_list) > 1:
+            data = simplify(Concat(data_list))
+        elif len(data_list) == 1:
+            data = data_list[0]
         else:
             # length is 0; this only matters for input of the BitVecFuncVal
             data = symbol_factory.BitVecVal(0, 1)
