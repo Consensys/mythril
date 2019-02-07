@@ -78,7 +78,7 @@ class BaseClient(object):
         NEEDS TESTING
         """
         block = validate_block(block)
-        return self._call("eth_getCode", [address, default_block])
+        return self._call("eth_getCode", [address, block])
 
     def eth_getBlockByNumber(self, block=BLOCK_TAG_LATEST, tx_objects=True):
         """TODO: documentation
