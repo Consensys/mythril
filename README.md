@@ -15,7 +15,7 @@ Mythril Classic is an open-source security analysis tool for Ethereum smart cont
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs.
 
-Oh and by the way, we're also building an [easy-to-use security analysis platform called MythX](https://mythx.io) that integrates seamlessly with Truffle, Visual Studio Code, Github and other environments. If you're looking for tooling to plug into your SDLC you should check it out. 
+Oh and by the way, we're also building an [easy-to-use security analysis API called MythX](https://mythx.io) that integrates seamlessly with Truffle, Visual Studio Code, Github and other environments. If you're looking for tooling to plug into your SDLC you should check it out. 
 
 ## Installation and setup
 

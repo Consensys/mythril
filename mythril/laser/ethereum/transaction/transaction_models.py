@@ -3,7 +3,7 @@ execution."""
 
 import array
 from z3 import ExprRef
-from typing import Union
+from typing import Union, Optional, cast
 
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
@@ -17,20 +17,20 @@ from mythril.laser.smt import symbol_factory
 _next_transaction_id = 0
 
 
-def get_next_transaction_id() -> int:
+def get_next_transaction_id() -> str:
     """
 
     :return:
     """
     global _next_transaction_id
     _next_transaction_id += 1
-    return _next_transaction_id
+    return str(_next_transaction_id)
 
 
 class TransactionEndSignal(Exception):
     """Exception raised when a transaction is finalized."""
 
-    def __init__(self, global_state: GlobalState, revert=False):
+    def __init__(self, global_state: GlobalState, revert=False) -> None:
         self.global_state = global_state
         self.revert = revert
 
@@ -42,7 +42,7 @@ class TransactionStartSignal(Exception):
         self,
         transaction: Union["MessageCallTransaction", "ContractCreationTransaction"],
         op_code: str,
-    ):
+    ) -> None:
         self.transaction = transaction
         self.op_code = op_code
 
@@ -56,14 +56,14 @@ class BaseTransaction:
         callee_account: Account = None,
         caller: ExprRef = None,
         call_data=None,
-        identifier=None,
+        identifier: Optional[str] = None,
         gas_price=None,
         gas_limit=None,
         origin=None,
         code=None,
         call_value=None,
         init_call_data=True,
-    ):
+    ) -> None:
         assert isinstance(world_state, WorldState)
         self.world_state = world_state
         self.id = identifier or get_next_transaction_id()
@@ -85,7 +85,7 @@ class BaseTransaction:
         self.caller = caller
         self.callee_account = callee_account
         if call_data is None and init_call_data:
-            self.call_data = SymbolicCalldata(self.id)
+            self.call_data = SymbolicCalldata(self.id)  # type: BaseCalldata
         else:
             self.call_data = (
                 call_data
@@ -99,7 +99,7 @@ class BaseTransaction:
             else symbol_factory.BitVecSym("callvalue{}".format(identifier), 256)
         )
 
-        self.return_data = None
+        self.return_data = None  # type: str
 
     def initial_global_state_from_environment(self, environment, active_function):
         """
@@ -117,7 +117,7 @@ class BaseTransaction:
 class MessageCallTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
     def initial_global_state(self) -> GlobalState:
@@ -149,8 +149,9 @@ class MessageCallTransaction(BaseTransaction):
 class ContractCreationTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, init_call_data=False)
+    def __init__(self, *args, **kwargs) -> None:
+        # Remove ignore after https://github.com/python/mypy/issues/4335 is fixed
+        super().__init__(*args, **kwargs, init_call_data=False)  # type: ignore
         # TODO: set correct balance for new account
         self.callee_account = self.callee_account or self.world_state.create_account(
             0, concrete_storage=True

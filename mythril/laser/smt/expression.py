@@ -46,7 +46,10 @@ class Expression(Generic[T]):
         return repr(self.raw)
 
 
-def simplify(expression: Expression) -> Expression:
+G = TypeVar("G", bound=Expression)
+
+
+def simplify(expression: G) -> G:
     """Simplify the expression .
 
     :param expression:

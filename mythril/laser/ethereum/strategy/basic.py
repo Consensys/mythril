@@ -1,5 +1,6 @@
 """This module implements basic symbolic execution search strategies."""
 from random import randrange
+from typing import List
 
 from mythril.laser.ethereum.state.global_state import GlobalState
 from . import BasicSearchStrategy
@@ -13,7 +14,10 @@ except ImportError:
     from random import random
     from bisect import bisect
 
-    def choices(population, weights=None):
+    # TODO: Remove ignore after this has been fixed: https://github.com/python/mypy/issues/1297
+    def choices(  # type: ignore
+        population: List, weights: List[int] = None
+    ) -> List[int]:
         """Returns a random element out of the population based on weight.
 
         If the relative weights or cumulative weights are not specified,
@@ -21,7 +25,7 @@ except ImportError:
         """
         if weights is None:
             return [population[int(random() * len(population))]]
-        cum_weights = accumulate(weights)
+        cum_weights = list(accumulate(weights))
         return [
             population[
                 bisect(cum_weights, random() * cum_weights[-1], 0, len(population) - 1)

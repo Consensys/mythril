@@ -97,7 +97,7 @@ def get_serializable_statespace(statespace):
                 account["balance"] = str(account["balance"])
 
                 storage = {}
-                for storage_key in account["storage"]:
+                for storage_key in account["storage"].keys():
                     storage[str(storage_key)] = str(account["storage"][storage_key])
 
                 state_accounts.append({"address": key, "storage": storage})
@@ -110,7 +110,10 @@ def get_serializable_statespace(statespace):
 
         for state in states:
             state["machine"]["stack"] = [str(s) for s in state["machine"]["stack"]]
-            state["machine"]["memory"] = [str(m) for m in state["machine"]["memory"]]
+            state["machine"]["memory"] = [
+                str(m)
+                for m in state["machine"]["memory"][: len(state["machine"]["memory"])]
+            ]
 
         truncated_code = truncated_code.replace("\\n", "\n")
         code = code.replace("\\n", "\n")

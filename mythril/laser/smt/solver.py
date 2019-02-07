@@ -3,6 +3,7 @@ import z3
 from typing import Union, cast, TypeVar, Generic, List, Sequence
 
 from mythril.laser.smt.expression import Expression
+from mythril.laser.smt.model import Model
 from mythril.laser.smt.bool import Bool
 
 
@@ -22,25 +23,24 @@ class BaseSolver(Generic[T]):
         """
         self.raw.set(timeout=timeout)
 
-    def add(self, constraints: Union[Bool, List[Bool]]) -> None:
+    def add(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        if not isinstance(constraints, list):
-            self.raw.add(constraints.raw)
-            return
-        z3_constraints = [c.raw for c in constraints]  # type: Sequence[z3.BoolRef]
+        z3_constraints = [
+            c.raw for c in cast(List[Bool], constraints)
+        ]  # type: Sequence[z3.BoolRef]
         self.raw.add(z3_constraints)
 
-    def append(self, constraints: Union[Bool, List[Bool]]) -> None:
+    def append(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        self.add(constraints)
+        self.add(*constraints)
 
     def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result.
@@ -49,12 +49,12 @@ class BaseSolver(Generic[T]):
         """
         return self.raw.check()
 
-    def model(self) -> z3.ModelRef:
+    def model(self) -> Model:
         """Returns z3 model for a solution.
 
         :return:
         """
-        return self.raw.model()
+        return Model([self.raw.model()])
 
 
 class Solver(BaseSolver[z3.Solver]):

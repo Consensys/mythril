@@ -11,6 +11,7 @@ Annotations = List[Any]
 
 # fmt: off
 
+
 class BitVec(Expression[z3.BitVecRef]):
     """A bit vector symbol."""
 
@@ -155,6 +156,24 @@ class BitVec(Expression[z3.BitVecRef]):
             return other < self
         union = self.annotations + other.annotations
         return Bool(self.raw > other.raw, annotations=union)
+
+    def __le__(self, other: "BitVec") -> Bool:
+        """Create a signed less than expression.
+
+        :param other:
+        :return:
+        """
+        union = self.annotations + other.annotations
+        return Bool(self.raw <= other.raw, annotations=union)
+
+    def __ge__(self, other: "BitVec") -> Bool:
+        """Create a signed greater than expression.
+
+        :param other:
+        :return:
+        """
+        union = self.annotations + other.annotations
+        return Bool(self.raw >= other.raw, annotations=union)
 
     # MYPY: fix complains about overriding __eq__
     def __eq__(self, other: Union[int, "BitVec"]) -> Bool:  # type: ignore
