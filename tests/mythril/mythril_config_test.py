@@ -9,7 +9,7 @@ from mythril.exceptions import CriticalError
 
 def test_config_path_dynloading():
     config = MythrilConfig()
-    config.config_path = (
+    config.config_path = str(
         Path(__file__).parent.parent / "testdata/mythril_config_inputs/config.ini"
     )
     config.set_api_from_config_path()
