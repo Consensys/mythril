@@ -20,6 +20,12 @@ def test_leveldb_code_search():
     assert "0xddbb615cb2ffaff7233d8a6f3601621de94795e1" in out
 
 
+def test_leveldb_code_search_error():
+    leveldb_search = MythrilLevelDB(leveldb=config.eth_db)
+    with pytest.raises(CriticalError):
+        leveldb_search.search_db("pode#PUSH#")
+
+
 def test_leveldb_hash_search_incorrect_input():
     leveldb_search = MythrilLevelDB(leveldb=config.eth_db)
     with pytest.raises(CriticalError):
