@@ -74,11 +74,7 @@ class BenchmarkPlugin:
         """Write the coverage results to a graph"""
         traces = []
         for byte_code, trace_data in self.coverage.items():
-            traces += [
-                list(trace_data.keys()),
-                list(trace_data.values()),
-                'r--'
-            ]
+            traces += [list(trace_data.keys()), list(trace_data.values()), "r--"]
 
         plt.plot(*traces)
         plt.axis([0, self.end - self.begin, 0, 100])
