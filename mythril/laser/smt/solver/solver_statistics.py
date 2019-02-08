@@ -31,6 +31,7 @@ class SolverStatistics(object, metaclass=Singleton):
 
     Keeps track of the important statistics around smt queries
     """
+
     def __init__(self):
         self.enabled = False
         self.query_count = 0
