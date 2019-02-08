@@ -6,6 +6,7 @@ from typing import Callable
 
 
 def stat_smt_query(func: Callable):
+    """Measures statistics for annotated smt query check function"""
     stat_store = SolverStatistics()
 
     def function_wrapper(*args, **kwargs):
@@ -26,6 +27,10 @@ def stat_smt_query(func: Callable):
 
 
 class SolverStatistics(object, metaclass=Singleton):
+    """ Solver Statistics Class
+
+    Keeps track of the important statistics around smt queries
+    """
     def __init__(self):
         self.enabled = False
         self.query_count = 0
