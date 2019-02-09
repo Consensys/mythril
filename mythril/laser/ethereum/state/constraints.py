@@ -3,7 +3,7 @@ the call graph."""
 
 from mythril.laser.smt import Solver, Bool
 
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Union
 from z3 import unsat
 
 
@@ -24,7 +24,9 @@ class Constraints(list):
         :param constraint_list: List of constraints
         :param is_possible: Whether it is possible to satisfy the constraints or not
         """
-        super(Constraints, self).__init__(constraint_list or [])
+        constraint_list = constraint_list or []
+        constraint_list = self._get_smt_bool_list(constraint_list)
+        super(Constraints, self).__init__(constraint_list)
         self._default_timeout = 100
         self._is_possible = is_possible
 
@@ -42,11 +44,12 @@ class Constraints(list):
         self._is_possible = solver.check() != unsat
         return self._is_possible
 
-    def append(self, constraint: Bool) -> None:
+    def append(self, constraint: Union[bool, Bool]) -> None:
         """
 
         :param constraint: The constraint to be appended
         """
+        constraint = constraint if isinstance(constraint, Bool) else Bool(constraint)
         super(Constraints, self).append(constraint)
         self._is_possible = None
 
@@ -80,21 +83,30 @@ class Constraints(list):
         """
         return self.__copy__()
 
-    def __add__(self, constraints: List[Bool]) -> "Constraints":
+    def __add__(self, constraints: List[Union[bool, Bool]]) -> "Constraints":
         """
 
         :param constraints:
         :return: the new list after the + operation
         """
-        constraints_list = super(Constraints, self).__add__(constraints)
+        constraints_list = self._get_smt_bool_list(constraints)
+        constraints_list = super(Constraints, self).__add__(constraints_list)
         return Constraints(constraint_list=constraints_list, is_possible=None)
 
-    def __iadd__(self, constraints: Iterable[Bool]) -> "Constraints":
+    def __iadd__(self, constraints: Iterable[Union[bool, Bool]]) -> "Constraints":
         """
 
         :param constraints:
         :return:
         """
+        constraints = self._get_smt_bool_list(constraints)
         super(Constraints, self).__iadd__(constraints)
         self._is_possible = None
         return self
+
+    @staticmethod
+    def _get_smt_bool_list(constraints: Iterable[Union[bool, Bool]]) -> List[Bool]:
+        return [
+            constraint if isinstance(constraint, Bool) else Bool(constraint)
+            for constraint in constraints
+        ]
