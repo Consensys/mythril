@@ -35,7 +35,7 @@ def validate_block(block):
         block = hex(block)
         if len(block) % 2 is not 0:
             block = "0x0{}".format(block[2:])
-            
+
     return block
 
 

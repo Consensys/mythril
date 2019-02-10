@@ -87,7 +87,7 @@ class Mythril(object):
         dynld=False,
         enable_online_lookup=False,
         onchain_storage_access=True,
-        block='latest',
+        block="latest",
     ):
 
         self.solv = solv
@@ -391,7 +391,7 @@ class Mythril(object):
 
         try:
             # should realy use dyn loader for consistency
-            code = self.eth.eth_getCode(address, block = self.block)
+            code = self.eth.eth_getCode(address, block=self.block)
         except FileNotFoundError as e:
             raise CriticalError("IPC error: " + str(e))
         except ConnectionError:
