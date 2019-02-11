@@ -35,6 +35,7 @@ from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report
 from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
+from mythril.laser.smt import SolverStatistics
 
 log = logging.getLogger(__name__)
 
@@ -566,6 +567,7 @@ class Mythril(object):
         :return:
         """
         all_issues = []
+        SolverStatistics().enabled = True
         for contract in contracts or self.contracts:
             try:
                 sym = SymExecWrapper(
@@ -600,6 +602,7 @@ class Mythril(object):
                 issue.add_code_info(contract)
 
             all_issues += issues
+            log.info("Solver statistics: \n{}".format(str(SolverStatistics())))
 
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
