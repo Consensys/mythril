@@ -39,7 +39,7 @@ class OverUnderflowAnnotation:
 
 
 class OverUnderflowStateAnnotation(StateAnnotation):
-    """ State Annotation used if an overflow both possible and used in the annotated path"""
+    """ State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint
