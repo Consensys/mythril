@@ -2,12 +2,17 @@
 calls."""
 
 from mythril.analysis import solver
+from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
-from mythril.laser.smt import UGT, symbol_factory
+from mythril.analysis.call_helpers import get_call_from_state
+from mythril.laser.smt import UGT, symbol_factory, simplify
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
+from copy import copy
+from typing import List, cast
 import logging
 import json
 
@@ -22,6 +27,71 @@ an informational issue.
 """
 
 
+class CallIssue:
+    def __init__(self, call: Call, user_defined_address: bool) -> None:
+        self.call = call
+        self.user_defined_address = user_defined_address
+
+
+class ExternalCallsAnnotation(StateAnnotation):
+    def __init__(self) -> None:
+        self.calls = []  # type: List[CallIssue]
+
+    def __copy__(self):
+        result = ExternalCallsAnnotation()
+        result.calls = copy(self.calls)
+        return result
+
+
+def _get_state_change_issues(
+    callissues: List[CallIssue], state: GlobalState, address: int
+) -> List[Issue]:
+    issues = []
+    for callissue in callissues:
+        severity = "Medium" if callissue.user_defined_address else "Low"
+        call = callissue.call
+        logging.debug(
+            "[EXTERNAL_CALLS] Detected state changes at addresses: {}".format(address)
+        )
+        description_head = (
+            "The contract account state is changed after an external call. "
+        )
+        description_tail = (
+            "Consider that the called contract could re-enter the function before this "
+            "state change takes place. This can lead to business logic vulnerabilities."
+        )
+
+        issue = Issue(
+            contract=call.node.contract_name,
+            function_name=call.node.function_name,
+            address=address,
+            title="State change after external call",
+            severity=severity,
+            description_head=description_head,
+            description_tail=description_tail,
+            swc_id=REENTRANCY,
+            bytecode=state.environment.code.bytecode,
+        )
+        issues.append(issue)
+    return issues
+
+
+def _handle_state_change(
+    state: GlobalState, address: int, annotation: ExternalCallsAnnotation
+) -> List[Issue]:
+    calls = annotation.calls
+    issues = _get_state_change_issues(calls, state, address)
+    return issues
+
+
+def _balance_change(value: Variable) -> bool:
+    if value.type == VarType.CONCRETE:
+        return value.val > 0
+    else:
+        zero = symbol_factory.BitVecVal(0, 256)
+        return simplify(value.val > zero)
+
+
 def _analyze_state(state):
     """
 
@@ -31,8 +101,29 @@ def _analyze_state(state):
     node = state.node
     gas = state.mstate.stack[-1]
     to = state.mstate.stack[-2]
-
+    issues = []
     address = state.get_current_instruction()["address"]
+    annotations = cast(
+        List[ExternalCallsAnnotation],
+        list(state.get_annotations(ExternalCallsAnnotation)),
+    )
+    if len(annotations) == 0:
+        log.debug("Creating annotation for state")
+        state.annotate(ExternalCallsAnnotation())
+        annotations = cast(
+            List[ExternalCallsAnnotation],
+            list(state.get_annotations(ExternalCallsAnnotation)),
+        )
+
+    if state.get_current_instruction()["opcode"] == "SSTORE":
+        return _handle_state_change(state, address=address, annotation=annotations[0])
+    call = get_call_from_state(state)
+
+    if call is None:
+        return []
+
+    if _balance_change(call.value):
+        return _handle_state_change(state, address=address, annotation=annotations[0])
 
     try:
         constraints = node.constraints
@@ -68,6 +159,7 @@ def _analyze_state(state):
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+            annotations[0].calls.append(CallIssue(call=call, user_defined_address=True))
 
         except UnsatError:
 
@@ -95,12 +187,15 @@ def _analyze_state(state):
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+            annotations[0].calls.append(
+                CallIssue(call=call, user_defined_address=False)
+            )
 
     except UnsatError:
         log.debug("[EXTERNAL_CALLS] No model found.")
         return []
-
-    return [issue]
+    issues.append(issue)
+    return issues
 
 
 class ExternalCalls(DetectionModule):
@@ -114,7 +209,7 @@ class ExternalCalls(DetectionModule):
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
-            pre_hooks=["CALL"],
+            pre_hooks=["CALL", "SSTORE"],
         )
 
     def execute(self, state: GlobalState):

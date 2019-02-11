@@ -29,7 +29,7 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
             get_variable(stack[-7]),
         )
 
-        if to.type == VarType.CONCRETE and to.val < 5:
+        if to.type == VarType.CONCRETE and 0 < to.val < 5:
             return None
 
         if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:
