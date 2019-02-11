@@ -1527,9 +1527,18 @@ class Instruction:
             simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
         negated.simplify()
-        if (type(negated) == bool and negated) or (
+        # True case
+        condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
+        condi.simplify()
+
+        negated_cond = (type(negated) == bool and negated) or (
             isinstance(negated, Bool) and not is_false(negated)
-        ):
+        )
+        positive_cond = (type(condi) == bool and condi) or (
+            isinstance(condi, Bool) and not is_false(condi)
+        )
+
+        if negated_cond:
             new_state = copy(global_state)
             # add JUMPI gas cost
             new_state.mstate.min_gas_used += min_gas
@@ -1547,18 +1556,15 @@ class Instruction:
 
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
+
         if not index:
             log.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
         instr = disassembly.instruction_list[index]
 
-        condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
-        condi.simplify()
         if instr["opcode"] == "JUMPDEST":
-            if (type(condi) == bool and condi) or (
-                isinstance(condi, Bool) and not is_false(condi)
-            ):
+            if positive_cond:
                 new_state = copy(global_state)
                 # add JUMPI gas cost
                 new_state.mstate.min_gas_used += min_gas
@@ -1571,7 +1577,6 @@ class Instruction:
                 states.append(new_state)
             else:
                 log.debug("Pruned unreachable states.")
-        del global_state
         return states
 
     @StateTransition()

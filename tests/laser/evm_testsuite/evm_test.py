@@ -127,7 +127,8 @@ def test_vmtest(
         assert len(laser_evm.open_states) == 1
         world_state = laser_evm.open_states[0]
         model = get_model(
-            next(iter(laser_evm.nodes.values())).states[0].mstate.constraints
+            next(iter(laser_evm.nodes.values())).states[0].mstate.constraints,
+            enforce_execution_time=False,
         )
 
         for address, details in post_condition.items():

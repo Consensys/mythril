@@ -1,8 +1,11 @@
 """This module contains an abstract SMT representation of an SMT solver."""
+import os
+import sys
 import z3
 from typing import Union, cast, TypeVar, Generic, List, Sequence
 
 from mythril.laser.smt.expression import Expression
+from mythril.laser.smt.model import Model
 from mythril.laser.smt.bool import Bool
 
 
@@ -20,42 +23,44 @@ class BaseSolver(Generic[T]):
 
         :param timeout:
         """
-        assert timeout > 0  # timeout <= 0 isn't supported by z3
         self.raw.set(timeout=timeout)
 
-    def add(self, constraints: Union[Bool, List[Bool]]) -> None:
+    def add(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        if not isinstance(constraints, list):
-            self.raw.add(constraints.raw)
-            return
-        z3_constraints = [c.raw for c in constraints]  # type: Sequence[z3.BoolRef]
+        z3_constraints = [
+            c.raw for c in cast(List[Bool], constraints)
+        ]  # type: Sequence[z3.BoolRef]
         self.raw.add(z3_constraints)
 
-    def append(self, constraints: Union[Bool, List[Bool]]) -> None:
+    def append(self, *constraints: List[Bool]) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        self.add(constraints)
+        self.add(*constraints)
 
     def check(self) -> z3.CheckSatResult:
         """Returns z3 smt check result.
-
-        :return:
+        Also suppresses the stdout when running z3 library's check() to avoid unnecessary output
+        :return: The evaluated result which is either of sat, unsat or unknown
         """
-        return self.raw.check()
+        old_stdout = sys.stdout
+        sys.stdout = open(os.devnull, "w")
+        evaluate = self.raw.check()
+        sys.stdout = old_stdout
+        return evaluate
 
-    def model(self) -> z3.ModelRef:
+    def model(self) -> Model:
         """Returns z3 model for a solution.
 
         :return:
         """
-        return self.raw.model()
+        return Model([self.raw.model()])
 
 
 class Solver(BaseSolver[z3.Solver]):
