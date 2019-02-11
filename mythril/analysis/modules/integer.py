@@ -2,12 +2,13 @@
 underflows."""
 
 import json
-from typing import Dict
+from typing import Dict, cast, List
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 
 from mythril.laser.smt import (
@@ -27,6 +28,19 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
+    """ Symbol Annotation used if a BitVector can overflow"""
+
+    def __init__(
+        self, overflowing_state: GlobalState, operator: str, constraint
+    ) -> None:
+        self.overflowing_state = overflowing_state
+        self.operator = operator
+        self.constraint = constraint
+
+
+class OverUnderflowStateAnnotation(StateAnnotation):
+    """ State Annotation used if an overflow is both possible and used in the annotated path"""
+
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint
     ) -> None:
@@ -49,7 +63,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 "there's a possible state where op1 + op0 > 2^32 - 1"
             ),
             entrypoint="callback",
-            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI"],
+            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
         self._overflow_cache = {}  # type: Dict[int, bool]
         self._underflow_cache = {}  # type: Dict[int, bool]
@@ -84,6 +98,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             self._handle_sstore(state)
         elif state.get_current_instruction()["opcode"] == "JUMPI":
             self._handle_jumpi(state)
+        elif state.get_current_instruction()["opcode"] in ("RETURN", "STOP"):
+            self._handle_transaction_end(state)
 
     def _handle_add(self, state):
         stack = state.mstate.stack
@@ -165,7 +181,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
     def _get_title(_type):
         return "Integer {}".format(_type)
 
-    def _handle_sstore(self, state):
+    @staticmethod
+    def _handle_sstore(state: GlobalState) -> None:
         stack = state.mstate.stack
         value = stack[-2]
 
@@ -174,59 +191,36 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         for annotation in value.annotations:
             if not isinstance(annotation, OverUnderflowAnnotation):
                 continue
-
-            _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
-            ostate = annotation.overflowing_state
-            node = ostate.node
-
-            issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
-                address=ostate.get_current_instruction()["address"],
-                swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
-                bytecode=ostate.environment.code.bytecode,
-                title=self._get_title(_type),
-                severity="High",
-                description_head=self._get_description_head(annotation, _type),
-                description_tail=self._get_description_tail(annotation, _type),
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            state.annotate(
+                OverUnderflowStateAnnotation(
+                    annotation.overflowing_state,
+                    annotation.operator,
+                    annotation.constraint,
+                )
             )
 
-            address = _get_address_from_state(ostate)
-
-            if annotation.operator == "subtraction" and self._underflow_cache.get(
-                address, False
-            ):
-                continue
-            if annotation.operator != "subtraction" and self._overflow_cache.get(
-                address, False
-            ):
-                continue
-
-            try:
-
-                transaction_sequence = solver.get_transaction_sequence(
-                    state, node.constraints + [annotation.constraint]
-                )
-
-                issue.debug = json.dumps(transaction_sequence, indent=4)
-
-            except UnsatError:
-                continue
-            if annotation.operator == "subtraction":
-                self._underflow_cache[address] = True
-            else:
-                self._overflow_cache[address] = True
-
-            self._issues.append(issue)
-
-    def _handle_jumpi(self, state):
+    @staticmethod
+    def _handle_jumpi(state):
         stack = state.mstate.stack
         value = stack[-2]
 
         for annotation in value.annotations:
             if not isinstance(annotation, OverUnderflowAnnotation):
                 continue
+            state.annotate(
+                OverUnderflowStateAnnotation(
+                    annotation.overflowing_state,
+                    annotation.operator,
+                    annotation.constraint,
+                )
+            )
+
+    def _handle_transaction_end(self, state: GlobalState) -> None:
+        for annotation in cast(
+            List[OverUnderflowStateAnnotation],
+            state.get_annotations(OverUnderflowStateAnnotation),
+        ):
+
             ostate = annotation.overflowing_state
             node = ostate.node
 
