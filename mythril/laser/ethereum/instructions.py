@@ -519,16 +519,22 @@ class Instruction:
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
         if base.symbolic or exponent.symbolic:
+
             state.stack.append(
                 global_state.new_bitvec(
                     "(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")",
                     256,
+                    base.annotations + exponent.annotations,
                 )
             )
         else:
 
             state.stack.append(
-                symbol_factory.BitVecVal(pow(base.value, exponent.value, 2 ** 256), 256)
+                symbol_factory.BitVecVal(
+                    pow(base.value, exponent.value, 2 ** 256),
+                    256,
+                    annotations=base.annotations + exponent.annotations,
+                )
             )
 
         return [global_state]
