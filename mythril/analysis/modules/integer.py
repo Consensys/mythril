@@ -159,7 +159,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             c1 = op1 > symbol_factory.BitVecVal(256 // log2(op0.value), 256)
             constraints = [c1]
         elif op0.symbolic:
-            c1 = op0 > 2 ** symbol_factory.BitVecVal(ceil(256 / op1.value), 256)
+            c1 = op0 > symbol_factory.BitVecVal(2 ** ceil(256 / op1.value), 256)
             constraints = [c1]
         else:
             constraints = [op0.value ** op1.value > 2 ** 256]
