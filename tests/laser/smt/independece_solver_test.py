@@ -1,4 +1,4 @@
-from mythril.laser.smt.independence_solver import (
+from mythril.laser.smt.solver.independence_solver import (
     _get_expr_variables,
     DependenceBucket,
     DependenceMap,
