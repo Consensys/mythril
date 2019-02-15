@@ -150,7 +150,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
     def _handle_exp(self, state):
         op0, op1 = self._get_args(state)
         if op0.symbolic and op1.symbolic:
-            c1, c2 = (
+            constraint = And(
                 op1 > symbol_factory.BitVecVal(256, 256),
                 op0 > symbol_factory.BitVecVal(1, 256),
             )
