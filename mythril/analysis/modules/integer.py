@@ -21,6 +21,7 @@ from mythril.laser.smt import (
     symbol_factory,
     Not,
     Expression,
+    Bool,
 )
 
 import logging
@@ -33,22 +34,22 @@ class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
 
     def __init__(
-        self, overflowing_state: GlobalState, operator: str, constraints
+        self, overflowing_state: GlobalState, operator: str, constraint: Bool
     ) -> None:
         self.overflowing_state = overflowing_state
         self.operator = operator
-        self.constraints = constraints
+        self.constraint = constraint
 
 
 class OverUnderflowStateAnnotation(StateAnnotation):
     """ State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(
-        self, overflowing_state: GlobalState, operator: str, constraints
+        self, overflowing_state: GlobalState, operator: str, constraint: Bool
     ) -> None:
         self.overflowing_state = overflowing_state
         self.operator = operator
-        self.constraints = constraints
+        self.constraint = constraint
 
 
 class IntegerOverflowUnderflowModule(DetectionModule):
@@ -120,7 +121,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if model is None:
             return
 
-        annotation = OverUnderflowAnnotation(state, "addition", [c])
+        annotation = OverUnderflowAnnotation(state, "addition", c)
         op0.annotate(annotation)
 
     def _handle_mul(self, state):
@@ -132,7 +133,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if model is None:
             return
 
-        annotation = OverUnderflowAnnotation(state, "multiplication", [c])
+        annotation = OverUnderflowAnnotation(state, "multiplication", c)
         op0.annotate(annotation)
 
     def _handle_sub(self, state):
@@ -144,7 +145,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if model is None:
             return
 
-        annotation = OverUnderflowAnnotation(state, "subtraction", [c])
+        annotation = OverUnderflowAnnotation(state, "subtraction", c)
         op0.annotate(annotation)
 
     def _handle_exp(self, state):
@@ -154,19 +155,20 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 op1 > symbol_factory.BitVecVal(256, 256),
                 op0 > symbol_factory.BitVecVal(1, 256),
             )
-            constraints = [c1, c2]
         elif op1.symbolic:
-            c1 = op1 >= symbol_factory.BitVecVal(ceil(256 / log2(op0.value)), 256)
-            constraints = [c1]
+            constraint = op1 >= symbol_factory.BitVecVal(
+                ceil(256 / log2(op0.value)), 256
+            )
         elif op0.symbolic:
-            c1 = op0 >= symbol_factory.BitVecVal(2 ** ceil(256 / op1.value), 256)
-            constraints = [c1]
+            constraint = op0 >= symbol_factory.BitVecVal(
+                2 ** ceil(256 / op1.value), 256
+            )
         else:
-            constraints = [op0.value ** op1.value >= 2 ** 256]
-        model = self._try_constraints(state.node.constraints, constraints)
+            constraint = op0.value ** op1.value >= 2 ** 256
+        model = self._try_constraints(state.node.constraints, [constraint])
         if model is None:
             return
-        annotation = OverUnderflowAnnotation(state, "exponentiation", constraints)
+        annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
         op0.annotate(annotation)
 
     @staticmethod
@@ -213,7 +215,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 OverUnderflowStateAnnotation(
                     annotation.overflowing_state,
                     annotation.operator,
-                    annotation.constraints,
+                    annotation.constraint,
                 )
             )
 
@@ -229,7 +231,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 OverUnderflowStateAnnotation(
                     annotation.overflowing_state,
                     annotation.operator,
-                    annotation.constraints,
+                    annotation.constraint,
                 )
             )
 
@@ -271,7 +273,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             try:
 
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, node.constraints + annotation.constraints
+                    state, node.constraints + [annotation.constraint]
                 )
 
                 issue.debug = json.dumps(transaction_sequence, indent=4)
