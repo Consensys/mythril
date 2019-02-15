@@ -162,7 +162,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             c1 = op0 >= symbol_factory.BitVecVal(2 ** ceil(256 / op1.value), 256)
             constraints = [c1]
         else:
-            constraints = [op0.value ** op1.value > 2 ** 256]
+            constraints = [op0.value ** op1.value >= 2 ** 256]
         model = self._try_constraints(state.node.constraints, constraints)
         if model is None:
             return
