@@ -165,14 +165,14 @@ def main():
     options.add_argument(
         "--max-depth",
         type=int,
-        default=22,
+        default=50,
         help="Maximum recursion depth for symbolic execution",
     )
 
     options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
-        default="dfs",
+        default="bfs",
         help="Symbolic execution strategy",
     )
     options.add_argument(
@@ -280,7 +280,7 @@ def main():
             )
 
     if args.query_signature:
-        if sigs.ethereum_input_decoder == None:
+        if sigs.ethereum_input_decoder is None:
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
