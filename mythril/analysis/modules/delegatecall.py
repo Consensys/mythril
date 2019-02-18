@@ -85,7 +85,7 @@ def _concrete_call(
         title="Delegatecall Proxy",
         severity="Low",
         description_head="The contract implements a delegatecall proxy.",
-        description_tail="The smart contract forwards the received calldata via delegatecall. Note that callers"
+        description_tail="The smart contract forwards the received calldata via delegatecall. Note that callers "
         "can execute arbitrary functions in the callee contract and that the callee contract "
         "can access the storage of the calling contract. "
         "Make sure that the callee contract is audited properly.",
