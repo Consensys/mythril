@@ -77,6 +77,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         self._overflow_cache = {}
         self._underflow_cache = {}
 
+    @staticmethod
+    def _check_existence(state, address):
+        annotations = cast(
+            List[OverUnderflowStateAnnotation],
+            state.get_annotations(OverUnderflowStateAnnotation),
+        )
+        for annotation in annotations:
+            if _get_address_from_state(annotation.overflowing_state) == address:
+                return True
+        return False
+
     def execute(self, state: GlobalState):
         """Executes analysis module for integer underflow and integer overflow.
 
@@ -84,8 +95,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :return: Found issues
         """
         address = _get_address_from_state(state)
-        has_overflow = self._overflow_cache.get(address, False)
-        has_underflow = self._underflow_cache.get(address, False)
+        has_overflow = self._overflow_cache.get(
+            address, False
+        ) or self._check_existence(state, address)
+        has_underflow = self._underflow_cache.get(
+            address, False
+        ) or self._check_existence(state, address)
         if has_overflow or has_underflow:
             return
         if state.get_current_instruction()["opcode"] == "ADD":
