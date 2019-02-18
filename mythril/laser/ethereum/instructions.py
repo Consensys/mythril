@@ -955,6 +955,22 @@ class Instruction:
 
         return [global_state]
 
+    def _get_code_from_address(self, global_state: GlobalState, addr: str) -> str:
+        if addr in global_state.accounts:
+            code = global_state.accounts[addr].code
+        else:
+            code = self.dynamic_loader.dynld(
+                global_state.environment.active_account.address, addr
+            )
+            global_state.world_state.create_account(
+                balance=0, address=addr, dynamic_loader=self.dynamic_loader
+            )
+        if code is None:
+            code = ""
+        else:
+            code = code.bytecode
+        return code
+
     @StateTransition()
     def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
         """
@@ -964,25 +980,20 @@ class Instruction:
         """
         state = global_state.mstate
         addr = state.stack.pop()
-        environment = global_state.environment
         try:
             addr = hex(helper.get_concrete_int(addr))
         except TypeError:
             log.debug("unsupported symbolic address for EXTCODESIZE")
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
-
         try:
-            code = self.dynamic_loader.dynld(environment.active_account.address, addr)
+            code = self._get_code_from_address(global_state, addr)
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
-        if code is None:
-            state.stack.append(0)
-        else:
-            state.stack.append(len(code.bytecode) // 2)
+        state.stack.append(len(code) // 2)
 
         return [global_state]
 
@@ -1093,10 +1104,9 @@ class Instruction:
         except TypeError:
             log.debug("unsupported symbolic address for EXTCODECOPY")
             return [global_state]
+
         try:
-            code = self.dynamic_loader.dynld(
-                global_state.environment.active_account.address, addr
-            )
+            code = self._get_code_from_address(global_state, addr)
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]
