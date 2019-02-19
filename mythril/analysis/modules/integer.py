@@ -22,6 +22,7 @@ from mythril.laser.smt import (
     Not,
     Expression,
     Bool,
+    And,
 )
 
 import logging
@@ -156,10 +157,14 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 op0 > symbol_factory.BitVecVal(1, 256),
             )
         elif op1.symbolic:
+            if op0.value < 2:
+                return
             constraint = op1 >= symbol_factory.BitVecVal(
                 ceil(256 / log2(op0.value)), 256
             )
         elif op0.symbolic:
+            if op1.value == 0:
+                return
             constraint = op0 >= symbol_factory.BitVecVal(
                 2 ** ceil(256 / op1.value), 256
             )
