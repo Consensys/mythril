@@ -943,7 +943,6 @@ class Instruction:
         no one would use 10 array/map arguments for constructor.
         :param global_state: The global state
         :param concrete_memory_offset: The memory offset on which symbols should be written
-        :return:
         """
         no_of_words = ceil(
             min(len(global_state.environment.code.bytecode) / 2, 320) / 32
@@ -954,7 +953,8 @@ class Instruction:
                 concrete_memory_offset + i * 32,
                 global_state.new_bitvec(
                     "code_{}({})".format(
-                        concrete_memory_offset + i * 32, global_state.environment.active_account.contract_name
+                        concrete_memory_offset + i * 32,
+                        global_state.environment.active_account.contract_name,
                     ),
                     256,
                 ),
