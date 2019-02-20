@@ -2,12 +2,12 @@
 calls."""
 
 from mythril.analysis import solver
-from mythril.analysis.ops import Call, Variable, VarType
+from mythril.analysis.ops import Call
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.call_helpers import get_call_from_state
-from mythril.laser.smt import UGT, symbol_factory, simplify
+from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
@@ -43,55 +43,6 @@ class ExternalCallsAnnotation(StateAnnotation):
         return result
 
 
-def _get_state_change_issues(
-    callissues: List[CallIssue], state: GlobalState, address: int
-) -> List[Issue]:
-    issues = []
-    for callissue in callissues:
-        severity = "Medium" if callissue.user_defined_address else "Low"
-        call = callissue.call
-        logging.debug(
-            "[EXTERNAL_CALLS] Detected state changes at addresses: {}".format(address)
-        )
-        description_head = (
-            "The contract account state is changed after an external call. "
-        )
-        description_tail = (
-            "Consider that the called contract could re-enter the function before this "
-            "state change takes place. This can lead to business logic vulnerabilities."
-        )
-
-        issue = Issue(
-            contract=call.node.contract_name,
-            function_name=call.node.function_name,
-            address=address,
-            title="State change after external call",
-            severity=severity,
-            description_head=description_head,
-            description_tail=description_tail,
-            swc_id=REENTRANCY,
-            bytecode=state.environment.code.bytecode,
-        )
-        issues.append(issue)
-    return issues
-
-
-def _handle_state_change(
-    state: GlobalState, address: int, annotation: ExternalCallsAnnotation
-) -> List[Issue]:
-    calls = annotation.calls
-    issues = _get_state_change_issues(calls, state, address)
-    return issues
-
-
-def _balance_change(value: Variable) -> bool:
-    if value.type == VarType.CONCRETE:
-        return value.val > 0
-    else:
-        zero = symbol_factory.BitVecVal(0, 256)
-        return simplify(value.val > zero)
-
-
 def _analyze_state(state):
     """
 
@@ -115,15 +66,10 @@ def _analyze_state(state):
             list(state.get_annotations(ExternalCallsAnnotation)),
         )
 
-    if state.get_current_instruction()["opcode"] == "SSTORE":
-        return _handle_state_change(state, address=address, annotation=annotations[0])
     call = get_call_from_state(state)
 
     if call is None:
         return []
-
-    if _balance_change(call.value):
-        return _handle_state_change(state, address=address, annotation=annotations[0])
 
     try:
         constraints = node.constraints
@@ -209,7 +155,7 @@ class ExternalCalls(DetectionModule):
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
-            pre_hooks=["CALL", "SSTORE"],
+            pre_hooks=["CALL"],
         )
 
     def execute(self, state: GlobalState):
