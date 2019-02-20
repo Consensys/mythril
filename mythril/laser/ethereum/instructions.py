@@ -891,29 +891,35 @@ class Instruction:
         state.max_gas_used += max_gas
         StateTransition.check_gas_usage_limit(global_state)
 
-        try:
-            state.mem_extend(index, length)
-            data = b"".join(
-                [
-                    util.get_concrete_int(i).to_bytes(1, byteorder="big")
-                    for i in state.memory[index : index + length]
-                ]
+        state.mem_extend(index, length)
+        data_list = [
+            b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
+            for b in state.memory[index : index + length]
+        ]
+        if len(data_list) > 1:
+            data = simplify(Concat(data_list))
+        elif len(data_list) == 1:
+            data = data_list[0]
+        else:
+            # length is 0; this only matters for input of the BitVecFuncVal
+            data = symbol_factory.BitVecVal(0, 1)
+
+        if data.symbolic:
+            argument_str = str(state.memory[index]).replace(" ", "_")
+            result = symbol_factory.BitVecFuncSym(
+                "KECCAC[{}]".format(argument_str), "keccak256", 256, input_=data
             )
+            log.debug("Created BitVecFunc hash.")
 
-        except TypeError:
-            argument = str(state.memory[index]).replace(" ", "_")
-
-            result = symbol_factory.BitVecSym("KECCAC[{}]".format(argument), 256)
             keccak_function_manager.add_keccak(result, state.memory[index])
-            state.stack.append(result)
-            return [global_state]
+        else:
+            keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
+            result = symbol_factory.BitVecFuncVal(
+                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
+            )
+            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
-        keccak = utils.sha3(utils.bytearray_to_bytestr(data))
-        log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
-
-        state.stack.append(
-            symbol_factory.BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256)
-        )
+        state.stack.append(result)
         return [global_state]
 
     @StateTransition()

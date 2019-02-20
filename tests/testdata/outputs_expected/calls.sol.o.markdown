@@ -102,7 +102,7 @@ Consider that the called contract could re-enter the function before this state 
 ### Description
 
 A call to a user-supplied address is executed.
-The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on thecontract state.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
 ## Unchecked Call Return Value
 - SWC ID: 104

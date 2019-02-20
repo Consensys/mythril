@@ -88,7 +88,7 @@ def _analyze_state(state):
             description_tail = (
                 "The callee address of an external message call can be set by "
                 "the caller. Note that the callee can contain arbitrary code and may re-enter any function "
-                "in this contract. Review the business logic carefully to prevent averse effects on the"
+                "in this contract. Review the business logic carefully to prevent averse effects on the "
                 "contract state."
             )
 

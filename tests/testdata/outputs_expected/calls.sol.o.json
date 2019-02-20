@@ -96,7 +96,7 @@
          "address":912,
          "contract":"Unknown",
          "debug":"<DEBUG-DATA>",
-         "description":"A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on thecontract state.",
+         "description":"A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
          "function":"calluseraddress(address)",
          "max_gas_used":616,
          "min_gas_used":335,
