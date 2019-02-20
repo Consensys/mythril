@@ -944,7 +944,7 @@ class Instruction:
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
         )
-        self._code_copy_helper(
+        return self._code_copy_helper(
             code=global_state.environment.code.bytecode,
             memory_offset=memory_offset,
             code_offset=code_offset,
@@ -952,8 +952,6 @@ class Instruction:
             op="CODECOPY",
             global_state=global_state,
         )
-
-        return [global_state]
 
     def _get_code_from_address(self, global_state: GlobalState, addr: str) -> str:
         if addr in global_state.accounts:
@@ -1005,7 +1003,7 @@ class Instruction:
         size: BitVec,
         op: str,
         global_state: GlobalState,
-    ):
+    ) -> List[GlobalState]:
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
         except TypeError:
@@ -1111,7 +1109,7 @@ class Instruction:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]
 
-        self._code_copy_helper(
+        return self._code_copy_helper(
             code=code,
             memory_offset=memory_offset,
             code_offset=code_offset,
@@ -1119,8 +1117,6 @@ class Instruction:
             op="EXTCODECOPY",
             global_state=global_state,
         )
-
-        return [global_state]
 
     @StateTransition()
     def returndatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
