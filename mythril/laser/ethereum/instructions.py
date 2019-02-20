@@ -954,7 +954,7 @@ class Instruction:
                 concrete_memory_offset + i * 32,
                 global_state.new_bitvec(
                     "code_{}({})".format(
-                        i + 1, global_state.environment.active_account.contract_name
+                        concrete_memory_offset + i * 32, global_state.environment.active_account.contract_name
                     ),
                     256,
                 ),
