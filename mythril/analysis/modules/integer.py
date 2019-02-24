@@ -8,6 +8,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 
@@ -99,6 +100,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         elif state.get_current_instruction()["opcode"] == "JUMPI":
             self._handle_jumpi(state)
         elif state.get_current_instruction()["opcode"] in ("RETURN", "STOP"):
+            if state.get_current_instruction()["opcode"] == "RETURN":
+                self._handle_return(state)
             self._handle_transaction_end(state)
 
     def _handle_add(self, state):
@@ -214,6 +217,25 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     annotation.constraint,
                 )
             )
+
+    @staticmethod
+    def _handle_return(state: GlobalState) -> None:
+        stack = state.mstate.stack
+        try:
+            offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
+        except TypeError:
+            return
+        for element in state.mstate.memory[offset : offset + length]:
+            if isinstance(element, Expression):
+                for annotation in element.annotations:
+                    if isinstance(annotation, OverUnderflowAnnotation):
+                        state.annotate(
+                            OverUnderflowStateAnnotation(
+                                annotation.overflowing_state,
+                                annotation.operator,
+                                annotation.constraint,
+                            )
+                        )
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
         for annotation in cast(
