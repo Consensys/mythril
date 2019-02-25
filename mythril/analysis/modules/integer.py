@@ -233,15 +233,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         for element in state.mstate.memory[offset : offset + length]:
             if not isinstance(element, Expression):
                 return
-                for annotation in element.annotations:
-                    if isinstance(annotation, OverUnderflowAnnotation):
-                        state.annotate(
-                            OverUnderflowStateAnnotation(
-                                annotation.overflowing_state,
-                                annotation.operator,
-                                annotation.constraint,
-                            )
+            for annotation in element.annotations:
+                if isinstance(annotation, OverUnderflowAnnotation):
+                    state.annotate(
+                        OverUnderflowStateAnnotation(
+                            annotation.overflowing_state,
+                            annotation.operator,
+                            annotation.constraint,
                         )
+                    )
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
         for annotation in cast(
