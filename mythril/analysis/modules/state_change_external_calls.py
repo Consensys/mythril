@@ -109,7 +109,7 @@ class StateChange(DetectionModule):
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
-            pre_hooks=["CALL", "SSTORE"],
+            pre_hooks=["CALL", "SSTORE", "CREATE", "DELEGATECALL"],
         )
 
     def execute(self, state: GlobalState):

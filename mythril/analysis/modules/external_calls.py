@@ -28,6 +28,11 @@ an informational issue.
 
 
 class CallIssue:
+    """ This class is a struct of
+        call: the Call struct
+        user_defined_address: Whether the address can be defined by user or not
+    """
+
     def __init__(self, call: Call, user_defined_address: bool) -> None:
         self.call = call
         self.user_defined_address = user_defined_address
@@ -155,7 +160,7 @@ class ExternalCalls(DetectionModule):
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
-            pre_hooks=["CALL"],
+            pre_hooks=["CALL", "DELEGATECALL"],
         )
 
     def execute(self, state: GlobalState):
