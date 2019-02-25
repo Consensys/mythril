@@ -55,7 +55,7 @@ class MythrilConfig:
 
         Default LevelDB path is specified based on OS
         dynamic loading is set to infura by default in the file
-        Returns: LevelDB directory
+        :return: LevelDB directory
         """
 
         leveldb_fallback_dir = self._get_fallback_dir()

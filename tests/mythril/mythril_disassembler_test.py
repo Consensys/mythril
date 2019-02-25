@@ -45,21 +45,18 @@ def test_get_data_from_storage(params, ans):
     outtext = disassembler.get_state_variable_from_storage(
         "0x76799f77587738bfeef09452df215b63d2cfb08a", params
     ).split("\n")
-    assert len(outtext) == len(ans)
-    for a, b in zip(outtext, ans):
-        assert a == b
     assert outtext == ans
 
 
-storage_test_extra_params = [
+storage_test_incorrect_params = [
     (["1", "2", "3", "4"]),
     (["mapping", "1"]),
     (["a", "b", "c"]),
 ]
 
 
-@pytest.mark.parametrize("params", storage_test_extra_params)
-def test_get_data_from_storage_extra_params(params):
+@pytest.mark.parametrize("params", storage_test_incorrect_params)
+def test_get_data_from_storage_incorrect_params(params):
     config = MythrilConfig()
     config.set_api_rpc_infura()
     disassembler = MythrilDisassembler(eth=config.eth, solc_version="0.4.23")

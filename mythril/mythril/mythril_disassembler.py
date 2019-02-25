@@ -202,9 +202,9 @@ class MythrilDisassembler:
     @staticmethod
     def hash_for_function_signature(func: str) -> str:
         """
-        Return function name's corresponding signature hash
+        Return function names corresponding signature hash
         :param func: function name
-        :return: It's hash signature
+        :return: Its hash signature
         """
         return "0x%s" % utils.sha3(func)[:4].hex()
 
@@ -217,7 +217,7 @@ class MythrilDisassembler:
         :param params: The list of parameters
                         param types: [position, length] or ["mapping", position, key1, key2, ...  ]
                         or [position, length, array]
-        :return: The corresponding storage slot and it's value
+        :return: The corresponding storage slot and its value
         """
         params = params or []
         (position, length, mappings) = (0, 1, [])

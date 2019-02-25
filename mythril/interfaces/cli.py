@@ -28,7 +28,7 @@ from mythril.version import VERSION
 log = logging.getLogger(__name__)
 
 
-def exit_with_error(format_, message):
+def exit_with_error(format_: str, message: str) -> None:
     """
 
     :param format_:
@@ -42,7 +42,7 @@ def exit_with_error(format_, message):
     sys.exit()
 
 
-def main():
+def main() -> None:
     """The main CLI interface entry point."""
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
@@ -59,7 +59,12 @@ if __name__ == "__main__":
     main()
 
 
-def create_parser(parser):
+def create_parser(parser: argparse.ArgumentParser) -> None:
+    """
+    Creates the parser by setting all the possible arguments
+    :param parser: The parser
+    :return:
+    """
     parser.add_argument("solidity_file", nargs="*")
 
     commands = parser.add_argument_group("commands")
@@ -246,7 +251,13 @@ def create_parser(parser):
     parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
 
 
-def parse_args(parser, args):
+def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    """
+    Parses the arguments
+    :param parser: The parser
+    :param args: The args
+    :return:
+    """
     if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
         sys.argv.remove("--epic")
