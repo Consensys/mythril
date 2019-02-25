@@ -231,7 +231,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         except TypeError:
             return
         for element in state.mstate.memory[offset : offset + length]:
-            if isinstance(element, Expression):
+            if not isinstance(element, Expression):
+                return
                 for annotation in element.annotations:
                     if isinstance(annotation, OverUnderflowAnnotation):
                         state.annotate(
