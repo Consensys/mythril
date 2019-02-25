@@ -220,6 +220,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
     @staticmethod
     def _handle_return(state: GlobalState) -> None:
+        """
+        Adds all the annotations into the state which correspond to the
+        locations in the memory returned by RETURN opcode.
+        :param state: The Global State
+        """
         stack = state.mstate.stack
         try:
             offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
