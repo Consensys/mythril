@@ -45,7 +45,7 @@ class MythrilAnalyzer:
     def dump_statespace(
         self,
         strategy: str,
-        contract: List[EVMContract] = None,
+        contract: EVMContract = None,
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
         execution_timeout: Optional[int] = None,
@@ -84,7 +84,7 @@ class MythrilAnalyzer:
         self,
         strategy: str,
         address: str,
-        contract: List[EVMContract] = None,
+        contract: EVMContract = None,
         max_depth: Optional[int] = None,
         enable_physics: bool = False,
         phrackify: bool = False,

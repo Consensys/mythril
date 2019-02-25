@@ -63,7 +63,6 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     """
     Creates the parser by setting all the possible arguments
     :param parser: The parser
-    :return:
     """
     parser.add_argument("solidity_file", nargs="*")
 
@@ -256,7 +255,6 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
     Parses the arguments
     :param parser: The parser
     :param args: The args
-    :return:
     """
     if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
