@@ -1,8 +1,16 @@
 from pathlib import Path
 from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
+from mythril.analysis.report import Issue
+from mock import patch
 
 
-def test_fire_lasers():
+@patch("mythril.analysis.report.Issue.add_code_info", return_value=None)
+@patch(
+    "mythril.mythril.mythril_analyzer.fire_lasers",
+    return_value=[Issue("", "", "234", "101", "title", "0x02445")],
+)
+@patch("mythril.mythril.mythril_analyzer.SymExecWrapper", return_value=None)
+def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
     disassembler = MythrilDisassembler(eth=None)
     disassembler.load_from_solidity(
         [
@@ -14,8 +22,10 @@ def test_fire_lasers():
         ]
     )
     analyzer = MythrilAnalyzer(disassembler)
-    issues = analyzer.fire_lasers(
-        strategy="dfs", max_depth=30, transaction_count=2, create_timeout=10, modules=[]
-    ).sorted_issues()
+
+    issues = analyzer.fire_lasers(strategy="dfs", modules=[]).sorted_issues()
+    mock_sym.assert_called()
+    mock_fire_lasers.assert_called()
+    mock_code_info.assert_called()
     assert len(issues) == 1
-    assert issues[0]["swc-id"] == "111"
+    assert issues[0]["swc-id"] == "101"
