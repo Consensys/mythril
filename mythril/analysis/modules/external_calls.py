@@ -2,16 +2,14 @@
 calls."""
 
 from mythril.analysis import solver
-from mythril.analysis.ops import Call
+from mythril.analysis.analysis_module_helpers import ExternalCallsAnnotation, CallIssue
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.call_helpers import get_call_from_state
 from mythril.laser.smt import UGT, symbol_factory
-from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
-from copy import copy
 from typing import List, cast
 import logging
 import json
@@ -25,27 +23,6 @@ Report a warning if the callee address can be set by the sender, otherwise creat
 an informational issue.
 
 """
-
-
-class CallIssue:
-    """ This class is a struct of
-        call: the Call struct
-        user_defined_address: Whether the address can be defined by user or not
-    """
-
-    def __init__(self, call: Call, user_defined_address: bool) -> None:
-        self.call = call
-        self.user_defined_address = user_defined_address
-
-
-class ExternalCallsAnnotation(StateAnnotation):
-    def __init__(self) -> None:
-        self.calls = []  # type: List[CallIssue]
-
-    def __copy__(self):
-        result = ExternalCallsAnnotation()
-        result.calls = copy(self.calls)
-        return result
 
 
 def _analyze_state(state):
@@ -160,7 +137,7 @@ class ExternalCalls(DetectionModule):
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
-            pre_hooks=["CALL", "DELEGATECALL"],
+            pre_hooks=["CALL"],
         )
 
     def execute(self, state: GlobalState):
