@@ -36,8 +36,11 @@ from mythril.analysis.report import Report
 from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.laser.smt import SolverStatistics
+from mythril.start_time import StartTime
+
 
 log = logging.getLogger(__name__)
+start_time = StartTime()
 
 
 class Mythril(object):
