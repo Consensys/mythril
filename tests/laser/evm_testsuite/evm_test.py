@@ -15,7 +15,7 @@ from z3 import ExprRef, simplify
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
-"""
+
 test_types = [
     "vmArithmeticTest",
     "vmBitwiseLogicOperation",
@@ -24,14 +24,33 @@ test_types = [
     "vmTests",
     "vmSha3Test",
     "vmSystemOperations",
-    "vmRandomTest"
+    "vmRandomTest",
+    "vmIOandFlowOperations",
 ]
-"""
-test_types = ["vmIOandFlowOperations"]
+
+tests_with_gas_support = ["gas0", "gas1"]
+tests_with_block_number_support = [
+    "BlockNumberDynamicJumpi0",
+    "BlockNumberDynamicJump0_jumpdest2",
+    "DynamicJumpPathologicalTest0",
+    "BlockNumberDynamicJumpifInsidePushWithJumpDest",
+    "BlockNumberDynamicJumpiAfterStop",
+    "BlockNumberDynamicJumpifInsidePushWithoutJumpDest",
+    "BlockNumberDynamicJump0_jumpdest0",
+    "BlockNumberDynamicJumpi1_jumpdest",
+    "BlockNumberDynamicJumpiOutsideBoundary",
+    "DynamicJumpJD_DependsOnJumps1",
+]
+tests_with_log_support = ["log1MemExp"]
+tests_not_relevent = ["loop_stacklimit_1020", "loop_stacklimit_1021"]
+tests_to_resolve = ["jumpTo1InstructionafterJump", "sstore_load_2"]
 ignored_test_names = (
-    "log1MemExp",  # Logs not implemented
-    "loop_stacklimit_1020",  # we already have a default depth which is different from EVM
-    "loop_stacklimit_1021",  # Same as above
+    tests_with_gas_support
+    + tests_with_log_support
+    + tests_with_block_number_support
+    + tests_with_block_number_support
+    + tests_not_relevent
+    + tests_to_resolve
 )
 
 
@@ -89,6 +108,7 @@ def test_vmtest(
     gas_used: int,
     post_condition: dict,
 ) -> None:
+
     # Arrange
     if test_name in ignored_test_names:
         return
@@ -98,10 +118,11 @@ def test_vmtest(
         account.code = Disassembly(details["code"][2:])
         account.balance = int(details["balance"], 16)
         account.nonce = int(details["nonce"], 16)
-
+        for key, value in details["storage"].items():
+            account.storage[int(key, 16)] = int(value, 16)
         accounts[address] = account
 
-    laser_evm = LaserEVM(accounts)
+    laser_evm = LaserEVM(accounts, requires_statespace=False)
 
     # Act
     laser_evm.time = datetime.now()
@@ -136,10 +157,6 @@ def test_vmtest(
     else:
         assert len(laser_evm.open_states) == 1
         world_state = laser_evm.open_states[0]
-        model = get_model(
-            next(iter(laser_evm.nodes.values())).states[0].mstate.constraints,
-            enforce_execution_time=False,
-        )
 
         for address, details in post_condition.items():
             account = world_state[address]
@@ -150,6 +167,7 @@ def test_vmtest(
             for index, value in details["storage"].items():
                 expected = int(value, 16)
                 actual = account.storage[int(index, 16)]
+
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual

@@ -412,6 +412,8 @@ class LaserEVM:
         :param opcode:
         :param new_states:
         """
+        if not self.requires_statespace:
+            return
         if opcode == "JUMP":
             assert len(new_states) <= 1
             for state in new_states:
@@ -459,13 +461,10 @@ class LaserEVM:
         old_node = state.node
         state.node = new_node
         new_node.constraints = state.mstate.constraints
-        if self.requires_statespace:
-            self.nodes[new_node.uid] = new_node
-            self.edges.append(
-                Edge(
-                    old_node.uid, new_node.uid, edge_type=edge_type, condition=condition
-                )
-            )
+        self.nodes[new_node.uid] = new_node
+        self.edges.append(
+            Edge(old_node.uid, new_node.uid, edge_type=edge_type, condition=condition)
+        )
 
         if edge_type == JumpType.RETURN:
             new_node.flags |= NodeFlags.CALL_RETURN
@@ -477,6 +476,7 @@ class LaserEVM:
                     new_node.flags |= NodeFlags.FUNC_ENTRY
             except StackUnderflowException:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
+
         address = state.environment.code.instruction_list[state.mstate.pc]["address"]
 
         environment = state.environment

@@ -1325,7 +1325,7 @@ class Instruction:
             index = util.get_concrete_int(index)
             return self._sload_helper(global_state, index)
 
-        except TypeError:
+        except TypeError as e:
             if not keccak_function_manager.is_keccak(index):
                 return self._sload_helper(global_state, str(index))
 
@@ -1585,7 +1585,7 @@ class Instruction:
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
-        if not index:
+        if index is None:
             log.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
