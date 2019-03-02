@@ -130,6 +130,8 @@ class StateTransition(object):
         min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
+        self.check_gas_usage_limit(global_state)
+
         return global_state
 
     def __call__(self, func: Callable) -> Callable:
@@ -1296,7 +1298,7 @@ class Instruction:
 
         try:
             value_to_write = (
-                util.get_concrete_int(value) ^ 0xFF
+                util.get_concrete_int(value) % 256
             )  # type: Union[int, BitVec]
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
@@ -1368,6 +1370,7 @@ class Instruction:
         """
         try:
             data = global_state.environment.active_account.storage[index]
+            print(data)
         except KeyError:
             data = global_state.new_bitvec("storage_" + str(index), 256)
             global_state.environment.active_account.storage[index] = data
@@ -1612,7 +1615,10 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.mstate.pc - 1)
+        index = global_state.mstate.pc
+        program_counter = global_state.environment.code.instruction_list[index]["address"]
+        global_state.mstate.stack.append(program_counter)
+
         return [global_state]
 
     @StateTransition()
@@ -1622,7 +1628,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
+        global_state.mstate.stack.append(global_state.mstate.memory_size)
         return [global_state]
 
     @StateTransition()

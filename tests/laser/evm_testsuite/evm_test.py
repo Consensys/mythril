@@ -15,6 +15,7 @@ from z3 import ExprRef, simplify
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
+"""
 test_types = [
     "vmArithmeticTest",
     "vmBitwiseLogicOperation",
@@ -22,7 +23,20 @@ test_types = [
     "vmPushDupSwapTest",
     "vmTests",
     "vmSha3Test",
+    "vmSystemOperations",
+    "vmRandomTest"
 ]
+"""
+test_types = [
+    "vmIOandFlowOperations"
+]
+ignored_test_names = (
+    "gasprice",              # Gas price is a symbol
+    "log1MemExp",            # Logs not implemented
+    "loop_stacklimit_1020",  # we already have a default depth which is different from EVM
+    "loop_stacklimit_1021",  # Same as above
+
+)
 
 
 def load_test_data(designations):
@@ -80,7 +94,9 @@ def test_vmtest(
     post_condition: dict,
 ) -> None:
     # Arrange
-    if test_name == "gasprice":
+    if test_name != "pc1":
+        return
+    if test_name in ignored_test_names:
         return
     accounts = {}
     for address, details in pre_condition.items():
@@ -120,7 +136,7 @@ def test_vmtest(
         assert all(map(lambda g: g[0] <= g[1], gas_min_max))
         assert any(gas_ranges)
 
-    if any((v in test_name for v in ["error", "oog"])) and post_condition == {}:
+    if post_condition == {}:
         # no more work to do if error happens or out of gas
         assert len(laser_evm.open_states) == 0
     else:
@@ -140,6 +156,7 @@ def test_vmtest(
             for index, value in details["storage"].items():
                 expected = int(value, 16)
                 actual = account.storage[int(index, 16)]
+                print(actual, expected)
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual
