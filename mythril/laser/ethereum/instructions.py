@@ -1370,7 +1370,6 @@ class Instruction:
         """
         try:
             data = global_state.environment.active_account.storage[index]
-            print(data)
         except KeyError:
             data = global_state.new_bitvec("storage_" + str(index), 256)
             global_state.environment.active_account.storage[index] = data
@@ -1616,7 +1615,9 @@ class Instruction:
         :return:
         """
         index = global_state.mstate.pc
-        program_counter = global_state.environment.code.instruction_list[index]["address"]
+        program_counter = global_state.environment.code.instruction_list[index][
+            "address"
+        ]
         global_state.mstate.stack.append(program_counter)
 
         return [global_state]

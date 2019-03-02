@@ -27,15 +27,12 @@ test_types = [
     "vmRandomTest"
 ]
 """
-test_types = [
-    "vmIOandFlowOperations"
-]
+test_types = ["vmIOandFlowOperations"]
 ignored_test_names = (
-    "gasprice",              # Gas price is a symbol
-    "log1MemExp",            # Logs not implemented
+    "gasprice",  # Gas price is a symbol
+    "log1MemExp",  # Logs not implemented
     "loop_stacklimit_1020",  # we already have a default depth which is different from EVM
     "loop_stacklimit_1021",  # Same as above
-
 )
 
 
