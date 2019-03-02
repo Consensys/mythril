@@ -29,7 +29,6 @@ test_types = [
 """
 test_types = ["vmIOandFlowOperations"]
 ignored_test_names = (
-    "gasprice",  # Gas price is a symbol
     "log1MemExp",  # Logs not implemented
     "loop_stacklimit_1020",  # we already have a default depth which is different from EVM
     "loop_stacklimit_1021",  # Same as above
@@ -91,8 +90,6 @@ def test_vmtest(
     post_condition: dict,
 ) -> None:
     # Arrange
-    if test_name != "pc1":
-        return
     if test_name in ignored_test_names:
         return
     accounts = {}
@@ -153,7 +150,6 @@ def test_vmtest(
             for index, value in details["storage"].items():
                 expected = int(value, 16)
                 actual = account.storage[int(index, 16)]
-                print(actual, expected)
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual

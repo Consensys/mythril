@@ -931,7 +931,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
+        global_state.mstate.stack.append(global_state.environment.gasprice)
         return [global_state]
 
     @staticmethod
@@ -1682,8 +1682,12 @@ class Instruction:
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 8)]
         try:
+            concrete_offset = util.get_concrete_int(offset)
+            concrete_length = util.get_concrete_int(length)
+            state.mem_extend(concrete_offset, concrete_length)
+            StateTransition.check_gas_usage_limit(global_state)
             return_data = state.memory[
-                util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
+                concrete_offset : concrete_offset + concrete_length
             ]
         except TypeError:
             log.debug("Return with symbolic length or offset. Not supported")
