@@ -117,7 +117,7 @@ class WorldState:
         :return:
         """
         while True:
-            address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(20)])
+            address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])
             if address not in self.accounts.keys():
                 return address
 

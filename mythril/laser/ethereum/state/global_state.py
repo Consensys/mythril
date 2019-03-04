@@ -111,7 +111,7 @@ class GlobalState:
         """
         return self.get_current_instruction()
 
-    def new_bitvec(self, name: str, size=256) -> BitVec:
+    def new_bitvec(self, name: str, size=256, annotations=None) -> BitVec:
         """
 
         :param name:
@@ -119,7 +119,9 @@ class GlobalState:
         :return:
         """
         transaction_id = self.current_transaction.id
-        return symbol_factory.BitVecSym("{}_{}".format(transaction_id, name), size)
+        return symbol_factory.BitVecSym(
+            "{}_{}".format(transaction_id, name), size, annotations=annotations
+        )
 
     def annotate(self, annotation: StateAnnotation) -> None:
         """
