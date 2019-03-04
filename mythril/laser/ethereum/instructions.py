@@ -1325,7 +1325,7 @@ class Instruction:
             index = util.get_concrete_int(index)
             return self._sload_helper(global_state, index)
 
-        except TypeError as e:
+        except TypeError:
             if not keccak_function_manager.is_keccak(index):
                 return self._sload_helper(global_state, str(index))
 
