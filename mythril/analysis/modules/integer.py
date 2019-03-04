@@ -232,7 +232,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             return
         for element in state.mstate.memory[offset : offset + length]:
             if not isinstance(element, Expression):
-                return
+                continue
             for annotation in element.annotations:
                 if isinstance(annotation, OverUnderflowAnnotation):
                     state.annotate(
