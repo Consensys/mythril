@@ -10,6 +10,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 
@@ -93,17 +94,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if has_overflow or has_underflow:
             return
         opcode = state.get_current_instruction()["opcode"]
-        func = {
-            "ADD": self._handle_add,
-            "SUB": self._handle_sub,
-            "MUL": self._handle_mul,
-            "SSTORE": self._handle_sstore,
-            "JUMPI": self._handle_jumpi,
-            "RETURN": self._handle_transaction_end,
-            "STOP": self._handle_transaction_end,
-            "EXP": self._handle_exp,
+        funcs = {
+            "ADD": [self._handle_add],
+            "SUB": [self._handle_sub],
+            "MUL": [self._handle_mul],
+            "SSTORE": [self._handle_sstore],
+            "JUMPI": [self._handle_jumpi],
+            "RETURN": [self._handle_return, self._handle_transaction_end],
+            "STOP": [self._handle_transaction_end],
+            "EXP": [self._handle_exp],
         }
-        func[opcode](state)
+        for func in funcs[opcode]:
+            func(state)
 
     def _get_args(self, state):
         stack = state.mstate.stack
@@ -239,6 +241,31 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     annotation.constraint,
                 )
             )
+
+    @staticmethod
+    def _handle_return(state: GlobalState) -> None:
+        """
+        Adds all the annotations into the state which correspond to the
+        locations in the memory returned by RETURN opcode.
+        :param state: The Global State
+        """
+        stack = state.mstate.stack
+        try:
+            offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
+        except TypeError:
+            return
+        for element in state.mstate.memory[offset : offset + length]:
+            if not isinstance(element, Expression):
+                continue
+            for annotation in element.annotations:
+                if isinstance(annotation, OverUnderflowAnnotation):
+                    state.annotate(
+                        OverUnderflowStateAnnotation(
+                            annotation.overflowing_state,
+                            annotation.operator,
+                            annotation.constraint,
+                        )
+                    )
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
         for annotation in cast(
