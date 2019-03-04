@@ -2,6 +2,8 @@
 underflows."""
 
 import json
+
+from math import log2, ceil
 from typing import Dict, cast, List
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
@@ -19,6 +21,8 @@ from mythril.laser.smt import (
     symbol_factory,
     Not,
     Expression,
+    Bool,
+    And,
 )
 
 import logging
@@ -31,7 +35,7 @@ class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
 
     def __init__(
-        self, overflowing_state: GlobalState, operator: str, constraint
+        self, overflowing_state: GlobalState, operator: str, constraint: Bool
     ) -> None:
         self.overflowing_state = overflowing_state
         self.operator = operator
@@ -42,7 +46,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
     """ State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(
-        self, overflowing_state: GlobalState, operator: str, constraint
+        self, overflowing_state: GlobalState, operator: str, constraint: Bool
     ) -> None:
         self.overflowing_state = overflowing_state
         self.operator = operator
@@ -63,7 +67,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 "there's a possible state where op1 + op0 > 2^32 - 1"
             ),
             entrypoint="callback",
-            pre_hooks=["ADD", "MUL", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
+            pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
         self._overflow_cache = {}  # type: Dict[int, bool]
         self._underflow_cache = {}  # type: Dict[int, bool]
@@ -88,25 +92,29 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         has_underflow = self._underflow_cache.get(address, False)
         if has_overflow or has_underflow:
             return
-        if state.get_current_instruction()["opcode"] == "ADD":
-            self._handle_add(state)
-        elif state.get_current_instruction()["opcode"] == "MUL":
-            self._handle_mul(state)
-        elif state.get_current_instruction()["opcode"] == "SUB":
-            self._handle_sub(state)
-        elif state.get_current_instruction()["opcode"] == "SSTORE":
-            self._handle_sstore(state)
-        elif state.get_current_instruction()["opcode"] == "JUMPI":
-            self._handle_jumpi(state)
-        elif state.get_current_instruction()["opcode"] in ("RETURN", "STOP"):
-            self._handle_transaction_end(state)
+        opcode = state.get_current_instruction()["opcode"]
+        func = {
+            "ADD": self._handle_add,
+            "SUB": self._handle_sub,
+            "MUL": self._handle_mul,
+            "SSTORE": self._handle_sstore,
+            "JUMPI": self._handle_jumpi,
+            "RETURN": self._handle_transaction_end,
+            "STOP": self._handle_transaction_end,
+            "EXP": self._handle_exp,
+        }
+        func[opcode](state)
 
-    def _handle_add(self, state):
+    def _get_args(self, state):
         stack = state.mstate.stack
         op0, op1 = (
             self._make_bitvec_if_not(stack, -1),
             self._make_bitvec_if_not(stack, -2),
         )
+        return op0, op1
+
+    def _handle_add(self, state):
+        op0, op1 = self._get_args(state)
         c = Not(BVAddNoOverflow(op0, op1, False))
 
         # Check satisfiable
@@ -118,12 +126,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         op0.annotate(annotation)
 
     def _handle_mul(self, state):
-        stack = state.mstate.stack
-        op0, op1 = (
-            self._make_bitvec_if_not(stack, -1),
-            self._make_bitvec_if_not(stack, -2),
-        )
-
+        op0, op1 = self._get_args(state)
         c = Not(BVMulNoOverflow(op0, op1, False))
 
         # Check satisfiable
@@ -135,11 +138,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         op0.annotate(annotation)
 
     def _handle_sub(self, state):
-        stack = state.mstate.stack
-        op0, op1 = (
-            self._make_bitvec_if_not(stack, -1),
-            self._make_bitvec_if_not(stack, -2),
-        )
+        op0, op1 = self._get_args(state)
         c = Not(BVSubNoUnderflow(op0, op1, False))
 
         # Check satisfiable
@@ -148,6 +147,33 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             return
 
         annotation = OverUnderflowAnnotation(state, "subtraction", c)
+        op0.annotate(annotation)
+
+    def _handle_exp(self, state):
+        op0, op1 = self._get_args(state)
+        if op0.symbolic and op1.symbolic:
+            constraint = And(
+                op1 > symbol_factory.BitVecVal(256, 256),
+                op0 > symbol_factory.BitVecVal(1, 256),
+            )
+        elif op1.symbolic:
+            if op0.value < 2:
+                return
+            constraint = op1 >= symbol_factory.BitVecVal(
+                ceil(256 / log2(op0.value)), 256
+            )
+        elif op0.symbolic:
+            if op1.value == 0:
+                return
+            constraint = op0 >= symbol_factory.BitVecVal(
+                2 ** ceil(256 / op1.value), 256
+            )
+        else:
+            constraint = op0.value ** op1.value >= 2 ** 256
+        model = self._try_constraints(state.node.constraints, [constraint])
+        if model is None:
+            return
+        annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
         op0.annotate(annotation)
 
     @staticmethod
@@ -185,7 +211,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
     def _handle_sstore(state: GlobalState) -> None:
         stack = state.mstate.stack
         value = stack[-2]
-
         if not isinstance(value, Expression):
             return
         for annotation in value.annotations:
