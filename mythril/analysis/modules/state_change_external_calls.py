@@ -103,7 +103,7 @@ class StateChange(DetectionModule):
             pass
 
     @staticmethod
-    def _analyze_state(state) -> List[Issue]:
+    def _analyze_state(state: GlobalState) -> List[Issue]:
         """
 
         :param state:
