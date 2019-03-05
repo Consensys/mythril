@@ -9,7 +9,7 @@ import hashlib
 from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
-from mythril.start_time import StartTime
+from mythril.support.start_time import StartTime
 from time import time
 
 log = logging.getLogger(__name__)
