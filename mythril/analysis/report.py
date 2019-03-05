@@ -103,6 +103,18 @@ class Issue:
 
         return issue
 
+    def _add_false_positive_tags(self):
+        """
+        Adds the false positive to description and changes severity to low
+        """
+        self.severity = "Low"
+        self.description_tail += (
+            " This happened in the internal compiler generated code, "
+            "so it might possibly be a false positive."
+        )
+        self.description = "%s\n%s" % (self.description_head, self.description_tail)
+        self.code = ""
+
     def add_code_info(self, contract):
         """
 
@@ -115,6 +127,8 @@ class Issue:
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
+            if self.lineno is None:
+                self._add_false_positive_tags()
             self.source_mapping = codeinfo.solc_mapping
         else:
             self.source_mapping = self.address
