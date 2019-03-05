@@ -1,12 +1,16 @@
-from mythril.analysis.ops import Variable, VarType
+from mythril.analysis.ops import Call, Variable, VarType
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.analysis.call_helpers import get_call_from_state
-from mythril.analysis.analysis_module_helpers import CallIssue, ExternalCallsAnnotation
-from mythril.laser.smt import symbol_factory, simplify
+from mythril.laser.smt import symbol_factory, simplify, UGT
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.analysis import solver
+from mythril.exceptions import UnsatError
 from typing import List, cast
+from copy import copy
+
 import logging
 
 log = logging.getLogger(__name__)
@@ -17,6 +21,27 @@ Check whether there is a state change of the contract after the execution of an 
 """
 
 
+class CallIssue:
+    """ This class is a struct of
+        call: the Call struct
+        user_defined_address: Whether the address can be defined by user or not
+    """
+
+    def __init__(self, call: Call, user_defined_address: bool) -> None:
+        self.call = call
+        self.user_defined_address = user_defined_address
+
+
+class StateChangeCallsAnnotation(StateAnnotation):
+    def __init__(self) -> None:
+        self.calls = []  # type: List[CallIssue]
+
+    def __copy__(self):
+        result = StateChangeCallsAnnotation()
+        result.calls = copy(self.calls)
+        return result
+
+
 class StateChange(DetectionModule):
     """This module searches for state change after low level calls (e.g. call.value()) that
     forward gas to the callee."""
@@ -24,7 +49,7 @@ class StateChange(DetectionModule):
     def __init__(self):
         """"""
         super().__init__(
-            name="External calls",
+            name="State Change After External calls",
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
@@ -48,6 +73,36 @@ class StateChange(DetectionModule):
         return self.issues
 
     @staticmethod
+    def _add_external_call(
+        state: GlobalState, annotations: List[StateChangeCallsAnnotation]
+    ) -> None:
+        call = get_call_from_state(state)
+        gas = state.mstate.stack[-1]
+        to = state.mstate.stack[-2]
+        if call is None:
+            return
+        try:
+            constraints = copy(state.node.constraints)
+            solver.get_model(
+                constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
+            )
+
+            # Check whether we can also set the callee address
+            try:
+                constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
+                solver.get_model(constraints)
+                annotations[0].calls.append(
+                    CallIssue(call=call, user_defined_address=True)
+                )
+            except UnsatError:
+                annotations[0].calls.append(
+                    CallIssue(call=call, user_defined_address=False)
+                )
+
+        except UnsatError:
+            pass
+
+    @staticmethod
     def _analyze_state(state) -> List[Issue]:
         """
 
@@ -56,18 +111,19 @@ class StateChange(DetectionModule):
         """
         address = state.get_current_instruction()["address"]
         annotations = cast(
-            List[ExternalCallsAnnotation],
-            list(state.get_annotations(ExternalCallsAnnotation)),
+            List[StateChangeCallsAnnotation],
+            list(state.get_annotations(StateChangeCallsAnnotation)),
         )
         if len(annotations) == 0:
             log.debug("Creating annotation for state")
-            state.annotate(ExternalCallsAnnotation())
+            state.annotate(StateChangeCallsAnnotation())
             annotations = cast(
-                List[ExternalCallsAnnotation],
-                list(state.get_annotations(ExternalCallsAnnotation)),
+                List[StateChangeCallsAnnotation],
+                list(state.get_annotations(StateChangeCallsAnnotation)),
             )
+        opcode = state.get_current_instruction()["opcode"]
 
-        if state.get_current_instruction()["opcode"] in ("SSTORE", "CREATE", "CREATE2"):
+        if opcode in ("SSTORE", "CREATE", "CREATE2"):
             return StateChange._handle_state_change(
                 state, address=address, annotation=annotations[0]
             )
@@ -80,6 +136,9 @@ class StateChange(DetectionModule):
             return StateChange._handle_state_change(
                 state, address=address, annotation=annotations[0]
             )
+
+        if opcode == "CALL":
+            StateChange._add_external_call(state, annotations=annotations)
 
         return []
 
@@ -120,7 +179,7 @@ class StateChange(DetectionModule):
 
     @staticmethod
     def _handle_state_change(
-        state: GlobalState, address: int, annotation: ExternalCallsAnnotation
+        state: GlobalState, address: int, annotation: StateChangeCallsAnnotation
     ) -> List[Issue]:
         calls = annotation.calls
         issues = StateChange._get_state_change_issues(calls, state, address)

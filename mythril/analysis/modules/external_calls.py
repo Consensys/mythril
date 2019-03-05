@@ -2,7 +2,6 @@
 calls."""
 
 from mythril.analysis import solver
-from mythril.analysis.analysis_module_helpers import ExternalCallsAnnotation, CallIssue
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
@@ -10,7 +9,7 @@ from mythril.analysis.call_helpers import get_call_from_state
 from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
-from typing import List, cast
+from copy import copy
 import logging
 import json
 
@@ -36,25 +35,13 @@ def _analyze_state(state):
     to = state.mstate.stack[-2]
     issues = []
     address = state.get_current_instruction()["address"]
-    annotations = cast(
-        List[ExternalCallsAnnotation],
-        list(state.get_annotations(ExternalCallsAnnotation)),
-    )
-    if len(annotations) == 0:
-        log.debug("Creating annotation for state")
-        state.annotate(ExternalCallsAnnotation())
-        annotations = cast(
-            List[ExternalCallsAnnotation],
-            list(state.get_annotations(ExternalCallsAnnotation)),
-        )
-
     call = get_call_from_state(state)
 
     if call is None:
         return []
 
     try:
-        constraints = node.constraints
+        constraints = copy(node.constraints)
         transaction_sequence = solver.get_transaction_sequence(
             state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
         )
@@ -87,7 +74,6 @@ def _analyze_state(state):
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
-            annotations[0].calls.append(CallIssue(call=call, user_defined_address=True))
 
         except UnsatError:
 
@@ -114,9 +100,6 @@ def _analyze_state(state):
                 description_tail=description_tail,
                 debug=debug,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            )
-            annotations[0].calls.append(
-                CallIssue(call=call, user_defined_address=False)
             )
 
     except UnsatError:
