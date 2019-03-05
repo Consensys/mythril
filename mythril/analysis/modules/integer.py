@@ -98,8 +98,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             "ADD": [self._handle_add],
             "SUB": [self._handle_sub],
             "MUL": [self._handle_mul],
-            "SSTORE": [self._handle_sstore],
-            "JUMPI": [self._handle_jumpi],
+            "SSTORE": [self._handle_sstore_and_jumpi],
+            "JUMPI": [self._handle_sstore_and_jumpi],
             "RETURN": [self._handle_return, self._handle_transaction_end],
             "STOP": [self._handle_transaction_end],
             "EXP": [self._handle_exp],
@@ -210,27 +210,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         return "Integer {}".format(_type)
 
     @staticmethod
-    def _handle_sstore(state: GlobalState) -> None:
+    def _handle_sstore_and_jumpi(state: GlobalState) -> None:
         stack = state.mstate.stack
         value = stack[-2]
         if not isinstance(value, Expression):
             return
-        for annotation in value.annotations:
-            if not isinstance(annotation, OverUnderflowAnnotation):
-                continue
-            state.annotate(
-                OverUnderflowStateAnnotation(
-                    annotation.overflowing_state,
-                    annotation.operator,
-                    annotation.constraint,
-                )
-            )
-
-    @staticmethod
-    def _handle_jumpi(state):
-        stack = state.mstate.stack
-        value = stack[-2]
-
         for annotation in value.annotations:
             if not isinstance(annotation, OverUnderflowAnnotation):
                 continue
