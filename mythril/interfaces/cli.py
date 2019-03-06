@@ -10,9 +10,11 @@ import json
 import logging
 import os
 import sys
+import traceback
 
 import coloredlogs
 
+from mythril.analysis.report import Report
 import mythril.support.signatures as sigs
 from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import Mythril
@@ -31,8 +33,21 @@ def exit_with_error(format_, message):
     """
     if format_ == "text" or format_ == "markdown":
         log.error(message)
-    else:
+    elif format_ == "json":
         result = {"success": False, "error": str(message), "issues": []}
+        print(json.dumps(result))
+    else:
+        result = [
+            {
+                "issues": [],
+                "sourceType": "",
+                "sourceFormat": "",
+                "sourceList": [],
+                "meta": {
+                    "logs": [{"level": "error", "hidden": "true", "error": message}]
+                },
+            }
+        ]
         print(json.dumps(result))
     sys.exit()
 
@@ -243,7 +258,6 @@ def main():
         else:
             print("Mythril version {}".format(VERSION))
         sys.exit()
-
     # Parse cmdline args
 
     if not (
@@ -486,6 +500,8 @@ def main():
 
     except CriticalError as ce:
         exit_with_error(args.outform, str(ce))
+    except Exception:
+        exit_with_error(args.outform, traceback.format_exc())
 
 
 if __name__ == "__main__":
