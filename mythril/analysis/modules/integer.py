@@ -274,7 +274,26 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         ):
 
             ostate = annotation.overflowing_state
+            address = _get_address_from_state(ostate)
+
+            if annotation.operator == "subtraction" and self._underflow_cache.get(
+                address, False
+            ):
+                continue
+
+            if annotation.operator != "subtraction" and self._overflow_cache.get(
+                address, False
+            ):
+                continue
+
             node = ostate.node
+            try:
+
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, node.constraints + [annotation.constraint]
+                )
+            except UnsatError:
+                continue
 
             _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
             issue = Issue(
@@ -290,28 +309,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
-            address = _get_address_from_state(ostate)
-
-            if annotation.operator == "subtraction" and self._underflow_cache.get(
-                address, False
-            ):
-                continue
-
-            if annotation.operator != "subtraction" and self._overflow_cache.get(
-                address, False
-            ):
-                continue
-
-            try:
-
-                transaction_sequence = solver.get_transaction_sequence(
-                    state, node.constraints + [annotation.constraint]
-                )
-
-                issue.debug = json.dumps(transaction_sequence, indent=4)
-
-            except UnsatError:
-                continue
+            issue.debug = json.dumps(transaction_sequence, indent=4)
 
             if annotation.operator == "subtraction":
                 self._underflow_cache[address] = True
