@@ -179,7 +179,7 @@ class Report:
     def _get_exception_data(self) -> dict:
         if not self.exceptions:
             return {}
-        logs = []       # type: List[Dict]
+        logs = []  # type: List[Dict]
         for exception in self.exceptions:
             logs += [{"level": "error", "hidden": "true", "error": exception}]
         return {"logs": logs}
