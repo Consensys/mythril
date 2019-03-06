@@ -122,19 +122,17 @@ class MythrilDisassembler:
             )
         except Exception as e:
             raise CriticalError("IPC / RPC error: " + str(e))
+
+        if code == "0x" or code == "0x0":
+            raise CriticalError(
+                "Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain."
+            )
         else:
-            if code == "0x" or code == "0x0":
-                raise CriticalError(
-                    "Received an empty response from eth_getCode. Check the contract address and verify that you are on the correct chain."
+            self.contracts.append(
+                EVMContract(
+                    code, name=address, enable_online_lookup=self.enable_online_lookup
                 )
-            else:
-                self.contracts.append(
-                    EVMContract(
-                        code,
-                        name=address,
-                        enable_online_lookup=self.enable_online_lookup,
-                    )
-                )
+            )
         return address, self.contracts[-1]  # return address and contract object
 
     def load_from_solidity(

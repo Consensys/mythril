@@ -24,15 +24,15 @@ class GraphTest(BaseTestCase):
             contract = EVMContract(input_file.read_text())
             disassembler = MythrilDisassembler()
             disassembler.contracts.append(contract)
-            analyzer = MythrilAnalyzer(disassembler)
-
-            html = analyzer.graph_html(
+            analyzer = MythrilAnalyzer(
+                disassembler=disassembler,
                 strategy="dfs",
-                transaction_count=1,
                 execution_timeout=5,
                 max_depth=30,
                 address=(util.get_indexed_address(0)),
             )
+
+            html = analyzer.graph_html(transaction_count=1)
             output_current.write_text(html)
 
             lines_expected = re.findall(

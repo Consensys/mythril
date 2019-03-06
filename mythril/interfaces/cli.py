@@ -350,15 +350,15 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
             )
 
         if args.search or args.contract_hash_to_address:
-            leveldb_sercher = MythrilLevelDB(config.eth_db)
+            leveldb_searcher = MythrilLevelDB(config.eth_db)
             if args.search:
                 # Database search ops
-                leveldb_sercher.search_db(args.search)
+                leveldb_searcher.search_db(args.search)
 
             else:
                 # search corresponding address
                 try:
-                    leveldb_sercher.contract_hash_to_address(
+                    leveldb_searcher.contract_hash_to_address(
                         args.contract_hash_to_address
                     )
                 except AddressNotFoundError:
@@ -413,7 +413,13 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
             )
 
         analyzer = MythrilAnalyzer(
+            strategy=args.strategy,
             disassembler=dissasembler,
+            address=address,
+            max_depth=args.max_depth,
+            execution_timeout=args.execution_timeout,
+            create_timeout=args.create_timeout,
+            enable_iprof=args.enable_iprof,
             onchain_storage_access=not args.no_onchain_storage_access,
         )
         # Commands
@@ -447,15 +453,9 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
 
             if args.graph:
                 html = analyzer.graph_html(
-                    strategy=args.strategy,
                     contract=analyzer.contracts[0],
-                    address=address,
                     enable_physics=args.enable_physics,
                     phrackify=args.phrack,
-                    max_depth=args.max_depth,
-                    execution_timeout=args.execution_timeout,
-                    create_timeout=args.create_timeout,
-                    enable_iprof=args.enable_iprof,
                 )
 
                 try:
@@ -467,17 +467,11 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
             else:
                 try:
                     report = analyzer.fire_lasers(
-                        strategy=args.strategy,
-                        address=address,
                         modules=[m.strip() for m in args.modules.strip().split(",")]
                         if args.modules
                         else [],
                         verbose_report=args.verbose_report,
-                        max_depth=args.max_depth,
-                        execution_timeout=args.execution_timeout,
-                        create_timeout=args.create_timeout,
                         transaction_count=args.transaction_count,
-                        enable_iprof=args.enable_iprof,
                     )
                     outputs = {
                         "json": report.as_json(),
@@ -498,15 +492,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
                     args.outform, "input files do not contain any valid contracts"
                 )
 
-            statespace = analyzer.dump_statespace(
-                strategy=args.strategy,
-                contract=analyzer.contracts[0],
-                address=address,
-                max_depth=args.max_depth,
-                execution_timeout=args.execution_timeout,
-                create_timeout=args.create_timeout,
-                enable_iprof=args.enable_iprof,
-            )
+            statespace = analyzer.dump_statespace(contract=analyzer.contracts[0])
 
             try:
                 with open(args.statespace_json, "w") as f:

@@ -21,9 +21,9 @@ def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
             )
         ]
     )
-    analyzer = MythrilAnalyzer(disassembler)
+    analyzer = MythrilAnalyzer(disassembler, strategy="dfs")
 
-    issues = analyzer.fire_lasers(strategy="dfs", modules=[]).sorted_issues()
+    issues = analyzer.fire_lasers(modules=[]).sorted_issues()
     mock_sym.assert_called()
     mock_fire_lasers.assert_called()
     mock_code_info.assert_called()
