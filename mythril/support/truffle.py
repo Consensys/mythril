@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import sys
+import warnings
 from pathlib import PurePath
 
 from ethereum.utils import sha3
@@ -20,12 +21,24 @@ from mythril.solidity.soliditycontract import SourceMapping
 log = logging.getLogger(__name__)
 
 
+def format_Warning(message, category, filename, lineno, line=""):
+    return "{}: {}\n\n".format(str(filename), str(message))
+
+
+warnings.formatwarning = format_Warning
+
+
 def analyze_truffle_project(sigs, args):
     """
 
     :param sigs:
     :param args:
     """
+    warnings.warn(
+        "The option --truffle is being deprecated, Please use the truffle-security plugin, https://github.com/ConsenSys/truffle-security",
+        FutureWarning,
+    )
+
     project_root = os.getcwd()
 
     build_dir = os.path.join(project_root, "build", "contracts")
