@@ -31,6 +31,7 @@ test_types = [
 tests_with_gas_support = ["gas0", "gas1"]
 tests_with_block_number_support = [
     "BlockNumberDynamicJumpi0",
+    "BlockNumberDynamicJumpi1",
     "BlockNumberDynamicJump0_jumpdest2",
     "DynamicJumpPathologicalTest0",
     "BlockNumberDynamicJumpifInsidePushWithJumpDest",
@@ -42,8 +43,11 @@ tests_with_block_number_support = [
     "DynamicJumpJD_DependsOnJumps1",
 ]
 tests_with_log_support = ["log1MemExp"]
-tests_not_relevent = ["loop_stacklimit_1020", "loop_stacklimit_1021"]
-tests_to_resolve = ["jumpTo1InstructionafterJump", "sstore_load_2"]
+tests_not_relevent = [
+    "loop_stacklimit_1020",  # We won't be looping till 1020 as we have a max_depth
+    "loop_stacklimit_1021",
+]
+tests_to_resolve = ["jumpTo1InstructionafterJump", "sstore_load_2", "jumpi_at_the_end"]
 ignored_test_names = (
     tests_with_gas_support
     + tests_with_log_support
