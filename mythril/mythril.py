@@ -36,6 +36,8 @@ from mythril.analysis.report import Report
 from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.laser.smt import SolverStatistics
+from mythril.support.start_time import StartTime
+
 
 log = logging.getLogger(__name__)
 
@@ -569,6 +571,7 @@ class Mythril(object):
         all_issues = []
         SolverStatistics().enabled = True
         for contract in contracts or self.contracts:
+            StartTime()  # Reinitialize start time for new contracts
             try:
                 sym = SymExecWrapper(
                     contract,
