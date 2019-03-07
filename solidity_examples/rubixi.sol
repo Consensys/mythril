@@ -34,7 +34,7 @@ contract Rubixi {
 
     //Fee functions for creator
     function collectAllFees() public onlyowner {
-        require(collectedFees == 0);
+        require(collectedFees > 0);
         creator.transfer(collectedFees);
         collectedFees = 0;
     }
