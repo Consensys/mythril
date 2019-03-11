@@ -90,15 +90,18 @@ def And(*args: Union[Bool, bool]) -> Bool:
     return Bool(z3.And([a.raw for a in args_list]), union)
 
 
-def Or(a: Bool, b: Bool) -> Bool:
+def Or(*args: Union[Bool, bool]) -> Bool:
     """Create an or expression.
 
     :param a:
     :param b:
     :return:
     """
-    union = a.annotations + b.annotations
-    return Bool(z3.Or(a.raw, b.raw), annotations=union)
+    union = []
+    args_list = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
+    for arg in args_list:
+        union.append(arg.annotations)
+    return Bool(z3.Or([a.raw for a in args_list]), annotations=union)
 
 
 def Not(a: Bool) -> Bool:
