@@ -12,6 +12,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
     get_next_transaction_id,
+    BaseTransaction
 )
 
 log = logging.getLogger(__name__)
@@ -19,10 +20,11 @@ log = logging.getLogger(__name__)
 CREATOR_ADDRESS = 0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE
 ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 
-# ACTOR_ADDRESS = Or(
-#     symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF, 256),
-#     symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEE, 256)
-# )
+ACTOR_ADDRESSES = [
+    symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
+    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF, 256),
+    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEE, 256)
+]
 
 
 def execute_message_call(laser_evm, callee_address: str) -> None:
@@ -51,7 +53,7 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
             origin=symbol_factory.BitVecSym(
                 "origin{}".format(next_transaction_id), 256
             ),
-            caller=symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256),
+            caller=symbol_factory.BitVecSym("sender_{}".format(next_transaction_id), 256),
             callee_account=open_world_state[callee_address],
             call_data=SymbolicCalldata(next_transaction_id),
             call_value=symbol_factory.BitVecSym(
@@ -109,7 +111,7 @@ def execute_contract_creation(
     return new_account
 
 
-def _setup_global_state_for_execution(laser_evm, transaction) -> None:
+def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -> None:
     """Sets up global state and cfg for a transactions execution.
 
     :param laser_evm:
@@ -118,6 +120,8 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
+
+    global_state.mstate.constraints.append(Or(*[transaction.caller == actor for actor in ACTOR_ADDRESSES]))
 
     new_node = Node(
         global_state.environment.active_account.contract_name,
@@ -144,3 +148,4 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
+
