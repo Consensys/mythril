@@ -32,7 +32,7 @@ def _generate_report(input_file):
     )
     issues = fire_lasers(sym)
 
-    report = Report()
+    report = Report(contracts=[contract])
     for issue in issues:
         issue.filename = "test-filename.sol"
         report.append_issue(issue)

@@ -3,13 +3,13 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-import _pysha3 as sha3
 import hashlib
 
 from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
 from mythril.support.start_time import StartTime
+from mythril.support.support_utils import get_code_hash
 from time import time
 
 log = logging.getLogger(__name__)
@@ -62,20 +62,7 @@ class Issue:
         self.lineno = None
         self.source_mapping = None
         self.discovery_time = time() - StartTime().global_start_time
-
-        try:
-            keccak = sha3.keccak_256()
-            keccak.update(
-                bytes.fromhex(bytecode[2:])
-                if bytecode[:2] == "0x"
-                else bytes.fromhex(bytecode)
-            )
-            self.bytecode_hash = "0x" + keccak.hexdigest()
-        except ValueError:
-            log.debug(
-                "Unable to change the bytecode to bytes. Bytecode: {}".format(bytecode)
-            )
-            self.bytecode_hash = ""
+        self.bytecode_hash = get_code_hash(bytecode)
 
     @property
     def as_dict(self):
@@ -130,7 +117,7 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, source=None):
+    def __init__(self, verbose=False, contracts=None):
         """
 
         :param verbose:
@@ -139,7 +126,8 @@ class Report:
         self.verbose = verbose
         self.solc_version = ""
         self.meta = {}
-        self.source = source or Source()
+        self.source = Source()
+        self.source.get_source_from_contracts_list(contracts)
 
     def sorted_issues(self):
         """
@@ -187,12 +175,7 @@ class Report:
 
         for key, issue in self.issues.items():
 
-            if issue.bytecode_hash not in source_list:
-                idx = len(source_list)
-                source_list.append(issue.bytecode_hash)
-            else:
-                idx = source_list.index(issue.bytecode_hash)
-
+            idx = self.source.get_source_index(issue.bytecode_hash)
             try:
                 title = SWC_TO_TITLE[issue.swc_id]
             except KeyError:
@@ -211,13 +194,12 @@ class Report:
                     "extra": {},
                 }
             )
-
         result = [
             {
                 "issues": _issues,
-                "sourceType": "raw-bytecode",
-                "sourceFormat": "evm-byzantium-bytecode",
-                "sourceList": source_list,
+                "sourceType": self.source.source_type,
+                "sourceFormat": self.source.source_format,
+                "sourceList": self.source.source_list,
                 "meta": {},
             }
         ]
