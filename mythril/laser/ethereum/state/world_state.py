@@ -30,13 +30,13 @@ class WorldState:
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
 
-    def __getitem__(self, item: str) -> Account:
+    def __getitem__(self, item: BitVec) -> Account:
         """Gets an account from the worldstate using item as key.
 
         :param item: Address of the account to get
         :return: Account associated with the address
         """
-        return self.accounts[item]
+        return self.accounts[item.value]
 
     def __copy__(self) -> "WorldState":
         """
@@ -126,11 +126,11 @@ class WorldState:
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])
             if address not in self.accounts.keys():
-                return symbol_factory.BitVecVal(int(address), 256)
+                return symbol_factory.BitVecVal(int(address, 16), 256)
 
     def _put_account(self, account: Account) -> None:
         """
 
         :param account:
         """
-        self.accounts[account.address] = account
+        self.accounts[account.address.value] = account
