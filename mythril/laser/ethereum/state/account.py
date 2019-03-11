@@ -30,7 +30,7 @@ class Storage:
         except KeyError:
             if (
                 self.address
-                and int(self.address[2:], 16) != 0
+                and self.address.value != 0
                 and (self.dynld and self.dynld.storage_loading)
             ):
                 try:
@@ -98,18 +98,20 @@ class Account:
     def __str__(self) -> str:
         return str(self.as_dict)
 
-    def set_balance(self, balance: BitVec) -> None:
+    def set_balance(self, balance: Union[int, BitVec]) -> None:
         """
 
         :param balance:
         """
+        balance = symbol_factory.BitVecVal(balance, 256) if isinstance(balance, int) else balance
         self._balances[self.address] = balance
 
-    def add_balance(self, balance: BitVec) -> None:
+    def add_balance(self, balance: Union[int, BitVec]) -> None:
         """
 
         :param balance:
         """
+        balance = symbol_factory.BitVecVal(balance, 256) if isinstance(balance, int) else balance
         self._balances[self.address] += balance
 
     @property
