@@ -194,7 +194,7 @@ class SymExecWrapper:
 
                 elif op == "SSTORE":
                     stack = copy.deepcopy(state.mstate.stack)
-                    address = state.environment.active_account.address
+                    address = state.environment.active_account.address.value
 
                     index, value = stack.pop(), stack.pop()
 
