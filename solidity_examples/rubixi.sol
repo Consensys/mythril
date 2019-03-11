@@ -43,14 +43,14 @@ contract Rubixi {
         _amt *= 1 ether;
         if (_amt > collectedFees) collectAllFees();
 
-        require(collectedFees == 0);
+        require(collectedFees > 0);
 
         creator.transfer(_amt);
         collectedFees -= _amt;
     }
 
     function collectPercentOfFees(uint _pcent) public onlyowner {
-        require(collectedFees == 0 || _pcent > 100);
+        require(collectedFees > 0 && _pcent <= 100);
 
         uint feesToCollect = collectedFees / 100 * _pcent;
         creator.transfer(feesToCollect);
@@ -63,12 +63,12 @@ contract Rubixi {
     }
 
     function changeMultiplier(uint _mult) public onlyowner {
-        require(_mult > 300 || _mult < 120);
+        require(_mult <= 300 &&  _mult >= 120);
         pyramidMultiplier = _mult;
     }
 
     function changeFeePercentage(uint _fee) public onlyowner {
-        require(_fee > 10);
+        require(_fee <= 10);
         feePercent = _fee;
     }
 
