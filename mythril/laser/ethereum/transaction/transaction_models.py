@@ -111,6 +111,14 @@ class BaseTransaction:
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
+
+        sender = environment.sender
+        receiver = environment.active_account.address
+        value = environment.callvalue
+
+        global_state.world_state.balance[sender] -= value
+        global_state.world_state.balance[receiver] += value
+
         return global_state
 
 
@@ -143,6 +151,7 @@ class MessageCallTransaction(BaseTransaction):
         :param revert:
         """
         self.return_data = return_data
+
         raise TransactionEndSignal(global_state, revert)
 
 
