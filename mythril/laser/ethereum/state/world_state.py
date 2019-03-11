@@ -3,6 +3,7 @@ from copy import copy
 from random import randint
 from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
 
+from mythril.laser.smt import symbol_factory, Array, BitVec
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 
@@ -23,6 +24,8 @@ class WorldState:
         :param annotations:
         """
         self.accounts = {}  # type: Dict[str, Account]
+        self.balance = Array("balance", 256, 256)
+
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
@@ -50,7 +53,7 @@ class WorldState:
         return new_world_state
 
     def create_account(
-        self, balance=0, address=None, concrete_storage=False, dynamic_loader=None
+        self, balance: int = None, address: int = None, concrete_storage=False, dynamic_loader=None
     ) -> Account:
         """Create non-contract account.
 
@@ -60,13 +63,17 @@ class WorldState:
         :param dynamic_loader: used for dynamically loading storage from the block chain
         :return: The new account
         """
-        address = address if address else self._generate_new_address()
+        address = symbol_factory.BitVecVal(address, 256) if address else self._generate_new_address()
+
         new_account = Account(
-            address,
-            balance=balance,
+            address=address,
+            balances=self.balance,
             dynamic_loader=dynamic_loader,
             concrete_storage=concrete_storage,
         )
+        if balance:
+            new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
+
         self._put_account(new_account)
         return new_account
 
@@ -81,7 +88,7 @@ class WorldState:
         """
         # TODO: Add type hints
         new_account = Account(
-            self._generate_new_address(), code=contract_code, balance=0
+            self._generate_new_address(), code=contract_code, balances=self.balance
         )
         new_account.storage = storage
         self._put_account(new_account)
@@ -111,7 +118,7 @@ class WorldState:
         """
         return filter(lambda x: isinstance(x, annotation_type), self.annotations)
 
-    def _generate_new_address(self) -> str:
+    def _generate_new_address(self) -> BitVec:
         """Generates a new address for the global state.
 
         :return:
@@ -119,7 +126,7 @@ class WorldState:
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])
             if address not in self.accounts.keys():
-                return address
+                return symbol_factory.BitVecVal(int(address), 256)
 
     def _put_account(self, account: Account) -> None:
         """

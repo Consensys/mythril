@@ -5,8 +5,8 @@ This includes classes representing accounts and their storage.
 
 from typing import Any, Dict, KeysView, Union
 
-from z3 import ExprRef
 
+from mythril.laser.smt import Array, symbol_factory, BitVec
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
@@ -67,10 +67,10 @@ class Account:
 
     def __init__(
         self,
-        address: str,
+        address: BitVec,
         code=None,
         contract_name="unknown",
-        balance=None,
+        balances: Array = None,
         concrete_storage=False,
         dynamic_loader=None,
     ) -> None:
@@ -84,37 +84,33 @@ class Account:
         """
         self.nonce = 0
         self.code = code or Disassembly("")
-        self.balance = (
-            balance
-            if balance
-            else symbol_factory.BitVecSym("{}_balance".format(address), 256)
-        )
         self.storage = Storage(
             concrete_storage, address=address, dynamic_loader=dynamic_loader
         )
-
-        # Metadata
         self.address = address
         self.contract_name = contract_name
 
         self.deleted = False
 
+        self._balances = balances
+        self.balance = lambda: self._balances[self.address]
+
     def __str__(self) -> str:
         return str(self.as_dict)
 
-    def set_balance(self, balance: ExprRef) -> None:
+    def set_balance(self, balance: BitVec) -> None:
         """
 
         :param balance:
         """
-        self.balance = balance
+        self._balances[self.address] = balance
 
-    def add_balance(self, balance: ExprRef) -> None:
+    def add_balance(self, balance: BitVec) -> None:
         """
 
         :param balance:
         """
-        self.balance += balance
+        self._balances[self.address] += balance
 
     @property
     def as_dict(self) -> Dict:
