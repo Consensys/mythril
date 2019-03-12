@@ -12,9 +12,7 @@
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 [![Downloads](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
 
-Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses symbolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
-
-This is an experimental tool designed for security pros. If you a smart contract developer you might prefer MythX tools such as:
+Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses symbolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. It's also an experimental tool designed for security pros. If you a smart contract developer you might prefer smoother tools such as:
 
 - [Mythos](https://github.com/cleanunicorn/mythos)
 - [Truffle Security](https://github.com/ConsenSys/truffle-security)
