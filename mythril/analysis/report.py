@@ -10,7 +10,8 @@ import hashlib
 from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
-
+from mythril.support.start_time import StartTime
+from time import time
 
 log = logging.getLogger(__name__)
 
@@ -34,16 +35,17 @@ class Issue:
     ):
         """
 
-        :param contract:
-        :param function_name:
-        :param address:
-        :param swc_id:
-        :param title:
-        :param bytecode:
-        :param gas_used:
-        :param _type:
-        :param description:
-        :param debug:
+        :param contract: The contract
+        :param function_name: Function name where the issue is detected
+        :param address: The address of the issue
+        :param swc_id: Issue's corresponding swc-id
+        :param title: Title
+        :param bytecode: bytecode of the issue
+        :param gas_used: amount of gas used
+        :param severity: The severity of the issue
+        :param description_head: The top part of description
+        :param description_tail: The bottom part of the description
+        :param debug: The transaction sequence
         """
         self.title = title
         self.contract = contract
@@ -60,6 +62,7 @@ class Issue:
         self.code = None
         self.lineno = None
         self.source_mapping = None
+        self.discovery_time = time() - StartTime().global_start_time
 
         try:
             keccak = sha3.keccak_256()
