@@ -125,7 +125,7 @@ class LaserEVM:
         for hook in self._start_sym_exec_hooks:
             hook()
 
-        time_handler.start_execution(self.execution_timeout)
+        time_handler.start_execution(self.execution_timeout, self.transaction_count)
         self.time = datetime.now()
 
         if main_address:
