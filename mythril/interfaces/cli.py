@@ -196,14 +196,14 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     options.add_argument(
         "--max-depth",
         type=int,
-        default=22,
+        default=50,
         help="Maximum recursion depth for symbolic execution",
     )
 
     options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
-        default="dfs",
+        default="bfs",
         help="Symbolic execution strategy",
     )
     options.add_argument(
