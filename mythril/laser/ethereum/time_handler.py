@@ -7,7 +7,7 @@ class TimeHandler(object, metaclass=Singleton):
         self._start_time = None
         self._execution_time = None
 
-    def start_execution(self, execution_time, transaction_count):
+    def start_execution(self, execution_time: int, transaction_count: int):
         self._start_time = int(time.time() * 1000)
         self._execution_time = execution_time * 1000 // transaction_count
 
