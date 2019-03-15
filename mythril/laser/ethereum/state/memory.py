@@ -29,6 +29,11 @@ class Memory:
         """
         return len(self._memory)
 
+    def __copy__(self):
+        copy = Memory()
+        copy._memory = self._memory[:]
+        return copy
+
     def extend(self, size):
         """
 
