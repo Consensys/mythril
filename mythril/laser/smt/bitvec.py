@@ -211,6 +211,22 @@ class BitVec(Expression[z3.BitVecRef]):
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw != other.raw), annotations=union)
 
+    def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        if not isinstance(other, BitVec):
+            return BitVec(
+                self.raw << other, annotations=self.annotations
+            )
+        union = self.annotations + other.annotations
+        return BitVec(self.raw << other.raw, annotations=union)
+
+    def __rshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        if not isinstance(other, BitVec):
+            return BitVec(
+                self.raw >> other, annotations=self.annotations
+            )
+        union = self.annotations + other.annotations
+        return BitVec(self.raw >> other.raw, annotations=union)
+
 
 def _comparison_helper(
     a: BitVec, b: BitVec, operation: Callable, default_value: bool, inputs_equal: bool
@@ -252,6 +268,11 @@ def _arithmetic_helper(a: BitVec, b: BitVec, operation: Callable) -> BitVec:
         )
 
     return BitVec(raw, annotations=union)
+
+
+def LShR(a, b):
+    union = a.annotations + b.annotations
+    return BitVec(z3.LShR(a.raw, b.raw), annotations=union)
 
 
 def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> BitVec:
