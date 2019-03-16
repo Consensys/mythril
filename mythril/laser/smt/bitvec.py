@@ -1,7 +1,7 @@
 """This module provides classes for an SMT abstraction of bit vectors."""
 
 from typing import Union, overload, List, cast, Any, Optional, Callable
-
+from operator import lshift, rshift
 import z3
 
 from mythril.laser.smt.bool import Bool, And, Or
@@ -211,21 +211,20 @@ class BitVec(Expression[z3.BitVecRef]):
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw != other.raw), annotations=union)
 
-    def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+    def _handle_shift(self, other: Union[int, "BitVec"], operator: Callable):
+        # TODO: Handle BitVecFunc
         if not isinstance(other, BitVec):
             return BitVec(
-                self.raw << other, annotations=self.annotations
+                operator(self.raw, other), annotations=self.annotations
             )
         union = self.annotations + other.annotations
-        return BitVec(self.raw << other.raw, annotations=union)
+        return BitVec(operator(self.raw, other.raw), annotations=union)
+
+    def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        return self._handle_shift(other, lshift)
 
     def __rshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
-        if not isinstance(other, BitVec):
-            return BitVec(
-                self.raw >> other, annotations=self.annotations
-            )
-        union = self.annotations + other.annotations
-        return BitVec(self.raw >> other.raw, annotations=union)
+        return self._handle_shift(other, rshift)
 
 
 def _comparison_helper(
@@ -271,6 +270,7 @@ def _arithmetic_helper(a: BitVec, b: BitVec, operation: Callable) -> BitVec:
 
 
 def LShR(a, b):
+    # TODO: Handle BitVecFunc
     union = a.annotations + b.annotations
     return BitVec(z3.LShR(a.raw, b.raw), annotations=union)
 
