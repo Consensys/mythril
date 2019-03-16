@@ -9,7 +9,7 @@ from mythril.support.opcodes import opcodes
 regex_PUSH = re.compile(r"^PUSH(\d*)$")
 
 # Additional mnemonic to catch failed assertions
-opcodes[254] = ["ASSERT_FAIL", 0, 0, 0]
+opcodes[254] = ("ASSERT_FAIL", 0, 0, 0)
 
 
 class EvmInstruction:
