@@ -1722,7 +1722,7 @@ class Instruction:
         """
         # TODO: implement me
         state = global_state.mstate
-        state.stack.pop(), state.stack.pop(), state.stack.pop()
+        endowment, memory_start, memory_length, salt = state.stack.pop(), state.stack.pop(), state.stack.pop(), state.stack.pop()
         # Not supported
         state.stack.append(0)
         return [global_state]

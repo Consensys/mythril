@@ -211,8 +211,15 @@ class BitVec(Expression[z3.BitVecRef]):
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw != other.raw), annotations=union)
 
-    def _handle_shift(self, other: Union[int, "BitVec"], operator: Callable):
-        # TODO: Handle BitVecFunc
+    def _handle_shift(self, other: Union[int, "BitVec"], operator: Callable) -> "BitVec":
+        """
+        Handle's shift
+        :param other: The other BitVector
+        :param operator: The shift operator
+        :return: the resulting output
+        """
+        if isinstance(other, BitVecFunc):
+            return operator(other, self)
         if not isinstance(other, BitVec):
             return BitVec(
                 operator(self.raw, other), annotations=self.annotations
@@ -221,9 +228,19 @@ class BitVec(Expression[z3.BitVecRef]):
         return BitVec(operator(self.raw, other.raw), annotations=union)
 
     def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """
+
+        :param other:
+        :return:
+        """
         return self._handle_shift(other, lshift)
 
     def __rshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """
+
+        :param other:
+        :return:
+        """
         return self._handle_shift(other, rshift)
 
 
@@ -269,10 +286,8 @@ def _arithmetic_helper(a: BitVec, b: BitVec, operation: Callable) -> BitVec:
     return BitVec(raw, annotations=union)
 
 
-def LShR(a, b):
-    # TODO: Handle BitVecFunc
-    union = a.annotations + b.annotations
-    return BitVec(z3.LShR(a.raw, b.raw), annotations=union)
+def LShR(a: BitVec, b: BitVec):
+    return _arithmetic_helper(a, b, z3.LShR)
 
 
 def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> BitVec:

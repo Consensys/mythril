@@ -207,3 +207,19 @@ class BitVecFunc(BitVec):
         return _comparison_helper(
             self, other, operator.eq, default_value=True, inputs_equal=False
         )
+
+    def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """
+        Left shift operation
+        :param other: The int or BitVec to shift on
+        :return The resulting left shifted output
+        """
+        return _arithmetic_helper(self, other, operator.lshift)
+
+    def __rshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """
+        Right shift operation
+        :param other: The int or BitVec to shift on
+        :return The resulting right shifted output:
+        """
+        return _arithmetic_helper(self, other, operator.rshift)
