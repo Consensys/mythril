@@ -1672,6 +1672,20 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
+    def create2_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        # TODO: implement me
+        state = global_state.mstate
+        state.stack.pop(), state.stack.pop(), state.stack.pop()
+        # Not supported
+        state.stack.append(0)
+        return [global_state]
+
+    @StateTransition()
     def return_(self, global_state: GlobalState):
         """
 

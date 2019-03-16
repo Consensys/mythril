@@ -449,5 +449,6 @@ class TaintRunner:
         "MSIZE": (0, 1),
         "GAS": (0, 1),
         "CREATE": (3, 1),
+        "CREATE2": (4, 1),
         "RETURN": (2, 0),
     }
