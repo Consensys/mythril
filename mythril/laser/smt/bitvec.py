@@ -213,7 +213,7 @@ class BitVec(Expression[z3.BitVecRef]):
 
     def _handle_shift(self, other: Union[int, "BitVec"], operator: Callable) -> "BitVec":
         """
-        Handle's shift
+        Handles shift
         :param other: The other BitVector
         :param operator: The shift operator
         :return: the resulting output
