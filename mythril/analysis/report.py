@@ -3,6 +3,7 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
+from typing import Dict, List
 import _pysha3 as sha3
 import hashlib
 
@@ -130,7 +131,7 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, source=None):
+    def __init__(self, verbose=False, source=None, exceptions=None):
         """
 
         :param verbose:
@@ -140,6 +141,7 @@ class Report:
         self.solc_version = ""
         self.meta = {}
         self.source = source or Source()
+        self.exceptions = exceptions or []
 
     def sorted_issues(self):
         """
@@ -177,6 +179,14 @@ class Report:
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
         return json.dumps(result, sort_keys=True)
 
+    def _get_exception_data(self) -> dict:
+        if not self.exceptions:
+            return {}
+        logs = []  # type: List[Dict]
+        for exception in self.exceptions:
+            logs += [{"level": "error", "hidden": "true", "error": exception}]
+        return {"logs": logs}
+
     def as_swc_standard_format(self):
         """Format defined for integration and correlation.
 
@@ -211,14 +221,14 @@ class Report:
                     "extra": {},
                 }
             )
-
+        meta_data = self._get_exception_data()
         result = [
             {
                 "issues": _issues,
                 "sourceType": "raw-bytecode",
                 "sourceFormat": "evm-byzantium-bytecode",
                 "sourceList": source_list,
-                "meta": {},
+                "meta": meta_data,
             }
         ]
 
