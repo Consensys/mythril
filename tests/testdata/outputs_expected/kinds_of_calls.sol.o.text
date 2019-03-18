@@ -26,7 +26,7 @@ Severity: Low
 Contract: Unknown
 Function name: _function_0x9b58bc26
 PC address: 849
-Estimated Gas Usage: 1170 - 35922
+Estimated Gas Usage: 1176 - 35928
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 --------------------
@@ -37,7 +37,7 @@ Severity: Medium
 Contract: Unknown
 Function name: _function_0xeea4c864
 PC address: 1038
-Estimated Gas Usage: 471 - 1223
+Estimated Gas Usage: 477 - 1229
 A call to a user-supplied address is executed.
 The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 --------------------
@@ -48,7 +48,7 @@ Severity: Low
 Contract: Unknown
 Function name: _function_0xeea4c864
 PC address: 1038
-Estimated Gas Usage: 1195 - 35947
+Estimated Gas Usage: 1201 - 35953
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 --------------------
