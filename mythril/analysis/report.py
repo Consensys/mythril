@@ -3,13 +3,15 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
+from typing import Dict, List
 import _pysha3 as sha3
 import hashlib
 
 from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
-
+from mythril.support.start_time import StartTime
+from time import time
 
 log = logging.getLogger(__name__)
 
@@ -33,16 +35,17 @@ class Issue:
     ):
         """
 
-        :param contract:
-        :param function_name:
-        :param address:
-        :param swc_id:
-        :param title:
-        :param bytecode:
-        :param gas_used:
-        :param _type:
-        :param description:
-        :param debug:
+        :param contract: The contract
+        :param function_name: Function name where the issue is detected
+        :param address: The address of the issue
+        :param swc_id: Issue's corresponding swc-id
+        :param title: Title
+        :param bytecode: bytecode of the issue
+        :param gas_used: amount of gas used
+        :param severity: The severity of the issue
+        :param description_head: The top part of description
+        :param description_tail: The bottom part of the description
+        :param debug: The transaction sequence
         """
         self.title = title
         self.contract = contract
@@ -59,6 +62,7 @@ class Issue:
         self.code = None
         self.lineno = None
         self.source_mapping = None
+        self.discovery_time = time() - StartTime().global_start_time
 
         try:
             keccak = sha3.keccak_256()
@@ -140,7 +144,7 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, source=None):
+    def __init__(self, verbose=False, source=None, exceptions=None):
         """
 
         :param verbose:
@@ -150,6 +154,7 @@ class Report:
         self.solc_version = ""
         self.meta = {}
         self.source = source or Source()
+        self.exceptions = exceptions or []
 
     def sorted_issues(self):
         """
@@ -187,6 +192,14 @@ class Report:
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
         return json.dumps(result, sort_keys=True)
 
+    def _get_exception_data(self) -> dict:
+        if not self.exceptions:
+            return {}
+        logs = []  # type: List[Dict]
+        for exception in self.exceptions:
+            logs += [{"level": "error", "hidden": "true", "error": exception}]
+        return {"logs": logs}
+
     def as_swc_standard_format(self):
         """Format defined for integration and correlation.
 
@@ -221,14 +234,14 @@ class Report:
                     "extra": {},
                 }
             )
-
+        meta_data = self._get_exception_data()
         result = [
             {
                 "issues": _issues,
                 "sourceType": "raw-bytecode",
                 "sourceFormat": "evm-byzantium-bytecode",
                 "sourceList": source_list,
-                "meta": {},
+                "meta": meta_data,
             }
         ]
 
