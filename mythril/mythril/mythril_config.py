@@ -25,7 +25,8 @@ class MythrilConfig:
     def __init__(self):
         self.mythril_dir = self._init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
-        self.leveldb_dir = self._init_config()
+        self.leveldb_dir = None
+        self._init_config()
         self.eth = None  # type: Optional[EthJsonRpc]
         self.eth_db = None  # type: Optional[EthLevelDB]
 
@@ -55,29 +56,29 @@ class MythrilConfig:
 
         return mythril_dir
 
-    def _init_config(self) -> str:
+    def _init_config(self):
         """If no config file exists, create it and add default options.
-
-        Default LevelDB path is specified based on OS
-        dynamic loading is set to infura by default in the file
-        :return: LevelDB directory
+        Defaults:-
+            - Default LevelDB path is specified based on OS
+            - dynamic loading is set to infura by default in the file
+        This function also sets self.leveldb_dir path
         """
 
-        leveldb_fallback_dir = self._get_fallback_dir()
+        leveldb_default_path = self._get_default_leveldb_path()
 
         if not os.path.exists(self.config_path):
             log.info("No config file found. Creating default: " + self.config_path)
             open(self.config_path, "a").close()
 
         config = ConfigParser(allow_no_value=True)
-        # TODO: Remove this after this issue https://github.com/python/mypy/issues/2427 is closed
-        config.optionxform = str  # type:ignore
+
+        config.optionxform = str
         config.read(self.config_path, "utf-8")
         if "defaults" not in config.sections():
             self._add_default_options(config)
 
         if not config.has_option("defaults", "leveldb_dir"):
-            self._add_leveldb_option(config, leveldb_fallback_dir)
+            self._add_leveldb_option(config, leveldb_default_path)
 
         if not config.has_option("defaults", "dynamic_loading"):
             self._add_dynamic_loading_option(config)
@@ -86,12 +87,12 @@ class MythrilConfig:
             config.write(fp)
 
         leveldb_dir = config.get(
-            "defaults", "leveldb_dir", fallback=leveldb_fallback_dir
+            "defaults", "leveldb_dir", fallback=leveldb_default_path
         )
-        return os.path.expanduser(leveldb_dir)
+        self.leveldb_dir = os.path.expanduser(leveldb_dir)
 
     @staticmethod
-    def _get_fallback_dir() -> str:
+    def _get_default_leveldb_path() -> str:
         """
         Returns the LevelDB path
         :return: The LevelDB path
