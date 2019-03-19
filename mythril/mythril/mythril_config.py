@@ -17,6 +17,11 @@ log = logging.getLogger(__name__)
 
 
 class MythrilConfig:
+    """
+    The Mythril Analyzer class
+    Responsible for setup of the mythril environment
+    """
+
     def __init__(self):
         self.mythril_dir = self._init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")

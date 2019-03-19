@@ -19,6 +19,13 @@ log = logging.getLogger(__name__)
 
 
 class MythrilDisassembler:
+    """
+    The Mythril Disassembler class
+    Responsible for generating disassembly of smart contracts
+        - Compiles solc code from file/onchain
+        - Can also be used to access onchain storage data
+    """
+
     def __init__(
         self,
         eth: Optional[EthJsonRpc] = None,
