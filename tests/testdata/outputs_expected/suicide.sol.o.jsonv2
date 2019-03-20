@@ -1,1 +1,29 @@
-[{"issues": [{"description": {"head": "The contract can be killed by anyone.", "tail": "Anyone can kill this contract and withdraw its balance to an arbitrary address."}, "extra": {}, "locations": [{"sourceMap": "146:1:0"}], "severity": "High", "swcID": "SWC-106", "swcTitle": "Unprotected SELFDESTRUCT Instruction"}], "meta": {}, "sourceFormat": "evm-byzantium-bytecode", "sourceList": ["0x2fb801366b61a05b30550481a1c8f7d5f20de0b93d9f2f2ce2b28c4e322033c9"], "sourceType": "raw-bytecode"}]
+[
+    {
+        "issues": [
+            {
+                "description": {
+                    "head": "The contract can be killed by anyone.",
+                    "tail": "Anyone can kill this contract and withdraw its balance to an arbitrary address."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "146:1:0"
+                    }
+                ],
+                "severity": "High",
+                "swcID": "SWC-106",
+                "swcTitle": "Unprotected SELFDESTRUCT Instruction"
+            }
+        ],
+        "meta": {},
+        "sourceFormat": "evm-byzantium-bytecode",
+        "sourceList": [
+            "0x2fb801366b61a05b30550481a1c8f7d5f20de0b93d9f2f2ce2b28c4e322033c9"
+        ],
+        "sourceType": "raw-bytecode"
+    }
+]
