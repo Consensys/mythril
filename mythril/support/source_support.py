@@ -48,5 +48,10 @@ class Source:
         else:
             assert False  # Fail hard
 
-    def get_source_index(self, bytecode_hash):
+    def get_source_index(self, bytecode_hash: str) -> int:
+        """
+        Find the contract index in the list
+        :param bytecode_hash: The contract hash
+        :return: The index of the contract in the _source_hash list
+        """
         return self._source_hash.index(bytecode_hash)

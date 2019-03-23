@@ -26,7 +26,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-def get_code_hash(code):
+def get_code_hash(code: str) -> str:
     """
     :param code: bytecode
     :return: Returns hash of the given bytecode

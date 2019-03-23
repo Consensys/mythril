@@ -3,7 +3,6 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-
 from typing import Dict, List
 import hashlib
 
