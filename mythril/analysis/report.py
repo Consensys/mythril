@@ -3,6 +3,8 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
+
+from typing import Dict, List
 import hashlib
 
 from mythril.solidity.soliditycontract import SolidityContract
@@ -93,6 +95,17 @@ class Issue:
 
         return issue
 
+    def _set_internal_compiler_error(self):
+        """
+        Adds the false positive to description and changes severity to low
+        """
+        self.severity = "Low"
+        self.description_tail += (
+            " This issue is reported for internal compiler generated code."
+        )
+        self.description = "%s\n%s" % (self.description_head, self.description_tail)
+        self.code = ""
+
     def add_code_info(self, contract):
         """
 
@@ -105,6 +118,8 @@ class Issue:
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
+            if self.lineno is None:
+                self._set_internal_compiler_error()
             self.source_mapping = codeinfo.solc_mapping
         else:
             self.source_mapping = self.address
@@ -117,7 +132,7 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, contracts=None):
+    def __init__(self, verbose=False, contracts=None, exceptions=None):
         """
 
         :param verbose:
@@ -128,6 +143,7 @@ class Report:
         self.meta = {}
         self.source = Source()
         self.source.get_source_from_contracts_list(contracts)
+        self.exceptions = exceptions or []
 
     def sorted_issues(self):
         """
@@ -165,6 +181,14 @@ class Report:
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
         return json.dumps(result, sort_keys=True)
 
+    def _get_exception_data(self) -> dict:
+        if not self.exceptions:
+            return {}
+        logs = []  # type: List[Dict]
+        for exception in self.exceptions:
+            logs += [{"level": "error", "hidden": "true", "error": exception}]
+        return {"logs": logs}
+
     def as_swc_standard_format(self):
         """Format defined for integration and correlation.
 
@@ -194,13 +218,14 @@ class Report:
                     "extra": {},
                 }
             )
+        meta_data = self._get_exception_data()
         result = [
             {
                 "issues": _issues,
                 "sourceType": self.source.source_type,
                 "sourceFormat": self.source.source_format,
                 "sourceList": self.source.source_list,
-                "meta": {},
+                "meta": meta_data,
             }
         ]
 

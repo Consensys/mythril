@@ -570,6 +570,7 @@ class Mythril(object):
         """
         all_issues = []
         SolverStatistics().enabled = True
+        exceptions = []
         for contract in contracts or self.contracts:
             StartTime()  # Reinitialize start time for new contracts
             try:
@@ -600,7 +601,7 @@ class Mythril(object):
                     + traceback.format_exc()
                 )
                 issues = retrieve_callback_issues(modules)
-
+                exceptions.append(traceback.format_exc())
             for issue in issues:
                 issue.add_code_info(contract)
 
@@ -608,7 +609,7 @@ class Mythril(object):
             log.info("Solver statistics: \n{}".format(str(SolverStatistics())))
 
         # Finally, output the results
-        report = Report(verbose_report, self.contracts)
+        report = Report(verbose_report, self.contracts, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 
