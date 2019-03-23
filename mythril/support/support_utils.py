@@ -31,9 +31,10 @@ def get_code_hash(code):
     :param code: bytecode
     :return: Returns hash of the given bytecode
     """
+    code = code[2:] if code[:2] == "0x" else code
     try:
         keccak = sha3.keccak_256()
-        keccak.update(bytes.fromhex(code[2:]))
+        keccak.update(bytes.fromhex(code))
         return "0x" + keccak.hexdigest()
     except ValueError:
         log.debug("Unable to change the bytecode to bytes. Bytecode: {}".format(code))
