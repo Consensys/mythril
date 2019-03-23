@@ -12,6 +12,7 @@ import os
 import sys
 
 import coloredlogs
+import traceback
 
 import mythril.support.signatures as sigs
 from mythril.exceptions import AddressNotFoundError, CriticalError
@@ -28,16 +29,28 @@ from mythril.version import VERSION
 log = logging.getLogger(__name__)
 
 
-def exit_with_error(format_: str, message: str) -> None:
+def exit_with_error(format_, message):
     """
-
     :param format_:
     :param message:
     """
     if format_ == "text" or format_ == "markdown":
         log.error(message)
-    else:
+    elif format_ == "json":
         result = {"success": False, "error": str(message), "issues": []}
+        print(json.dumps(result))
+    else:
+        result = [
+            {
+                "issues": [],
+                "sourceType": "",
+                "sourceFormat": "",
+                "sourceList": [],
+                "meta": {
+                    "logs": [{"level": "error", "hidden": "true", "error": message}]
+                },
+            }
+        ]
         print(json.dumps(result))
     sys.exit()
 
@@ -53,10 +66,6 @@ def main() -> None:
 
     args = parser.parse_args()
     parse_args(parser=parser, args=args)
-
-
-if __name__ == "__main__":
-    main()
 
 
 def create_parser(parser: argparse.ArgumentParser) -> None:
@@ -187,14 +196,14 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     options.add_argument(
         "--max-depth",
         type=int,
-        default=22,
+        default=50,
         help="Maximum recursion depth for symbolic execution",
     )
 
     options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
-        default="dfs",
+        default="bfs",
         help="Symbolic execution strategy",
     )
     options.add_argument(
@@ -250,27 +259,7 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
 
 
-def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
-    """
-    Parses the arguments
-    :param parser: The parser
-    :param args: The args
-    """
-    if args.epic:
-        path = os.path.dirname(os.path.realpath(__file__))
-        sys.argv.remove("--epic")
-        os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
-        sys.exit()
-
-    if args.version:
-        if args.outform == "json":
-            print(json.dumps({"version_str": VERSION}))
-        else:
-            print("Mythril version {}".format(VERSION))
-        sys.exit()
-
-    # Parse cmdline args
-
+def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
     if not (
         args.search
         or args.hash
@@ -323,49 +312,201 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
                 "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
             )
 
-    # -- commands --
+
+def quick_commands(args: argparse.Namespace):
     if args.hash:
         print(MythrilDisassembler.hash_for_function_signature(args.hash))
         sys.exit()
 
-    try:
-        # the mythril object should be our main interface
-        # infura = None, rpc = None, rpctls = None
-        # solc_args = None, dynld = None, max_recursion_depth = 12):
-        config = MythrilConfig()
-        if (
-            args.dynld
-            or not args.no_onchain_storage_access
-            and not (args.rpc or args.i)
-        ):
-            config.set_api_from_config_path()
 
-        if args.address:
-            # Establish RPC connection if necessary
-            config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-        elif args.search or args.contract_hash_to_address:
-            # Open LevelDB if necessary
-            config.set_api_leveldb(
-                config.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
+def set_config(args: argparse.Namespace):
+    config = MythrilConfig()
+    if args.dynld or not args.no_onchain_storage_access and not (args.rpc or args.i):
+        config.set_api_from_config_path()
+
+    if args.address:
+        # Establish RPC connection if necessary
+        config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
+    elif args.search or args.contract_hash_to_address:
+        # Open LevelDB if necessary
+        config.set_api_leveldb(
+            config.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
+        )
+    return config
+
+
+def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
+    if args.search or args.contract_hash_to_address:
+        leveldb_searcher = MythrilLevelDB(config.eth_db)
+        if args.search:
+            # Database search ops
+            leveldb_searcher.search_db(args.search)
+
+        else:
+            # search corresponding address
+            try:
+                leveldb_searcher.contract_hash_to_address(args.contract_hash_to_address)
+            except AddressNotFoundError:
+                print("Address not found.")
+
+        sys.exit()
+
+
+def get_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
+    address = None
+    if args.code:
+        # Load from bytecode
+        code = args.code[2:] if args.code.startswith("0x") else args.code
+        address, _ = disassembler.load_from_bytecode(code, args.bin_runtime)
+    elif args.codefile:
+        bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
+        bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
+        address, _ = disassembler.load_from_bytecode(bytecode, args.bin_runtime)
+    elif args.address:
+        # Get bytecode from a contract address
+        address, _ = disassembler.load_from_address(args.address)
+    elif args.solidity_file:
+        # Compile Solidity source file(s)
+        if args.graph and len(args.solidity_file) > 1:
+            exit_with_error(
+                args.outform,
+                "Cannot generate call graphs from multiple input files. Please do it one at a time.",
+            )
+        address, _ = disassembler.load_from_solidity(
+            args.solidity_file
+        )  # list of files
+    else:
+        exit_with_error(
+            args.outform,
+            "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES",
+        )
+    return address
+
+
+def execute_command(
+    disassembler: MythrilDisassembler,
+    address: str,
+    parser: argparse.ArgumentParser,
+    args: argparse.Namespace,
+):
+
+    if args.storage:
+        if not args.address:
+            exit_with_error(
+                args.outform,
+                "To read storage, provide the address of a deployed contract with the -a option.",
             )
 
-        if args.search or args.contract_hash_to_address:
-            leveldb_searcher = MythrilLevelDB(config.eth_db)
-            if args.search:
-                # Database search ops
-                leveldb_searcher.search_db(args.search)
+        storage = disassembler.get_state_variable_from_storage(
+            address=address, params=[a.strip() for a in args.storage.strip().split(",")]
+        )
+        print(storage)
+        return
 
-            else:
-                # search corresponding address
-                try:
-                    leveldb_searcher.contract_hash_to_address(
-                        args.contract_hash_to_address
-                    )
-                except AddressNotFoundError:
-                    print("Address not found.")
+    analyzer = MythrilAnalyzer(
+        strategy=args.strategy,
+        disassembler=disassembler,
+        address=address,
+        max_depth=args.max_depth,
+        execution_timeout=args.execution_timeout,
+        create_timeout=args.create_timeout,
+        enable_iprof=args.enable_iprof,
+        onchain_storage_access=not args.no_onchain_storage_access,
+    )
 
-            sys.exit()
+    if args.disassemble:
+        # or mythril.disassemble(mythril.contracts[0])
 
+        if disassembler.contracts[0].code:
+            print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
+        if disassembler.contracts[0].creation_code:
+            print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
+
+    elif args.graph or args.fire_lasers:
+        if not disassembler.contracts:
+            exit_with_error(
+                args.outform, "input files do not contain any valid contracts"
+            )
+
+        if args.graph:
+            html = analyzer.graph_html(
+                contract=analyzer.contracts[0],
+                enable_physics=args.enable_physics,
+                phrackify=args.phrack,
+            )
+
+            try:
+                with open(args.graph, "w") as f:
+                    f.write(html)
+            except Exception as e:
+                exit_with_error(args.outform, "Error saving graph: " + str(e))
+
+        else:
+            try:
+                report = analyzer.fire_lasers(
+                    modules=[m.strip() for m in args.modules.strip().split(",")]
+                    if args.modules
+                    else [],
+                    verbose_report=args.verbose_report,
+                    transaction_count=args.transaction_count,
+                )
+                outputs = {
+                    "json": report.as_json(),
+                    "jsonv2": report.as_swc_standard_format(),
+                    "text": report.as_text(),
+                    "markdown": report.as_markdown(),
+                }
+                print(outputs[args.outform])
+            except ModuleNotFoundError as e:
+                exit_with_error(
+                    args.outform, "Error loading analyis modules: " + format(e)
+                )
+
+    elif args.statespace_json:
+
+        if not analyzer.contracts:
+            exit_with_error(
+                args.outform, "input files do not contain any valid contracts"
+            )
+
+        statespace = analyzer.dump_statespace(contract=analyzer.contracts[0])
+
+        try:
+            with open(args.statespace_json, "w") as f:
+                json.dump(statespace, f)
+        except Exception as e:
+            exit_with_error(args.outform, "Error saving json: " + str(e))
+
+    else:
+        parser.print_help()
+
+
+def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    """
+    Parses the arguments
+    :param parser: The parser
+    :param args: The args
+    """
+
+    if args.epic:
+        path = os.path.dirname(os.path.realpath(__file__))
+        sys.argv.remove("--epic")
+        os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
+        sys.exit()
+
+    if args.version:
+        if args.outform == "json":
+            print(json.dumps({"version_str": VERSION}))
+        else:
+            print("Mythril version {}".format(VERSION))
+        sys.exit()
+
+    # Parse cmdline args
+    validate_args(parser, args)
+    try:
+        quick_commands(args)
+        config = set_config(args)
+        leveldb_search(config, args)
         dissasembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
@@ -374,7 +515,6 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         )
         if args.truffle:
             try:
-                # not really pythonic atm. needs refactoring
                 dissasembler.analyze_truffle_project(args)
             except FileNotFoundError:
                 print(
@@ -382,126 +522,15 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
                 )
             sys.exit()
 
-        # Load / compile input contracts
-        address = None
-
-        if args.code:
-            # Load from bytecode
-            code = args.code[2:] if args.code.startswith("0x") else args.code
-            address, _ = dissasembler.load_from_bytecode(code, args.bin_runtime)
-        elif args.codefile:
-            bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
-            bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
-            address, _ = dissasembler.load_from_bytecode(bytecode, args.bin_runtime)
-        elif args.address:
-            # Get bytecode from a contract address
-            address, _ = dissasembler.load_from_address(args.address)
-        elif args.solidity_file:
-            # Compile Solidity source file(s)
-            if args.graph and len(args.solidity_file) > 1:
-                exit_with_error(
-                    args.outform,
-                    "Cannot generate call graphs from multiple input files. Please do it one at a time.",
-                )
-            address, _ = dissasembler.load_from_solidity(
-                args.solidity_file
-            )  # list of files
-        else:
-            exit_with_error(
-                args.outform,
-                "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES",
-            )
-
-        analyzer = MythrilAnalyzer(
-            strategy=args.strategy,
-            disassembler=dissasembler,
-            address=address,
-            max_depth=args.max_depth,
-            execution_timeout=args.execution_timeout,
-            create_timeout=args.create_timeout,
-            enable_iprof=args.enable_iprof,
-            onchain_storage_access=not args.no_onchain_storage_access,
+        address = get_code(dissasembler, args)
+        execute_command(
+            disassembler=dissasembler, address=address, parser=parser, args=args
         )
-        # Commands
-
-        if args.storage:
-            if not args.address:
-                exit_with_error(
-                    args.outform,
-                    "To read storage, provide the address of a deployed contract with the -a option.",
-                )
-
-            storage = dissasembler.get_state_variable_from_storage(
-                address=address,
-                params=[a.strip() for a in args.storage.strip().split(",")],
-            )
-            print(storage)
-
-        elif args.disassemble:
-            # or mythril.disassemble(mythril.contracts[0])
-
-            if dissasembler.contracts[0].code:
-                print("Runtime Disassembly: \n" + dissasembler.contracts[0].get_easm())
-            if dissasembler.contracts[0].creation_code:
-                print("Disassembly: \n" + dissasembler.contracts[0].get_creation_easm())
-
-        elif args.graph or args.fire_lasers:
-            if not dissasembler.contracts:
-                exit_with_error(
-                    args.outform, "input files do not contain any valid contracts"
-                )
-
-            if args.graph:
-                html = analyzer.graph_html(
-                    contract=analyzer.contracts[0],
-                    enable_physics=args.enable_physics,
-                    phrackify=args.phrack,
-                )
-
-                try:
-                    with open(args.graph, "w") as f:
-                        f.write(html)
-                except Exception as e:
-                    exit_with_error(args.outform, "Error saving graph: " + str(e))
-
-            else:
-                try:
-                    report = analyzer.fire_lasers(
-                        modules=[m.strip() for m in args.modules.strip().split(",")]
-                        if args.modules
-                        else [],
-                        verbose_report=args.verbose_report,
-                        transaction_count=args.transaction_count,
-                    )
-                    outputs = {
-                        "json": report.as_json(),
-                        "jsonv2": report.as_swc_standard_format(),
-                        "text": report.as_text(),
-                        "markdown": report.as_markdown(),
-                    }
-                    print(outputs[args.outform])
-                except ModuleNotFoundError as e:
-                    exit_with_error(
-                        args.outform, "Error loading analyis modules: " + format(e)
-                    )
-
-        elif args.statespace_json:
-
-            if not analyzer.contracts:
-                exit_with_error(
-                    args.outform, "input files do not contain any valid contracts"
-                )
-
-            statespace = analyzer.dump_statespace(contract=analyzer.contracts[0])
-
-            try:
-                with open(args.statespace_json, "w") as f:
-                    json.dump(statespace, f)
-            except Exception as e:
-                exit_with_error(args.outform, "Error saving json: " + str(e))
-
-        else:
-            parser.print_help()
-
     except CriticalError as ce:
         exit_with_error(args.outform, str(ce))
+    except Exception:
+        exit_with_error(args.outform, traceback.format_exc())
+
+
+if __name__ == "__main__":
+    main()

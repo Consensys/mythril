@@ -18,7 +18,7 @@ def _fix_debug_data(json_str):
     read_json = json.loads(json_str)
     for issue in read_json["issues"]:
         issue["debug"] = "<DEBUG-DATA>"
-    return json.dumps(read_json, sort_keys=True)
+    return json.dumps(read_json, sort_keys=True, indent=4)
 
 
 def _generate_report(input_file):

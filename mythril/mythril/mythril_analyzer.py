@@ -14,6 +14,8 @@ from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report, Issue
 from mythril.ethereum.evmcontract import EVMContract
+from mythril.laser.smt import SolverStatistics
+from mythril.support.start_time import StartTime
 
 log = logging.getLogger(__name__)
 
@@ -122,7 +124,10 @@ class MythrilAnalyzer:
         :return: The Report class which contains the all the issues/vulnerabilities
         """
         all_issues = []  # type: List[Issue]
+        SolverStatistics().enabled = True
+        exceptions = []
         for contract in self.contracts:
+            StartTime()  # Reinitialize start time for new contracts
             try:
                 sym = SymExecWrapper(
                     contract,
@@ -151,16 +156,17 @@ class MythrilAnalyzer:
                     + traceback.format_exc()
                 )
                 issues = retrieve_callback_issues(modules)
-
+                exceptions.append(traceback.format_exc())
             for issue in issues:
                 issue.add_code_info(contract)
 
             all_issues += issues
+            log.info("Solver statistics: \n{}".format(str(SolverStatistics())))
 
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report, source_data)
+        report = Report(verbose_report, source_data, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 

@@ -1,10 +1,10 @@
 """This module provides classes for an SMT abstraction of bit vectors."""
 
-from typing import Union, overload, List, cast, Any, Optional
-
+from typing import Union, overload, List, cast, Any, Optional, Callable
+from operator import lshift, rshift
 import z3
 
-from mythril.laser.smt.bool import Bool
+from mythril.laser.smt.bool import Bool, And, Or
 from mythril.laser.smt.expression import Expression
 
 Annotations = List[Any]
@@ -15,7 +15,7 @@ Annotations = List[Any]
 class BitVec(Expression[z3.BitVecRef]):
     """A bit vector symbol."""
 
-    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations]=None):
+    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations] = None):
         """
 
         :param raw:
@@ -56,6 +56,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other + self
         if isinstance(other, int):
             return BitVec(self.raw + other, annotations=self.annotations)
 
@@ -68,7 +70,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-
+        if isinstance(other, BitVecFunc):
+            return other - self
         if isinstance(other, int):
             return BitVec(self.raw - other, annotations=self.annotations)
 
@@ -81,6 +84,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other * self
         union = self.annotations + other.annotations
         return BitVec(self.raw * other.raw, annotations=union)
 
@@ -90,6 +95,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other / self
         union = self.annotations + other.annotations
         return BitVec(self.raw / other.raw, annotations=union)
 
@@ -99,8 +106,10 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other & self
         if not isinstance(other, BitVec):
-            other = BitVec(z3.BitVecVal(other, 256))
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations + other.annotations
         return BitVec(self.raw & other.raw, annotations=union)
 
@@ -110,6 +119,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other | self
         union = self.annotations + other.annotations
         return BitVec(self.raw | other.raw, annotations=union)
 
@@ -119,6 +130,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other ^ self
         union = self.annotations + other.annotations
         return BitVec(self.raw ^ other.raw, annotations=union)
 
@@ -128,6 +141,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other > self
         union = self.annotations + other.annotations
         return Bool(self.raw < other.raw, annotations=union)
 
@@ -137,6 +152,8 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other < self
         union = self.annotations + other.annotations
         return Bool(self.raw > other.raw, annotations=union)
 
@@ -165,8 +182,12 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other == self
         if not isinstance(other, BitVec):
-            return Bool(cast(z3.BoolRef, self.raw == other), annotations=self.annotations)
+            return Bool(
+                cast(z3.BoolRef, self.raw == other), annotations=self.annotations
+            )
 
         union = self.annotations + other.annotations
         # MYPY: fix complaints due to z3 overriding __eq__
@@ -179,12 +200,94 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
+        if isinstance(other, BitVecFunc):
+            return other != self
         if not isinstance(other, BitVec):
-            return Bool(cast(z3.BoolRef, self.raw != other), annotations=self.annotations)
+            return Bool(
+                cast(z3.BoolRef, self.raw != other), annotations=self.annotations
+            )
 
         union = self.annotations + other.annotations
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw != other.raw), annotations=union)
+
+    def _handle_shift(self, other: Union[int, "BitVec"], operator: Callable) -> "BitVec":
+        """
+        Handles shift
+        :param other: The other BitVector
+        :param operator: The shift operator
+        :return: the resulting output
+        """
+        if isinstance(other, BitVecFunc):
+            return operator(other, self)
+        if not isinstance(other, BitVec):
+            return BitVec(
+                operator(self.raw, other), annotations=self.annotations
+            )
+        union = self.annotations + other.annotations
+        return BitVec(operator(self.raw, other.raw), annotations=union)
+
+    def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """
+
+        :param other:
+        :return:
+        """
+        return self._handle_shift(other, lshift)
+
+    def __rshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
+        """
+
+        :param other:
+        :return:
+        """
+        return self._handle_shift(other, rshift)
+
+
+def _comparison_helper(
+    a: BitVec, b: BitVec, operation: Callable, default_value: bool, inputs_equal: bool
+) -> Bool:
+    annotations = a.annotations + b.annotations
+    if isinstance(a, BitVecFunc):
+        if not a.symbolic and not b.symbolic:
+            return Bool(operation(a.raw, b.raw), annotations=annotations)
+
+        if (
+            not isinstance(b, BitVecFunc)
+            or not a.func_name
+            or not a.input_
+            or not a.func_name == b.func_name
+        ):
+            return Bool(z3.BoolVal(default_value), annotations=annotations)
+
+        return And(
+            Bool(operation(a.raw, b.raw), annotations=annotations),
+            a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
+        )
+
+    return Bool(operation(a.raw, b.raw), annotations)
+
+
+def _arithmetic_helper(a: BitVec, b: BitVec, operation: Callable) -> BitVec:
+    raw = operation(a.raw, b.raw)
+    union = a.annotations + b.annotations
+
+    if isinstance(a, BitVecFunc) and isinstance(b, BitVecFunc):
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
+    elif isinstance(a, BitVecFunc):
+        return BitVecFunc(
+            raw=raw, func_name=a.func_name, input_=a.input_, annotations=union
+        )
+    elif isinstance(b, BitVecFunc):
+        return BitVecFunc(
+            raw=raw, func_name=b.func_name, input_=b.input_, annotations=union
+        )
+
+    return BitVec(raw, annotations=union)
+
+
+def LShR(a: BitVec, b: BitVec):
+    return _arithmetic_helper(a, b, z3.LShR)
 
 
 def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> BitVec:
@@ -195,6 +298,8 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
     :param c:
     :return:
     """
+    # TODO: Handle BitVecFunc
+
     if not isinstance(a, Bool):
         a = Bool(z3.BoolVal(a))
     if not isinstance(b, BitVec):
@@ -212,19 +317,17 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
     :param b:
     :return:
     """
-    annotations = a.annotations + b.annotations
-    return Bool(z3.UGT(a.raw, b.raw), annotations)
+    return _comparison_helper(a, b, z3.UGT, default_value=False, inputs_equal=False)
 
 
-def UGE(a: BitVec, b:BitVec) -> Bool:
+def UGE(a: BitVec, b: BitVec) -> Bool:
     """Create an unsigned greater or equals expression.
 
     :param a:
     :param b:
     :return:
     """
-    annotations = a.annotations + b.annotations
-    return Bool(z3.UGE(a.raw, b.raw), annotations)
+    return Or(UGT(a, b), a == b)
 
 
 def ULT(a: BitVec, b: BitVec) -> Bool:
@@ -234,8 +337,17 @@ def ULT(a: BitVec, b: BitVec) -> Bool:
     :param b:
     :return:
     """
-    annotations = a.annotations + b.annotations
-    return Bool(z3.ULT(a.raw, b.raw), annotations)
+    return _comparison_helper(a, b, z3.ULT, default_value=False, inputs_equal=False)
+
+
+def ULE(a: BitVec, b: BitVec) -> Bool:
+    """Create an unsigned less than expression.
+
+    :param a:
+    :param b:
+    :return:
+    """
+    return Or(ULT(a, b), a == b)
 
 
 @overload
@@ -252,17 +364,26 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     :param args:
     :return:
     """
-
     # The following statement is used if a list is provided as an argument to concat
     if len(args) == 1 and isinstance(args[0], list):
-        bvs = args[0] # type: List[BitVec]
+        bvs = args[0]  # type: List[BitVec]
     else:
         bvs = cast(List[BitVec], args)
 
     nraw = z3.Concat([a.raw for a in bvs])
-    annotations = [] # type: Annotations
+    annotations = []  # type: Annotations
+    bitvecfunc = False
     for bv in bvs:
         annotations += bv.annotations
+        if isinstance(bv, BitVecFunc):
+            bitvecfunc = True
+
+    if bitvecfunc:
+        # Is there a better value to set func_name and input to in this case?
+        return BitVecFunc(
+            raw=nraw, func_name=None, input_=None, annotations=annotations
+        )
+
     return BitVec(nraw, annotations)
 
 
@@ -274,7 +395,14 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     :param bv:
     :return:
     """
-    return BitVec(z3.Extract(high, low, bv.raw), annotations=bv.annotations)
+    raw = z3.Extract(high, low, bv.raw)
+    if isinstance(bv, BitVecFunc):
+        # Is there a better value to set func_name and input to in this case?
+        return BitVecFunc(
+            raw=raw, func_name=None, input_=None, annotations=bv.annotations
+        )
+
+    return BitVec(raw, annotations=bv.annotations)
 
 
 def URem(a: BitVec, b: BitVec) -> BitVec:
@@ -284,8 +412,7 @@ def URem(a: BitVec, b: BitVec) -> BitVec:
     :param b:
     :return:
     """
-    union = a.annotations + b.annotations
-    return BitVec(z3.URem(a.raw, b.raw), annotations=union)
+    return _arithmetic_helper(a, b, z3.URem)
 
 
 def SRem(a: BitVec, b: BitVec) -> BitVec:
@@ -295,8 +422,7 @@ def SRem(a: BitVec, b: BitVec) -> BitVec:
     :param b:
     :return:
     """
-    union = a.annotations + b.annotations
-    return BitVec(z3.SRem(a.raw, b.raw), annotations=union)
+    return _arithmetic_helper(a, b, z3.SRem)
 
 
 def UDiv(a: BitVec, b: BitVec) -> BitVec:
@@ -306,8 +432,7 @@ def UDiv(a: BitVec, b: BitVec) -> BitVec:
     :param b:
     :return:
     """
-    union = a.annotations + b.annotations
-    return BitVec(z3.UDiv(a.raw, b.raw), annotations=union)
+    return _arithmetic_helper(a, b, z3.UDiv)
 
 
 def Sum(*args: BitVec) -> BitVec:
@@ -315,11 +440,26 @@ def Sum(*args: BitVec) -> BitVec:
 
     :return:
     """
-    nraw = z3.Sum([a.raw for a in args])
-    annotations = [] # type: Annotations
+    raw = z3.Sum([a.raw for a in args])
+    annotations = []  # type: Annotations
+    bitvecfuncs = []
+
     for bv in args:
         annotations += bv.annotations
-    return BitVec(nraw, annotations)
+        if isinstance(bv, BitVecFunc):
+            bitvecfuncs.append(bv)
+
+    if len(bitvecfuncs) >= 2:
+        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=annotations)
+    elif len(bitvecfuncs) == 1:
+        return BitVecFunc(
+            raw=raw,
+            func_name=bitvecfuncs[0].func_name,
+            input_=bitvecfuncs[0].input_,
+            annotations=annotations,
+        )
+
+    return BitVec(raw, annotations)
 
 
 def BVAddNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
@@ -353,7 +493,9 @@ def BVMulNoOverflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) 
     return Bool(z3.BVMulNoOverflow(a.raw, b.raw, signed))
 
 
-def BVSubNoUnderflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool) -> Bool:
+def BVSubNoUnderflow(
+    a: Union[BitVec, int], b: Union[BitVec, int], signed: bool
+) -> Bool:
     """Creates predicate that verifies that the subtraction doesn't overflow.
 
     :param a:
@@ -367,3 +509,7 @@ def BVSubNoUnderflow(a: Union[BitVec, int], b: Union[BitVec, int], signed: bool)
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
+
+
+# TODO: Fix circular import issues
+from mythril.laser.smt.bitvecfunc import BitVecFunc

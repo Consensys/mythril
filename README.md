@@ -6,16 +6,18 @@
 
 [![Discord](https://img.shields.io/discord/481002907366588416.svg)](https://discord.gg/E3YrVtG)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
+[![Read the Docs](https://readthedocs.org/projects/mythril-classic/badge/?version=master)](https://mythril-classic.readthedocs.io/en/master/)
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril-classic/master.svg)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril-classic.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril-classic/)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 [![Downloads](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
 
-Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses concolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. 
+Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses symbolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities. It's also an experimental tool designed for security pros. If you a smart contract developer you might prefer smoother tools such as:
+
+- [Mythos](https://github.com/cleanunicorn/mythos)
+- [Truffle Security](https://github.com/ConsenSys/truffle-security)
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs.
-
-Oh and by the way, we're also building an [easy-to-use security analysis API called MythX](https://mythx.io) that integrates seamlessly with Truffle, Visual Studio Code, Github and other environments. If you're looking for tooling to plug into your SDLC you should check it out. 
 
 ## Installation and setup
 
@@ -40,7 +42,7 @@ Instructions for using Mythril Classic are found on the [Wiki](https://github.co
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
 ## Bulding the Documentation
-Mythril Classic's documentation is contained in the `docs` folder. It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
+Mythril Classic's documentation is contained in the `docs` folder and is published to [Read the Docs](https://mythril-classic.readthedocs.io/en/master/). It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
 
 ```
 cd docs

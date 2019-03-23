@@ -6,7 +6,7 @@ import logging
 from copy import copy, deepcopy
 from typing import cast, Callable, List, Union, Tuple
 from datetime import datetime
-
+from math import ceil
 from ethereum import utils
 
 from mythril.laser.smt import (
@@ -26,6 +26,7 @@ from mythril.laser.smt import (
     Bool,
     Or,
     Not,
+    LShR,
 )
 from mythril.laser.smt import symbol_factory
 
@@ -465,6 +466,33 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
+    def shl_(self, global_state: GlobalState) -> List[GlobalState]:
+        shift, value = (
+            util.pop_bitvec(global_state.mstate),
+            util.pop_bitvec(global_state.mstate),
+        )
+        global_state.mstate.stack.append(value << shift)
+        return [global_state]
+
+    @StateTransition()
+    def shr_(self, global_state: GlobalState) -> List[GlobalState]:
+        shift, value = (
+            util.pop_bitvec(global_state.mstate),
+            util.pop_bitvec(global_state.mstate),
+        )
+        global_state.mstate.stack.append(LShR(value, shift))
+        return [global_state]
+
+    @StateTransition()
+    def sar_(self, global_state: GlobalState) -> List[GlobalState]:
+        shift, value = (
+            util.pop_bitvec(global_state.mstate),
+            util.pop_bitvec(global_state.mstate),
+        )
+        global_state.mstate.stack.append(value >> shift)
+        return [global_state]
+
+    @StateTransition()
     def smod_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -519,16 +547,22 @@ class Instruction:
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
 
         if base.symbolic or exponent.symbolic:
+
             state.stack.append(
                 global_state.new_bitvec(
                     "(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")",
                     256,
+                    base.annotations + exponent.annotations,
                 )
             )
         else:
 
             state.stack.append(
-                symbol_factory.BitVecVal(pow(base.value, exponent.value, 2 ** 256), 256)
+                symbol_factory.BitVecVal(
+                    pow(base.value, exponent.value, 2 ** 256),
+                    256,
+                    annotations=base.annotations + exponent.annotations,
+                )
             )
 
         return [global_state]
@@ -891,29 +925,35 @@ class Instruction:
         state.max_gas_used += max_gas
         StateTransition.check_gas_usage_limit(global_state)
 
-        try:
-            state.mem_extend(index, length)
-            data = b"".join(
-                [
-                    util.get_concrete_int(i).to_bytes(1, byteorder="big")
-                    for i in state.memory[index : index + length]
-                ]
+        state.mem_extend(index, length)
+        data_list = [
+            b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
+            for b in state.memory[index : index + length]
+        ]
+        if len(data_list) > 1:
+            data = simplify(Concat(data_list))
+        elif len(data_list) == 1:
+            data = data_list[0]
+        else:
+            # length is 0; this only matters for input of the BitVecFuncVal
+            data = symbol_factory.BitVecVal(0, 1)
+
+        if data.symbolic:
+            argument_str = str(state.memory[index]).replace(" ", "_")
+            result = symbol_factory.BitVecFuncSym(
+                "KECCAC[{}]".format(argument_str), "keccak256", 256, input_=data
             )
+            log.debug("Created BitVecFunc hash.")
 
-        except TypeError:
-            argument = str(state.memory[index]).replace(" ", "_")
-
-            result = symbol_factory.BitVecSym("KECCAC[{}]".format(argument), 256)
             keccak_function_manager.add_keccak(result, state.memory[index])
-            state.stack.append(result)
-            return [global_state]
+        else:
+            keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
+            result = symbol_factory.BitVecFuncVal(
+                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
+            )
+            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
-        keccak = utils.sha3(utils.bytearray_to_bytestr(data))
-        log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
-
-        state.stack.append(
-            symbol_factory.BitVecVal(util.concrete_int_from_bytes(keccak, 0), 256)
-        )
+        state.stack.append(result)
         return [global_state]
 
     @StateTransition()
@@ -925,6 +965,34 @@ class Instruction:
         """
         global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
         return [global_state]
+
+    @staticmethod
+    def _handle_symbolic_args(
+        global_state: GlobalState, concrete_memory_offset: int
+    ) -> None:
+        """
+        In contract creation transaction with dynamic arguments(like arrays, maps) solidity will try to
+        execute CODECOPY with code size as len(with_args) - len(without_args) which in our case
+        would be 0, hence we are writing 10 symbol words onto the memory on the assumption that
+        no one would use 10 array/map arguments for constructor.
+        :param global_state: The global state
+        :param concrete_memory_offset: The memory offset on which symbols should be written
+        """
+        no_of_words = ceil(
+            min(len(global_state.environment.code.bytecode) / 2, 320) / 32
+        )
+        global_state.mstate.mem_extend(concrete_memory_offset, 32 * no_of_words)
+        for i in range(no_of_words):
+            global_state.mstate.memory.write_word_at(
+                concrete_memory_offset + i * 32,
+                global_state.new_bitvec(
+                    "code_{}({})".format(
+                        concrete_memory_offset + i * 32,
+                        global_state.environment.active_account.contract_name,
+                    ),
+                    256,
+                ),
+            )
 
     @StateTransition()
     def codecopy_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -986,15 +1054,7 @@ class Instruction:
             global_state.current_transaction, ContractCreationTransaction
         ):
             if concrete_code_offset >= len(bytecode) // 2:
-                global_state.mstate.mem_extend(concrete_memory_offset, 1)
-                global_state.mstate.memory[
-                    concrete_memory_offset
-                ] = global_state.new_bitvec(
-                    "code({})".format(
-                        global_state.environment.active_account.contract_name
-                    ),
-                    8,
-                )
+                self._handle_symbolic_args(global_state, concrete_memory_offset)
                 return [global_state]
 
         for i in range(size):
@@ -1048,6 +1108,20 @@ class Instruction:
         else:
             state.stack.append(len(code.bytecode) // 2)
 
+        return [global_state]
+
+    @StateTransition
+    def extcodehash_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return: List of global states possible, list of size 1 in this case
+        """
+        # TODO: To be implemented
+        address = global_state.mstate.stack.pop()
+        global_state.mstate.stack.append(
+            global_state.new_bitvec("extcodehash_{}".format(str(address)), 256)
+        )
         return [global_state]
 
     @StateTransition()
@@ -1270,7 +1344,7 @@ class Instruction:
 
         try:
             value_to_write = (
-                util.get_concrete_int(value) ^ 0xFF
+                util.get_concrete_int(value) % 256
             )  # type: Union[int, BitVec]
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
@@ -1635,6 +1709,25 @@ class Instruction:
         # TODO: implement me
         state = global_state.mstate
         state.stack.pop(), state.stack.pop(), state.stack.pop()
+        # Not supported
+        state.stack.append(0)
+        return [global_state]
+
+    @StateTransition()
+    def create2_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        # TODO: implement me
+        state = global_state.mstate
+        endowment, memory_start, memory_length, salt = (
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+        )
         # Not supported
         state.stack.append(0)
         return [global_state]

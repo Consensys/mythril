@@ -1,6 +1,6 @@
 """This module contains the detection code for deprecated op codes."""
 from mythril.analysis.report import Issue
-from mythril.analysis.swc_data import DEPRICATED_FUNCTIONS_USAGE
+from mythril.analysis.swc_data import DEPRECATED_FUNCTIONS_USAGE
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
@@ -33,7 +33,7 @@ def _analyze_state(state):
                 node.function_name
             )
         )
-        swc_id = DEPRICATED_FUNCTIONS_USAGE
+        swc_id = DEPRECATED_FUNCTIONS_USAGE
 
     elif instruction["opcode"] == "CALLCODE":
         log.debug("CALLCODE in function " + node.function_name)
@@ -44,7 +44,7 @@ def _analyze_state(state):
             "Due to a bug in the implementation it does not persist sender and value over the call. It was "
             "therefore deprecated and may be removed in the future. Use the delegatecall method instead."
         )
-        swc_id = DEPRICATED_FUNCTIONS_USAGE
+        swc_id = DEPRECATED_FUNCTIONS_USAGE
 
     issue = Issue(
         contract=node.contract_name,
@@ -68,7 +68,7 @@ class DeprecatedOperationsModule(DetectionModule):
         """"""
         super().__init__(
             name="Deprecated Operations",
-            swc_id=DEPRICATED_FUNCTIONS_USAGE,
+            swc_id=DEPRECATED_FUNCTIONS_USAGE,
             description=DESCRIPTION,
             entrypoint="callback",
             pre_hooks=["ORIGIN", "CALLCODE"],

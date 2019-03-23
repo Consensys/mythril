@@ -1,4 +1,4 @@
-mythril package
+Mythril Package
 ===============
 
 Subpackages
