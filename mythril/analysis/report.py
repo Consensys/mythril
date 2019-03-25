@@ -231,11 +231,7 @@ class Report:
                     },
                     "severity": issue.severity,
                     "locations": [{"sourceMap": "%d:1:%d" % (issue.address, idx)}],
-                    "extra": {
-                        "discoveryTime": "{}".format(
-                            int(issue.discovery_time * 10 ** 9)
-                        )
-                    },
+                    "extra": {"discoveryTime": int(issue.discovery_time * 10 ** 9)},
                 }
             )
         meta_data = self._get_exception_data()
