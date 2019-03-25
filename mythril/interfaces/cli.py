@@ -10,13 +10,18 @@ import json
 import logging
 import os
 import sys
-import traceback
 
 import coloredlogs
+import traceback
 
 import mythril.support.signatures as sigs
 from mythril.exceptions import AddressNotFoundError, CriticalError
-from mythril.mythril import Mythril
+from mythril.mythril import (
+    MythrilAnalyzer,
+    MythrilDisassembler,
+    MythrilConfig,
+    MythrilLevelDB,
+)
 from mythril.version import VERSION
 
 # logging.basicConfig(level=logging.DEBUG)
@@ -26,7 +31,6 @@ log = logging.getLogger(__name__)
 
 def exit_with_error(format_, message):
     """
-
     :param format_:
     :param message:
     """
@@ -62,10 +66,6 @@ def main() -> None:
 
     args = parser.parse_args()
     parse_args(parser=parser, args=args)
-
-
-if __name__ == "__main__":
-    main()
 
 
 def create_parser(parser: argparse.ArgumentParser) -> None:
@@ -315,61 +315,56 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
 
 def quick_commands(args: argparse.Namespace):
     if args.hash:
-        print(Mythril.hash_for_function_signature(args.hash))
+        print(MythrilDisassembler.hash_for_function_signature(args.hash))
         sys.exit()
 
 
 def set_config(args: argparse.Namespace):
-    mythril = Mythril(
-        solv=args.solv,
-        dynld=args.dynld,
-        onchain_storage_access=(not args.no_onchain_storage_access),
-        solc_args=args.solc_args,
-        enable_online_lookup=args.query_signature,
-    )
+    config = MythrilConfig()
     if args.dynld or not args.no_onchain_storage_access and not (args.rpc or args.i):
-        mythril.set_api_from_config_path()
+        config.set_api_from_config_path()
 
     if args.address:
         # Establish RPC connection if necessary
-        mythril.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
+        config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
     elif args.search or args.contract_hash_to_address:
         # Open LevelDB if necessary
-        mythril.set_api_leveldb(
-            mythril.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
+        config.set_api_leveldb(
+            config.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
         )
-    return mythril
+    return config
 
 
-def leveldb_search(mythril: Mythril, args: argparse.Namespace):
-    if args.search:
-        # Database search ops
-        mythril.search_db(args.search)
+def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
+    if args.search or args.contract_hash_to_address:
+        leveldb_searcher = MythrilLevelDB(config.eth_db)
+        if args.search:
+            # Database search ops
+            leveldb_searcher.search_db(args.search)
+
+        else:
+            # search corresponding address
+            try:
+                leveldb_searcher.contract_hash_to_address(args.contract_hash_to_address)
+            except AddressNotFoundError:
+                print("Address not found.")
+
         sys.exit()
 
-    if args.contract_hash_to_address:
-        # search corresponding address
-        try:
-            mythril.contract_hash_to_address(args.contract_hash_to_address)
-        except AddressNotFoundError:
-            print("Address not found.")
 
-        sys.exit()
-
-
-def get_code(mythril: Mythril, args: argparse.Namespace):
+def get_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
     address = None
     if args.code:
         # Load from bytecode
         code = args.code[2:] if args.code.startswith("0x") else args.code
-        address, _ = mythril.load_from_bytecode(code, args.bin_runtime)
+        address, _ = disassembler.load_from_bytecode(code, args.bin_runtime)
     elif args.codefile:
         bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
         bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
-        address, _ = mythril.load_from_bytecode(bytecode, args.bin_runtime)
+        address, _ = disassembler.load_from_bytecode(bytecode, args.bin_runtime)
     elif args.address:
         # Get bytecode from a contract address
-        address, _ = mythril.load_from_address(args.address)
+        address, _ = disassembler.load_from_address(args.address)
     elif args.solidity_file:
         # Compile Solidity source file(s)
         if args.graph and len(args.solidity_file) > 1:
@@ -377,7 +372,9 @@ def get_code(mythril: Mythril, args: argparse.Namespace):
                 args.outform,
                 "Cannot generate call graphs from multiple input files. Please do it one at a time.",
             )
-        address, _ = mythril.load_from_solidity(args.solidity_file)  # list of files
+        address, _ = disassembler.load_from_solidity(
+            args.solidity_file
+        )  # list of files
     else:
         exit_with_error(
             args.outform,
@@ -387,11 +384,12 @@ def get_code(mythril: Mythril, args: argparse.Namespace):
 
 
 def execute_command(
-    mythril: Mythril,
+    disassembler: MythrilDisassembler,
     address: str,
     parser: argparse.ArgumentParser,
     args: argparse.Namespace,
 ):
+
     if args.storage:
         if not args.address:
             exit_with_error(
@@ -399,36 +397,42 @@ def execute_command(
                 "To read storage, provide the address of a deployed contract with the -a option.",
             )
 
-        storage = mythril.get_state_variable_from_storage(
+        storage = disassembler.get_state_variable_from_storage(
             address=address, params=[a.strip() for a in args.storage.strip().split(",")]
         )
         print(storage)
+        return
 
-    elif args.disassemble:
+    analyzer = MythrilAnalyzer(
+        strategy=args.strategy,
+        disassembler=disassembler,
+        address=address,
+        max_depth=args.max_depth,
+        execution_timeout=args.execution_timeout,
+        create_timeout=args.create_timeout,
+        enable_iprof=args.enable_iprof,
+        onchain_storage_access=not args.no_onchain_storage_access,
+    )
+
+    if args.disassemble:
         # or mythril.disassemble(mythril.contracts[0])
 
-        if mythril.contracts[0].code:
-            print("Runtime Disassembly: \n" + mythril.contracts[0].get_easm())
-        if mythril.contracts[0].creation_code:
-            print("Disassembly: \n" + mythril.contracts[0].get_creation_easm())
+        if disassembler.contracts[0].code:
+            print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
+        if disassembler.contracts[0].creation_code:
+            print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
 
     elif args.graph or args.fire_lasers:
-        if not mythril.contracts:
+        if not disassembler.contracts:
             exit_with_error(
                 args.outform, "input files do not contain any valid contracts"
             )
 
         if args.graph:
-            html = mythril.graph_html(
-                strategy=args.strategy,
-                contract=mythril.contracts[0],
-                address=address,
+            html = analyzer.graph_html(
+                contract=analyzer.contracts[0],
                 enable_physics=args.enable_physics,
                 phrackify=args.phrack,
-                max_depth=args.max_depth,
-                execution_timeout=args.execution_timeout,
-                create_timeout=args.create_timeout,
-                enable_iprof=args.enable_iprof,
             )
 
             try:
@@ -439,18 +443,12 @@ def execute_command(
 
         else:
             try:
-                report = mythril.fire_lasers(
-                    strategy=args.strategy,
-                    address=address,
+                report = analyzer.fire_lasers(
                     modules=[m.strip() for m in args.modules.strip().split(",")]
                     if args.modules
                     else [],
                     verbose_report=args.verbose_report,
-                    max_depth=args.max_depth,
-                    execution_timeout=args.execution_timeout,
-                    create_timeout=args.create_timeout,
                     transaction_count=args.transaction_count,
-                    enable_iprof=args.enable_iprof,
                 )
                 outputs = {
                     "json": report.as_json(),
@@ -466,20 +464,12 @@ def execute_command(
 
     elif args.statespace_json:
 
-        if not mythril.contracts:
+        if not analyzer.contracts:
             exit_with_error(
                 args.outform, "input files do not contain any valid contracts"
             )
 
-        statespace = mythril.dump_statespace(
-            strategy=args.strategy,
-            contract=mythril.contracts[0],
-            address=address,
-            max_depth=args.max_depth,
-            execution_timeout=args.execution_timeout,
-            create_timeout=args.create_timeout,
-            enable_iprof=args.enable_iprof,
-        )
+        statespace = analyzer.dump_statespace(contract=analyzer.contracts[0])
 
         try:
             with open(args.statespace_json, "w") as f:
@@ -515,20 +505,27 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
     validate_args(parser, args)
     try:
         quick_commands(args)
-        mythril = set_config(args)
-        leveldb_search(mythril, args)
-
+        config = set_config(args)
+        leveldb_search(config, args)
+        dissasembler = MythrilDisassembler(
+            eth=config.eth,
+            solc_version=args.solv,
+            solc_args=args.solc_args,
+            enable_online_lookup=args.query_signature,
+        )
         if args.truffle:
             try:
-                mythril.analyze_truffle_project(args)
+                dissasembler.analyze_truffle_project(args)
             except FileNotFoundError:
                 print(
                     "Build directory not found. Make sure that you start the analysis from the project root, and that 'truffle compile' has executed successfully."
                 )
             sys.exit()
 
-        address = get_code(mythril, args)
-        execute_command(mythril=mythril, address=address, parser=parser, args=args)
+        address = get_code(dissasembler, args)
+        execute_command(
+            disassembler=dissasembler, address=address, parser=parser, args=args
+        )
     except CriticalError as ce:
         exit_with_error(args.outform, str(ce))
     except Exception:

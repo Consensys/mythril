@@ -150,7 +150,7 @@ class State:
             rlpdata = self.trie.get(addr)
 
         if rlpdata != trie.BLANK_NODE:
-            o = rlp.decode(rlpdata, Account, db=self.db, address=addr)
+            o = rlp.decode(rlpdata, Account, db=self.db, addr=addr)
         else:
             o = Account.blank_account(self.db, addr, 0)
         self.cache[addr] = o
@@ -162,4 +162,4 @@ class State:
         """iterates through trie to and yields non-blank leafs as accounts."""
         for address_hash, rlpdata in self.secure_trie.trie.iter_branch():
             if rlpdata != trie.BLANK_NODE:
-                yield rlp.decode(rlpdata, Account, db=self.db, address=address_hash)
+                yield rlp.decode(rlpdata, Account, db=self.db, addr=address_hash)
