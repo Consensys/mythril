@@ -290,7 +290,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             try:
 
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, node.constraints + [annotation.constraint]
+                    state, state.node.constraints + [annotation.constraint]
                 )
             except UnsatError:
                 continue
