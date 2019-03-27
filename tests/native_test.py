@@ -1,5 +1,5 @@
 from mythril.solidity.soliditycontract import SolidityContract
-from mythril.mythril import Mythril
+from mythril.mythril import MythrilDisassembler
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -84,7 +84,8 @@ class NativeTests(BaseTestCase):
     def runTest():
         """"""
         disassembly = SolidityContract(
-            "./tests/native_tests.sol", solc_binary=Mythril._init_solc_binary("0.5.0")
+            "./tests/native_tests.sol",
+            solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
         ).disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
         accounts = {account.address: account}

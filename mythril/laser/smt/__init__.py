@@ -13,6 +13,7 @@ from mythril.laser.smt.bitvec import (
     BVAddNoOverflow,
     BVMulNoOverflow,
     BVSubNoUnderflow,
+    LShR,
 )
 from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.expression import Expression, simplify

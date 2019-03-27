@@ -32,7 +32,7 @@ The callcode method executes code of another contract in the context of the call
 - Contract: Unknown
 - Function name: `_function_0x9b58bc26`
 - PC address: 849
-- Estimated Gas Usage: 1170 - 35922
+- Estimated Gas Usage: 1176 - 35928
 
 ### Description
 
@@ -45,7 +45,7 @@ External calls return a boolean value. If the callee contract halts with an exce
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1038
-- Estimated Gas Usage: 471 - 1223
+- Estimated Gas Usage: 477 - 1229
 
 ### Description
 
@@ -58,7 +58,7 @@ The callee address of an external message call can be set by the caller. Note th
 - Contract: Unknown
 - Function name: `_function_0xeea4c864`
 - PC address: 1038
-- Estimated Gas Usage: 1195 - 35947
+- Estimated Gas Usage: 1201 - 35953
 
 ### Description
 

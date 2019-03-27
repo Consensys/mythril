@@ -6,7 +6,9 @@
                     "head": "The binary subtraction can underflow.",
                     "tail": "The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion."
                 },
-                "extra": {},
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
                 "locations": [
                     {
                         "sourceMap": "567:1:0"
@@ -21,7 +23,9 @@
                     "head": "The binary subtraction can underflow.",
                     "tail": "The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion."
                 },
-                "extra": {},
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
                 "locations": [
                     {
                         "sourceMap": "649:1:0"

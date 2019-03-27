@@ -62,6 +62,9 @@ OPCODE_GAS = {
     "XOR": (3, 3),
     "NOT": (3, 3),
     "BYTE": (3, 3),
+    "SHL": (3, 3),
+    "SHR": (3, 3),
+    "SAR": (3, 3),
     "SHA3": (
         30,
         30 + 6 * 8,
@@ -80,6 +83,7 @@ OPCODE_GAS = {
     "GASPRICE": (2, 2),
     "EXTCODESIZE": (700, 700),
     "EXTCODECOPY": (700, 700 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556
+    "EXTCODEHASH": (400, 400),
     "RETURNDATASIZE": (2, 2),
     "RETURNDATACOPY": (3, 3),
     "BLOCKHASH": (20, 20),
@@ -176,6 +180,10 @@ OPCODE_GAS = {
     "LOG3": (4 * 375, 4 * 375 + 8 * 32),
     "LOG4": (5 * 375, 5 * 375 + 8 * 32),
     "CREATE": (32000, 32000),
+    "CREATE2": (
+        32000,
+        32000,
+    ),  # TODO: The gas value is dynamic, to be done while implementing create2
     "CALL": (700, 700 + 9000 + 25000),
     "NATIVE_COST": calculate_native_gas,
     "CALLCODE": (700, 700 + 9000 + 25000),

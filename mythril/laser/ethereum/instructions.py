@@ -26,6 +26,7 @@ from mythril.laser.smt import (
     Bool,
     Or,
     Not,
+    LShR,
 )
 from mythril.laser.smt import symbol_factory
 
@@ -464,6 +465,33 @@ class Instruction:
             util.pop_bitvec(global_state.mstate),
         )
         global_state.mstate.stack.append(0 if s1 == 0 else URem(s0, s1))
+        return [global_state]
+
+    @StateTransition()
+    def shl_(self, global_state: GlobalState) -> List[GlobalState]:
+        shift, value = (
+            util.pop_bitvec(global_state.mstate),
+            util.pop_bitvec(global_state.mstate),
+        )
+        global_state.mstate.stack.append(value << shift)
+        return [global_state]
+
+    @StateTransition()
+    def shr_(self, global_state: GlobalState) -> List[GlobalState]:
+        shift, value = (
+            util.pop_bitvec(global_state.mstate),
+            util.pop_bitvec(global_state.mstate),
+        )
+        global_state.mstate.stack.append(LShR(value, shift))
+        return [global_state]
+
+    @StateTransition()
+    def sar_(self, global_state: GlobalState) -> List[GlobalState]:
+        shift, value = (
+            util.pop_bitvec(global_state.mstate),
+            util.pop_bitvec(global_state.mstate),
+        )
+        global_state.mstate.stack.append(value >> shift)
         return [global_state]
 
     @StateTransition()
@@ -1084,6 +1112,20 @@ class Instruction:
 
         return [global_state]
 
+    @StateTransition
+    def extcodehash_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return: List of global states possible, list of size 1 in this case
+        """
+        # TODO: To be implemented
+        address = global_state.mstate.stack.pop()
+        global_state.mstate.stack.append(
+            global_state.new_bitvec("extcodehash_{}".format(str(address)), 256)
+        )
+        return [global_state]
+
     @StateTransition()
     def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         """
@@ -1674,6 +1716,25 @@ class Instruction:
         # TODO: implement me
         state = global_state.mstate
         state.stack.pop(), state.stack.pop(), state.stack.pop()
+        # Not supported
+        state.stack.append(0)
+        return [global_state]
+
+    @StateTransition()
+    def create2_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        # TODO: implement me
+        state = global_state.mstate
+        endowment, memory_start, memory_length, salt = (
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+        )
         # Not supported
         state.stack.append(0)
         return [global_state]
