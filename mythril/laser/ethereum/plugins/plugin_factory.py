@@ -1,6 +1,8 @@
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.plugins.implementations.benchmark import BenchmarkPlugin
-from mythril.laser.ethereum.plugins.implementations.mutation_pruner import MutationPruner
+from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
+    MutationPruner,
+)
 
 
 class PluginFactory:
@@ -15,4 +17,3 @@ class PluginFactory:
     def build_mutation_pruner_plugin() -> LaserPlugin:
         """ Creates an instance of the mutation pruner plugin"""
         return MutationPruner()
-

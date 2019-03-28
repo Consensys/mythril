@@ -7,6 +7,7 @@ class LaserPluginLoader:
     The LaserPluginLoader is used to abstract the logic relating to plugins.
     Components outside of laser thus don't have to be aware of the interface that plugins provide
     """
+
     def __init__(self, symbolic_vm: LaserEVM) -> None:
         """ Initializes the plugin loader
 

@@ -12,7 +12,9 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
 )
 
-from mythril.laser.ethereum.plugins.implementations.mutation_pruner import MutationPruner
+from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
+    MutationPruner,
+)
 
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
