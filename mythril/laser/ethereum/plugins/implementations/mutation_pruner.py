@@ -1,6 +1,7 @@
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
+from mythril.laser.ethereum.plugins import LaserPlugin
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -17,7 +18,7 @@ class MutationAnnotation(StateAnnotation):
     pass
 
 
-class MutationPruner:
+class MutationPruner(LaserPlugin):
     """Mutation pruner plugin
 
     Let S be a world state from which T is a symbolic transaction, and S' is the resulting world state.
