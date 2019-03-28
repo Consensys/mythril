@@ -19,9 +19,8 @@ def _analyze_state(state) -> list:
     :return:
     """
     log.info("Exceptions module: found ASSERT_FAIL instruction")
-    node = state.node
 
-    log.debug("ASSERT_FAIL in function " + node.function_name)
+    log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
 
     try:
         address = state.get_current_instruction()["address"]
@@ -34,12 +33,12 @@ def _analyze_state(state) -> list:
             "Use `require()` for regular input checking."
         )
 
-        transaction_sequence = solver.get_transaction_sequence(state, node.constraints)
+        transaction_sequence = solver.get_transaction_sequence(state, state.mstate.constraints)
         debug = json.dumps(transaction_sequence, indent=4)
 
         issue = Issue(
-            contract=node.contract_name,
-            function_name=node.function_name,
+            contract=state.environment.active_account.contract_name,
+            function_name=state.environment.active_function_name,
             address=address,
             swc_id=ASSERT_VIOLATION,
             title="Exception State",
