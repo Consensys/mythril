@@ -13,7 +13,7 @@ import unittest.mock as mock
 from unittest.mock import MagicMock
 
 
-def _is_message_call(_, transaction):
+def _is_message_call(_, transaction, func_hashes):
     assert isinstance(transaction, MessageCallTransaction)
 
 

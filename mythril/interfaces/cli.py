@@ -13,6 +13,7 @@ import sys
 
 import coloredlogs
 import traceback
+from ast import literal_eval
 
 import mythril.support.signatures as sigs
 from mythril.exceptions import AddressNotFoundError, CriticalError
@@ -320,6 +321,18 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
                 args.outform,
                 "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
             )
+    if args.transaction_sequences:
+        try:
+            args.transaction_sequences = literal_eval(str(args.transaction_sequences))
+        except ValueError:
+            exit_with_error(
+                args.outform,
+                "The transaction sequence is in incorrect format, It should be "
+                "[list if possible function hashes in 1st transaction, "
+                "list of possible func hashes in 2nd tx, ..]",
+            )
+        if len(args.transaction_sequences) != args.transaction_count:
+            args.transaction_count = len(args.transaction_sequences)
 
 
 def quick_commands(args: argparse.Namespace):

@@ -20,7 +20,13 @@ CREATOR_ADDRESS = 0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE
 ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 
 
-def generate_function_constraints(calldata: SymbolicCalldata, func_hashes: List[int]):
+def generate_function_constraints(calldata: SymbolicCalldata, func_hashes: List[List[int]]) -> List[Bool]:
+    """
+    This will generate constraints for fixing the function call part of calldata
+    :param calldata: Calldata
+    :param func_hashes: The list of function hashes allowed for this transaction
+    :return: Constraints List
+    """
     constraints = []
     for i in range(4):
         constraint = Bool(False)
@@ -35,8 +41,9 @@ def generate_function_constraints(calldata: SymbolicCalldata, func_hashes: List[
 def execute_message_call(laser_evm, callee_address: str, function_hashes=None) -> None:
     """Executes a message call transaction from all open states.
 
-    :param laser_evm:
-    :param callee_address:
+    :param laser_evm: The laser evm object
+    :param callee_address: The address of the callee
+    :param function_hashes: The function calls to be constrained for the message call
     """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states = laser_evm.open_states[:]
