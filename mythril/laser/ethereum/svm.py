@@ -55,6 +55,7 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         enable_iprof=False,
+        transaction_sequences=None,
     ) -> None:
         """
 
@@ -99,7 +100,7 @@ class LaserEVM:
         self._execute_state_hooks = []  # type: List[Callable]
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
-
+        self.transaction_sequences = transaction_sequences
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -186,8 +187,14 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
-
-            execute_message_call(self, address)
+            func_hashes = (
+                self.transaction_sequences[i] if self.transaction_sequences else None
+            )
+            if func_hashes:
+                func_hashes = [
+                    bytes.fromhex(hex(func_hash)[2:]) for func_hash in func_hashes
+                ]
+            execute_message_call(self, address, function_hashes=func_hashes)
 
             end_coverage = self._get_covered_instructions()
 

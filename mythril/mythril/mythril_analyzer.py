@@ -37,6 +37,7 @@ class MythrilAnalyzer:
         execution_timeout: Optional[int] = None,
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
+        transaction_sequences=None,
     ):
         """
 
@@ -55,6 +56,7 @@ class MythrilAnalyzer:
         self.execution_timeout = execution_timeout
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
+        self.transaction_sequences = transaction_sequences
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -145,6 +147,7 @@ class MythrilAnalyzer:
                     modules=modules,
                     compulsory_statespace=False,
                     enable_iprof=self.enable_iprof,
+                    transaction_sequences=self.transaction_sequences,
                 )
                 issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:

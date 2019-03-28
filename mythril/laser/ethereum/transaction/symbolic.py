@@ -1,9 +1,9 @@
 """This module contains functions setting up and executing transactions with
 symbolic values."""
 import logging
+from typing import List
 
-
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import symbol_factory, Or, Bool
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
@@ -20,7 +20,19 @@ CREATOR_ADDRESS = 0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE
 ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 
 
-def execute_message_call(laser_evm, callee_address: str) -> None:
+def generate_function_constraints(calldata: SymbolicCalldata, func_hashes: List[int]):
+    constraints = []
+    for i in range(4):
+        constraint = Bool(False)
+        for func_hash in func_hashes:
+            constraint = Or(
+                constraint, calldata[i] == symbol_factory.BitVecVal(func_hash[i], 8)
+            )
+        constraints.append(constraint)
+    return constraints
+
+
+def execute_message_call(laser_evm, callee_address: str, function_hashes=None) -> None:
     """Executes a message call transaction from all open states.
 
     :param laser_evm:
@@ -36,6 +48,7 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
             continue
 
         next_transaction_id = get_next_transaction_id()
+        calldata = SymbolicCalldata(next_transaction_id)
         transaction = MessageCallTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
@@ -48,12 +61,17 @@ def execute_message_call(laser_evm, callee_address: str) -> None:
             ),
             caller=symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256),
             callee_account=open_world_state[callee_address],
-            call_data=SymbolicCalldata(next_transaction_id),
+            call_data=calldata,
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
         )
-        _setup_global_state_for_execution(laser_evm, transaction)
+        constraints = (
+            generate_function_constraints(calldata, function_hashes)
+            if function_hashes
+            else None
+        )
+        _setup_global_state_for_execution(laser_evm, transaction, constraints)
 
     laser_evm.exec()
 
@@ -104,7 +122,9 @@ def execute_contract_creation(
     return new_account
 
 
-def _setup_global_state_for_execution(laser_evm, transaction) -> None:
+def _setup_global_state_for_execution(
+    laser_evm, transaction, initial_constraints=None
+) -> None:
     """Sets up global state and cfg for a transactions execution.
 
     :param laser_evm:
@@ -113,7 +133,7 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
-
+    global_state.mstate.constraints += initial_constraints or []
     new_node = Node(
         global_state.environment.active_account.contract_name,
         function_name=global_state.environment.active_function_name,

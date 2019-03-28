@@ -2,6 +2,8 @@
 purposes."""
 
 import copy
+
+from ast import literal_eval
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
@@ -38,6 +40,7 @@ class SymExecWrapper:
         modules=(),
         compulsory_statespace=True,
         enable_iprof=False,
+        transaction_sequences=None,
     ):
         """
 
@@ -73,6 +76,8 @@ class SymExecWrapper:
         )
         self.accounts = {address: account}
 
+        if transaction_sequences:
+            transaction_sequences = literal_eval(str(transaction_sequences))
         self.laser = svm.LaserEVM(
             self.accounts,
             dynamic_loader=dynloader,
@@ -83,6 +88,7 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
+            transaction_sequences=transaction_sequences,
         )
         mutation_plugin = MutationPruner()
 

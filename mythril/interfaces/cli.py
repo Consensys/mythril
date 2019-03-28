@@ -214,6 +214,15 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         help="Maximum number of transactions issued by laser",
     )
     options.add_argument(
+        "--transaction-sequences",
+        type=str,
+        default=None,
+        help="The possible transaction sequences to be executed. "
+        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where for the first transaction is constrained "
+        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3",
+    )
+
+    options.add_argument(
         "--execution-timeout",
         type=int,
         default=600,
@@ -412,6 +421,7 @@ def execute_command(
         create_timeout=args.create_timeout,
         enable_iprof=args.enable_iprof,
         onchain_storage_access=not args.no_onchain_storage_access,
+        transaction_sequences=args.transaction_sequences,
     )
 
     if args.disassemble:
