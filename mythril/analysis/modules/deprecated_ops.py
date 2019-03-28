@@ -45,6 +45,8 @@ def _analyze_state(state):
             "therefore deprecated and may be removed in the future. Use the delegatecall method instead."
         )
         swc_id = DEPRECATED_FUNCTIONS_USAGE
+    else:
+        return
 
     issue = Issue(
         contract=state.environment.active_account.contract_name,
