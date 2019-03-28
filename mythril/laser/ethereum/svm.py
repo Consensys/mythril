@@ -22,6 +22,8 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
+
+from mythril.laser.smt import BitVec
 from mythril.laser.ethereum.iprof import InstructionProfiler
 
 log = logging.getLogger(__name__)
@@ -169,7 +171,7 @@ class LaserEVM:
         for hook in self._stop_sym_exec_hooks:
             hook()
 
-    def _execute_transactions(self, address):
+    def _execute_transactions(self, address: BitVec):
         """This function executes multiple transactions on the address based on
         the coverage.
 
@@ -437,7 +439,7 @@ class LaserEVM:
                     not in self.world_state.accounts.keys()
                 ):
                     self.world_state.accounts[
-                        state.environment.active_account.address
+                        state.environment.active_account.address.value
                     ] = state.environment.active_account
         elif opcode == "RETURN":
             for state in new_states:

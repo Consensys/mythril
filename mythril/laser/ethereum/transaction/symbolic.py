@@ -14,6 +14,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     get_next_transaction_id,
     BaseTransaction
 )
+from mythril.laser.smt import BitVec
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ ACTOR_ADDRESSES = [
 ]
 
 
-def execute_message_call(laser_evm, callee_address: str) -> None:
+def execute_message_call(laser_evm, callee_address: BitVec) -> None:
     """Executes a message call transaction from all open states.
 
     :param laser_evm:

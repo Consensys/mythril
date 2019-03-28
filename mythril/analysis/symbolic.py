@@ -11,6 +11,7 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
+from mythril.laser.smt import BitVec, symbol_factory
 
 from mythril.laser.ethereum.plugins.mutation_pruner import MutationPruner
 
@@ -51,6 +52,9 @@ class SymExecWrapper:
         :param transaction_count:
         :param modules:
         """
+        if isinstance(address, str):
+            address = symbol_factory.BitVecVal(int(address, 16), 256)
+
         if strategy == "dfs":
             s_strategy = DepthFirstSearchStrategy
         elif strategy == "bfs":
@@ -71,7 +75,7 @@ class SymExecWrapper:
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
-        self.accounts = {address: account}
+        self.accounts = {address.value: account}
 
         self.laser = svm.LaserEVM(
             self.accounts,
@@ -194,7 +198,7 @@ class SymExecWrapper:
 
                 elif op == "SSTORE":
                     stack = copy.copy(state.mstate.stack)
-                    address = state.environment.active_account.address
+                    address = state.environment.active_account.address.value
 
                     index, value = stack.pop(), stack.pop()
 
