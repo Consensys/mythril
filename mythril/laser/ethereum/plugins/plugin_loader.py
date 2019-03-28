@@ -7,7 +7,7 @@ class LaserPluginLoader:
     The LaserPluginLoader is used to abstract the logic relating to plugins.
     Components outside of laser thus don't have to be aware of the interface that plugins provide
     """
-    def __init__(self, symbolic_vm: LaserEVM):
+    def __init__(self, symbolic_vm: LaserEVM) -> None:
         """ Initializes the plugin loader
 
         :param symbolic_vm: symbolic virtual machine to load plugins for
@@ -15,7 +15,7 @@ class LaserPluginLoader:
         self.symbolic_vm = symbolic_vm
         self.laser_plugins = []
 
-    def load(self, laser_plugin: LaserPlugin):
+    def load(self, laser_plugin: LaserPlugin) -> None:
         """ Loads the plugin
 
         :param laser_plugin: plugin that will be loaded in the symbolic virtual machine
@@ -23,7 +23,7 @@ class LaserPluginLoader:
         laser_plugin.initialize(self.symbolic_vm)
         self.laser_plugins.append(laser_plugin)
 
-    def is_enabled(self, laser_plugin: LaserPlugin):
+    def is_enabled(self, laser_plugin: LaserPlugin) -> bool:
         """ Returns whether the plugin is loaded in the symbolic_vm
 
         :param laser_plugin: plugin that will be checked
