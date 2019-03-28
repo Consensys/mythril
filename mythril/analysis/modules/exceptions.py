@@ -33,7 +33,9 @@ def _analyze_state(state) -> list:
             "Use `require()` for regular input checking."
         )
 
-        transaction_sequence = solver.get_transaction_sequence(state, state.mstate.constraints)
+        transaction_sequence = solver.get_transaction_sequence(
+            state, state.mstate.constraints
+        )
         debug = json.dumps(transaction_sequence, indent=4)
 
         issue = Issue(
