@@ -161,11 +161,14 @@ class SolidityContract(EVMContract):
 
             if len(mapping) > 2 and len(mapping[2]) > 0:
                 idx = int(mapping[2])
-            lineno = (
-                self.solidity_files[idx]
-                .data.encode("utf-8")[0:offset]
-                .count("\n".encode("utf-8"))
-                + 1
-            )
+            if idx == -1:
+                lineno = None
+            else:
+                lineno = (
+                    self.solidity_files[idx]
+                    .data.encode("utf-8")[0:offset]
+                    .count("\n".encode("utf-8"))
+                    + 1
+                )
             prev_item = item
             mappings.append(SourceMapping(idx, offset, length, lineno, item))

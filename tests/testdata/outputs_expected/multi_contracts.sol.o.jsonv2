@@ -6,7 +6,9 @@
                     "head": "Anyone can withdraw ETH from the contract account.",
                     "tail": "Arbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability."
                 },
-                "extra": {},
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
                 "locations": [
                     {
                         "sourceMap": "142:1:0"
