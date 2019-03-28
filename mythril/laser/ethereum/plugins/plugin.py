@@ -15,7 +15,7 @@ class LaserPlugin:
     For example, a pruning plugin might raise the PluginSkipWorldState signal.
     """
 
-    def initialize(self, symbolic_vm: LaserEVM):
+    def initialize(self, symbolic_vm: LaserEVM) -> None:
         """ Initializes this plugin on the symbolic virtual machine
 
         :param symbolic_vm: symbolic virtual machine to initialize the laser plugin on
