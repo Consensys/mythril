@@ -13,6 +13,7 @@ from mythril.exceptions import UnsatError
 
 log = logging.getLogger(__name__)
 
+# TODO: make callback & remove dependency from cfg
 
 class TxOrderDependenceModule(DetectionModule):
     """This module finds the existence of transaction order dependence."""
