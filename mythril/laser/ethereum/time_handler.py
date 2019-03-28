@@ -12,7 +12,9 @@ class TimeHandler(object, metaclass=Singleton):
 
     def start_execution(self, execution_time: int, transaction_count: int):
         self._start_time = int(time.time() * 1000)
-        self._transaction_execution_timeout = execution_time * 1000 // transaction_count
+        self._transaction_execution_timeout = (
+            execution_time * 1000 // (1 + transaction_count)
+        )
 
     def transaction_time_remaining(self):
         return self._transaction_execution_timeout - (
