@@ -1,5 +1,5 @@
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.plugins import LaserPlugin
+from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from time import time
 import matplotlib.pyplot as plt
 import logging
