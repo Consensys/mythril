@@ -328,8 +328,9 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
             exit_with_error(
                 args.outform,
                 "The transaction sequence is in incorrect format, It should be "
-                "[list if possible function hashes in 1st transaction, "
-                "list of possible func hashes in 2nd tx, ..]",
+                "[list of possible function hashes in 1st transaction, "
+                "list of possible func hashes in 2nd tx, ..]"
+                "If any list is empty then all possible functions are considered for that transaction",
             )
         if len(args.transaction_sequences) != args.transaction_count:
             args.transaction_count = len(args.transaction_sequences)

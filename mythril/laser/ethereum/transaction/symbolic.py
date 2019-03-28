@@ -20,13 +20,17 @@ CREATOR_ADDRESS = 0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE
 ATTACKER_ADDRESS = 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF
 
 
-def generate_function_constraints(calldata: SymbolicCalldata, func_hashes: List[List[int]]) -> List[Bool]:
+def generate_function_constraints(
+    calldata: SymbolicCalldata, func_hashes: List[List[int]]
+) -> List[Bool]:
     """
     This will generate constraints for fixing the function call part of calldata
     :param calldata: Calldata
     :param func_hashes: The list of function hashes allowed for this transaction
     :return: Constraints List
     """
+    if len(func_hashes) == 0:
+        return []
     constraints = []
     for i in range(4):
         constraint = Bool(False)
