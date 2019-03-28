@@ -48,13 +48,12 @@ class SuicideModule(DetectionModule):
 
     def _analyze_state(self, state):
         log.info("Suicide module: Analyzing suicide instruction")
-        node = state.node
         instruction = state.get_current_instruction()
         if self._cache_address.get(instruction["address"], False):
             return []
         to = state.mstate.stack[-1]
 
-        log.debug("[SUICIDE] SUICIDE in function " + node.function_name)
+        log.debug("[SUICIDE] SUICIDE in function " + state.environment.active_function_name)
 
         description_head = "The contract can be killed by anyone."
 
@@ -62,7 +61,7 @@ class SuicideModule(DetectionModule):
             try:
                 transaction_sequence = solver.get_transaction_sequence(
                     state,
-                    node.constraints
+                    state.mstate.constraints
                     + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
                 )
                 description_tail = (
@@ -71,7 +70,7 @@ class SuicideModule(DetectionModule):
                 )
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, node.constraints
+                    state, state.mstate.constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
 
@@ -79,8 +78,8 @@ class SuicideModule(DetectionModule):
             self._cache_address[instruction["address"]] = True
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=instruction["address"],
                 swc_id=UNPROTECTED_SELFDESTRUCT,
                 bytecode=state.environment.code.bytecode,
