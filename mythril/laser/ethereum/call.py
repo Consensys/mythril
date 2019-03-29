@@ -136,7 +136,7 @@ def get_callee_account(
     log.debug("Attempting to load dependency")
 
     try:
-        code = dynamic_loader.dynld(environment.active_account.address, callee_address)
+        code = dynamic_loader.dynld(callee_address)
     except ValueError as error:
         log.debug("Unable to execute dynamic loader because: {}".format(str(error)))
         raise error
