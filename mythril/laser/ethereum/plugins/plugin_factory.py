@@ -3,6 +3,9 @@ from mythril.laser.ethereum.plugins.implementations.benchmark import BenchmarkPl
 from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
     MutationPruner,
 )
+from mythril.laser.ethereum.plugins.implementations.coverage import (
+    InstructionCoveragePlugin,
+)
 
 
 class PluginFactory:
@@ -17,3 +20,8 @@ class PluginFactory:
     def build_mutation_pruner_plugin() -> LaserPlugin:
         """ Creates an instance of the mutation pruner plugin"""
         return MutationPruner()
+
+    @staticmethod
+    def build_instruction_coverage_plugin() -> LaserPlugin:
+        """ Creates an instance of the instruction coverage plugin"""
+        return InstructionCoveragePlugin()
