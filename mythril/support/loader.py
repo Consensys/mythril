@@ -58,17 +58,15 @@ class DynLoader:
 
         return data
 
-    def dynld(self, contract_address, dependency_address):
+    def dynld(self, dependency_address):
         """
-
-        :param contract_address:
         :param dependency_address:
         :return:
         """
         if not self.contract_loading:
             raise ValueError("Cannot load contract when contract_loading flag is false")
 
-        log.debug("Dynld at contract " + contract_address + ": " + dependency_address)
+        log.debug("Dynld at contract " + dependency_address)
 
         # Ensure that dependency_address is the correct length, with 0s prepended as needed.
         dependency_address = (

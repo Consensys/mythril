@@ -50,7 +50,7 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
 
     if call.type is not "DELEGATECALL":
         return []
-    if call.node.function_name is not "fallback":
+    if state.environment.active_function_name is not "fallback":
         return []
 
     state = call.state
@@ -77,8 +77,8 @@ def _concrete_call(
         return []
 
     issue = Issue(
-        contract=call.node.contract_name,
-        function_name=call.node.function_name,
+        contract=state.environment.active_account.contract_name,
+        function_name=state.environment.active_function_name,
         address=address,
         swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
         bytecode=state.environment.code.bytecode,

@@ -8,6 +8,7 @@ from mythril.analysis.report import Issue
 from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
+from copy import copy
 import logging
 import json
 
@@ -28,14 +29,13 @@ def _analyze_state(state):
     :param state:
     :return:
     """
-    node = state.node
     gas = state.mstate.stack[-1]
     to = state.mstate.stack[-2]
 
     address = state.get_current_instruction()["address"]
 
     try:
-        constraints = node.constraints
+        constraints = copy(state.mstate.constraints)
         transaction_sequence = solver.get_transaction_sequence(
             state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
         )
@@ -56,8 +56,8 @@ def _analyze_state(state):
             )
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=address,
                 swc_id=REENTRANCY,
                 title="External Call To User-Supplied Address",
@@ -83,8 +83,8 @@ def _analyze_state(state):
             )
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=state.node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=address,
                 swc_id=REENTRANCY,
                 title="External Call To Fixed Address",

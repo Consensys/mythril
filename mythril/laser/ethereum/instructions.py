@@ -1097,7 +1097,7 @@ class Instruction:
             return [global_state]
 
         try:
-            code = self.dynamic_loader.dynld(environment.active_account.address, addr)
+            code = self.dynamic_loader.dynld(addr)
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
