@@ -97,8 +97,11 @@ class LaserEVM:
 
         self._add_world_state_hooks = []  # type: List[Callable]
         self._execute_state_hooks = []  # type: List[Callable]
+
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
+
+        self._instruction_evaluate_wrappers = []  # type: List[Callable]
 
         self.iprof = InstructionProfiler() if enable_iprof else None
 
@@ -285,9 +288,15 @@ class LaserEVM:
         self._execute_pre_hook(op_code, global_state)
         try:
             self._measure_coverage(global_state)
-            new_global_states = Instruction(
+
+            instruction = Instruction(
                 op_code, self.dynamic_loader, self.iprof
-            ).evaluate(global_state)
+            )
+            evaluate_function = instruction.evaluate
+            for wrapping_function in self._instruction_evaluate_wrappers:
+                evaluate_function = wrapping_function(evaluate_function)
+
+            new_global_states = evaluate_function(global_state)
 
         except VmException as e:
             transaction, return_global_state = global_state.transaction_stack.pop()
@@ -531,6 +540,9 @@ class LaserEVM:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type
             )
+
+    def register_instruction_evaluate_wrapper(self, function: Callable) -> None:
+        self._instruction_evaluate_wrappers.append(function)
 
     def laser_hook(self, hook_type: str) -> Callable:
         """Registers the annotated function with register_laser_hooks
