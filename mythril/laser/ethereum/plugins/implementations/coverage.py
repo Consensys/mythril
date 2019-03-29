@@ -2,6 +2,8 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.state.global_state import GlobalState
 
+from typing import Dict, Tuple, List
+
 import logging
 
 log = logging.getLogger(__name__)
@@ -26,7 +28,7 @@ class InstructionCoveragePlugin(LaserPlugin):
         :param symbolic_vm:
         :return:
         """
-        coverage = {}
+        coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
 
         @symbolic_vm.laser_hook("stop_sym_exec")
         def stop_sym_exec_hook():
