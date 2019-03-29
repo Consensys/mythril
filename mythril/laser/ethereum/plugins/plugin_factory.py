@@ -7,7 +7,10 @@ class PluginFactory:
     @staticmethod
     def build_benchmark_plugin(name: str) -> LaserPlugin:
         """ Creates an instance of the benchmark plugin with the given name """
-        from mythril.laser.ethereum.plugins.implementations.benchmark import BenchmarkPlugin
+        from mythril.laser.ethereum.plugins.implementations.benchmark import (
+            BenchmarkPlugin,
+        )
+
         return BenchmarkPlugin(name)
 
     @staticmethod
@@ -16,4 +19,5 @@ class PluginFactory:
         from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
             MutationPruner,
         )
+
         return MutationPruner()
