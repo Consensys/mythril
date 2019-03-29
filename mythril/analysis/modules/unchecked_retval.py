@@ -61,7 +61,6 @@ class UncheckedRetvalModule(DetectionModule):
 
 def _analyze_state(state: GlobalState) -> list:
     instruction = state.get_current_instruction()
-    node = state.node
 
     annotations = cast(
         List[UncheckedRetvalAnnotation],
@@ -80,7 +79,7 @@ def _analyze_state(state: GlobalState) -> list:
         issues = []
         for retval in retvals:
             try:
-                solver.get_model(node.constraints + [retval["retval"] == 0])
+                solver.get_model(state.mstate.constraints + [retval["retval"] == 0])
             except UnsatError:
                 continue
 
@@ -91,8 +90,8 @@ def _analyze_state(state: GlobalState) -> list:
             )
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=retval["address"],
                 bytecode=state.environment.code.bytecode,
                 title="Unchecked Call Return Value",
