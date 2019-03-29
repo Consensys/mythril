@@ -60,8 +60,6 @@ class DynLoader:
 
     def dynld(self, dependency_address):
         """
-
-        :param contract_address:
         :param dependency_address:
         :return:
         """
