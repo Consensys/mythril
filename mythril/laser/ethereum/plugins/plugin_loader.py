@@ -19,7 +19,7 @@ class LaserPluginLoader:
         :param symbolic_vm: symbolic virtual machine to load plugins for
         """
         self.symbolic_vm = symbolic_vm
-        self.laser_plugins: List[LaserPlugin] = []
+        self.laser_plugins = []  # type: List[LaserPlugin]
 
     def load(self, laser_plugin: LaserPlugin) -> None:
         """ Loads the plugin
