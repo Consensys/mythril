@@ -2,6 +2,10 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.state.global_state import GlobalState
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class InstructionCoveragePlugin(LaserPlugin):
     """InstructionCoveragePlugin
@@ -22,4 +26,26 @@ class InstructionCoveragePlugin(LaserPlugin):
         :param symbolic_vm:
         :return:
         """
-        pass
+        coverage = {}
+
+        @symbolic_vm.laser_hook("stop_sym_exec")
+        def stop_sym_exec_hook():
+            # Print results
+            for code, code_cov in coverage.items():
+                cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
+
+                log.info("Achieved {:.2f}% coverage for code: {}".format(cov_percentage, code))
+
+        @symbolic_vm.laser_hook("execute_state")
+        def execute_state_hook(global_state: GlobalState):
+            # Record coverage
+            code = global_state.environment.code.bytecode
+
+            if code not in coverage.keys():
+                number_of_instructions = len(global_state.environment.code.instruction_list)
+                coverage[code] = (
+                    number_of_instructions,
+                    [False] * number_of_instructions,
+                )
+
+            coverage[code][1][global_state.mstate.pc] = True
