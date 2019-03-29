@@ -3,7 +3,9 @@ from mythril.laser.ethereum.plugins.implementations.benchmark import BenchmarkPl
 from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
     MutationPruner,
 )
-from mythril.laser.ethereum.plugins.implementations.coverage import InstructionCoveragePlugin
+from mythril.laser.ethereum.plugins.implementations.coverage import (
+    InstructionCoveragePlugin,
+)
 
 
 class PluginFactory:

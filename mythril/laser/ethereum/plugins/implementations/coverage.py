@@ -34,7 +34,11 @@ class InstructionCoveragePlugin(LaserPlugin):
             for code, code_cov in coverage.items():
                 cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
 
-                log.info("Achieved {:.2f}% coverage for code: {}".format(cov_percentage, code))
+                log.info(
+                    "Achieved {:.2f}% coverage for code: {}".format(
+                        cov_percentage, code
+                    )
+                )
 
         @symbolic_vm.laser_hook("execute_state")
         def execute_state_hook(global_state: GlobalState):
@@ -42,7 +46,9 @@ class InstructionCoveragePlugin(LaserPlugin):
             code = global_state.environment.code.bytecode
 
             if code not in coverage.keys():
-                number_of_instructions = len(global_state.environment.code.instruction_list)
+                number_of_instructions = len(
+                    global_state.environment.code.instruction_list
+                )
                 coverage[code] = (
                     number_of_instructions,
                     [False] * number_of_instructions,
