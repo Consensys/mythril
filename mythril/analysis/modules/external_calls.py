@@ -56,8 +56,8 @@ def _analyze_state(state):
             )
 
             issue = Issue(
-                contract=state.node.contract_name,
-                function_name=state.node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=address,
                 swc_id=REENTRANCY,
                 title="External Call To User-Supplied Address",
@@ -83,8 +83,8 @@ def _analyze_state(state):
             )
 
             issue = Issue(
-                contract=state.node.contract_name,
-                function_name=state.node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=address,
                 swc_id=REENTRANCY,
                 title="External Call To Fixed Address",
