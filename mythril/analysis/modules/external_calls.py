@@ -32,7 +32,6 @@ def _analyze_state(state):
     """
     gas = state.mstate.stack[-1]
     to = state.mstate.stack[-2]
-    issues = []
     address = state.get_current_instruction()["address"]
     call = get_call_from_state(state)
 
@@ -105,8 +104,8 @@ def _analyze_state(state):
     except UnsatError:
         log.debug("[EXTERNAL_CALLS] No model found.")
         return []
-    issues.append(issue)
-    return issues
+
+    return [issue]
 
 
 class ExternalCalls(DetectionModule):
