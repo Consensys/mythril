@@ -12,7 +12,9 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
 )
 
-from mythril.laser.ethereum.plugins.mutation_pruner import MutationPruner
+from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
+    MutationPruner,
+)
 
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
@@ -193,7 +195,7 @@ class SymExecWrapper:
                         )
 
                 elif op == "SSTORE":
-                    stack = copy.deepcopy(state.mstate.stack)
+                    stack = copy.copy(state.mstate.stack)
                     address = state.environment.active_account.address
 
                     index, value = stack.pop(), stack.pop()

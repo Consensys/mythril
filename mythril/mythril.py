@@ -36,6 +36,8 @@ from mythril.analysis.report import Report
 from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.interface.leveldb.client import EthLevelDB
 from mythril.laser.smt import SolverStatistics
+from mythril.support.start_time import StartTime
+
 
 log = logging.getLogger(__name__)
 
@@ -568,7 +570,9 @@ class Mythril(object):
         """
         all_issues = []
         SolverStatistics().enabled = True
+        exceptions = []
         for contract in contracts or self.contracts:
+            StartTime()  # Reinitialize start time for new contracts
             try:
                 sym = SymExecWrapper(
                     contract,
@@ -597,7 +601,7 @@ class Mythril(object):
                     + traceback.format_exc()
                 )
                 issues = retrieve_callback_issues(modules)
-
+                exceptions.append(traceback.format_exc())
             for issue in issues:
                 issue.add_code_info(contract)
 
@@ -607,7 +611,7 @@ class Mythril(object):
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report, source_data)
+        report = Report(verbose_report, source_data, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 

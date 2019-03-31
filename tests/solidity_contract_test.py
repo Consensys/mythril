@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from mythril.mythril import Mythril
+from mythril.mythril import MythrilDisassembler
 from mythril.solidity.soliditycontract import SolidityContract
 from tests import BaseTestCase
 
@@ -11,7 +11,7 @@ class SolidityContractTest(BaseTestCase):
     def test_get_source_info_without_name_gets_latest_contract_info(self):
         input_file = TEST_FILES / "multi_contracts.sol"
         contract = SolidityContract(
-            str(input_file), solc_binary=Mythril._init_solc_binary("0.5.0")
+            str(input_file), solc_binary=MythrilDisassembler._init_solc_binary("0.5.0")
         )
 
         code_info = contract.get_source_info(142)
@@ -25,7 +25,7 @@ class SolidityContractTest(BaseTestCase):
         contract = SolidityContract(
             str(input_file),
             name="Transfer1",
-            solc_binary=Mythril._init_solc_binary("0.5.0"),
+            solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
         )
 
         code_info = contract.get_source_info(142)
@@ -39,7 +39,7 @@ class SolidityContractTest(BaseTestCase):
         contract = SolidityContract(
             str(input_file),
             name="AssertFail",
-            solc_binary=Mythril._init_solc_binary("0.5.0"),
+            solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
         )
 
         code_info = contract.get_source_info(70, constructor=True)

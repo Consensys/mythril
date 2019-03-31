@@ -49,7 +49,6 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
@@ -136,7 +135,7 @@ def get_callee_account(
     log.debug("Attempting to load dependency")
 
     try:
-        code = dynamic_loader.dynld(environment.active_account.address, callee_address)
+        code = dynamic_loader.dynld(callee_address)
     except ValueError as error:
         log.debug("Unable to execute dynamic loader because: {}".format(str(error)))
         raise error

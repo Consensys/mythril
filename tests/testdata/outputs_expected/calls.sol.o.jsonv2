@@ -1,115 +1,165 @@
-[{
-	"issues": [{
-		"description": {
-			"head": "The contract executes an external message call.",
-			"tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "661:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-107",
-		"swcTitle": "Reentrancy"
-	}, {
-		"description": {
-			"head": "The contract executes an external message call.",
-			"tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "779:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-107",
-		"swcTitle": "Reentrancy"
-	}, {
-		"description": {
-			"head": "The contract executes an external message call.",
-			"tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "858:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-107",
-		"swcTitle": "Reentrancy"
-	}, {
-		"description": {
-			"head": "A call to a user-supplied address is executed.",
-			"tail": "The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "912:1:0"
-		}],
-		"severity": "Medium",
-		"swcID": "SWC-107",
-		"swcTitle": "Reentrancy"
-	}, {
-		"description": {
-			"head": "The contract account state is changed after an external call. ",
-			"tail": "Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "869:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-107",
-		"swcTitle": "Reentrancy"
-	}, {
-		"description": {
-			"head": "The return value of a message call is not checked.",
-			"tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "661:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-104",
-		"swcTitle": "Unchecked Call Return Value"
-	}, {
-		"description": {
-			"head": "The return value of a message call is not checked.",
-			"tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "779:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-104",
-		"swcTitle": "Unchecked Call Return Value"
-	}, {
-		"description": {
-			"head": "The return value of a message call is not checked.",
-			"tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "858:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-104",
-		"swcTitle": "Unchecked Call Return Value"
-	}, {
-		"description": {
-			"head": "The return value of a message call is not checked.",
-			"tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
-		},
-		"extra": {},
-		"locations": [{
-			"sourceMap": "912:1:0"
-		}],
-		"severity": "Low",
-		"swcID": "SWC-104",
-		"swcTitle": "Unchecked Call Return Value"
-	}],
-	"meta": {},
-	"sourceFormat": "evm-byzantium-bytecode",
-	"sourceList": ["0x7cbb77986c6b1bf6e945cd3fba06d3ea3d28cfc49cdfdc9571ec30703ac5862f"],
-	"sourceType": "raw-bytecode"
-}]
+[
+    {
+        "issues": [
+            {
+                "description": {
+                    "head": "The contract executes an external message call.",
+                    "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "661:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-107",
+                "swcTitle": "Reentrancy"
+            },
+            {
+                "description": {
+                    "head": "The contract executes an external message call.",
+                    "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "779:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-107",
+                "swcTitle": "Reentrancy"
+            },
+            {
+                "description": {
+                    "head": "The contract executes an external message call.",
+                    "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "858:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-107",
+                "swcTitle": "Reentrancy"
+            },
+            {
+                "description": {
+                    "head": "A call to a user-supplied address is executed.",
+                    "tail": "The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "912:1:0"
+                    }
+                ],
+                "severity": "Medium",
+                "swcID": "SWC-107",
+                "swcTitle": "Reentrancy"
+            },
+            {
+                "description": {
+                    "head": "The contract account state is changed after an external call. ",
+                    "tail": "Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "869:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-107",
+                "swcTitle": "Reentrancy"
+            },
+            {
+                "description": {
+                    "head": "The return value of a message call is not checked.",
+                    "tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "661:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-104",
+                "swcTitle": "Unchecked Call Return Value"
+            },
+            {
+                "description": {
+                    "head": "The return value of a message call is not checked.",
+                    "tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "779:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-104",
+                "swcTitle": "Unchecked Call Return Value"
+            },
+            {
+                "description": {
+                    "head": "The return value of a message call is not checked.",
+                    "tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "858:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-104",
+                "swcTitle": "Unchecked Call Return Value"
+            },
+            {
+                "description": {
+                    "head": "The return value of a message call is not checked.",
+                    "tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "912:1:0"
+                    }
+                ],
+                "severity": "Low",
+                "swcID": "SWC-104",
+                "swcTitle": "Unchecked Call Return Value"
+            }
+        ],
+        "meta": {},
+        "sourceFormat": "evm-byzantium-bytecode",
+        "sourceList": [
+            "0x7cbb77986c6b1bf6e945cd3fba06d3ea3d28cfc49cdfdc9571ec30703ac5862f"
+        ],
+        "sourceType": "raw-bytecode"
+    }
+]

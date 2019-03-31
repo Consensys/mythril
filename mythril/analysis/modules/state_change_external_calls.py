@@ -114,14 +114,17 @@ class StateChange(DetectionModule):
             List[StateChangeCallsAnnotation],
             list(state.get_annotations(StateChangeCallsAnnotation)),
         )
+        opcode = state.get_current_instruction()["opcode"]
+
         if len(annotations) == 0:
+            if opcode in ("SSTORE", "CREATE", "CREATE2"):
+                return []
             log.debug("Creating annotation for state")
             state.annotate(StateChangeCallsAnnotation())
             annotations = cast(
                 List[StateChangeCallsAnnotation],
                 list(state.get_annotations(StateChangeCallsAnnotation)),
             )
-        opcode = state.get_current_instruction()["opcode"]
 
         if opcode in ("SSTORE", "CREATE", "CREATE2"):
             return StateChange._handle_state_change(
