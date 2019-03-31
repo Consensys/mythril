@@ -82,7 +82,7 @@ class StateChange(DetectionModule):
         if call is None:
             return
         try:
-            constraints = copy(state.node.constraints)
+            constraints = copy(state.mstate.constraints)
             solver.get_model(
                 constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
             )
@@ -167,8 +167,8 @@ class StateChange(DetectionModule):
             )
 
             issue = Issue(
-                contract=call.node.contract_name,
-                function_name=call.node.function_name,
+                contract=call.state.environment.active_account.contract_name,
+                function_name=call.state.environment.active_function_name,
                 address=address,
                 title="State change after external call",
                 severity=severity,
