@@ -71,13 +71,13 @@ def _analyze_states(state: GlobalState) -> list:
         "The contract sends Ether depending on the values of the following variables:\n"
     )
 
-    # First check: look for predictable state variables in node & call recipient constraints
+    # First check: look for predictable state variables in state & call recipient constraints
 
     vars = ["coinbase", "gaslimit", "timestamp", "number"]
     found = []
 
     for var in vars:
-        for constraint in call.node.constraints[:] + [call.to]:
+        for constraint in call.state.mstate.constraints[:] + [call.to]:
             if var in str(constraint):
                 found.append(var)
 
@@ -94,8 +94,8 @@ def _analyze_states(state: GlobalState) -> list:
             )
 
             issue = Issue(
-                contract=call.node.contract_name,
-                function_name=call.node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=address,
                 swc_id=swc_id,
                 bytecode=call.state.environment.code.bytecode,
@@ -112,7 +112,7 @@ def _analyze_states(state: GlobalState) -> list:
 
     # Second check: blockhash
 
-    for constraint in call.node.constraints[:] + [call.to]:
+    for constraint in call.state.mstate.constraints[:] + [call.to]:
         if "blockhash" in str(constraint):
             if "number" in str(constraint):
                 m = re.search(r"blockhash\w+(\s-\s(\d+))*", str(constraint))
@@ -145,8 +145,8 @@ def _analyze_states(state: GlobalState) -> list:
                         description += ", this expression will always be equal to zero."
 
                     issue = Issue(
-                        contract=call.node.contract_name,
-                        function_name=call.node.function_name,
+                        contract=state.environment.active_account.contract_name,
+                        function_name=state.environment.active_function_name,
                         address=address,
                         bytecode=call.state.environment.code.bytecode,
                         title="Dependence on Predictable Variable",
@@ -186,8 +186,8 @@ def _analyze_states(state: GlobalState) -> list:
                             )
                         )
                         issue = Issue(
-                            contract=call.node.contract_name,
-                            function_name=call.node.function_name,
+                            contract=state.environment.active_account.contract_name,
+                            function_name=state.environment.active_function_name,
                             address=address,
                             bytecode=call.state.environment.code.bytecode,
                             title="Dependence on Predictable Variable",
@@ -212,7 +212,7 @@ def solve(call: Call) -> bool:
     :return:
     """
     try:
-        model = solver.get_model(call.node.constraints)
+        model = solver.get_model(call.state.mstate.constraints)
         log.debug("[DEPENDENCE_ON_PREDICTABLE_VARS] MODEL: " + str(model))
         pretty_model = solver.pretty_print_model(model)
 

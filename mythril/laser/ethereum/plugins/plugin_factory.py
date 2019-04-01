@@ -21,3 +21,12 @@ class PluginFactory:
         )
 
         return MutationPruner()
+
+    @staticmethod
+    def build_instruction_coverage_plugin() -> LaserPlugin:
+        """ Creates an instance of the instruction coverage plugin"""
+        from mythril.laser.ethereum.plugins.implementations.coverage import (
+            InstructionCoveragePlugin,
+        )
+
+        return InstructionCoveragePlugin()
