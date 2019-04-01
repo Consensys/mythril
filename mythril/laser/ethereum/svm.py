@@ -95,6 +95,10 @@ class LaserEVM:
 
         self._add_world_state_hooks = []  # type: List[Callable]
         self._execute_state_hooks = []  # type: List[Callable]
+
+        self._start_sym_trans_hooks = []  # type: List[Callable]
+        self._stop_sym_trans_hooks = []  # type: List[Callable]
+
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
@@ -176,7 +180,13 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
+            for hook in self._start_sym_trans_hooks:
+                hook()
+
             execute_message_call(self, address)
+
+            for hook in self._stop_sym_trans_hooks:
+                hook()
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
         """
@@ -480,6 +490,10 @@ class LaserEVM:
             self._start_sym_exec_hooks.append(hook)
         elif hook_type == "stop_sym_exec":
             self._stop_sym_exec_hooks.append(hook)
+        elif hook_type == "start_sym_trans":
+            self._start_sym_trans_hooks.append(hook)
+        elif hook_type == "stop_sym_trans":
+            self._stop_sym_trans_hooks.append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type
