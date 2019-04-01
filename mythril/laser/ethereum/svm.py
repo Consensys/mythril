@@ -72,8 +72,6 @@ class LaserEVM:
         self.world_state = world_state
         self.open_states = [world_state]
 
-        self.coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
-
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
@@ -158,10 +156,6 @@ class LaserEVM:
                 len(self.edges),
                 self.total_states,
             )
-        for code, coverage in self.coverage.items():
-            cov = sum(coverage[1]) / float(coverage[0]) * 100
-
-            log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
         if self.iprof is not None:
             log.info("Instruction Statistics:\n{}".format(self.iprof))
@@ -170,42 +164,19 @@ class LaserEVM:
             hook()
 
     def _execute_transactions(self, address):
-        """This function executes multiple transactions on the address based on
-        the coverage.
+        """This function executes multiple transactions on the address
 
         :param address: Address of the contract
         :return:
         """
-        self.coverage = {}
         for i in range(self.transaction_count):
-            initial_coverage = self._get_covered_instructions()
-
             self.time = datetime.now()
             log.info(
                 "Starting message call transaction, iteration: {}, {} initial states".format(
                     i, len(self.open_states)
                 )
             )
-
             execute_message_call(self, address)
-
-            end_coverage = self._get_covered_instructions()
-
-            log.info(
-                "Number of new instructions covered in tx %d: %d"
-                % (i, end_coverage - initial_coverage)
-            )
-
-    def _get_covered_instructions(self) -> int:
-        """Gets the total number of covered instructions for all accounts in
-        the svm.
-
-        :return:
-        """
-        total_covered_instructions = 0
-        for _, cv in self.coverage.items():
-            total_covered_instructions += sum(cv[1])
-        return total_covered_instructions
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
         """
@@ -284,7 +255,6 @@ class LaserEVM:
 
         self._execute_pre_hook(op_code, global_state)
         try:
-            self._measure_coverage(global_state)
             new_global_states = Instruction(
                 op_code, self.dynamic_loader, self.iprof
             ).evaluate(global_state)
@@ -388,23 +358,6 @@ class LaserEVM:
             state.node = global_state.node
 
         return new_global_states
-
-    def _measure_coverage(self, global_state: GlobalState) -> None:
-        """
-
-        :param global_state:
-        """
-        code = global_state.environment.code.bytecode
-        number_of_instructions = len(global_state.environment.code.instruction_list)
-        instruction_index = global_state.mstate.pc
-
-        if code not in self.coverage.keys():
-            self.coverage[code] = (
-                number_of_instructions,
-                [False] * number_of_instructions,
-            )
-
-        self.coverage[code][1][instruction_index] = True
 
     def manage_cfg(self, opcode: str, new_states: List[GlobalState]) -> None:
         """
