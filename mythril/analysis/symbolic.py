@@ -12,9 +12,9 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
 )
 
-from mythril.laser.ethereum.plugins.implementations.mutation_pruner import (
-    MutationPruner,
-)
+from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
+from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
+
 
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
@@ -86,9 +86,9 @@ class SymExecWrapper:
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
         )
-        mutation_plugin = MutationPruner()
 
-        mutation_plugin.initialize(self.laser)
+        plugin_loader = LaserPluginLoader(self.laser)
+        plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
 
         self.laser.register_hooks(
             hook_type="pre",

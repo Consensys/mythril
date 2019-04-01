@@ -2,6 +2,9 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 
 from typing import List
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class LaserPluginLoader:
@@ -16,13 +19,14 @@ class LaserPluginLoader:
         :param symbolic_vm: symbolic virtual machine to load plugins for
         """
         self.symbolic_vm = symbolic_vm
-        self.laser_plugins: List[LaserPlugin] = []
+        self.laser_plugins = []  # type: List[LaserPlugin]
 
     def load(self, laser_plugin: LaserPlugin) -> None:
         """ Loads the plugin
 
         :param laser_plugin: plugin that will be loaded in the symbolic virtual machine
         """
+        log.info("Loading plugin: {}".format(str(laser_plugin)))
         laser_plugin.initialize(self.symbolic_vm)
         self.laser_plugins.append(laser_plugin)
 
