@@ -1,6 +1,8 @@
 from mythril.laser.ethereum.strategy import BasicSearchStrategy
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.plugins.implementations.coverage import InstructionCoveragePlugin
+from mythril.laser.ethereum.plugins.implementations.coverage import (
+    InstructionCoveragePlugin,
+)
 
 
 class CoverageStrategy(BasicSearchStrategy):
@@ -11,10 +13,17 @@ class CoverageStrategy(BasicSearchStrategy):
 
     This strategy is intended to be used "on top of" another one
     """
-    def __init__(self, super_strategy: BasicSearchStrategy, instruction_coverage_plugin: InstructionCoveragePlugin):
+
+    def __init__(
+        self,
+        super_strategy: BasicSearchStrategy,
+        instruction_coverage_plugin: InstructionCoveragePlugin,
+    ):
         self.super_strategy = super_strategy
         self.instruction_coverage_plugin = instruction_coverage_plugin
-        BasicSearchStrategy.__init__(self, super_strategy.work_list, super_strategy.max_depth)
+        BasicSearchStrategy.__init__(
+            self, super_strategy.work_list, super_strategy.max_depth
+        )
 
     def get_strategic_global_state(self) -> GlobalState:
         """
