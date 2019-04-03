@@ -87,3 +87,12 @@ class InstructionCoveragePlugin(LaserPlugin):
         for _, cv in self.coverage.items():
             total_covered_instructions += sum(cv[1])
         return total_covered_instructions
+
+    def is_instruction_covered(self, bytecode, index):
+        if bytecode not in self.coverage.keys():
+            return False
+
+        try:
+            return self.coverage[bytecode][index]
+        except IndexError:
+            return False
