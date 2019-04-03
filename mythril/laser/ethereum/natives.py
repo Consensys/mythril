@@ -6,12 +6,20 @@ from typing import List, Union
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
+import py_ecc.optimized_bn128 as bn128
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
-from mythril.laser.ethereum.util import bytearray_to_int, extract_copy
-from ethereum.utils import sha3, big_endian_to_int, safe_ord, zpad, int_to_big_endian
-from mythril.laser.smt import Concat, simplify
+from mythril.laser.ethereum.util import bytearray_to_int, extract_copy, extract32
+from ethereum.utils import (
+    sha3,
+    big_endian_to_int,
+    safe_ord,
+    zpad,
+    int_to_big_endian,
+    encode_int32,
+)
+from ethereum.specials import validate_point
 
 log = logging.getLogger(__name__)
 
@@ -20,35 +28,6 @@ class NativeContractException(Exception):
     """An exception denoting an error during a native call."""
 
     pass
-
-
-def int_to_32bytes(
-    i: int
-) -> bytes:  # used because int can't fit as bytes function's input
-    """
-
-    :param i:
-    :return:
-    """
-    o = [0] * 32
-    for x in range(32):
-        o[31 - x] = i & 0xFF
-        i >>= 8
-    return bytes(o)
-
-
-def extract32(data: bytearray, i: int) -> int:
-    """
-
-    :param data:
-    :param i:
-    :return:
-    """
-    if i >= len(data):
-        return 0
-    o = data[i : min(i + 32, len(data))]
-    o.extend(bytearray(32 - len(o)))
-    return bytearray_to_int(o)
 
 
 def ecrecover(data: List[int]) -> List[int]:
@@ -122,6 +101,7 @@ def identity(data: List[int]) -> List[int]:
 
 def mod_exp(data: List[int]) -> List[int]:
     """
+    TODO: Some symbolic parts can be handled here
     Modular Exponentiation
     :param data: Data with <length_of_BASE> <length_of_EXPONENT> <length_of_MODULUS> <BASE> <EXPONENT> <MODULUS>
     :return: modular exponentiation
@@ -153,6 +133,67 @@ def mod_exp(data: List[int]) -> List[int]:
     return [safe_ord(x) for x in zpad(int_to_big_endian(o), modlen)]
 
 
+def ec_add(data: List[int]) -> List[int]:
+    data = bytearray(data)
+    x1 = extract32(data, 0)
+    y1 = extract32(data, 32)
+    x2 = extract32(data, 64)
+    y2 = extract32(data, 96)
+    p1 = validate_point(x1, y1)
+    p2 = validate_point(x2, y2)
+    if p1 is False or p2 is False:
+        return []
+    o = bn128.normalize(bn128.add(p1, p2))
+    return [safe_ord(x) for x in (encode_int32(o[0].n) + encode_int32(o[1].n))]
+
+
+def ec_mul(data: List[int]) -> List[int]:
+    data = bytearray(data)
+    x = extract32(data, 0)
+    y = extract32(data, 32)
+    m = extract32(data, 64)
+    p = validate_point(x, y)
+    if p is False:
+        return []
+    o = bn128.normalize(bn128.multiply(p, m))
+    return [safe_ord(c) for c in (encode_int32(o[0].n) + encode_int32(o[1].n))]
+
+
+def ec_pair(data: List[int]) -> List[int]:
+    if len(data) % 192:
+        return []
+
+    zero = (bn128.FQ2.one(), bn128.FQ2.one(), bn128.FQ2.zero())
+    exponent = bn128.FQ12.one()
+    data = bytearray(data)
+    for i in range(0, len(data), 192):
+        x1 = extract32(data, i)
+        y1 = extract32(data, i + 32)
+        x2_i = extract32(data, i + 64)
+        x2_r = extract32(data, i + 96)
+        y2_i = extract32(data, i + 128)
+        y2_r = extract32(data, i + 160)
+        p1 = validate_point(x1, y1)
+        if p1 is False:
+            return []
+        for v in (x2_i, x2_r, y2_i, y2_r):
+            if v >= bn128.field_modulus:
+                return []
+        fq2_x = bn128.FQ2([x2_r, x2_i])
+        fq2_y = bn128.FQ2([y2_r, y2_i])
+        if (fq2_x, fq2_y) != (bn128.FQ2.zero(), bn128.FQ2.zero()):
+            p2 = (fq2_x, fq2_y, bn128.FQ2.one())
+            if not bn128.is_on_curve(p2, bn128.b2):
+                return []
+        else:
+            p2 = zero
+        if bn128.multiply(p2, bn128.curve_order)[-1] != bn128.FQ2.zero():
+            return []
+        exponent *= bn128.pairing(p2, p1, final_exponentiate=False)
+    result = bn128.final_exponentiate(exponent) == bn128.FQ12.one()
+    return [0] * 31 + [1 if result else 0]
+
+
 def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     """Takes integer address 1, 2, 3, 4.
 
@@ -160,9 +201,17 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     :param data:
     :return:
     """
-    functions = (ecrecover, sha256, ripemd160, identity, mod_exp)
+    functions = (
+        ecrecover,
+        sha256,
+        ripemd160,
+        identity,
+        mod_exp,
+        ec_add,
+        ec_mul,
+        ec_pair,
+    )
 
-    # TODO: Handle these
     if isinstance(data, ConcreteCalldata):
         concrete_data = data.concrete(None)
     else:

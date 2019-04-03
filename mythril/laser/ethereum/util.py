@@ -158,3 +158,17 @@ def extract_copy(data: bytearray, mem: bytearray, memstart, datastart, size):
             mem[memstart + i] = data[datastart + i]
         else:
             mem[memstart + i] = 0
+
+
+def extract32(data: bytearray, i: int) -> int:
+    """
+
+    :param data:
+    :param i:
+    :return:
+    """
+    if i >= len(data):
+        return 0
+    o = data[i : min(i + 32, len(data))]
+    o.extend(bytearray(32 - len(o)))
+    return bytearray_to_int(o)
