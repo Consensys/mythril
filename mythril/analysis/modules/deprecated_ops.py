@@ -30,13 +30,13 @@ def _analyze_state(state):
             "Use of msg.origin is deprecated and the instruction may be removed in the  future. "
             "Use msg.sender instead.\nSee also: "
             "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin".format(
-                node.function_name
+                state.environment.active_function_name
             )
         )
         swc_id = DEPRECATED_FUNCTIONS_USAGE
 
     elif instruction["opcode"] == "CALLCODE":
-        log.debug("CALLCODE in function " + node.function_name)
+        log.debug("CALLCODE in function " + state.environment.active_function_name)
         title = "Use of callcode"
         description_head = "Use of callcode is deprecated."
         description_tail = (
@@ -45,10 +45,12 @@ def _analyze_state(state):
             "therefore deprecated and may be removed in the future. Use the delegatecall method instead."
         )
         swc_id = DEPRECATED_FUNCTIONS_USAGE
+    else:
+        return
 
     issue = Issue(
-        contract=node.contract_name,
-        function_name=node.function_name,
+        contract=state.environment.active_account.contract_name,
+        function_name=state.environment.active_function_name,
         address=instruction["address"],
         title=title,
         bytecode=state.environment.code.bytecode,

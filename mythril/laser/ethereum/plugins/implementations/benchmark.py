@@ -1,4 +1,5 @@
 from mythril.laser.ethereum.svm import LaserEVM
+from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from time import time
 import matplotlib.pyplot as plt
 import logging
@@ -6,7 +7,8 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class BenchmarkPlugin:
+# TODO: introduce dependency on coverage plugin
+class BenchmarkPlugin(LaserPlugin):
     """Benchmark Plugin
 
     This plugin aggregates the following information:

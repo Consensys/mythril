@@ -1019,9 +1019,7 @@ class Instruction:
         if addr in global_state.accounts:
             code = global_state.accounts[addr].code
         else:
-            code = self.dynamic_loader.dynld(
-                global_state.environment.active_account.address, addr
-            )
+            code = self.dynamic_loader.dynld(addr)
             global_state.world_state.create_account(
                 balance=0, address=addr, dynamic_loader=self.dynamic_loader
             )
