@@ -21,6 +21,11 @@ class InstructionCoveragePlugin(LaserPlugin):
 
     """
 
+    def __init__(self):
+        self.coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
+        self.initial_coverage = 0
+        self.tx_id = 0
+
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the instruction coverage plugin
 
@@ -28,12 +33,14 @@ class InstructionCoveragePlugin(LaserPlugin):
         :param symbolic_vm:
         :return:
         """
-        coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
+        self.coverage = {}
+        self.initial_coverage = 0
+        self.tx_id = 0
 
         @symbolic_vm.laser_hook("stop_sym_exec")
         def stop_sym_exec_hook():
             # Print results
-            for code, code_cov in coverage.items():
+            for code, code_cov in self.coverage.items():
                 cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
 
                 log.info(
@@ -47,13 +54,36 @@ class InstructionCoveragePlugin(LaserPlugin):
             # Record coverage
             code = global_state.environment.code.bytecode
 
-            if code not in coverage.keys():
+            if code not in self.coverage.keys():
                 number_of_instructions = len(
                     global_state.environment.code.instruction_list
                 )
-                coverage[code] = (
+                self.coverage[code] = (
                     number_of_instructions,
                     [False] * number_of_instructions,
                 )
 
-            coverage[code][1][global_state.mstate.pc] = True
+            self.coverage[code][1][global_state.mstate.pc] = True
+
+        @symbolic_vm.laser_hook("start_sym_trans")
+        def execute_start_sym_trans_hook():
+            self.initial_coverage = self._get_covered_instructions()
+
+        @symbolic_vm.laser_hook("stop_sym_trans")
+        def execute_stop_sym_trans_hook():
+            end_coverage = self._get_covered_instructions()
+            log.info(
+                "Number of new instructions covered in tx %d: %d"
+                % (self.tx_id, end_coverage - self.initial_coverage)
+            )
+            self.tx_id += 1
+
+    def _get_covered_instructions(self) -> int:
+        """Gets the total number of covered instructions for all accounts in
+        the svm.
+        :return:
+        """
+        total_covered_instructions = 0
+        for _, cv in self.coverage.items():
+            total_covered_instructions += sum(cv[1])
+        return total_covered_instructions
