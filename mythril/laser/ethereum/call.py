@@ -211,7 +211,7 @@ def native_call(
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
 ) -> Union[List[GlobalState], None]:
-    if not 0 < int(callee_address, 16) < 5:
+    if not 0 < int(callee_address, 16) < 9:
         return None
 
     log.debug("Native contract called: " + callee_address)

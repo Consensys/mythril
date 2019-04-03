@@ -146,7 +146,7 @@ class SymExecWrapper:
                             get_variable(stack[-7]),
                         )
 
-                        if to.type == VarType.CONCRETE and to.val < 5:
+                        if to.type == VarType.CONCRETE and 0 < to.val < 9:
                             # ignore prebuilts
                             continue
 
