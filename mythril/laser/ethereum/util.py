@@ -150,3 +150,11 @@ def bytearray_to_int(arr):
     for a in arr:
         o = (o << 8) + a
     return o
+
+
+def extract_copy(data: bytearray, mem: bytearray, memstart, datastart, size):
+    for i in range(size):
+        if datastart + i < len(data):
+            mem[memstart + i] = data[datastart + i]
+        else:
+            mem[memstart + i] = 0

@@ -9,8 +9,8 @@ from py_ecc.secp256k1 import N as secp256k1n
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
-from mythril.laser.ethereum.util import bytearray_to_int
-from ethereum.utils import sha3
+from mythril.laser.ethereum.util import bytearray_to_int, extract_copy
+from ethereum.utils import sha3, big_endian_to_int, safe_ord, zpad, int_to_big_endian
 from mythril.laser.smt import Concat, simplify
 
 log = logging.getLogger(__name__)
@@ -120,6 +120,39 @@ def identity(data: List[int]) -> List[int]:
     return data
 
 
+def mod_exp(data: List[int]) -> List[int]:
+    """
+    Modular Exponentiation
+    :param data: Data with <length_of_BASE> <length_of_EXPONENT> <length_of_MODULUS> <BASE> <EXPONENT> <MODULUS>
+    :return: modular exponentiation
+    """
+    data = bytearray(data)
+    baselen = extract32(data, 0)
+    explen = extract32(data, 32)
+    modlen = extract32(data, 64)
+    if baselen == 0:
+        return [0] * modlen
+    if modlen == 0:
+        return []
+
+    first_exp_bytes = extract32(data, 96 + baselen) >> (8 * max(32 - explen, 0))
+    bitlength = -1
+    while first_exp_bytes:
+        bitlength += 1
+        first_exp_bytes >>= 1
+
+    base = bytearray(baselen)
+    extract_copy(data, base, 0, 96, baselen)
+    exp = bytearray(explen)
+    extract_copy(data, exp, 0, 96 + baselen, explen)
+    mod = bytearray(modlen)
+    extract_copy(data, mod, 0, 96 + baselen + explen, modlen)
+    if big_endian_to_int(mod) == 0:
+        return [0] * modlen
+    o = pow(big_endian_to_int(base), big_endian_to_int(exp), big_endian_to_int(mod))
+    return [safe_ord(x) for x in zpad(int_to_big_endian(o), modlen)]
+
+
 def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     """Takes integer address 1, 2, 3, 4.
 
@@ -127,8 +160,9 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     :param data:
     :return:
     """
-    functions = (ecrecover, sha256, ripemd160, identity)
+    functions = (ecrecover, sha256, ripemd160, identity, mod_exp)
 
+    # TODO: Handle these
     if isinstance(data, ConcreteCalldata):
         concrete_data = data.concrete(None)
     else:
