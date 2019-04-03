@@ -10,7 +10,7 @@ import py_ecc.optimized_bn128 as bn128
 from rlp.utils import ALL_BYTES
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
-from mythril.laser.ethereum.util import bytearray_to_int, extract_copy, extract32
+from mythril.laser.ethereum.util import extract_copy, extract32
 from ethereum.utils import (
     sha3,
     big_endian_to_int,
