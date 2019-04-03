@@ -152,7 +152,9 @@ def bytearray_to_int(arr):
     return o
 
 
-def extract_copy(data: bytearray, mem: bytearray, memstart, datastart, size):
+def extract_copy(
+    data: bytearray, mem: bytearray, memstart: int, datastart: int, size: int
+):
     for i in range(size):
         if datastart + i < len(data):
             mem[memstart + i] = data[datastart + i]

@@ -38,14 +38,14 @@ def ecrecover(data: List[int]) -> List[int]:
     """
     # TODO: Add type hints
     try:
-        byte_data = bytearray(data)
-        v = extract32(byte_data, 32)
-        r = extract32(byte_data, 64)
-        s = extract32(byte_data, 96)
+        bytes_data = bytearray(data)
+        v = extract32(bytes_data, 32)
+        r = extract32(bytes_data, 64)
+        s = extract32(bytes_data, 96)
     except TypeError:
         raise NativeContractException
 
-    message = b"".join([ALL_BYTES[x] for x in byte_data[0:32]])
+    message = b"".join([ALL_BYTES[x] for x in bytes_data[0:32]])
     if r >= secp256k1n or s >= secp256k1n or v < 27 or v > 28:
         return []
     try:
@@ -64,10 +64,10 @@ def sha256(data: List[int]) -> List[int]:
     :return:
     """
     try:
-        byte_data = bytes(data)
+        bytes_data = bytes(data)
     except TypeError:
         raise NativeContractException
-    return list(bytearray(hashlib.sha256(byte_data).digest()))
+    return list(bytearray(hashlib.sha256(bytes_data).digest()))
 
 
 def ripemd160(data: List[int]) -> List[int]:
@@ -106,27 +106,27 @@ def mod_exp(data: List[int]) -> List[int]:
     :param data: Data with <length_of_BASE> <length_of_EXPONENT> <length_of_MODULUS> <BASE> <EXPONENT> <MODULUS>
     :return: modular exponentiation
     """
-    data = bytearray(data)
-    baselen = extract32(data, 0)
-    explen = extract32(data, 32)
-    modlen = extract32(data, 64)
+    bytes_data = bytearray(data)
+    baselen = extract32(bytes_data, 0)
+    explen = extract32(bytes_data, 32)
+    modlen = extract32(bytes_data, 64)
     if baselen == 0:
         return [0] * modlen
     if modlen == 0:
         return []
 
-    first_exp_bytes = extract32(data, 96 + baselen) >> (8 * max(32 - explen, 0))
+    first_exp_bytes = extract32(bytes_data, 96 + baselen) >> (8 * max(32 - explen, 0))
     bitlength = -1
     while first_exp_bytes:
         bitlength += 1
         first_exp_bytes >>= 1
 
     base = bytearray(baselen)
-    extract_copy(data, base, 0, 96, baselen)
+    extract_copy(bytes_data, base, 0, 96, baselen)
     exp = bytearray(explen)
-    extract_copy(data, exp, 0, 96 + baselen, explen)
+    extract_copy(bytes_data, exp, 0, 96 + baselen, explen)
     mod = bytearray(modlen)
-    extract_copy(data, mod, 0, 96 + baselen + explen, modlen)
+    extract_copy(bytes_data, mod, 0, 96 + baselen + explen, modlen)
     if big_endian_to_int(mod) == 0:
         return [0] * modlen
     o = pow(big_endian_to_int(base), big_endian_to_int(exp), big_endian_to_int(mod))
@@ -134,11 +134,11 @@ def mod_exp(data: List[int]) -> List[int]:
 
 
 def ec_add(data: List[int]) -> List[int]:
-    data = bytearray(data)
-    x1 = extract32(data, 0)
-    y1 = extract32(data, 32)
-    x2 = extract32(data, 64)
-    y2 = extract32(data, 96)
+    bytes_data = bytearray(data)
+    x1 = extract32(bytes_data, 0)
+    y1 = extract32(bytes_data, 32)
+    x2 = extract32(bytes_data, 64)
+    y2 = extract32(bytes_data, 96)
     p1 = validate_point(x1, y1)
     p2 = validate_point(x2, y2)
     if p1 is False or p2 is False:
@@ -148,10 +148,10 @@ def ec_add(data: List[int]) -> List[int]:
 
 
 def ec_mul(data: List[int]) -> List[int]:
-    data = bytearray(data)
-    x = extract32(data, 0)
-    y = extract32(data, 32)
-    m = extract32(data, 64)
+    bytes_data = bytearray(data)
+    x = extract32(bytes_data, 0)
+    y = extract32(bytes_data, 32)
+    m = extract32(bytes_data, 64)
     p = validate_point(x, y)
     if p is False:
         return []
@@ -165,14 +165,14 @@ def ec_pair(data: List[int]) -> List[int]:
 
     zero = (bn128.FQ2.one(), bn128.FQ2.one(), bn128.FQ2.zero())
     exponent = bn128.FQ12.one()
-    data = bytearray(data)
-    for i in range(0, len(data), 192):
-        x1 = extract32(data, i)
-        y1 = extract32(data, i + 32)
-        x2_i = extract32(data, i + 64)
-        x2_r = extract32(data, i + 96)
-        y2_i = extract32(data, i + 128)
-        y2_r = extract32(data, i + 160)
+    bytes_data = bytearray(data)
+    for i in range(0, len(bytes_data), 192):
+        x1 = extract32(bytes_data, i)
+        y1 = extract32(bytes_data, i + 32)
+        x2_i = extract32(bytes_data, i + 64)
+        x2_r = extract32(bytes_data, i + 96)
+        y2_i = extract32(bytes_data, i + 128)
+        y2_r = extract32(bytes_data, i + 160)
         p1 = validate_point(x1, y1)
         if p1 is False:
             return []
