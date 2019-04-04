@@ -11,7 +11,6 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction
 from mythril.laser.ethereum.call import SymbolicCalldata
-from mythril.support.loader import DynLoader
 from mythril.laser.ethereum.transaction import TransactionStartSignal
 
 from mythril.laser.ethereum.evm_exceptions import WriteProtection
@@ -42,9 +41,10 @@ def test_staticcall(f1):
     instruction = Instruction("staticcall", dynamic_loader=None)
 
     # Act and Assert
-    with pytest.raises(TransactionStartSignal):
+    with pytest.raises(TransactionStartSignal) as ts:
         instruction.evaluate(state)
-        assert TransactionStartSignal.transaction.environment.static is True
+    assert ts.value.transaction.static
+    assert ts.value.transaction.initial_global_state().environment.static
 
 
 test_data = (
@@ -88,9 +88,9 @@ def test_staticness_call_concrete(f1, input, success):
 
     # Act and Assert
     if success:
-        with pytest.raises(TransactionStartSignal):
+        with pytest.raises(TransactionStartSignal) as ts:
             instruction.evaluate(state)
-            assert TransactionStartSignal.transaction.environment.static is True
+        assert ts.value.transaction.static
     else:
         with pytest.raises(WriteProtection):
             instruction.evaluate(state)
@@ -107,9 +107,8 @@ def test_staticness_call_symbolic(f1):
     instruction = Instruction("call", dynamic_loader=None)
 
     # Act and Assert
-    with pytest.raises(TransactionStartSignal):
+    with pytest.raises(TransactionStartSignal) as ts:
         instruction.evaluate(state)
-        assert TransactionStartSignal.transaction.environment.static is True
-        assert TransactionStartSignal.global_state.mstate.constraints[-1] != (
-            call_value == 0
-        )
+
+    assert ts.value.transaction.static
+    assert ts.value.global_state.mstate.constraints[-1] == (call_value == 0)
