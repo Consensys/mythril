@@ -39,6 +39,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     InvalidJumpDestination,
     InvalidInstruction,
     OutOfGasException,
+    WriteProtection,
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.keccak import KeccakFunctionManager
@@ -68,7 +69,7 @@ class StateTransition(object):
     if `increment_pc=True`.
     """
 
-    def __init__(self, increment_pc=True, enable_gas=True):
+    def __init__(self, increment_pc=True, enable_gas=True, static_check=False):
         """
 
         :param increment_pc:
@@ -76,6 +77,7 @@ class StateTransition(object):
         """
         self.increment_pc = increment_pc
         self.enable_gas = enable_gas
+        self.static_check = static_check
 
     @staticmethod
     def call_on_state_copy(func: Callable, func_obj: "Instruction", state: GlobalState):
@@ -143,6 +145,13 @@ class StateTransition(object):
             :param global_state:
             :return:
             """
+            if self.static_check and global_state.environment.static:
+                raise WriteProtection(
+                    "The function {} cannot be executed in a static call".format(
+                        func.__name__[:-1]
+                    )
+                )
+
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
             new_global_states = [
                 self.accumulate_gas(state) for state in new_global_states
@@ -1441,7 +1450,7 @@ class Instruction:
             keccak_argument = keccak_function_manager.get_argument(keccak_key)
             yield keccak_argument != argument
 
-    @StateTransition()
+    @StateTransition(static_check=True)
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1684,7 +1693,7 @@ class Instruction:
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(static_check=True)
     def log_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1699,7 +1708,7 @@ class Instruction:
         # Not supported
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(static_check=True)
     def create_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1707,13 +1716,14 @@ class Instruction:
         :return:
         """
         # TODO: implement me
+
         state = global_state.mstate
         state.stack.pop(), state.stack.pop(), state.stack.pop()
         # Not supported
         state.stack.append(0)
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(static_check=True)
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1749,7 +1759,7 @@ class Instruction:
             log.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
 
-    @StateTransition()
+    @StateTransition(static_check=True)
     def suicide_(self, global_state: GlobalState):
         """
 
@@ -1854,6 +1864,21 @@ class Instruction:
             )
             return [global_state]
 
+        if environment.static:
+            if isinstance(value, int) and value > 0:
+                raise WriteProtection(
+                    "Cannot call with non zero value in a static call"
+                )
+            if isinstance(value, BitVec):
+                if value.symbolic:
+                    global_state.mstate.constraints.append(
+                        value == symbol_factory.BitVecVal(0, 256)
+                    )
+                elif value.value > 0:
+                    raise WriteProtection(
+                        "Cannot call with non zero value in a static call"
+                    )
+
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
@@ -1871,8 +1896,9 @@ class Instruction:
             callee_account=callee_account,
             call_data=call_data,
             call_value=value,
+            static=environment.static,
         )
-        raise TransactionStartSignal(transaction, self.op_code)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition()
     def call_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1976,8 +2002,9 @@ class Instruction:
             callee_account=environment.active_account,
             call_data=call_data,
             call_value=value,
+            static=environment.static,
         )
-        raise TransactionStartSignal(transaction, self.op_code)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition()
     def callcode_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -2079,8 +2106,9 @@ class Instruction:
             callee_account=environment.active_account,
             call_data=call_data,
             call_value=environment.callvalue,
+            static=environment.static,
         )
-        raise TransactionStartSignal(transaction, self.op_code)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition()
     def delegatecall_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -2154,8 +2182,8 @@ class Instruction:
         :param global_state:
         :return:
         """
-        # TODO: implement me
         instr = global_state.get_current_instruction()
+        environment = global_state.environment
         try:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
@@ -2174,10 +2202,20 @@ class Instruction:
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
+
         if native_result:
             return native_result
 
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+        transaction = MessageCallTransaction(
+            world_state=global_state.world_state,
+            gas_price=environment.gasprice,
+            gas_limit=gas,
+            origin=environment.origin,
+            code=callee_account.code,
+            caller=environment.address,
+            callee_account=environment.active_account,
+            call_data=call_data,
+            call_value=value,
+            static=True,
         )
-        return [global_state]
+        raise TransactionStartSignal(transaction, self.op_code, global_state)

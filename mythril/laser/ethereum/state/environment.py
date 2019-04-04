@@ -22,6 +22,7 @@ class Environment:
         callvalue: ExprRef,
         origin: ExprRef,
         code=None,
+        static=False,
     ) -> None:
         """
 
@@ -49,6 +50,7 @@ class Environment:
         self.gasprice = gasprice
         self.origin = origin
         self.callvalue = callvalue
+        self.static = static
 
     def __str__(self) -> str:
         """
