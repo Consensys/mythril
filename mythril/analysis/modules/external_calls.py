@@ -5,7 +5,6 @@ from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
-from mythril.analysis.call_helpers import get_call_from_state
 from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
@@ -32,11 +31,8 @@ def _analyze_state(state):
     """
     gas = state.mstate.stack[-1]
     to = state.mstate.stack[-2]
-    address = state.get_current_instruction()["address"]
-    call = get_call_from_state(state)
 
-    if call is None:
-        return []
+    address = state.get_current_instruction()["address"]
 
     try:
         constraints = copy(state.mstate.constraints)
