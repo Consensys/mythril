@@ -94,7 +94,7 @@ class StateChange(DetectionModule):
         try:
             constraints = copy(global_state.mstate.constraints)
             solver.get_model(
-                constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
+                constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256)), to > 16]
             )
 
             # Check whether we can also set the callee address
