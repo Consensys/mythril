@@ -189,12 +189,13 @@ class StateChange(DetectionModule):
         return issues
 
     @staticmethod
-    def _balance_change(value: Variable) -> bool:
-        if value.type == VarType.CONCRETE:
-            return value.val > 0
+    def _balance_change(value: BitVec) -> bool:
+        if not value.symbolic:
+            assert value.value is not None
+            return value.value > 0
         else:
             zero = symbol_factory.BitVecVal(0, 256)
-            return simplify(value.val > zero)
+            return simplify(value > zero)
 
 
 detector = StateChange()
