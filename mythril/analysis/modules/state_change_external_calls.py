@@ -126,7 +126,7 @@ class StateChange(DetectionModule):
 
         # Record state changes following from a transfer of ether
         if op_code in ("CALL", "DELEGATECALL", "CALLCODE"):
-            value: BitVec = global_state.mstate.stack[-3]
+            value = global_state.mstate.stack[-3]  # type: BitVec
             if StateChange._balance_change(value, global_state):
                 for annotation in annotations:
                     annotation.state_change_states.append(global_state)
