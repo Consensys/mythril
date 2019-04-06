@@ -73,7 +73,7 @@ setup(
     packages=find_packages(exclude=["contrib", "docs", "tests"]),
     install_requires=[
         "coloredlogs>=10.0",
-        "py_ecc==1.4.2",
+        "py_ecc==1.6.0",
         "ethereum>=2.3.2",
         "z3-solver-mythril>=4.8.4.1",
         "requests",
