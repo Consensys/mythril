@@ -14,7 +14,7 @@ from mythril.laser.ethereum.strategy.basic import (
 
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
 from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
@@ -146,7 +146,10 @@ class SymExecWrapper:
                             get_variable(stack[-7]),
                         )
 
-                        if to.type == VarType.CONCRETE and 0 < to.val < 9:
+                        if (
+                            to.type == VarType.CONCRETE
+                            and 0 < to.val <= PRECOMPILE_COUNT
+                        ):
                             # ignore prebuilts
                             continue
 

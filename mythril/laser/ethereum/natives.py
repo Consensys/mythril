@@ -194,6 +194,19 @@ def ec_pair(data: List[int]) -> List[int]:
     return [0] * 31 + [1 if result else 0]
 
 
+PRECOMPILE_FUNCTIONS = (
+    ecrecover,
+    sha256,
+    ripemd160,
+    identity,
+    mod_exp,
+    ec_add,
+    ec_mul,
+    ec_pair,
+)
+PRECOMPILE_COUNT = len(PRECOMPILE_FUNCTIONS)
+
+
 def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     """Takes integer address 1, 2, 3, 4.
 
@@ -201,20 +214,10 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     :param data:
     :return:
     """
-    functions = (
-        ecrecover,
-        sha256,
-        ripemd160,
-        identity,
-        mod_exp,
-        ec_add,
-        ec_mul,
-        ec_pair,
-    )
 
     if isinstance(data, ConcreteCalldata):
         concrete_data = data.concrete(None)
     else:
         raise NativeContractException()
 
-    return functions[address - 1](concrete_data)
+    return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)

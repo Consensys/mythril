@@ -4,13 +4,13 @@ parameters for the new global state."""
 
 import logging
 from typing import Union, List, cast, Callable
-from z3 import Z3Exception
 from mythril.laser.smt import BitVec
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.smt import simplify, Expression, symbol_factory
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.calldata import (
     BaseCalldata,
     SymbolicCalldata,
@@ -211,7 +211,7 @@ def native_call(
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
 ) -> Union[List[GlobalState], None]:
-    if not 0 < int(callee_address, 16) < 9:
+    if not 0 < int(callee_address, 16) <= PRECOMPILE_COUNT:
         return None
 
     log.debug("Native contract called: " + callee_address)

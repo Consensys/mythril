@@ -4,6 +4,7 @@ from typing import Union
 
 from mythril.analysis.ops import VarType, Call, get_variable
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 
 
 def get_call_from_state(state: GlobalState) -> Union[Call, None]:
@@ -29,7 +30,7 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
             get_variable(stack[-7]),
         )
 
-        if to.type == VarType.CONCRETE and 0 < to.val < 9:
+        if to.type == VarType.CONCRETE and 0 < to.val <= PRECOMPILE_COUNT:
             return None
 
         if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:
