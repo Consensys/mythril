@@ -21,6 +21,13 @@ def _fix_debug_data(json_str):
     return json.dumps(read_json, sort_keys=True, indent=4)
 
 
+def _add_jsonv2_stubs(json_str):
+    read_json = json.loads(json_str)
+    for issue in read_json[0]["issues"]:
+        issue["extra"]["discoveryTime"] = "<DISCOVERY-TIME-DATA>"
+    return json.dumps(read_json, sort_keys=True, indent=4)
+
+
 def _generate_report(input_file):
     contract = EVMContract(input_file.read_text(), enable_online_lookup=False)
     sym = SymExecWrapper(
@@ -181,7 +188,9 @@ def test_text_report(reports):
 def test_jsonv2_report(reports):
     _assert_empty_json(
         _get_changed_files_json(
-            lambda report: _fix_path(report.as_swc_standard_format()).strip(),
+            lambda report: _fix_path(
+                _add_jsonv2_stubs(report.as_swc_standard_format())
+            ).strip(),
             reports,
             ".jsonv2",
         ),

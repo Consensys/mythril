@@ -55,7 +55,6 @@ def _analyze_state(state: GlobalState):
     :param state: the current state
     :return: returns the issues for that corresponding state
     """
-    node = state.node
     instruction = state.get_current_instruction()
 
     annotations = cast(
@@ -95,8 +94,8 @@ def _analyze_state(state: GlobalState):
             )
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=instruction["address"],
                 swc_id=MULTIPLE_SENDS,
                 bytecode=state.environment.code.bytecode,

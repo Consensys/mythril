@@ -1,5 +1,5 @@
 from mythril.analysis.callgraph import generate_graph
-from mythril.analysis.symbolic import SymExecWrapper
+from mythril.mythril import MythrilAnalyzer, MythrilDisassembler
 from mythril.ethereum import util
 from mythril.solidity.soliditycontract import EVMContract
 from tests import (
@@ -22,16 +22,17 @@ class GraphTest(BaseTestCase):
             )
 
             contract = EVMContract(input_file.read_text())
-
-            sym = SymExecWrapper(
-                contract,
-                address=(util.get_indexed_address(0)),
+            disassembler = MythrilDisassembler()
+            disassembler.contracts.append(contract)
+            analyzer = MythrilAnalyzer(
+                disassembler=disassembler,
                 strategy="dfs",
-                transaction_count=1,
                 execution_timeout=5,
+                max_depth=30,
+                address=(util.get_indexed_address(0)),
             )
 
-            html = generate_graph(sym)
+            html = analyzer.graph_html(transaction_count=1)
             output_current.write_text(html)
 
             lines_expected = re.findall(
