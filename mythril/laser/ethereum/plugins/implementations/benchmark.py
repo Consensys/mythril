@@ -7,6 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
+# TODO: introduce dependency on coverage plugin
 class BenchmarkPlugin(LaserPlugin):
     """Benchmark Plugin
 
