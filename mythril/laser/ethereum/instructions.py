@@ -1907,65 +1907,8 @@ class Instruction:
         :param global_state:
         :return:
         """
-        instr = global_state.get_current_instruction()
 
-        try:
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
-        except ValueError as e:
-            log.debug(
-                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
-                    e
-                )
-            )
-            global_state.mstate.stack.append(
-                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-            )
-            return [global_state]
-
-        if global_state.last_return_data is None:
-            # Put return value on stack
-            return_value = global_state.new_bitvec(
-                "retval_" + str(instr["address"]), 256
-            )
-            global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
-
-            return [global_state]
-
-        try:
-            memory_out_offset = (
-                util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, Expression)
-                else memory_out_offset
-            )
-            memory_out_size = (
-                util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, Expression)
-                else memory_out_size
-            )
-        except TypeError:
-            global_state.mstate.stack.append(
-                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-            )
-            return [global_state]
-
-        # Copy memory
-        global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
-        )
-        for i in range(min(memory_out_size, len(global_state.last_return_data))):
-            global_state.mstate.memory[
-                i + memory_out_offset
-            ] = global_state.last_return_data[i]
-
-        # Put return value on stack
-        return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-        global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
-
-        return [global_state]
+        return self.post_handler(global_state, function_name="call")
 
     @StateTransition()
     def callcode_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -2219,3 +2162,67 @@ class Instruction:
             static=True,
         )
         raise TransactionStartSignal(transaction, self.op_code, global_state)
+
+    def staticcall_post(self, global_state: GlobalState) -> List[GlobalState]:
+        return self.post_handler(global_state, function_name="staticcall")
+
+    def post_handler(self, global_state, function_name: str):
+        instr = global_state.get_current_instruction()
+
+        try:
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
+                global_state, self.dynamic_loader, True
+            )
+        except ValueError as e:
+            log.debug(
+                "Could not determine required parameters for {}, putting fresh symbol on the stack. \n{}".format(
+                    function_name, e
+                )
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+            return [global_state]
+
+        if global_state.last_return_data is None:
+            # Put return value on stack
+            return_value = global_state.new_bitvec(
+                "retval_" + str(instr["address"]), 256
+            )
+            global_state.mstate.stack.append(return_value)
+            global_state.mstate.constraints.append(return_value == 0)
+
+            return [global_state]
+
+        try:
+            memory_out_offset = (
+                util.get_concrete_int(memory_out_offset)
+                if isinstance(memory_out_offset, Expression)
+                else memory_out_offset
+            )
+            memory_out_size = (
+                util.get_concrete_int(memory_out_size)
+                if isinstance(memory_out_size, Expression)
+                else memory_out_size
+            )
+        except TypeError:
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+            return [global_state]
+
+        # Copy memory
+        global_state.mstate.mem_extend(
+            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
+        )
+        for i in range(min(memory_out_size, len(global_state.last_return_data))):
+            global_state.mstate.memory[
+                i + memory_out_offset
+            ] = global_state.last_return_data[i]
+
+        # Put return value on stack
+        return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+        global_state.mstate.stack.append(return_value)
+        global_state.mstate.constraints.append(return_value == 1)
+
+        return [global_state]
