@@ -148,7 +148,6 @@ class StateChange(DetectionModule):
             if not annotation.state_change_states:
                 continue
             vulnerabilities.append(annotation.get_issue(global_state))
-            global_state.annotations.remove(annotation)
         return vulnerabilities
 
     @staticmethod
