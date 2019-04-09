@@ -31,6 +31,7 @@ class Source:
             for contract in contracts:
                 self.source_list += [file.filename for file in contract.solidity_files]
                 self._source_hash.append(contract.bytecode_hash)
+                self._source_hash.append(contract.creation_bytecode_hash)
         elif isinstance(contracts[0], EVMContract):
             self.source_format = "evm-byzantium-bytecode"
             self.source_type = (
