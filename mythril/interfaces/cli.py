@@ -47,7 +47,7 @@ def exit_with_error(format_, message):
                 "sourceFormat": "",
                 "sourceList": [],
                 "meta": {
-                    "logs": [{"level": "error", "hidden": "true", "error": message}]
+                    "logs": [{"level": "error", "hidden": "true", "msg": message}]
                 },
             }
         ]
