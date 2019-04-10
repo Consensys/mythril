@@ -185,7 +185,7 @@ class Report:
             return {}
         logs = []  # type: List[Dict]
         for exception in self.exceptions:
-            logs += [{"level": "error", "hidden": "true", "error": exception}]
+            logs += [{"level": "error", "hidden": "true", "msg": exception}]
         return {"logs": logs}
 
     def as_swc_standard_format(self):
