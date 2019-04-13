@@ -55,4 +55,9 @@ class Source:
         :param bytecode_hash: The contract hash
         :return: The index of the contract in the _source_hash list
         """
-        return self._source_hash.index(bytecode_hash)
+        # TODO: Add this part to exception logs
+        try:
+            return self._source_hash.index(bytecode_hash)
+        except ValueError:
+            self._source_hash.append(bytecode_hash)
+            return len(self._source_hash) - 1
