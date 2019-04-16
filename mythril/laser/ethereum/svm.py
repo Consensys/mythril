@@ -1,9 +1,9 @@
 """This module implements the main symbolic execution engine."""
 import logging
 from collections import defaultdict
-from copy import copy
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
-from typing import Callable, Dict, DefaultDict, List, Tuple, Union
+from typing import Any, Callable, Dict, DefaultDict, List, Tuple, Union
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -68,6 +68,8 @@ class LaserEVM:
         """
         world_state = WorldState()
         world_state.accounts = accounts
+        world_state.initial_state_account = self.get_standard_initial_state(accounts)
+
         # this sets the initial world state
         self.world_state = world_state
         self.open_states = [world_state]
@@ -113,6 +115,18 @@ class LaserEVM:
         :return:
         """
         return self.world_state.accounts
+
+    @staticmethod
+    def get_standard_initial_state(accounts: Dict[str, Account]) -> Dict:
+        template = {"accounts": {}}  # type: Dict[str, Dict[str, Any]]
+        for address, account in accounts.items():
+            template["accounts"][address] = {
+                "nounce": account.nonce,
+                "balance": "<ARBITRARY_BALANCE>",
+                "code": account.code.bytecode,
+                "storage": {},
+            }
+        return template
 
     def sym_exec(
         self, main_address=None, creation_code=None, contract_name=None

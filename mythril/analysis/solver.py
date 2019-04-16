@@ -1,5 +1,5 @@
 """This module contains analysis module helpers to solve path constraints."""
-from typing import Dict, List
+from typing import Collection, Dict, List
 from z3 import sat, unknown, FuncInterp
 import z3
 
@@ -77,7 +77,9 @@ def pretty_print_model(model):
     return ret
 
 
-def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict[str, List[Dict[str, str]]]:
+def get_transaction_sequence(
+    global_state: GlobalState, constraints
+) -> Dict[str, Collection]:
     """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
@@ -97,7 +99,7 @@ def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict[str
         "blockDifficulty": "<ARBITRARY_DIFFICULTY>",
         "blockGasLimit": "<ARBITRARY_GAS_LIMIT>",
         "blockNumber": "<ARBITRARY_BLOCKNUMBER>",
-        "blockTime": "<ARBITRARY_BLOCKTIME>"
+        "blockTime": "<ARBITRARY_BLOCKTIME>",
     }  # type: Dict[str, str]
 
     concrete_transactions = []
@@ -105,7 +107,7 @@ def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict[str
     tx_constraints = constraints.copy()
     minimize = []
 
-    transactions = []   # type: List[BaseTransaction]
+    transactions = []  # type: List[BaseTransaction]
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
@@ -141,13 +143,11 @@ def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict[str
         concrete_transaction["origin"] = "0x" + (
             "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
         ).zfill(40)
-        concrete_transaction["address"] = (
-            "%s" % transaction.callee_account.address
-        )
+        concrete_transaction["address"] = "%s" % transaction.callee_account.address
         concrete_transactions.append(concrete_transaction)
-
     steps = {
-        "steps": concrete_transactions
+        "initialState": global_state.world_state.initial_state_account,
+        "steps": concrete_transactions,
     }
 
     return steps

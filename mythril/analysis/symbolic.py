@@ -12,7 +12,10 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
-from mythril.laser.ethereum.transaction.symbolic import CREATOR_ADDRESS
+from mythril.laser.ethereum.transaction.symbolic import (
+    ATTACKER_ADDRESS,
+    CREATOR_ADDRESS,
+)
 
 
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
@@ -72,10 +75,21 @@ class SymExecWrapper:
             dynamic_loader=dynloader,
             contract_name=contract.name,
         )
+        creator_account = Account(
+            hex(CREATOR_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+        )
+        attacker_account = Account(
+            hex(ATTACKER_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+        )
+
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
-        self.accounts = {address: account}
+        self.accounts = {
+            address: account,
+            hex(CREATOR_ADDRESS): creator_account,
+            hex(ATTACKER_ADDRESS): attacker_account,
+        }
 
         self.laser = svm.LaserEVM(
             self.accounts,

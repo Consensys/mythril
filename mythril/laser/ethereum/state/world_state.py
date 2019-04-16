@@ -26,6 +26,7 @@ class WorldState:
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
+        self.initial_state_account = {}  # type: Dict
 
     def __getitem__(self, item: str) -> Account:
         """Gets an account from the worldstate using item as key.
@@ -47,6 +48,7 @@ class WorldState:
         )
         new_world_state.accounts = copy(self.accounts)
         new_world_state.node = self.node
+        new_world_state.initial_state_account = self.initial_state_account
         return new_world_state
 
     def create_account(
