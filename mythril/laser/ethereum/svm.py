@@ -36,7 +36,7 @@ class SVMError(Exception):
 class LaserEVM:
     """The LASER EVM.
 
-    Just as Mithril had to be mined at great efforts to provide the
+    Just as Mythril had to be mined at great efforts to provide the
     Dwarves with their exceptional armour, LASER stands at the heart of
     Mythril, digging deep in the depths of call graphs, unearthing the
     most precious symbolic call data, that is then hand-forged into
