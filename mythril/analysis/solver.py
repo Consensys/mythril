@@ -1,7 +1,10 @@
 """This module contains analysis module helpers to solve path constraints."""
+from typing import Dict, List
 from z3 import sat, unknown, FuncInterp
 import z3
 
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.transaction import BaseTransaction
 from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError
@@ -74,7 +77,7 @@ def pretty_print_model(model):
     return ret
 
 
-def get_transaction_sequence(global_state, constraints):
+def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict[str, List[Dict[str, str]]]:
     """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
@@ -85,17 +88,24 @@ def get_transaction_sequence(global_state, constraints):
 
     # gaslimit & gasprice don't exist yet
     tx_template = {
-        "calldata": None,
-        "call_value": None,
-        "caller": "0xCA11EDEADBEEF37E636E6CA11EDEADBEEFCA11ED",
-    }
+        "origin": None,
+        "value": None,
+        "address": None,
+        "input": None,
+        "gasLimit": "<GAS_LIMIT>",
+        "blockCoinbase": "<ARBITRARY_COINBASE>",
+        "blockDifficulty": "<ARBITRARY_DIFFICULTY>",
+        "blockGasLimit": "<ARBITRARY_GAS_LIMIT>",
+        "blockNumber": "<ARBITRARY_BLOCKNUMBER>",
+        "blockTime": "<ARBITRARY_BLOCKTIME>"
+    }  # type: Dict[str, str]
 
-    concrete_transactions = {}
+    concrete_transactions = []
     creation_tx_ids = []
     tx_constraints = constraints.copy()
     minimize = []
 
-    transactions = []
+    transactions = []   # type: List[BaseTransaction]
     for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         if not isinstance(transaction, ContractCreationTransaction):
@@ -109,8 +119,6 @@ def get_transaction_sequence(global_state, constraints):
             minimize.append(transaction.call_data.calldatasize)
             minimize.append(transaction.call_value)
 
-            concrete_transactions[tx_id] = tx_template.copy()
-
         else:
             creation_tx_ids.append(tx_id)
 
@@ -118,20 +126,28 @@ def get_transaction_sequence(global_state, constraints):
 
     for transaction in transactions:
         tx_id = str(transaction.id)
-
-        concrete_transactions[tx_id]["calldata"] = "0x" + "".join(
+        concrete_transaction = tx_template.copy()
+        concrete_transaction["input"] = "0x" + "".join(
             [
                 hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
                 for b in transaction.call_data.concrete(model)
             ]
         )
 
-        concrete_transactions[tx_id]["call_value"] = (
+        concrete_transaction["value"] = (
             "0x%x"
             % model.eval(transaction.call_value.raw, model_completion=True).as_long()
         )
-        concrete_transactions[tx_id]["caller"] = "0x" + (
+        concrete_transaction["origin"] = "0x" + (
             "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
         ).zfill(40)
+        concrete_transaction["address"] = (
+            "%s" % transaction.callee_account.address
+        )
+        concrete_transactions.append(concrete_transaction)
 
-    return concrete_transactions
+    steps = {
+        "steps": concrete_transactions
+    }
+
+    return steps
