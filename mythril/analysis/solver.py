@@ -1,5 +1,5 @@
 """This module contains analysis module helpers to solve path constraints."""
-from typing import Collection, Dict, List
+from typing import Dict, List
 from z3 import sat, unknown, FuncInterp
 import z3
 
@@ -77,9 +77,7 @@ def pretty_print_model(model):
     return ret
 
 
-def get_transaction_sequence(
-    global_state: GlobalState, constraints
-) -> Dict[str, Collection]:
+def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict:
     """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
