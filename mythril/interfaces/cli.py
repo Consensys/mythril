@@ -433,6 +433,7 @@ def execute_command(
                 contract=analyzer.contracts[0],
                 enable_physics=args.enable_physics,
                 phrackify=args.phrack,
+                transaction_count=args.transaction_count,
             )
 
             try:
