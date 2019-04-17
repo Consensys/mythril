@@ -166,7 +166,7 @@ class MythrilAnalyzer:
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report, source_data, exceptions=exceptions)
+        report = Report(verbose_report, contracts=self.contracts, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 

@@ -1,15 +1,14 @@
 """This module contains the class representing EVM contracts, aka Smart
 Contracts."""
 import re
-import _pysha3 as sha3
 import logging
+import persistent
+
+from ethereum import utils
+from mythril.disassembler.disassembly import Disassembly
+from mythril.support.support_utils import get_code_hash
 
 log = logging.getLogger(__name__)
-
-import persistent
-from ethereum import utils
-
-from mythril.disassembler.disassembly import Disassembly
 
 
 class EVMContract(persistent.Persistent):
@@ -47,7 +46,7 @@ class EVMContract(persistent.Persistent):
 
         :return: runtime bytecode hash
         """
-        return self._get_hash(self.code[2:])
+        return get_code_hash(self.code)
 
     @property
     def creation_bytecode_hash(self):
@@ -55,23 +54,7 @@ class EVMContract(persistent.Persistent):
 
         :return: Creation bytecode hash
         """
-        return self._get_hash(self.creation_code[2:])
-
-    @staticmethod
-    def _get_hash(code):
-        """
-        :param code: bytecode
-        :return: Returns hash of the given bytecode
-        """
-        try:
-            keccak = sha3.keccak_256()
-            keccak.update(bytes.fromhex(code[2:]))
-            return "0x" + keccak.hexdigest()
-        except ValueError:
-            log.debug(
-                "Unable to change the bytecode to bytes. Bytecode: {}".format(code)
-            )
-            return ""
+        return get_code_hash(self.creation_code)
 
     def as_dict(self):
         """

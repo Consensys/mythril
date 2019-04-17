@@ -2,6 +2,7 @@
 purposes."""
 
 import copy
+from ethereum.utils import mk_contract_address
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
@@ -11,10 +12,11 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
+from mythril.laser.ethereum.transaction.symbolic import CREATOR_ADDRESS
+
 
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
 from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-
 
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
@@ -110,6 +112,11 @@ class SymExecWrapper:
             )
         else:
             self.laser.sym_exec(address)
+        created_address = "0x" + str(mk_contract_address(CREATOR_ADDRESS, 0).hex())
+        for key, value in self.laser.world_state.accounts.items():
+            if created_address == value.address:
+                contract.code = value.code.bytecode
+                break
 
         if not requires_statespace:
             return

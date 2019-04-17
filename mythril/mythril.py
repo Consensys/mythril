@@ -608,10 +608,8 @@ class Mythril(object):
             all_issues += issues
             log.info("Solver statistics: \n{}".format(str(SolverStatistics())))
 
-        source_data = Source()
-        source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report, source_data, exceptions=exceptions)
+        report = Report(verbose_report, self.contracts, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 
