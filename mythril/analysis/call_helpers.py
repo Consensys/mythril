@@ -15,10 +15,9 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
     instruction = state.get_current_instruction()
 
     op = instruction["opcode"]
-
     stack = state.mstate.stack
 
-    if op in ("CALL", "CALLCODE"):
+    if op in ("CALL", "CALLCODE", "STATICCALL"):
         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = (
             get_variable(stack[-1]),
             get_variable(stack[-2]),
@@ -29,7 +28,7 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
             get_variable(stack[-7]),
         )
 
-        if to.type == VarType.CONCRETE and to.val < 5:
+        if to.type == VarType.CONCRETE and 0 < to.val < 5:
             return None
 
         if meminstart.type == VarType.CONCRETE and meminsz.type == VarType.CONCRETE:

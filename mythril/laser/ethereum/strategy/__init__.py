@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import List
+from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 class BasicSearchStrategy(ABC):
@@ -7,7 +9,7 @@ class BasicSearchStrategy(ABC):
     __slots__ = "work_list", "max_depth"
 
     def __init__(self, work_list, max_depth):
-        self.work_list = work_list
+        self.work_list = work_list  # type: List[GlobalState]
         self.max_depth = max_depth
 
     def __iter__(self):

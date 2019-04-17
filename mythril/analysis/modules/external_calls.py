@@ -36,6 +36,7 @@ def _analyze_state(state):
 
     try:
         constraints = copy(state.mstate.constraints)
+
         transaction_sequence = solver.get_transaction_sequence(
             state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
         )

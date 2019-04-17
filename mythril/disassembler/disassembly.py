@@ -28,11 +28,15 @@ class Disassembly(object):
         self.func_hashes = []  # type: List[str]
         self.function_name_to_address = {}  # type: Dict[str, int]
         self.address_to_function_name = {}  # type: Dict[int, str]
+        self.enable_online_lookup = enable_online_lookup
+        self.assign_bytecode(bytecode=code)
 
+    def assign_bytecode(self, bytecode):
+        self.bytecode = bytecode
         # open from default locations
         # control if you want to have online signature hash lookups
-        signatures = SignatureDB(enable_online_lookup=enable_online_lookup)
-
+        signatures = SignatureDB(enable_online_lookup=self.enable_online_lookup)
+        self.instruction_list = asm.disassemble(util.safe_decode(bytecode))
         # Need to take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
         jump_table_indices = asm.find_op_code_sequence(
             [("PUSH1", "PUSH2", "PUSH3", "PUSH4"), ("EQ",)], self.instruction_list
