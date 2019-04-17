@@ -79,6 +79,7 @@ class StateChange(DetectionModule):
                 "DELEGATECALL",
                 "STATICCALL",
                 "CREATE",
+                "CREATE2",
                 "CALLCODE",
             ],
         )
