@@ -10,7 +10,7 @@ If you have a small question or aren't sure if you should create an issue for yo
 # Coding
 If you want to help out with the development of Mythril then you can take a look at our issues or [Waffle board](https://waffle.io/ConsenSys/mythril).
 
-Before you start working on an issue pkease stop by on Discord to message a collaborator, this way we can assign you to the issue making sure nobody does double work. We can also provide you with support through Discord if there are any questions during the development process.
+Before you start working on an issue please stop by on Discord to message a collaborator, this way we can assign you to the issue making sure nobody does double work. We can also provide you with support through Discord if there are any questions during the development process.
 
 ## New ideas
 Before you start working on a new idea, it's useful to create an issue on GitHub, that way we know what you want to implement and that you are working on it. Additionally, it might happen that your feature does not fit with our roadmap, in which case it would be unfortunate if you have already spent some time working on it.
