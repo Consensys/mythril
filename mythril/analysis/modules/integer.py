@@ -306,9 +306,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 description_head=self._get_description_head(annotation, _type),
                 description_tail=self._get_description_tail(annotation, _type),
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
-
-            issue.debug = json.dumps(transaction_sequence, indent=4)
 
             if annotation.operator == "subtraction":
                 self._underflow_cache[address] = True

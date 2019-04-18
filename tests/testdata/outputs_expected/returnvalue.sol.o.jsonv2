@@ -7,7 +7,8 @@
                     "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {
@@ -24,7 +25,8 @@
                     "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {
@@ -41,7 +43,8 @@
                     "tail": "External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {

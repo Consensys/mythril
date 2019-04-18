@@ -31,7 +31,7 @@ class Issue:
         severity=None,
         description_head="",
         description_tail="",
-        debug="",
+        transaction_sequence=None,
     ):
         """
 
@@ -55,7 +55,6 @@ class Issue:
         self.description_tail = description_tail
         self.description = "%s\n%s" % (description_head, description_tail)
         self.severity = severity
-        self.debug = debug
         self.swc_id = swc_id
         self.min_gas_used, self.max_gas_used = gas_used
         self.filename = None
@@ -64,6 +63,24 @@ class Issue:
         self.source_mapping = None
         self.discovery_time = time() - StartTime().global_start_time
         self.bytecode_hash = get_code_hash(bytecode)
+        if transaction_sequence is None:
+            self.tx_sequence_users = None
+            self.transaction_sequence_jsonv2 = None
+        else:
+            self.tx_sequence_users = json.dumps(transaction_sequence, indent=4)
+            self.transaction_sequence_jsonv2 = self.add_block_data(transaction_sequence)
+
+    @staticmethod
+    def add_block_data(transaction_sequence: Dict):
+        for step in transaction_sequence["steps"]:
+            step["gasLimit"] = "0x7d000"
+            step["gasPrice"] = "0x773594000"
+            step["blockCoinbase"] = "0xcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcb"
+            step["blockDifficulty"] = "0xa7d7343662e26"
+            step["blockGasLimit"] = "0x7d0000"
+            step["blockNumber"] = "0x66e393"
+            step["blockTime"] = "0x5bfa4639"
+        return transaction_sequence
 
     @property
     def as_dict(self):
@@ -79,7 +96,7 @@ class Issue:
             "function": self.function,
             "severity": self.severity,
             "address": self.address,
-            "debug": self.debug,
+            "tx_sequence": self.tx_sequence_users,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
             "sourceMap": self.source_mapping,
@@ -168,6 +185,7 @@ class Report:
         """
         name = self._file_name()
         template = Report.environment.get_template("report_as_text.jinja2")
+
         return template.render(
             filename=name, issues=self.sorted_issues(), verbose=self.verbose
         )
@@ -214,7 +232,10 @@ class Report:
                     },
                     "severity": issue.severity,
                     "locations": [{"sourceMap": "%d:1:%d" % (issue.address, idx)}],
-                    "extra": {"discoveryTime": int(issue.discovery_time * 10 ** 9)},
+                    "extra": {
+                        "discoveryTime": int(issue.discovery_time * 10 ** 9),
+                        "txSeed": str(issue.transaction_sequence_jsonv2),
+                    },
                 }
             )
         meta_data = self._get_exception_data()

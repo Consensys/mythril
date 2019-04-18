@@ -4,7 +4,6 @@
         {
             "address": 196,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
             "function": "callchecked()",
             "max_gas_used": 1210,
@@ -12,12 +11,12 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address"
+            "title": "External Call To Fixed Address",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 285,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
             "function": "callnotchecked()",
             "max_gas_used": 1232,
@@ -25,12 +24,12 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address"
+            "title": "External Call To Fixed Address",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 285,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
             "function": "callnotchecked()",
             "max_gas_used": 35950,
@@ -38,7 +37,8 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "104",
-            "title": "Unchecked Call Return Value"
+            "title": "Unchecked Call Return Value",
+            "tx_sequence": "<TX-DATA>"
         }
     ],
     "success": true

@@ -7,7 +7,8 @@
                     "tail": "It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {
@@ -24,7 +25,8 @@
                     "tail": "It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {
@@ -41,7 +43,8 @@
                     "tail": "It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {
@@ -58,7 +61,8 @@
                     "tail": "It is possible to trigger an exception (opcode 0xfe). Exceptions can be caused by type errors, division by zero, out-of-bounds array access, or assert violations. Note that explicit `assert()` should only be used to check invariants. Use `require()` for regular input checking."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "txSeed": "<TX-DATA>"
                 },
                 "locations": [
                     {

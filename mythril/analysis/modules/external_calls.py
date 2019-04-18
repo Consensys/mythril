@@ -46,7 +46,6 @@ def _analyze_state(state):
             constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = json.dumps(transaction_sequence, indent=4)
             description_head = "A call to a user-supplied address is executed."
             description_tail = (
                 "The callee address of an external message call can be set by "
@@ -65,7 +64,7 @@ def _analyze_state(state):
                 severity="Medium",
                 description_head=description_head,
                 description_tail=description_tail,
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
@@ -92,7 +91,7 @@ def _analyze_state(state):
                 severity="Low",
                 description_head=description_head,
                 description_tail=description_tail,
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 

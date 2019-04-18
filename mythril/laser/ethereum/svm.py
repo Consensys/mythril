@@ -103,8 +103,6 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
-        self._end_contract_creation_hooks = []  # type: List[Callable]
-
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         self.laser_hooks_dict = {
@@ -114,7 +112,6 @@ class LaserEVM:
             "stop_sym_exec": self._stop_sym_exec_hooks,
             "start_sym_trans": self._start_sym_trans_hooks,
             "stop_sym_trans": self._stop_sym_trans_hooks,
-            "end_contract_creation": self._end_contract_creation_hooks,
         }
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -127,11 +124,13 @@ class LaserEVM:
         """
         return self.world_state.accounts
 
-    def set_standard_initial_state(self, accounts: Dict[str, Account]):
+    def set_standard_initial_state(
+        self, accounts: Dict[str, Account], ignore_addr=True
+    ):
         initial_state = self.world_state.initial_state_account
         initial_state["accounts"] = {}  # This variable persists for all world states.
         for address, account in accounts.items():
-            if address == "0x" + "0" * 40:
+            if ignore_addr and address == "0x" + "0" * 40:
                 continue
             initial_state["accounts"][address] = {
                 "nounce": account.nonce,
@@ -158,6 +157,7 @@ class LaserEVM:
 
         if main_address:
             log.info("Starting message call transaction to {}".format(main_address))
+            self.set_standard_initial_state(self.open_states[0].accounts)
             self._execute_transactions(main_address)
 
         elif creation_code:
@@ -177,8 +177,9 @@ class LaserEVM:
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
             else:
-                for hook in self._end_contract_creation_hooks:
-                    hook(self.open_states)
+                self.set_standard_initial_state(
+                    self.open_states[0].accounts, ignore_addr=True
+                )
 
             self._execute_transactions(created_account.address)
 

@@ -24,11 +24,11 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 {{ issue.code }}
 ```
 {% endif %}
-{% if verbose and issue.debug %}
+{% if verbose and issue.tx_sequence %}
 --------------------
 ### Debugging Information:
 
-{{ issue.debug }}
+{{ issue.tx_sequence }}
 
 {% endif %}
 {% endfor %}

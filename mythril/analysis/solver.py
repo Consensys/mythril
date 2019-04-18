@@ -1,6 +1,7 @@
 """This module contains analysis module helpers to solve path constraints."""
 from typing import Dict, List
 from z3 import sat, unknown, FuncInterp
+from copy import copy
 import z3
 
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -86,18 +87,11 @@ def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict:
 
     transaction_sequence = global_state.world_state.transaction_sequence
 
-    # gaslimit & gasprice don't exist yet
     tx_template = {
         "origin": None,
         "value": None,
         "address": None,
         "input": None,
-        "gasLimit": "<GAS_LIMIT>",
-        "blockCoinbase": "<ARBITRARY_COINBASE>",
-        "blockDifficulty": "<ARBITRARY_DIFFICULTY>",
-        "blockGasLimit": "<ARBITRARY_GAS_LIMIT>",
-        "blockNumber": "<ARBITRARY_BLOCKNUMBER>",
-        "blockTime": "<ARBITRARY_BLOCKTIME>",
     }  # type: Dict[str, str]
 
     concrete_transactions = []
@@ -123,7 +117,7 @@ def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict:
             creation_tx_ids.append(tx_id)
 
     model = get_model(tx_constraints, minimize=minimize)
-
+    min_price_dict = {}  # type: Dict[str, int]
     for transaction in transactions:
         tx_id = str(transaction.id)
         concrete_transaction = tx_template.copy()
@@ -133,16 +127,20 @@ def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict:
                 for b in transaction.call_data.concrete(model)
             ]
         )
-
-        concrete_transaction["value"] = (
-            "0x%x"
-            % model.eval(transaction.call_value.raw, model_completion=True).as_long()
-        )
-        concrete_transaction["origin"] = "0x" + (
+        value = model.eval(transaction.call_value.raw, model_completion=True).as_long()
+        concrete_transaction["value"] = "0x%x" % value
+        origin = "0x" + (
             "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
         ).zfill(40)
+        concrete_transaction["origin"] = origin
         concrete_transaction["address"] = "%s" % transaction.callee_account.address
         concrete_transactions.append(concrete_transaction)
+        min_price_dict[origin] = min_price_dict.get(origin, 0) + value
+
+    initial_state = copy(global_state.world_state.initial_state_account)
+
+    for account, data in initial_state["accounts"].items():
+        data["balance"] = min_price_dict.get(account, 0)
     steps = {
         "initialState": global_state.world_state.initial_state_account,
         "steps": concrete_transactions,

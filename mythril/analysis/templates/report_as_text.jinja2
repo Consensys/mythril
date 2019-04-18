@@ -18,11 +18,11 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 
 --------------------
 {% endif %}
-{% if verbose and issue.debug %}
+{% if verbose and issue.tx_sequence %}
 --------------------
 Transaction Sequence:
 
-{{ issue.debug }}
+{{ issue.tx_sequence }}
 {% endif %}
 
 {% endfor %}
