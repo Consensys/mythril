@@ -68,7 +68,6 @@ class LaserEVM:
         """
         world_state = WorldState()
         world_state.accounts = accounts
-        world_state.initial_state_account = self.get_standard_initial_state(accounts)
 
         # this sets the initial world state
         self.world_state = world_state
@@ -104,7 +103,19 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
+        self._end_contract_creation_hooks = []  # type: List[Callable]
+
         self.iprof = InstructionProfiler() if enable_iprof else None
+
+        self.laser_hooks_dict = {
+            "add_world_state": self._add_world_state_hooks,
+            "execute_state": self._execute_state_hooks,
+            "start_sym_exec": self._start_sym_exec_hooks,
+            "stop_sym_exec": self._stop_sym_exec_hooks,
+            "start_sym_trans": self._start_sym_trans_hooks,
+            "stop_sym_trans": self._stop_sym_trans_hooks,
+            "end_contract_creation": self._end_contract_creation_hooks,
+        }
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -116,17 +127,18 @@ class LaserEVM:
         """
         return self.world_state.accounts
 
-    @staticmethod
-    def get_standard_initial_state(accounts: Dict[str, Account]) -> Dict:
-        template = {"accounts": {}}  # type: Dict[str, Dict[str, Any]]
+    def set_standard_initial_state(self, accounts: Dict[str, Account]):
+        initial_state = self.world_state.initial_state_account
+        initial_state["accounts"] = {}  # This variable persists for all world states.
         for address, account in accounts.items():
-            template["accounts"][address] = {
+            if address == "0x" + "0" * 40:
+                continue
+            initial_state["accounts"][address] = {
                 "nounce": account.nonce,
                 "balance": "<ARBITRARY_BALANCE>",
                 "code": account.code.bytecode,
                 "storage": {},
             }
-        return template
 
     def sym_exec(
         self, main_address=None, creation_code=None, contract_name=None
@@ -150,6 +162,7 @@ class LaserEVM:
 
         elif creation_code:
             log.info("Starting contract creation transaction")
+
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
             )
@@ -163,6 +176,9 @@ class LaserEVM:
                     "No contract was created during the execution of contract creation "
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
+            else:
+                for hook in self._end_contract_creation_hooks:
+                    hook(self.open_states)
 
             self._execute_transactions(created_account.address)
 
@@ -496,18 +512,8 @@ class LaserEVM:
 
     def register_laser_hooks(self, hook_type: str, hook: Callable):
         """registers the hook with this Laser VM"""
-        if hook_type == "add_world_state":
-            self._add_world_state_hooks.append(hook)
-        elif hook_type == "execute_state":
-            self._execute_state_hooks.append(hook)
-        elif hook_type == "start_sym_exec":
-            self._start_sym_exec_hooks.append(hook)
-        elif hook_type == "stop_sym_exec":
-            self._stop_sym_exec_hooks.append(hook)
-        elif hook_type == "start_sym_trans":
-            self._start_sym_trans_hooks.append(hook)
-        elif hook_type == "stop_sym_trans":
-            self._stop_sym_trans_hooks.append(hook)
+        if hook_type in self.laser_hooks_dict:
+            self.laser_hooks_dict[hook_type].append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type

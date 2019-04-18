@@ -30,3 +30,11 @@ class PluginFactory:
         )
 
         return InstructionCoveragePlugin()
+
+    @staticmethod
+    def build_set_initial_state_plugin() -> LaserPlugin:
+        from mythril.laser.ethereum.plugins.implementations.save_initial_world_state import (
+            SaveInitialWorldState,
+        )
+
+        return SaveInitialWorldState()

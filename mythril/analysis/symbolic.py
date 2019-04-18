@@ -106,6 +106,7 @@ class SymExecWrapper:
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+        plugin_loader.load(PluginFactory.build_set_initial_state_plugin())
 
         self.laser.register_hooks(
             hook_type="pre",
