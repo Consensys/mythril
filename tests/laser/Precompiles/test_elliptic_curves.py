@@ -17,40 +17,7 @@ def test_ec_pair(f1, f2, f3, f4):
     a = FQ(val=1)
     f1.return_value = (a, a)
     vec_c = [0] * 192
-    assert ec_pair(vec_c) == [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-    ]
+    assert ec_pair(vec_c) == [0] * 31 + [1]
 
 
 @patch("mythril.laser.ethereum.natives.validate_point", return_value=False)
