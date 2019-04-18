@@ -5,6 +5,7 @@ from copy import copy
 import z3
 
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction import BaseTransaction
 from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
@@ -78,7 +79,9 @@ def pretty_print_model(model):
     return ret
 
 
-def get_transaction_sequence(global_state: GlobalState, constraints) -> Dict:
+def get_transaction_sequence(
+    global_state: GlobalState, constraints: Constraints
+) -> Dict:
     """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
