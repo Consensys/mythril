@@ -17,7 +17,8 @@ def _fix_path(text):
 def _fix_debug_data(json_str):
     read_json = json.loads(json_str)
     for issue in read_json["issues"]:
-        issue["debug"] = "<DEBUG-DATA>"
+        issue["tx_sequence"] = "<TX-DATA>"
+
     return json.dumps(read_json, sort_keys=True, indent=4)
 
 
@@ -25,6 +26,7 @@ def _add_jsonv2_stubs(json_str):
     read_json = json.loads(json_str)
     for issue in read_json[0]["issues"]:
         issue["extra"]["discoveryTime"] = "<DISCOVERY-TIME-DATA>"
+        issue["extra"]["txSeed"] = "<TX-DATA>"
     return json.dumps(read_json, sort_keys=True, indent=4)
 
 

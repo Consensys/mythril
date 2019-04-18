@@ -80,6 +80,19 @@
             "tx_sequence": "<TX-DATA>"
         },
         {
+            "address": 869,
+            "contract": "Unknown",
+            "description": "The contract account state is changed after an external call. \nConsider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.",
+            "function": "reentrancy()",
+            "max_gas_used": null,
+            "min_gas_used": null,
+            "severity": "Low",
+            "sourceMap": null,
+            "swc-id": "107",
+            "title": "State change after external call",
+            "tx_sequence": "<TX-DATA>"
+        },
+        {
             "address": 912,
             "contract": "Unknown",
             "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",

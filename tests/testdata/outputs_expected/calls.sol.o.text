@@ -64,6 +64,17 @@ The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 --------------------
 
+==== State change after external call ====
+SWC ID: 107
+Severity: Low
+Contract: Unknown
+Function name: reentrancy()
+PC address: 869
+Estimated Gas Usage: None - None
+The contract account state is changed after an external call. 
+Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.
+--------------------
+
 ==== External Call To User-Supplied Address ====
 SWC ID: 107
 Severity: Medium

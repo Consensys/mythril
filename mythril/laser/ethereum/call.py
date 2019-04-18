@@ -49,7 +49,6 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-
     if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
