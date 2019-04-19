@@ -26,7 +26,7 @@ def _add_jsonv2_stubs(json_str):
     read_json = json.loads(json_str)
     for issue in read_json[0]["issues"]:
         issue["extra"]["discoveryTime"] = "<DISCOVERY-TIME-DATA>"
-        issue["extra"]["txSeed"] = "<TX-DATA>"
+        issue["extra"]["testCase"] = "<TEST-CASE>"
     return json.dumps(read_json, sort_keys=True, indent=4)
 
 
