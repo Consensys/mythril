@@ -8,7 +8,7 @@
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>",
-                    "txSeed": "<TX-DATA>"
+                    "testCase": "<TEST-CASE>"
                 },
                 "locations": [
                     {
@@ -26,7 +26,7 @@
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>",
-                    "txSeed": "<TX-DATA>"
+                    "testCase": "<TEST-CASE>"
                 },
                 "locations": [
                     {
@@ -44,7 +44,7 @@
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>",
-                    "txSeed": "<TX-DATA>"
+                    "testCase": "<TEST-CASE>"
                 },
                 "locations": [
                     {
@@ -62,7 +62,7 @@
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>",
-                    "txSeed": "<TX-DATA>"
+                    "testCase": "<TEST-CASE>"
                 },
                 "locations": [
                     {
@@ -80,7 +80,7 @@
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>",
-                    "txSeed": "<TX-DATA>"
+                    "testCase": "<TEST-CASE>"
                 },
                 "locations": [
                     {

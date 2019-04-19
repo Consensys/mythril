@@ -221,7 +221,9 @@ class Report:
                 title = SWC_TO_TITLE[issue.swc_id]
             except KeyError:
                 title = "Unspecified Security Issue"
-
+            extra = {"discoveryTime": int(issue.discovery_time * 10 ** 9)}
+            if issue.transaction_sequence_jsonv2:
+                extra["testCase"] = str(issue.transaction_sequence_jsonv2)
             _issues.append(
                 {
                     "swcID": "SWC-" + issue.swc_id,
@@ -232,10 +234,7 @@ class Report:
                     },
                     "severity": issue.severity,
                     "locations": [{"sourceMap": "%d:1:%d" % (issue.address, idx)}],
-                    "extra": {
-                        "discoveryTime": int(issue.discovery_time * 10 ** 9),
-                        "txSeed": str(issue.transaction_sequence_jsonv2),
-                    },
+                    "extra": extra,
                 }
             )
         meta_data = self._get_exception_data()
