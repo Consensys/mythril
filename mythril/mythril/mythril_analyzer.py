@@ -84,7 +84,7 @@ class MythrilAnalyzer:
         contract: EVMContract = None,
         enable_physics: bool = False,
         phrackify: bool = False,
-        transaction_count: Optional[int] = None,
+        transaction_count: Optional[int] = 1,
     ) -> str:
         """
 
