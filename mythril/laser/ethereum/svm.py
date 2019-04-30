@@ -103,19 +103,7 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
-        self._end_contract_creation_hooks = []  # type: List[Callable]
-
         self.iprof = InstructionProfiler() if enable_iprof else None
-
-        self.laser_hooks_dict = {
-            "add_world_state": self._add_world_state_hooks,
-            "execute_state": self._execute_state_hooks,
-            "start_sym_exec": self._start_sym_exec_hooks,
-            "stop_sym_exec": self._stop_sym_exec_hooks,
-            "start_sym_trans": self._start_sym_trans_hooks,
-            "stop_sym_trans": self._stop_sym_trans_hooks,
-            "end_contract_creation": self._end_contract_creation_hooks,
-        }
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -127,11 +115,13 @@ class LaserEVM:
         """
         return self.world_state.accounts
 
-    def set_standard_initial_state(self, accounts: Dict[str, Account]):
+    def set_standard_initial_state(
+        self, accounts: Dict[str, Account], ignore_addr=True
+    ):
         initial_state = self.world_state.initial_state_account
         initial_state["accounts"] = {}  # This variable persists for all world states.
         for address, account in accounts.items():
-            if address == "0x" + "0" * 40:
+            if ignore_addr and address == "0x" + "0" * 40:
                 continue
             initial_state["accounts"][address] = {
                 "nounce": account.nonce,
@@ -158,11 +148,13 @@ class LaserEVM:
 
         if main_address:
             log.info("Starting message call transaction to {}".format(main_address))
+            self.set_standard_initial_state(self.world_state.accounts)
             self._execute_transactions(main_address)
 
         elif creation_code:
             log.info("Starting contract creation transaction")
 
+            self.set_standard_initial_state(self.world_state.accounts)
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
             )
@@ -177,8 +169,9 @@ class LaserEVM:
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
                 )
             else:
-                for hook in self._end_contract_creation_hooks:
-                    hook(self.open_states)
+                self.set_standard_initial_state(
+                    self.open_states[0].accounts, ignore_addr=True
+                )
 
             self._execute_transactions(created_account.address)
 
@@ -319,7 +312,7 @@ class LaserEVM:
                 )
 
         except TransactionStartSignal as start_signal:
-            # Setup new global state
+            # Is a MessageCall to contract, setup new global state
             new_global_state = start_signal.transaction.initial_global_state()
 
             new_global_state.transaction_stack = copy(
@@ -512,8 +505,18 @@ class LaserEVM:
 
     def register_laser_hooks(self, hook_type: str, hook: Callable):
         """registers the hook with this Laser VM"""
-        if hook_type in self.laser_hooks_dict:
-            self.laser_hooks_dict[hook_type].append(hook)
+        if hook_type == "add_world_state":
+            self._add_world_state_hooks.append(hook)
+        elif hook_type == "execute_state":
+            self._execute_state_hooks.append(hook)
+        elif hook_type == "start_sym_exec":
+            self._start_sym_exec_hooks.append(hook)
+        elif hook_type == "stop_sym_exec":
+            self._stop_sym_exec_hooks.append(hook)
+        elif hook_type == "start_sym_trans":
+            self._start_sym_trans_hooks.append(hook)
+        elif hook_type == "stop_sym_trans":
+            self._stop_sym_trans_hooks.append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type

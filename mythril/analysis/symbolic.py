@@ -85,11 +85,14 @@ class SymExecWrapper:
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
-        self.accounts = {
-            address: account,
-            hex(CREATOR_ADDRESS): creator_account,
-            hex(ATTACKER_ADDRESS): attacker_account,
-        }
+        if not contract.creation_code:
+            self.accounts = {address: account, hex(ATTACKER_ADDRESS): attacker_account}
+        else:
+            self.accounts = {
+                address: account,
+                hex(CREATOR_ADDRESS): creator_account,
+                hex(ATTACKER_ADDRESS): attacker_account,
+            }
 
         self.laser = svm.LaserEVM(
             self.accounts,
@@ -106,7 +109,6 @@ class SymExecWrapper:
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
-        plugin_loader.load(PluginFactory.build_set_initial_state_plugin())
 
         self.laser.register_hooks(
             hook_type="pre",
