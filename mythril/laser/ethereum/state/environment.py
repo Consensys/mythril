@@ -33,7 +33,7 @@ class Environment:
         :param callvalue:
         :param origin:
         :param code:
-        :param calldata_type:
+        :param static: Makes the environment static.
         """
         # Metadata
 
