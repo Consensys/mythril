@@ -30,8 +30,6 @@ COPY ./requirements.txt /opt/mythril/requirements.txt
 RUN cd /opt/mythril \
   && pip3 install -r requirements.txt
 
-RUN "[[ ! -z ${SOLC} ]] && set -e && for ver in $SOLC; do python -m solc.install v${ver}; done"
-
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.en
@@ -44,6 +42,8 @@ RUN cd /opt/mythril \
 RUN useradd -m mythril
 USER mythril
 WORKDIR /home/mythril
+
+RUN [ ! -z "${SOLC}" ] && set -e && for ver in $SOLC; do python -m solc.install v${ver}; done
 
 COPY --chown=mythril:mythril ./mythril/support/assets/signatures.db /root/.mythril/signatures.db
 ENTRYPOINT ["/usr/local/bin/myth"]
