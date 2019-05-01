@@ -1,5 +1,8 @@
 FROM ubuntu:bionic
 
+# Space-separated version string without leading 'v' (e.g. "0.4.21 0.4.22") 
+ARG SOLC
+
 RUN apt-get update \
   && apt-get install -y \
      libsqlite3-0 \
@@ -26,6 +29,8 @@ COPY ./requirements.txt /opt/mythril/requirements.txt
 
 RUN cd /opt/mythril \
   && pip3 install -r requirements.txt
+
+RUN "[[ ! -z ${SOLC} ]] && set -e && for ver in $SOLC; do python -m solc.install v${ver}; done"
 
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
