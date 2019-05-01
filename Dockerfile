@@ -41,5 +41,9 @@ COPY . /opt/mythril
 RUN cd /opt/mythril \
   && python setup.py install
 
-COPY ./mythril/support/assets/signatures.db /root/.mythril/signatures.db
+RUN useradd -m mythril
+USER mythril
+WORKDIR /home/mythril
+
+COPY --chown=mythril:mythril ./mythril/support/assets/signatures.db /root/.mythril/signatures.db
 ENTRYPOINT ["/usr/local/bin/myth"]
