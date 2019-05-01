@@ -33,6 +33,7 @@ log = logging.getLogger(__name__)
 
 DISABLE_EFFECT_CHECK = True
 
+
 class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
 
