@@ -132,13 +132,14 @@ def get_transaction_sequence(
         )
         value = model.eval(transaction.call_value.raw, model_completion=True).as_long()
         concrete_transaction["value"] = "0x%x" % value
-        origin = "0x" + (
+        caller = "0x" + (
             "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
         ).zfill(40)
-        concrete_transaction["origin"] = origin
+
+        concrete_transaction["origin"] = caller
         concrete_transaction["address"] = "%s" % transaction.callee_account.address
         concrete_transactions.append(concrete_transaction)
-        min_price_dict[origin] = min_price_dict.get(origin, 0) + value
+        min_price_dict[caller] = min_price_dict.get(caller, 0) + value
 
     initial_state = copy(global_state.world_state.initial_state_account)
 

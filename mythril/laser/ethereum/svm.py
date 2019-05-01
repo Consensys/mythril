@@ -145,16 +145,15 @@ class LaserEVM:
 
         time_handler.start_execution(self.execution_timeout)
         self.time = datetime.now()
+        self.set_standard_initial_state(self.world_state.accounts)
 
         if main_address:
             log.info("Starting message call transaction to {}".format(main_address))
-            self.set_standard_initial_state(self.world_state.accounts)
             self._execute_transactions(main_address)
 
         elif creation_code:
             log.info("Starting contract creation transaction")
 
-            self.set_standard_initial_state(self.world_state.accounts)
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
             )
