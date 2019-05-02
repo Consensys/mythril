@@ -11,9 +11,12 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
+from mythril.laser.ethereum.transaction.symbolic import CREATOR_ADDRESS
 from mythril.laser.smt import BitVec, symbol_factory
 
-from mythril.laser.ethereum.plugins.mutation_pruner import MutationPruner
+
+from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
+from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
 
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
@@ -88,9 +91,10 @@ class SymExecWrapper:
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
         )
-        mutation_plugin = MutationPruner()
 
-        mutation_plugin.initialize(self.laser)
+        plugin_loader = LaserPluginLoader(self.laser)
+        plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
+        plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
 
         self.laser.register_hooks(
             hook_type="pre",
@@ -111,6 +115,11 @@ class SymExecWrapper:
             )
         else:
             self.laser.sym_exec(address)
+        created_address = "0x" + str(mk_contract_address(CREATOR_ADDRESS, 0).hex())
+        for key, value in self.laser.world_state.accounts.items():
+            if created_address == value.address:
+                contract.code = value.code.bytecode
+                break
 
         if not requires_statespace:
             return

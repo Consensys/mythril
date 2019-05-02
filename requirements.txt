@@ -27,3 +27,4 @@ rlp>=1.0.1
 transaction>=2.2.1
 z3-solver-mythril>=4.8.4.1
 pysha3
+matplotlib

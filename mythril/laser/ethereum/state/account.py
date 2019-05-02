@@ -2,9 +2,10 @@
 
 This includes classes representing accounts and their storage.
 """
-
+from copy import deepcopy, copy
 from typing import Any, Dict, KeysView, Union
 
+from z3 import ExprRef
 
 from mythril.laser.smt import Array, symbol_factory, BitVec
 from mythril.disassembler.disassembly import Disassembly
@@ -61,6 +62,13 @@ class Storage:
         """
         return self._storage.keys()
 
+    def __deepcopy__(self, memodict={}):
+        storage = Storage(
+            concrete=self.concrete, address=self.address, dynamic_loader=self.dynld
+        )
+        storage._storage = copy(self._storage)
+        return storage
+
 
 class Account:
     """Account class representing ethereum accounts."""
@@ -87,6 +95,8 @@ class Account:
         self.storage = Storage(
             concrete_storage, address=address, dynamic_loader=dynamic_loader
         )
+
+        # Metadata
         self.address = address
         self.contract_name = contract_name
 
@@ -126,3 +136,14 @@ class Account:
             "balance": self.balance,
             "storage": self.storage,
         }
+
+    def __deepcopy__(self, memodict={}):
+        new_account = Account(
+            address=self.address,
+            code=self.code,
+            balance=self.balance,
+            contract_name=self.contract_name,
+        )
+        new_account.storage = deepcopy(self.storage)
+        new_account.code = self.code
+        return new_account

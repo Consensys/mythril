@@ -120,7 +120,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         c = Not(BVAddNoOverflow(op0, op1, False))
 
         # Check satisfiable
-        model = self._try_constraints(state.node.constraints, [c])
+        model = self._try_constraints(state.mstate.constraints, [c])
         if model is None:
             return
 
@@ -132,7 +132,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         c = Not(BVMulNoOverflow(op0, op1, False))
 
         # Check satisfiable
-        model = self._try_constraints(state.node.constraints, [c])
+        model = self._try_constraints(state.mstate.constraints, [c])
         if model is None:
             return
 
@@ -144,7 +144,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         c = Not(BVSubNoUnderflow(op0, op1, False))
 
         # Check satisfiable
-        model = self._try_constraints(state.node.constraints, [c])
+        model = self._try_constraints(state.mstate.constraints, [c])
         if model is None:
             return
 
@@ -172,7 +172,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
         else:
             constraint = op0.value ** op1.value >= 2 ** 256
-        model = self._try_constraints(state.node.constraints, [constraint])
+        model = self._try_constraints(state.mstate.constraints, [constraint])
         if model is None:
             return
         annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
@@ -286,19 +286,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ):
                 continue
 
-            node = ostate.node
             try:
 
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, node.constraints + [annotation.constraint]
+                    state, state.mstate.constraints + [annotation.constraint]
                 )
             except UnsatError:
                 continue
 
             _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
+                contract=ostate.environment.active_account.contract_name,
+                function_name=ostate.environment.active_function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
@@ -319,8 +318,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
     @staticmethod
     def _try_constraints(constraints, new_constraints):
-        """
-        Tries new constraints
+        """        Tries new constraints
         :return Model if satisfiable otherwise None
         """
         try:

@@ -81,7 +81,7 @@ def execute_contract_creation(
     del laser_evm.open_states[:]
 
     new_account = laser_evm.world_state.create_account(
-        0, concrete_storage=True, dynamic_loader=None
+        0, concrete_storage=True, dynamic_loader=None, creator=CREATOR_ADDRESS
     )
     if contract_name:
         new_account.contract_name = contract_name
