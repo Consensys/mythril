@@ -216,7 +216,7 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     options.add_argument(
         "--execution-timeout",
         type=int,
-        default=600,
+        default=86400,
         help="The amount of seconds to spend on symbolic execution",
     )
     options.add_argument(
