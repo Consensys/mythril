@@ -31,6 +31,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
+DISABLE_EFFECT_CHECK = True
+
 
 class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
@@ -287,9 +289,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             try:
+                # This check can be disabled if the contraints are to difficult for z3 to solve
+                # within any reasonable time.
+                if DISABLE_EFFECT_CHECK:
+                    constraints = ostate.mstate.constraints + [annotation.constraint]
+                else:
+                    constraints = state.mstate.constraints + [annotation.constraint]
 
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.mstate.constraints + [annotation.constraint]
+                    state, constraints
                 )
             except UnsatError:
                 continue
