@@ -78,19 +78,19 @@ def execute_contract_creation(
     :return:
     """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
-    open_states = laser_evm.open_states[:]
+    # open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
     world_state = WorldState()
-    open_states += [world_state]
+    open_states = [world_state]
+    new_account = world_state.create_account(
+        0, concrete_storage=True, dynamic_loader=None, creator=CREATOR_ADDRESS
+    )
+
+    if contract_name:
+        new_account.contract_name = contract_name
 
     for open_world_state in open_states:
-        new_account = open_world_state.create_account(
-            0, concrete_storage=True, dynamic_loader=None, creator=CREATOR_ADDRESS
-        )
-        if contract_name:
-            new_account.contract_name = contract_name
-
         next_transaction_id = get_next_transaction_id()
         transaction = ContractCreationTransaction(
             world_state=open_world_state,
