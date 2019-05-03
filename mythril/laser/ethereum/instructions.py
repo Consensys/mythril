@@ -1756,7 +1756,7 @@ class Instruction:
         :param global_state:
         """
         target = global_state.mstate.stack.pop()
-        transfer_amount = global_state.environment.active_account.balance
+        transfer_amount = global_state.environment.active_account.balance()
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, str):
