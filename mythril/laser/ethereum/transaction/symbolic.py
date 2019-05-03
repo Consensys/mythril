@@ -2,19 +2,18 @@
 symbolic values."""
 import logging
 
-
-from mythril.laser.smt import symbol_factory, Or
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
-from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.calldata import SymbolicCalldata
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
     get_next_transaction_id,
     BaseTransaction
 )
-from mythril.laser.smt import BitVec
+from mythril.laser.smt import symbol_factory, Or
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ ACTOR_ADDRESSES = [
 ]
 
 
-def execute_message_call(laser_evm, callee_address: BitVec) -> None:
+def execute_message_call(laser_evm, callee_address: int) -> None:
     """Executes a message call transaction from all open states.
 
     :param laser_evm:
@@ -80,13 +79,16 @@ def execute_contract_creation(
     open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
-    new_account = laser_evm.world_state.create_account(
-        0, concrete_storage=True, dynamic_loader=None, creator=CREATOR_ADDRESS
-    )
-    if contract_name:
-        new_account.contract_name = contract_name
+    world_state = WorldState()
+    open_states += [world_state]
 
     for open_world_state in open_states:
+        new_account = open_world_state.create_account(
+            0, concrete_storage=True, dynamic_loader=None, creator=CREATOR_ADDRESS
+        )
+        if contract_name:
+            new_account.contract_name = contract_name
+
         next_transaction_id = get_next_transaction_id()
         transaction = ContractCreationTransaction(
             world_state=open_world_state,
