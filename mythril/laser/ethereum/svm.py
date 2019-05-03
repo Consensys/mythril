@@ -22,6 +22,7 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
+from mythril.laser.smt import symbol_factory
 
 log = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ class LaserEVM:
         if pre_configuration_mode:
             self.open_states = [world_state]
             log.info("Starting message call transaction to {}".format(target_address))
-            self._execute_transactions(target_address)
+            self._execute_transactions(symbol_factory.BitVecVal(target_address, 256))
 
         elif scratch_mode:
             # self.open_states = [WorldState()]
@@ -355,7 +356,7 @@ class LaserEVM:
         if not revert_changes:
             return_global_state.world_state = copy(global_state.world_state)
             return_global_state.environment.active_account = global_state.accounts[
-                return_global_state.environment.active_account.address
+                return_global_state.environment.active_account.address.value
             ]
 
         # Execute the post instruction handler
