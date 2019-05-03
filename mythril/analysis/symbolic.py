@@ -15,7 +15,8 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import symbol_factory, BitVec
+from typing import Union
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
 
@@ -30,7 +31,7 @@ class SymExecWrapper:
     def __init__(
         self,
         contract,
-        address,
+        address: Union[int, str, BitVec],
         strategy,
         dynloader=None,
         max_depth=22,
@@ -55,6 +56,8 @@ class SymExecWrapper:
         """
         if isinstance(address, str):
             address = symbol_factory.BitVecVal(int(address, 16), 256)
+        if isinstance(address, int):
+            address = symbol_factory.BitVecVal(address, 256)
 
         if strategy == "dfs":
             s_strategy = DepthFirstSearchStrategy
@@ -113,7 +116,7 @@ class SymExecWrapper:
             )
             world_state = WorldState()
             world_state.put_account(account)
-            self.laser.sym_exec(world_state=world_state, target_address=address)
+            self.laser.sym_exec(world_state=world_state, target_address=address.value)
 
         if not requires_statespace:
             return

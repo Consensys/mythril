@@ -92,7 +92,11 @@ class Account:
         """
         self.nonce = 0
         self.code = code or Disassembly("")
-        self.address = address if isinstance(address, BitVec) else symbol_factory.BitVecVal(int(address, 16), 256)
+        self.address = (
+            address
+            if isinstance(address, BitVec)
+            else symbol_factory.BitVecVal(int(address, 16), 256)
+        )
 
         self.storage = Storage(
             concrete_storage, address=self.address, dynamic_loader=dynamic_loader
