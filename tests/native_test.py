@@ -3,6 +3,7 @@ from mythril.mythril import MythrilDisassembler
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum import svm
 from tests import BaseTestCase
 
@@ -89,8 +90,9 @@ class NativeTests(BaseTestCase):
         ).disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
         world_state = WorldState()
+        world_state.put_account(account)
         laser = svm.LaserEVM(max_depth=100, transaction_count=1)
-        laser.sym_exec(account.address)
+        laser.sym_exec(world_state=world_state, target_address=account.address)
 
         laser_info = str(_all_info(laser))
 
