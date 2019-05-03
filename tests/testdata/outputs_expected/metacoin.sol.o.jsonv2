@@ -1,1 +1,11 @@
-[{"issues": [], "meta": {}, "sourceFormat": "evm-byzantium-bytecode", "sourceList": ["0x0e6f727bb3301e02d3be831bf34357522fd2f1d40e90dff8e2214553b06b5f6c"], "sourceType": "raw-bytecode"}]
+[
+    {
+        "issues": [],
+        "meta": {},
+        "sourceFormat": "evm-byzantium-bytecode",
+        "sourceList": [
+            "0x0e6f727bb3301e02d3be831bf34357522fd2f1d40e90dff8e2214553b06b5f6c"
+        ],
+        "sourceType": "raw-bytecode"
+    }
+]

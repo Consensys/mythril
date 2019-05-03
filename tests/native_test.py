@@ -88,9 +88,8 @@ class NativeTests(BaseTestCase):
             solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
         ).disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
-        accounts = {account.address: account}
-
-        laser = svm.LaserEVM(accounts, max_depth=100, transaction_count=1)
+        world_state = WorldState()
+        laser = svm.LaserEVM(max_depth=100, transaction_count=1)
         laser.sym_exec(account.address)
 
         laser_info = str(_all_info(laser))
