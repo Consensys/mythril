@@ -102,7 +102,7 @@ class LaserEVM:
         world_state: WorldState = None,
         target_address: int = None,
         creation_code: str = None,
-        contract_name: str = None
+        contract_name: str = None,
     ) -> None:
         """ Starts symbolic execution
         There are two modes of execution.

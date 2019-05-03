@@ -1761,9 +1761,7 @@ class Instruction:
         # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, str):
             try:
-                global_state.world_state[
-                    target
-                ].add_balance(transfer_amount)
+                global_state.world_state[target].add_balance(transfer_amount)
 
             except KeyError:
                 global_state.world_state.create_account(

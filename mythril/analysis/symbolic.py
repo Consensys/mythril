@@ -67,7 +67,6 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )

@@ -71,7 +71,11 @@ class WorldState:
         :param dynamic_loader: used for dynamically loading storage from the block chain
         :return: The new account
         """
-        address = symbol_factory.BitVecVal(address, 256) if address else self._generate_new_address(creator)
+        address = (
+            symbol_factory.BitVecVal(address, 256)
+            if address
+            else self._generate_new_address(creator)
+        )
 
         new_account = Account(
             address=address,

@@ -113,7 +113,11 @@ class Account:
 
         :param balance:
         """
-        balance = symbol_factory.BitVecVal(balance, 256) if isinstance(balance, int) else balance
+        balance = (
+            symbol_factory.BitVecVal(balance, 256)
+            if isinstance(balance, int)
+            else balance
+        )
         if self._balances is None:
             assert False
         self._balances[self.address] = balance
@@ -123,7 +127,11 @@ class Account:
 
         :param balance:
         """
-        balance = symbol_factory.BitVecVal(balance, 256) if isinstance(balance, int) else balance
+        balance = (
+            symbol_factory.BitVecVal(balance, 256)
+            if isinstance(balance, int)
+            else balance
+        )
         self._balances[self.address] += balance
 
     @property

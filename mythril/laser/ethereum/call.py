@@ -145,7 +145,11 @@ def get_callee_account(
     log.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(
-        symbol_factory.BitVecVal(int(callee_address, 16), 256), code, callee_address, dynamic_loader=dynamic_loader, balances=global_state.world_state.balance
+        symbol_factory.BitVecVal(int(callee_address, 16), 256),
+        code,
+        callee_address,
+        dynamic_loader=dynamic_loader,
+        balances=global_state.world_state.balance,
     )
     accounts[callee_address] = callee_account
 
