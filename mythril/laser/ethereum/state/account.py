@@ -75,7 +75,7 @@ class Account:
 
     def __init__(
         self,
-        address: BitVec,
+        address: Union[BitVec, str],
         code=None,
         contract_name="unknown",
         balances: Array = None,
@@ -92,12 +92,13 @@ class Account:
         """
         self.nonce = 0
         self.code = code or Disassembly("")
+        self.address = address if isinstance(address, BitVec) else symbol_factory.BitVecVal(int(address, 16), 256)
+
         self.storage = Storage(
-            concrete_storage, address=address, dynamic_loader=dynamic_loader
+            concrete_storage, address=self.address, dynamic_loader=dynamic_loader
         )
 
         # Metadata
-        self.address = address
         self.contract_name = contract_name
 
         self.deleted = False
