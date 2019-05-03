@@ -1862,9 +1862,7 @@ class Instruction:
             gas_price=environment.gasprice,
             gas_limit=gas,
             origin=environment.origin,
-            caller=symbol_factory.BitVecVal(
-                int(environment.active_account.address, 16), 256
-            ),
+            caller=environment.active_account.address,
             callee_account=callee_account,
             call_data=call_data,
             call_value=value,
