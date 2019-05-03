@@ -124,7 +124,7 @@ def get_callee_account(
     accounts = global_state.accounts
 
     try:
-        return global_state.accounts[callee_address]
+        return global_state.accounts[int(callee_address, 16)]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
         log.debug("Module with address " + callee_address + " not loaded.")
