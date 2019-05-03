@@ -2,22 +2,20 @@
 purposes."""
 
 import copy
+
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
+from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
+from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import (
     BreadthFirstSearchStrategy,
     DepthFirstSearchStrategy,
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
 )
-from mythril.laser.ethereum.transaction.symbolic import CREATOR_ADDRESS
-from mythril.laser.smt import BitVec, symbol_factory
-
-
-from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
-from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-
+from mythril.laser.smt import symbol_factory
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
 
@@ -69,19 +67,12 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        account = Account(
-            address,
-            contract.disassembly,
-            dynamic_loader=dynloader,
-            contract_name=contract.name,
-        )
+
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
-        self.accounts = {address.value: account}
 
         self.laser = svm.LaserEVM(
-            self.accounts,
             dynamic_loader=dynloader,
             max_depth=max_depth,
             execution_timeout=execution_timeout,
@@ -114,12 +105,16 @@ class SymExecWrapper:
                 creation_code=contract.creation_code, contract_name=contract.name
             )
         else:
-            self.laser.sym_exec(address)
-        created_address = "0x" + str(mk_contract_address(CREATOR_ADDRESS, 0).hex())
-        for key, value in self.laser.world_state.accounts.items():
-            if created_address == value.address:
-                contract.code = value.code.bytecode
-                break
+            account = Account(
+                address,
+                contract.disassembly,
+                dynamic_loader=dynloader,
+                contract_name=contract.name,
+                concrete_storage=False,
+            )
+            world_state = WorldState()
+            world_state.put_account(account)
+            self.laser.sym_exec(world_state=world_state, target_address=address)
 
         if not requires_statespace:
             return
