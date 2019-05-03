@@ -24,7 +24,7 @@ class WorldState:
         :param transaction_sequence:
         :param annotations:
         """
-        self.accounts = {}  # type: Dict[str, Account]
+        self._accounts = {}  # type: Dict[str, Account]
         self.balance = Array("balance", 256, 256)
 
         self.node = None  # type: Optional['Node']
@@ -37,7 +37,7 @@ class WorldState:
         :param item: Address of the account to get
         :return: Account associated with the address
         """
-        return self.accounts[item.value]
+        return self._accounts[item.value]
 
     def __copy__(self) -> "WorldState":
         """
@@ -49,7 +49,9 @@ class WorldState:
             transaction_sequence=self.transaction_sequence[:],
             annotations=new_annotations,
         )
-        new_world_state.accounts = copy(self.accounts)
+        new_world_state.balance = copy(self.balance)
+        for account in self._accounts.values():
+            new_world_state.put_account(copy(account))
         new_world_state.node = self.node
         return new_world_state
 
@@ -80,7 +82,7 @@ class WorldState:
         if balance:
             new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
 
-        self._put_account(new_account)
+        self.put_account(new_account)
         return new_account
 
     def create_initialized_contract_account(self, contract_code, storage) -> None:
@@ -97,7 +99,7 @@ class WorldState:
             self._generate_new_address(), code=contract_code, balances=self.balance
         )
         new_account.storage = storage
-        self._put_account(new_account)
+        self.put_account(new_account)
 
     def annotate(self, annotation: StateAnnotation) -> None:
         """
@@ -135,12 +137,13 @@ class WorldState:
             return symbol_factory.BitVecVal(int(address, 16), 256)
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])
-            if address not in self.accounts.keys():
+            if address not in self._accounts.keys():
                 return symbol_factory.BitVecVal(int(address, 16), 256)
 
-    def _put_account(self, account: Account) -> None:
+    def put_account(self, account: Account) -> None:
         """
 
         :param account:
         """
-        self.accounts[account.address.value] = account
+        self._accounts[account.address.value] = account
+        account._balances = self.balance

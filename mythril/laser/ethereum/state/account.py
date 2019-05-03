@@ -114,6 +114,8 @@ class Account:
         :param balance:
         """
         balance = symbol_factory.BitVecVal(balance, 256) if isinstance(balance, int) else balance
+        if self._balances is None:
+            assert False
         self._balances[self.address] = balance
 
     def add_balance(self, balance: Union[int, BitVec]) -> None:
@@ -141,8 +143,8 @@ class Account:
         new_account = Account(
             address=self.address,
             code=self.code,
-            balance=self.balance,
             contract_name=self.contract_name,
+            balances=self._balances,
         )
         new_account.storage = deepcopy(self.storage)
         new_account.code = self.code
