@@ -207,8 +207,7 @@ class LaserEVM:
 
             if (
                 self.execution_timeout
-                and self.time
-                + timedelta(seconds=self.execution_timeout)
+                and self.time + timedelta(seconds=self.execution_timeout)
                 <= datetime.now()
                 and not create
             ):
