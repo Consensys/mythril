@@ -76,7 +76,7 @@ class StateTransition(object):
 
         :param increment_pc:
         :param enable_gas:
-        :param state_mutation_func: The function mutates state
+        :param is_state_mutation_instruction: The function mutates state
         """
         self.increment_pc = increment_pc
         self.enable_gas = enable_gas
