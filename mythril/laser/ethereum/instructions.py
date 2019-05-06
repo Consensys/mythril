@@ -70,7 +70,7 @@ class StateTransition(object):
     """
 
     def __init__(
-        self, increment_pc=True, enable_gas=True, state_mutation_instruction=False
+        self, increment_pc=True, enable_gas=True, is_state_mutation_instruction=False
     ):
         """
 
@@ -80,7 +80,7 @@ class StateTransition(object):
         """
         self.increment_pc = increment_pc
         self.enable_gas = enable_gas
-        self.state_mutation_instruction = state_mutation_instruction
+        self.is_state_mutation_instruction = is_state_mutation_instruction
 
     @staticmethod
     def call_on_state_copy(func: Callable, func_obj: "Instruction", state: GlobalState):
@@ -148,7 +148,7 @@ class StateTransition(object):
             :param global_state:
             :return:
             """
-            if self.state_mutation_instruction and global_state.environment.static:
+            if self.is_state_mutation_instruction and global_state.environment.static:
                 raise WriteProtection(
                     "The function {} cannot be executed in a static call".format(
                         func.__name__[:-1]
@@ -1453,7 +1453,7 @@ class Instruction:
             keccak_argument = keccak_function_manager.get_argument(keccak_key)
             yield keccak_argument != argument
 
-    @StateTransition(state_mutation_instruction=True)
+    @StateTransition(is_state_mutation_instruction=True)
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1696,7 +1696,7 @@ class Instruction:
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
-    @StateTransition(state_mutation_instruction=True)
+    @StateTransition(is_state_mutation_instruction=True)
     def log_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1711,7 +1711,7 @@ class Instruction:
         # Not supported
         return [global_state]
 
-    @StateTransition(state_mutation_instruction=True)
+    @StateTransition(is_state_mutation_instruction=True)
     def create_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1726,7 +1726,7 @@ class Instruction:
         state.stack.append(0)
         return [global_state]
 
-    @StateTransition(state_mutation_instruction=True)
+    @StateTransition(is_state_mutation_instruction=True)
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1762,7 +1762,7 @@ class Instruction:
             log.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(global_state, return_data)
 
-    @StateTransition(state_mutation_instruction=True)
+    @StateTransition(is_state_mutation_instruction=True)
     def suicide_(self, global_state: GlobalState):
         """
 
