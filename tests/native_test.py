@@ -30,13 +30,6 @@ IDENTITY_TEST[1] = (hex(476934798798347), False)
 
 
 def _all_info(laser):
-    accounts = {}
-    for address, _account in laser.world_state.accounts.items():
-        account = _account.as_dict
-        account["code"] = account["code"].instruction_list
-        account["balance"] = str(account["balance"])
-        accounts[address] = account
-
     nodes = {}
     for uid, node in laser.nodes.items():
         states = []
@@ -67,7 +60,6 @@ def _all_info(laser):
     edges = [edge.as_dict for edge in laser.edges]
 
     return {
-        "accounts": accounts,
         "nodes": nodes,
         "edges": edges,
         "total_states": laser.total_states,
@@ -86,7 +78,7 @@ class NativeTests(BaseTestCase):
         """"""
         disassembly = SolidityContract(
             "./tests/native_tests.sol",
-            solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
+            solc_binary=MythrilDisassembler._init_solc_binary("0.5.3"),
         ).disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
         world_state = WorldState()
