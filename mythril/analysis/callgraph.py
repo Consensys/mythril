@@ -125,7 +125,7 @@ phrack_color = {
 }
 
 
-def extract_nodes(statespace, color_map):
+def extract_nodes(statespace):
     """
 
     :param statespace:
@@ -133,6 +133,7 @@ def extract_nodes(statespace, color_map):
     :return:
     """
     nodes = []
+    color_map = {}
     for node_key in statespace.nodes:
         node = statespace.nodes[node_key]
         instructions = [state.get_current_instruction() for state in node.states]
@@ -164,10 +165,14 @@ def extract_nodes(statespace, color_map):
             else "\n".join(code_split[:6]) + "\n(click to expand +)"
         )
 
+        if node.get_cfg_dict()["contract_name"] not in color_map.keys():
+            color = default_colors[len(color_map) % len(default_colors)]
+            color_map[node.get_cfg_dict()["contract_name"]] = color
+
         nodes.append(
             {
                 "id": str(node_key),
-                "color": color_map[node.get_cfg_dict()["contract_name"]],
+                "color": color_map.get(node.get_cfg_dict()["contract_name"], default_colors[0]),
                 "size": 150,
                 "fullLabel": "\n".join(code_split),
                 "label": truncated_code,
@@ -231,22 +236,12 @@ def generate_graph(
     template = env.get_template("callgraph.html")
 
     graph_opts = default_opts
-    accounts = statespace.accounts
-
-    if phrackify:
-        color_map = {accounts[k].contract_name: phrack_color for k in accounts}
-        graph_opts.update(phrack_opts)
-    else:
-        color_map = {
-            accounts[k].contract_name: default_colors[i % len(default_colors)]
-            for i, k in enumerate(accounts)
-        }
 
     graph_opts["physics"]["enabled"] = physics
 
     return template.render(
         title=title,
-        nodes=extract_nodes(statespace, color_map),
+        nodes=extract_nodes(statespace),
         edges=extract_edges(statespace),
         phrackify=phrackify,
         opts=graph_opts,
