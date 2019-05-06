@@ -24,7 +24,7 @@ class WorldState:
         :param transaction_sequence:
         :param annotations:
         """
-        self._accounts = {}  # type: Dict[str, Account]
+        self._accounts = {}  # type: Dict[int, Account]
         self.balance = Array("balance", 256, 256)
 
         self.node = None  # type: Optional['Node']

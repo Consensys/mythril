@@ -201,7 +201,9 @@ class ContractCreationTransaction(BaseTransaction):
         contract_code = bytes.hex(array.array("B", return_data).tostring())
 
         global_state.environment.active_account.code.assign_bytecode(contract_code)
-        self.return_data = global_state.environment.active_account.address
+        self.return_data = str(
+            hex(global_state.environment.active_account.address.value)
+        )
         assert global_state.environment.active_account.code.instruction_list != []
 
         raise TransactionEndSignal(global_state, revert=revert)

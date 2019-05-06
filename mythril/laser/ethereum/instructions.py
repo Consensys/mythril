@@ -1758,9 +1758,8 @@ class Instruction:
         target = global_state.mstate.stack.pop()
         transfer_amount = global_state.environment.active_account.balance()
         # Often the target of the suicide instruction will be symbolic
-        # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, str):
-            global_state.world_state[target].add_balance(transfer_amount)
+        # If it isn't then we'll transfer the balance to the indicated contract
+        global_state.world_state[target].add_balance(transfer_amount)
 
         global_state.environment.active_account = deepcopy(
             global_state.environment.active_account
