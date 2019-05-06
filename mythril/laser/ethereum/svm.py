@@ -63,7 +63,7 @@ class LaserEVM:
         :param strategy:
         :param transaction_count:
         """
-        self.open_states = []
+        self.open_states = []  # type: List[WorldState]
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 

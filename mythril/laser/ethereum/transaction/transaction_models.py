@@ -121,6 +121,9 @@ class BaseTransaction:
 
         return global_state
 
+    def initial_global_state(self) -> GlobalState:
+        raise NotImplementedError
+
 
 class MessageCallTransaction(BaseTransaction):
     """Transaction object models an transaction."""
