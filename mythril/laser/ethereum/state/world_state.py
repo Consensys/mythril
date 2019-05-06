@@ -31,6 +31,10 @@ class WorldState:
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
 
+    @property
+    def accounts(self):
+        return self._accounts
+
     def __getitem__(self, item: BitVec) -> Account:
         """Gets an account from the worldstate using item as key.
 
