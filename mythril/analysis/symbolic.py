@@ -17,7 +17,7 @@ from mythril.laser.ethereum.strategy.basic import (
     BasicSearchStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
 
@@ -61,13 +61,13 @@ class SymExecWrapper:
             address = symbol_factory.BitVecVal(address, 256)
 
         if strategy == "dfs":
-            s_strategy = DepthFirstSearchStrategy  # type: BasicSearchStrategy
+            s_strategy = DepthFirstSearchStrategy  # type: Type[BasicSearchStrategy]
         elif strategy == "bfs":
-            s_strategy = BreadthFirstSearchStrategy  # type: BasicSearchStrategy
+            s_strategy = BreadthFirstSearchStrategy
         elif strategy == "naive-random":
-            s_strategy = ReturnRandomNaivelyStrategy  # type: BasicSearchStrategy
+            s_strategy = ReturnRandomNaivelyStrategy
         elif strategy == "weighted-random":
-            s_strategy = ReturnWeightedRandomStrategy  # type: BasicSearchStrategy
+            s_strategy = ReturnWeightedRandomStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
 
@@ -128,7 +128,7 @@ class SymExecWrapper:
         # Generate lists of interesting operations
 
         self.calls = []  # type: List[Call]
-        self.sstors = {}  # type: Dict[int, SStore]
+        self.sstors = {}  # type: Dict[int, Dict[str, List[SStore]]]
 
         for key in self.nodes:
 
