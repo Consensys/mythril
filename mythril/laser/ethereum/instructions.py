@@ -1384,12 +1384,12 @@ class Instruction:
             key_argument = keccak_function_manager.get_argument(keccak_key)
             index_argument = keccak_function_manager.get_argument(index)
             condition = index_argument == key_argument
-            condition = (
+            condition_z3 = (
                 condition
                 if isinstance(condition, Bool)
                 else symbol_factory.Bool(condition)
             )
-            constraints.append((keccak_key, condition))
+            constraints.append((keccak_key, condition_z3))
 
         for (keccak_key, constraint) in constraints:
             if constraint in state.constraints:

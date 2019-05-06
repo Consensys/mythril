@@ -136,10 +136,10 @@ def test_vmtest(
 
             assert account.nonce == int(details["nonce"], 16)
             assert account.code.bytecode == details["code"][2:]
-
+            print(account.storage._storage, details["storage"])
             for index, value in details["storage"].items():
                 expected = int(value, 16)
-                actual = account.storage[int(index, 16)]
+                actual = account.storage[str(int(index, 16))]
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual
