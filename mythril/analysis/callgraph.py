@@ -172,7 +172,9 @@ def extract_nodes(statespace):
         nodes.append(
             {
                 "id": str(node_key),
-                "color": color_map.get(node.get_cfg_dict()["contract_name"], default_colors[0]),
+                "color": color_map.get(
+                    node.get_cfg_dict()["contract_name"], default_colors[0]
+                ),
                 "size": 150,
                 "fullLabel": "\n".join(code_split),
                 "label": truncated_code,
