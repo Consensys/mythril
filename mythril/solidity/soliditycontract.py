@@ -23,6 +23,12 @@ class SolidityFile:
     """Representation of a file containing Solidity code."""
 
     def __init__(self, filename: str, data: str, full_contract_source: Set[str]):
+        """
+        Metadata class containing data regarding a specific solidity file
+        :param filename: The filename of the solidity file
+        :param data: The code of the solidity file
+        :param full_contract_source: The set of contract source mappings of all the contracts in the file
+        """
         self.filename = filename
         self.data = data
         self.full_contract_source = full_contract_source
@@ -127,6 +133,11 @@ class SolidityContract(EVMContract):
 
     @staticmethod
     def get_full_contract_sources(ast: Dict) -> Set[str]:
+        """
+        Takes AST and returns the source map of the contract
+        :param ast: AST of the contract
+        :return: The source map
+        """
         source_map = set()
         for child in ast["children"]:
             if "contractKind" in child["attributes"]:
