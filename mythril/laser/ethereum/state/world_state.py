@@ -37,7 +37,12 @@ class WorldState:
         :param item: Address of the account to get
         :return: Account associated with the address
         """
-        return self._accounts[item.value]
+        try:
+            return self._accounts[item.value]
+        except KeyError:
+            new_account = Account(address=item, code=None, balances=self.balance)
+            self._accounts[item.value] = new_account
+            return new_account
 
     def __copy__(self) -> "WorldState":
         """

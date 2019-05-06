@@ -1760,15 +1760,15 @@ class Instruction:
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then well transfer the balance to the indicated contract
         if isinstance(target, str):
-            try:
-                global_state.world_state[target].add_balance(transfer_amount)
+            # try:
+            global_state.world_state[target].add_balance(transfer_amount)
 
-            except KeyError:
-                global_state.world_state.create_account(
-                    address=target,
-                    balance=global_state.environment.active_account.balance,
-                )
-                account_created = True
+            # except KeyError:
+            #     global_state.world_state.create_account(
+            #         address=target,
+            #         balance=global_state.environment.active_account.balance,
+            #     )
+            #     account_created = True
 
         global_state.environment.active_account = deepcopy(
             global_state.environment.active_account
