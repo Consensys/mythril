@@ -99,7 +99,6 @@ def test_vmtest(
     # Act
     laser_evm.time = datetime.now()
 
-
     final_states = execute_message_call(
         laser_evm,
         callee_address=symbol_factory.BitVecVal(int(action["address"], 16), 256),
