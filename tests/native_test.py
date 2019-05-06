@@ -92,7 +92,7 @@ class NativeTests(BaseTestCase):
         world_state = WorldState()
         world_state.put_account(account)
         laser = svm.LaserEVM(max_depth=100, transaction_count=1)
-        laser.sym_exec(world_state=world_state, target_address=account.address)
+        laser.sym_exec(world_state=world_state, target_address=account.address.value)
 
         laser_info = str(_all_info(laser))
 
