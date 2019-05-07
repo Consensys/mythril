@@ -63,12 +63,23 @@ class Issue:
         self.source_mapping = None
         self.discovery_time = time() - StartTime().global_start_time
         self.bytecode_hash = get_code_hash(bytecode)
-        if transaction_sequence is None:
-            self.tx_sequence_users = None
-            self.transaction_sequence_jsonv2 = None
-        else:
-            self.tx_sequence_users = json.dumps(transaction_sequence, indent=4)
-            self.transaction_sequence_jsonv2 = self.add_block_data(transaction_sequence)
+        self.transaction_sequence = transaction_sequence
+
+    @property
+    def transaction_sequence_users(self):
+        return (
+            json.dumps(self.transaction_sequence, indent=4)
+            if self.transaction_sequence
+            else None
+        )
+
+    @property
+    def transaction_sequence_jsonv2(self):
+        return (
+            self.add_block_data(self.transaction_sequence)
+            if self.transaction_sequence
+            else None
+        )
 
     @staticmethod
     def add_block_data(transaction_sequence: Dict):
@@ -96,7 +107,7 @@ class Issue:
             "function": self.function,
             "severity": self.severity,
             "address": self.address,
-            "tx_sequence": self.tx_sequence_users,
+            "tx_sequence": self.transaction_sequence_users,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
             "sourceMap": self.source_mapping,
