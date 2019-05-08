@@ -33,7 +33,7 @@ class PredictableDependenceModule(DetectionModule):
         :param state:
         :return:
         """
-        log.info("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
+        log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
         self._issues.extend(_analyze_states(state))
         return self.issues
 
