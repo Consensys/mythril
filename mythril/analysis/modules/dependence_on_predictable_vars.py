@@ -74,17 +74,14 @@ def _analyze_states(state: GlobalState) -> list:
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
-                address=state.get_current_instruction()['address'],
+                address=state.get_current_instruction()["address"],
                 swc_id=swc_id,
                 bytecode=state.environment.code.bytecode,
                 title="Dependence on predictable environment variable",
                 severity="Low",
                 description_head="A control flow decision is made based on a predictable variable.",
                 description_tail=description,
-                gas_used=(
-                    state.mstate.min_gas_used,
-                    state.mstate.max_gas_used,
-                ),
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
             issues.append(issue)
 
