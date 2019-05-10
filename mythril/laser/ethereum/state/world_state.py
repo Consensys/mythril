@@ -25,7 +25,7 @@ class WorldState:
         :param annotations:
         """
         self._accounts = {}  # type: Dict[int, Account]
-        self.balance = Array("balance", 256, 256)
+        self.balances = Array("balance", 256, 256)
 
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
@@ -44,7 +44,7 @@ class WorldState:
         try:
             return self._accounts[item.value]
         except KeyError:
-            new_account = Account(address=item, code=None, balances=self.balance)
+            new_account = Account(address=item, code=None, balances=self.balances)
             self._accounts[item.value] = new_account
             return new_account
 
@@ -58,7 +58,7 @@ class WorldState:
             transaction_sequence=self.transaction_sequence[:],
             annotations=new_annotations,
         )
-        new_world_state.balance = copy(self.balance)
+        new_world_state.balances = copy(self.balances)
         for account in self._accounts.values():
             new_world_state.put_account(copy(account))
         new_world_state.node = self.node
@@ -88,7 +88,7 @@ class WorldState:
 
         new_account = Account(
             address=address,
-            balances=self.balance,
+            balances=self.balances,
             dynamic_loader=dynamic_loader,
             concrete_storage=concrete_storage,
         )
@@ -109,7 +109,7 @@ class WorldState:
         """
         # TODO: Add type hints
         new_account = Account(
-            self._generate_new_address(), code=contract_code, balances=self.balance
+            self._generate_new_address(), code=contract_code, balances=self.balances
         )
         new_account.storage = storage
         self.put_account(new_account)
@@ -159,4 +159,4 @@ class WorldState:
         :param account:
         """
         self._accounts[account.address.value] = account
-        account._balances = self.balance
+        account._balances = self.balances
