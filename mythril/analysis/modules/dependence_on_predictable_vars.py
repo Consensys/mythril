@@ -9,6 +9,15 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 
 log = logging.getLogger(__name__)
 
+predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
+
+
+class PredictableValueAnnotation:
+    """ Symbol Annotation used if a variable is initialized from a predictable environment variable"""
+
+    def __init__(self, opcode) -> None:
+        self.opcode = opcode
+
 
 class PredictableDependenceModule(DetectionModule):
     """This module detects whether control flow decisions are made using predictable
@@ -25,6 +34,7 @@ class PredictableDependenceModule(DetectionModule):
             ),
             entrypoint="callback",
             pre_hooks=["JUMPI"],
+            post_hooks=predictable_ops
         )
 
     def execute(self, state: GlobalState) -> list:
@@ -33,12 +43,11 @@ class PredictableDependenceModule(DetectionModule):
         :param state:
         :return:
         """
-        log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
+
+        log.info("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
+
         self._issues.extend(_analyze_states(state))
         return self.issues
-
-
-detector = PredictableDependenceModule()
 
 
 def _analyze_states(state: GlobalState) -> list:
@@ -51,38 +60,41 @@ def _analyze_states(state: GlobalState) -> list:
 
     # Look for predictable state variables in jump condition
 
-    vars = ["coinbase", "gaslimit", "timestamp", "number"]
-    found = []
+    if state.get_current_instruction()["opcode"] == "JUMPI":
+        for annotation in state.mstate.stack[-2].annotations:
+            if isinstance(annotation, PredictableValueAnnotation):
+                description = "A control flow decision is made based on block.{}. ".format(annotation.opcode)
 
-    description = "A control flow decision is made based on "
+                description += (
+                    "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
+                    "are predictable and can be manipulated by a malicious miner. "
+                    "Don't use them for random number generation or to make critical control flow decisions."
+                )
 
-    for var in vars:
-        if var in str(state.mstate.stack[-2]):
-            found.append(var)
+                issue = Issue(
+                    contract=state.environment.active_account.contract_name,
+                    function_name=state.environment.active_function_name,
+                    address=state.get_current_instruction()["address"],
+                    swc_id=TIMESTAMP_DEPENDENCE,
+                    bytecode=state.environment.code.bytecode,
+                    title="Dependence on predictable environment variable",
+                    severity="Low",
+                    description_head="A control flow decision is made based on a predictable variable.",
+                    description_tail=description,
+                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                )
+                issues.append(issue)
+    else:
+        # we're in post hook
 
-    if len(found):
-        for item in found:
-            description += "block.{}. ".format(item)
-            swc_id = TIMESTAMP_DEPENDENCE if item == "timestamp" else WEAK_RANDOMNESS
+        instructions = state.environment.code.instruction_list
+        opcode = instructions[state.mstate.pc - 1]["opcode"]
 
-            description += (
-                "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
-                "are predictable and can be manipulated by a malicious miner. "
-                "Don't use them for random number generation or to make critical control flow decisions."
-            )
-
-            issue = Issue(
-                contract=state.environment.active_account.contract_name,
-                function_name=state.environment.active_function_name,
-                address=state.get_current_instruction()["address"],
-                swc_id=swc_id,
-                bytecode=state.environment.code.bytecode,
-                title="Dependence on predictable environment variable",
-                severity="Low",
-                description_head="A control flow decision is made based on a predictable variable.",
-                description_tail=description,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            )
-            issues.append(issue)
+        logging.info("annotating " + str(opcode))
+        annotation = PredictableValueAnnotation(opcode)
+        state.mstate.stack[-1].annotate(annotation)
 
     return issues
+
+
+detector = PredictableDependenceModule()
