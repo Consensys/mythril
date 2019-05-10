@@ -34,7 +34,7 @@ class PredictableDependenceModule(DetectionModule):
             ),
             entrypoint="callback",
             pre_hooks=["JUMPI"],
-            post_hooks=predictable_ops
+            post_hooks=predictable_ops,
         )
 
     def execute(self, state: GlobalState) -> list:
@@ -63,7 +63,9 @@ def _analyze_states(state: GlobalState) -> list:
     if state.get_current_instruction()["opcode"] == "JUMPI":
         for annotation in state.mstate.stack[-2].annotations:
             if isinstance(annotation, PredictableValueAnnotation):
-                description = "A control flow decision is made based on block.{}. ".format(annotation.opcode)
+                description = "A control flow decision is made based on block.{}. ".format(
+                    annotation.opcode
+                )
 
                 description += (
                     "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
