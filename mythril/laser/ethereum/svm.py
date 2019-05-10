@@ -56,12 +56,16 @@ class LaserEVM:
         enable_iprof=False,
     ) -> None:
         """
-        :param dynamic_loader:
-        :param max_depth:
-        :param execution_timeout:
-        :param create_timeout:
-        :param strategy:
-        :param transaction_count:
+        Initializes the laser evm object
+
+        :param dynamic_loader: Loads data from chain
+        :param max_depth: Maximum execution depth this vm should execute
+        :param execution_timeout: Time to take for execution
+        :param create_timeout: Time to take for contract creation
+        :param strategy: Execution search strategy
+        :param transaction_count: The amount of transactions to execute
+        :param requires_statespace: Variable indicating whether the statespace should be recorded
+        :param enable_iprof: Variable indicating whether instruction profiling should be turned on
         """
         self.open_states = []  # type: List[WorldState]
         self.total_states = 0
