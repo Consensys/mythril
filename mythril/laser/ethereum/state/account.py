@@ -123,8 +123,7 @@ class Account:
             if isinstance(balance, int)
             else balance
         )
-        if self._balances is None:
-            assert False
+        assert self._balances is not None
         self._balances[self.address] = balance
 
     def add_balance(self, balance: Union[int, BitVec]) -> None:
