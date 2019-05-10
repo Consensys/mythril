@@ -147,7 +147,7 @@ class Account:
         return {
             "nonce": self.nonce,
             "code": self.code,
-            "balance": self.balance,
+            "balance": self.balance(),
             "storage": self.storage,
         }
 
