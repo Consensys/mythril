@@ -90,7 +90,6 @@ def _analyze_states(state: GlobalState) -> list:
         instructions = state.environment.code.instruction_list
         opcode = instructions[state.mstate.pc - 1]["opcode"]
 
-        logging.info("annotating " + str(opcode))
         annotation = PredictableValueAnnotation(opcode)
         state.mstate.stack[-1].annotate(annotation)
 
