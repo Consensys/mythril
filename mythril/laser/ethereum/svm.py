@@ -115,21 +115,6 @@ class LaserEVM:
         """
         return self.world_state.accounts
 
-    def set_standard_initial_state(
-        self, accounts: Dict[str, Account], ignore_addr=True
-    ):
-        initial_state = self.world_state.initial_state_account
-        initial_state["accounts"] = {}  # This variable persists for all world states.
-        for address, account in accounts.items():
-            if ignore_addr and address == "0x" + "0" * 40:
-                continue
-            initial_state["accounts"][address] = {
-                "nounce": account.nonce,
-                "balance": "<ARBITRARY_BALANCE>",
-                "code": account.code.bytecode,
-                "storage": str(account.storage),
-            }
-
     def sym_exec(
         self, main_address=None, creation_code=None, contract_name=None
     ) -> None:
@@ -145,7 +130,6 @@ class LaserEVM:
 
         time_handler.start_execution(self.execution_timeout)
         self.time = datetime.now()
-        self.set_standard_initial_state(self.world_state.accounts)
 
         if main_address:
             log.info("Starting message call transaction to {}".format(main_address))
@@ -166,11 +150,6 @@ class LaserEVM:
                 log.warning(
                     "No contract was created during the execution of contract creation "
                     "Increase the resources for creation execution (--max-depth or --create-timeout)"
-                )
-            else:
-                # Replace previous initial state with new ones after contract creation
-                self.set_standard_initial_state(
-                    self.open_states[0].accounts, ignore_addr=True
                 )
 
             self._execute_transactions(created_account.address)

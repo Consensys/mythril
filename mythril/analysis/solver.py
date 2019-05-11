@@ -1,5 +1,5 @@
 """This module contains analysis module helpers to solve path constraints."""
-from typing import Dict, List
+from typing import Dict, List, Union
 from z3 import sat, unknown, FuncInterp
 from copy import copy
 import z3
@@ -133,14 +133,25 @@ def get_transaction_sequence(
         concrete_transaction["address"] = "%s" % transaction.callee_account.address
         concrete_transactions.append(concrete_transaction)
         min_price_dict[caller] = min_price_dict.get(caller, 0) + value
+    if len(transactions) > 0:
+        initial_state = transactions[0].world_state.accounts
+    else:
+        for transaction in transaction_sequence:
+            if transaction.id == "1":
+                initial_state = transaction.world_state.accounts
+                break
 
-    initial_state = copy(global_state.world_state.initial_state_account)
-
-    for account, data in initial_state["accounts"].items():
-        data["balance"] = min_price_dict.get(account, 0)
-    steps = {
-        "initialState": global_state.world_state.initial_state_account,
-        "steps": concrete_transactions,
-    }
+    states = {}
+    for address, account in initial_state.items():
+        if address == "0x" + 40 * "0" and len(account.code.bytecode) > 0:
+            continue
+        data = dict()  # type: Dict[str, Union[int, str]]
+        data["nonce"] = account.nonce
+        data["balance"] = account.balance
+        data["code"] = account.code.bytecode
+        data["storage"] = str(account.storage)
+        data["balance"] = min_price_dict.get(address, 0)
+        states[address] = data
+    steps = {"initialState": states, "steps": concrete_transactions}
 
     return steps
