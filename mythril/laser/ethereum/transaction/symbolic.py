@@ -78,7 +78,6 @@ def execute_contract_creation(
     :return:
     """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
-    # open_states = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
     world_state = WorldState()
