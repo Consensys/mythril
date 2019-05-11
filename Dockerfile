@@ -45,5 +45,6 @@ WORKDIR /home/mythril
 
 RUN ( [ ! -z "${SOLC}" ] && set -e && for ver in $SOLC; do python -m solc.install v${ver}; done ) || true
 
-COPY --chown=mythril:mythril ./mythril/support/assets/signatures.db /root/.mythril/signatures.db
+COPY ./mythril/support/assets/signatures.db /home/mythril/.mythril/signatures.db
+
 ENTRYPOINT ["/usr/local/bin/myth"]
