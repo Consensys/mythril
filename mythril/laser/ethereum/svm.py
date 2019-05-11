@@ -127,7 +127,7 @@ class LaserEVM:
                 "nounce": account.nonce,
                 "balance": "<ARBITRARY_BALANCE>",
                 "code": account.code.bytecode,
-                "storage": {},
+                "storage": str(account.storage),
             }
 
     def sym_exec(
