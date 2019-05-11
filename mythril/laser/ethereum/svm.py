@@ -139,7 +139,6 @@ class LaserEVM:
             self._execute_transactions(symbol_factory.BitVecVal(target_address, 256))
 
         elif scratch_mode:
-            # self.open_states = [WorldState()]
             log.info("Starting contract creation transaction")
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
