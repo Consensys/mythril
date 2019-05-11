@@ -134,7 +134,7 @@ class SolidityContract(EVMContract):
     @staticmethod
     def get_full_contract_sources(ast: Dict) -> Set[str]:
         """
-        Takes AST and returns the source map of the contract
+        Takes a solc AST and gets the src mappings for all the contracts defined in the top level of the ast
         :param ast: AST of the contract
         :return: The source map
         """
