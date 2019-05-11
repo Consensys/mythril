@@ -116,8 +116,8 @@ class BaseTransaction:
         receiver = environment.active_account.address
         value = environment.callvalue
 
-        global_state.world_state.balance[sender] -= value
-        global_state.world_state.balance[receiver] += value
+        global_state.world_state.balances[sender] -= value
+        global_state.world_state.balances[receiver] += value
 
         return global_state
 
