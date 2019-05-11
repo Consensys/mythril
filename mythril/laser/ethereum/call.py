@@ -149,7 +149,7 @@ def get_callee_account(
         code,
         callee_address,
         dynamic_loader=dynamic_loader,
-        balances=global_state.world_state.balance,
+        balances=global_state.world_state.balances,
     )
     accounts[callee_address] = callee_account
 
