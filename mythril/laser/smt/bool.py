@@ -97,10 +97,8 @@ def Or(*args: Union[Bool, bool]) -> Bool:
     :param b:
     :return:
     """
-    union = []
     args_list = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
-    for arg in args_list:
-        union.append(arg.annotations)
+    union = [arg.annotations for arg in args_list]
     return Bool(z3.Or([a.raw for a in args_list]), annotations=union)
 
 
