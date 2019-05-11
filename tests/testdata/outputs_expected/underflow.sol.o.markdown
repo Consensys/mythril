@@ -25,3 +25,16 @@ The operands of the subtraction operation are not sufficiently constrained. The 
 
 The binary subtraction can underflow.
 The operands of the subtraction operation are not sufficiently constrained. The subtraction could therefore result in an integer underflow. Prevent the underflow by checking inputs or ensure sure that the underflow is caught by an assertion.
+
+## Integer Overflow
+- SWC ID: 101
+- Severity: High
+- Contract: Unknown
+- Function name: `sendeth(address,uint256)`
+- PC address: 725
+- Estimated Gas Usage: 11915 - 52861
+
+### Description
+
+The binary addition can overflow.
+The operands of the addition operation are not sufficiently constrained. The addition could therefore result in an integer overflow. Prevent the overflow by checking inputs or ensure sure that the overflow is caught by an assertion.

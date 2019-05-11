@@ -154,7 +154,7 @@ class ContractCreationTransaction(BaseTransaction):
         super().__init__(*args, **kwargs, init_call_data=False)  # type: ignore
         # TODO: set correct balance for new account
         self.callee_account = self.callee_account or self.world_state.create_account(
-            0, concrete_storage=True
+            0, concrete_storage=False
         )
 
     def initial_global_state(self) -> GlobalState:

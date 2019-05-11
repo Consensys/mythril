@@ -945,7 +945,6 @@ class Instruction:
             )
             log.debug("Created BitVecFunc hash.")
 
-            keccak_function_manager.add_keccak(result, state.memory[index])
         else:
             keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
             result = symbol_factory.BitVecFuncVal(
@@ -1366,42 +1365,37 @@ class Instruction:
         state = global_state.mstate
         index = state.stack.pop()
         log.debug("Storage access at index " + str(index))
+        index = simplify(index)
 
-        try:
-            index = util.get_concrete_int(index)
+        if not keccak_function_manager.is_keccak(index):
             return self._sload_helper(global_state, index)
 
-        except TypeError:
-            if not keccak_function_manager.is_keccak(index):
-                return self._sload_helper(global_state, str(index))
+        storage_keys = global_state.environment.active_account.storage.keys()
+        keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
 
-            storage_keys = global_state.environment.active_account.storage.keys()
-            keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
+        results = []  # type: List[GlobalState]
+        constraints = []
 
-            results = []  # type: List[GlobalState]
-            constraints = []
+        for keccak_key in keccak_keys:
+            key_argument = keccak_function_manager.get_argument(keccak_key)
+            index_argument = keccak_function_manager.get_argument(index)
+            if key_argument.size() != index_argument.size():
+                continue
+            constraints.append((keccak_key, key_argument == index_argument))
 
-            for keccak_key in keccak_keys:
-                key_argument = keccak_function_manager.get_argument(keccak_key)
-                index_argument = keccak_function_manager.get_argument(index)
-                constraints.append((keccak_key, key_argument == index_argument))
+        for (keccak_key, constraint) in constraints:
+            if constraint in state.constraints:
+                results += self._sload_helper(global_state, keccak_key, [constraint])
+        if len(results) > 0:
+            return results
 
-            for (keccak_key, constraint) in constraints:
-                if constraint in state.constraints:
-                    results += self._sload_helper(
-                        global_state, keccak_key, [constraint]
-                    )
-            if len(results) > 0:
-                return results
+        for (keccak_key, constraint) in constraints:
+            results += self._sload_helper(copy(global_state), keccak_key, [constraint])
 
-            for (keccak_key, constraint) in constraints:
-                results += self._sload_helper(
-                    copy(global_state), keccak_key, [constraint]
-                )
-            if len(results) > 0:
-                return results
+        if len(results) > 0:
+            return results
 
-            return self._sload_helper(global_state, str(index))
+        return self._sload_helper(global_state, index)
 
     @staticmethod
     def _sload_helper(
@@ -1422,6 +1416,8 @@ class Instruction:
 
         if constraints is not None:
             global_state.mstate.constraints += constraints
+            if global_state.mstate.constraints.is_possible is False:
+                return []
 
         global_state.mstate.stack.append(data)
         return [global_state]
@@ -1452,58 +1448,40 @@ class Instruction:
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
         log.debug("Write to storage[" + str(index) + "]")
-
-        try:
-            index = util.get_concrete_int(index)
+        index = simplify(index)
+        is_keccak = keccak_function_manager.is_keccak(index)
+        if not is_keccak:
             return self._sstore_helper(global_state, index, value)
-        except TypeError:
-            is_keccak = keccak_function_manager.is_keccak(index)
-            if not is_keccak:
-                return self._sstore_helper(global_state, str(index), value)
 
-            storage_keys = global_state.environment.active_account.storage.keys()
-            keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
+        storage_keys = global_state.environment.active_account.storage.keys()
 
-            results = []  # type: List[GlobalState]
-            new = symbol_factory.Bool(False)
+        keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
-            for keccak_key in keccak_keys:
-                key_argument = keccak_function_manager.get_argument(
-                    keccak_key
-                )  # type: Expression
-                index_argument = keccak_function_manager.get_argument(
-                    index
-                )  # type: Expression
-                condition = key_argument == index_argument
-                condition = (
-                    condition
-                    if type(condition) == bool
-                    else is_true(simplify(cast(Bool, condition)))
-                )
-                if condition:
-                    return self._sstore_helper(
-                        copy(global_state),
-                        keccak_key,
-                        value,
-                        key_argument == index_argument,
-                    )
+        results = []  # type: List[GlobalState]
+        new = symbol_factory.Bool(False)
 
-                results += self._sstore_helper(
-                    copy(global_state),
-                    keccak_key,
-                    value,
-                    key_argument == index_argument,
-                )
+        for keccak_key in keccak_keys:
+            key_argument = keccak_function_manager.get_argument(
+                keccak_key
+            )  # type: Expression
+            index_argument = keccak_function_manager.get_argument(
+                index
+            )  # type: Expression
+            if key_argument.size() != index_argument.size():
+                continue
 
-                new = Or(new, cast(Bool, key_argument != index_argument))
+            result = self._sstore_helper(
+                copy(global_state), keccak_key, value, key_argument == index_argument
+            )
+            if len(result) > 0:
+                return result
 
-            if len(results) > 0:
-                results += self._sstore_helper(
-                    copy(global_state), str(index), value, new
-                )
-                return results
-
-            return self._sstore_helper(global_state, str(index), value)
+            new = Or(new, cast(Bool, key_argument != index_argument))
+        results += self._sstore_helper(copy(global_state), index, value, new)
+        if len(results) > 0:
+            return results
+        # results += self._sstore_helper(copy(global_state), index, value)
+        return self._sstore_helper(copy(global_state), index, value)
 
     @staticmethod
     def _sstore_helper(global_state, index, value, constraint=None):
@@ -1531,6 +1509,8 @@ class Instruction:
 
         if constraint is not None:
             global_state.mstate.constraints.append(constraint)
+            if global_state.mstate.constraints.is_possible is False:
+                return []
 
         return [global_state]
 

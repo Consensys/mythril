@@ -1,6 +1,7 @@
 """This module contains a function manager to deal with symbolic Keccak
 values."""
-from mythril.laser.smt import Expression
+from mythril.laser.smt import Expression, BitVecFunc, BitVec
+from typing import cast, Union
 
 
 class KeccakFunctionManager:
@@ -16,7 +17,9 @@ class KeccakFunctionManager:
         :param expression:
         :return:
         """
-        return str(expression) in self.keccak_expression_mapping.keys()
+        if not isinstance(expression, BitVecFunc):
+            return False
+        return expression.func_name == "keccak256"
 
     def get_argument(self, expression: Expression) -> Expression:
         """
@@ -26,13 +29,4 @@ class KeccakFunctionManager:
         """
         if not self.is_keccak(expression):
             raise ValueError("Expression is not a recognized keccac result")
-        return self.keccak_expression_mapping[str(expression)][1]
-
-    def add_keccak(self, expression: Expression, argument: Expression) -> None:
-        """
-
-        :param expression:
-        :param argument:
-        """
-        index = str(expression)
-        self.keccak_expression_mapping[index] = (expression, argument)
+        return cast(BitVecFunc, expression).input_

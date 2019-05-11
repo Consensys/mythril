@@ -2,6 +2,7 @@ from typing import Optional, Union, cast, Callable
 
 import z3
 
+from mythril.laser.smt.expression import Expression
 from mythril.laser.smt.bitvec import BitVec, Bool, And, Annotations
 from mythril.laser.smt.bool import Or
 
@@ -26,6 +27,7 @@ def _arithmetic_helper(
     union = a.annotations + b.annotations
 
     if isinstance(b, BitVecFunc):
+
         # TODO: Find better value to set input and name to in this case?
         return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
 
@@ -79,7 +81,7 @@ class BitVecFunc(BitVec):
         self,
         raw: z3.BitVecRef,
         func_name: Optional[str],
-        input_: Union[int, "BitVec"] = None,
+        input_: Expression = None,
         annotations: Optional[Annotations] = None,
     ):
         """
@@ -223,3 +225,6 @@ class BitVecFunc(BitVec):
         :return The resulting right shifted output:
         """
         return _arithmetic_helper(self, other, operator.rshift)
+
+    def __hash__(self) -> int:
+        return self.raw.__hash__()
