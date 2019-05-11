@@ -90,13 +90,6 @@ def get_transaction_sequence(
 
     transaction_sequence = global_state.world_state.transaction_sequence
 
-    tx_template = {
-        "origin": None,
-        "value": None,
-        "address": None,
-        "input": None,
-    }  # type: Dict[str, str]
-
     concrete_transactions = []
     creation_tx_ids = []
     tx_constraints = constraints.copy()
@@ -123,7 +116,7 @@ def get_transaction_sequence(
     min_price_dict = {}  # type: Dict[str, int]
     for transaction in transactions:
         tx_id = str(transaction.id)
-        concrete_transaction = tx_template.copy()
+        concrete_transaction = dict()  # type: Dict[str, str]
         concrete_transaction["input"] = "0x" + "".join(
             [
                 hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
