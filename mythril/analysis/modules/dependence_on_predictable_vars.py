@@ -29,7 +29,6 @@ class PredictableValueAnnotation:
 
 
 class OldBlockNumberUsedAnnotation(StateAnnotation):
-
     def __init__(self) -> None:
         pass
 
@@ -78,7 +77,9 @@ def _analyze_states(state: GlobalState) -> list:
     if state.get_current_instruction()["opcode"] == "JUMPI":
         for annotation in state.mstate.stack[-2].annotations:
             if isinstance(annotation, PredictableValueAnnotation):
-                description = "The " + annotation.opcode + " is used in an if-statement. "
+                description = (
+                    "The " + annotation.opcode + " is used in an if-statement. "
+                )
                 description += (
                     "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
                     "are predictable and can be manipulated by a malicious miner. Also keep in mind that attackers "
@@ -108,8 +109,13 @@ def _analyze_states(state: GlobalState) -> list:
             param = state.mstate.stack[-1]
 
             try:
-                constraint =[ULT(param, state.environment.block_number),
-                    ULT(state.environment.block_number, symbol_factory.BitVecVal(2 ** 255, 256))]
+                constraint = [
+                    ULT(param, state.environment.block_number),
+                    ULT(
+                        state.environment.block_number,
+                        symbol_factory.BitVecVal(2 ** 255, 256),
+                    ),
+                ]
 
                 # Why the second constraint? Because otherwise, Z3 returns a solution where param overflows.
 
@@ -122,25 +128,34 @@ def _analyze_states(state: GlobalState) -> list:
     else:
         # we're in post hook
 
-        if state.environment.code.instruction_list[state.mstate.pc - 1]["opcode"] == "BLOCKHASH":
+        if (
+            state.environment.code.instruction_list[state.mstate.pc - 1]["opcode"]
+            == "BLOCKHASH"
+        ):
             # if we're in the post hook of a BLOCKHASH op, check if an old block number was used to create it.
 
             for annotation in state.annotations:
 
-                '''
+                """
                 FIXME: for some reason, isinstance(annotation, OldBlockNumberUsedAnnotation) always returns false.
                 I added a string comparison as a workaround.
-                '''
+                """
 
-                if isinstance(annotation, OldBlockNumberUsedAnnotation) or "OldBlockNumber" in str(annotation):
-                    state.mstate.stack[-1].annotate(PredictableValueAnnotation("block hash of a previous block"))
+                if isinstance(
+                    annotation, OldBlockNumberUsedAnnotation
+                ) or "OldBlockNumber" in str(annotation):
+                    state.mstate.stack[-1].annotate(
+                        PredictableValueAnnotation("block hash of a previous block")
+                    )
         else:
             # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is called.
 
             instructions = state.environment.code.instruction_list
             opcode = instructions[state.mstate.pc - 1]["opcode"]
 
-            annotation = PredictableValueAnnotation("block." + opcode.lower() + "environment variable")
+            annotation = PredictableValueAnnotation(
+                "block." + opcode.lower() + "environment variable"
+            )
             state.mstate.stack[-1].annotate(annotation)
 
     return issues
