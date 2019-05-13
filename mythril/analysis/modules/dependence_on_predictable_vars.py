@@ -4,12 +4,21 @@ import logging
 
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
+from mythril.exceptions import UnsatError
+from mythril.analysis import solver
+from mythril.laser.smt import ULT
 from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.annotation import StateAnnotation
+import traceback
 
 log = logging.getLogger(__name__)
 
 predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
+
+
+def is_prehook():
+    return "pre_hook" in traceback.format_stack()[-2]
 
 
 class PredictableValueAnnotation:
@@ -17,6 +26,12 @@ class PredictableValueAnnotation:
 
     def __init__(self, opcode) -> None:
         self.opcode = opcode
+
+
+class TaintBlockHashAnnotation(StateAnnotation):
+
+    def __init__(self) -> None:
+        pass
 
 
 class PredictableDependenceModule(DetectionModule):
@@ -33,8 +48,8 @@ class PredictableDependenceModule(DetectionModule):
                 "block.gaslimit, block.timestamp or block.number."
             ),
             entrypoint="callback",
-            pre_hooks=["JUMPI"],
-            post_hooks=predictable_ops,
+            pre_hooks=["BLOCKHASH", "JUMPI"],
+            post_hooks=["BLOCKHASH"] + predictable_ops,
         )
 
     def execute(self, state: GlobalState) -> list:
@@ -86,6 +101,21 @@ def _analyze_states(state: GlobalState) -> list:
                     gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 )
                 issues.append(issue)
+    elif state.get_current_instruction()["opcode"] == "BLOCKHASH":
+        if is_prehook():
+
+            param = state.mstate.stack[-1]
+
+            try:
+                solver.get_model(ULT(param, state.environment.block_number))
+                state.annotate(TaintBlockHashAnnotation)
+
+            except UnsatError:
+                pass
+        else:
+            for annotation in state.annotations:
+                if isinstance(annotation, TaintBlockHashAnnotation):
+                    state.mstate.stack[-1].annotate(PredictableValueAnnotation("BLOCKHASH"))
     else:
         # we're in post hook
 

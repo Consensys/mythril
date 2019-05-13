@@ -1243,7 +1243,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
+        global_state.mstate.stack.append(global_state.environment.block_number)
         return [global_state]
 
     @StateTransition()
