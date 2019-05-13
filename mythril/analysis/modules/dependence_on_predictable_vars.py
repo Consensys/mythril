@@ -78,7 +78,7 @@ def _analyze_states(state: GlobalState) -> list:
         for annotation in state.mstate.stack[-2].annotations:
             if isinstance(annotation, PredictableValueAnnotation):
                 description = (
-                    "The " + annotation.opcode + " is used in an if-statement. "
+                    "The " + annotation.opcode + " is used in a conditional statement. "
                 )
                 description += (
                     "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
@@ -95,7 +95,7 @@ def _analyze_states(state: GlobalState) -> list:
                     bytecode=state.environment.code.bytecode,
                     title="Dependence on predictable environment variable",
                     severity="Low",
-                    description_head="Control flow decision is made based on a predictable variable.",
+                    description_head="A control flow decision is made based on a predictable variable.",
                     description_tail=description,
                     gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 )
@@ -154,7 +154,7 @@ def _analyze_states(state: GlobalState) -> list:
             opcode = instructions[state.mstate.pc - 1]["opcode"]
 
             annotation = PredictableValueAnnotation(
-                "block." + opcode.lower() + "environment variable"
+                "block." + opcode.lower() + " environment variable"
             )
             state.mstate.stack[-1].annotate(annotation)
 
