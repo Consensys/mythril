@@ -57,10 +57,35 @@ def exit_with_error(format_, message):
 
 def main() -> None:
     """The main CLI interface entry point."""
+    common_parser = argparse.ArgumentParser(add_help=False)
+    create_parser(common_parser)
+
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
-    create_parser(parser)
+
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+    analyzer_parser = subparsers.add_parser("analyze", parents=[common_parser])
+    subparsers.add_parser("disassemble", parents=[common_parser])
+    read_storage_parser = subparsers.add_parser("read-storage", parents=[common_parser])
+    leveldb_search_parser = subparsers.add_parser(
+        "leveldb-search", parents=[common_parser]
+    )
+    contract_func_to_hash = subparsers.add_parser(
+        "contract-function-to-hash", parents=[common_parser]
+    )
+    contract_hash_to_addr = subparsers.add_parser(
+        "contract-hash-to-address", parents=[common_parser]
+    )
+    subparsers.add_parser("version", parents=[common_parser])
+
+    create_analyzer_parser(analyzer_parser)
+    create_read_storage_parser(read_storage_parser)
+    create_hash_to_addr_parser(contract_hash_to_addr)
+    create_func_to_hash_parser(contract_func_to_hash)
+    create_leveldb_parser(leveldb_search_parser)
+
+    subparsers.add_parser("truffle", parents=[analyzer_parser], add_help=False)
 
     # Get config values
 
@@ -68,94 +93,15 @@ def main() -> None:
     parse_args(parser=parser, args=args)
 
 
-def create_parser(parser: argparse.ArgumentParser) -> None:
-    """
-    Creates the parser by setting all the possible arguments
-    :param parser: The parser
-    """
-    parser.add_argument("solidity_file", nargs="*")
-
-    commands = parser.add_argument_group("commands")
-    commands.add_argument("-g", "--graph", help="generate a control flow graph")
-    commands.add_argument(
-        "-V",
-        "--version",
-        action="store_true",
-        help="print the Mythril version number and exit",
-    )
-    commands.add_argument(
-        "-x",
-        "--fire-lasers",
-        action="store_true",
-        help="detect vulnerabilities, use with -c, -a or solidity file(s)",
-    )
-    commands.add_argument(
-        "--truffle",
-        action="store_true",
-        help="analyze a truffle project (run from project dir)",
-    )
-    commands.add_argument(
-        "-d", "--disassemble", action="store_true", help="print disassembly"
-    )
-    commands.add_argument(
-        "-j",
-        "--statespace-json",
-        help="dumps the statespace json",
-        metavar="OUTPUT_FILE",
+def create_read_storage_parser(read_storage_parser: argparse.ArgumentParser):
+    read_storage_parser.add_argument(
+        "--storage-slots",
+        help="read state vasriables from storage index, use with -a",
+        metavar="INDEX,NUM_SLOTS,[array] / mapping,INDEX,[KEY1, KEY2...]",
     )
 
-    inputs = parser.add_argument_group("input arguments")
-    inputs.add_argument(
-        "-c",
-        "--code",
-        help='hex-encoded bytecode string ("6060604052...")',
-        metavar="BYTECODE",
-    )
-    inputs.add_argument(
-        "-f",
-        "--codefile",
-        help="file containing hex-encoded bytecode string",
-        metavar="BYTECODEFILE",
-        type=argparse.FileType("r"),
-    )
-    inputs.add_argument(
-        "-a",
-        "--address",
-        help="pull contract from the blockchain",
-        metavar="CONTRACT_ADDRESS",
-    )
-    inputs.add_argument(
-        "-l",
-        "--dynld",
-        action="store_true",
-        help="auto-load dependencies from the blockchain",
-    )
-    inputs.add_argument(
-        "--no-onchain-storage-access",
-        action="store_true",
-        help="turns off getting the data from onchain contracts",
-    )
-    inputs.add_argument(
-        "--bin-runtime",
-        action="store_true",
-        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
-    )
 
-    outputs = parser.add_argument_group("output formats")
-    outputs.add_argument(
-        "-o",
-        "--outform",
-        choices=["text", "markdown", "json", "jsonv2"],
-        default="text",
-        help="report output format",
-        metavar="<text/markdown/json/jsonv2>",
-    )
-    outputs.add_argument(
-        "--verbose-report",
-        action="store_true",
-        help="Include debugging information in report",
-    )
-
+def create_leveldb_parser(parser: argparse.ArgumentParser):
     database = parser.add_argument_group("local contracts database")
     database.add_argument(
         "-s", "--search", help="search the contract database", metavar="EXPRESSION"
@@ -166,27 +112,40 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         metavar="LEVELDB_PATH",
     )
 
-    utilities = parser.add_argument_group("utilities")
-    utilities.add_argument(
-        "--hash", help="calculate function signature hash", metavar="SIGNATURE"
-    )
-    utilities.add_argument(
-        "--storage",
-        help="read state variables from storage index, use with -a",
-        metavar="INDEX,NUM_SLOTS,[array] / mapping,INDEX,[KEY1, KEY2...]",
-    )
-    utilities.add_argument(
-        "--solv",
-        help="specify solidity compiler version. If not present, will try to install it (Experimental)",
-        metavar="SOLV",
-    )
-    utilities.add_argument(
-        "--contract-hash-to-address",
-        help="returns corresponding address for a contract address hash",
-        metavar="SHA3_TO_LOOK_FOR",
+
+def create_version_parser(hash_parser: argparse.ArgumentParser):
+    hash_parser.add_argument(
+        "version", help="print the Mythril version number and exit", metavar="VERSION"
     )
 
-    options = parser.add_argument_group("options")
+
+def create_func_to_hash_parser(hash_parser: argparse.ArgumentParser):
+    hash_parser.add_argument(
+        "func_name", help="calculate function signature hash", metavar="SIGNATURE"
+    )
+
+
+def create_hash_to_addr_parser(hash_parser: argparse.ArgumentParser):
+    hash_parser.add_argument(
+        "--hash", help="Find the address from hash", metavar="FUNCTION_NAME"
+    )
+
+
+def create_analyzer_parser(analyzer_parser: argparse.ArgumentParser):
+    commands = analyzer_parser.add_argument_group("commands")
+    commands.add_argument("-g", "--graph", help="generate a control flow graph")
+    commands.add_argument(
+        "-j",
+        "--statespace-json",
+        help="dumps the statespace json",
+        metavar="OUTPUT_FILE",
+    )
+    commands.add_argument(
+        "--truffle",
+        action="store_true",
+        help="analyze a truffle project (run from project dir)",
+    )
+    options = analyzer_parser.add_argument_group("options")
     options.add_argument(
         "-m",
         "--modules",
@@ -225,15 +184,23 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         default=10,
         help="The amount of seconds to spend on " "the initial contract creation",
     )
-    options.add_argument("--solc-args", help="Extra arguments for solc")
+    options.add_argument(
+        "-l",
+        "--dynld",
+        action="store_true",
+        help="auto-load dependencies from the blockchain",
+    )
+    options.add_argument(
+        "--no-onchain-storage-access",
+        action="store_true",
+        help="turns off getting the data from onchain contracts",
+    )
+
     options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
     options.add_argument(
         "--enable-physics", action="store_true", help="enable graph physics simulation"
-    )
-    options.add_argument(
-        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
     )
     options.add_argument(
         "-q",
@@ -243,6 +210,43 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     )
     options.add_argument(
         "--enable-iprof", action="store_true", help="enable the instruction profiler"
+    )
+
+
+def create_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("solidity_file", nargs="*")
+    inputs = parser.add_argument_group("input arguments")
+    inputs.add_argument(
+        "-c",
+        "--code",
+        help='hex-encoded bytecode string ("6060604052...")',
+        metavar="BYTECODE",
+    )
+    inputs.add_argument(
+        "-f",
+        "--codefile",
+        help="file containing hex-encoded bytecode string",
+        metavar="BYTECODEFILE",
+        type=argparse.FileType("r"),
+    )
+    inputs.add_argument(
+        "-a",
+        "--address",
+        help="pull contract from the blockchain",
+        metavar="CONTRACT_ADDRESS",
+    )
+    inputs.add_argument(
+        "--bin-runtime",
+        action="store_true",
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
+    )
+    utilities = parser.add_argument_group("utilities")
+
+    utilities.add_argument("--solc-args", help="Extra arguments for solc")
+    utilities.add_argument(
+        "--solv",
+        help="specify solidity compiler version. If not present, will try to install it (Experimental)",
+        metavar="SOLV",
     )
 
     rpc = parser.add_argument_group("RPC options")
@@ -258,22 +262,26 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
 
+    outputs = parser.add_argument_group("output formats")
+    outputs.add_argument(
+        "-o",
+        "--outform",
+        choices=["text", "markdown", "json", "jsonv2"],
+        default="text",
+        help="report output format",
+        metavar="<text/markdown/json/jsonv2>",
+    )
+    outputs.add_argument(
+        "--verbose-report",
+        action="store_true",
+        help="Include debugging information in report",
+    )
+    outputs.add_argument(
+        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
+    )
 
-def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
-    if not (
-        args.search
-        or args.hash
-        or args.disassemble
-        or args.graph
-        or args.fire_lasers
-        or args.storage
-        or args.truffle
-        or args.statespace_json
-        or args.contract_hash_to_address
-    ):
-        parser.print_help()
-        sys.exit()
 
+def validate_args(args: argparse.Namespace):
     if args.v:
         if 0 <= args.v < 6:
             log_levels = [
@@ -293,59 +301,56 @@ def validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace):
                 args.outform, "Invalid -v value, you can find valid values in usage"
             )
 
-    if args.query_signature:
-        if sigs.ethereum_input_decoder is None:
+    if args.command == "analyze":
+        if args.query_signature and sigs.ethereum_input_decoder is None:
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
             )
 
-    if args.enable_iprof:
-        if args.v < 4:
-            exit_with_error(
-                args.outform,
-                "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
-            )
-        elif not (args.graph or args.fire_lasers or args.statespace_json):
-            exit_with_error(
-                args.outform,
-                "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
-            )
-
-
-def quick_commands(args: argparse.Namespace):
-    if args.hash:
-        print(MythrilDisassembler.hash_for_function_signature(args.hash))
-        sys.exit()
+        if args.enable_iprof:
+            if args.v < 4:
+                exit_with_error(
+                    args.outform,
+                    "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
+                )
+            elif not (args.graph or args.fire_lasers or args.statespace_json):
+                exit_with_error(
+                    args.outform,
+                    "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
+                )
 
 
 def set_config(args: argparse.Namespace):
     config = MythrilConfig()
-    if args.dynld or not args.no_onchain_storage_access and not (args.rpc or args.i):
+    if (
+        args.command == "analyze" and (args.dynld or not args.no_onchain_storage_access)
+    ) and not (args.rpc or args.i):
         config.set_api_from_config_path()
 
     if args.address:
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-    elif args.search or args.contract_hash_to_address:
+    if args.command in ("contract-hash-to-address", "leveldb-search"):
         # Open LevelDB if necessary
-        config.set_api_leveldb(
-            config.leveldb_dir if not args.leveldb_dir else args.leveldb_dir
+        leveldb_dir = (
+            args.leveldb_dir if "leveldb_dir" in args.__dict__ else config.leveldb_dir
         )
+        config.set_api_leveldb(leveldb_dir)
     return config
 
 
 def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
-    if args.search or args.contract_hash_to_address:
+    if args.command in ("contract-hash-to-address", "leveldb-search"):
         leveldb_searcher = MythrilLevelDB(config.eth_db)
-        if args.search:
+        if args.command == "leveldb-search":
             # Database search ops
             leveldb_searcher.search_db(args.search)
 
         else:
             # search corresponding address
             try:
-                leveldb_searcher.contract_hash_to_address(args.contract_hash_to_address)
+                leveldb_searcher.contract_hash_to_address(args.hash)
             except AddressNotFoundError:
                 print("Address not found.")
 
@@ -367,7 +372,7 @@ def get_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
         address, _ = disassembler.load_from_address(args.address)
     elif args.solidity_file:
         # Compile Solidity source file(s)
-        if args.graph and len(args.solidity_file) > 1:
+        if args.command == "analyze" and args.graph and len(args.solidity_file) > 1:
             exit_with_error(
                 args.outform,
                 "Cannot generate call graphs from multiple input files. Please do it one at a time.",
@@ -390,7 +395,7 @@ def execute_command(
     args: argparse.Namespace,
 ):
 
-    if args.storage:
+    if args.command == "read-storage":
         if not args.address:
             exit_with_error(
                 args.outform,
@@ -398,23 +403,13 @@ def execute_command(
             )
 
         storage = disassembler.get_state_variable_from_storage(
-            address=address, params=[a.strip() for a in args.storage.strip().split(",")]
+            address=address,
+            params=[a.strip() for a in args.storage_slots.strip().split(",")],
         )
         print(storage)
         return
 
-    analyzer = MythrilAnalyzer(
-        strategy=args.strategy,
-        disassembler=disassembler,
-        address=address,
-        max_depth=args.max_depth,
-        execution_timeout=args.execution_timeout,
-        create_timeout=args.create_timeout,
-        enable_iprof=args.enable_iprof,
-        onchain_storage_access=not args.no_onchain_storage_access,
-    )
-
-    if args.disassemble:
+    if args.command == "disassemble":
         # or mythril.disassemble(mythril.contracts[0])
 
         if disassembler.contracts[0].code:
@@ -422,7 +417,18 @@ def execute_command(
         if disassembler.contracts[0].creation_code:
             print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
 
-    elif args.graph or args.fire_lasers:
+    elif args.command == "analyze":
+        analyzer = MythrilAnalyzer(
+            strategy=args.strategy,
+            disassembler=disassembler,
+            address=address,
+            max_depth=args.max_depth,
+            execution_timeout=args.execution_timeout,
+            create_timeout=args.create_timeout,
+            enable_iprof=args.enable_iprof,
+            onchain_storage_access=not args.no_onchain_storage_access,
+        )
+
         if not disassembler.contracts:
             exit_with_error(
                 args.outform, "input files do not contain any valid contracts"
@@ -441,6 +447,21 @@ def execute_command(
                     f.write(html)
             except Exception as e:
                 exit_with_error(args.outform, "Error saving graph: " + str(e))
+
+        elif args.statespace_json:
+
+            if not analyzer.contracts:
+                exit_with_error(
+                    args.outform, "input files do not contain any valid contracts"
+                )
+
+            statespace = analyzer.dump_statespace(contract=analyzer.contracts[0])
+
+            try:
+                with open(args.statespace_json, "w") as f:
+                    json.dump(statespace, f)
+            except Exception as e:
+                exit_with_error(args.outform, "Error saving json: " + str(e))
 
         else:
             try:
@@ -463,23 +484,13 @@ def execute_command(
                     args.outform, "Error loading analyis modules: " + format(e)
                 )
 
-    elif args.statespace_json:
-
-        if not analyzer.contracts:
-            exit_with_error(
-                args.outform, "input files do not contain any valid contracts"
-            )
-
-        statespace = analyzer.dump_statespace(contract=analyzer.contracts[0])
-
-        try:
-            with open(args.statespace_json, "w") as f:
-                json.dump(statespace, f)
-        except Exception as e:
-            exit_with_error(args.outform, "Error saving json: " + str(e))
-
     else:
         parser.print_help()
+
+
+def contract_hash_to_address(args: argparse.Namespace):
+    print(MythrilDisassembler.hash_for_function_signature(args.func_name))
+    sys.exit()
 
 
 def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
@@ -495,7 +506,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
         sys.exit()
 
-    if args.version:
+    if args.command == "version":
         if args.outform == "json":
             print(json.dumps({"version_str": VERSION}))
         else:
@@ -503,23 +514,28 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         sys.exit()
 
     # Parse cmdline args
-    validate_args(parser, args)
+    validate_args(args)
     try:
-        quick_commands(args)
+        if args.command == "contract-function-to-hash":
+            contract_hash_to_address(args)
         config = set_config(args)
         leveldb_search(config, args)
+        query_signature = (
+            args.query_signature if "query_signature" in args.__dict__ else None
+        )
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
             solc_args=args.solc_args,
-            enable_online_lookup=args.query_signature,
+            enable_online_lookup=query_signature,
         )
-        if args.truffle:
+        if args.command == "truffle":
             try:
                 disassembler.analyze_truffle_project(args)
             except FileNotFoundError:
                 print(
-                    "Build directory not found. Make sure that you start the analysis from the project root, and that 'truffle compile' has executed successfully."
+                    "Build directory not found. Make sure that you start the analysis from the project root, "
+                    "and that 'truffle compile' has executed successfully."
                 )
             sys.exit()
 
