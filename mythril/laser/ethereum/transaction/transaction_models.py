@@ -192,11 +192,12 @@ class ContractCreationTransaction(BaseTransaction):
         :param revert:
         """
         if (
-            not all([isinstance(element, int) for element in return_data])
+            return_data is None
+            or not all([isinstance(element, int) for element in return_data])
             or len(return_data) == 0
         ):
             self.return_data = None
-            raise TransactionEndSignal(global_state)
+            raise TransactionEndSignal(global_state, revert=revert)
 
         contract_code = bytes.hex(array.array("B", return_data).tostring())
 
