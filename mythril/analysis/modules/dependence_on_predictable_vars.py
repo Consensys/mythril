@@ -120,7 +120,7 @@ def _analyze_states(state: GlobalState) -> list:
                 # Why the second constraint? Because otherwise, Z3 returns a solution where param overflows.
 
                 solver.get_model(constraint)
-                state.annotate(OldBlockNumberUsedAnnotation)
+                state.annotate(OldBlockNumberUsedAnnotation())
 
             except UnsatError:
                 pass
@@ -141,9 +141,7 @@ def _analyze_states(state: GlobalState) -> list:
                 I added a string comparison as a workaround.
                 """
 
-                if isinstance(
-                    annotation, OldBlockNumberUsedAnnotation
-                ) or "OldBlockNumber" in str(annotation):
+                if isinstance(annotation, OldBlockNumberUsedAnnotation):
                     state.mstate.stack[-1].annotate(
                         PredictableValueAnnotation("block hash of a previous block")
                     )
