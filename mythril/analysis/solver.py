@@ -1,13 +1,12 @@
 """This module contains analysis module helpers to solve path constraints."""
 from typing import Dict, List, Union
 from z3 import sat, unknown, FuncInterp
-from copy import copy
 import z3
 
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction import BaseTransaction
-from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
+from mythril.laser.smt import UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (

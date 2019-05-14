@@ -1,9 +1,9 @@
 """This module implements the main symbolic execution engine."""
 import logging
 from collections import defaultdict
-from copy import copy, deepcopy
+from copy import copy
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, DefaultDict, List, Tuple, Union
+from typing import Callable, Dict, DefaultDict, List, Tuple, Union
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
