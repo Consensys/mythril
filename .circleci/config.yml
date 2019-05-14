@@ -1,5 +1,9 @@
 defaults: &defaults
   docker:
+    # TODO: Try to replace this with `mythril/mythx-ci` image. That image is
+    # used for new integration testing, and it is build on top of the previous
+    # `mythril/dev_test_environment:0.0.43`, though a bit newer versions, thus
+    # there is a chance that it breaks some small things.
     - image: mythril/dev_test_environment:0.0.43
 
 version: 2
@@ -79,6 +83,39 @@ jobs:
           command: |
             curl -I -X POST -H -d "https://circleci.com/api/v1/project/${ORGANIZATION}/${WEBHOOK_PROJECT}/tree/master?circle-token=${CIRCLE_TOKEN}" | head -n 1 | cut -d$' ' -f2
 
+  integration_tests:
+    docker:
+      - image: mythril/mythx-ci
+    working_directory: /home
+    steps:
+      - checkout:
+          path: /home/mythril-classic
+      - run:
+          name: Builds `mythril-classic`
+          command: cd mythril-classic && python3 setup.py install
+      - run:
+          name: Installs other MythX components
+          command: |
+            ./install-mythx-components.sh pythx edelweiss harvey-cli \
+              harvey-tyro maestro maru maru-tyro mythril-api \
+              mythril-tyro tyro
+      - run:
+          background: true
+          name: Launches MythX platform
+          command: ./launch-mythx.sh
+      - run:
+          name: Waits for MythX to spin-up
+          command: sleep 15s
+      - run:
+          name: Quick Edelweiss test
+          command: /home/run-edelweiss-test.sh CircleCI/latest.quick.csv 5
+
+      # TODO: Temporary disabled
+      # - run:
+      #    name: Full Edelweiss test
+      #    environment:
+      #      MYTHX_API_FULL_MODE: true
+      #    command: /home/run-edelweiss-test.sh CircleCI/latest.full.csv
 
   pypi_release:
     <<: *defaults
@@ -129,6 +166,16 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - integration_tests:
+          filters:
+            branches:
+              only:
+                - develop
+                - master
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+          requires:
+            - test
       - pypi_release:
           filters:
             branches:
@@ -136,13 +183,13 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
           requires:
-            - test
+            - integration_tests
       - dockerhub_dev_release:
           filters:
             branches:
               only: develop
-          # requires:
-          #  - test
+          requires:
+            - integration_tests
       - dockerhub_release:
           filters:
             branches:
@@ -150,4 +197,4 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
           requires:
-            - test
+            - integration_tests
