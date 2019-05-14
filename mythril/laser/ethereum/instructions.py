@@ -913,9 +913,7 @@ class Instruction:
             if isinstance(op0, Expression):
                 op0 = simplify(op0)
             state.stack.append(
-                symbol_factory.BitVecSym(
-                    "KECCAC_mem[" + str(op0) + "]", 256, op0.annotations
-                )
+                symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
             )
             gas_tuple = cast(Tuple, OPCODE_GAS["SHA3"])
             state.min_gas_used += gas_tuple[0]
@@ -947,7 +945,7 @@ class Instruction:
                 "keccak256",
                 256,
                 input_=data,
-                annotations=op0.annotations,
+                annotations=state.memory[index].annotations,
             )
             log.debug("Created BitVecFunc hash.")
 
@@ -959,9 +957,9 @@ class Instruction:
                 "keccak256",
                 256,
                 input_=data,
-                annotations=op0.annotations,
+                annotations=state.memory[index].annotations,
             )
-            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
+            log.info("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
         state.stack.append(result)
         return [global_state]

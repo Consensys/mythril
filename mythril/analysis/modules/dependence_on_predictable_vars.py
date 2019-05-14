@@ -118,6 +118,7 @@ def _analyze_states(state: GlobalState) -> list:
                 issues.append(issue)
 
     elif opcode == "JUMPI":
+
         for annotation in state.mstate.stack[-2].annotations:
             if isinstance(annotation, PredictableValueAnnotation):
                 state.annotate(
