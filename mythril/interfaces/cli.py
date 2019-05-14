@@ -66,7 +66,7 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     analyzer_parser = subparsers.add_parser("analyze", parents=[common_parser])
-    subparsers.add_parser("disassemble", parents=[common_parser])
+    disassemble_parser = subparsers.add_parser("disassemble", parents=[common_parser])
     read_storage_parser = subparsers.add_parser("read-storage", parents=[common_parser])
     leveldb_search_parser = subparsers.add_parser(
         "leveldb-search", parents=[common_parser]
@@ -79,6 +79,7 @@ def main() -> None:
     )
     subparsers.add_parser("version", parents=[common_parser])
 
+    create_disassemble_parser(disassemble_parser)
     create_analyzer_parser(analyzer_parser)
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
@@ -93,6 +94,10 @@ def main() -> None:
     parse_args(parser=parser, args=args)
 
 
+def create_disassemble_parser(parser):
+    parser.add_argument("solidity_file", nargs="*")
+
+
 def create_read_storage_parser(read_storage_parser: argparse.ArgumentParser):
     read_storage_parser.add_argument(
         "--storage-slots",
@@ -102,11 +107,8 @@ def create_read_storage_parser(read_storage_parser: argparse.ArgumentParser):
 
 
 def create_leveldb_parser(parser: argparse.ArgumentParser):
-    database = parser.add_argument_group("local contracts database")
-    database.add_argument(
-        "-s", "--search", help="search the contract database", metavar="EXPRESSION"
-    )
-    database.add_argument(
+    parser.add_argument("search")
+    parser.add_argument(
         "--leveldb-dir",
         help="specify leveldb directory for search or direct access operations",
         metavar="LEVELDB_PATH",
@@ -127,11 +129,12 @@ def create_func_to_hash_parser(hash_parser: argparse.ArgumentParser):
 
 def create_hash_to_addr_parser(hash_parser: argparse.ArgumentParser):
     hash_parser.add_argument(
-        "--hash", help="Find the address from hash", metavar="FUNCTION_NAME"
+        "hash", help="Find the address from hash", metavar="FUNCTION_NAME"
     )
 
 
 def create_analyzer_parser(analyzer_parser: argparse.ArgumentParser):
+    analyzer_parser.add_argument("solidity_file", nargs="*")
     commands = analyzer_parser.add_argument_group("commands")
     commands.add_argument("-g", "--graph", help="generate a control flow graph")
     commands.add_argument(
@@ -214,7 +217,6 @@ def create_analyzer_parser(analyzer_parser: argparse.ArgumentParser):
 
 
 def create_parser(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("solidity_file", nargs="*")
     inputs = parser.add_argument_group("input arguments")
     inputs.add_argument(
         "-c",
@@ -333,9 +335,10 @@ def set_config(args: argparse.Namespace):
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
     if args.command in ("contract-hash-to-address", "leveldb-search"):
         # Open LevelDB if necessary
-        leveldb_dir = (
-            args.leveldb_dir if "leveldb_dir" in args.__dict__ else config.leveldb_dir
-        )
+        if "leveldb_dir" not in args.__dict__ or args.leveldb_dir is None:
+            leveldb_dir = config.leveldb_dir
+        else:
+            leveldb_dir = args.leveldb_dir
         config.set_api_leveldb(leveldb_dir)
     return config
 
