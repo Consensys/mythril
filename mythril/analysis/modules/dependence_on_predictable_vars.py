@@ -88,6 +88,8 @@ def _analyze_states(state: GlobalState) -> list:
     opcode = state.get_current_instruction()["opcode"]
 
     if opcode in critical_ops:
+        logging.info(str(state.annotations))
+
         for annotation in state.annotations:
 
             if isinstance(annotation, PredictablePathAnnotation):
@@ -167,7 +169,7 @@ def _analyze_states(state: GlobalState) -> list:
                         PredictableValueAnnotation("block hash of a previous block")
                     )
         else:
-            # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is called.
+            # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
 
             instructions = state.environment.code.instruction_list
             opcode = instructions[state.mstate.pc - 1]["opcode"]
