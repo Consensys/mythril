@@ -953,13 +953,9 @@ class Instruction:
         else:
             keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
             result = symbol_factory.BitVecFuncVal(
-                util.concrete_int_from_bytes(keccak, 0),
-                "keccak256",
-                256,
-                input_=data,
-                annotations=state.memory[index].annotations,
+                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
             )
-            log.info("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
+            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
 
         state.stack.append(result)
         return [global_state]
