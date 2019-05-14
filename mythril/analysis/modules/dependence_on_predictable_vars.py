@@ -15,6 +15,7 @@ import traceback
 log = logging.getLogger(__name__)
 
 predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
+critical_ops = ["CALL", "SUICIDE"]
 
 
 def is_prehook():
@@ -22,13 +23,23 @@ def is_prehook():
 
 
 class PredictableValueAnnotation:
-    """ Symbol Annotation used if a variable is initialized from a predictable environment variable"""
+    """Symbol annotation used if a variable is initialized from a predictable environment variable."""
 
-    def __init__(self, opcode) -> None:
-        self.opcode = opcode
+    def __init__(self, operation) -> None:
+        self.operation = operation
+
+
+class PredictablePathAnnotation(StateAnnotation):
+    """State annotation used when a path is chosen based on a predictable variable."""
+
+    def __init__(self, operation, location) -> None:
+        self.operation = operation
+        self.location = location
 
 
 class OldBlockNumberUsedAnnotation(StateAnnotation):
+    """State annotation set in blockhash prehook if the input value is lower than the current block number."""
+
     def __init__(self) -> None:
         pass
 
@@ -43,11 +54,11 @@ class PredictableDependenceModule(DetectionModule):
             name="Dependence of Predictable Variables",
             swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS),
             description=(
-                "Check whether control flow decisions are influenced by block.coinbase,"
+                "Check whether important control flow decisions are influenced by block.coinbase,"
                 "block.gaslimit, block.timestamp or block.number."
             ),
             entrypoint="callback",
-            pre_hooks=["BLOCKHASH", "JUMPI"],
+            pre_hooks=["BLOCKHASH", "JUMPI"] + critical_ops,
             post_hooks=["BLOCKHASH"] + predictable_ops,
         )
 
@@ -70,15 +81,20 @@ def _analyze_states(state: GlobalState) -> list:
     :param state:
     :return:
     """
-    issues = []
 
     # Look for predictable state variables in jump condition
 
-    if state.get_current_instruction()["opcode"] == "JUMPI":
-        for annotation in state.mstate.stack[-2].annotations:
-            if isinstance(annotation, PredictableValueAnnotation):
+    issues = []
+    opcode = state.get_current_instruction()["opcode"]
+
+    if opcode in critical_ops:
+        for annotation in state.annotations:
+
+            if isinstance(annotation, PredictablePathAnnotation):
                 description = (
-                    "The " + annotation.opcode + " is used in a conditional statement. "
+                    "The "
+                    + annotation.operation
+                    + " is used in to determine an important control flow decision. "
                 )
                 description += (
                     "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
@@ -101,6 +117,15 @@ def _analyze_states(state: GlobalState) -> list:
                 )
                 issues.append(issue)
 
+    elif opcode == "JUMPI":
+        for annotation in state.mstate.stack[-2].annotations:
+            if isinstance(annotation, PredictableValueAnnotation):
+                state.annotate(
+                    PredictablePathAnnotation(
+                        annotation.operation, state.get_current_instruction()["address"]
+                    )
+                )
+
     # Now the magic starts!
 
     elif state.get_current_instruction()["opcode"] == "BLOCKHASH":
@@ -117,7 +142,7 @@ def _analyze_states(state: GlobalState) -> list:
                     ),
                 ]
 
-                # Why the second constraint? Because otherwise, Z3 returns a solution where param overflows.
+                # Why the second constraint? Because without it Z3 returns a solution where param overflows.
 
                 solver.get_model(constraint)
                 state.annotate(OldBlockNumberUsedAnnotation())
@@ -135,11 +160,6 @@ def _analyze_states(state: GlobalState) -> list:
             # if we're in the post hook of a BLOCKHASH op, check if an old block number was used to create it.
 
             for annotation in state.annotations:
-
-                """
-                FIXME: for some reason, isinstance(annotation, OldBlockNumberUsedAnnotation) always returns false.
-                I added a string comparison as a workaround.
-                """
 
                 if isinstance(annotation, OldBlockNumberUsedAnnotation):
                     state.mstate.stack[-1].annotate(
