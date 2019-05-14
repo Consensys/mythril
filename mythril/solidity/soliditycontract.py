@@ -22,16 +22,16 @@ class SourceMapping:
 class SolidityFile:
     """Representation of a file containing Solidity code."""
 
-    def __init__(self, filename: str, data: str, full_contract_source: Set[str]):
+    def __init__(self, filename: str, data: str, full_contract_src_maps: Set[str]):
         """
         Metadata class containing data regarding a specific solidity file
         :param filename: The filename of the solidity file
         :param data: The code of the solidity file
-        :param full_contract_source: The set of contract source mappings of all the contracts in the file
+        :param full_contract_src_maps: The set of contract source mappings of all the contracts in the file
         """
         self.filename = filename
         self.data = data
-        self.full_contract_source = full_contract_source
+        self.full_contract_src_maps = full_contract_src_maps
 
 
 class SourceCodeInfo:
@@ -78,11 +78,11 @@ class SolidityContract(EVMContract):
         for filename in data["sourceList"]:
             with open(filename, "r", encoding="utf-8") as file:
                 code = file.read()
-                full_contract_sources = self.get_full_contract_sources(
+                full_contract_src_maps = self.get_full_contract_src_maps(
                     data["sources"][filename]["AST"]
                 )
                 self.solidity_files.append(
-                    SolidityFile(filename, code, full_contract_sources)
+                    SolidityFile(filename, code, full_contract_src_maps)
                 )
 
         has_contract = False
@@ -132,17 +132,17 @@ class SolidityContract(EVMContract):
         super().__init__(code, creation_code, name=name)
 
     @staticmethod
-    def get_full_contract_sources(ast: Dict) -> Set[str]:
+    def get_full_contract_src_maps(ast: Dict) -> Set[str]:
         """
         Takes a solc AST and gets the src mappings for all the contracts defined in the top level of the ast
         :param ast: AST of the contract
-        :return: The source map
+        :return: The source maps
         """
-        source_map = set()
+        source_maps = set()
         for child in ast["children"]:
             if "contractKind" in child["attributes"]:
-                source_map.add(child["src"])
-        return source_map
+                source_maps.add(child["src"])
+        return source_maps
 
     def get_source_info(self, address, constructor=False):
         """
@@ -181,7 +181,7 @@ class SolidityContract(EVMContract):
         # Handle the common code src map for the entire code.
         if (
             "{}:{}:{}".format(offset, length, file_index)
-            in self.solidity_files[file_index].full_contract_source
+            in self.solidity_files[file_index].full_contract_src_maps
         ):
             return True
 
