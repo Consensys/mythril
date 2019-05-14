@@ -108,14 +108,15 @@ def _analyze_state(state):
 
 def _is_precompile_call(global_state: GlobalState):
     to = global_state.mstate.stack[-2]  # type: BitVec
+    constraints = copy(global_state.mstate.constraints)
+    constraints += [
+        Or(
+            to < symbol_factory.BitVecVal(1, 256),
+            to > symbol_factory.BitVecVal(16, 256),
+        )
+    ]
+
     try:
-        constraints = copy(global_state.mstate.constraints)
-        constraints += [
-            Or(
-                to < symbol_factory.BitVecVal(1, 256),
-                to > symbol_factory.BitVecVal(16, 256),
-            )
-        ]
         solver.get_model(constraints)
         return False
     except UnsatError:
