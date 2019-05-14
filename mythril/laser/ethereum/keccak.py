@@ -7,11 +7,8 @@ from typing import cast, Union
 class KeccakFunctionManager:
     """A keccak function manager for symbolic expressions."""
 
-    def __init__(self):
-        """"""
-        self.keccak_expression_mapping = {}
-
-    def is_keccak(self, expression: Expression) -> bool:
+    @staticmethod
+    def is_keccak(expression: Expression) -> bool:
         """
 
         :param expression:
@@ -21,12 +18,13 @@ class KeccakFunctionManager:
             return False
         return expression.func_name == "keccak256"
 
-    def get_argument(self, expression: Expression) -> Expression:
+    @staticmethod
+    def get_argument(expression: Expression) -> Expression:
         """
 
         :param expression:
         :return:
         """
-        if not self.is_keccak(expression):
-            raise ValueError("Expression is not a recognized keccac result")
+        if not KeccakFunctionManager.is_keccak(expression):
+            raise ValueError("Expression is not a recognized keccak result")
         return cast(BitVecFunc, expression).input_

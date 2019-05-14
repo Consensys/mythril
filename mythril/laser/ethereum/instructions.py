@@ -56,8 +56,6 @@ log = logging.getLogger(__name__)
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
-keccak_function_manager = KeccakFunctionManager()
-
 
 class StateTransition(object):
     """Decorator that handles global state copy and original return.
@@ -901,7 +899,6 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
 
         state = global_state.mstate
         op0, op1 = state.stack.pop(), state.stack.pop()
@@ -1360,25 +1357,24 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
 
         state = global_state.mstate
         index = state.stack.pop()
         log.debug("Storage access at index " + str(index))
         index = simplify(index)
 
-        if not keccak_function_manager.is_keccak(index):
+        if not KeccakFunctionManager.is_keccak(index):
             return self._sload_helper(global_state, index)
 
         storage_keys = global_state.environment.active_account.storage.keys()
-        keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
+        keccak_keys = list(filter(KeccakFunctionManager.is_keccak, storage_keys))
 
         results = []  # type: List[GlobalState]
         constraints = []
 
         for keccak_key in keccak_keys:
-            key_argument = keccak_function_manager.get_argument(keccak_key)
-            index_argument = keccak_function_manager.get_argument(index)
+            key_argument = KeccakFunctionManager.get_argument(keccak_key)
+            index_argument = KeccakFunctionManager.get_argument(index)
             if key_argument.size() != index_argument.size():
                 continue
             constraints.append((keccak_key, key_argument == index_argument))
@@ -1430,11 +1426,10 @@ class Instruction:
         :param this_key:
         :param argument:
         """
-        global keccak_function_manager
         for keccak_key in keccak_keys:
             if keccak_key == this_key:
                 continue
-            keccak_argument = keccak_function_manager.get_argument(keccak_key)
+            keccak_argument = KeccakFunctionManager.get_argument(keccak_key)
             yield keccak_argument != argument
 
     @StateTransition()
@@ -1444,27 +1439,26 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
         log.debug("Write to storage[" + str(index) + "]")
         index = simplify(index)
-        is_keccak = keccak_function_manager.is_keccak(index)
+        is_keccak = KeccakFunctionManager.is_keccak(index)
         if not is_keccak:
             return self._sstore_helper(global_state, index, value)
 
         storage_keys = global_state.environment.active_account.storage.keys()
 
-        keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
+        keccak_keys = filter(KeccakFunctionManager.is_keccak, storage_keys)
 
         results = []  # type: List[GlobalState]
         new = symbol_factory.Bool(False)
 
         for keccak_key in keccak_keys:
-            key_argument = keccak_function_manager.get_argument(
+            key_argument = KeccakFunctionManager.get_argument(
                 keccak_key
             )  # type: Expression
-            index_argument = keccak_function_manager.get_argument(
+            index_argument = KeccakFunctionManager.get_argument(
                 index
             )  # type: Expression
             if key_argument.size() != index_argument.size():
