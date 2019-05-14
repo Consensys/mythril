@@ -203,6 +203,9 @@ class Instruction:
             end_time = datetime.now()
             self.iprof.record(op, start_time, end_time)
 
+        for st in global_state.mstate.stack:
+            logging.debug(st)
+
         return result
 
     @StateTransition()
@@ -895,7 +898,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition(enable_gas=False)
-    def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
+    def sha3_(selxf, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
@@ -1590,6 +1593,8 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
+
+        logging.debug(str(condition))
 
         try:
             jump_addr = util.get_concrete_int(op0)

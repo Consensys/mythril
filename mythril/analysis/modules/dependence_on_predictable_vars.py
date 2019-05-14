@@ -82,56 +82,57 @@ def _analyze_states(state: GlobalState) -> list:
     :return:
     """
 
-    # Look for predictable state variables in jump condition
-
     issues = []
-    opcode = state.get_current_instruction()["opcode"]
 
-    if opcode in critical_ops:
+    if is_prehook():
 
-        for annotation in state.annotations:
+        opcode = state.get_current_instruction()["opcode"]
 
-            if isinstance(annotation, PredictablePathAnnotation):
-                description = (
-                    "The "
-                    + annotation.operation
-                    + " is used in to determine an important control flow decision. "
-                )
-                description += (
-                    "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
-                    "are predictable and can be manipulated by a malicious miner. Also keep in mind that attackers "
-                    "know hashes of earlier blocks. Don't use any of those environment variables for random number "
-                    "generation or to make critical control flow decisions."
-                )
+        if opcode in critical_ops:
 
-                issue = Issue(
-                    contract=state.environment.active_account.contract_name,
-                    function_name=state.environment.active_function_name,
-                    address=state.get_current_instruction()["address"],
-                    swc_id=TIMESTAMP_DEPENDENCE,
-                    bytecode=state.environment.code.bytecode,
-                    title="Dependence on predictable environment variable",
-                    severity="Low",
-                    description_head="A control flow decision is made based on a predictable variable.",
-                    description_tail=description,
-                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                )
-                issues.append(issue)
+            for annotation in state.annotations:
 
-    elif opcode == "JUMPI":
-
-        for annotation in state.mstate.stack[-2].annotations:
-            if isinstance(annotation, PredictableValueAnnotation):
-                state.annotate(
-                    PredictablePathAnnotation(
-                        annotation.operation, state.get_current_instruction()["address"]
+                if isinstance(annotation, PredictablePathAnnotation):
+                    description = (
+                        "The "
+                        + annotation.operation
+                        + " is used in to determine an important control flow decision. "
                     )
-                )
+                    description += (
+                        "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
+                        "are predictable and can be manipulated by a malicious miner. Also keep in mind that attackers "
+                        "know hashes of earlier blocks. Don't use any of those environment variables for random number "
+                        "generation or to make critical control flow decisions."
+                    )
 
-    # Now the magic starts!
+                    issue = Issue(
+                        contract=state.environment.active_account.contract_name,
+                        function_name=state.environment.active_function_name,
+                        address=state.get_current_instruction()["address"],
+                        swc_id=TIMESTAMP_DEPENDENCE,
+                        bytecode=state.environment.code.bytecode,
+                        title="Dependence on predictable environment variable",
+                        severity="Low",
+                        description_head="A control flow decision is made based on a predictable variable.",
+                        description_tail=description,
+                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                    )
+                    issues.append(issue)
 
-    elif state.get_current_instruction()["opcode"] == "BLOCKHASH":
-        if is_prehook():
+        elif opcode == "JUMPI":
+
+            # Look for predictable state variables in jump condition
+
+            for annotation in state.mstate.stack[-2].annotations:
+                if isinstance(annotation, PredictableValueAnnotation):
+                    state.annotate(
+                        PredictablePathAnnotation(
+                            annotation.operation,
+                            state.get_current_instruction()["address"],
+                        )
+                    )
+
+        elif opcode == "BLOCKHASH":
 
             param = state.mstate.stack[-1]
 
@@ -155,10 +156,9 @@ def _analyze_states(state: GlobalState) -> list:
     else:
         # we're in post hook
 
-        if (
-            state.environment.code.instruction_list[state.mstate.pc - 1]["opcode"]
-            == "BLOCKHASH"
-        ):
+        opcode = state.environment.code.instruction_list[state.mstate.pc - 1]["opcode"]
+
+        if opcode == "BLOCKHASH":
             # if we're in the post hook of a BLOCKHASH op, check if an old block number was used to create it.
 
             for annotation in state.annotations:
@@ -169,9 +169,6 @@ def _analyze_states(state: GlobalState) -> list:
                     )
         else:
             # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
-
-            instructions = state.environment.code.instruction_list
-            opcode = instructions[state.mstate.pc - 1]["opcode"]
 
             state.mstate.stack[-1].annotate(
                 PredictableValueAnnotation(
