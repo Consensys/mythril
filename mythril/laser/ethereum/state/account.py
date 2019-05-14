@@ -48,7 +48,9 @@ class Storage:
                     pass
         if self.concrete:
             return symbol_factory.BitVecVal(0, 256)
-        self._storage[item] = symbol_factory.BitVecSym("storage_{}_{}".format(str(item), str(self.address)), 256)
+        self._storage[item] = symbol_factory.BitVecSym(
+            "storage_{}_{}".format(str(item), str(self.address)), 256
+        )
         return self._storage[item]
 
     def __setitem__(self, key: Union[int, str], value: Any) -> None:
