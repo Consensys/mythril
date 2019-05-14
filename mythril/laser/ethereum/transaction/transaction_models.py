@@ -184,15 +184,16 @@ class ContractCreationTransaction(BaseTransaction):
         :param revert:
         """
         if (
-            not all([isinstance(element, int) for element in return_data])
+            return_data is None
+            or not all([isinstance(element, int) for element in return_data])
             or len(return_data) == 0
         ):
             self.return_data = None
-            raise TransactionEndSignal(global_state)
+            raise TransactionEndSignal(global_state, revert=revert)
 
         contract_code = bytes.hex(array.array("B", return_data).tostring())
 
-        global_state.environment.active_account.code = Disassembly(contract_code)
+        global_state.environment.active_account.code.assign_bytecode(contract_code)
         self.return_data = global_state.environment.active_account.address
         assert global_state.environment.active_account.code.instruction_list != []
 
