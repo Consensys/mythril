@@ -88,7 +88,6 @@ def _analyze_states(state: GlobalState) -> list:
     opcode = state.get_current_instruction()["opcode"]
 
     if opcode in critical_ops:
-        logging.info(str(state.annotations))
 
         for annotation in state.annotations:
 
