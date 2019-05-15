@@ -15,7 +15,7 @@ import traceback
 log = logging.getLogger(__name__)
 
 predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
-final_ops = ["CALL", "SUICIDE", "STOP"]
+final_ops = ["CALL", "SUICIDE", "STOP", "RETURN"]
 
 
 # One of Bernhard's trademark hacks!

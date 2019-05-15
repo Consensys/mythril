@@ -898,7 +898,7 @@ class Instruction:
         return [global_state]
 
     @StateTransition(enable_gas=False)
-    def sha3_(selxf, global_state: GlobalState) -> List[GlobalState]:
+    def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
