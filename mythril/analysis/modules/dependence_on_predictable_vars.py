@@ -15,10 +15,13 @@ import traceback
 log = logging.getLogger(__name__)
 
 predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
-critical_ops = ["CALL", "SUICIDE"]
+final_ops = ["CALL", "SUICIDE", "STOP"]
 
+
+# One of Bernhard's trademark hacks!
 
 def is_prehook():
+    """Check if we are in prehook."""
     return "pre_hook" in traceback.format_stack()[-4]
 
 
@@ -32,7 +35,7 @@ class PredictableValueAnnotation:
 class PredictablePathAnnotation(StateAnnotation):
     """State annotation used when a path is chosen based on a predictable variable."""
 
-    def __init__(self, operation, location) -> None:
+    def __init__(self, operation: str, location: int) -> None:
         self.operation = operation
         self.location = location
 
@@ -58,7 +61,7 @@ class PredictableDependenceModule(DetectionModule):
                 "block.gaslimit, block.timestamp or block.number."
             ),
             entrypoint="callback",
-            pre_hooks=["BLOCKHASH", "JUMPI"] + critical_ops,
+            pre_hooks=["BLOCKHASH", "JUMPI"] + final_ops,
             post_hooks=["BLOCKHASH"] + predictable_ops,
         )
 
@@ -88,7 +91,7 @@ def _analyze_states(state: GlobalState) -> list:
 
         opcode = state.get_current_instruction()["opcode"]
 
-        if opcode in critical_ops:
+        if opcode in final_ops:
 
             for annotation in state.annotations:
 
@@ -105,14 +108,28 @@ def _analyze_states(state: GlobalState) -> list:
                         "generation or to make critical control flow decisions."
                     )
 
+                    '''
+                    Usually report low severity except in cases where thje hash of a previous block is used to
+                    determine control flow. 
+                    '''
+
+                    severity = "Medium" if "hash" in annotation.operation else "Low"
+
+                    '''
+                    Note: We report the location of the JUMPI that lead to this path. Usually this maps to an if or
+                    require statement.
+                    '''
+
+                    swc_id = TIMESTAMP_DEPENDENCE if "timestamp" in annotation.operation else WEAK_RANDOMNESS
+
                     issue = Issue(
                         contract=state.environment.active_account.contract_name,
                         function_name=state.environment.active_function_name,
-                        address=state.get_current_instruction()["address"],
-                        swc_id=TIMESTAMP_DEPENDENCE,
+                        address=annotation.location,
+                        swc_id=swc_id,
                         bytecode=state.environment.code.bytecode,
                         title="Dependence on predictable environment variable",
-                        severity="Low",
+                        severity=severity,
                         description_head="A control flow decision is made based on a predictable variable.",
                         description_tail=description,
                         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
@@ -124,6 +141,7 @@ def _analyze_states(state: GlobalState) -> list:
             # Look for predictable state variables in jump condition
 
             for annotation in state.mstate.stack[-2].annotations:
+
                 if isinstance(annotation, PredictableValueAnnotation):
                     state.annotate(
                         PredictablePathAnnotation(
