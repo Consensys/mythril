@@ -20,6 +20,7 @@ final_ops = ["CALL", "SUICIDE", "STOP"]
 
 # One of Bernhard's trademark hacks!
 
+
 def is_prehook():
     """Check if we are in prehook."""
     return "pre_hook" in traceback.format_stack()[-4]
@@ -108,19 +109,23 @@ def _analyze_states(state: GlobalState) -> list:
                         "generation or to make critical control flow decisions."
                     )
 
-                    '''
+                    """
                     Usually report low severity except in cases where thje hash of a previous block is used to
                     determine control flow. 
-                    '''
+                    """
 
                     severity = "Medium" if "hash" in annotation.operation else "Low"
 
-                    '''
+                    """
                     Note: We report the location of the JUMPI that lead to this path. Usually this maps to an if or
                     require statement.
-                    '''
+                    """
 
-                    swc_id = TIMESTAMP_DEPENDENCE if "timestamp" in annotation.operation else WEAK_RANDOMNESS
+                    swc_id = (
+                        TIMESTAMP_DEPENDENCE
+                        if "timestamp" in annotation.operation
+                        else WEAK_RANDOMNESS
+                    )
 
                     issue = Issue(
                         contract=state.environment.active_account.contract_name,
