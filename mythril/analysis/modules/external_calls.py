@@ -5,7 +5,7 @@ from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
-from mythril.laser.smt import UGT, symbol_factory
+from mythril.laser.smt import UGT, symbol_factory, Or, BitVec
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 from copy import copy
@@ -36,6 +36,7 @@ def _analyze_state(state):
 
     try:
         constraints = copy(state.mstate.constraints)
+
         transaction_sequence = solver.get_transaction_sequence(
             state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
         )
@@ -70,6 +71,8 @@ def _analyze_state(state):
             )
 
         except UnsatError:
+            if _is_precompile_call(state):
+                return []
 
             log.debug(
                 "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
@@ -101,6 +104,23 @@ def _analyze_state(state):
         return []
 
     return [issue]
+
+
+def _is_precompile_call(global_state: GlobalState):
+    to = global_state.mstate.stack[-2]  # type: BitVec
+    constraints = copy(global_state.mstate.constraints)
+    constraints += [
+        Or(
+            to < symbol_factory.BitVecVal(1, 256),
+            to > symbol_factory.BitVecVal(16, 256),
+        )
+    ]
+
+    try:
+        solver.get_model(constraints)
+        return False
+    except UnsatError:
+        return True
 
 
 class ExternalCalls(DetectionModule):
