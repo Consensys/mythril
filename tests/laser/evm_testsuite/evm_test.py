@@ -1,8 +1,9 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
-from mythril.laser.smt import Expression, BitVec
+from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.analysis.solver import get_model
 from datetime import datetime
 
@@ -82,25 +83,27 @@ def test_vmtest(
     # Arrange
     if test_name == "gasprice":
         return
-    accounts = {}
+
+    world_state = WorldState()
+
     for address, details in pre_condition.items():
         account = Account(address)
         account.code = Disassembly(details["code"][2:])
-        account.balance = int(details["balance"], 16)
         account.nonce = int(details["nonce"], 16)
+        world_state.put_account(account)
+        account.set_balance(int(details["balance"], 16))
 
-        accounts[address] = account
-
-    laser_evm = LaserEVM(accounts)
+    laser_evm = LaserEVM()
+    laser_evm.open_states = [world_state]
 
     # Act
     laser_evm.time = datetime.now()
 
     final_states = execute_message_call(
         laser_evm,
-        callee_address=action["address"],
-        caller_address=action["caller"],
-        origin_address=binascii.a2b_hex(action["origin"][2:]),
+        callee_address=symbol_factory.BitVecVal(int(action["address"], 16), 256),
+        caller_address=symbol_factory.BitVecVal(int(action["caller"], 16), 256),
+        origin_address=symbol_factory.BitVecVal(int(action["origin"], 16), 256),
         code=action["code"][2:],
         gas_limit=int(action["gas"], 16),
         data=binascii.a2b_hex(action["data"][2:]),
@@ -132,7 +135,7 @@ def test_vmtest(
         )
 
         for address, details in post_condition.items():
-            account = world_state[address]
+            account = world_state[symbol_factory.BitVecVal(int(address, 16), 256)]
 
             assert account.nonce == int(details["nonce"], 16)
             assert account.code.bytecode == details["code"][2:]
