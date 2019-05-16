@@ -15,6 +15,7 @@ import coloredlogs
 import traceback
 
 import mythril.support.signatures as sigs
+from argparse import ArgumentParser, Namespace
 from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -31,8 +32,9 @@ log = logging.getLogger(__name__)
 
 def exit_with_error(format_, message):
     """
-    :param format_:
-    :param message:
+    Exits with error
+    :param format_: The format of the message
+    :param message: message
     """
     if format_ == "text" or format_ == "markdown":
         log.error(message)
@@ -55,8 +57,12 @@ def exit_with_error(format_, message):
     sys.exit()
 
 
-def get_input_parser():
-    parser = argparse.ArgumentParser(add_help=False)
+def get_input_parser() -> ArgumentParser:
+    """
+    Returns Parser which handles input
+    :return: Parser which handles input
+    """
+    parser = ArgumentParser(add_help=False)
     parser.add_argument(
         "-c",
         "--code",
@@ -84,7 +90,11 @@ def get_input_parser():
     return parser
 
 
-def get_output_parser():
+def get_output_parser() -> ArgumentParser:
+    """
+    Get parser which handles output
+    :return: Parser which handles output
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
@@ -106,7 +116,11 @@ def get_output_parser():
     return parser
 
 
-def get_rpc_parser():
+def get_rpc_parser() -> ArgumentParser:
+    """
+    Get parser which handles RPC flags
+    :return: c
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
         "--rpc",
@@ -120,7 +134,11 @@ def get_rpc_parser():
     return parser
 
 
-def get_utilities_parser():
+def get_utilities_parser() -> ArgumentParser:
+    """
+    Get parser which handles utilities flags
+    :return: Get parser which handles utility flags
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--solc-args", help="Extra arguments for solc")
     parser.add_argument(
@@ -190,11 +208,21 @@ def main() -> None:
     parse_args(parser=parser, args=args)
 
 
-def create_disassemble_parser(parser):
+def create_disassemble_parser(parser: ArgumentParser):
+    """
+    Modify parser to handle disassembly
+    :param parser:
+    :return:
+    """
     parser.add_argument("solidity_file", nargs="*")
 
 
-def create_read_storage_parser(read_storage_parser: argparse.ArgumentParser):
+def create_read_storage_parser(read_storage_parser: ArgumentParser):
+    """
+    Modify parser to handle storage slots
+    :param read_storage_parser:
+    :return:
+    """
 
     read_storage_parser.add_argument(
         "storage_slots",
@@ -206,7 +234,12 @@ def create_read_storage_parser(read_storage_parser: argparse.ArgumentParser):
     )
 
 
-def create_leveldb_parser(parser: argparse.ArgumentParser):
+def create_leveldb_parser(parser: ArgumentParser):
+    """
+    Modify parser to handle leveldb-search
+    :param parser:
+    :return:
+    """
     parser.add_argument("search")
     parser.add_argument(
         "--leveldb-dir",
@@ -215,13 +248,23 @@ def create_leveldb_parser(parser: argparse.ArgumentParser):
     )
 
 
-def create_func_to_hash_parser(hash_parser: argparse.ArgumentParser):
-    hash_parser.add_argument(
+def create_func_to_hash_parser(parser: ArgumentParser):
+    """
+    Modify parser to handle func_to_hash command
+    :param parser:
+    :return:
+    """
+    parser.add_argument(
         "func_name", help="calculate function signature hash", metavar="SIGNATURE"
     )
 
 
-def create_hash_to_addr_parser(hash_parser: argparse.ArgumentParser):
+def create_hash_to_addr_parser(hash_parser: ArgumentParser):
+    """
+    Modify parser to handle hash_to_addr command
+    :param hash_parser:
+    :return:
+    """
     hash_parser.add_argument(
         "hash", help="Find the address from hash", metavar="FUNCTION_NAME"
     )
@@ -232,7 +275,12 @@ def create_hash_to_addr_parser(hash_parser: argparse.ArgumentParser):
     )
 
 
-def create_analyzer_parser(analyzer_parser: argparse.ArgumentParser):
+def create_analyzer_parser(analyzer_parser: ArgumentParser):
+    """
+    Modify parser to handle analyze command
+    :param analyzer_parser:
+    :return:
+    """
     analyzer_parser.add_argument("solidity_file", nargs="*")
     commands = analyzer_parser.add_argument_group("commands")
     commands.add_argument("-g", "--graph", help="generate a control flow graph")
@@ -315,7 +363,12 @@ def create_analyzer_parser(analyzer_parser: argparse.ArgumentParser):
     )
 
 
-def validate_args(args: argparse.Namespace):
+def validate_args(args: Namespace):
+    """
+    Validate cli args
+    :param args:
+    :return:
+    """
     if args.__dict__.get("v", False):
         if 0 <= args.v < 6:
             log_levels = [
@@ -355,7 +408,12 @@ def validate_args(args: argparse.Namespace):
                 )
 
 
-def set_config(args: argparse.Namespace):
+def set_config(args: Namespace):
+    """
+    Set config based on args
+    :param args:
+    :return: modified config
+    """
     config = MythrilConfig()
     if (
         args.command == "analyze" and (args.dynld or not args.no_onchain_storage_access)
@@ -375,7 +433,13 @@ def set_config(args: argparse.Namespace):
     return config
 
 
-def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
+def leveldb_search(config: MythrilConfig, args: Namespace):
+    """
+    Handle leveldb search
+    :param config:
+    :param args:
+    :return:
+    """
     if args.command in ("hash-to-address", "leveldb-search"):
         leveldb_searcher = MythrilLevelDB(config.eth_db)
         if args.command == "leveldb-search":
@@ -392,7 +456,7 @@ def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
         sys.exit()
 
 
-def load_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
+def load_code(disassembler: MythrilDisassembler, args: Namespace):
     """
     Loads code into disassembly and returns address
     :param disassembler:
@@ -433,9 +497,17 @@ def load_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
 def execute_command(
     disassembler: MythrilDisassembler,
     address: str,
-    parser: argparse.ArgumentParser,
-    args: argparse.Namespace,
+    parser: ArgumentParser,
+    args: Namespace,
 ):
+    """
+    Execute command
+    :param disassembler:
+    :param address:
+    :param parser:
+    :param args:
+    :return:
+    """
 
     if args.command == "read-storage":
         if not args.address:
@@ -530,12 +602,17 @@ def execute_command(
         parser.print_help()
 
 
-def contract_hash_to_address(args: argparse.Namespace):
+def contract_hash_to_address(args: Namespace):
+    """
+    prints the hash from function signature
+    :param args:
+    :return:
+    """
     print(MythrilDisassembler.hash_for_function_signature(args.func_name))
     sys.exit()
 
 
-def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+def parse_args(parser: ArgumentParser, args: Namespace) -> None:
     """
     Parses the arguments
     :param parser: The parser
