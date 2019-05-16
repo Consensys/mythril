@@ -27,6 +27,19 @@ class CommandLineToolTestCase(BaseTestCase):
         command = "python3 {} function-to-hash 'setOwner(address)'".format(MYTH)
         self.assertIn("0x13af4035\n", output_of(command))
 
+    def test_failure_json(self):
+        command = "python3 {} analyze doesnt_exist.sol -o json".format(MYTH)
+        print(output_of(command))
+        self.assertIn(""""success": false""", output_of(command))
+
+    def test_failure_text(self):
+        command = "python3 {} analyze doesnt_exist.sol".format(MYTH)
+        assert output_of(command) == ""
+
+    def test_failure_jsonv2(self):
+        command = "python3 {} analyze doesnt_exist.sol -o jsonv2".format(MYTH)
+        self.assertIn(""""level": "error""" "", output_of(command))
+
 
 class TruffleTestCase(BaseTestCase):
     def test_analysis_truffle_project(self):

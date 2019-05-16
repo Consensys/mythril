@@ -215,12 +215,6 @@ def create_leveldb_parser(parser: argparse.ArgumentParser):
     )
 
 
-def create_version_parser(hash_parser: argparse.ArgumentParser):
-    hash_parser.add_argument(
-        "version", help="print the Mythril version number and exit", metavar="VERSION"
-    )
-
-
 def create_func_to_hash_parser(hash_parser: argparse.ArgumentParser):
     hash_parser.add_argument(
         "func_name", help="calculate function signature hash", metavar="SIGNATURE"
