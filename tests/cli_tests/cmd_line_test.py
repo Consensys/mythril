@@ -15,20 +15,16 @@ def output_of(command):
 
 class CommandLineToolTestCase(BaseTestCase):
     def test_disassemble_code_correctly(self):
-        command = "python3 {} disassemble --bin-runtime -c 0x5050 --solv 0.5.0".format(
-            MYTH
-        )
+        command = "python3 {} disassemble --bin-runtime -c 0x5050".format(MYTH)
         self.assertIn("0 POP\n1 POP\n", output_of(command))
 
     def test_disassemble_solidity_file_correctly(self):
         solidity_file = str(TESTDATA / "input_contracts" / "metacoin.sol")
-        command = "python3 {} disassemble {} --solv 0.5.0".format(MYTH, solidity_file)
+        command = "python3 {} disassemble {}".format(MYTH, solidity_file)
         self.assertIn("2 PUSH1 0x40\n4 MSTORE", output_of(command))
 
     def test_hash_a_function_correctly(self):
-        command = "python3 {} contract-function-to-hash --solv 0.5.0  'setOwner(address)'".format(
-            MYTH
-        )
+        command = "python3 {} function-to-hash 'setOwner(address)'".format(MYTH)
         self.assertIn("0x13af4035\n", output_of(command))
 
 

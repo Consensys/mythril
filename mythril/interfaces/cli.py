@@ -55,29 +55,125 @@ def exit_with_error(format_, message):
     sys.exit()
 
 
+def get_input_parser():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument(
+        "-c",
+        "--code",
+        help='hex-encoded bytecode string ("6060604052...")',
+        metavar="BYTECODE",
+    )
+    parser.add_argument(
+        "-f",
+        "--codefile",
+        help="file containing hex-encoded bytecode string",
+        metavar="BYTECODEFILE",
+        type=argparse.FileType("r"),
+    )
+    parser.add_argument(
+        "-a",
+        "--address",
+        help="pull contract from the blockchain",
+        metavar="CONTRACT_ADDRESS",
+    )
+    parser.add_argument(
+        "--bin-runtime",
+        action="store_true",
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
+    )
+    return parser
+
+
+def get_output_parser():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "-o",
+        "--outform",
+        choices=["text", "markdown", "json", "jsonv2"],
+        default="text",
+        help="report output format",
+        metavar="<text/markdown/json/jsonv2>",
+    )
+    parser.add_argument(
+        "--verbose-report",
+        action="store_true",
+        help="Include debugging information in report",
+    )
+    parser.add_argument(
+        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
+    )
+    return parser
+
+
+def get_rpc_parser():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument(
+        "--rpc",
+        help="custom RPC settings",
+        metavar="HOST:PORT / ganache / infura-[network_name]",
+        default="infura-mainnet",
+    )
+    parser.add_argument(
+        "--rpctls", type=bool, default=False, help="RPC connection over TLS"
+    )
+    return parser
+
+
+def get_utilities_parser():
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--solc-args", help="Extra arguments for solc")
+    parser.add_argument(
+        "--solv",
+        help="specify solidity compiler version. If not present, will try to install it (Experimental)",
+        metavar="SOLV",
+    )
+    return parser
+
+
 def main() -> None:
     """The main CLI interface entry point."""
-    common_parser = argparse.ArgumentParser(add_help=False)
-    create_parser(common_parser)
 
+    rpc_parser = get_rpc_parser()
+    utilities_parser = get_utilities_parser()
+    input_parser = get_input_parser()
+    output_parser = get_output_parser()
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    analyzer_parser = subparsers.add_parser("analyze", parents=[common_parser])
-    disassemble_parser = subparsers.add_parser("disassemble", parents=[common_parser])
-    read_storage_parser = subparsers.add_parser("read-storage", parents=[common_parser])
+    analyzer_parser = subparsers.add_parser(
+        "analyze",
+        help="Triggers analysis of smart contract",
+        parents=[rpc_parser, utilities_parser, input_parser, output_parser],
+    )
+    disassemble_parser = subparsers.add_parser(
+        "disassemble",
+        help="Disassembles smart contract",
+        parents=[rpc_parser, utilities_parser, input_parser, output_parser],
+    )
+    read_storage_parser = subparsers.add_parser(
+        "read-storage",
+        help="Retrieves storage slots from rpc address",
+        parents=[rpc_parser, output_parser],
+    )
     leveldb_search_parser = subparsers.add_parser(
-        "leveldb-search", parents=[common_parser]
+        "leveldb-search", parents=[output_parser], help="Search code in local leveldb"
     )
     contract_func_to_hash = subparsers.add_parser(
-        "contract-function-to-hash", parents=[common_parser]
+        "function-to-hash",
+        parents=[output_parser],
+        help="Returns the hash signature of the function",
     )
     contract_hash_to_addr = subparsers.add_parser(
-        "contract-hash-to-address", parents=[common_parser]
+        "hash-to-address",
+        parents=[output_parser],
+        help="converts the hashes in the blockchain to ethereum address",
     )
-    subparsers.add_parser("version", parents=[common_parser])
+    subparsers.add_parser(
+        "version", parents=[output_parser], help="Outputs the version"
+    )
 
     create_disassemble_parser(disassemble_parser)
     create_analyzer_parser(analyzer_parser)
@@ -99,10 +195,14 @@ def create_disassemble_parser(parser):
 
 
 def create_read_storage_parser(read_storage_parser: argparse.ArgumentParser):
+
     read_storage_parser.add_argument(
-        "--storage-slots",
-        help="read state vasriables from storage index, use with -a",
+        "storage_slots",
+        help="read state variables from storage index, use with -a",
         metavar="INDEX,NUM_SLOTS,[array] / mapping,INDEX,[KEY1, KEY2...]",
+    )
+    read_storage_parser.add_argument(
+        "address", help="contract address", metavar="ADDRESS"
     )
 
 
@@ -130,6 +230,11 @@ def create_func_to_hash_parser(hash_parser: argparse.ArgumentParser):
 def create_hash_to_addr_parser(hash_parser: argparse.ArgumentParser):
     hash_parser.add_argument(
         "hash", help="Find the address from hash", metavar="FUNCTION_NAME"
+    )
+    hash_parser.add_argument(
+        "--leveldb-dir",
+        help="specify leveldb directory for search or direct access operations",
+        metavar="LEVELDB_PATH",
     )
 
 
@@ -216,75 +321,8 @@ def create_analyzer_parser(analyzer_parser: argparse.ArgumentParser):
     )
 
 
-def create_parser(parser: argparse.ArgumentParser) -> None:
-    inputs = parser.add_argument_group("input arguments")
-    inputs.add_argument(
-        "-c",
-        "--code",
-        help='hex-encoded bytecode string ("6060604052...")',
-        metavar="BYTECODE",
-    )
-    inputs.add_argument(
-        "-f",
-        "--codefile",
-        help="file containing hex-encoded bytecode string",
-        metavar="BYTECODEFILE",
-        type=argparse.FileType("r"),
-    )
-    inputs.add_argument(
-        "-a",
-        "--address",
-        help="pull contract from the blockchain",
-        metavar="CONTRACT_ADDRESS",
-    )
-    inputs.add_argument(
-        "--bin-runtime",
-        action="store_true",
-        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
-    )
-    utilities = parser.add_argument_group("utilities")
-
-    utilities.add_argument("--solc-args", help="Extra arguments for solc")
-    utilities.add_argument(
-        "--solv",
-        help="specify solidity compiler version. If not present, will try to install it (Experimental)",
-        metavar="SOLV",
-    )
-
-    rpc = parser.add_argument_group("RPC options")
-
-    rpc.add_argument(
-        "--rpc",
-        help="custom RPC settings",
-        metavar="HOST:PORT / ganache / infura-[network_name]",
-        default="infura-mainnet",
-    )
-    rpc.add_argument(
-        "--rpctls", type=bool, default=False, help="RPC connection over TLS"
-    )
-    parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
-
-    outputs = parser.add_argument_group("output formats")
-    outputs.add_argument(
-        "-o",
-        "--outform",
-        choices=["text", "markdown", "json", "jsonv2"],
-        default="text",
-        help="report output format",
-        metavar="<text/markdown/json/jsonv2>",
-    )
-    outputs.add_argument(
-        "--verbose-report",
-        action="store_true",
-        help="Include debugging information in report",
-    )
-    outputs.add_argument(
-        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
-    )
-
-
 def validate_args(args: argparse.Namespace):
-    if args.v:
+    if args.__dict__.get("v", False):
         if 0 <= args.v < 6:
             log_levels = [
                 logging.NOTSET,
@@ -330,12 +368,12 @@ def set_config(args: argparse.Namespace):
     ) and not (args.rpc or args.i):
         config.set_api_from_config_path()
 
-    if args.address:
+    if args.__dict__.get("address", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-    if args.command in ("contract-hash-to-address", "leveldb-search"):
+    if args.command in ("hash-to-address", "leveldb-search"):
         # Open LevelDB if necessary
-        if "leveldb_dir" not in args.__dict__ or args.leveldb_dir is None:
+        if not args.__dict__.get("leveldb_dir", None):
             leveldb_dir = config.leveldb_dir
         else:
             leveldb_dir = args.leveldb_dir
@@ -344,7 +382,7 @@ def set_config(args: argparse.Namespace):
 
 
 def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
-    if args.command in ("contract-hash-to-address", "leveldb-search"):
+    if args.command in ("hash-to-address", "leveldb-search"):
         leveldb_searcher = MythrilLevelDB(config.eth_db)
         if args.command == "leveldb-search":
             # Database search ops
@@ -360,20 +398,27 @@ def leveldb_search(config: MythrilConfig, args: argparse.Namespace):
         sys.exit()
 
 
-def get_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
+def load_code(disassembler: MythrilDisassembler, args: argparse.Namespace):
+    """
+    Loads code into disassembly and returns address
+    :param disassembler:
+    :param args:
+    :return: Address
+    """
+
     address = None
-    if args.code:
+    if args.__dict__.get("code", False):
         # Load from bytecode
         code = args.code[2:] if args.code.startswith("0x") else args.code
         address, _ = disassembler.load_from_bytecode(code, args.bin_runtime)
-    elif args.codefile:
+    elif args.__dict__.get("codefile", False):
         bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
         bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
         address, _ = disassembler.load_from_bytecode(bytecode, args.bin_runtime)
-    elif args.address:
+    elif args.__dict__.get("address", False):
         # Get bytecode from a contract address
         address, _ = disassembler.load_from_address(args.address)
-    elif args.solidity_file:
+    elif args.__dict__.get("solidity_file", False):
         # Compile Solidity source file(s)
         if args.command == "analyze" and args.graph and len(args.solidity_file) > 1:
             exit_with_error(
@@ -519,17 +564,17 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
     # Parse cmdline args
     validate_args(args)
     try:
-        if args.command == "contract-function-to-hash":
+        if args.command == "function-to-hash":
             contract_hash_to_address(args)
         config = set_config(args)
         leveldb_search(config, args)
-        query_signature = (
-            args.query_signature if "query_signature" in args.__dict__ else None
-        )
+        query_signature = args.__dict__.get("query_signature", None)
+        solc_args = args.__dict__.get("solc_args", None)
+        solv = args.__dict__.get("solv", None)
         disassembler = MythrilDisassembler(
             eth=config.eth,
-            solc_version=args.solv,
-            solc_args=args.solc_args,
+            solc_version=solv,
+            solc_args=solc_args,
             enable_online_lookup=query_signature,
         )
         if args.command == "truffle":
@@ -542,7 +587,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
                 )
             sys.exit()
 
-        address = get_code(disassembler, args)
+        address = load_code(disassembler, args)
         execute_command(
             disassembler=disassembler, address=address, parser=parser, args=args
         )
