@@ -10,8 +10,8 @@
 ![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril-classic/master.svg)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril-classic.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril-classic/)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
-[![PyPI Installs](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
-[![DockerHub Pulls](https://img.shields.io/docker/pulls/mythril/myth.svg)](https://cloud.docker.com/u/mythril/repository/docker/mythril/myth)
+[![PyPI Installs](https://img.shields.io/pypi/dm/ansicolortags.svg?label=PyPI&nbsp;Installs)](https://pypi.org/project/mythril/)
+[![DockerHub Pulls](https://img.shields.io/docker/pulls/mythril/myth.svg?label=DockerHub&nbsp;Pulls)](https://cloud.docker.com/u/mythril/repository/docker/mythril/myth)
 
 Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses symbolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities.
 
