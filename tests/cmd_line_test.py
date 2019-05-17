@@ -1,5 +1,6 @@
 from subprocess import check_output
 from tests import BaseTestCase, TESTDATA, PROJECT_DIR, TESTS_DIR
+from mock import patch
 
 MYTH = str(PROJECT_DIR / "myth")
 
@@ -39,6 +40,11 @@ class CommandLineToolTestCase(BaseTestCase):
     def test_failure_jsonv2(self):
         command = "python3 {} analyze doesnt_exist.sol -o jsonv2".format(MYTH)
         self.assertIn(""""level": "error""" "", output_of(command))
+
+    def test_analyze(self):
+        solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
+        command = "python3 {} analyze {}".format(MYTH, solidity_file)
+        self.assertIn("111", output_of(command))
 
 
 class TruffleTestCase(BaseTestCase):

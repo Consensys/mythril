@@ -119,7 +119,7 @@ def get_output_parser() -> ArgumentParser:
 def get_rpc_parser() -> ArgumentParser:
     """
     Get parser which handles RPC flags
-    :return: c
+    :return: Parser which handles rpc inputs
     """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
@@ -137,7 +137,7 @@ def get_rpc_parser() -> ArgumentParser:
 def get_utilities_parser() -> ArgumentParser:
     """
     Get parser which handles utilities flags
-    :return: Get parser which handles utility flags
+    :return: Parser which handles utility flags
     """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--solc-args", help="Extra arguments for solc")
@@ -163,21 +163,23 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     analyzer_parser = subparsers.add_parser(
         "analyze",
-        help="Triggers analysis of smart contract",
+        help="Triggers the analysis of the smart contract",
         parents=[rpc_parser, utilities_parser, input_parser, output_parser],
     )
     disassemble_parser = subparsers.add_parser(
         "disassemble",
-        help="Disassembles smart contract",
+        help="Disassembles the smart contract",
         parents=[rpc_parser, utilities_parser, input_parser, output_parser],
     )
     read_storage_parser = subparsers.add_parser(
         "read-storage",
-        help="Retrieves storage slots from rpc address",
+        help="Retrieves storage slots from a given address through rpc",
         parents=[rpc_parser, output_parser],
     )
     leveldb_search_parser = subparsers.add_parser(
-        "leveldb-search", parents=[output_parser], help="Search code in local leveldb"
+        "leveldb-search",
+        parents=[output_parser],
+        help="Searches the code fragment in local leveldb",
     )
     contract_func_to_hash = subparsers.add_parser(
         "function-to-hash",
