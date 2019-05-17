@@ -46,6 +46,18 @@ class CommandLineToolTestCase(BaseTestCase):
         command = "python3 {} analyze {}".format(MYTH, solidity_file)
         self.assertIn("111", output_of(command))
 
+    def test_analyze_bytecode(self):
+        solidity_file = str(TESTDATA / "inputs" / "origin.sol.o")
+        command = "python3 {} analyze --bin-runtime -f {}".format(MYTH, solidity_file)
+        self.assertIn("111", output_of(command))
+
+    def test_invalid_args_iprof(self):
+        solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
+        command = "python3 {} analyze {} --enable-iprof -o json".format(
+            MYTH, solidity_file
+        )
+        self.assertIn(""""success": false""", output_of(command))
+
 
 class TruffleTestCase(BaseTestCase):
     def test_analysis_truffle_project(self):

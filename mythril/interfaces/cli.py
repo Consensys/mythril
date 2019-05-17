@@ -397,17 +397,11 @@ def validate_args(args: Namespace):
                 "The --query-signature function requires the python package ethereum-input-decoder",
             )
 
-        if args.enable_iprof:
-            if args.v < 4:
-                exit_with_error(
-                    args.outform,
-                    "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
-                )
-            elif not (args.graph or args.fire_lasers or args.statespace_json):
-                exit_with_error(
-                    args.outform,
-                    "--enable-iprof must be used with one of -g, --graph, -x, --fire-lasers, -j and --statespace-json",
-                )
+        if args.enable_iprof and args.v < 4:
+            exit_with_error(
+                args.outform,
+                "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
+            )
 
 
 def set_config(args: Namespace):
@@ -512,12 +506,6 @@ def execute_command(
     """
 
     if args.command == "read-storage":
-        if not args.address:
-            exit_with_error(
-                args.outform,
-                "To read storage, provide the address of a deployed contract with the -a option.",
-            )
-
         storage = disassembler.get_state_variable_from_storage(
             address=address,
             params=[a.strip() for a in args.storage_slots.strip().split(",")],
