@@ -107,7 +107,7 @@ def _analyze_states(state: GlobalState) -> list:
                     )
 
                     """
-                    Usually report low severity except in cases where thje hash of a previous block is used to
+                    Usually report low severity except in cases where the hash of a previous block is used to
                     determine control flow. 
                     """
 
