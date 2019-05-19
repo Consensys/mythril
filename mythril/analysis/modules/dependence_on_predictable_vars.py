@@ -18,18 +18,15 @@ predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
 final_ops = ["CALL", "SUICIDE", "STOP", "RETURN"]
 
 
-# One of Bernhard's trademark hacks!
-
-
-def is_prehook():
-    """Check if we are in prehook."""
+def is_prehook() -> bool:
+    """Check if we are in prehook.  One of Bernhard's trademark hacks!"""
     return "pre_hook" in traceback.format_stack()[-4]
 
 
 class PredictableValueAnnotation:
     """Symbol annotation used if a variable is initialized from a predictable environment variable."""
 
-    def __init__(self, operation) -> None:
+    def __init__(self, operation: str) -> None:
         self.operation = operation
 
 
