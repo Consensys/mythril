@@ -942,13 +942,19 @@ class Instruction:
             data = symbol_factory.BitVecVal(0, 1)
 
         if data.symbolic:
+
+            annotations = []
+
+            for b in state.memory[index : index + length]:
+                annotations.append(b.annotations)
+
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
                 "KECCAC[{}]".format(argument_str),
                 "keccak256",
                 256,
                 input_=data,
-                annotations=state.memory[index].annotations,
+                annotations=annotations,
             )
             log.debug("Created BitVecFunc hash.")
 
