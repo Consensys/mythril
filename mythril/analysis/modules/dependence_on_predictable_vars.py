@@ -190,6 +190,7 @@ def _analyze_states(state: GlobalState) -> list:
                     state.mstate.stack[-1].annotate(
                         PredictableValueAnnotation("block hash of a previous block")
                     )
+                    break
         else:
             # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
 
