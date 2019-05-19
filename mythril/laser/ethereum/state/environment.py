@@ -39,8 +39,7 @@ class Environment:
         self.active_account = active_account
         self.active_function_name = ""
 
-        self.address = symbol_factory.BitVecVal(int(active_account.address, 16), 256)
-        self.block_number = symbol_factory.BitVecSym("block_number", 256)
+        self.address = active_account.address
 
         # Ib
         self.code = active_account.code if code is None else code

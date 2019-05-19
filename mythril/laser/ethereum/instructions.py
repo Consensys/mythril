@@ -1533,7 +1533,7 @@ class Instruction:
                 global_state.environment.active_account
             )
             global_state.accounts[
-                global_state.environment.active_account.address
+                global_state.environment.active_account.address.value
             ] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = (
@@ -1771,31 +1771,19 @@ class Instruction:
         :param global_state:
         """
         target = global_state.mstate.stack.pop()
-        account_created = False
+        transfer_amount = global_state.environment.active_account.balance()
         # Often the target of the suicide instruction will be symbolic
-        # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, BitVec) and not target.symbolic:
-            target = "0x" + hex(target.value)[-40:]
-        if isinstance(target, str):
-            try:
-                global_state.world_state[
-                    target
-                ].balance += global_state.environment.active_account.balance
-            except KeyError:
-                global_state.world_state.create_account(
-                    address=target,
-                    balance=global_state.environment.active_account.balance,
-                )
-                account_created = True
+        # If it isn't then we'll transfer the balance to the indicated contract
+        global_state.world_state[target].add_balance(transfer_amount)
 
         global_state.environment.active_account = deepcopy(
             global_state.environment.active_account
         )
         global_state.accounts[
-            global_state.environment.active_account.address
+            global_state.environment.active_account.address.value
         ] = global_state.environment.active_account
 
-        global_state.environment.active_account.balance = 0
+        global_state.environment.active_account.set_balance(0)
         global_state.environment.active_account.deleted = True
         global_state.current_transaction.end(global_state)
 
@@ -1880,9 +1868,7 @@ class Instruction:
             gas_price=environment.gasprice,
             gas_limit=gas,
             origin=environment.origin,
-            caller=symbol_factory.BitVecVal(
-                int(environment.active_account.address, 16), 256
-            ),
+            caller=environment.active_account.address,
             callee_account=callee_account,
             call_data=call_data,
             call_value=value,
