@@ -97,7 +97,7 @@ def _analyze_states(state: GlobalState) -> list:
                     description = (
                         "The "
                         + annotation.operation
-                        + " is used in to determine an important control flow decision. "
+                        + " is used in to determine a control flow decision. "
                     )
                     description += (
                         "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
