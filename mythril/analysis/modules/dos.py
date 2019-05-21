@@ -31,7 +31,8 @@ class DOS(DetectionModule):
             pre_hooks=["JUMPI", "CALL", "SSTORE"],
         )
 
-        self._jumpdest_count = {}
+        """Keeps track of how often jump destinations are reached."""
+        self._jumpdest_count = {}  # type: Dict[object, dict]
 
     def execute(self, state: GlobalState) -> None:
         """
