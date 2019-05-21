@@ -10,6 +10,7 @@ from mythril.laser.smt import ULT, symbol_factory
 from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
+from typing import cast, List
 import traceback
 
 log = logging.getLogger(__name__)
@@ -151,6 +152,7 @@ def _analyze_states(state: GlobalState) -> list:
                             state.get_current_instruction()["address"],
                         )
                     )
+                    break
 
         elif opcode == "BLOCKHASH":
 
@@ -181,13 +183,15 @@ def _analyze_states(state: GlobalState) -> list:
         if opcode == "BLOCKHASH":
             # if we're in the post hook of a BLOCKHASH op, check if an old block number was used to create it.
 
-            for annotation in state.annotations:
+            annotations = cast(
+                List[OldBlockNumberUsedAnnotation],
+                list(state.get_annotations(OldBlockNumberUsedAnnotation)),
+            )
 
-                if isinstance(annotation, OldBlockNumberUsedAnnotation):
-                    state.mstate.stack[-1].annotate(
-                        PredictableValueAnnotation("block hash of a previous block")
-                    )
-                    break
+            if len(annotations):
+                state.mstate.stack[-1].annotate(
+                    PredictableValueAnnotation("block hash of a previous block")
+                )
         else:
             # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
 
