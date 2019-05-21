@@ -1,7 +1,7 @@
 """This module contains the detection code for insecure delegate call usage."""
 
 import logging
-from typing import cast, List
+from typing import Dict, cast, List
 
 from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
