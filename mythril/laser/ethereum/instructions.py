@@ -939,9 +939,20 @@ class Instruction:
             data = symbol_factory.BitVecVal(0, 1)
 
         if data.symbolic:
+
+            annotations = []
+
+            for b in state.memory[index : index + length]:
+                if isinstance(b, BitVec):
+                    annotations.append(b.annotations)
+
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str), "keccak256", 256, input_=data
+                "KECCAC[{}]".format(argument_str),
+                "keccak256",
+                256,
+                input_=data,
+                annotations=annotations,
             )
             log.debug("Created BitVecFunc hash.")
 
@@ -1243,7 +1254,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
+        global_state.mstate.stack.append(global_state.environment.block_number)
         return [global_state]
 
     @StateTransition()
