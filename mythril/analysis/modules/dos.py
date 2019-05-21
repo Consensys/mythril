@@ -1,7 +1,7 @@
 """This module contains the detection code for insecure delegate call usage."""
 
 import logging
-from typing import List
+from typing import cast, List
 
 from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
@@ -75,34 +75,34 @@ class DOS(DetectionModule):
 
         else:
 
-            for annotation in state.annotations:
+            annotations = cast(
+                List[LoopAnnotation], list(state.get_annotations(LoopAnnotation))
+            )
 
-                if type(annotation) == LoopAnnotation:
+            if len(annotations) > 0:
 
-                    operation = (
-                        "A storage modification"
-                        if opcode == "CALL"
-                        else "An external call"
-                    )
+                operation = (
+                    "A storage modification" if opcode == "CALL" else "An external call"
+                )
 
-                    description_head = (
-                        "Potential Denial-of-Service if block gas limit is reached."
-                    )
-                    description_tail = operation + " is executed in a loop."
+                description_head = (
+                    "Potential Denial-of-Service if block gas limit is reached."
+                )
+                description_tail = operation + " is executed in a loop."
 
-                    issue = Issue(
-                        contract=state.environment.active_account.contract_name,
-                        function_name=state.environment.active_function_name,
-                        address=annotation.jump_address,
-                        swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
-                        bytecode=state.environment.code.bytecode,
-                        title="Potential Denial-of-Service if block gas limit is reached",
-                        severity="Low",
-                        description_head=description_head,
-                        description_tail=description_tail,
-                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                    )
-                    return [issue]
+                issue = Issue(
+                    contract=state.environment.active_account.contract_name,
+                    function_name=state.environment.active_function_name,
+                    address=annotations[0].jump_address,
+                    swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
+                    bytecode=state.environment.code.bytecode,
+                    title="Potential Denial-of-Service if block gas limit is reached",
+                    severity="Low",
+                    description_head=description_head,
+                    description_tail=description_tail,
+                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                )
+                return [issue]
 
         return []
 
