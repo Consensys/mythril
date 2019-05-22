@@ -60,12 +60,11 @@ class DOS(DetectionModule):
             if state.current_transaction in self._jumpdest_count:
 
                 try:
+                    self._jumpdest_count[transaction][target] += 1
                     if self._jumpdest_count[transaction][target] == 4:
                         state.annotate(
                             LoopAnnotation(state.get_current_instruction()["address"])
                         )
-                    else:
-                        self._jumpdest_count[transaction][target] += 1
                 except KeyError:
                     self._jumpdest_count[transaction][target] = 0
 
@@ -88,7 +87,7 @@ class DOS(DetectionModule):
                 description_head = (
                     "Potential Denial-of-Service if block gas limit is reached."
                 )
-                description_tail = operation + " is executed in a loop."
+                description_tail = "{} is executed in a loop.".format(operation)
 
                 issue = Issue(
                     contract=state.environment.active_account.contract_name,
