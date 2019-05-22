@@ -3,6 +3,23 @@
         "issues": [
             {
                 "description": {
+                    "head": "The contract implements a delegatecall proxy to a user supplied address.",
+                    "tail": "The smart contract executes delegate call to a user supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract. "
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "849:1:0"
+                    }
+                ],
+                "severity": "Medium",
+                "swcID": "SWC-112",
+                "swcTitle": "Delegatecall to Untrusted Callee"
+            },
+            {
+                "description": {
                     "head": "Use of callcode is deprecated.",
                     "tail": "The callcode method executes code of another contract in the context of the caller account. Due to a bug in the implementation it does not persist sender and value over the call. It was therefore deprecated and may be removed in the future. Use the delegatecall method instead."
                 },
