@@ -56,12 +56,11 @@ class DOS(DetectionModule):
 
             target = util.get_concrete_int(state.mstate.stack[-1])
 
-            try:
-                transaction = state.current_transaction
-                self._jumpdest_count[transaction]
+            transaction = state.current_transaction
+            if state.current_transaction in self._jumpdest_count:
 
                 try:
-                    if self._jumpdest_count[transaction][target] > 3:
+                    if self._jumpdest_count[transaction][target] == 4:
                         state.annotate(
                             LoopAnnotation(state.get_current_instruction()["address"])
                         )
@@ -70,7 +69,7 @@ class DOS(DetectionModule):
                 except KeyError:
                     self._jumpdest_count[transaction][target] = 0
 
-            except KeyError:
+            else:
                 self._jumpdest_count[transaction] = {}
                 self._jumpdest_count[transaction][target] = 0
 
