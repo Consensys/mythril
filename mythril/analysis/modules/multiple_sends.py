@@ -1,16 +1,14 @@
 """This module contains the detection code to find multiple sends occurring in
 a single transaction."""
 from copy import copy
-from typing import cast, List, Optional
+from typing import cast, List
 
-from mythril.analysis.ops import Call
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
-from mythril.analysis.call_helpers import get_call_from_state
 
 log = logging.getLogger(__name__)
 
