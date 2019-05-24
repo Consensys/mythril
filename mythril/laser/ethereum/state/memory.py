@@ -157,7 +157,7 @@ class Memory:
                 self[start + i] = cast(List[Union[int, BitVec]], value)[i]
 
         else:
-            if key >= self.__len__():
+            if key >= len(self):
                 return
             if isinstance(value, int):
                 assert 0 <= value <= 0xFF
