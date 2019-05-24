@@ -67,6 +67,7 @@ class Issue:
 
     @property
     def transaction_sequence_users(self):
+        """ Returns the transaction sequence in json without pre-generated block data"""
         return (
             json.dumps(self.transaction_sequence, indent=4)
             if self.transaction_sequence
@@ -75,6 +76,7 @@ class Issue:
 
     @property
     def transaction_sequence_jsonv2(self):
+        """ Returns the transaction sequence in json with pre-generated block data"""
         return (
             self.add_block_data(self.transaction_sequence)
             if self.transaction_sequence
@@ -83,6 +85,7 @@ class Issue:
 
     @staticmethod
     def add_block_data(transaction_sequence: Dict):
+        """ Adds sane block data to a transaction_sequence """
         for step in transaction_sequence["steps"]:
             step["gasLimit"] = "0x7d000"
             step["gasPrice"] = "0x773594000"
