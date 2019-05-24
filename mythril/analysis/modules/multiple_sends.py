@@ -72,29 +72,28 @@ def _analyze_state(state: GlobalState):
         call_offsets.append(state.get_current_instruction()["address"])
 
     else:  # RETURN or STOP
-        if len(call_offsets) > 1:
 
-            for offset in call_offsets[1:]:
+        for offset in call_offsets[1:]:
 
-                description_tail = (
-                    "This call is executed after a previous call in the same transaction. "
-                    "Try to isolate each call, transfer or send into its own transaction."
-                )
+            description_tail = (
+                "This call is executed after a previous call in the same transaction. "
+                "Try to isolate each call, transfer or send into its own transaction."
+            )
 
-                issue = Issue(
-                    contract=state.environment.active_account.contract_name,
-                    function_name=state.environment.active_function_name,
-                    address=offset,
-                    swc_id=MULTIPLE_SENDS,
-                    bytecode=state.environment.code.bytecode,
-                    title="Multiple Calls in a Single Transaction",
-                    severity="Low",
-                    description_head="Multiple calls are executed in the same transaction.",
-                    description_tail=description_tail,
-                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                )
+            issue = Issue(
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
+                address=offset,
+                swc_id=MULTIPLE_SENDS,
+                bytecode=state.environment.code.bytecode,
+                title="Multiple Calls in a Single Transaction",
+                severity="Low",
+                description_head="Multiple calls are executed in the same transaction.",
+                description_tail=description_tail,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
 
-                return [issue]
+            return [issue]
 
     return []
 
