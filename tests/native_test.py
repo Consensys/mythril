@@ -3,6 +3,7 @@ from mythril.mythril import MythrilDisassembler
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum import svm
 from tests import BaseTestCase
 
@@ -29,13 +30,6 @@ IDENTITY_TEST[1] = (hex(476934798798347), False)
 
 
 def _all_info(laser):
-    accounts = {}
-    for address, _account in laser.world_state.accounts.items():
-        account = _account.as_dict
-        account["code"] = account["code"].instruction_list
-        account["balance"] = str(account["balance"])
-        accounts[address] = account
-
     nodes = {}
     for uid, node in laser.nodes.items():
         states = []
@@ -66,7 +60,6 @@ def _all_info(laser):
     edges = [edge.as_dict for edge in laser.edges]
 
     return {
-        "accounts": accounts,
         "nodes": nodes,
         "edges": edges,
         "total_states": laser.total_states,
@@ -85,13 +78,13 @@ class NativeTests(BaseTestCase):
         """"""
         disassembly = SolidityContract(
             "./tests/native_tests.sol",
-            solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
+            solc_binary=MythrilDisassembler._init_solc_binary("0.5.3"),
         ).disassembly
         account = Account("0x0000000000000000000000000000000000000000", disassembly)
-        accounts = {account.address: account}
-
-        laser = svm.LaserEVM(accounts, max_depth=100, transaction_count=1)
-        laser.sym_exec(account.address)
+        world_state = WorldState()
+        world_state.put_account(account)
+        laser = svm.LaserEVM(max_depth=100, transaction_count=1)
+        laser.sym_exec(world_state=world_state, target_address=account.address.value)
 
         laser_info = str(_all_info(laser))
 

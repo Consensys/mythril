@@ -77,7 +77,7 @@ class GlobalState:
 
         :return:
         """
-        return self.world_state.accounts
+        return self.world_state._accounts
 
     # TODO: remove this, as two instructions are confusing
     def get_current_instruction(self) -> Dict:

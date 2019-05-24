@@ -111,7 +111,18 @@ class BaseTransaction:
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
+
+        sender = environment.sender
+        receiver = environment.active_account.address
+        value = environment.callvalue
+
+        global_state.world_state.balances[sender] -= value
+        global_state.world_state.balances[receiver] += value
+
         return global_state
+
+    def initial_global_state(self) -> GlobalState:
+        raise NotImplementedError
 
 
 class MessageCallTransaction(BaseTransaction):
@@ -143,6 +154,7 @@ class MessageCallTransaction(BaseTransaction):
         :param revert:
         """
         self.return_data = return_data
+
         raise TransactionEndSignal(global_state, revert)
 
 
@@ -180,16 +192,19 @@ class ContractCreationTransaction(BaseTransaction):
         :param revert:
         """
         if (
-            not all([isinstance(element, int) for element in return_data])
+            return_data is None
+            or not all([isinstance(element, int) for element in return_data])
             or len(return_data) == 0
         ):
             self.return_data = None
-            raise TransactionEndSignal(global_state)
+            raise TransactionEndSignal(global_state, revert=revert)
 
         contract_code = bytes.hex(array.array("B", return_data).tostring())
 
         global_state.environment.active_account.code.assign_bytecode(contract_code)
-        self.return_data = global_state.environment.active_account.address
+        self.return_data = str(
+            hex(global_state.environment.active_account.address.value)
+        )
         assert global_state.environment.active_account.code.instruction_list != []
 
         raise TransactionEndSignal(global_state, revert=revert)

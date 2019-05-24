@@ -108,12 +108,14 @@ jobs:
           command: sleep 15s
       - run:
           name: Quick Edelweiss test
-          command: /home/run-edelweiss-test.sh CircleCI/latest.quick.csv
-      - run:
-          name: Full Edelweiss test
-          environment:
-            MYTHX_API_FULL_MODE: true
-          command: /home/run-edelweiss-test.sh CircleCI/latest.full.csv
+          command: /home/run-edelweiss-test.sh CircleCI/latest.quick.csv 5
+
+      # TODO: Temporary disabled
+      # - run:
+      #    name: Full Edelweiss test
+      #    environment:
+      #      MYTHX_API_FULL_MODE: true
+      #    command: /home/run-edelweiss-test.sh CircleCI/latest.full.csv
 
   pypi_release:
     <<: *defaults
