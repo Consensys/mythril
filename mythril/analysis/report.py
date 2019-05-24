@@ -78,7 +78,7 @@ class Issue:
     def transaction_sequence_jsonv2(self):
         """ Returns the transaction sequence in json with pre-generated block data"""
         return (
-            json.dumps(self.add_block_data(self.transaction_sequence), ident=4)
+            json.dumps(self.add_block_data(self.transaction_sequence), indent=4)
             if self.transaction_sequence
             else None
         )
