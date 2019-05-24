@@ -92,7 +92,9 @@ def get_transaction_sequence(
 
     concrete_transactions = []
 
-    tx_constraints, minimize = _set_minimisation_constraints(transaction_sequence, constraints.copy(), [], 5000)
+    tx_constraints, minimize = _set_minimisation_constraints(
+        transaction_sequence, constraints.copy(), [], 5000
+    )
     model = get_model(tx_constraints, minimize=minimize)
 
     min_price_dict = {}  # type: Dict[str, int]
@@ -139,15 +141,13 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
         "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
     ).zfill(40)
     calldata = [
-            hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
-            for b in transaction.call_data.concrete(model)
-        ]
+        hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
+        for b in transaction.call_data.concrete(model)
+    ]
 
     # Create concrete transaction dict
     concrete_transaction = dict()  # type: Dict[str, str]
-    concrete_transaction["input"] = "0x" + "".join(
-        calldata
-    )
+    concrete_transaction["input"] = "0x" + "".join(calldata)
     concrete_transaction["value"] = "0x%x" % value
     # Fixme: base origin assignment on origin symbol
     concrete_transaction["origin"] = caller
@@ -157,7 +157,9 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     return concrete_transaction
 
 
-def _set_minimisation_constraints(transaction_sequence, constraints, minimize, max_size):
+def _set_minimisation_constraints(
+    transaction_sequence, constraints, minimize, max_size
+):
     """ Set constraints that minimise key transaction values
 
     Constraints generated:
@@ -173,9 +175,7 @@ def _set_minimisation_constraints(transaction_sequence, constraints, minimize, m
     for transaction in transaction_sequence:
         # Set upper bound on calldata size
         max_calldata_size = symbol_factory.BitVecVal(max_size, 256)
-        constraints.append(
-            UGE(max_calldata_size, transaction.call_data.calldatasize)
-        )
+        constraints.append(UGE(max_calldata_size, transaction.call_data.calldatasize))
 
         # Minimize
         minimize.append(transaction.call_data.calldatasize)
