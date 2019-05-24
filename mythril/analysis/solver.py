@@ -114,7 +114,6 @@ def get_transaction_sequence(
     model = get_model(tx_constraints, minimize=minimize)
     min_price_dict = {}  # type: Dict[str, int]
     for transaction in transactions:
-        tx_id = str(transaction.id)
         concrete_transaction = dict()  # type: Dict[str, str]
         concrete_transaction["input"] = "0x" + "".join(
             [
@@ -146,7 +145,6 @@ def get_transaction_sequence(
             continue
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
-        data["balance"] = account.balance
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)
         data["balance"] = min_price_dict.get(address, 0)
