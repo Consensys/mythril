@@ -1,8 +1,8 @@
 # Analysis results for test-filename.sol
 
-## External Call To Fixed Address
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Severity: Low
+- Severity: Medium
 - Contract: Unknown
 - Function name: `callchecked()`
 - PC address: 196
@@ -10,12 +10,12 @@
 
 ### Description
 
-The contract executes an external message call.
-An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
-## External Call To Fixed Address
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Severity: Low
+- Severity: Medium
 - Contract: Unknown
 - Function name: `callnotchecked()`
 - PC address: 285
@@ -23,8 +23,8 @@ An external function call to a fixed contract address is executed. Make sure tha
 
 ### Description
 
-The contract executes an external message call.
-An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
 ## Unchecked Call Return Value
 - SWC ID: 104
