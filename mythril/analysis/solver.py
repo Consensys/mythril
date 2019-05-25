@@ -142,15 +142,15 @@ def get_transaction_sequence(
 
     states = {}
     for address, account in initial_state.items():
-        if address == "0x" + 40 * "0" and len(account.code.bytecode) > 0:
+        if address == 0 and len(account.code.bytecode) > 0:
             continue
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
-        data["balance"] = account.balance
+        data["balance"] = account.balance()
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)
         data["balance"] = min_price_dict.get(address, 0)
-        states[address] = data
+        states[hex(address)] = data
     steps = {"initialState": states, "steps": concrete_transactions}
 
     return steps

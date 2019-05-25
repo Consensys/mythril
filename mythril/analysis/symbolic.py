@@ -128,14 +128,21 @@ class SymExecWrapper:
             hook_type="post",
             hook_dict=get_detection_module_hooks(modules, hook_type="post"),
         )
+        world_state = WorldState()
+        for account in self.accounts.values():
+            world_state.put_account(account)
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(
-                creation_code=contract.creation_code, contract_name=contract.name
+                creation_code=contract.creation_code,
+                contract_name=contract.name,
+                world_state=world_state,
             )
         elif isinstance(contract, EVMContract) and contract.creation_code:
             self.laser.sym_exec(
-                creation_code=contract.creation_code, contract_name=contract.name
+                creation_code=contract.creation_code,
+                contract_name=contract.name,
+                world_state=world_state,
             )
         else:
             account = Account(
@@ -145,7 +152,6 @@ class SymExecWrapper:
                 contract_name=contract.name,
                 concrete_storage=False,
             )
-            world_state = WorldState()
             world_state.put_account(account)
             self.laser.sym_exec(world_state=world_state, target_address=address.value)
 
