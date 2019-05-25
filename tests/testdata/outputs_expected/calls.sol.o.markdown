@@ -1,8 +1,8 @@
 # Analysis results for test-filename.sol
 
-## External Call To Fixed Address
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Severity: Low
+- Severity: Medium
 - Contract: Unknown
 - Function name: `thisisfine()`
 - PC address: 661
@@ -10,8 +10,8 @@
 
 ### Description
 
-The contract executes an external message call.
-An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
 ## Unchecked Call Return Value
 - SWC ID: 104
@@ -26,9 +26,9 @@ An external function call to a fixed contract address is executed. Make sure tha
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## External Call To Fixed Address
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Severity: Low
+- Severity: Medium
 - Contract: Unknown
 - Function name: `callstoredaddress()`
 - PC address: 779
@@ -36,8 +36,8 @@ External calls return a boolean value. If the callee contract halts with an exce
 
 ### Description
 
-The contract executes an external message call.
-An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
 ## Unchecked Call Return Value
 - SWC ID: 104
@@ -52,9 +52,9 @@ An external function call to a fixed contract address is executed. Make sure tha
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
-## External Call To Fixed Address
+## External Call To User-Supplied Address
 - SWC ID: 107
-- Severity: Low
+- Severity: Medium
 - Contract: Unknown
 - Function name: `reentrancy()`
 - PC address: 858
@@ -62,8 +62,8 @@ External calls return a boolean value. If the callee contract halts with an exce
 
 ### Description
 
-The contract executes an external message call.
-An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.
+A call to a user-supplied address is executed.
+The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
 ## Unchecked Call Return Value
 - SWC ID: 104
@@ -80,7 +80,7 @@ External calls return a boolean value. If the callee contract halts with an exce
 
 ## State change after external call
 - SWC ID: 107
-- Severity: Low
+- Severity: Medium
 - Contract: Unknown
 - Function name: `reentrancy()`
 - PC address: 869
