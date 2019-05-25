@@ -1,6 +1,41 @@
 [
     {
-        "issues": [],
+        "issues": [
+            {
+                "description": {
+                    "head": "Anyone can withdraw ETH from the contract account.",
+                    "tail": "Arbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "722:1:0"
+                    }
+                ],
+                "severity": "High",
+                "swcID": "SWC-105",
+                "swcTitle": "Unprotected Ether Withdrawal"
+            },
+            {
+                "description": {
+                    "head": "The binary addition can overflow.",
+                    "tail": "The operands of the addition operation are not sufficiently constrained. The addition could therefore result in an integer overflow. Prevent the overflow by checking inputs or ensure sure that the overflow is caught by an assertion."
+                },
+                "extra": {
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                },
+                "locations": [
+                    {
+                        "sourceMap": "883:1:0"
+                    }
+                ],
+                "severity": "High",
+                "swcID": "SWC-101",
+                "swcTitle": "Integer Overflow and Underflow"
+            }
+        ],
         "meta": {},
         "sourceFormat": "evm-byzantium-bytecode",
         "sourceList": [
