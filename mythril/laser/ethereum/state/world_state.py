@@ -66,11 +66,14 @@ class WorldState:
         return new_world_state
 
     def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> str:
-        if addr in self.accounts:
-            code = self.accounts[int(addr, 16)].code
+        addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+        if addr_bitvec.value in self.accounts:
+            code = self.accounts[addr_bitvec.value].code
         else:
             code = dynamic_loader.dynld(addr)
-            self.create_account(balance=0, address=addr, dynamic_loader=dynamic_loader)
+            self.create_account(
+                balance=0, address=addr_bitvec.value, dynamic_loader=dynamic_loader
+            )
         if code is None:
             code = ""
         else:
