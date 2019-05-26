@@ -76,7 +76,7 @@ class DeprecatedOperationsModule(DetectionModule):
             pre_hooks=["ORIGIN", "CALLCODE"],
         )
 
-    def _execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:

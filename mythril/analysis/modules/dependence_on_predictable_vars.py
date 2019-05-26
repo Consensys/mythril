@@ -21,7 +21,7 @@ final_ops = ["CALL", "SUICIDE", "STOP", "RETURN"]
 
 def is_prehook() -> bool:
     """Check if we are in prehook.  One of Bernhard's trademark hacks!"""
-    return "pre_hook" in traceback.format_stack()[-4]
+    return "pre_hook" in traceback.format_stack()[-5]
 
 
 class PredictableValueAnnotation:
@@ -64,7 +64,7 @@ class PredictableDependenceModule(DetectionModule):
             post_hooks=["BLOCKHASH"] + predictable_ops,
         )
 
-    def _execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:

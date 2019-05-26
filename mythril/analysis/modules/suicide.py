@@ -37,7 +37,7 @@ class SuicideModule(DetectionModule):
         super().reset_module()
         self._cache_address = {}
 
-    def _execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:

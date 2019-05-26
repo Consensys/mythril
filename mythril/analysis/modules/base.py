@@ -49,7 +49,7 @@ class DetectionModule:
         """
         self._issues = []
 
-    def execute(self, statespace):
+    def execute(self, statespace) -> None:
         """The entry point for execution, which is being called by Mythril.
 
         :param statespace:

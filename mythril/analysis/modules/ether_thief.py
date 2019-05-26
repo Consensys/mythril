@@ -51,7 +51,7 @@ class EtherThief(DetectionModule):
         super().reset_module()
         self._cache_addresses = {}
 
-    def _execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:

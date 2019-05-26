@@ -84,7 +84,7 @@ class StateChange(DetectionModule):
             ],
         )
 
-    def _execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         self._issues.extend(self._analyze_state(state))
 
     @staticmethod

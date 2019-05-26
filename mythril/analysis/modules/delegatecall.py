@@ -79,7 +79,7 @@ class DelegateCallModule(DetectionModule):
             pre_hooks=["DELEGATECALL", "RETURN", "STOP"],
         )
 
-    def _execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
