@@ -84,7 +84,7 @@ class StateChange(DetectionModule):
             ],
         )
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState):
         self._issues.extend(self._analyze_state(state))
         return self.issues
 

@@ -49,7 +49,7 @@ class UncheckedRetvalModule(DetectionModule):
             post_hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"],
         )
 
-    def execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> list:
         """
 
         :param state:

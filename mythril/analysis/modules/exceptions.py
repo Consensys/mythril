@@ -72,7 +72,7 @@ class ReachableExceptionsModule(DetectionModule):
             pre_hooks=["ASSERT_FAIL"],
         )
 
-    def execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> list:
         """
 
         :param state:

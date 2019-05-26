@@ -137,7 +137,7 @@ class ExternalCalls(DetectionModule):
             pre_hooks=["CALL"],
         )
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState):
         """
 
         :param state:

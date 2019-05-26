@@ -24,8 +24,6 @@ from mythril.mythril import (
 )
 from mythril.version import VERSION
 
-# logging.basicConfig(level=logging.DEBUG)
-
 log = logging.getLogger(__name__)
 
 

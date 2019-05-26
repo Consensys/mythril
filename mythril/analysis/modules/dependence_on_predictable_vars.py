@@ -64,14 +64,12 @@ class PredictableDependenceModule(DetectionModule):
             post_hooks=["BLOCKHASH"] + predictable_ops,
         )
 
-    def execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> list:
         """
 
         :param state:
         :return:
         """
-
-        log.debug("Executing module: DEPENDENCE_ON_PREDICTABLE_VARS")
 
         self._issues.extend(_analyze_states(state))
         return self.issues

@@ -43,7 +43,7 @@ class MultipleSendsModule(DetectionModule):
             ],
         )
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState):
         self._issues.extend(_analyze_state(state))
         return self.issues
 

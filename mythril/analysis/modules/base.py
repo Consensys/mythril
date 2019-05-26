@@ -49,12 +49,28 @@ class DetectionModule:
         """
         self._issues = []
 
-    def execute(self, statespace):
+    def execute(self, statespace) -> list:
         """The entry point for execution, which is being called by Mythril.
 
         :param statespace:
         :return:
         """
+
+        log.debug("Entering analysis module: {}".format(self.__class__.__name__))
+
+        issues = self._execute(statespace)
+
+        log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
+
+        return issues
+
+    def _execute(self, statespace):
+        """The entry point for execution, which is being called by Mythril.
+
+        :param statespace:
+        :return:
+        """
+
         raise NotImplementedError()
 
     def __repr__(self) -> str:

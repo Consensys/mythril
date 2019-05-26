@@ -12,7 +12,6 @@ from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import symbol_factory, UGT
-from mythril.laser.smt import symbol_factory, UGT
 
 log = logging.getLogger(__name__)
 
@@ -80,13 +79,12 @@ class DelegateCallModule(DetectionModule):
             pre_hooks=["DELEGATECALL", "RETURN", "STOP"],
         )
 
-    def execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> list:
         """
 
         :param state:
         :return:
         """
-        log.debug("Executing module: DELEGATE_CALL")
         self._issues.extend(_analyze_states(state))
         return self.issues
 
