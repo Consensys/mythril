@@ -75,7 +75,7 @@ setup(
         "coloredlogs>=10.0",
         "py_ecc==1.4.2",
         "ethereum>=2.3.2",
-        "z3-solver-mythril>=4.8.4.1",
+        "z3-solver>=4.8.5.0",
         "requests",
         "py-solc",
         "plyvel",
