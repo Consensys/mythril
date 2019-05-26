@@ -132,14 +132,7 @@ def get_transaction_sequence(
         concrete_transaction["address"] = "%s" % transaction.callee_account.address
         concrete_transactions.append(concrete_transaction)
         min_price_dict[caller] = min_price_dict.get(caller, 0) + value
-    if len(transactions) > 0:
-        initial_state = transactions[0].world_state.accounts
-    else:
-        for transaction in transaction_sequence:
-            if transaction.id == "1":
-                initial_state = transaction.world_state.accounts
-                break
-
+    initial_state = transaction_sequence[0].world_state.accounts
     states = {}
     for address, account in initial_state.items():
         if address == 0 and len(account.code.bytecode) > 0:
