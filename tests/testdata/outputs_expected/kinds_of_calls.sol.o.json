@@ -31,7 +31,7 @@
             "address": 849,
             "contract": "Unknown",
             "debug": "<DEBUG-DATA>",
-            "description": "The contract implements a delegatecall proxy to a user supplied address.\nThe smart contract executes delegate call to a user supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract. ",
+            "description": "The contract delegates execution to another contract with a user-supplied address.\nThe smart contract delegates execution to a user-supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract. ",
             "function": "_function_0x9b58bc26",
             "max_gas_used": 35928,
             "min_gas_used": 1176,

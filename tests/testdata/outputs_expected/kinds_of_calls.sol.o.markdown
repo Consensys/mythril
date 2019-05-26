@@ -36,8 +36,8 @@ The callcode method executes code of another contract in the context of the call
 
 ### Description
 
-The contract implements a delegatecall proxy to a user supplied address.
-The smart contract executes delegate call to a user supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract.
+The contract delegates execution to another contract with a user-supplied address.
+The smart contract delegates execution to a user-supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract.
 
 ## Unchecked Call Return Value
 - SWC ID: 104

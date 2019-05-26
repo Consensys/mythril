@@ -27,8 +27,8 @@ Contract: Unknown
 Function name: _function_0x9b58bc26
 PC address: 849
 Estimated Gas Usage: 1176 - 35928
-The contract implements a delegatecall proxy to a user supplied address.
-The smart contract executes delegate call to a user supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract. 
+The contract delegates execution to another contract with a user-supplied address.
+The smart contract delegates execution to a user-supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract. 
 --------------------
 
 ==== Unchecked Call Return Value ====
