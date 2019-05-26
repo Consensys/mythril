@@ -53,7 +53,7 @@ class DetectionModule:
         """The entry point for execution, which is being called by Mythril.
 
         :param statespace:
-        :return:
+        :return: list
         """
 
         log.debug("Entering analysis module: {}".format(self.__class__.__name__))
@@ -64,11 +64,11 @@ class DetectionModule:
 
         return issues
 
-    def _execute(self, statespace):
-        """The entry point for execution, which is being called by Mythril.
+    def _execute(self, statespace) -> list:
+        """Module main method (override this)
 
         :param statespace:
-        :return:
+        :return: list
         """
 
         raise NotImplementedError()
