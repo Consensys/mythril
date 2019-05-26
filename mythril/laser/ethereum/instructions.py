@@ -2109,7 +2109,6 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
             return [global_state]
 
         try:
