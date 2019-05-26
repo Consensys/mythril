@@ -42,9 +42,7 @@ class DelegateCallAnnotation(StateAnnotation):
                 address
             )
         )
-        description_head = (
-            "The contract delegates execution to another contract with a user-supplied address."
-        )
+        description_head = "The contract delegates execution to another contract with a user-supplied address."
         description_tail = (
             "The smart contract delegates execution to a user-supplied address. Note that callers "
             "can execute arbitrary contracts and that the callee contract "
