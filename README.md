@@ -12,7 +12,7 @@
 [![Pypi Installs](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
 [![DockerHub Pulls](https://img.shields.io/docker/pulls/mythril/myth.svg?label=DockerHub&nbsp;Pulls)](https://cloud.docker.com/u/mythril/repository/docker/mythril/myth)
 
-Mythril is a security analysis tool for EVM bytecode. It can be used to detect security vulnerabilities in smart contracts built for Ethereum, Quorum, Vechain, Roostock, Tron and other EVM-compatible blockchains. It uses symbolic execution, SMT solving and taint analysis detect a variety of security vulnerabilities. It's also used (in combination with other tools and techniques) in the [MythX](https://mythx.io) security analysis platform. 
+Mythril is a security analysis tool for EVM bytecode. It detects security vulnerabilities in smart contracts built for Ethereum, Quorum, Vechain, Roostock, Tron and other EVM-compatible blockchains. It uses symbolic execution, SMT solving and taint analysis detect a variety of security vulnerabilities. It's also used (in combination with other tools and techniques) in the [MythX](https://mythx.io) security analysis platform.
 
 If you are a smart contract developer, we recommend using [MythX tools](https://github.com/b-mueller/awesome-mythx-smart-contract-security) which are optimized for usability and cover a wider range of security issues.
 
