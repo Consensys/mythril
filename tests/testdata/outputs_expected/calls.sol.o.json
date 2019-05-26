@@ -4,14 +4,14 @@
         {
             "address": 661,
             "contract": "Unknown",
-            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
             "function": "thisisfine()",
             "max_gas_used": 1254,
             "min_gas_used": 643,
-            "severity": "Low",
+            "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address",
+            "title": "External Call To User-Supplied Address",
             "tx_sequence": "<TX-DATA>"
         },
         {
@@ -30,14 +30,14 @@
         {
             "address": 779,
             "contract": "Unknown",
-            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
             "function": "callstoredaddress()",
             "max_gas_used": 1298,
             "min_gas_used": 687,
-            "severity": "Low",
+            "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address",
+            "title": "External Call To User-Supplied Address",
             "tx_sequence": "<TX-DATA>"
         },
         {
@@ -56,14 +56,14 @@
         {
             "address": 858,
             "contract": "Unknown",
-            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
             "function": "reentrancy()",
             "max_gas_used": 1320,
             "min_gas_used": 709,
-            "severity": "Low",
+            "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address",
+            "title": "External Call To User-Supplied Address",
             "tx_sequence": "<TX-DATA>"
         },
         {
@@ -86,7 +86,7 @@
             "function": "reentrancy()",
             "max_gas_used": null,
             "min_gas_used": null,
-            "severity": "Low",
+            "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
             "title": "State change after external call",

@@ -1,5 +1,32 @@
 {
     "error": null,
-    "issues": [],
+    "issues": [
+        {
+            "address": 722,
+            "contract": "Unknown",
+            "description": "Anyone can withdraw ETH from the contract account.\nArbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability.",
+            "function": "withdrawfunds()",
+            "max_gas_used": 1749,
+            "min_gas_used": 1138,
+            "severity": "High",
+            "sourceMap": null,
+            "swc-id": "105",
+            "title": "Unprotected Ether Withdrawal",
+            "tx_sequence": "<TX-DATA>"
+        },
+        {
+            "address": 883,
+            "contract": "Unknown",
+            "description": "The binary addition can overflow.\nThe operands of the addition operation are not sufficiently constrained. The addition could therefore result in an integer overflow. Prevent the overflow by checking inputs or ensure sure that the overflow is caught by an assertion.",
+            "function": "invest()",
+            "max_gas_used": 26883,
+            "min_gas_used": 6598,
+            "severity": "High",
+            "sourceMap": null,
+            "swc-id": "101",
+            "title": "Integer Overflow",
+            "tx_sequence": "<TX-DATA>"
+        }
+    ],
     "success": true
 }
