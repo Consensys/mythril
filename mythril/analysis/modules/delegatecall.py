@@ -86,7 +86,6 @@ class DelegateCallModule(DetectionModule):
         :return:
         """
         self._issues.extend(_analyze_states(state))
-        return self.issues
 
 
 def _analyze_states(state: GlobalState) -> List[Issue]:

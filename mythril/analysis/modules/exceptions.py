@@ -79,7 +79,6 @@ class ReachableExceptionsModule(DetectionModule):
         :return:
         """
         self._issues.extend(_analyze_state(state))
-        return self.issues
 
 
 detector = ReachableExceptionsModule()

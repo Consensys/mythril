@@ -58,7 +58,6 @@ class EtherThief(DetectionModule):
         :return:
         """
         self._issues.extend(self._analyze_state(state))
-        return self.issues
 
     def _analyze_state(self, state):
         """

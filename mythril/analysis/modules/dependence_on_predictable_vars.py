@@ -72,7 +72,6 @@ class PredictableDependenceModule(DetectionModule):
         """
 
         self._issues.extend(_analyze_states(state))
-        return self.issues
 
 
 def _analyze_states(state: GlobalState) -> list:
