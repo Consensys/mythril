@@ -18,10 +18,8 @@ def _get_global_state():
     )
     environment = Environment(active_account, None, None, None, None, None)
     world_state = WorldState()
-    world_state.accounts = {
-        "0x0": active_account,
-        "0x325345346564645654645": passive_account,
-    }
+    world_state.put_account(active_account)
+    world_state.put_account(passive_account)
     return GlobalState(world_state, environment, None, MachineState(gas_limit=8000000))
 
 
@@ -48,6 +46,5 @@ def _get_global_state():
 def test_extraction(addr, eth, code_len):
     global_state = _get_global_state()
     dynamic_loader = DynLoader(eth=eth)
-    instruction = Instruction("", dynamic_loader=dynamic_loader)
-    code = instruction._get_code_from_address(global_state, addr)
+    code = global_state.world_state.accounts_exist_or_load(addr, dynamic_loader)
     assert len(code) == code_len

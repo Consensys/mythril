@@ -1026,19 +1026,6 @@ class Instruction:
             global_state=global_state,
         )
 
-    def _get_code_from_address(self, global_state: GlobalState, addr: str) -> str:
-        if addr in global_state.accounts:
-            code = global_state.accounts[addr].code
-        else:
-            code = self.dynamic_loader.dynld(addr)
-            global_state.world_state.create_account(
-                balance=0, address=addr, dynamic_loader=self.dynamic_loader
-            )
-        if code is None:
-            code = ""
-        else:
-            code = code.bytecode
-        return code
 
     @StateTransition()
     def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1056,7 +1043,7 @@ class Instruction:
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
         try:
-            code = self._get_code_from_address(global_state, addr)
+            code = global_state.world_state.accounts_exist_or_load(addr, self.dynamic_loader)
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
@@ -1167,7 +1154,7 @@ class Instruction:
             return [global_state]
 
         try:
-            code = self._get_code_from_address(global_state, addr)
+            code = global_state.world_state.accounts_exist_or_load(addr, self.dynamic_loader)
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]

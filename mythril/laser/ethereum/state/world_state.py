@@ -3,6 +3,7 @@ from copy import copy
 from random import randint
 from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
 
+from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
 from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
@@ -63,6 +64,20 @@ class WorldState:
             new_world_state.put_account(copy(account))
         new_world_state.node = self.node
         return new_world_state
+
+    def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> str:
+        if addr in self.accounts:
+            code = self.accounts[int(addr, 16)].code
+        else:
+            code = dynamic_loader.dynld(addr)
+            self.create_account(
+                balance=0, address=addr, dynamic_loader=dynamic_loader
+            )
+        if code is None:
+            code = ""
+        else:
+            code = code.bytecode
+        return code
 
     def create_account(
         self,
