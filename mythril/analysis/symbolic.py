@@ -2,20 +2,22 @@
 purposes."""
 
 import copy
+
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
+from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
+from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import (
     BreadthFirstSearchStrategy,
     DepthFirstSearchStrategy,
     ReturnRandomNaivelyStrategy,
     ReturnWeightedRandomStrategy,
+    BasicSearchStrategy,
 )
-
-from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
-from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-
-
+from mythril.laser.smt import symbol_factory, BitVec
+from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, SStore, VarType, get_variable
 
@@ -30,7 +32,7 @@ class SymExecWrapper:
     def __init__(
         self,
         contract,
-        address,
+        address: Union[int, str, BitVec],
         strategy,
         dynloader=None,
         max_depth=22,
@@ -53,8 +55,13 @@ class SymExecWrapper:
         :param transaction_count:
         :param modules:
         """
+        if isinstance(address, str):
+            address = symbol_factory.BitVecVal(int(address, 16), 256)
+        if isinstance(address, int):
+            address = symbol_factory.BitVecVal(address, 256)
+
         if strategy == "dfs":
-            s_strategy = DepthFirstSearchStrategy
+            s_strategy = DepthFirstSearchStrategy  # type: Type[BasicSearchStrategy]
         elif strategy == "bfs":
             s_strategy = BreadthFirstSearchStrategy
         elif strategy == "naive-random":
@@ -64,19 +71,11 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        account = Account(
-            address,
-            contract.disassembly,
-            dynamic_loader=dynloader,
-            contract_name=contract.name,
-        )
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
-        self.accounts = {address: account}
 
         self.laser = svm.LaserEVM(
-            self.accounts,
             dynamic_loader=dynloader,
             max_depth=max_depth,
             execution_timeout=execution_timeout,
@@ -109,7 +108,16 @@ class SymExecWrapper:
                 creation_code=contract.creation_code, contract_name=contract.name
             )
         else:
-            self.laser.sym_exec(address)
+            account = Account(
+                address,
+                contract.disassembly,
+                dynamic_loader=dynloader,
+                contract_name=contract.name,
+                concrete_storage=False,
+            )
+            world_state = WorldState()
+            world_state.put_account(account)
+            self.laser.sym_exec(world_state=world_state, target_address=address.value)
 
         if not requires_statespace:
             return
@@ -119,8 +127,8 @@ class SymExecWrapper:
 
         # Generate lists of interesting operations
 
-        self.calls = []
-        self.sstors = {}
+        self.calls = []  # type: List[Call]
+        self.sstors = {}  # type: Dict[int, Dict[str, List[SStore]]]
 
         for key in self.nodes:
 
@@ -197,7 +205,7 @@ class SymExecWrapper:
 
                 elif op == "SSTORE":
                     stack = copy.copy(state.mstate.stack)
-                    address = state.environment.active_account.address
+                    address = state.environment.active_account.address.value
 
                     index, value = stack.pop(), stack.pop()
 
