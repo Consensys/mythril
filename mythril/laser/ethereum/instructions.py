@@ -1026,7 +1026,6 @@ class Instruction:
             global_state=global_state,
         )
 
-
     @StateTransition()
     def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
         """
@@ -1043,7 +1042,9 @@ class Instruction:
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
         try:
-            code = global_state.world_state.accounts_exist_or_load(addr, self.dynamic_loader)
+            code = global_state.world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            )
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
@@ -1154,7 +1155,9 @@ class Instruction:
             return [global_state]
 
         try:
-            code = global_state.world_state.accounts_exist_or_load(addr, self.dynamic_loader)
+            code = global_state.world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            )
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]

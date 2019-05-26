@@ -70,9 +70,7 @@ class WorldState:
             code = self.accounts[int(addr, 16)].code
         else:
             code = dynamic_loader.dynld(addr)
-            self.create_account(
-                balance=0, address=addr, dynamic_loader=dynamic_loader
-            )
+            self.create_account(balance=0, address=addr, dynamic_loader=dynamic_loader)
         if code is None:
             code = ""
         else:
