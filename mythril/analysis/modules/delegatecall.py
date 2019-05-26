@@ -12,6 +12,7 @@ from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import symbol_factory, UGT
+from mythril.laser.smt import symbol_factory, UGT
 
 log = logging.getLogger(__name__)
 
@@ -37,15 +38,15 @@ class DelegateCallAnnotation(StateAnnotation):
 
         address = self.call_state.get_current_instruction()["address"]
         logging.debug(
-            "[DELEGATECALL] Detected delegate Call to an arbitrary address : {}".format(
+            "[DELEGATECALL] Detected delegatecall to a user-supplied address : {}".format(
                 address
             )
         )
         description_head = (
-            "The contract implements a delegatecall proxy to a user supplied address."
+            "The contract delegates execution to another contract with a user-supplied address."
         )
         description_tail = (
-            "The smart contract executes delegate call to a user supplied address. Note that callers "
+            "The smart contract delegates execution to a user-supplied address. Note that callers "
             "can execute arbitrary contracts and that the callee contract "
             "can access the storage of the calling contract. "
         )
