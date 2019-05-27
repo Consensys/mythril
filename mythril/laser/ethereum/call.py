@@ -6,7 +6,6 @@ import logging
 import re
 from typing import Union, List, cast, Callable
 
-from mythril.laser.smt import BitVec
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS

@@ -5,8 +5,6 @@ import copy
 
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
-from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
-from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import (
