@@ -43,13 +43,12 @@ class DOS(DetectionModule):
         """Keeps track of how often jump destinations are reached."""
         self._jumpdest_count = {}  # type: Dict[object, dict]
 
-    def execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
-        log.debug("Executing module: DOS")
 
         self._issues.extend(self._analyze_states(state))
 

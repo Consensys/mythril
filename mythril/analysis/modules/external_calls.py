@@ -137,14 +137,13 @@ class ExternalCalls(DetectionModule):
             pre_hooks=["CALL"],
         )
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
         self._issues.extend(_analyze_state(state))
-        return self.issues
 
 
 detector = ExternalCalls()
