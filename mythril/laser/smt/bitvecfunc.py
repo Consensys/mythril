@@ -223,3 +223,6 @@ class BitVecFunc(BitVec):
         :return The resulting right shifted output:
         """
         return _arithmetic_helper(self, other, operator.rshift)
+
+    def __hash__(self):
+        return self.raw.__hash__()

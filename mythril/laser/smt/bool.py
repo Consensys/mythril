@@ -80,6 +80,9 @@ class Bool(Expression[z3.BoolRef]):
         else:
             return False
 
+    def __hash__(self):
+        return self.raw.__hash__()
+
 
 def And(*args: Union[Bool, bool]) -> Bool:
     """Create an And expression."""

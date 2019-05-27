@@ -440,6 +440,7 @@ class LaserEVM:
             environment.active_function_name = disassembly.address_to_function_name[
                 address
             ]
+            environment.active_function_address = address
             new_node.flags |= NodeFlags.FUNC_ENTRY
 
             log.debug(

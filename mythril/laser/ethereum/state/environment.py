@@ -50,6 +50,7 @@ class Environment:
         self.gasprice = gasprice
         self.origin = origin
         self.callvalue = callvalue
+        self.active_function_address = 0
 
     def __str__(self) -> str:
         """

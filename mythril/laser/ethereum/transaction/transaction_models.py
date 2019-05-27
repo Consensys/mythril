@@ -111,6 +111,9 @@ class BaseTransaction:
         # Initialize the execution environment
         global_state = GlobalState(self.world_state, environment, None)
         global_state.environment.active_function_name = active_function
+        global_state.environment.active_function_address = (
+            environment.active_function_address
+        )
 
         sender = environment.sender
         receiver = environment.active_account.address

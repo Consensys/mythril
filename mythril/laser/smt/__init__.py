@@ -185,6 +185,29 @@ class _Z3SymbolFactory(SymbolFactory[z3.BoolRef, z3.BitVecRef]):
         return z3.BitVec(name, size)
 
 
+def _visitor(e, seen):
+    if e in seen:
+        return
+    seen[e] = True
+    yield e
+    if z3.is_app(e):
+        for ch in e.children():
+            for e in _visitor(ch, seen):
+                yield e
+        return
+    if z3.is_quantifier(e):
+        for e in _visitor(e.body(), seen):
+            yield e
+    return
+
+
+def get_variables_from_constraints(constraint):
+    seen = {}
+    for e in _visitor(constraint, seen):
+        if z3.is_const(e) and e.decl().kind() == z3.Z3_OP_UNINTERPRETED:
+            yield e
+
+
 # This is the instance that other parts of mythril should use
 
 # Type hints are not allowed here in 3.5
