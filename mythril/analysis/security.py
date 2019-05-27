@@ -52,6 +52,10 @@ def get_detection_modules(entrypoint, include_modules=()):
     :param include_modules:
     :return:
     """
+
+    module = importlib.import_module("mythril.analysis.modules.base")
+    module.log.setLevel(log.level)
+
     include_modules = list(include_modules)
 
     _modules = []
@@ -62,12 +66,14 @@ def get_detection_modules(entrypoint, include_modules=()):
                 module = importlib.import_module(
                     "mythril.analysis.modules." + module_name
                 )
+                module.log.setLevel(log.level)
                 if module.detector.entrypoint == entrypoint:
                     _modules.append(module)
     else:
         for module_name in include_modules:
             module = importlib.import_module("mythril.analysis.modules." + module_name)
             if module.__name__ != "base" and module.detector.entrypoint == entrypoint:
+                module.log.setLevel(log.level)
                 _modules.append(module)
 
     log.info("Found %s detection modules", len(_modules))

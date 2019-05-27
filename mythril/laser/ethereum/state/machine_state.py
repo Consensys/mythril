@@ -3,7 +3,7 @@ stack."""
 from copy import copy
 from typing import cast, Sized, Union, Any, List, Dict, Optional
 
-from mythril.laser.smt import BitVec, Expression
+from mythril.laser.smt import BitVec, Expression, symbol_factory
 
 from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
@@ -32,6 +32,8 @@ class MachineStack(list):
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
+        if isinstance(element, int):
+            element = symbol_factory.BitVecVal(element, 256)
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
             raise StackOverflowException(
                 "Reached the EVM stack limit of {}, you can't append more "
@@ -123,7 +125,12 @@ class MachineState:
         """
         if self.memory_size > start + size:
             return 0
-        return start + size - self.memory_size
+
+        # The extension size is calculated based on the word length
+        new_size = utils.ceil32(start + size) // 32
+        old_size = self.memory_size // 32
+
+        return (new_size - old_size) * 32
 
     def calculate_memory_gas(self, start: int, size: int):
         """

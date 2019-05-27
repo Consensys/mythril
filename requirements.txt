@@ -25,6 +25,6 @@ pytest_mock
 requests
 rlp>=1.0.1
 transaction>=2.2.1
-z3-solver-mythril>=4.8.4.1
+z3-solver>=4.8.5.0
 pysha3
 matplotlib
