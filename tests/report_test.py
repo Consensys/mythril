@@ -32,14 +32,14 @@ def _generate_report(input_file):
     contract = EVMContract(input_file.read_text(), enable_online_lookup=False)
     sym = SymExecWrapper(
         contract,
-        address=(util.get_indexed_address(0)),
+        address=0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE,
         strategy="dfs",
         execution_timeout=30,
         transaction_count=1,
     )
     issues = fire_lasers(sym)
 
-    report = Report()
+    report = Report(contracts=[contract])
     for issue in issues:
         issue.filename = "test-filename.sol"
         report.append_issue(issue)

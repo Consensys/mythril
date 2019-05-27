@@ -3,8 +3,8 @@
         "issues": [
             {
                 "description": {
-                    "head": "The contract executes an external message call.",
-                    "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
+                    "head": "A call to a user-supplied address is executed.",
+                    "tail": "The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state."
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>"
@@ -14,14 +14,14 @@
                         "sourceMap": "196:1:0"
                     }
                 ],
-                "severity": "Low",
+                "severity": "Medium",
                 "swcID": "SWC-107",
                 "swcTitle": "Reentrancy"
             },
             {
                 "description": {
-                    "head": "The contract executes an external message call.",
-                    "tail": "An external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully."
+                    "head": "A call to a user-supplied address is executed.",
+                    "tail": "The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state."
                 },
                 "extra": {
                     "discoveryTime": "<DISCOVERY-TIME-DATA>"
@@ -31,7 +31,7 @@
                         "sourceMap": "285:1:0"
                     }
                 ],
-                "severity": "Low",
+                "severity": "Medium",
                 "swcID": "SWC-107",
                 "swcTitle": "Reentrancy"
             },

@@ -1,27 +1,25 @@
 """This module contains the detection code to find multiple sends occurring in
 a single transaction."""
 from copy import copy
-from typing import cast, List, Optional
+from typing import cast, List
 
-from mythril.analysis.ops import Call
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
-from mythril.analysis.call_helpers import get_call_from_state
 
 log = logging.getLogger(__name__)
 
 
 class MultipleSendsAnnotation(StateAnnotation):
     def __init__(self) -> None:
-        self.calls = []  # type: List[Optional[Call]]
+        self.call_offsets = []  # type: List[int]
 
     def __copy__(self):
         result = MultipleSendsAnnotation()
-        result.calls = copy(self.calls)
+        result.call_offsets = copy(self.call_offsets)
         return result
 
 
@@ -55,7 +53,6 @@ def _analyze_state(state: GlobalState):
     :param state: the current state
     :return: returns the issues for that corresponding state
     """
-    node = state.node
     instruction = state.get_current_instruction()
 
     annotations = cast(
@@ -63,46 +60,35 @@ def _analyze_state(state: GlobalState):
         list(state.get_annotations(MultipleSendsAnnotation)),
     )
     if len(annotations) == 0:
-        log.debug("Creating annotation for state")
         state.annotate(MultipleSendsAnnotation())
         annotations = cast(
             List[MultipleSendsAnnotation],
             list(state.get_annotations(MultipleSendsAnnotation)),
         )
 
-    calls = annotations[0].calls
+    call_offsets = annotations[0].call_offsets
 
     if instruction["opcode"] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
-        call = get_call_from_state(state)
-        if call:
-            calls += [call]
+        call_offsets.append(state.get_current_instruction()["address"])
 
     else:  # RETURN or STOP
-        if len(calls) > 1:
+
+        for offset in call_offsets[1:]:
 
             description_tail = (
-                "Consecutive calls are executed at the following bytecode offsets:\n"
-            )
-
-            for call in calls:
-                description_tail += "Offset: {}\n".format(
-                    call.state.get_current_instruction()["address"]
-                )
-
-            description_tail += (
-                "Try to isolate each external call into its own transaction,"
-                " as external calls can fail accidentally or deliberately.\n"
+                "This call is executed after a previous call in the same transaction. "
+                "Try to isolate each call, transfer or send into its own transaction."
             )
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
-                address=instruction["address"],
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
+                address=offset,
                 swc_id=MULTIPLE_SENDS,
                 bytecode=state.environment.code.bytecode,
                 title="Multiple Calls in a Single Transaction",
-                severity="Medium",
-                description_head="Multiple sends are executed in one transaction.",
+                severity="Low",
+                description_head="Multiple calls are executed in the same transaction.",
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )

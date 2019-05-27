@@ -67,7 +67,6 @@ class EtherThief(DetectionModule):
         :return:
         """
         instruction = state.get_current_instruction()
-        node = state.node
 
         if instruction["opcode"] != "CALL":
             return []
@@ -80,7 +79,7 @@ class EtherThief(DetectionModule):
 
         eth_sent_total = symbol_factory.BitVecVal(0, 256)
 
-        constraints = copy(node.constraints)
+        constraints = copy(state.mstate.constraints)
 
         for tx in state.world_state.transaction_sequence:
             if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
@@ -101,8 +100,8 @@ class EtherThief(DetectionModule):
             debug = json.dumps(transaction_sequence, indent=4)
 
             issue = Issue(
-                contract=node.contract_name,
-                function_name=node.function_name,
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
                 address=instruction["address"],
                 swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
                 title="Unprotected Ether Withdrawal",
