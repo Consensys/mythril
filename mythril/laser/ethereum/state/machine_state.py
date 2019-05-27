@@ -125,6 +125,8 @@ class MachineState:
         """
         if self.memory_size > start + size:
             return 0
+
+        # The extension size is calculated based on the word length
         new_size = utils.ceil32(start + size) // 32
         old_size = self.memory_size // 32
 
