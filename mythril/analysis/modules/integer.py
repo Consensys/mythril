@@ -84,7 +84,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         self._overflow_cache = {}
         self._underflow_cache = {}
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
 
         :param state: Statespace to analyse

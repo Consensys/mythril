@@ -72,14 +72,13 @@ class ReachableExceptionsModule(DetectionModule):
             pre_hooks=["ASSERT_FAIL"],
         )
 
-    def execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
         self._issues.extend(_analyze_state(state))
-        return self.issues
 
 
 detector = ReachableExceptionsModule()

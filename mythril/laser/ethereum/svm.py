@@ -177,8 +177,9 @@ class LaserEVM:
         :param address: Address of the contract
         :return:
         """
+        self.time = datetime.now()
+
         for i in range(self.transaction_count):
-            self.time = datetime.now()
             log.info(
                 "Starting message call transaction, iteration: {}, {} initial states".format(
                     i, len(self.open_states)
@@ -210,8 +211,7 @@ class LaserEVM:
 
             if (
                 self.execution_timeout
-                and self.time
-                + timedelta(seconds=self.execution_timeout / self.transaction_count)
+                and self.time + timedelta(seconds=self.execution_timeout)
                 <= datetime.now()
                 and not create
             ):
