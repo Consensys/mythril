@@ -24,8 +24,6 @@ from mythril.mythril import (
 )
 from mythril.version import VERSION
 
-# logging.basicConfig(level=logging.DEBUG)
-
 log = logging.getLogger(__name__)
 
 
@@ -47,7 +45,7 @@ def exit_with_error(format_, message):
                 "sourceFormat": "",
                 "sourceList": [],
                 "meta": {
-                    "logs": [{"level": "error", "hidden": "true", "error": message}]
+                    "logs": [{"level": "error", "hidden": "true", "msg": message}]
                 },
             }
         ]
@@ -216,7 +214,7 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     options.add_argument(
         "--execution-timeout",
         type=int,
-        default=600,
+        default=86400,
         help="The amount of seconds to spend on symbolic execution",
     )
     options.add_argument(
@@ -433,6 +431,7 @@ def execute_command(
                 contract=analyzer.contracts[0],
                 enable_physics=args.enable_physics,
                 phrackify=args.phrack,
+                transaction_count=args.transaction_count,
             )
 
             try:
@@ -507,7 +506,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         quick_commands(args)
         config = set_config(args)
         leveldb_search(config, args)
-        dissasembler = MythrilDisassembler(
+        disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
             solc_args=args.solc_args,
@@ -515,16 +514,16 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         )
         if args.truffle:
             try:
-                dissasembler.analyze_truffle_project(args)
+                disassembler.analyze_truffle_project(args)
             except FileNotFoundError:
                 print(
                     "Build directory not found. Make sure that you start the analysis from the project root, and that 'truffle compile' has executed successfully."
                 )
             sys.exit()
 
-        address = get_code(dissasembler, args)
+        address = get_code(disassembler, args)
         execute_command(
-            disassembler=dissasembler, address=address, parser=parser, args=args
+            disassembler=disassembler, address=address, parser=parser, args=args
         )
     except CriticalError as ce:
         exit_with_error(args.outform, str(ce))

@@ -1,4 +1,4 @@
-# Mythril Classic
+# Mythril
 
 <p align="center">
 	<img src="/static/mythril_new.png" height="320px"/>
@@ -6,18 +6,15 @@
 
 [![Discord](https://img.shields.io/discord/481002907366588416.svg)](https://discord.gg/E3YrVtG)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
-[![Read the Docs](https://readthedocs.org/projects/mythril-classic/badge/?version=master)](https://mythril-classic.readthedocs.io/en/master/)
-![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril-classic/master.svg)
-[![Waffle.io - Columns and their card count](https://badge.waffle.io/ConsenSys/mythril-classic.svg?columns=In%20Progress)](https://waffle.io/ConsenSys/mythril-classic/)
+[![Read the Docs](https://readthedocs.org/projects/mythril/badge/?version=master)](https://mythril.readthedocs.io/en/master/)
+![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
-[![Downloads](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
+[![Pypi Installs](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
+[![DockerHub Pulls](https://img.shields.io/docker/pulls/mythril/myth.svg?label=DockerHub&nbsp;Pulls)](https://cloud.docker.com/u/mythril/repository/docker/mythril/myth)
 
-Mythril Classic is an open-source security analysis tool for Ethereum smart contracts. It uses symbolic analysis, taint analysis and control flow checking to detect a variety of security vulnerabilities.
+Mythril is a security analysis tool for EVM bytecode. It detects security vulnerabilities in smart contracts built for Ethereum, Quorum, Vechain, Roostock, Tron and other EVM-compatible blockchains. It uses symbolic execution, SMT solving and taint analysis detect a variety of security vulnerabilities. It's also used (in combination with other tools and techniques) in the [MythX](https://mythx.io) security analysis platform.
 
-Note that Mythril Classic is designed for security auditors. If you are a smart contract developer, we recommend using [MythX tools](https://github.com/b-mueller/awesome-mythx-smart-contract-security) which are optimized for usability and cover a wider range of security issues:
-
-- [Sabre](https://github.com/b-mueller/sabre)
-- [MythX Plugin for Truffle](https://github.com/ConsenSys/truffle-security)
+If you are a smart contract developer, we recommend using [MythX tools](https://github.com/b-mueller/awesome-mythx-smart-contract-security) which are optimized for usability and cover a wider range of security issues.
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs.
 
@@ -39,12 +36,12 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
-Instructions for using Mythril Classic are found on the [Wiki](https://github.com/ConsenSys/mythril-classic/wiki). 
+Instructions for using Mythril are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
 ## Bulding the Documentation
-Mythril Classic's documentation is contained in the `docs` folder and is published to [Read the Docs](https://mythril-classic.readthedocs.io/en/master/). It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
+Mythril's documentation is contained in the `docs` folder and is published to [Read the Docs](https://mythril.readthedocs.io/en/master/). It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
 
 ```
 cd docs

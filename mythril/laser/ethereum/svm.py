@@ -9,12 +9,12 @@ from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
-from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.iprof import InstructionProfiler
+from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from mythril.laser.ethereum.time_handler import time_handler
-from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -22,7 +22,7 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.ethereum.iprof import InstructionProfiler
+from mythril.laser.smt import symbol_factory
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +46,6 @@ class LaserEVM:
 
     def __init__(
         self,
-        accounts: Dict[str, Account],
         dynamic_loader=None,
         max_depth=float("inf"),
         execution_timeout=60,
@@ -57,23 +56,18 @@ class LaserEVM:
         enable_iprof=False,
     ) -> None:
         """
+        Initializes the laser evm object
 
-        :param accounts:
-        :param dynamic_loader:
-        :param max_depth:
-        :param execution_timeout:
-        :param create_timeout:
-        :param strategy:
-        :param transaction_count:
+        :param dynamic_loader: Loads data from chain
+        :param max_depth: Maximum execution depth this vm should execute
+        :param execution_timeout: Time to take for execution
+        :param create_timeout: Time to take for contract creation
+        :param strategy: Execution search strategy
+        :param transaction_count: The amount of transactions to execute
+        :param requires_statespace: Variable indicating whether the statespace should be recorded
+        :param enable_iprof: Variable indicating whether instruction profiling should be turned on
         """
-        world_state = WorldState()
-        world_state.accounts = accounts
-        # this sets the initial world state
-        self.world_state = world_state
-        self.open_states = [world_state]
-
-        self.coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
-
+        self.open_states = []  # type: List[WorldState]
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
@@ -97,6 +91,10 @@ class LaserEVM:
 
         self._add_world_state_hooks = []  # type: List[Callable]
         self._execute_state_hooks = []  # type: List[Callable]
+
+        self._start_sym_trans_hooks = []  # type: List[Callable]
+        self._stop_sym_trans_hooks = []  # type: List[Callable]
+
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
@@ -104,23 +102,30 @@ class LaserEVM:
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
-    @property
-    def accounts(self) -> Dict[str, Account]:
-        """
-
-        :return:
-        """
-        return self.world_state.accounts
-
     def sym_exec(
-        self, main_address=None, creation_code=None, contract_name=None
+        self,
+        world_state: WorldState = None,
+        target_address: int = None,
+        creation_code: str = None,
+        contract_name: str = None,
     ) -> None:
-        """
+        """ Starts symbolic execution
+        There are two modes of execution.
+        Either we analyze a preconfigured configuration, in which case the world_state and target_address variables
+        must be supplied.
+        Or we execute the creation code of a contract, in which case the creation code and desired name of that
+        contract should be provided.
 
-        :param main_address:
-        :param creation_code:
-        :param contract_name:
+        :param world_state The world state configuration from which to perform analysis
+        :param target_address The address of the contract account in the world state which analysis should target
+        :param creation_code The creation code to create the target contract in the symbolic environment
+        :param contract_name The name that the created account should be associated with
         """
+        pre_configuration_mode = world_state is not None and target_address is not None
+        scratch_mode = creation_code is not None and contract_name is not None
+        if pre_configuration_mode == scratch_mode:
+            raise ValueError("Symbolic execution started with invalid parameters")
+
         log.debug("Starting LASER execution")
         for hook in self._start_sym_exec_hooks:
             hook()
@@ -128,11 +133,12 @@ class LaserEVM:
         time_handler.start_execution(self.execution_timeout)
         self.time = datetime.now()
 
-        if main_address:
-            log.info("Starting message call transaction to {}".format(main_address))
-            self._execute_transactions(main_address)
+        if pre_configuration_mode:
+            self.open_states = [world_state]
+            log.info("Starting message call transaction to {}".format(target_address))
+            self._execute_transactions(symbol_factory.BitVecVal(target_address, 256))
 
-        elif creation_code:
+        elif scratch_mode:
             log.info("Starting contract creation transaction")
             created_account = execute_contract_creation(
                 self, creation_code, contract_name
@@ -158,10 +164,6 @@ class LaserEVM:
                 len(self.edges),
                 self.total_states,
             )
-        for code, coverage in self.coverage.items():
-            cov = sum(coverage[1]) / float(coverage[0]) * 100
-
-            log.info("Achieved {:.2f}% coverage for code: {}".format(cov, code))
 
         if self.iprof is not None:
             log.info("Instruction Statistics:\n{}".format(self.iprof))
@@ -170,42 +172,26 @@ class LaserEVM:
             hook()
 
     def _execute_transactions(self, address):
-        """This function executes multiple transactions on the address based on
-        the coverage.
+        """This function executes multiple transactions on the address
 
         :param address: Address of the contract
         :return:
         """
-        self.coverage = {}
-        for i in range(self.transaction_count):
-            initial_coverage = self._get_covered_instructions()
+        self.time = datetime.now()
 
-            self.time = datetime.now()
+        for i in range(self.transaction_count):
             log.info(
                 "Starting message call transaction, iteration: {}, {} initial states".format(
                     i, len(self.open_states)
                 )
             )
+            for hook in self._start_sym_trans_hooks:
+                hook()
 
             execute_message_call(self, address)
 
-            end_coverage = self._get_covered_instructions()
-
-            log.info(
-                "Number of new instructions covered in tx %d: %d"
-                % (i, end_coverage - initial_coverage)
-            )
-
-    def _get_covered_instructions(self) -> int:
-        """Gets the total number of covered instructions for all accounts in
-        the svm.
-
-        :return:
-        """
-        total_covered_instructions = 0
-        for _, cv in self.coverage.items():
-            total_covered_instructions += sum(cv[1])
-        return total_covered_instructions
+            for hook in self._stop_sym_trans_hooks:
+                hook()
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
         """
@@ -225,8 +211,7 @@ class LaserEVM:
 
             if (
                 self.execution_timeout
-                and self.time
-                + timedelta(seconds=self.execution_timeout / self.transaction_count)
+                and self.time + timedelta(seconds=self.execution_timeout)
                 <= datetime.now()
                 and not create
             ):
@@ -284,7 +269,6 @@ class LaserEVM:
 
         self._execute_pre_hook(op_code, global_state)
         try:
-            self._measure_coverage(global_state)
             new_global_states = Instruction(
                 op_code, self.dynamic_loader, self.iprof
             ).evaluate(global_state)
@@ -375,7 +359,7 @@ class LaserEVM:
         if not revert_changes:
             return_global_state.world_state = copy(global_state.world_state)
             return_global_state.environment.active_account = global_state.accounts[
-                return_global_state.environment.active_account.address
+                return_global_state.environment.active_account.address.value
             ]
 
         # Execute the post instruction handler
@@ -388,23 +372,6 @@ class LaserEVM:
             state.node = global_state.node
 
         return new_global_states
-
-    def _measure_coverage(self, global_state: GlobalState) -> None:
-        """
-
-        :param global_state:
-        """
-        code = global_state.environment.code.bytecode
-        number_of_instructions = len(global_state.environment.code.instruction_list)
-        instruction_index = global_state.mstate.pc
-
-        if code not in self.coverage.keys():
-            self.coverage[code] = (
-                number_of_instructions,
-                [False] * number_of_instructions,
-            )
-
-        self.coverage[code][1][instruction_index] = True
 
     def manage_cfg(self, opcode: str, new_states: List[GlobalState]) -> None:
         """
@@ -426,19 +393,6 @@ class LaserEVM:
                 self._new_node_state(
                     state, JumpType.CONDITIONAL, state.mstate.constraints[-1]
                 )
-
-        elif opcode in ("CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"):
-            assert len(new_states) <= 1
-            for state in new_states:
-                self._new_node_state(state, JumpType.CALL)
-                # Keep track of added contracts so the graph can be generated properly
-                if (
-                    state.environment.active_account.contract_name
-                    not in self.world_state.accounts.keys()
-                ):
-                    self.world_state.accounts[
-                        state.environment.active_account.address
-                    ] = state.environment.active_account
         elif opcode == "RETURN":
             for state in new_states:
                 self._new_node_state(state, JumpType.RETURN)
@@ -527,6 +481,10 @@ class LaserEVM:
             self._start_sym_exec_hooks.append(hook)
         elif hook_type == "stop_sym_exec":
             self._stop_sym_exec_hooks.append(hook)
+        elif hook_type == "start_sym_trans":
+            self._start_sym_trans_hooks.append(hook)
+        elif hook_type == "stop_sym_trans":
+            self._stop_sym_trans_hooks.append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type

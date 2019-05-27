@@ -16,10 +16,9 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
     instruction = state.get_current_instruction()
 
     op = instruction["opcode"]
-
     stack = state.mstate.stack
 
-    if op in ("CALL", "CALLCODE"):
+    if op in ("CALL", "CALLCODE", "STATICCALL"):
         gas, to, value, meminstart, meminsz, memoutstart, memoutsz = (
             get_variable(stack[-1]),
             get_variable(stack[-2]),

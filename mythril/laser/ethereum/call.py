@@ -3,12 +3,13 @@ instructions.py to get the necessary elements from the stack and determine the
 parameters for the new global state."""
 
 import logging
+import re
 from typing import Union, List, cast, Callable
+
 from mythril.laser.smt import BitVec
+import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS
-from mythril.laser.smt import simplify, Expression, symbol_factory
-import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.calldata import (
@@ -17,8 +18,9 @@ from mythril.laser.ethereum.state.calldata import (
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import BitVec
+from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
-import re
 
 """
 This module contains the business logic used by Instruction in instructions.py
@@ -97,7 +99,7 @@ def get_callee_address(
         # attempt to read the contract address from instance storage
         try:
             callee_address = dynamic_loader.read_storage(
-                environment.active_account.address, index
+                str(hex(environment.active_account.address.value)), index
             )
         # TODO: verify whether this happens or not
         except:
@@ -125,7 +127,7 @@ def get_callee_account(
     accounts = global_state.accounts
 
     try:
-        return global_state.accounts[callee_address]
+        return global_state.accounts[int(callee_address, 16)]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
         log.debug("Module with address " + callee_address + " not loaded.")
@@ -146,7 +148,11 @@ def get_callee_account(
     log.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(
-        callee_address, code, callee_address, dynamic_loader=dynamic_loader
+        symbol_factory.BitVecVal(int(callee_address, 16), 256),
+        code,
+        callee_address,
+        dynamic_loader=dynamic_loader,
+        balances=global_state.world_state.balances,
     )
     accounts[callee_address] = callee_account
 

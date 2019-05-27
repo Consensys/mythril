@@ -35,7 +35,7 @@ The `exceptions module <https://github.com/ConsenSys/mythril-classic/blob/develo
 External Calls
 **************
 
-The `external calls module <https://github.com/ConsenSys/mythril-classic/blob/develop/mythril/analysis/modules/external_calls.py>`_ detects `SWC-117 (Reentrancy) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-117>`_ by detecting state changes after calls to external contracts.
+The `external calls module <https://github.com/ConsenSys/mythril-classic/blob/develop/mythril/analysis/modules/external_calls.py>`_ warns about `SWC-117 (Reentrancy) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-107>`_ by detecting calls to external contracts.
 
 *******
 Integer
@@ -55,11 +55,12 @@ Suicide
 
 The `suicide module <https://github.com/ConsenSys/mythril-classic/blob/develop/mythril/analysis/modules/suicide.py>`_ detects `SWC-106 (Unprotected SELFDESTRUCT) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-106>`_.
 
+
 ****************************
-Transaction Order Dependence
+State Change External Calls
 ****************************
 
-The `transaction order dependence module <https://github.com/ConsenSys/mythril-classic/blob/develop/mythril/analysis/modules/transaction_order_dependence.py>`_ detects `SWC-114 (Transaction Order Dependence / Race Conditions) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-114>`_.
+The `state change external calls module <https://github.com/ConsenSys/mythril-classic/blob/develop/mythril/analysis/modules/state_change_external_calls.py>`_ detects `SWC-107 (Reentrancy) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-107>`_ by detecting state change after calls to an external contract.
 
 ****************
 Unchecked Retval
