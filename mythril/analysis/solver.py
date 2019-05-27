@@ -146,8 +146,6 @@ def get_transaction_sequence(
     initial_state = transaction_sequence[0].world_state.accounts
     states = {}
     for address, account in initial_state.items():
-        if address == 0 and len(account.code.bytecode) > 0:
-            continue
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
         data["balance"] = account.balance()

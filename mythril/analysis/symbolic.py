@@ -80,12 +80,6 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        account = Account(
-            address,
-            contract.disassembly,
-            dynamic_loader=dynloader,
-            contract_name=contract.name,
-        )
         creator_account = Account(
             hex(CREATOR_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
         )
@@ -97,10 +91,9 @@ class SymExecWrapper:
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
         if not contract.creation_code:
-            self.accounts = {address: account, hex(ATTACKER_ADDRESS): attacker_account}
+            self.accounts = {hex(ATTACKER_ADDRESS): attacker_account}
         else:
             self.accounts = {
-                address: account,
                 hex(CREATOR_ADDRESS): creator_account,
                 hex(ATTACKER_ADDRESS): attacker_account,
             }
