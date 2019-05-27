@@ -113,7 +113,7 @@ def get_transaction_sequence(
 
     model = get_model(tx_constraints, minimize=minimize)
     min_price_dict = {}  # type: Dict[str, int]
-    for transaction in transactions:
+    for transaction in transaction_sequence:
         tx_id = str(transaction.id)
         concrete_transaction = dict()  # type: Dict[str, str]
         concrete_transaction["input"] = "0x" + "".join(
@@ -129,9 +129,20 @@ def get_transaction_sequence(
         ).zfill(40)
 
         concrete_transaction["origin"] = caller
-        concrete_transaction["address"] = "%s" % transaction.callee_account.address
         concrete_transactions.append(concrete_transaction)
         min_price_dict[caller] = min_price_dict.get(caller, 0) + value
+        # TODO: Do this at Laser
+        if isinstance(transaction, ContractCreationTransaction):
+            concrete_transaction["address"] = ""
+            concrete_transaction["input"] = (
+                "%s" % transaction.callee_account.code.bytecode
+            )
+
+        else:
+            concrete_transaction["address"] = "%s" % hex(
+                transaction.callee_account.address.value
+            )
+
     initial_state = transaction_sequence[0].world_state.accounts
     states = {}
     for address, account in initial_state.items():
