@@ -4,7 +4,7 @@ from z3 import sat, unknown, FuncInterp
 import z3
 
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.world_state import Account
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction import BaseTransaction
 from mythril.laser.smt import UGE, Optimize, symbol_factory
@@ -106,18 +106,22 @@ def get_transaction_sequence(
         value = int(concrete_transaction["value"], 16)
         min_price_dict[caller] = min_price_dict.get(caller, 0) + value
 
-    initial_state = transaction_sequence[0].world_state.accounts
-    concrete_initial_state = _get_concrete_state(initial_state, min_price_dict)
+    if isinstance(transaction_sequence[0], ContractCreationTransaction):
+        initial_accounts = transaction_sequence[0].prev_world_state.accounts
+    else:
+        initial_accounts = transaction_sequence[0].world_state.accounts
+
+    concrete_initial_state = _get_concrete_state(initial_accounts, min_price_dict)
 
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
 
     return steps
 
 
-def _get_concrete_state(world_state: WorldState, min_price_dict: Dict[str, int]):
+def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
     """ Gets a concrete state """
     accounts = {}
-    for address, account in world_state.accounts.items():
+    for address, account in initial_accounts.items():
         # Skip empty default account
 
         data = dict()  # type: Dict[str, Union[int, str]]
@@ -125,7 +129,7 @@ def _get_concrete_state(world_state: WorldState, min_price_dict: Dict[str, int])
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)
         data["balance"] = min_price_dict.get(address, 0)
-        accounts[address] = data
+        accounts[hex(address)] = data
     return accounts
 
 
@@ -137,28 +141,24 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     caller = "0x" + (
         "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
     ).zfill(40)
-    calldata = [
-        hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
-        for b in transaction.call_data.concrete(model)
-    ]
+
+    # TODO: Do this at Laser
+    if isinstance(transaction, ContractCreationTransaction):
+        calldata = transaction.code.bytecode
+    else:
+        calldata = "".join([
+            hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
+            for b in transaction.call_data.concrete(model)
+        ])
 
     # Create concrete transaction dict
     concrete_transaction = dict()  # type: Dict[str, str]
-    concrete_transaction["input"] = "0x" + "".join(calldata)
+    concrete_transaction["input"] = "0x" + calldata
     concrete_transaction["value"] = "0x%x" % value
     # Fixme: base origin assignment on origin symbol
     concrete_transaction["origin"] = caller
     concrete_transaction["caller"] = caller
     concrete_transaction["address"] = "%s" % address
-    # TODO: Do this at Laser
-    if isinstance(transaction, ContractCreationTransaction):
-        concrete_transaction["address"] = ""
-        concrete_transaction["input"] = "%s" % transaction.callee_account.code.bytecode
-
-    else:
-        concrete_transaction["address"] = "%s" % hex(
-            transaction.callee_account.address.value
-        )
 
     return concrete_transaction
 
