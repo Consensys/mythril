@@ -51,14 +51,13 @@ class EtherThief(DetectionModule):
         super().reset_module()
         self._cache_addresses = {}
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
         self._issues.extend(self._analyze_state(state))
-        return self.issues
 
     def _analyze_state(self, state):
         """
