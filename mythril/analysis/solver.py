@@ -119,15 +119,12 @@ def _get_concrete_state(world_state: WorldState, min_price_dict: Dict[str, int])
     accounts = {}
     for address, account in world_state.accounts.items():
         # Skip empty default account
-        if address == "0x" + 40 * "0" and len(account.code.bytecode) > 0:
-            continue
 
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)
         data["balance"] = min_price_dict.get(address, 0)
-
         accounts[address] = data
     return accounts
 
@@ -153,6 +150,15 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     concrete_transaction["origin"] = caller
     concrete_transaction["caller"] = caller
     concrete_transaction["address"] = "%s" % address
+    # TODO: Do this at Laser
+    if isinstance(transaction, ContractCreationTransaction):
+        concrete_transaction["address"] = ""
+        concrete_transaction["input"] = "%s" % transaction.callee_account.code.bytecode
+
+    else:
+        concrete_transaction["address"] = "%s" % hex(
+            transaction.callee_account.address.value
+        )
 
     return concrete_transaction
 
