@@ -70,7 +70,7 @@ class DOS(DetectionModule):
 
                 try:
                     self._jumpdest_count[transaction][target] += 1
-                    if self._jumpdest_count[transaction][target] == 4:
+                    if self._jumpdest_count[transaction][target] == 3:
 
                         annotation = (
                             LoopAnnotation(address, target)

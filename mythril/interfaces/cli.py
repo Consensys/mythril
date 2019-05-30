@@ -200,8 +200,8 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
 
     options.add_argument(
         "--strategy",
-        choices=["dfs", "bfs", "naive-random", "weighted-random"],
-        default="bfs",
+        choices=["dfs", "bfs", "naive-random", "weighted-random", "bfs-bounded"],
+        default="bfs-bounded",
         help="Symbolic execution strategy",
     )
     options.add_argument(
