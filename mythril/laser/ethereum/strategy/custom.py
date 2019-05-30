@@ -28,28 +28,28 @@ class BFSBoundedLoopsStrategy(BreadthFirstSearchStrategy):
 
         opcode = state.get_current_instruction()["opcode"]
 
-        if opcode == "JUMPI":
+        if opcode != "JUMPI":
+            return state
 
-            transaction = state.current_transaction
-            target = util.get_concrete_int(state.mstate.stack[-1])
+        transaction = state.current_transaction
+        target = util.get_concrete_int(state.mstate.stack[-1])
 
-            if transaction in self._jumpdest_count:
+        if transaction in self._jumpdest_count:
 
-                try:
-                    if self._jumpdest_count[transaction][target] == JUMPDEST_LIMIT:
-                        log.info("Skipping JUMPI")
-                        return self.work_list.pop(0)
-                except KeyError:
-                    self._jumpdest_count[transaction][target] = 0
-
-                self._jumpdest_count[transaction][target] += 1
-
-            else:
-                self._jumpdest_count[transaction] = {}
+            try:
+                if self._jumpdest_count[transaction][target] == JUMPDEST_LIMIT:
+                    return self.work_list.pop(0)
+            except KeyError:
                 self._jumpdest_count[transaction][target] = 0
 
-            log.info(
-                "JUMPDEST COUNT: {}".format(self._jumpdest_count[transaction][target])
-            )
+            self._jumpdest_count[transaction][target] += 1
+
+        else:
+            self._jumpdest_count[transaction] = {}
+            self._jumpdest_count[transaction][target] = 0
+
+        log.info(
+            "JUMPDEST COUNT: {}".format(self._jumpdest_count[transaction][target])
+        )
 
         return state
