@@ -48,8 +48,6 @@ class BFSBoundedLoopsStrategy(BreadthFirstSearchStrategy):
             self._jumpdest_count[transaction] = {}
             self._jumpdest_count[transaction][target] = 0
 
-        log.info(
-            "JUMPDEST COUNT: {}".format(self._jumpdest_count[transaction][target])
-        )
+        log.info("JUMPDEST COUNT: {}".format(self._jumpdest_count[transaction][target]))
 
         return state
