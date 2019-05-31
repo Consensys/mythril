@@ -7,6 +7,7 @@ from copy import copy
 from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
+from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -51,14 +52,13 @@ class EtherThief(DetectionModule):
         super().reset_module()
         self._cache_addresses = {}
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
         self._issues.extend(self._analyze_state(state))
-        return self.issues
 
     def _analyze_state(self, state):
         """
@@ -82,15 +82,13 @@ class EtherThief(DetectionModule):
         constraints = copy(state.mstate.constraints)
 
         for tx in state.world_state.transaction_sequence:
-            if tx.caller == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF:
-                # There's sometimes no overflow check on balances added.
-                # But we don't care about attacks that require more 2^^256 ETH to be sent.
+            constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
+            eth_sent_total = Sum(eth_sent_total, tx.call_value)
 
-                constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
-                eth_sent_total = Sum(eth_sent_total, tx.call_value)
         constraints += [
+            tx.caller == ATTACKER_ADDRESS,
             UGT(call_value, eth_sent_total),
-            target == state.environment.sender,
+            target == ATTACKER_ADDRESS,
         ]
 
         try:
