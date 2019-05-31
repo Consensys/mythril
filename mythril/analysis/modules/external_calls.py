@@ -6,6 +6,7 @@ from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.laser.smt import UGT, symbol_factory, Or, BitVec
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 from copy import copy
@@ -112,7 +113,7 @@ def _is_precompile_call(global_state: GlobalState):
     constraints += [
         Or(
             to < symbol_factory.BitVecVal(1, 256),
-            to > symbol_factory.BitVecVal(16, 256),
+            to > symbol_factory.BitVecVal(PRECOMPILE_COUNT, 256),
         )
     ]
 
