@@ -3,4 +3,4 @@
 __docformat__ = "restructuredtext"
 
 # Accept mythril.VERSION to get mythril's current version number
-from .version import VERSION  # NOQA
+from .__version__ import __version__  as VERSION # NOQA
