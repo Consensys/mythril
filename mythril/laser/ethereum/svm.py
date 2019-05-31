@@ -431,6 +431,7 @@ class LaserEVM:
                     new_node.flags |= NodeFlags.FUNC_ENTRY
             except StackUnderflowException:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
+
         address = state.environment.code.instruction_list[state.mstate.pc]["address"]
 
         environment = state.environment
