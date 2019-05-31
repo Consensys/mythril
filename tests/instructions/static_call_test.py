@@ -22,7 +22,7 @@ def get_global_state():
         active_account, None, SymbolicCalldata("2"), None, None, None
     )
     world_state = WorldState()
-    world_state._put_account(active_account)
+    world_state.put_account(active_account)
     state = GlobalState(world_state, environment, None, MachineState(gas_limit=8000000))
     state.transaction_stack.append(
         (MessageCallTransaction(world_state=world_state, gas_limit=8000000), None)
