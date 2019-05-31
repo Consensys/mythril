@@ -131,6 +131,8 @@ class StateTransition(object):
         min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
+        self.check_gas_usage_limit(global_state)
+
         return global_state
 
     def __call__(self, func: Callable) -> Callable:
@@ -974,7 +976,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
+        global_state.mstate.stack.append(global_state.environment.gasprice)
         return [global_state]
 
     @staticmethod
@@ -1678,7 +1680,7 @@ class Instruction:
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
-        if not index:
+        if index is None:
             log.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
@@ -1707,7 +1709,12 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.mstate.pc - 1)
+        index = global_state.mstate.pc
+        program_counter = global_state.environment.code.instruction_list[index][
+            "address"
+        ]
+        global_state.mstate.stack.append(program_counter)
+
         return [global_state]
 
     @StateTransition()
@@ -1717,7 +1724,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
+        global_state.mstate.stack.append(global_state.mstate.memory_size)
         return [global_state]
 
     @StateTransition()
@@ -1789,8 +1796,12 @@ class Instruction:
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 8)]
         try:
+            concrete_offset = util.get_concrete_int(offset)
+            concrete_length = util.get_concrete_int(length)
+            state.mem_extend(concrete_offset, concrete_length)
+            StateTransition.check_gas_usage_limit(global_state)
             return_data = state.memory[
-                util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
+                concrete_offset : concrete_offset + concrete_length
             ]
         except TypeError:
             log.debug("Return with symbolic length or offset. Not supported")
