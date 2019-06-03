@@ -143,6 +143,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     ).zfill(40)
 
     if isinstance(transaction, ContractCreationTransaction):
+        address = ""
         calldata = transaction.code.bytecode
     else:
         input_ = "".join(
