@@ -142,7 +142,6 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
         "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
     ).zfill(40)
 
-    # TODO: Do this at Laser
     if isinstance(transaction, ContractCreationTransaction):
         calldata = transaction.code.bytecode
     else:
