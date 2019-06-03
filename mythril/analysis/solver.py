@@ -146,7 +146,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     if isinstance(transaction, ContractCreationTransaction):
         calldata = transaction.code.bytecode
     else:
-        calldata = "".join(
+        input_ = "".join(
             [
                 hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
                 for b in transaction.call_data.concrete(model)
