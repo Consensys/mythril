@@ -136,7 +136,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
 def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     """ Gets a concrete transaction from a transaction and z3 model"""
     # Get concrete values from transaction
-    address = transaction.callee_account.address
+    address = hex(transaction.callee_account.address.value)
     value = model.eval(transaction.call_value.raw, model_completion=True).as_long()
     caller = "0x" + (
         "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
