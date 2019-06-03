@@ -155,7 +155,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
 
     # Create concrete transaction dict
     concrete_transaction = dict()  # type: Dict[str, str]
-    concrete_transaction["input"] = "0x" + calldata
+    concrete_transaction["input"] = "0x" + input_
     concrete_transaction["value"] = "0x%x" % value
     # Fixme: base origin assignment on origin symbol
     concrete_transaction["origin"] = caller
