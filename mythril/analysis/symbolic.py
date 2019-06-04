@@ -42,6 +42,7 @@ class SymExecWrapper:
         modules=(),
         compulsory_statespace=True,
         enable_iprof=False,
+        run_analysis_modules=True,
     ):
         """
 
@@ -90,14 +91,15 @@ class SymExecWrapper:
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
 
-        self.laser.register_hooks(
-            hook_type="pre",
-            hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
-        )
-        self.laser.register_hooks(
-            hook_type="post",
-            hook_dict=get_detection_module_hooks(modules, hook_type="post"),
-        )
+        if run_analysis_modules:
+            self.laser.register_hooks(
+                hook_type="pre",
+                hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
+            )
+            self.laser.register_hooks(
+                hook_type="post",
+                hook_dict=get_detection_module_hooks(modules, hook_type="post"),
+            )
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(
