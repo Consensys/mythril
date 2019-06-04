@@ -20,14 +20,14 @@ sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "Mythril Classic"
-copyright = "2018, Bernhard Mueller"
-author = "Bernhard Mueller"
+project = "Mythril"
+copyright = "2019, ConsenSys Diligence"
+author = "ConsenSys Dilligence"
 
 # The short X.Y version
 version = ""
 # The full version, including alpha/beta/rc tags
-from mythril.version import VERSION
+from mythril.__version__ import __version__ as VERSION
 
 release = VERSION
 
