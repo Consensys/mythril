@@ -102,7 +102,7 @@ def get_transaction_sequence(
         concrete_transaction = _get_concrete_transaction(model, transaction)
         concrete_transactions.append(concrete_transaction)
 
-        caller = concrete_transaction["caller"]
+        caller = concrete_transaction["origin"]
         value = int(concrete_transaction["value"], 16)
         min_price_dict[caller] = min_price_dict.get(caller, 0) + value
 
@@ -159,7 +159,6 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     concrete_transaction["value"] = "0x%x" % value
     # Fixme: base origin assignment on origin symbol
     concrete_transaction["origin"] = caller
-    concrete_transaction["caller"] = caller
     concrete_transaction["address"] = "%s" % address
 
     return concrete_transaction
