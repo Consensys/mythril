@@ -22,7 +22,7 @@ from mythril.mythril import (
     MythrilConfig,
     MythrilLevelDB,
 )
-from mythril.version import VERSION
+from mythril.__version__ import __version__ as VERSION
 
 log = logging.getLogger(__name__)
 
