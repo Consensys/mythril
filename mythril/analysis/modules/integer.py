@@ -28,6 +28,7 @@ from mythril.laser.smt import (
 )
 
 import logging
+
 log = logging.getLogger(__name__)
 
 DISABLE_EFFECT_CHECK = True
@@ -47,16 +48,16 @@ class OverUnderflowAnnotation:
 class OverUnderflowStateAnnotation(StateAnnotation):
     """ State Annotation used if an overflow is both possible and used in the annotated path"""
 
-    def __init__(
-        self
-    ) -> None:
-        self.overflowing_state_annotations = []   # type: List[OverUnderflowAnnotation]
-        self.ostates_seen = []   # type: List[GlobalState]
+    def __init__(self) -> None:
+        self.overflowing_state_annotations = []  # type: List[OverUnderflowAnnotation]
+        self.ostates_seen = []  # type: List[GlobalState]
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
 
-        new_annotation.overflowing_state_annotations = copy(self.overflowing_state_annotations)
+        new_annotation.overflowing_state_annotations = copy(
+            self.overflowing_state_annotations
+        )
         new_annotation.ostates_seen = copy(self.ostates_seen)
 
         return new_annotation
@@ -225,7 +226,10 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             state_annotation = state_annotations[0]
 
         for annotation in value.annotations:
-            if not isinstance(annotation, OverUnderflowAnnotation) or annotation.overflowing_state in state_annotation.ostates_seen:
+            if (
+                not isinstance(annotation, OverUnderflowAnnotation)
+                or annotation.overflowing_state in state_annotation.ostates_seen
+            ):
                 continue
 
             state_annotation.overflowing_state_annotations.append(annotation)
@@ -249,7 +253,10 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             state_annotation = state_annotations[0]
 
         for annotation in value.annotations:
-            if not isinstance(annotation, OverUnderflowAnnotation) or annotation.overflowing_state in state_annotation.ostates_seen:
+            if (
+                not isinstance(annotation, OverUnderflowAnnotation)
+                or annotation.overflowing_state in state_annotation.ostates_seen
+            ):
                 continue
 
             state_annotation.overflowing_state_annotations.append(annotation)
@@ -268,7 +275,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         except TypeError:
             return
 
-        ''' TODO: Rewrite this
+        """ TODO: Rewrite this
         for element in state.mstate.memory[offset : offset + length]:
             if not isinstance(element, Expression):
                 continue
@@ -282,7 +289,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                             annotation.constraint,
                         )
                     )
-        '''
+        """
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
 
@@ -296,7 +303,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         annotations = state_annotations[0].overflowing_state_annotations
 
-        logging.info("Number of potentially overflowing states: {}".format(len(annotations)))
+        logging.info(
+            "Number of potentially overflowing states: {}".format(len(annotations))
+        )
 
         for annotation in annotations:
 
