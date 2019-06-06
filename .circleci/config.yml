@@ -87,7 +87,7 @@ jobs:
       - setup_remote_docker
       - run:
           name: Clone Edelweiss
-          command: git clone --recurse-submodules https://$GIT_TOKEN@github.com/Consensys/Edelweiss.git
+          command: git clone --recurse-submodules https://$GITHUB_TOKEN@github.com/Consensys/Edelweiss.git
       - run:
           name: Update SWC-registry
           working_directory: ~/project/Edelweiss
