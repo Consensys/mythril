@@ -332,9 +332,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 else:
                     constraints = state.mstate.constraints + [annotation.constraint]
 
-                if ostate.get_current_instruction()['address'] == 1587:
-                    logging.info(constraints)
-
                 log.info("Potential overflow: {} at {}".format(annotation.operator, ostate.get_current_instruction()['address']))
 
                 transaction_sequence = solver.get_transaction_sequence(
