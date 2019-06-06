@@ -129,6 +129,8 @@ class StateTransition(object):
         min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
+        self.check_gas_usage_limit(global_state)
+
         return global_state
 
     def __call__(self, func: Callable) -> Callable:
@@ -936,9 +938,20 @@ class Instruction:
             data = symbol_factory.BitVecVal(0, 1)
 
         if data.symbolic:
+
+            annotations = []
+
+            for b in state.memory[index : index + length]:
+                if isinstance(b, BitVec):
+                    annotations.append(b.annotations)
+
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str), "keccak256", 256, input_=data
+                "KECCAC[{}]".format(argument_str),
+                "keccak256",
+                256,
+                input_=data,
+                annotations=annotations,
             )
             log.debug("Created BitVecFunc hash.")
 
@@ -959,7 +972,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
+        global_state.mstate.stack.append(global_state.environment.gasprice)
         return [global_state]
 
     @staticmethod
@@ -1239,7 +1252,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
+        global_state.mstate.stack.append(global_state.environment.block_number)
         return [global_state]
 
     @StateTransition()
@@ -1492,7 +1505,7 @@ class Instruction:
                 global_state.environment.active_account
             )
             global_state.accounts[
-                global_state.environment.active_account.address
+                global_state.environment.active_account.address.value
             ] = global_state.environment.active_account
 
             global_state.environment.active_account.storage[index] = (
@@ -1605,7 +1618,7 @@ class Instruction:
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
-        if not index:
+        if index is None:
             log.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
@@ -1634,7 +1647,12 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.mstate.pc - 1)
+        index = global_state.mstate.pc
+        program_counter = global_state.environment.code.instruction_list[index][
+            "address"
+        ]
+        global_state.mstate.stack.append(program_counter)
+
         return [global_state]
 
     @StateTransition()
@@ -1644,7 +1662,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
+        global_state.mstate.stack.append(global_state.mstate.memory_size)
         return [global_state]
 
     @StateTransition()
@@ -1716,8 +1734,12 @@ class Instruction:
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 8)]
         try:
+            concrete_offset = util.get_concrete_int(offset)
+            concrete_length = util.get_concrete_int(length)
+            state.mem_extend(concrete_offset, concrete_length)
+            StateTransition.check_gas_usage_limit(global_state)
             return_data = state.memory[
-                util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
+                concrete_offset : concrete_offset + concrete_length
             ]
         except TypeError:
             log.debug("Return with symbolic length or offset. Not supported")
@@ -1730,31 +1752,19 @@ class Instruction:
         :param global_state:
         """
         target = global_state.mstate.stack.pop()
-        account_created = False
+        transfer_amount = global_state.environment.active_account.balance()
         # Often the target of the suicide instruction will be symbolic
-        # If it isn't then well transfer the balance to the indicated contract
-        if isinstance(target, BitVec) and not target.symbolic:
-            target = "0x" + hex(target.value)[-40:]
-        if isinstance(target, str):
-            try:
-                global_state.world_state[
-                    target
-                ].balance += global_state.environment.active_account.balance
-            except KeyError:
-                global_state.world_state.create_account(
-                    address=target,
-                    balance=global_state.environment.active_account.balance,
-                )
-                account_created = True
+        # If it isn't then we'll transfer the balance to the indicated contract
+        global_state.world_state[target].add_balance(transfer_amount)
 
         global_state.environment.active_account = deepcopy(
             global_state.environment.active_account
         )
         global_state.accounts[
-            global_state.environment.active_account.address
+            global_state.environment.active_account.address.value
         ] = global_state.environment.active_account
 
-        global_state.environment.active_account.balance = 0
+        global_state.environment.active_account.set_balance(0)
         global_state.environment.active_account.deleted = True
         global_state.current_transaction.end(global_state)
 
@@ -1839,9 +1849,7 @@ class Instruction:
             gas_price=environment.gasprice,
             gas_limit=gas,
             origin=environment.origin,
-            caller=symbol_factory.BitVecVal(
-                int(environment.active_account.address, 16), 256
-            ),
+            caller=environment.active_account.address,
             callee_account=callee_account,
             call_data=call_data,
             call_value=value,
@@ -2086,7 +2094,6 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
             return [global_state]
 
         try:

@@ -1,5 +1,6 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from mythril.laser.smt import Expression, BitVec, symbol_factory
@@ -15,6 +16,7 @@ from z3 import ExprRef, simplify
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
+
 test_types = [
     "vmArithmeticTest",
     "vmBitwiseLogicOperation",
@@ -22,7 +24,39 @@ test_types = [
     "vmPushDupSwapTest",
     "vmTests",
     "vmSha3Test",
+    "vmSystemOperations",
+    "vmRandomTest",
+    "vmIOandFlowOperations",
 ]
+
+tests_with_gas_support = ["gas0", "gas1"]
+tests_with_block_number_support = [
+    "BlockNumberDynamicJumpi0",
+    "BlockNumberDynamicJumpi1",
+    "BlockNumberDynamicJump0_jumpdest2",
+    "DynamicJumpPathologicalTest0",
+    "BlockNumberDynamicJumpifInsidePushWithJumpDest",
+    "BlockNumberDynamicJumpiAfterStop",
+    "BlockNumberDynamicJumpifInsidePushWithoutJumpDest",
+    "BlockNumberDynamicJump0_jumpdest0",
+    "BlockNumberDynamicJumpi1_jumpdest",
+    "BlockNumberDynamicJumpiOutsideBoundary",
+    "DynamicJumpJD_DependsOnJumps1",
+]
+tests_with_log_support = ["log1MemExp"]
+tests_not_relevent = [
+    "loop_stacklimit_1020",  # We won't be looping till 1020 as we have a max_depth
+    "loop_stacklimit_1021",
+]
+tests_to_resolve = ["jumpTo1InstructionafterJump", "sstore_load_2", "jumpi_at_the_end"]
+ignored_test_names = (
+    tests_with_gas_support
+    + tests_with_log_support
+    + tests_with_block_number_support
+    + tests_with_block_number_support
+    + tests_not_relevent
+    + tests_to_resolve
+)
 
 
 def load_test_data(designations):
@@ -79,28 +113,34 @@ def test_vmtest(
     gas_used: int,
     post_condition: dict,
 ) -> None:
+
     # Arrange
-    if test_name == "gasprice":
+    if test_name in ignored_test_names:
         return
-    accounts = {}
+
+    world_state = WorldState()
+
     for address, details in pre_condition.items():
-        account = Account(address)
+        account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
-        account.balance = int(details["balance"], 16)
         account.nonce = int(details["nonce"], 16)
+        for key, value in details["storage"].items():
+            account.storage[int(key, 16)] = int(value, 16)
 
-        accounts[address] = account
+        world_state.put_account(account)
+        account.set_balance(int(details["balance"], 16))
 
-    laser_evm = LaserEVM(accounts)
+    laser_evm = LaserEVM()
+    laser_evm.open_states = [world_state]
 
     # Act
     laser_evm.time = datetime.now()
 
     final_states = execute_message_call(
         laser_evm,
-        callee_address=action["address"],
-        caller_address=action["caller"],
-        origin_address=binascii.a2b_hex(action["origin"][2:]),
+        callee_address=symbol_factory.BitVecVal(int(action["address"], 16), 256),
+        caller_address=symbol_factory.BitVecVal(int(action["caller"], 16), 256),
+        origin_address=symbol_factory.BitVecVal(int(action["origin"], 16), 256),
         code=action["code"][2:],
         gas_limit=int(action["gas"], 16),
         data=binascii.a2b_hex(action["data"][2:]),
@@ -120,19 +160,15 @@ def test_vmtest(
         assert all(map(lambda g: g[0] <= g[1], gas_min_max))
         assert any(gas_ranges)
 
-    if any((v in test_name for v in ["error", "oog"])) and post_condition == {}:
+    if post_condition == {}:
         # no more work to do if error happens or out of gas
         assert len(laser_evm.open_states) == 0
     else:
         assert len(laser_evm.open_states) == 1
         world_state = laser_evm.open_states[0]
-        model = get_model(
-            next(iter(laser_evm.nodes.values())).states[0].mstate.constraints,
-            enforce_execution_time=False,
-        )
 
         for address, details in post_condition.items():
-            account = world_state[address]
+            account = world_state[symbol_factory.BitVecVal(int(address, 16), 256)]
 
             assert account.nonce == int(details["nonce"], 16)
             assert account.code.bytecode == details["code"][2:]

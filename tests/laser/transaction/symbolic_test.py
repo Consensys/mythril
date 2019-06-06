@@ -9,6 +9,8 @@ from mythril.laser.ethereum.transaction import (
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.smt import symbol_factory
+
 import unittest.mock as mock
 from unittest.mock import MagicMock
 
@@ -29,7 +31,7 @@ def test_execute_message_call(mocked_setup: MagicMock):
     laser_evm = LaserEVM({})
 
     world_state = WorldState()
-    world_state.accounts["address"] = Account("address")
+    world_state.put_account(Account("0x0"))
 
     laser_evm.open_states = [world_state]
     laser_evm.exec = MagicMock()
@@ -37,7 +39,7 @@ def test_execute_message_call(mocked_setup: MagicMock):
     mocked_setup.side_effect = _is_message_call
 
     # Act
-    execute_message_call(laser_evm, "address")
+    execute_message_call(laser_evm, symbol_factory.BitVecVal(0, 256))
 
     # Assert
     # laser_evm.exec.assert_called_once()

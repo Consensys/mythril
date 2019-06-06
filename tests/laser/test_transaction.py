@@ -1,6 +1,8 @@
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.world_state import WorldState
+
 import mythril.laser.ethereum.cfg as cfg
 
 
@@ -18,15 +20,17 @@ def test_intercontract_call():
     )
     callee_address = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 
+    world_state = WorldState()
+
     caller_account = Account(caller_address, caller_code, contract_name="Caller")
     callee_account = Account(callee_address, callee_code, contract_name="Callee")
+    world_state.put_account(callee_account)
+    world_state.put_account(caller_account)
 
-    accounts = {caller_address: caller_account, callee_address: callee_account}
-
-    laser = svm.LaserEVM(accounts)
+    laser = svm.LaserEVM()
 
     # Act
-    laser.sym_exec(caller_address)
+    laser.sym_exec(world_state=world_state, target_address=int(caller_address, 16))
 
     # Assert
     # Initial node starts in contract caller

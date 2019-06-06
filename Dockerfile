@@ -1,5 +1,8 @@
 FROM ubuntu:bionic
 
+# Space-separated version string without leading 'v' (e.g. "0.4.21 0.4.22") 
+ARG SOLC
+
 RUN apt-get update \
   && apt-get install -y \
      libsqlite3-0 \
@@ -36,5 +39,10 @@ COPY . /opt/mythril
 RUN cd /opt/mythril \
   && python setup.py install
 
-COPY ./mythril/support/assets/signatures.db /root/.mythril/signatures.db
+WORKDIR /home/mythril
+
+RUN ( [ ! -z "${SOLC}" ] && set -e && for ver in $SOLC; do python -m solc.install v${ver}; done ) || true
+
+COPY ./mythril/support/assets/signatures.db /home/mythril/.mythril/signatures.db
+
 ENTRYPOINT ["/usr/local/bin/myth"]

@@ -33,7 +33,7 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
     :return:
     """
 
-    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap,srcmap-runtime"]
+    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap,srcmap-runtime,ast"]
 
     if solc_args:
         cmd.extend(solc_args.split())

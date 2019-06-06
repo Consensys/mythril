@@ -37,14 +37,13 @@ class SuicideModule(DetectionModule):
         super().reset_module()
         self._cache_address = {}
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
         self._issues.extend(self._analyze_state(state))
-        return self.issues
 
     def _analyze_state(self, state):
         log.info("Suicide module: Analyzing suicide instruction")
