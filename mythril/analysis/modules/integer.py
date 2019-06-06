@@ -357,7 +357,3 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
 
 detector = IntegerOverflowUnderflowModule()
-
-
-def _get_address_from_state(state):
-    return state.get_current_instruction()["address"]
