@@ -7,7 +7,7 @@ from copy import copy
 import logging
 
 
-JUMPDEST_LIMIT = 4
+JUMPDEST_LIMIT = 2
 log = logging.getLogger(__name__)
 
 
@@ -15,11 +15,11 @@ class JumpdestCountAnnotation(StateAnnotation):
     """State annotation used when a path is chosen based on a predictable variable."""
 
     def __init__(self) -> None:
-        self._jumpdest_count = {}  # type: Dict[object, dict]
+        self._jumpdest_count = {}  # type: Dict[int, int]
 
     def __copy__(self):
         result = JumpdestCountAnnotation()
-        result.call_offsets = copy(self._jumpdest_count)
+        result._jumpdest_count = copy(self._jumpdest_count)
         return result
 
 
@@ -31,7 +31,6 @@ class BFSBoundedLoopsStrategy(BreadthFirstSearchStrategy):
 
     def __init__(self, work_list, max_depth) -> None:
         super().__init__(work_list, max_depth)
-        self._jumpdest_count = {}  # type: Dict[object, dict]
 
     def get_strategic_global_state(self) -> GlobalState:
         """
@@ -56,22 +55,15 @@ class BFSBoundedLoopsStrategy(BreadthFirstSearchStrategy):
         else:
             annotation = annotations[0]
 
-        transaction = state.current_transaction
-        target = util.get_concrete_int(state.mstate.stack[-1])
+        target = int(util.get_concrete_int(state.mstate.stack[-1]))
 
-        if transaction in self._jumpdest_count:
+        try:
+            annotation._jumpdest_count[target] += 1
+        except KeyError:
+            annotation._jumpdest_count[target] = 1
 
-            try:
-                if annotation._jumpdest_count[transaction][target] == JUMPDEST_LIMIT:
-                    log.info("JUMPDEST limit reached, skipping JUMPI")
-                    return self.work_list.pop(0)
-            except KeyError:
-                annotation._jumpdest_count[transaction][target] = 0
-
-            annotation._jumpdest_count[transaction][target] += 1
-
-        else:
-            annotation._jumpdest_count[transaction] = {}
-            annotation._jumpdest_count[transaction][target] = 0
+        if annotation._jumpdest_count[target] > JUMPDEST_LIMIT:
+            print("JUMPDEST limit reached, skipping JUMPI")
+            return self.work_list.pop(0)
 
         return state
