@@ -4,7 +4,7 @@ underflows."""
 import json
 
 from math import log2, ceil
-from typing import Dict, cast, List
+from typing import cast, List
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -79,8 +79,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
-        self._overflow_cache = {}  # type: Dict[int, bool]
-        self._underflow_cache = {}  # type: Dict[int, bool]
 
     def reset_module(self):
         """
@@ -88,8 +86,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :return:
         """
         super().reset_module()
-        self._overflow_cache = {}
-        self._underflow_cache = {}
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
@@ -98,14 +94,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :return: Found issues
         """
 
-        address = _get_address_from_state(state)
-        has_overflow = self._overflow_cache.get(address, False)
-        has_underflow = self._underflow_cache.get(address, False)
-        if has_overflow or has_underflow:
-            return
         opcode = state.get_current_instruction()["opcode"]
-
-        # logging.info("Integer overflow module instruction: " + opcode)
 
         funcs = {
             "ADD": [self._handle_add],
@@ -303,7 +292,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         annotations = state_annotations[0].overflowing_state_annotations
 
-        log.info("Transaction end with {}".format(state.get_current_instruction()['opcode']))
+        log.info(
+            "Transaction end with {}".format(state.get_current_instruction()["opcode"])
+        )
 
         logging.info(
             "Number of potentially overflowing states: {}".format(len(annotations))
@@ -312,17 +303,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         for annotation in annotations:
 
             ostate = annotation.overflowing_state
-            address = _get_address_from_state(ostate)
-
-            if annotation.operator == "subtraction" and self._underflow_cache.get(
-                address, False
-            ):
-                continue
-
-            if annotation.operator != "subtraction" and self._overflow_cache.get(
-                address, False
-            ):
-                continue
 
             try:
                 # This check can be disabled if the constraints are to difficult for z3 to solve
@@ -332,7 +312,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 else:
                     constraints = state.mstate.constraints + [annotation.constraint]
 
-                log.info("Potential overflow: {} at {}".format(annotation.operator, ostate.get_current_instruction()['address']))
+                log.info(
+                    "Potential overflow: {} at {}".format(
+                        annotation.operator, ostate.get_current_instruction()["address"]
+                    )
+                )
 
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
@@ -359,10 +343,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             issue.debug = json.dumps(transaction_sequence, indent=4)
 
-            if annotation.operator == "subtraction":
-                self._underflow_cache[address] = True
-            else:
-                self._overflow_cache[address] = True
             self._issues.append(issue)
 
     @staticmethod
