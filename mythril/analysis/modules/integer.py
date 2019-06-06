@@ -14,6 +14,7 @@ from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 from copy import copy
+from mythril.laser.smt import simplify
 
 from mythril.laser.smt import (
     BVAddNoOverflow,
@@ -77,7 +78,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 "there's a possible state where op1 + op0 > 2^32 - 1"
             ),
             entrypoint="callback",
-            pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
+            # pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
+             pre_hooks=["MUL", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
 
     def reset_module(self):
@@ -304,27 +306,44 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             ostate = annotation.overflowing_state
 
+            # This check can be disabled if the constraints are to difficult for z3 to solve
+            # within any reasonable time.
+
+            if ostate.get_current_instruction()['address'] != 1587:
+                continue
+
+            log.info(
+                "Potential overflow: {} at {}".format(
+                    annotation.operator, ostate.get_current_instruction()["address"]
+                )
+            )
+            '''
+            if DISABLE_EFFECT_CHECK:
+                constraints = ostate.mstate.constraints + [annotation.constraint]
+            else:
+                constraints = state.mstate.constraints + [annotation.constraint]
+            '''
+
             try:
-                # This check can be disabled if the constraints are to difficult for z3 to solve
-                # within any reasonable time.
-                if DISABLE_EFFECT_CHECK:
-                    constraints = ostate.mstate.constraints + [annotation.constraint]
-                else:
-                    constraints = state.mstate.constraints + [annotation.constraint]
-
-                log.info(
-                    "Potential overflow: {} at {}".format(
-                        annotation.operator, ostate.get_current_instruction()["address"]
-                    )
-                )
-
-                transaction_sequence = solver.get_transaction_sequence(
-                    state, constraints
-                )
-
-                log.info("SAT")
+                solver.get_model(state.mstate.constraints)
+                logging.info("get_model(state.mstate.constraints) SUCCEEDED (end state is reachable)")
             except UnsatError:
-                log.info("UNSAT")
+                logging.info("get_model(state.mstate.constraints) failed (end state is unreachable)")
+
+            try:
+                solver.get_model([annotation.constraint])
+                logging.info("get_model([annotation.constraint]) SUCCEEDED (integer can overflow)")
+            except UnsatError:
+                logging.info("get_model([annotation.constraint]) failed (integer cannot overflow)")
+
+            try:
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, state.mstate.constraints + [annotation.constraint]
+                    )
+
+                log.info("SUCCEEDED: Combined constraints were solved ")
+            except UnsatError:
+                log.info("Solving combined constraints failed")
                 continue
 
             _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
