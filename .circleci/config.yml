@@ -86,9 +86,6 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          name: Clone Mythril
-          command: git clone https://github.com/Consensys/mythril
-      - run:
           name: Clone Edelweiss
           command: git clone --recurse-submodules https://$GIT_TOKEN@github.com/Consensys/Edelweiss.git
       - run:
@@ -171,8 +168,8 @@ workflows:
                 - improvement/tool-based-integration-tests
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
-          requires:
-            - test
+          # requires:
+          #   - test
       - pypi_release:
           filters:
             branches:
