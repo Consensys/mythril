@@ -7,7 +7,7 @@ from copy import copy
 import logging
 
 
-JUMPDEST_LIMIT = 2
+JUMPDEST_LIMIT = 1
 log = logging.getLogger(__name__)
 
 
@@ -63,7 +63,7 @@ class BFSBoundedLoopsStrategy(BreadthFirstSearchStrategy):
             annotation._jumpdest_count[target] = 1
 
         if annotation._jumpdest_count[target] > JUMPDEST_LIMIT:
-            print("JUMPDEST limit reached, skipping JUMPI")
+            log.debug("JUMPDEST limit reached, skipping JUMPI")
             return self.work_list.pop(0)
 
         return state
