@@ -31,7 +31,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-DISABLE_EFFECT_CHECK = True
+DISABLE_EFFECT_CHECK = False
 
 
 class OverUnderflowAnnotation:
@@ -105,7 +105,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             return
         opcode = state.get_current_instruction()["opcode"]
 
-        logging.info("Integer overflow module instruction: " + opcode)
+        # logging.info("Integer overflow module instruction: " + opcode)
 
         funcs = {
             "ADD": [self._handle_add],
@@ -303,6 +303,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         annotations = state_annotations[0].overflowing_state_annotations
 
+        log.info("Transaction end with {}".format(state.get_current_instruction()['opcode']))
+
         logging.info(
             "Number of potentially overflowing states: {}".format(len(annotations))
         )
@@ -330,10 +332,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 else:
                     constraints = state.mstate.constraints + [annotation.constraint]
 
+                if ostate.get_current_instruction()['address'] == 1587:
+                    logging.info(constraints)
+
+                log.info("Potential overflow: {} at {}".format(annotation.operator, ostate.get_current_instruction()['address']))
+
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )
+
+                log.info("SAT")
             except UnsatError:
+                log.info("UNSAT")
                 continue
 
             _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
