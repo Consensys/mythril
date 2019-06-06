@@ -36,7 +36,7 @@ REQUIRED = [
     "eth-account>=0.1.0a2,<=0.3.0",
     "eth-hash>=0.1.0",
     "eth-keyfile>=0.5.1",
-    "eth-keys>=0.2.0b3",
+    "eth-keys>=0.2.0b3,<0.3.0",
     "eth-rlp>=0.1.0",
     "eth-tester==0.1.0b32",
     "eth-typing>=2.0.0",
