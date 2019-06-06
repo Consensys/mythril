@@ -75,6 +75,7 @@ class MythrilAnalyzer:
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            run_analysis_modules=False,
         )
 
         return get_serializable_statespace(sym)
@@ -108,6 +109,7 @@ class MythrilAnalyzer:
             transaction_count=transaction_count,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            run_analysis_modules=False,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
