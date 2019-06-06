@@ -7,7 +7,7 @@
 [![Discord](https://img.shields.io/discord/481002907366588416.svg)](https://discord.gg/E3YrVtG)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
 [![Read the Docs](https://readthedocs.org/projects/mythril/badge/?version=master)](https://mythril.readthedocs.io/en/master/)
-![Master Build Status](https://img.shields.io/circleci/project/github/ConsenSys/mythril/master.svg)
+![Master Build Status](https://img.shields.io/circleci/build/github/ConsenSys/mythril/master.svg?token=97124ecfaee54366859cae98b5dafc0714325f8b)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 [![Pypi Installs](https://pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
 [![DockerHub Pulls](https://img.shields.io/docker/pulls/mythril/myth.svg?label=DockerHub&nbsp;Pulls)](https://cloud.docker.com/u/mythril/repository/docker/mythril/myth)
