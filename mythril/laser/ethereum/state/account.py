@@ -7,7 +7,7 @@ from typing import Any, Dict, KeysView, Union
 
 from z3 import ExprRef
 
-from mythril.laser.smt import Array, symbol_factory, BitVec
+from mythril.laser.smt import Array, symbol_factory, BitVec, Expression
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
@@ -20,12 +20,12 @@ class Storage:
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        self._storage = {}  # type: Dict[Union[int, str], Any]
+        self._storage = {}  # type: Dict[Expression, Any]
         self.concrete = concrete
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item: Union[str, int]) -> Any:
+    def __getitem__(self, item: Expression) -> Any:
         try:
             return self._storage[item]
         except KeyError:
@@ -38,7 +38,7 @@ class Storage:
                     self._storage[item] = symbol_factory.BitVecVal(
                         int(
                             self.dynld.read_storage(
-                                contract_address=self.address, index=int(item)
+                                contract_address=self.address, index=int(item.raw)
                             ),
                             16,
                         ),
@@ -56,7 +56,7 @@ class Storage:
         )
         return self._storage[item]
 
-    def __setitem__(self, key: Union[int, str], value: Any) -> None:
+    def __setitem__(self, key: Expression, value: Any) -> None:
         self._storage[key] = value
 
     def keys(self) -> KeysView:
