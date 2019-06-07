@@ -39,3 +39,10 @@ class AddressNotFoundError(MythrilBaseException):
     found."""
 
     pass
+
+
+class UnsupportedModeError(MythrilBaseException):
+    """A Mythril exception denoting an unsupported dynamic timeout mode
+    constraints."""
+
+    pass
