@@ -164,12 +164,10 @@ workflows:
               only:
                 - develop
                 - master
-                # TODO: remove after merge. For checking PR only.
-                - improvement/tool-based-integration-tests
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
-          # requires:
-          #   - test
+          requires:
+            - test
       - pypi_release:
           filters:
             branches:
