@@ -7,7 +7,7 @@ from copy import copy
 import logging
 
 
-JUMPDEST_LIMIT = 3
+JUMPDEST_LIMIT = 4
 log = logging.getLogger(__name__)
 
 
