@@ -297,6 +297,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if len(state_annotations) == 0:
             return
 
+        log.info("_handle_transaction_end: " + state.get_current_instruction()['opcode'])
+
         annotations = state_annotations[0].overflowing_state_annotations
 
         for annotation in annotations:
@@ -310,6 +312,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     constraints = ostate.mstate.constraints + [annotation.constraint]
                 else:
                     constraints = state.mstate.constraints + [annotation.constraint]
+
+                log.info("Checking {} overflow at: {}".format(ostate.get_current_instruction()['opcode'], ostate.get_current_instruction()['address']))
 
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
