@@ -114,8 +114,6 @@ def test_vmtest(
     post_condition: dict,
 ) -> None:
 
-    if test_name != "JDfromStorageDynamicJump0_jumpdest0":
-        return
     # Arrange
     if test_name in ignored_test_names:
         return
