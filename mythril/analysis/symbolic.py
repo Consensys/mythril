@@ -16,6 +16,7 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
+from mythril.laser.ethereum.strategy.custom import BFSBoundedLoopsStrategy
 from mythril.laser.smt import symbol_factory, BitVec
 from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
@@ -69,6 +70,8 @@ class SymExecWrapper:
             s_strategy = ReturnRandomNaivelyStrategy
         elif strategy == "weighted-random":
             s_strategy = ReturnWeightedRandomStrategy
+        elif strategy == "bfs-bounded":
+            s_strategy = BFSBoundedLoopsStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
 

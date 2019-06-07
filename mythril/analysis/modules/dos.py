@@ -4,6 +4,7 @@ import logging
 from typing import Dict, cast, List
 
 from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
+from mythril.laser.ethereum.strategy.custom import JUMPDEST_LIMIT
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -70,7 +71,7 @@ class DOS(DetectionModule):
 
                 try:
                     self._jumpdest_count[transaction][target] += 1
-                    if self._jumpdest_count[transaction][target] == 4:
+                    if self._jumpdest_count[transaction][target] == JUMPDEST_LIMIT - 1:
 
                         annotation = (
                             LoopAnnotation(address, target)
