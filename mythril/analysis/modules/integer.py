@@ -4,7 +4,7 @@ underflows."""
 import json
 
 from math import log2, ceil
-from typing import cast, List
+from typing import cast, List, Dict
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
