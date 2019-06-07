@@ -80,12 +80,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
 
+        self._overflow_cache = {}  # type: Dict[int, bool]
+
     def reset_module(self):
         """
         Resets the module
         :return:
         """
         super().reset_module()
+        self._overflow_cache = {}
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
@@ -93,6 +96,10 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :param state: Statespace to analyse
         :return: Found issues
         """
+
+        address = _get_address_from_state(state)
+        if self._overflow_cache.get(address, False):
+            return
 
         opcode = state.get_current_instruction()["opcode"]
 
@@ -327,6 +334,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             issue.debug = json.dumps(transaction_sequence, indent=4)
 
+            address = _get_address_from_state(ostate)
+            self._overflow_cache[address] = True
             self._issues.append(issue)
 
     @staticmethod
@@ -341,3 +350,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
 
 detector = IntegerOverflowUnderflowModule()
+
+
+def _get_address_from_state(state):
+    return state.get_current_instruction()["address"]
