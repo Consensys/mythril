@@ -31,7 +31,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-DISABLE_EFFECT_CHECK = True
+DISABLE_EFFECT_CHECK = False
 
 
 class OverUnderflowAnnotation:
