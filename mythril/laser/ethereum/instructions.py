@@ -1407,9 +1407,7 @@ class Instruction:
         return self._sload_helper(global_state, index)
 
     @staticmethod
-    def _sload_helper(
-        global_state: GlobalState, index: Union[str, int], constraints=None
-    ):
+    def _sload_helper(global_state: GlobalState, index: Expression, constraints=None):
         """
 
         :param global_state:
