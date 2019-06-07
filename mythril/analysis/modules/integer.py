@@ -14,7 +14,6 @@ from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 from copy import copy
-from mythril.laser.smt import simplify
 
 from mythril.laser.smt import (
     BVAddNoOverflow,
