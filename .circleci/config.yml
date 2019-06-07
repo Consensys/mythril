@@ -103,7 +103,7 @@ jobs:
           name: Run Edelweiss
           command: |
               docker run --rm edelweiss-mythril:latest \
-                --timeout 10 \
+                --timeout 90 \
                 --output-dir /opt/edelweiss \
                 --plugin-dir /opt/mythril \
                 --s3 \
