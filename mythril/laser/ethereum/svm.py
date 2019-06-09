@@ -13,7 +13,10 @@ from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
-from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from mythril.laser.ethereum.strategy.basic import (
+    BasicSearchStrategy,
+    DepthFirstSearchStrategy,
+)
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
@@ -101,6 +104,9 @@ class LaserEVM:
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
+
+    def extend_strategy(self, strategy: BasicSearchStrategy) -> None:
+        self.strategy = strategy(self.strategy)
 
     def sym_exec(
         self,

@@ -16,7 +16,6 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
-from mythril.laser.ethereum.strategy.custom import BFSBoundedLoopsStrategy
 from mythril.laser.smt import symbol_factory, BitVec
 from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
