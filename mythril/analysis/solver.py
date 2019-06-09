@@ -2,7 +2,7 @@
 from z3 import sat, unknown, FuncInterp
 import z3
 
-from mythril.laser.smt import simplify, UGE, Optimize, symbol_factory
+from mythril.laser.smt import UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
@@ -11,6 +11,8 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 import logging
 
 log = logging.getLogger(__name__)
+
+z3.set_param('parallel.enable', True)
 
 
 def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
@@ -23,7 +25,7 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     :return:
     """
     s = Optimize()
-    timeout = 100000
+    timeout = 10000
     if enforce_execution_time:
         timeout = min(timeout, time_handler.time_remaining() - 500)
         if timeout <= 0:
