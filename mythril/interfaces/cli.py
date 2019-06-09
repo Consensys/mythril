@@ -429,7 +429,6 @@ def execute_command(
         max_depth=args.max_depth,
         execution_timeout=args.execution_timeout,
         loop_bound=args.loop_bound,
-        execution_timeout=timeout,
         create_timeout=args.create_timeout,
         enable_iprof=args.enable_iprof,
         onchain_storage_access=not args.no_onchain_storage_access,
