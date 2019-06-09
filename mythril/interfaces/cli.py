@@ -197,12 +197,18 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         default=50,
         help="Maximum recursion depth for symbolic execution",
     )
-
     options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",
         help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "-b",
+        "--loop-bound",
+        type=int,
+        default=4,
+        help="Bound loops at n iterations",
     )
     options.add_argument(
         "-t",

@@ -7,7 +7,6 @@ from copy import copy
 import logging
 
 
-JUMPDEST_LIMIT = 4
 log = logging.getLogger(__name__)
 
 
@@ -28,8 +27,10 @@ class BFSBoundedLoopsStrategy(BasicSearchStrategy):
     Ignores JUMPI instruction if the destination was targeted >JUMPDEST_LIMIT times.
     """
 
-    def __init__(self, super_strategy: BasicSearchStrategy):
+    def __init__(self, super_strategy: BasicSearchStrategy, loop_bound: int):
         self.super_strategy = super_strategy
+        self.jumpdest_limit = loop_bound
+
         BasicSearchStrategy.__init__(
             self, super_strategy.work_list, super_strategy.max_depth
         )
@@ -65,7 +66,7 @@ class BFSBoundedLoopsStrategy(BasicSearchStrategy):
             except KeyError:
                 annotation._jumpdest_count[target] = 1
 
-            if annotation._jumpdest_count[target] > JUMPDEST_LIMIT:
+            if annotation._jumpdest_count[target] > self.jumpdest_limit:
                 log.debug("JUMPDEST limit reached, skipping JUMPI")
                 continue
 
