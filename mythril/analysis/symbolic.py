@@ -16,7 +16,9 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
-from mythril.laser.ethereum.strategy.custom import BFSBoundedLoopsStrategy
+from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
+    BoundedLoopsStrategy,
+)
 from mythril.laser.smt import symbol_factory, BitVec
 from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
@@ -38,6 +40,7 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
+        loop_bound=4,
         create_timeout=None,
         transaction_count=2,
         modules=(),
@@ -70,8 +73,6 @@ class SymExecWrapper:
             s_strategy = ReturnRandomNaivelyStrategy
         elif strategy == "weighted-random":
             s_strategy = ReturnWeightedRandomStrategy
-        elif strategy == "bfs-bounded":
-            s_strategy = BFSBoundedLoopsStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
 
@@ -89,6 +90,9 @@ class SymExecWrapper:
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
         )
+
+        if loop_bound is not None:
+            self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
 
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
