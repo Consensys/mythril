@@ -15,6 +15,7 @@ import coloredlogs
 import traceback
 
 import mythril.support.signatures as sigs
+from mythril.support import dynamic_timeout
 from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -225,6 +226,11 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         help="The amount of seconds to spend on symbolic execution",
     )
     options.add_argument(
+        "--dynamic-timeout",
+        choices=["fast", "deep"],
+        help="Choose timeout dynamically for fast or extensive analysis",
+    )
+    options.add_argument(
         "--create-timeout",
         type=int,
         default=10,
@@ -408,6 +414,14 @@ def execute_command(
         print(storage)
         return
 
+    if args.dynamic_timeout:
+        timeout = dynamic_timeout.get_timeout(
+            len(disassembler.contracts[0].creation_code), args.dynamic_timeout
+        )
+    else:
+        timeout = args.execution_timeout
+        log.debug("Set dynamic execution timeout: {}".format(timeout))
+
     analyzer = MythrilAnalyzer(
         strategy=args.strategy,
         disassembler=disassembler,
@@ -415,6 +429,7 @@ def execute_command(
         max_depth=args.max_depth,
         execution_timeout=args.execution_timeout,
         loop_bound=args.loop_bound,
+        execution_timeout=timeout,
         create_timeout=args.create_timeout,
         enable_iprof=args.enable_iprof,
         onchain_storage_access=not args.no_onchain_storage_access,
