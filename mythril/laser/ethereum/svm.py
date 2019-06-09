@@ -105,8 +105,8 @@ class LaserEVM:
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
-    def extend_strategy(self, strategy: BasicSearchStrategy) -> None:
-        self.strategy = strategy(self.strategy)
+    def extend_strategy(self, extension: BasicSearchStrategy, *args) -> None:
+        self.strategy = extension(self.strategy, args)
 
     def sym_exec(
         self,

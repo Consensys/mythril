@@ -22,14 +22,22 @@ class JumpdestCountAnnotation(StateAnnotation):
         return result
 
 
-class BFSBoundedLoopsStrategy(BasicSearchStrategy):
+class BoundedLoopsStrategy(BasicSearchStrategy):
     """Adds loop pruning to the search strategy.
     Ignores JUMPI instruction if the destination was targeted >JUMPDEST_LIMIT times.
     """
 
-    def __init__(self, super_strategy: BasicSearchStrategy, loop_bound: int):
+    def __init__(self, super_strategy: BasicSearchStrategy, *args) -> None:
+        """"""
+
         self.super_strategy = super_strategy
-        self.jumpdest_limit = loop_bound
+        self.jumpdest_limit = args[0][0]
+
+        log.info(
+            "Loaded search strategy extension: Loop bounds (limit = {})".format(
+                self.jumpdest_limit
+            )
+        )
 
         BasicSearchStrategy.__init__(
             self, super_strategy.work_list, super_strategy.max_depth
