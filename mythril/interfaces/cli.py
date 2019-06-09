@@ -411,9 +411,9 @@ def execute_command(
         timeout = dynamic_timeout.get_timeout(
             len(disassembler.contracts[0].creation_code), args.dynamic_timeout
         )
+        log.info("Execution timeout set dynamically: {}s".format(timeout))
     else:
         timeout = args.execution_timeout
-        log.debug("Set dynamic execution timeout: {}".format(timeout))
 
     analyzer = MythrilAnalyzer(
         strategy=args.strategy,
