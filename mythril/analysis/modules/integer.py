@@ -31,9 +31,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# DISABLE_EFFECT_CHECK = False
-
-
 class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
 
@@ -82,11 +79,13 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         """
         Cache addresses for which overflows already have been detected.
-        Those don't have to be checked again.
         """
 
         self._overflow_cache = {}  # type: Dict[int, bool]
 
+        """
+        Cache satisfiability of overflow constraints
+        """
         self._ostates_satisfiable = []  # type: List[GlobalState]
         self._ostates_unsatisfiable = []  # type: List[GlobalState]
 
@@ -97,6 +96,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         super().reset_module()
         self._overflow_cache = {}
+        self._ostates_satisfiable = []
+        self._ostates_unsatisfiable = []
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
@@ -306,10 +307,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if len(state_annotations) == 0:
             return
 
-        log.info(
-            "_handle_transaction_end: " + state.get_current_instruction()["opcode"]
-        )
-
         annotations = state_annotations[0].overflowing_state_annotations
 
         for annotation in annotations:
@@ -317,11 +314,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
 
             if ostate in self._ostates_unsatisfiable:
-                logging.info(
-                    "Skipping ostate with address {}".format(
-                        ostate.get_current_instruction()["address"]
-                    )
-                )
                 continue
 
             if ostate not in self._ostates_satisfiable:
@@ -329,27 +321,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                     constraints = ostate.mstate.constraints + [annotation.constraint]
                     solver.get_model(constraints)
                     self._ostates_satisfiable.append(ostate)
-                    log.info(
-                        "{} overflow at {} sat".format(
-                            ostate.get_current_instruction()["opcode"],
-                            ostate.get_current_instruction()["address"],
-                        )
-                    )
                 except:
-                    log.info(
-                        "{} overflow at {} unsat".format(
-                            ostate.get_current_instruction()["opcode"],
-                            ostate.get_current_instruction()["address"],
-                        )
-                    )
                     self._ostates_unsatisfiable.append(ostate)
                     continue
 
-            log.info(
-                "Checking overflow in {} at {}, ostate address {}".format(
+            log.debug(
+                "Checking overflow in {} at transaction end address {}, ostate address {}".format(
                     state.get_current_instruction()["opcode"],
                     state.get_current_instruction()["address"],
-                    ostate.get_current_instruction()["opcode"],
+                    ostate.get_current_instruction()["address"],
                 )
             )
 
@@ -382,16 +362,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             address = _get_address_from_state(ostate)
             self._overflow_cache[address] = True
             self._issues.append(issue)
-
-    @staticmethod
-    def _try_constraints(constraints, new_constraints):
-        """ Tries new constraints
-        :return Model if satisfiable otherwise None
-        """
-        try:
-            return solver.get_model(constraints + new_constraints)
-        except UnsatError:
-            return None
 
 
 detector = IntegerOverflowUnderflowModule()
