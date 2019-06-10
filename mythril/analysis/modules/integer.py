@@ -98,6 +98,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         super().reset_module()
         self._overflow_cache = {}
+        self._ostates_satisfiable = []
+        self._ostates_unsatisfiable = []
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
