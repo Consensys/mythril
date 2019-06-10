@@ -31,6 +31,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
 
