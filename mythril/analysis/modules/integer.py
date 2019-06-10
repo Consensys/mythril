@@ -87,6 +87,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         Cache satisfiability of overflow constraints
         """
+
         self._ostates_satisfiable = []  # type: List[GlobalState]
         self._ostates_unsatisfiable = []  # type: List[GlobalState]
 
