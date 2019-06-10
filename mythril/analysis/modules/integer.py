@@ -31,8 +31,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-DISABLE_EFFECT_CHECK = False
-
 
 class OverUnderflowAnnotation:
     """ Symbol Annotation used if a BitVector can overflow"""
@@ -80,7 +78,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
 
+        """
+        Cache addresses for which overflows already have been detected.
+        """
+
         self._overflow_cache = {}  # type: Dict[int, bool]
+
+        """
+        Cache satisfiability of overflow constraints
+        """
+
+        self._ostates_satisfiable = []  # type: List[GlobalState]
+        self._ostates_unsatisfiable = []  # type: List[GlobalState]
 
     def reset_module(self):
         """
@@ -98,6 +107,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
 
         address = _get_address_from_state(state)
+
         if self._overflow_cache.get(address, False):
             return
 
@@ -303,18 +313,33 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             ostate = annotation.overflowing_state
 
-            try:
-                # This check can be disabled if the constraints are to difficult for z3 to solve
-                # within any reasonable time.
-                if DISABLE_EFFECT_CHECK:
+            if ostate in self._ostates_unsatisfiable:
+                continue
+
+            if ostate not in self._ostates_satisfiable:
+                try:
                     constraints = ostate.mstate.constraints + [annotation.constraint]
-                else:
-                    constraints = state.mstate.constraints + [annotation.constraint]
+                    solver.get_model(constraints)
+                    self._ostates_satisfiable.append(ostate)
+                except:
+                    self._ostates_unsatisfiable.append(ostate)
+                    continue
+
+            log.debug(
+                "Checking overflow in {} at transaction end address {}, ostate address {}".format(
+                    state.get_current_instruction()["opcode"],
+                    state.get_current_instruction()["address"],
+                    ostate.get_current_instruction()["address"],
+                )
+            )
+
+            try:
+
+                constraints = state.mstate.constraints + [annotation.constraint]
 
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )
-
             except UnsatError:
                 continue
 
@@ -337,16 +362,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             address = _get_address_from_state(ostate)
             self._overflow_cache[address] = True
             self._issues.append(issue)
-
-    @staticmethod
-    def _try_constraints(constraints, new_constraints):
-        """ Tries new constraints
-        :return Model if satisfiable otherwise None
-        """
-        try:
-            return solver.get_model(constraints + new_constraints)
-        except UnsatError:
-            return None
 
 
 detector = IntegerOverflowUnderflowModule()
