@@ -31,7 +31,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-DISABLE_EFFECT_CHECK = False
+# DISABLE_EFFECT_CHECK = False
 
 
 class OverUnderflowAnnotation:
@@ -80,7 +80,15 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
 
+        """
+        Cache addresses for which overflows already have been detected.
+        Those don't have to be checked again.
+        """
+
         self._overflow_cache = {}  # type: Dict[int, bool]
+
+        self._ostates_satisfiable = []  # type: List[GlobalState]
+        self._ostates_unsatisfiable = []  # type: List[GlobalState]
 
     def reset_module(self):
         """
@@ -98,7 +106,10 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
 
         address = _get_address_from_state(state)
-        if self._overflow_cache.get(address, False):
+
+        if (
+            self._overflow_cache.get(address, False)
+        ):
             return
 
         opcode = state.get_current_instruction()["opcode"]
@@ -307,25 +318,46 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             ostate = annotation.overflowing_state
 
-            try:
-                # This check can be disabled if the constraints are to difficult for z3 to solve
-                # within any reasonable time.
-                if DISABLE_EFFECT_CHECK:
-                    constraints = ostate.mstate.constraints + [annotation.constraint]
-                else:
-                    constraints = state.mstate.constraints + [annotation.constraint]
+            if ostate in self._ostates_unsatisfiable:
+                logging.info("Skipping ostate with address {}".format(ostate.get_current_instruction()["address"]))
+                continue
 
-                log.info(
-                    "Checking {} overflow at: {}".format(
-                        ostate.get_current_instruction()["opcode"],
-                        ostate.get_current_instruction()["address"],
+            if ostate not in self._ostates_satisfiable:
+                try:
+                    constraints = ostate.mstate.constraints + [annotation.constraint]
+                    solver.get_model(constraints)
+                    self._ostates_satisfiable.append(ostate)
+                    log.info(
+                        "{} overflow at {} sat".format(
+                            ostate.get_current_instruction()["opcode"],
+                            ostate.get_current_instruction()["address"],
+                        )
                     )
+                except:
+                    log.info(
+                        "{} overflow at {} unsat".format(
+                            ostate.get_current_instruction()["opcode"],
+                            ostate.get_current_instruction()["address"],
+                        )
+                    )
+                    self._ostates_unsatisfiable.append(ostate)
+                    continue
+
+            log.info(
+                "Checking overflow in {} at {}, ostate address {}".format(
+                    state.get_current_instruction()["opcode"],
+                    state.get_current_instruction()["address"],
+                    ostate.get_current_instruction()["opcode"],
                 )
+            )
+
+            try:
+
+                constraints = state.mstate.constraints + [annotation.constraint]
 
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )
-
             except UnsatError:
                 continue
 

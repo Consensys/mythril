@@ -12,7 +12,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-z3.set_param('parallel.enable', True)
+z3.set_param("parallel.enable", True)
 
 
 def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
