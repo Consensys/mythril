@@ -107,9 +107,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         address = _get_address_from_state(state)
 
-        if (
-            self._overflow_cache.get(address, False)
-        ):
+        if self._overflow_cache.get(address, False):
             return
 
         opcode = state.get_current_instruction()["opcode"]
@@ -319,7 +317,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             ostate = annotation.overflowing_state
 
             if ostate in self._ostates_unsatisfiable:
-                logging.info("Skipping ostate with address {}".format(ostate.get_current_instruction()["address"]))
+                logging.info(
+                    "Skipping ostate with address {}".format(
+                        ostate.get_current_instruction()["address"]
+                    )
+                )
                 continue
 
             if ostate not in self._ostates_satisfiable:
