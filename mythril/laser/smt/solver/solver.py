@@ -18,7 +18,7 @@ class BaseSolver(Generic[T]):
         self.raw = raw
 
     def set_timeout(self, timeout: int) -> None:
-        """Sets the timeout that will be used by this solver, timeout is in
+        """Sets the timeout that will be used by this solver, timeout is inz
         milliseconds.
 
         :param timeout:
