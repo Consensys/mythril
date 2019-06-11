@@ -10,7 +10,7 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
-from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
+from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -271,7 +271,12 @@ class LaserEVM:
             self._add_world_state(global_state)
             return [], None
 
-        self._execute_pre_hook(op_code, global_state)
+        try:
+            self._execute_pre_hook(op_code, global_state)
+        except PluginSkipState:
+            self._add_world_state(global_state)
+            return [], None
+
         try:
             new_global_states = Instruction(
                 op_code, self.dynamic_loader, self.iprof

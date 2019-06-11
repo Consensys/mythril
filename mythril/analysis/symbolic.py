@@ -96,6 +96,7 @@ class SymExecWrapper:
 
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
+        plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
 
         if run_analysis_modules:

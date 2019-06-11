@@ -15,3 +15,13 @@ class PluginSkipWorldState(PluginSignal):
     """
 
     pass
+
+
+class PluginSkipState(PluginSignal):
+    """ Plugin to skip world state
+
+    Plugins that raise this signal while the add_world_state hook is being executed
+    will force laser to abandon that world state.
+    """
+
+    pass
