@@ -63,7 +63,6 @@ class DependencyPruner(LaserPlugin):
         """Creates DependencyPruner"""
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List]
-        self.jumpdests_seen = []  # type: int
 
     def _reset(self):
         """TODO: Reset this plugin"""
@@ -92,16 +91,7 @@ class DependencyPruner(LaserPlugin):
                 return
 
             if address not in self.dependency_map:
-                if address in self.jumpdests_seen:
-                    logging.info("Skipping known path with no state dependencies")
-                    raise PluginSkipState
-                else:
-                    self.jumpdests_seen.append(address)
-                    logging.info("New basic block discovered: {}".format(address))
-                    # This is a new path
-                    return
-
-            self.jumpdests_seen.append(address)
+                return
 
             if not set(annotation.storage_written).intersection(
                 set(self.dependency_map[address])
@@ -118,7 +108,9 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.pre_hook("SSTORE")
         def mutator_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-            annotation.storage_written.append(state.mstate.stack[-1])
+
+            logging.info("SSTORE: Write storage {}".format(state.mstate.stack[-1]))
+
             annotation.storage_written = list(
                 set(annotation.storage_written + [state.mstate.stack[-1]])
             )
