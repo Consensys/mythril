@@ -48,7 +48,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         :return:
         """
 
-        while 1:
+        while True:
 
             state = self.super_strategy.get_strategic_global_state()
             opcode = state.get_current_instruction()["opcode"]
