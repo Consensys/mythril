@@ -48,7 +48,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = []  # type: List[OverUnderflowAnnotation]
-        self.ostates_seen = []  # type: List[GlobalState]
+        self.ostates_seen = set()  # type: List[GlobalState]
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
@@ -79,7 +79,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         )
 
         """
-        Cache addresses for which overflows already have been detected.
+        Cache addresses for which overflows or underflows already have been detected.
         """
 
         self._overflow_cache = {}  # type: Dict[int, bool]
@@ -88,8 +88,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         Cache satisfiability of overflow constraints
         """
 
-        self._ostates_satisfiable = []  # type: List[GlobalState]
-        self._ostates_unsatisfiable = []  # type: List[GlobalState]
+        self._ostates_satisfiable = set()
+        self._ostates_unsatisfiable = set()
 
     def reset_module(self):
         """
@@ -98,8 +98,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         super().reset_module()
         self._overflow_cache = {}
-        self._ostates_satisfiable = []
-        self._ostates_unsatisfiable = []
+        self._ostates_satisfiable = set()
+        self._ostates_unsatisfiable = set()
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
@@ -222,16 +222,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if not isinstance(value, Expression):
             return
 
-        state_annotations = cast(
-            List[OverUnderflowStateAnnotation],
-            list(state.get_annotations(OverUnderflowStateAnnotation)),
-        )
-
-        if len(state_annotations) == 0:
-            state_annotation = OverUnderflowStateAnnotation()
-            state.annotate(state_annotation)
-        else:
-            state_annotation = state_annotations[0]
+        state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
             if (
@@ -241,7 +232,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             state_annotation.overflowing_state_annotations.append(annotation)
-            state_annotation.ostates_seen.append(annotation.overflowing_state)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
     @staticmethod
     def _handle_jumpi(state):
@@ -249,16 +240,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         stack = state.mstate.stack
         value = stack[-2]
 
-        state_annotations = cast(
-            List[OverUnderflowStateAnnotation],
-            list(state.get_annotations(OverUnderflowStateAnnotation)),
-        )
-
-        if len(state_annotations) == 0:
-            state_annotation = OverUnderflowStateAnnotation()
-            state.annotate(state_annotation)
-        else:
-            state_annotation = state_annotations[0]
+        state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
             if (
@@ -268,7 +250,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             state_annotation.overflowing_state_annotations.append(annotation)
-            state_annotation.ostates_seen.append(annotation.overflowing_state)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
     @staticmethod
     def _handle_return(state: GlobalState) -> None:
@@ -277,41 +259,32 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         locations in the memory returned by RETURN opcode.
         :param state: The Global State
         """
+
         stack = state.mstate.stack
         try:
             offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
         except TypeError:
             return
 
-        """ TODO: Rewrite this
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
         for element in state.mstate.memory[offset : offset + length]:
+
             if not isinstance(element, Expression):
                 continue
+
             for annotation in element.annotations:
-                if isinstance(annotation, OverUnderflowAnnotation):
-                    
-                    state.annotate(
-                        OverUnderflowStateAnnotation(
-                            annotation.overflowing_state,
-                            annotation.operator,
-                            annotation.constraint,
-                        )
-                    )
-        """
+                if (
+                    isinstance(annotation, OverUnderflowAnnotation)
+                    and annotation not in state_annotation.overflowing_state_annotations
+                ):
+                    state_annotation.overflowing_state_annotations.append(annotation)
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
 
-        state_annotations = cast(
-            List[OverUnderflowStateAnnotation],
-            list(state.get_annotations(OverUnderflowStateAnnotation)),
-        )
+        state_annotation = _get_overflowunderflow_state_annotation(state)
 
-        if len(state_annotations) == 0:
-            return
-
-        annotations = state_annotations[0].overflowing_state_annotations
-
-        for annotation in annotations:
+        for annotation in state_annotation.overflowing_state_annotations:
 
             ostate = annotation.overflowing_state
 
@@ -322,9 +295,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 try:
                     constraints = ostate.mstate.constraints + [annotation.constraint]
                     solver.get_model(constraints)
-                    self._ostates_satisfiable.append(ostate)
+                    self._ostates_satisfiable.add(ostate)
                 except:
-                    self._ostates_unsatisfiable.append(ostate)
+                    self._ostates_unsatisfiable.add(ostate)
                     continue
 
             log.debug(
@@ -371,3 +344,19 @@ detector = IntegerOverflowUnderflowModule()
 
 def _get_address_from_state(state):
     return state.get_current_instruction()["address"]
+
+
+def _get_overflowunderflow_state_annotation(
+    state: GlobalState
+) -> OverUnderflowStateAnnotation:
+    state_annotations = cast(
+        List[OverUnderflowStateAnnotation],
+        list(state.get_annotations(OverUnderflowStateAnnotation)),
+    )
+
+    if len(state_annotations) == 0:
+        state_annotation = OverUnderflowStateAnnotation()
+        state.annotate(state_annotation)
+        return state_annotation
+    else:
+        return state_annotations[0]
