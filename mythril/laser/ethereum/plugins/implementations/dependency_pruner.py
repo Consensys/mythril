@@ -159,7 +159,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
             state.world_state.annotate(annotation)
 
-            log.info(
+            log.debug(
                 "Adding new world state {} with dependency map:\n{}\nStorage indices written: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
