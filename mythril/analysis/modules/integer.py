@@ -4,7 +4,7 @@ underflows."""
 import json
 
 from math import log2, ceil
-from typing import cast, List, Dict
+from typing import cast, List, Dict, Set
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -48,7 +48,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = []  # type: List[OverUnderflowAnnotation]
-        self.ostates_seen = set()  # type: List[GlobalState]
+        self.ostates_seen = set()  # type: Set[GlobalState]
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
@@ -88,8 +88,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         Cache satisfiability of overflow constraints
         """
 
-        self._ostates_satisfiable = set()
-        self._ostates_unsatisfiable = set()
+        self._ostates_satisfiable = set()  # type: Set[GlobalState]
+        self._ostates_unsatisfiable = set()  # type: Set[GlobalState]
 
     def reset_module(self):
         """
