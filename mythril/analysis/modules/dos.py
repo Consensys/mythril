@@ -44,8 +44,8 @@ class DOS(DetectionModule):
         self._jumpdest_count = {}  # type: Dict[object, dict]
 
     def _execute(self, state: GlobalState) -> None:
-        """
 
+        """
         :param state:
         :return:
         """

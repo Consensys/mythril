@@ -67,7 +67,10 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             else:
                 annotation = annotations[0]
 
-            target = int(util.get_concrete_int(state.mstate.stack[-1]))
+            try:
+                target = util.get_concrete_int(state.mstate.stack[-1])
+            except TypeError:
+                return state
 
             try:
                 annotation._jumpdest_count[target] += 1
