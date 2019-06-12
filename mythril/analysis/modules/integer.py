@@ -48,7 +48,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = []  # type: List[OverUnderflowAnnotation]
-        self.ostates_seen = set()  # type: List[GlobalState]
+        self.ostates_seen = set()  # type: set(GlobalState)
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
@@ -88,8 +88,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         Cache satisfiability of overflow constraints
         """
 
-        self._ostates_satisfiable = set()
-        self._ostates_unsatisfiable = set()
+        self._ostates_satisfiable = set()  # type: set(GlobalState)
+        self._ostates_unsatisfiable = set()  # type: set(GlobalState)
 
     def reset_module(self):
         """
