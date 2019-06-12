@@ -22,7 +22,7 @@ class DependencyAnnotation(StateAnnotation):
     def __init__(self):
         self.storage_loaded = []  # type: List
         self.storage_written = []  # type: List
-        self.path = []  # type: List[int]
+        self.path = []  # type: List
 
     def __copy__(self):
         result = DependencyAnnotation()
@@ -59,8 +59,7 @@ class DependencyPruner(LaserPlugin):
     """Dependency Pruner Plugin
         For every basic block, this plugin keeps a list of storage locations that
         are accessed (read) in the subtree starting from that block. This map is built up over
-        the whole symbolic execution run (i.e. new dependencies are added as they are
-        discovered during later transactions).
+        the whole symbolic execution run.
         """
 
     def __init__(self):
@@ -70,7 +69,7 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List]
-        pass
+        self.addresses_seen = []
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the DependencyPruner
@@ -99,14 +98,24 @@ class DependencyPruner(LaserPlugin):
             if self.iteration < 2:
                 return
 
-            if address not in self.dependency_map:
+            if address not in self.addresses_seen:
+                log.info("New block discovered: {}".format(address))
+                self.addresses_seen.append(address)
+                # Jump destination was newly discovered in this transaction.
                 return
+
+            if address not in self.dependency_map:
+                # A known path without read dependencies is not interesting.
+                log.info(
+                    "Skipping path without dependencies starting at: {}".format(address)
+                )
+                raise PluginSkipState
 
             if not set(annotation.storage_written).intersection(
                 set(self.dependency_map[address])
             ):
 
-                log.debug(
+                log.info(
                     "Skipping state: Storage written: {} not in storage loaded: {}".format(
                         annotation.storage_written, self.dependency_map[address]
                     )
@@ -163,10 +172,11 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
             state.world_state.annotate(annotation)
 
-            log.debug(
-                "Add World State {}\nDependency map: {}\nStorage indices written: {}".format(
+            log.info(
+                "Add World State {}\nDependency map: {}\nStorage indices written: {}\nAddresses seen: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
                     annotation.storage_written,
+                    list(self.addresses_seen),
                 )
             )
