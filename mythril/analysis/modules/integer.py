@@ -48,7 +48,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = []  # type: List[OverUnderflowAnnotation]
-        self.ostates_seen = []  # type: List[GlobalState]
+        self.ostates_seen = set()  # type: List[GlobalState]
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
@@ -88,8 +88,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         Cache satisfiability of overflow constraints
         """
 
-        self._ostates_satisfiable = []  # type: List[GlobalState]
-        self._ostates_unsatisfiable = []  # type: List[GlobalState]
+        self._ostates_satisfiable = set()
+        self._ostates_unsatisfiable = set()
 
     def reset_module(self):
         """
@@ -98,8 +98,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         super().reset_module()
         self._overflow_cache = {}
-        self._ostates_satisfiable = []
-        self._ostates_unsatisfiable = []
+        self._ostates_satisfiable = set()
+        self._ostates_unsatisfiable = set()
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
@@ -232,7 +232,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             state_annotation.overflowing_state_annotations.append(annotation)
-            state_annotation.ostates_seen.append(annotation.overflowing_state)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
     @staticmethod
     def _handle_jumpi(state):
@@ -250,7 +250,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             state_annotation.overflowing_state_annotations.append(annotation)
-            state_annotation.ostates_seen.append(annotation.overflowing_state)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
     @staticmethod
     def _handle_return(state: GlobalState) -> None:
@@ -258,7 +258,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         Adds all the annotations into the state which correspond to the
         locations in the memory returned by RETURN opcode.
         :param state: The Global State
-
+        """
 
         stack = state.mstate.stack
         try:
@@ -274,10 +274,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             for annotation in element.annotations:
-                if isinstance(annotation, OverUnderflowAnnotation):
+                if (
+                    isinstance(annotation, OverUnderflowAnnotation)
+                    and annotation not in state_annotation.overflowing_state_annotations
+                ):
                     state_annotation.overflowing_state_annotations.append(annotation)
-
-        """
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
 
@@ -294,9 +295,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 try:
                     constraints = ostate.mstate.constraints + [annotation.constraint]
                     solver.get_model(constraints)
-                    self._ostates_satisfiable.append(ostate)
+                    self._ostates_satisfiable.add(ostate)
                 except:
-                    self._ostates_unsatisfiable.append(ostate)
+                    self._ostates_unsatisfiable.add(ostate)
                     continue
 
             log.debug(
