@@ -6,7 +6,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-from typing import cast, List
+from typing import cast, List, Set
 from copy import copy
 import logging
 
@@ -20,8 +20,9 @@ class DependencyAnnotation(StateAnnotation):
     """
 
     def __init__(self):
-        self.storage_loaded = []  # type: List
-        self.storage_written = []  # type: List
+        self.storage_loaded = set()  # type: Set
+        self.storage_written = set()  # type: Set
+
         self.path = []  # type: List[int]
 
     def __copy__(self):
@@ -61,12 +62,18 @@ class DependencyPruner(LaserPlugin):
 
     def __init__(self):
         """Creates DependencyPruner"""
-        self.iteration = 0
+
+        """
+        For every basic block, the dependency map keeps a list of storage locations that 
+        might be read from any path starting from that block. This map is built up over
+        the whole symbolic execution run (i.e. new dependencies are added if they are 
+        discovered during later transactions).
+        """
+
         self.dependency_map = {}  # type: Dict[int, List]
 
     def _reset(self):
-        """TODO: Reset this plugin"""
-        pass
+        self.dependency_map = {}
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the DependencyPruner
@@ -75,11 +82,6 @@ class DependencyPruner(LaserPlugin):
         """
         self._reset()
 
-        @symbolic_vm.laser_hook("start_sym_trans")
-        def start_sym_trans_hook():
-            self.iteration += 1
-            logging.info("Starting iteration {}".format(self.iteration))
-
         @symbolic_vm.pre_hook("JUMPDEST")
         def mutator_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
@@ -87,51 +89,40 @@ class DependencyPruner(LaserPlugin):
 
             annotation.path.append(state.get_current_instruction()["address"])
 
-            if self.iteration < 2:
-                return
-
             if address not in self.dependency_map:
+                # Blocks that don't have a dependency map yet are always executed.
                 return
 
-            if not set(annotation.storage_written).intersection(
+            """
+            This is where the actual pruning happens. If none of the storage locations previously written to 
+            is accessed in any node following the current node we skip the state.
+            """
+
+            if not annotation.storage_written.intersection(
                 set(self.dependency_map[address])
             ):
 
-                logging.info(
-                    "Storage written: {} not in storage loaded: {}".format(
+                logging.debug(
+                    "Skipping state: Storage written: {} not in storage loaded: {}".format(
                         annotation.storage_written, self.dependency_map[address]
                     )
                 )
-                logging.info("Skipping state")
                 raise PluginSkipState
 
         @symbolic_vm.pre_hook("SSTORE")
         def mutator_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-
-            logging.info("SSTORE: Write storage {}".format(state.mstate.stack[-1]))
-
-            annotation.storage_written = list(
-                set(annotation.storage_written + [state.mstate.stack[-1]])
-            )
+            annotation.storage_written.add(state.mstate.stack[-1])
 
         @symbolic_vm.pre_hook("SLOAD")
         def mutator_hook(state: GlobalState):
 
             annotation = get_dependency_annotation(state)
-
-            logging.info("SLOAD: Read storage {}".format(state.mstate.stack[-1]))
-            annotation.storage_loaded.append(state.mstate.stack[-1])
+            annotation.storage_loaded.add(state.mstate.stack[-1])
 
         @symbolic_vm.pre_hook("STOP")
         def mutator_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-
-            logging.info(
-                "STOP reach in function {}".format(
-                    state.environment.active_function_name
-                )
-            )
 
             for index in annotation.storage_loaded:
 
@@ -147,12 +138,6 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.pre_hook("RETURN")
         def mutator_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-
-            logging.info(
-                "RETURN reach in function {}".format(
-                    state.environment.active_function_name
-                )
-            )
 
             for index in annotation.storage_loaded:
 
@@ -175,7 +160,7 @@ class DependencyPruner(LaserPlugin):
             state.world_state.annotate(annotation)
 
             log.info(
-                "Add World State {}\nDependency map: {}\nStorage indices written: {}".format(
+                "Adding new world state {} with dependency map:\n{}\nStorage indices written: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
                     annotation.storage_written,
