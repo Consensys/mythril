@@ -79,7 +79,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         )
 
         """
-        Cache addresses for which overflows already have been detected.
+        Cache addresses for which overflows or underflows already have been detected.
         """
 
         self._overflow_cache = {}  # type: Dict[int, bool]
