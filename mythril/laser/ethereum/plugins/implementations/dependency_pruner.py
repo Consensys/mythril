@@ -69,7 +69,7 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List]
-        self.addresses_seen = []
+        self.addresses_seen = {0: set()}  # type: Dist[int, Set]
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the DependencyPruner
@@ -81,6 +81,9 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.laser_hook("start_sym_trans")
         def start_sym_trans_hook():
             self.iteration += 1
+            self.addresses_seen[self.iteration] = set(
+                self.addresses_seen[self.iteration - 1]
+            )
 
         @symbolic_vm.pre_hook("JUMPDEST")
         def mutator_hook(state: GlobalState):
@@ -98,16 +101,18 @@ class DependencyPruner(LaserPlugin):
             if self.iteration < 2:
                 return
 
-            if address not in self.addresses_seen:
-                log.info("New block discovered: {}".format(address))
-                self.addresses_seen.append(address)
-                # Jump destination was newly discovered in this transaction.
+            if address not in self.addresses_seen[self.iteration - 1]:
+                # Don't skip blocks that were encountered for the fist time in this transaction
+                # log.debug("New block discovered: {}".format(address))
+                self.addresses_seen[self.iteration].add(address)
                 return
 
             if address not in self.dependency_map:
                 # A known path without read dependencies is not interesting.
                 log.info(
-                    "Skipping path without dependencies starting at: {}".format(address)
+                    "Skipping path without dependencies in function {}".format(
+                        state.node.function_name
+                    )
                 )
                 raise PluginSkipState
 
@@ -116,8 +121,13 @@ class DependencyPruner(LaserPlugin):
             ):
 
                 log.info(
-                    "Skipping state: Storage written: {} not in storage loaded: {}".format(
-                        annotation.storage_written, self.dependency_map[address]
+                    "Skipping state: Storage slots {} not read in function {}".format(
+                        annotation.storage_written, state.node.function_name
+                    )
+                )
+                log.info(
+                    "{} has dependencies on slots {}".format(
+                        state.node.function_name, self.dependency_map[address]
                     )
                 )
                 raise PluginSkipState
@@ -172,7 +182,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
             state.world_state.annotate(annotation)
 
-            log.info(
+            log.debug(
                 "Add World State {}\nDependency map: {}\nStorage indices written: {}\nAddresses seen: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
