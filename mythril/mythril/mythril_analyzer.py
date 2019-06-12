@@ -35,6 +35,7 @@ class MythrilAnalyzer:
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
         execution_timeout: Optional[int] = None,
+        loop_bound: Optional[int] = None,
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
     ):
@@ -53,6 +54,7 @@ class MythrilAnalyzer:
         self.address = address
         self.max_depth = max_depth
         self.execution_timeout = execution_timeout
+        self.loop_bound = loop_bound
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
 
@@ -142,12 +144,14 @@ class MythrilAnalyzer:
                     ),
                     max_depth=self.max_depth,
                     execution_timeout=self.execution_timeout,
+                    loop_bound=self.loop_bound,
                     create_timeout=self.create_timeout,
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
                     enable_iprof=self.enable_iprof,
                 )
+
                 issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
