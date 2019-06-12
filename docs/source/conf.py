@@ -108,7 +108,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "MythrilClassicdoc"
+htmlhelp_basename = "Mythrildoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -134,8 +134,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "MythrilClassic.tex",
-        "Mythril Classic Documentation",
+        "Mythril.tex",
+        "Mythril Documentation",
         "Bernhard Mueller",
         "manual",
     )
@@ -147,7 +147,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, "mythrilclassic", "Mythril Classic Documentation", [author], 1)
+    (master_doc, "mythril", "Mythril Documentation", [author], 1)
 ]
 
 
@@ -159,10 +159,10 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        "MythrilClassic",
-        "Mythril Classic Documentation",
+        "Mythril",
+        "Mythril Documentation",
         author,
-        "MythrilClassic",
+        "Mythril",
         "One line description of project.",
         "Miscellaneous",
     )
