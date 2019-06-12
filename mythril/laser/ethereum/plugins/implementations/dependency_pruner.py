@@ -108,9 +108,6 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.pre_hook("SSTORE")
         def mutator_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-
-            logging.info("SSTORE: Write storage {}".format(state.mstate.stack[-1]))
-
             annotation.storage_written = list(
                 set(annotation.storage_written + [state.mstate.stack[-1]])
             )
@@ -119,40 +116,18 @@ class DependencyPruner(LaserPlugin):
         def mutator_hook(state: GlobalState):
 
             annotation = get_dependency_annotation(state)
-
-            logging.info("SLOAD: Read storage {}".format(state.mstate.stack[-1]))
             annotation.storage_loaded.append(state.mstate.stack[-1])
 
         @symbolic_vm.pre_hook("STOP")
         def mutator_hook(state: GlobalState):
-            annotation = get_dependency_annotation(state)
-
-            logging.info(
-                "STOP reach in function {}".format(
-                    state.environment.active_function_name
-                )
-            )
-
-            for index in annotation.storage_loaded:
-
-                for address in annotation.path:
-
-                    if address in self.dependency_map:
-                        self.dependency_map[address] = list(
-                            set(self.dependency_map[address] + [index])
-                        )
-                    else:
-                        self.dependency_map[address] = [index]
+            _transaction_end(state)
 
         @symbolic_vm.pre_hook("RETURN")
         def mutator_hook(state: GlobalState):
-            annotation = get_dependency_annotation(state)
+            _transaction_end(state)
 
-            logging.info(
-                "RETURN reach in function {}".format(
-                    state.environment.active_function_name
-                )
-            )
+        def _transaction_end(state: GlobalState):
+            annotation = get_dependency_annotation(state)
 
             for index in annotation.storage_loaded:
 
@@ -174,7 +149,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
             state.world_state.annotate(annotation)
 
-            log.info(
+            log.debug(
                 "Add World State {}\nDependency map: {}\nStorage indices written: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
