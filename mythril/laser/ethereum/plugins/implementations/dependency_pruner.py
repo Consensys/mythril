@@ -106,7 +106,7 @@ class DependencyPruner(LaserPlugin):
                 set(self.dependency_map[address])
             ):
 
-                log.info(
+                log.debug(
                     "Skipping state: Storage written: {} not in storage loaded: {}".format(
                         annotation.storage_written, self.dependency_map[address]
                     )
@@ -163,7 +163,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
             state.world_state.annotate(annotation)
 
-            log.info(
+            log.debug(
                 "Add World State {}\nDependency map: {}\nStorage indices written: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
