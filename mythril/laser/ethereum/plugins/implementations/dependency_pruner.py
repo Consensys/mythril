@@ -57,15 +57,19 @@ def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
 
 class DependencyPruner(LaserPlugin):
     """Dependency Pruner Plugin
-    """
+        For every basic block, this plugin keeps a list of storage locations that
+        are accessed (read) in the subtree starting from that block. This map is built up over
+        the whole symbolic execution run (i.e. new dependencies are added as they are
+        discovered during later transactions).
+        """
 
     def __init__(self):
         """Creates DependencyPruner"""
-        self.iteration = 0
-        self.dependency_map = {}  # type: Dict[int, List]
+        self._reset()
 
     def _reset(self):
-        """TODO: Reset this plugin"""
+        self.iteration = 0
+        self.dependency_map = {}  # type: Dict[int, List]
         pass
 
     def initialize(self, symbolic_vm: LaserEVM):
@@ -78,10 +82,15 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.laser_hook("start_sym_trans")
         def start_sym_trans_hook():
             self.iteration += 1
-            logging.info("Starting iteration {}".format(self.iteration))
 
         @symbolic_vm.pre_hook("JUMPDEST")
         def mutator_hook(state: GlobalState):
+            """This method is where the actual pruning happens. If none of the storage locations previously written to
+            is in the block's dependency map we skip the jump destination (pruning the path).
+
+            :param state:
+            :return:
+            """
             annotation = get_dependency_annotation(state)
             address = state.get_current_instruction()["address"]
 
@@ -97,12 +106,11 @@ class DependencyPruner(LaserPlugin):
                 set(self.dependency_map[address])
             ):
 
-                logging.info(
-                    "Storage written: {} not in storage loaded: {}".format(
+                log.info(
+                    "Skipping state: Storage written: {} not in storage loaded: {}".format(
                         annotation.storage_written, self.dependency_map[address]
                     )
                 )
-                logging.info("Skipping state")
                 raise PluginSkipState
 
         @symbolic_vm.pre_hook("SSTORE")
@@ -114,7 +122,6 @@ class DependencyPruner(LaserPlugin):
 
         @symbolic_vm.pre_hook("SLOAD")
         def mutator_hook(state: GlobalState):
-
             annotation = get_dependency_annotation(state)
             annotation.storage_loaded.append(state.mstate.stack[-1])
 
@@ -127,6 +134,13 @@ class DependencyPruner(LaserPlugin):
             _transaction_end(state)
 
         def _transaction_end(state: GlobalState):
+            """When a stop or return is reached, the storage locations read along the path are entered into
+            the dependency map for all nodes encountered in this path.
+
+            :param state:
+            :return:
+            """
+
             annotation = get_dependency_annotation(state)
 
             for index in annotation.storage_loaded:
@@ -149,7 +163,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
             state.world_state.annotate(annotation)
 
-            log.debug(
+            log.info(
                 "Add World State {}\nDependency map: {}\nStorage indices written: {}".format(
                     state.get_current_instruction()["address"],
                     self.dependency_map,
