@@ -222,16 +222,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         if not isinstance(value, Expression):
             return
 
-        state_annotations = cast(
-            List[OverUnderflowStateAnnotation],
-            list(state.get_annotations(OverUnderflowStateAnnotation)),
-        )
-
-        if len(state_annotations) == 0:
-            state_annotation = OverUnderflowStateAnnotation()
-            state.annotate(state_annotation)
-        else:
-            state_annotation = state_annotations[0]
+        state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
             if (
@@ -249,16 +240,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         stack = state.mstate.stack
         value = stack[-2]
 
-        state_annotations = cast(
-            List[OverUnderflowStateAnnotation],
-            list(state.get_annotations(OverUnderflowStateAnnotation)),
-        )
-
-        if len(state_annotations) == 0:
-            state_annotation = OverUnderflowStateAnnotation()
-            state.annotate(state_annotation)
-        else:
-            state_annotation = state_annotations[0]
+        state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
             if (
@@ -283,35 +265,21 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         except TypeError:
             return
 
-        """ TODO: Rewrite this
         for element in state.mstate.memory[offset : offset + length]:
             if not isinstance(element, Expression):
                 continue
+
+            state_annotation = _get_overflowunderflow_state_annotation(state)
+
             for annotation in element.annotations:
                 if isinstance(annotation, OverUnderflowAnnotation):
-                    
-                    state.annotate(
-                        OverUnderflowStateAnnotation(
-                            annotation.overflowing_state,
-                            annotation.operator,
-                            annotation.constraint,
-                        )
-                    )
-        """
+                    state_annotation.overflowing_state_annotations.append(annotation)
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
 
-        state_annotations = cast(
-            List[OverUnderflowStateAnnotation],
-            list(state.get_annotations(OverUnderflowStateAnnotation)),
-        )
+        state_annotation = _get_overflowunderflow_state_annotation(state)
 
-        if len(state_annotations) == 0:
-            return
-
-        annotations = state_annotations[0].overflowing_state_annotations
-
-        for annotation in annotations:
+        for annotation in state_annotation.overflowing_state_annotations:
 
             ostate = annotation.overflowing_state
 
@@ -371,3 +339,19 @@ detector = IntegerOverflowUnderflowModule()
 
 def _get_address_from_state(state):
     return state.get_current_instruction()["address"]
+
+
+def _get_overflowunderflow_state_annotation(
+    state: GlobalState
+) -> OverUnderflowStateAnnotation:
+    state_annotations = cast(
+        List[OverUnderflowStateAnnotation],
+        list(state.get_annotations(OverUnderflowStateAnnotation)),
+    )
+
+    if len(state_annotations) == 0:
+        state_annotation = OverUnderflowStateAnnotation()
+        state.annotate(state_annotation)
+        return state_annotation
+    else:
+        return state_annotations[0]
