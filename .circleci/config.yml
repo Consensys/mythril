@@ -89,10 +89,10 @@ jobs:
     working_directory: /home
     steps:
       - checkout:
-          path: /home/mythril-classic
+          path: /home/mythril
       - run:
-          name: Builds `mythril-classic`
-          command: cd mythril-classic && python3 setup.py install
+          name: Builds `mythril`
+          command: cd mythril && python3 setup.py install
       - run:
           name: Installs other MythX components
           command: |
