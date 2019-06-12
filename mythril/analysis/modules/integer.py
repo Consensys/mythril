@@ -258,22 +258,26 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         Adds all the annotations into the state which correspond to the
         locations in the memory returned by RETURN opcode.
         :param state: The Global State
-        """
+
+
         stack = state.mstate.stack
         try:
             offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
         except TypeError:
             return
 
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
         for element in state.mstate.memory[offset : offset + length]:
+
             if not isinstance(element, Expression):
                 continue
-
-            state_annotation = _get_overflowunderflow_state_annotation(state)
 
             for annotation in element.annotations:
                 if isinstance(annotation, OverUnderflowAnnotation):
                     state_annotation.overflowing_state_annotations.append(annotation)
+
+        """
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
 
