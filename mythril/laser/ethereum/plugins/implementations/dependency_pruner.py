@@ -201,7 +201,7 @@ class DependencyPruner(LaserPlugin):
 
             annotation = get_dependency_annotation(state)
             annotation.path = [0]
-            annotation.storage_loaded =[]
+            annotation.storage_loaded = []
 
             state.world_state.annotate(annotation)
 
