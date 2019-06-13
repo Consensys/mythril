@@ -3,6 +3,7 @@ from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.plugins.signals import PluginSkipState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
@@ -22,7 +23,7 @@ class DependencyAnnotation(StateAnnotation):
     def __init__(self):
         self.storage_loaded = []  # type: List
         self.storage_written = []  # type: List
-        self.path = []  # type: List
+        self.path = [0]  # type: List
 
     def __copy__(self):
         result = DependencyAnnotation()
@@ -69,7 +70,7 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List]
-        self.addresses_seen = {0: set()}  # type: Dist[int, Set]
+        self.addresses_seen = {0: {0}}  # type: Dist[int, Set]
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the DependencyPruner
@@ -85,53 +86,69 @@ class DependencyPruner(LaserPlugin):
                 self.addresses_seen[self.iteration - 1]
             )
 
-        @symbolic_vm.pre_hook("JUMPDEST")
+        @symbolic_vm.post_hook("JUMP")
         def mutator_hook(state: GlobalState):
+            _check_basic_block(state)
+
+        @symbolic_vm.post_hook("JUMPI")
+        def mutator_hook(state: GlobalState):
+            _check_basic_block(state)
+
+        def _check_basic_block(state: GlobalState):
             """This method is where the actual pruning happens. If none of the storage locations previously written to
-            is in the block's dependency map we skip the jump destination (pruning the path).
+             is in the block's dependency map we skip the jump destination (pruning the path).
 
-            :param state:
-            :return:
-            """
-            annotation = get_dependency_annotation(state)
-            address = state.get_current_instruction()["address"]
+             :param state:
+             :return:
+             """
 
-            annotation.path.append(state.get_current_instruction()["address"])
-
-            if self.iteration < 2:
+            if self.iteration == 0:
+                # Contract creation
                 return
 
+            if self.iteration == 2:
+                logging.debug("Iteration 2")
+
+            address = state.get_current_instruction()['address']
+            annotation = get_dependency_annotation(state)
+            annotation.path.append(address)
+
             if address not in self.addresses_seen[self.iteration - 1]:
-                # Don't skip blocks that were encountered for the fist time in this transaction
-                # log.debug("New block discovered: {}".format(address))
-                logging.info*
+                # Don't skip blocks that were encountered for the first time in this transaction
                 self.addresses_seen[self.iteration].add(address)
                 return
 
             if address not in self.dependency_map:
                 # A known path without read dependencies is not interesting.
                 log.info(
-                    "Skipping path without dependencies in function {}".format(
-                        state.node.function_name
+                    "Skipping path without dependencies at address {}".format(
+                        address
                     )
                 )
                 raise PluginSkipState
+
+            logging.info("Checking for intersection")
 
             if not set(annotation.storage_written).intersection(
                 set(self.dependency_map[address])
             ):
-
                 log.info(
-                    "Skipping state: Storage slots {} not read in function {}".format(
-                        annotation.storage_written, state.node.function_name
+                    "Skipping state: Storage slots {} not read in block at address {}".format(
+                        annotation.storage_written, address
                     )
                 )
                 log.info(
-                    "{} has dependencies on slots {}".format(
-                        state.node.function_name, self.dependency_map[address]
+                    "Address {} has dependencies on slots {}".format(
+                        address, self.dependency_map[address]
                     )
                 )
                 raise PluginSkipState
+
+            log.info(
+                "Adding path: Storage slots {} read in block at address {}".format(
+                    annotation.storage_written, address
+                )
+            )
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
@@ -183,13 +200,17 @@ class DependencyPruner(LaserPlugin):
                 return
 
             annotation = get_dependency_annotation(state)
+            annotation.path = [0]
+            annotation.storage_loaded =[]
+
             state.world_state.annotate(annotation)
 
-            log.debug(
-                "Add World State {}\nDependency map: {}\nStorage indices written: {}\nAddresses seen: {}".format(
+            log.info(
+                "Iteration {}: Add World State {}\nDependency map: {}\nStorage indices written: {}\nAddresses seen: {}".format(
+                    self.iteration,
                     state.get_current_instruction()["address"],
                     self.dependency_map,
                     annotation.storage_written,
-                    list(self.addresses_seen),
+                    self.addresses_seen[self.iteration],
                 )
             )

@@ -543,7 +543,10 @@ class LaserEVM:
 
         for hook in self.post_hooks[op_code]:
             for global_state in global_states:
-                hook(global_state)
+                try:
+                    hook(global_state)
+                except PluginSkipState:
+                    global_states.remove(global_state)
 
     def pre_hook(self, op_code: str) -> Callable:
         """
