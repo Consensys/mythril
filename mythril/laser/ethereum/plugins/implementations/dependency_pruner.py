@@ -33,23 +33,52 @@ class DependencyAnnotation(StateAnnotation):
         return result
 
 
+class WSDependencyAnnotation(StateAnnotation):
+    """Dependency Annotation for World state
+
+    This annotation tracks read and write access to the state.
+    """
+
+    def __init__(self):
+        self.annotations_stack = []
+
+    def __copy__(self):
+        result = WSDependencyAnnotation()
+        result.annotations_stack = copy(self.annotations_stack)
+        return result
+
+
 def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
 
     annotations = cast(
-        List[DependencyAnnotation],
-        list(state.world_state.get_annotations(DependencyAnnotation)),
+        List[DependencyAnnotation], list(state.get_annotations(DependencyAnnotation))
     )
-    if len(annotations) == 0:
-        annotations = cast(
-            List[DependencyAnnotation],
-            list(state.get_annotations(DependencyAnnotation)),
-        )
 
-        if len(annotations) == 0:
+    if len(annotations) == 0:
+
+        try:
+            world_state_annotation = get_ws_dependency_annotation(state)
+            annotation = world_state_annotation.annotations_stack.pop()
+        except IndexError:
             annotation = DependencyAnnotation()
-            state.annotate(annotation)
-        else:
-            annotation = annotations[0]
+
+        state.annotate(annotation)
+    else:
+        annotation = annotations[0]
+
+    return annotation
+
+
+def get_ws_dependency_annotation(state: GlobalState) -> WSDependencyAnnotation:
+
+    annotations = cast(
+        List[WSDependencyAnnotation],
+        list(state.world_state.get_annotations(WSDependencyAnnotation)),
+    )
+
+    if len(annotations) == 0:
+        annotation = WSDependencyAnnotation()
+        state.world_state.annotate(annotation)
     else:
         annotation = annotations[0]
 
@@ -88,13 +117,26 @@ class DependencyPruner(LaserPlugin):
 
         @symbolic_vm.post_hook("JUMP")
         def mutator_hook(state: GlobalState):
-            _check_basic_block(state)
+            address = state.get_current_instruction()["address"]
+            annotation = get_dependency_annotation(state)
+
+            _check_basic_block(address, annotation)
+
+        @symbolic_vm.pre_hook("JUMPDEST")
+        def mutator_hook(state: GlobalState):
+            address = state.get_current_instruction()["address"]
+            annotation = get_dependency_annotation(state)
+
+            _check_basic_block(address, annotation)
 
         @symbolic_vm.post_hook("JUMPI")
         def mutator_hook(state: GlobalState):
-            _check_basic_block(state)
+            address = state.get_current_instruction()["address"]
+            annotation = get_dependency_annotation(state)
 
-        def _check_basic_block(state: GlobalState):
+            _check_basic_block(address, annotation)
+
+        def _check_basic_block(address, annotation):
             """This method is where the actual pruning happens. If none of the storage locations previously written to
              is in the block's dependency map we skip the jump destination (pruning the path).
 
@@ -102,15 +144,10 @@ class DependencyPruner(LaserPlugin):
              :return:
              """
 
-            if self.iteration == 0:
+            if self.iteration < 2:
                 # Contract creation
                 return
 
-            if self.iteration == 2:
-                logging.debug("Iteration 2")
-
-            address = state.get_current_instruction()['address']
-            annotation = get_dependency_annotation(state)
             annotation.path.append(address)
 
             if address not in self.addresses_seen[self.iteration - 1]:
@@ -120,35 +157,21 @@ class DependencyPruner(LaserPlugin):
 
             if address not in self.dependency_map:
                 # A known path without read dependencies is not interesting.
-                log.info(
-                    "Skipping path without dependencies at address {}".format(
-                        address
-                    )
+                log.debug(
+                    "Skipping path without dependencies at address {}".format(address)
                 )
-                raise PluginSkipState
 
-            logging.info("Checking for intersection")
+                raise PluginSkipState
 
             if not set(annotation.storage_written).intersection(
                 set(self.dependency_map[address])
             ):
-                log.info(
+                log.debug(
                     "Skipping state: Storage slots {} not read in block at address {}".format(
                         annotation.storage_written, address
                     )
                 )
-                log.info(
-                    "Address {} has dependencies on slots {}".format(
-                        address, self.dependency_map[address]
-                    )
-                )
                 raise PluginSkipState
-
-            log.info(
-                "Adding path: Storage slots {} read in block at address {}".format(
-                    annotation.storage_written, address
-                )
-            )
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
@@ -199,13 +222,13 @@ class DependencyPruner(LaserPlugin):
             if isinstance(state.current_transaction, ContractCreationTransaction):
                 return
 
+            world_state_annotation = get_ws_dependency_annotation(state)
             annotation = get_dependency_annotation(state)
             annotation.path = [0]
             annotation.storage_loaded = []
+            world_state_annotation.annotations_stack.append(annotation)
 
-            state.world_state.annotate(annotation)
-
-            log.info(
+            log.debug(
                 "Iteration {}: Add World State {}\nDependency map: {}\nStorage indices written: {}\nAddresses seen: {}".format(
                     self.iteration,
                     state.get_current_instruction()["address"],
