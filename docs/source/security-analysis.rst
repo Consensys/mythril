@@ -1,7 +1,7 @@
 Security Analysis
 =================
 
-Run :code:`myth -x` with one of the input options described below will run the analysis modules in the `/analysis/modules <https://github.com/ConsenSys/mythril-classic/tree/master/mythril/analysis/modules>`_ directory.
+Run :code:`myth -x` with one of the input options described below will run the analysis modules in the `/analysis/modules <https://github.com/ConsenSys/mythril/tree/master/mythril/analysis/modules>`_ directory.
 
 ***********************
 Analyzing Solidity Code

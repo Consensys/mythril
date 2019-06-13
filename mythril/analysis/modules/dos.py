@@ -44,8 +44,8 @@ class DOS(DetectionModule):
         self._jumpdest_count = {}  # type: Dict[object, dict]
 
     def _execute(self, state: GlobalState) -> None:
-        """
 
+        """
         :param state:
         :return:
         """
@@ -70,7 +70,7 @@ class DOS(DetectionModule):
 
                 try:
                     self._jumpdest_count[transaction][target] += 1
-                    if self._jumpdest_count[transaction][target] == 4:
+                    if self._jumpdest_count[transaction][target] == 3:
 
                         annotation = (
                             LoopAnnotation(address, target)
