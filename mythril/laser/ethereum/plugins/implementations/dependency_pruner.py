@@ -22,7 +22,7 @@ class DependencyAnnotation(StateAnnotation):
 
     def __init__(self):
         self.storage_loaded = []  # type: List
-        self.storage_written = []  # type: List
+        self.storage_written = {}  # type: Dict[int, List]
         self.path = [0]  # type: List
 
     def __copy__(self):
@@ -31,6 +31,20 @@ class DependencyAnnotation(StateAnnotation):
         result.storage_written = copy(self.storage_written)
         result.path = copy(self.path)
         return result
+
+    def get_storage_write_cache(self, iteration):
+        if iteration not in self.storage_written:
+            self.storage_written[iteration] = []
+
+        return self.storage_written[iteration]
+
+    def extend_storage_write_cache(self, iteration, value):
+        if iteration not in self.storage_written:
+            self.storage_written[iteration] = [value]
+        else:
+            self.storage_written[iteration] = list(
+                set(self.storage_written[iteration] + [value])
+            )
 
 
 class WSDependencyAnnotation(StateAnnotation):
@@ -99,7 +113,6 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List]
-        self.addresses_seen = {0: {0}}  # type: Dist[int, Set]
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the DependencyPruner
@@ -111,9 +124,6 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.laser_hook("start_sym_trans")
         def start_sym_trans_hook():
             self.iteration += 1
-            self.addresses_seen[self.iteration] = set(
-                self.addresses_seen[self.iteration - 1]
-            )
 
         @symbolic_vm.post_hook("JUMP")
         def mutator_hook(state: GlobalState):
@@ -145,30 +155,20 @@ class DependencyPruner(LaserPlugin):
              """
 
             if self.iteration < 2:
-                # Contract creation
+                # Contract creation and build initial dependency map
                 return
 
             annotation.path.append(address)
 
-            if address not in self.addresses_seen[self.iteration - 1]:
-                # Don't skip blocks that were encountered for the first time in this transaction
-                self.addresses_seen[self.iteration].add(address)
+            if address not in self.dependency_map:
                 return
 
-            if address not in self.dependency_map:
-                # A known path without read dependencies is not interesting.
-                log.debug(
-                    "Skipping path without dependencies at address {}".format(address)
-                )
-
-                raise PluginSkipState
-
-            if not set(annotation.storage_written).intersection(
-                set(self.dependency_map[address])
-            ):
-                log.debug(
+            if not set(
+                annotation.get_storage_write_cache(self.iteration - 1)
+            ).intersection(set(self.dependency_map[address])):
+                log.info(
                     "Skipping state: Storage slots {} not read in block at address {}".format(
-                        annotation.storage_written, address
+                        annotation.get_storage_write_cache(self.iteration - 1), address
                     )
                 )
                 raise PluginSkipState
@@ -176,15 +176,16 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-            annotation.storage_written = list(
-                set(annotation.storage_written + [state.mstate.stack[-1]])
+
+            annotation.extend_storage_write_cache(
+                self.iteration, state.mstate.stack[-1]
             )
 
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
             annotation.storage_loaded = list(
-                set(annotation.storage_written + [state.mstate.stack[-1]])
+                set(annotation.storage_loaded + [state.mstate.stack[-1]])
             )
 
         @symbolic_vm.pre_hook("STOP")
@@ -229,11 +230,10 @@ class DependencyPruner(LaserPlugin):
             world_state_annotation.annotations_stack.append(annotation)
 
             log.debug(
-                "Iteration {}: Add World State {}\nDependency map: {}\nStorage indices written: {}\nAddresses seen: {}".format(
+                "Iteration {}: Add World State {}\nDependency map: {}\n".format(
                     self.iteration,
                     state.get_current_instruction()["address"],
                     self.dependency_map,
-                    annotation.storage_written,
-                    self.addresses_seen[self.iteration],
+                    # annotation.storage_written[self.iteration],
                 )
             )
