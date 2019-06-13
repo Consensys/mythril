@@ -104,6 +104,7 @@ class DependencyPruner(LaserPlugin):
             if address not in self.addresses_seen[self.iteration - 1]:
                 # Don't skip blocks that were encountered for the fist time in this transaction
                 # log.debug("New block discovered: {}".format(address))
+                logging.info*
                 self.addresses_seen[self.iteration].add(address)
                 return
 
@@ -133,23 +134,25 @@ class DependencyPruner(LaserPlugin):
                 raise PluginSkipState
 
         @symbolic_vm.pre_hook("SSTORE")
-        def mutator_hook(state: GlobalState):
+        def sstore_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
             annotation.storage_written = list(
                 set(annotation.storage_written + [state.mstate.stack[-1]])
             )
 
         @symbolic_vm.pre_hook("SLOAD")
-        def mutator_hook(state: GlobalState):
+        def sload_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-            annotation.storage_loaded.append(state.mstate.stack[-1])
+            annotation.storage_loaded = list(
+                set(annotation.storage_written + [state.mstate.stack[-1]])
+            )
 
         @symbolic_vm.pre_hook("STOP")
-        def mutator_hook(state: GlobalState):
+        def stop_hook(state: GlobalState):
             _transaction_end(state)
 
         @symbolic_vm.pre_hook("RETURN")
-        def mutator_hook(state: GlobalState):
+        def return_hook(state: GlobalState):
             _transaction_end(state)
 
         def _transaction_end(state: GlobalState):
