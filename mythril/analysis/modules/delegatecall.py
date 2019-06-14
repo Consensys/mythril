@@ -1,7 +1,6 @@
 """This module contains the detection code for insecure delegate call usage."""
 import json
 import logging
-from copy import copy
 from typing import List, cast
 
 from mythril.analysis import solver
@@ -32,14 +31,12 @@ class DelegateCallAnnotation(StateAnnotation):
             "retval_{}".format(call_state.get_current_instruction()["address"]), 256
         )
 
-    """
     def __copy__(self):
         result = DelegateCallAnnotation()
         result.call_state = self.call_state
         result.return_value = self.return_value
         result.constraints = copy(self.constraints)
         return result
-    """
 
     def get_issue(self, global_state: GlobalState, transaction_sequence: str) -> Issue:
         """

@@ -5,6 +5,9 @@ from mythril.exceptions import UnsatError
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.transaction_models import (
+    ContractCreationTransaction,
+)
 import logging
 import json
 
@@ -58,16 +61,18 @@ class SuicideModule(DetectionModule):
         )
 
         description_head = "The contract can be killed by anyone."
-        caller = state.current_transaction.caller
+
+        constraints = []
+
+        for tx in state.world_state.transaction_sequence:
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints.append(tx.caller == ATTACKER_ADDRESS)
+
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
                     state,
-                    state.mstate.constraints
-                    + [
-                        to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF,
-                        caller == ATTACKER_ADDRESS,
-                    ],
+                    state.mstate.constraints + constraints + [to == ATTACKER_ADDRESS],
                 )
                 description_tail = (
                     "Anyone can kill this contract and withdraw its balance to an arbitrary "
@@ -75,7 +80,7 @@ class SuicideModule(DetectionModule):
                 )
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.mstate.constraints + [caller == ATTACKER_ADDRESS]
+                    state, state.mstate.constraints + constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
 

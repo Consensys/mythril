@@ -8,6 +8,9 @@ from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.transaction_models import (
+    ContractCreationTransaction,
+)
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -85,11 +88,10 @@ class EtherThief(DetectionModule):
             constraints += [BVAddNoOverflow(eth_sent_total, tx.call_value, False)]
             eth_sent_total = Sum(eth_sent_total, tx.call_value)
 
-        constraints += [
-            tx.caller == ATTACKER_ADDRESS,
-            UGT(call_value, eth_sent_total),
-            target == ATTACKER_ADDRESS,
-        ]
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints.append(tx.caller == ATTACKER_ADDRESS)
+
+        constraints += [UGT(call_value, eth_sent_total), target == ATTACKER_ADDRESS]
 
         try:
 
@@ -116,7 +118,7 @@ class EtherThief(DetectionModule):
             log.debug("[ETHER_THIEF] no model found")
             return []
 
-        self._cache_addresses[address] = True
+        # self._cache_addresses[address] = True
 
         return [issue]
 
