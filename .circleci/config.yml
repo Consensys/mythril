@@ -78,44 +78,40 @@ jobs:
       #     command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
       #     working_directory: /home
 
-      - run:
-          name: Call webhook
-          command: |
-            curl -I -X POST -H -d "https://circleci.com/api/v1/project/${ORGANIZATION}/${WEBHOOK_PROJECT}/tree/master?circle-token=${CIRCLE_TOKEN}" | head -n 1 | cut -d$' ' -f2
-
   integration_tests:
     docker:
-      - image: mythril/mythx-ci
-    working_directory: /home
+      - image: circleci/python:3.6.4
+    working_directory: ~/project
     steps:
-      - checkout:
-          path: /home/mythril
+      - checkout
+      - setup_remote_docker
       - run:
-          name: Builds `mythril`
-          command: cd mythril && python3 setup.py install
+          name: Clone Edelweiss
+          command: git clone --recurse-submodules https://$GITHUB_TOKEN@github.com/Consensys/Edelweiss.git
       - run:
-          name: Installs other MythX components
+          name: Update SWC-registry
+          working_directory: ~/project/Edelweiss
+          command: git submodule update --recursive --remote
+      - run:
+          name: Build Edelweiss
           command: |
-            ./install-mythx-components.sh pythx edelweiss harvey-cli \
-              harvey-tyro maestro maru maru-tyro mythril-api \
-              mythril-tyro tyro
+              docker build \
+                --build-arg AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
+                --build-arg AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
+                --build-arg AWS_DEFAULT_REGION=us-east-1 --rm -t "edelweiss-mythril:latest" . -f Edelweiss/dockerfiles/mythril/Dockerfile
       - run:
-          background: true
-          name: Launches MythX platform
-          command: ./launch-mythx.sh
-      - run:
-          name: Waits for MythX to spin-up
-          command: sleep 15s
-      - run:
-          name: Quick Edelweiss test
-          command: /home/run-edelweiss-test.sh CircleCI/latest.quick.csv 5
-
-      # TODO: Temporary disabled
-      # - run:
-      #    name: Full Edelweiss test
-      #    environment:
-      #      MYTHX_API_FULL_MODE: true
-      #    command: /home/run-edelweiss-test.sh CircleCI/latest.full.csv
+          name: Run Edelweiss
+          command: |
+              docker run \
+                -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
+                -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
+                -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
+                --rm edelweiss-mythril:latest \
+                --timeout 90 \
+                --output-dir /opt/edelweiss \
+                --plugin-dir /opt/mythril \
+                --s3 \
+                --circle-ci CircleCI/mythril.csv
 
   pypi_release:
     <<: *defaults

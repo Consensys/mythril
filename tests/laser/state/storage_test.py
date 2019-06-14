@@ -12,7 +12,7 @@ def test_concrete_storage_uninitialized_index(initial_storage, key):
     storage._storage = initial_storage
 
     # Act
-    value = storage[key]
+    value = storage.get(key, 0)
 
     # Assert
     assert value == 0
@@ -25,7 +25,7 @@ def test_symbolic_storage_uninitialized_index(initial_storage, key):
     storage._storage = initial_storage
 
     # Act
-    value = storage[key]
+    value = storage.get(key, 0)
 
     # Assert
     assert isinstance(value, Expression)
@@ -36,10 +36,10 @@ def test_storage_set_item():
     storage = Storage()
 
     # Act
-    storage[1] = 13
+    storage.put(key=1, value=13, addr=10)
 
     # Assert
-    assert storage[1] == 13
+    assert storage.get(item=1, addr=10) == 13
 
 
 def test_storage_change_item():
@@ -47,7 +47,7 @@ def test_storage_change_item():
     storage = Storage()
     storage._storage = {1: 12}
     # Act
-    storage[1] = 14
+    storage.put(key=1, value=14, addr=10)
 
     # Assert
-    assert storage[1] == 14
+    assert storage.get(item=1, addr=10) == 14

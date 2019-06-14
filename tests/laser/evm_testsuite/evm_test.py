@@ -61,7 +61,6 @@ ignored_test_names = (
 
 def load_test_data(designations):
     """
-
     :param designations:
     :return:
     """
@@ -125,8 +124,7 @@ def test_vmtest(
         account.code = Disassembly(details["code"][2:])
         account.nonce = int(details["nonce"], 16)
         for key, value in details["storage"].items():
-            key_bitvec = symbol_factory.BitVecVal(int(key, 16), 256)
-            account.storage[key_bitvec] = int(value, 16)
+            account.storage.put(int(key, 16), int(value, 16), 10)
 
         world_state.put_account(account)
         account.set_balance(int(details["balance"], 16))
@@ -176,7 +174,8 @@ def test_vmtest(
 
             for index, value in details["storage"].items():
                 expected = int(value, 16)
-                actual = account.storage[symbol_factory.BitVecVal(int(index, 16), 256)]
+                actual = account.storage.get(int(index, 16), 0)
+
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual
