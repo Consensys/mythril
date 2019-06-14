@@ -111,7 +111,8 @@ jobs:
                 --output-dir /opt/edelweiss \
                 --plugin-dir /opt/mythril \
                 --s3 \
-                --circle-ci CircleCI/mythril.csv
+                --circle-ci CircleCI/mythril.csv\
+                --ignore-regressions $IGNORE_REGRESSIONS
 
   pypi_release:
     <<: *defaults
