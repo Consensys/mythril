@@ -179,7 +179,7 @@ class DependencyPruner(LaserPlugin):
             if not set(
                 annotation.get_storage_write_cache(self.iteration - 1)
             ).intersection(set(self.dependency_map[address])):
-                log.info(
+                log.debug(
                     "Skipping state: Storage slots {} not read in block at address {}".format(
                         annotation.get_storage_write_cache(self.iteration - 1), address
                     )
@@ -270,7 +270,7 @@ class DependencyPruner(LaserPlugin):
 
             world_state_annotation.annotations_stack.append(annotation)
 
-            log.info(
+            log.debug(
                 "Iteration {}: Adding world state at address {}, end of function {}.\nDependency map: {}\nStorage written: {}".format(
                     self.iteration,
                     state.get_current_instruction()["address"],
