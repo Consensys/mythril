@@ -168,7 +168,7 @@ class DependencyPruner(LaserPlugin):
              :return:
              """
 
-            if self.iteration < 2:
+            if self.iteration < 1:
                 return
 
             annotation.path.append(address)
@@ -194,12 +194,10 @@ class DependencyPruner(LaserPlugin):
                 index = get_concrete_int(state.mstate.stack[-1])
             except TypeError:
                 m = hashlib.md5()
-                m.update(str(state.mstate.stack[-1]).encode('utf-8'))
+                m.update(str(state.mstate.stack[-1]).encode("utf-8"))
                 index = m.digest().hex()
 
-            annotation.extend_storage_write_cache(
-                self.iteration, index
-            )
+            annotation.extend_storage_write_cache(self.iteration, index)
 
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
@@ -208,7 +206,7 @@ class DependencyPruner(LaserPlugin):
                 index = get_concrete_int(state.mstate.stack[-1])
             except TypeError:
                 m = hashlib.md5()
-                m.update(str(state.mstate.stack[-1]).encode('utf-8'))
+                m.update(str(state.mstate.stack[-1]).encode("utf-8"))
                 index = m.digest().hex()
 
             annotation = get_dependency_annotation(state)
