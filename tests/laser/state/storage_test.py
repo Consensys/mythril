@@ -39,7 +39,7 @@ def test_storage_set_item():
     storage.put(key=1, value=13, addr=10)
 
     # Assert
-    assert storage.put(key=1, value=13, addr=10)
+    assert storage.get(item=1, addr=10) == 13
 
 
 def test_storage_change_item():
