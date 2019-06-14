@@ -10,7 +10,7 @@ from mythril.laser.ethereum.util import get_concrete_int
 from typing import cast, List
 from copy import copy
 import logging
-
+import hashlib
 
 log = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ class DependencyPruner(LaserPlugin):
              :return:
              """
 
-            if self.iteration < 1:
+            if self.iteration < 2:
                 return
 
             annotation.path.append(address)
@@ -190,7 +190,12 @@ class DependencyPruner(LaserPlugin):
         def sstore_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
 
-            index = get_concrete_int(state.mstate.stack[-1])
+            try:
+                index = get_concrete_int(state.mstate.stack[-1])
+            except TypeError:
+                m = hashlib.md5()
+                m.update(str(state.mstate.stack[-1]).encode('utf-8'))
+                index = m.digest().hex()
 
             annotation.extend_storage_write_cache(
                 self.iteration, index
@@ -199,7 +204,12 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
 
-            index = get_concrete_int(state.mstate.stack[-1])
+            try:
+                index = get_concrete_int(state.mstate.stack[-1])
+            except TypeError:
+                m = hashlib.md5()
+                m.update(str(state.mstate.stack[-1]).encode('utf-8'))
+                index = m.digest().hex()
 
             annotation = get_dependency_annotation(state)
             annotation.storage_loaded = list(set(annotation.storage_loaded + [index]))
@@ -263,8 +273,7 @@ class DependencyPruner(LaserPlugin):
             world_state_annotation.annotations_stack.append(annotation)
 
             log.info(
-                "Iteration {}: Adding world state at address {}, end of function {}.\n"
-                + "Dependency map: {}\nStorage written: {}".format(
+                "Iteration {}: Adding world state at address {}, end of function {}.\nDependency map: {}\nStorage written: {}".format(
                     self.iteration,
                     state.get_current_instruction()["address"],
                     state.node.function_name,
