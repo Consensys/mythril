@@ -7,7 +7,7 @@ from typing import Any, Dict, KeysView, Union
 
 from z3 import ExprRef
 
-from mythril.laser.smt import Array, symbol_factory, BitVec, Expression
+from mythril.laser.smt import Array, symbol_factory, BitVec
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
@@ -20,20 +20,16 @@ class Storage:
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        self._storage = {}  # type: Dict[Expression, Any]
+        self._storage = {}  # type: Dict[Union[int, str], Any]
         self.concrete = concrete
         self.dynld = dynamic_loader
         self.address = address
         self._storage_opcodes = {}  # type: Dict
 
-<<<<<<< HEAD
-    def __getitem__(self, item: Expression) -> Any:
-=======
     def get(self, item: Union[str, int], addr: int) -> Any:
         if item not in self._storage_opcodes:
             self._storage_opcodes[item] = set()
         self._storage_opcodes[item].add(addr)
->>>>>>> develop
         try:
             return self._storage[item]
         except KeyError:
@@ -46,7 +42,7 @@ class Storage:
                     self._storage[item] = symbol_factory.BitVecVal(
                         int(
                             self.dynld.read_storage(
-                                contract_address=self.address, index=int(item.raw)
+                                contract_address=self.address, index=int(item)
                             ),
                             16,
                         ),
@@ -64,14 +60,10 @@ class Storage:
         )
         return self._storage[item]
 
-<<<<<<< HEAD
-    def __setitem__(self, key: Expression, value: Any) -> None:
-=======
     def put(self, key: Union[int, str], value: Any, addr) -> None:
         if key not in self._storage_opcodes:
             self._storage_opcodes[key] = set()
         self._storage_opcodes[key].add(addr)
->>>>>>> develop
         self._storage[key] = value
 
     def potential_func(self, key, opcode) -> bool:
