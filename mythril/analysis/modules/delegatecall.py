@@ -2,6 +2,7 @@
 import json
 import logging
 from typing import List, cast
+from copy import copy
 
 from mythril.analysis import solver
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
@@ -32,11 +33,7 @@ class DelegateCallAnnotation(StateAnnotation):
         )
 
     def __copy__(self):
-        result = DelegateCallAnnotation()
-        result.call_state = self.call_state
-        result.return_value = self.return_value
-        result.constraints = copy(self.constraints)
-        return result
+        return DelegateCallAnnotation(self.call_state, copy(self.constraints))
 
     def get_issue(self, global_state: GlobalState, transaction_sequence: str) -> Issue:
         """
