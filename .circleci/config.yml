@@ -102,7 +102,11 @@ jobs:
       - run:
           name: Run Edelweiss
           command: |
-              docker run --rm edelweiss-mythril:latest \
+              docker run \
+                -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
+                -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
+                -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
+                --rm edelweiss-mythril:latest \
                 --timeout 90 \
                 --output-dir /opt/edelweiss \
                 --plugin-dir /opt/mythril \
