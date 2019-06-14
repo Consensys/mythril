@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 class DependencyAnnotation(StateAnnotation):
     """Dependency Annotation
 
-    This annotation tracks read and write access to the state.
+    This annotation tracks read and write access to the state during each transaction.
     """
 
     def __init__(self):
@@ -32,13 +32,13 @@ class DependencyAnnotation(StateAnnotation):
         result.path = copy(self.path)
         return result
 
-    def get_storage_write_cache(self, iteration):
+    def get_storage_write_cache(self, iteration: int):
         if iteration not in self.storage_written:
             self.storage_written[iteration] = []
 
         return self.storage_written[iteration]
 
-    def extend_storage_write_cache(self, iteration, value):
+    def extend_storage_write_cache(self, iteration: int, value: object):
         if iteration not in self.storage_written:
             self.storage_written[iteration] = [value]
         else:
@@ -50,7 +50,8 @@ class DependencyAnnotation(StateAnnotation):
 class WSDependencyAnnotation(StateAnnotation):
     """Dependency Annotation for World state
 
-    This annotation tracks read and write access to the state.
+    This  world state annotation maintains a stack of state annotations.
+    It is used to transfer individual state annotations from one transaction to the next.
     """
 
     def __init__(self):
@@ -63,6 +64,10 @@ class WSDependencyAnnotation(StateAnnotation):
 
 
 def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
+    """ Returns a dependency annotation
+
+    :param state: A global state object
+    """
 
     annotations = cast(
         List[DependencyAnnotation], list(state.get_annotations(DependencyAnnotation))
@@ -84,6 +89,10 @@ def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
 
 
 def get_ws_dependency_annotation(state: GlobalState) -> WSDependencyAnnotation:
+    """ Returns the world state annotation
+
+    :param state: A global state object
+    """
 
     annotations = cast(
         List[WSDependencyAnnotation],
@@ -101,9 +110,14 @@ def get_ws_dependency_annotation(state: GlobalState) -> WSDependencyAnnotation:
 
 class DependencyPruner(LaserPlugin):
     """Dependency Pruner Plugin
+
         For every basic block, this plugin keeps a list of storage locations that
-        are accessed (read) in the subtree starting from that block. This map is built up over
-        the whole symbolic execution run.
+        are accessed (read) in the execution path containing that block's. This map
+        is built up over the whole symbolic execution run.
+
+        After the initial build up of the map in the first transaction, blocks are
+        executed only if any of the storage locations written to in the previous
+        transaction can have an effect on that block or any of its successors.
         """
 
     def __init__(self):
@@ -147,15 +161,13 @@ class DependencyPruner(LaserPlugin):
             _check_basic_block(address, annotation)
 
         def _check_basic_block(address, annotation):
-            """This method is where the actual pruning happens. If none of the storage locations previously written to
-             is in the block's dependency map we skip the jump destination (pruning the path).
+            """This method is where the actual pruning happens.
 
              :param state:
              :return:
              """
 
-            if self.iteration < 2:
-                # Contract creation and build initial dependency map
+            if self.iteration < 1:
                 return
 
             annotation.path.append(address)
@@ -183,10 +195,23 @@ class DependencyPruner(LaserPlugin):
 
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
+
+            index = state.mstate.stack[-1]
+
             annotation = get_dependency_annotation(state)
-            annotation.storage_loaded = list(
-                set(annotation.storage_loaded + [state.mstate.stack[-1]])
-            )
+            annotation.storage_loaded = list(set(annotation.storage_loaded + [index]))
+
+            # We need to backwards-annotate the path here in case execution never reaches a stop or return
+            # (which may change in a future transaction).
+
+            for address in annotation.path:
+
+                if address in self.dependency_map:
+                    self.dependency_map[address] = list(
+                        set(self.dependency_map[address] + [index])
+                    )
+                else:
+                    self.dependency_map[address] = [index]
 
         @symbolic_vm.pre_hook("STOP")
         def stop_hook(state: GlobalState):
@@ -225,14 +250,21 @@ class DependencyPruner(LaserPlugin):
 
             world_state_annotation = get_ws_dependency_annotation(state)
             annotation = get_dependency_annotation(state)
+
+            # Reset the state annotation except for storage written which is carried on to
+            # the next transaction
+
             annotation.path = [0]
             annotation.storage_loaded = []
+
             world_state_annotation.annotations_stack.append(annotation)
 
-            log.debug(
-                "Iteration {}: Add World State {}\nDependency map: {}\n".format(
+            log.info(
+                "Iteration {}: Adding world state at address {}, end of function {}.\n"
+                + "Dependency map: {}\nStorage written: {}".format(
                     self.iteration,
                     state.get_current_instruction()["address"],
+                    state.node.function_name,
                     self.dependency_map,
                     annotation.storage_written[self.iteration],
                 )
