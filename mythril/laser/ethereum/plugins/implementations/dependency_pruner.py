@@ -234,6 +234,6 @@ class DependencyPruner(LaserPlugin):
                     self.iteration,
                     state.get_current_instruction()["address"],
                     self.dependency_map,
-                    # annotation.storage_written[self.iteration],
+                    annotation.storage_written[self.iteration],
                 )
             )
