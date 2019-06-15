@@ -132,7 +132,7 @@ class DependencyPruner(LaserPlugin):
         self.dependency_map = {}  # type: Dict[int, List[object]]
         self.protected_addresses = set()  # type: Set[int]
 
-    def update_dependency_map(self, path: [int], target_location: object) -> None:
+    def update_dependency_map(self, path: List[int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.
 
         :param path
@@ -147,7 +147,7 @@ class DependencyPruner(LaserPlugin):
             else:
                 self.dependency_map[address] = [target_location]
 
-    def protect_path(self, path: [int]) -> None:
+    def protect_path(self, path: List[int]) -> None:
         """Prevent an execution path of being pruned.
 
         :param path
