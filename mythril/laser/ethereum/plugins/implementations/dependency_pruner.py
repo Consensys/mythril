@@ -129,7 +129,7 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List[object]]
-        self.protected_addresses = [] # type: List[int]
+        self.protected_addresses = []  # type: List[int]
 
     def update_dependency_map(self, path: [int], target_location: object):
         """Update the dependency map for the block offsets on the given path.
@@ -228,7 +228,9 @@ class DependencyPruner(LaserPlugin):
 
             annotation.path.append(address)
 
-            if self.wanna_execute(address, annotation.get_storage_write_cache(self.iteration - 1)):
+            if self.wanna_execute(
+                address, annotation.get_storage_write_cache(self.iteration - 1)
+            ):
                 return
             else:
                 log.debug(
