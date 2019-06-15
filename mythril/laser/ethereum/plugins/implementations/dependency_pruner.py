@@ -6,11 +6,11 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-from mythril.laser.ethereum.util import get_concrete_int
+from mythril.exceptions import UnsatError
+from mythril.analysis import solver
 from typing import cast, List
 from copy import copy
 import logging
-import hashlib
 
 log = logging.getLogger(__name__)
 
@@ -44,9 +44,8 @@ class DependencyAnnotation(StateAnnotation):
         if iteration not in self.storage_written:
             self.storage_written[iteration] = [value]
         else:
-            self.storage_written[iteration] = list(
-                set(self.storage_written[iteration] + [value])
-            )
+            if value not in self.storage_written[iteration]:
+                self.storage_written[iteration].append(value)
 
 
 class WSDependencyAnnotation(StateAnnotation):
@@ -129,9 +128,9 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List[object]]
-        self.protected_addresses = []  # type: List[int]
+        self.protected_addresses = {}  # type: Set[int]
 
-    def update_dependency_map(self, path: [int], target_location: object):
+    def update_dependency_map(self, path: [int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.
 
         :param path
@@ -141,39 +140,42 @@ class DependencyPruner(LaserPlugin):
         for address in path:
 
             if address in self.dependency_map:
-                self.dependency_map[address] = list(
-                    set(self.dependency_map[address] + [target_location])
-                )
+                if target_location not in self.dependency_map[address]:
+                    self.dependency_map[address].append(target_location)
             else:
                 self.dependency_map[address] = [target_location]
 
+    def protect_path(self, path: [int]) -> None:
+        """Prevent an execution path of being pruned.
+
+        :param path
+        """
+
+        for address in path:
+            self.protected_addresses.add(address)
+
     def wanna_execute(self, address: int, storage_write_cache) -> bool:
-        """TODO: Description
+        """Decide whether the basic block starting at 'address' should be executed.
 
         :param address
         :param storage_write_cache
         """
 
-        if address in self.protected_addresses:
-            return False
-
-        if address not in self.dependency_map:
+        if address in self.protected_addresses or address not in self.dependency_map:
             return True
 
         dependencies = self.dependency_map[address]
 
-        # Return true if there's any match
+        # Return if *any* dependency is found
 
         for location in storage_write_cache:
             for dependency in dependencies:
 
-                if isinstance(location, int) and isinstance(dependency, int):
-                    if location == dependency:
-                        return True
-
-                else:
-                    # FIXME: Handle symbolic locations
+                try:
+                    solver.get_model([location == dependency])
                     return True
+                except UnsatError:
+                    continue
 
         return False
 
@@ -193,6 +195,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
 
             annotation.has_call = True
+            self.protect_path(annotation.path)
 
         @symbolic_vm.post_hook("JUMP")
         def mutator_hook(state: GlobalState):
@@ -238,38 +241,28 @@ class DependencyPruner(LaserPlugin):
                         annotation.get_storage_write_cache(self.iteration - 1), address
                     )
                 )
+
                 raise PluginSkipState
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-
-            try:
-                index = get_concrete_int(state.mstate.stack[-1])
-            except TypeError:
-                m = hashlib.md5()
-                m.update(str(state.mstate.stack[-1]).encode("utf-8"))
-                index = m.digest().hex()
-
-            annotation.extend_storage_write_cache(self.iteration, index)
+            annotation.extend_storage_write_cache(
+                self.iteration, state.mstate.stack[-1]
+            )
 
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
-
-            try:
-                index = get_concrete_int(state.mstate.stack[-1])
-            except TypeError:
-                m = hashlib.md5()
-                m.update(str(state.mstate.stack[-1]).encode("utf-8"))
-                index = m.digest().hex()
-
             annotation = get_dependency_annotation(state)
-            annotation.storage_loaded = list(set(annotation.storage_loaded + [index]))
+            location = state.mstate.stack[-1]
 
-            # We need to backwards-annotate the path here in case execution never reaches a stop or return
-            # (which may change in a future transaction).
+            if location not in annotation.storage_loaded:
+                annotation.storage_loaded.append(location)
 
-            self.update_dependency_map(annotation.path, index)
+            # We backwards-annotate the path here as sometimes execution never reaches a stop or return
+            # (and this may change in a future transaction).
+
+            self.update_dependency_map(annotation.path, location)
 
         @symbolic_vm.pre_hook("STOP")
         def stop_hook(state: GlobalState):
@@ -288,6 +281,9 @@ class DependencyPruner(LaserPlugin):
             """
 
             annotation = get_dependency_annotation(state)
+
+            if annotation.has_call:
+                self.protect_path(annotation.path)
 
             for index in annotation.storage_loaded:
                 self.update_dependency_map(annotation.path, index)
