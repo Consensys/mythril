@@ -8,7 +8,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 from mythril.exceptions import UnsatError
 from mythril.analysis import solver
-from typing import cast, List, Dict
+from typing import cast, List, Dict, Set
 from copy import copy
 import logging
 
@@ -33,6 +33,7 @@ class DependencyAnnotation(StateAnnotation):
         result.storage_loaded = copy(self.storage_loaded)
         result.storage_written = copy(self.storage_written)
         result.path = copy(self.path)
+        result.has_call = self.has_call
         return result
 
     def get_storage_write_cache(self, iteration: int):
@@ -129,7 +130,7 @@ class DependencyPruner(LaserPlugin):
     def _reset(self):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List[object]]
-        self.protected_addresses = {}  # type: Set[int]
+        self.protected_addresses = set()  # type: Set[int]
 
     def update_dependency_map(self, path: [int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.
