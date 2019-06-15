@@ -8,9 +8,10 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 from mythril.exceptions import UnsatError
 from mythril.analysis import solver
-from typing import cast, List
+from typing import cast, List, Dict
 from copy import copy
 import logging
+
 
 log = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ class DependencyPruner(LaserPlugin):
 
         return False
 
-    def initialize(self, symbolic_vm: LaserEVM):
+    def initialize(self, symbolic_vm: LaserEVM) -> None:
         """Initializes the DependencyPruner
 
         :param symbolic_vm
@@ -218,12 +219,11 @@ class DependencyPruner(LaserPlugin):
 
             _check_basic_block(address, annotation)
 
-        def _check_basic_block(address, annotation):
+        def _check_basic_block(address: int, annotation: DependencyAnnotation):
             """This method is where the actual pruning happens.
 
-             :param state:
+             :param address: Start address (bytecode offset) of the block
              :param annotation
-             :return:
              """
 
             if self.iteration < 1:
@@ -272,12 +272,11 @@ class DependencyPruner(LaserPlugin):
         def return_hook(state: GlobalState):
             _transaction_end(state)
 
-        def _transaction_end(state: GlobalState):
+        def _transaction_end(state: GlobalState) -> None:
             """When a stop or return is reached, the storage locations read along the path are entered into
             the dependency map for all nodes encountered in this path.
 
             :param state:
-            :return:
             """
 
             annotation = get_dependency_annotation(state)
