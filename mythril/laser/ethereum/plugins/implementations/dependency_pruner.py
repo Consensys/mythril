@@ -193,58 +193,32 @@ class DependencyPruner(LaserPlugin):
             self.iteration += 1
 
         @symbolic_vm.post_hook("CALL")
-        def mutator_hook(state: GlobalState):
+        def call_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
 
             annotation.has_call = True
             self.protect_path(annotation.path)
 
         @symbolic_vm.post_hook("JUMP")
-        def mutator_hook(state: GlobalState):
+        def jump_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
             annotation = get_dependency_annotation(state)
 
             _check_basic_block(address, annotation)
 
         @symbolic_vm.pre_hook("JUMPDEST")
-        def mutator_hook(state: GlobalState):
+        def jumpdest_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
             annotation = get_dependency_annotation(state)
 
             _check_basic_block(address, annotation)
 
         @symbolic_vm.post_hook("JUMPI")
-        def mutator_hook(state: GlobalState):
+        def jumpi_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
             annotation = get_dependency_annotation(state)
 
             _check_basic_block(address, annotation)
-
-        def _check_basic_block(address: int, annotation: DependencyAnnotation):
-            """This method is where the actual pruning happens.
-
-             :param address: Start address (bytecode offset) of the block
-             :param annotation
-             """
-
-            # Don't skip any blocks in the contract creation transaction
-            if self.iteration < 2:
-                return
-
-            annotation.path.append(address)
-
-            if self.wanna_execute(
-                address, annotation.get_storage_write_cache(self.iteration - 1)
-            ):
-                return
-            else:
-                log.debug(
-                    "Skipping state: Storage slots {} not read in block at address {}".format(
-                        annotation.get_storage_write_cache(self.iteration - 1), address
-                    )
-                )
-
-                raise PluginSkipState
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
@@ -288,6 +262,32 @@ class DependencyPruner(LaserPlugin):
 
             for index in annotation.storage_loaded:
                 self.update_dependency_map(annotation.path, index)
+
+        def _check_basic_block(address: int, annotation: DependencyAnnotation):
+            """This method is where the actual pruning happens.
+
+             :param address: Start address (bytecode offset) of the block
+             :param annotation
+             """
+
+            # Don't skip any blocks in the contract creation transaction
+            if self.iteration < 2:
+                return
+
+            annotation.path.append(address)
+
+            if self.wanna_execute(
+                address, annotation.get_storage_write_cache(self.iteration - 1)
+            ):
+                return
+            else:
+                log.debug(
+                    "Skipping state: Storage slots {} not read in block at address {}".format(
+                        annotation.get_storage_write_cache(self.iteration - 1), address
+                    )
+                )
+
+                raise PluginSkipState
 
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(state: GlobalState):
