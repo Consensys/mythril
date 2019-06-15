@@ -249,6 +249,11 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     options.add_argument(
         "--enable-iprof", action="store_true", help="enable the instruction profiler"
     )
+    options.add_argument(
+        "--disable-dependency-pruning",
+        action="store_true",
+        help="Deactivate dependency-based pruning",
+    )
 
     rpc = parser.add_argument_group("RPC options")
 
@@ -417,6 +422,7 @@ def execute_command(
         loop_bound=args.loop_bound,
         create_timeout=args.create_timeout,
         enable_iprof=args.enable_iprof,
+        disable_dependency_pruning=args.disable_dependency_pruning,
         onchain_storage_access=not args.no_onchain_storage_access,
     )
 
