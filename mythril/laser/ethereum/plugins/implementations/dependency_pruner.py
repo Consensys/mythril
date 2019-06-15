@@ -114,7 +114,7 @@ class DependencyPruner(LaserPlugin):
     """Dependency Pruner Plugin
 
         For every basic block, this plugin keeps a list of storage locations that
-        are accessed (read) in the execution path containing that block's. This map
+        are accessed (read) in the execution path containing that block. This map
         is built up over the whole symbolic execution run.
 
         After the initial build up of the map in the first transaction, blocks are
