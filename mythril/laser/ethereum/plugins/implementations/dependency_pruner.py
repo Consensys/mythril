@@ -24,6 +24,7 @@ class DependencyAnnotation(StateAnnotation):
     def __init__(self):
         self.storage_loaded = []  # type: List
         self.storage_written = {}  # type: Dict[int, List]
+        self.has_call = False
         self.path = [0]  # type: List
 
     def __copy__(self):
@@ -127,7 +128,54 @@ class DependencyPruner(LaserPlugin):
 
     def _reset(self):
         self.iteration = 0
-        self.dependency_map = {}  # type: Dict[int, List]
+        self.dependency_map = {}  # type: Dict[int, List[object]]
+        self.protected_addresses = [] # type: List[int]
+
+    def update_dependency_map(self, path: [int], target_location: object):
+        """Update the dependency map for the block offsets on the given path.
+
+        :param path
+        :param target_location
+        """
+
+        for address in path:
+
+            if address in self.dependency_map:
+                self.dependency_map[address] = list(
+                    set(self.dependency_map[address] + [target_location])
+                )
+            else:
+                self.dependency_map[address] = [target_location]
+
+    def wanna_execute(self, address: int, storage_write_cache) -> bool:
+        """TODO: Description
+
+        :param address
+        :param storage_write_cache
+        """
+
+        if address in self.protected_addresses:
+            return False
+
+        if address not in self.dependency_map:
+            return True
+
+        dependencies = self.dependency_map[address]
+
+        # Return true if there's any match
+
+        for location in storage_write_cache:
+            for dependency in dependencies:
+
+                if isinstance(location, int) and isinstance(dependency, int):
+                    if location == dependency:
+                        return True
+
+                else:
+                    # FIXME: Handle symbolic locations
+                    return True
+
+        return False
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the DependencyPruner
@@ -139,6 +187,12 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.laser_hook("start_sym_trans")
         def start_sym_trans_hook():
             self.iteration += 1
+
+        @symbolic_vm.post_hook("CALL")
+        def mutator_hook(state: GlobalState):
+            annotation = get_dependency_annotation(state)
+
+            annotation.has_call = True
 
         @symbolic_vm.post_hook("JUMP")
         def mutator_hook(state: GlobalState):
@@ -165,6 +219,7 @@ class DependencyPruner(LaserPlugin):
             """This method is where the actual pruning happens.
 
              :param state:
+             :param annotation
              :return:
              """
 
@@ -173,12 +228,9 @@ class DependencyPruner(LaserPlugin):
 
             annotation.path.append(address)
 
-            if address not in self.dependency_map:
+            if self.wanna_execute(address, annotation.get_storage_write_cache(self.iteration - 1)):
                 return
-
-            if not set(
-                annotation.get_storage_write_cache(self.iteration - 1)
-            ).intersection(set(self.dependency_map[address])):
+            else:
                 log.debug(
                     "Skipping state: Storage slots {} not read in block at address {}".format(
                         annotation.get_storage_write_cache(self.iteration - 1), address
@@ -215,14 +267,7 @@ class DependencyPruner(LaserPlugin):
             # We need to backwards-annotate the path here in case execution never reaches a stop or return
             # (which may change in a future transaction).
 
-            for address in annotation.path:
-
-                if address in self.dependency_map:
-                    self.dependency_map[address] = list(
-                        set(self.dependency_map[address] + [index])
-                    )
-                else:
-                    self.dependency_map[address] = [index]
+            self.update_dependency_map(annotation.path, index)
 
         @symbolic_vm.pre_hook("STOP")
         def stop_hook(state: GlobalState):
@@ -243,15 +288,7 @@ class DependencyPruner(LaserPlugin):
             annotation = get_dependency_annotation(state)
 
             for index in annotation.storage_loaded:
-
-                for address in annotation.path:
-
-                    if address in self.dependency_map:
-                        self.dependency_map[address] = list(
-                            set(self.dependency_map[address] + [index])
-                        )
-                    else:
-                        self.dependency_map[address] = [index]
+                self.update_dependency_map(annotation.path, index)
 
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(state: GlobalState):
@@ -267,6 +304,7 @@ class DependencyPruner(LaserPlugin):
 
             annotation.path = [0]
             annotation.storage_loaded = []
+            annotation.has_call = False
 
             world_state_annotation.annotations_stack.append(annotation)
 
