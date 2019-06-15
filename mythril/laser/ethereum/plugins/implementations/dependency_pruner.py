@@ -226,7 +226,8 @@ class DependencyPruner(LaserPlugin):
              :param annotation
              """
 
-            if self.iteration < 1:
+            # Don't skip any blocks in the contract creation transaction
+            if self.iteration < 2:
                 return
 
             annotation.path.append(address)
@@ -291,6 +292,8 @@ class DependencyPruner(LaserPlugin):
         def world_state_filter_hook(state: GlobalState):
 
             if isinstance(state.current_transaction, ContractCreationTransaction):
+                # Reset iteration variable
+                self.iteration = 0
                 return
 
             world_state_annotation = get_ws_dependency_annotation(state)
