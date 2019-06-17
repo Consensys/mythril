@@ -78,6 +78,12 @@ def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
 
     if len(annotations) == 0:
 
+        """FIXME: Hack for carrying over state annotations from the STOP and RETURN states of
+        the previous states. The states are pushed on a stack in the world state annotation
+        and popped off the stack in the subsequent iteration. This might break if any
+        other strategy than bfs is used (?).
+        """
+
         try:
             world_state_annotation = get_ws_dependency_annotation(state)
             annotation = world_state_annotation.annotations_stack.pop()
@@ -319,4 +325,3 @@ class DependencyPruner(LaserPlugin):
                     annotation.storage_written[self.iteration],
                 )
             )
-
