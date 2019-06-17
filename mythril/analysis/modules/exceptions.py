@@ -18,8 +18,6 @@ def _analyze_state(state) -> list:
     :param state:
     :return:
     """
-    log.info("Exceptions module: found ASSERT_FAIL instruction")
-
     log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
 
     try:

@@ -16,6 +16,7 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
+
 from mythril.laser.ethereum.transaction.symbolic import (
     ATTACKER_ADDRESS,
     CREATOR_ADDRESS,
@@ -25,6 +26,9 @@ from mythril.laser.ethereum.transaction.symbolic import (
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
 from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
 
+from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
+    BoundedLoopsStrategy,
+)
 from mythril.laser.smt import symbol_factory, BitVec
 from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
@@ -46,11 +50,13 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
+        loop_bound=4,
         create_timeout=None,
         transaction_count=2,
         modules=(),
         compulsory_statespace=True,
         enable_iprof=False,
+        run_analysis_modules=True,
     ):
         """
 
@@ -109,21 +115,26 @@ class SymExecWrapper:
             enable_iprof=enable_iprof,
         )
 
+        if loop_bound is not None:
+            self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
+
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
 
-        self.laser.register_hooks(
-            hook_type="pre",
-            hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
-        )
-        self.laser.register_hooks(
-            hook_type="post",
-            hook_dict=get_detection_module_hooks(modules, hook_type="post"),
-        )
         world_state = WorldState()
         for account in self.accounts.values():
             world_state.put_account(account)
+
+        if run_analysis_modules:
+            self.laser.register_hooks(
+                hook_type="pre",
+                hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
+            )
+            self.laser.register_hooks(
+                hook_type="post",
+                hook_dict=get_detection_module_hooks(modules, hook_type="post"),
+            )
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(
