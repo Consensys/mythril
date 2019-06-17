@@ -766,18 +766,8 @@ class Instruction:
             size_sym = True
 
         if size_sym:
-            state.mem_extend(mstart, 1)
-            state.memory[mstart] = global_state.new_bitvec(
-                "calldata_"
-                + str(environment.active_account.contract_name)
-                + "["
-                + str(dstart)
-                + ": + "
-                + str(size)
-                + "]",
-                8,
-            )
-            return [global_state]
+            size = 320  # The excess size will get overwritten
+
         size = cast(int, size)
         if size > 0:
             try:
