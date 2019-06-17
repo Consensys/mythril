@@ -79,7 +79,6 @@ class SuicideModule(DetectionModule):
                 )
                 description_tail = "Arbitrary senders can kill this contract."
 
-            debug = json.dumps(transaction_sequence, indent=4)
             self._cache_address[instruction["address"]] = True
 
             issue = Issue(
@@ -92,7 +91,7 @@ class SuicideModule(DetectionModule):
                 severity="High",
                 description_head=description_head,
                 description_tail=description_tail,
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
             return [issue]

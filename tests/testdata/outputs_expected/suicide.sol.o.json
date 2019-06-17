@@ -4,7 +4,6 @@
         {
             "address": 146,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The contract can be killed by anyone.\nAnyone can kill this contract and withdraw its balance to an arbitrary address.",
             "function": "kill(address)",
             "max_gas_used": 263,
@@ -12,7 +11,8 @@
             "severity": "High",
             "sourceMap": null,
             "swc-id": "106",
-            "title": "Unprotected Selfdestruct"
+            "title": "Unprotected Selfdestruct",
+            "tx_sequence": "<TX-DATA>"
         }
     ],
     "success": true

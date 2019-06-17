@@ -68,7 +68,7 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
 
 
 def execute_contract_creation(
-    laser_evm, contract_initialization_code, contract_name=None
+    laser_evm, contract_initialization_code, contract_name=None, world_state=None
 ) -> Account:
     """Executes a contract creation transaction from all open states.
 
@@ -80,15 +80,9 @@ def execute_contract_creation(
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     del laser_evm.open_states[:]
 
-    world_state = WorldState()
+    world_state = world_state or WorldState()
     open_states = [world_state]
-    new_account = world_state.create_account(
-        0, concrete_storage=True, dynamic_loader=None, creator=CREATOR_ADDRESS
-    )
-
-    if contract_name:
-        new_account.contract_name = contract_name
-
+    new_account = None
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
         transaction = ContractCreationTransaction(
@@ -103,13 +97,14 @@ def execute_contract_creation(
             ),
             code=Disassembly(contract_initialization_code),
             caller=symbol_factory.BitVecVal(CREATOR_ADDRESS, 256),
-            callee_account=new_account,
+            contract_name=contract_name,
             call_data=[],
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
         )
         _setup_global_state_for_execution(laser_evm, transaction)
+        new_account = new_account or transaction.callee_account
     laser_evm.exec(True)
 
     return new_account
