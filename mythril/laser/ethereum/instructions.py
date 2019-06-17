@@ -1465,12 +1465,8 @@ class Instruction:
         new = symbol_factory.Bool(False)
 
         for keccak_key in keccak_keys:
-            key_argument = KeccakFunctionManager.get_argument(
-                keccak_key
-            )
-            index_argument = KeccakFunctionManager.get_argument(
-                index
-            )
+            key_argument = KeccakFunctionManager.get_argument(keccak_key)
+            index_argument = KeccakFunctionManager.get_argument(index)
             if key_argument.size() != index_argument.size():
                 continue
 
