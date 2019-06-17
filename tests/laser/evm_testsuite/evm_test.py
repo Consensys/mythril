@@ -125,7 +125,7 @@ def test_vmtest(
         account.code = Disassembly(details["code"][2:])
         account.nonce = int(details["nonce"], 16)
         for key, value in details["storage"].items():
-            account.storage.put(int(key, 16), int(value, 16), 10)
+            account.storage[int(key, 16)] = int(value, 16)
 
         world_state.put_account(account)
         account.set_balance(int(details["balance"], 16))
@@ -175,7 +175,7 @@ def test_vmtest(
 
             for index, value in details["storage"].items():
                 expected = int(value, 16)
-                actual = account.storage.get(int(index, 16), 0)
+                actual = account.storage[int(index, 16)]
 
                 if isinstance(actual, Expression):
                     actual = actual.value
