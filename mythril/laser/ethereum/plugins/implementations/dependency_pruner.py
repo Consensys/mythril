@@ -235,7 +235,6 @@ class DependencyPruner(LaserPlugin):
 
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
-
             annotation = get_dependency_annotation(state)
             location = state.mstate.stack[-1]
 
