@@ -1380,6 +1380,15 @@ class Instruction:
             index_argument = KeccakFunctionManager.get_argument(index)
             if key_argument.size() != index_argument.size():
                 continue
+
+            key_map = simplify(Extract(255, 0, key_argument))  # Map number for key
+            index_map = simplify(
+                Extract(255, 0, index_argument)
+            )  # Map number for index_arg
+            if simplify(
+                key_map != index_map
+            ):  # If they are from different maps, ignore
+                continue
             constraints.append((keccak_key, key_argument == index_argument))
 
         for (keccak_key, constraint) in constraints:
@@ -1458,11 +1467,20 @@ class Instruction:
         for keccak_key in keccak_keys:
             key_argument = KeccakFunctionManager.get_argument(
                 keccak_key
-            )  # type: Expression
+            )
             index_argument = KeccakFunctionManager.get_argument(
                 index
-            )  # type: Expression
+            )
             if key_argument.size() != index_argument.size():
+                continue
+
+            key_map = simplify(Extract(255, 0, key_argument))  # Map number for key
+            index_map = simplify(
+                Extract(255, 0, index_argument)
+            )  # Map number for index_arg
+            if simplify(
+                key_map != index_map
+            ):  # If they are from different maps, ignore
                 continue
 
             result = self._sstore_helper(

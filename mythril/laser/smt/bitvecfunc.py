@@ -81,7 +81,7 @@ class BitVecFunc(BitVec):
         self,
         raw: z3.BitVecRef,
         func_name: Optional[str],
-        input_: Expression = None,
+        input_: BitVec = None,
         annotations: Optional[Annotations] = None,
     ):
         """

@@ -19,7 +19,7 @@ class KeccakFunctionManager:
         return expression.func_name == "keccak256"
 
     @staticmethod
-    def get_argument(expression: Expression) -> Expression:
+    def get_argument(expression: BitVec) -> BitVec:
         """
 
         :param expression:

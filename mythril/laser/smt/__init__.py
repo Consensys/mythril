@@ -72,7 +72,7 @@ class SymbolFactory(Generic[T, U]):
         func_name: str,
         size: int,
         annotations: Annotations = None,
-        input_: Expression = None,
+        input_: BitVec = None,
     ) -> BitVecFunc:
         """Creates a new bit vector function with a symbolic value.
 
@@ -91,7 +91,7 @@ class SymbolFactory(Generic[T, U]):
         func_name: str,
         size: int,
         annotations: Annotations = None,
-        input_: Expression = None,
+        input_: BitVec = None,
     ) -> BitVecFunc:
         """Creates a new bit vector function with a symbolic value.
 
@@ -140,7 +140,7 @@ class _SmtSymbolFactory(SymbolFactory[bool.Bool, BitVec]):
         func_name: str,
         size: int,
         annotations: Annotations = None,
-        input_: Expression = None,
+        input_: BitVec = None,
     ) -> BitVecFunc:
         """Creates a new bit vector function with a concrete value."""
         raw = z3.BitVecVal(value, size)
@@ -152,7 +152,7 @@ class _SmtSymbolFactory(SymbolFactory[bool.Bool, BitVec]):
         func_name: str,
         size: int,
         annotations: Annotations = None,
-        input_: Expression = None,
+        input_: BitVec = None,
     ) -> BitVecFunc:
         """Creates a new bit vector function with a symbolic value."""
         raw = z3.BitVec(name, size)
