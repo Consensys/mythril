@@ -73,6 +73,9 @@ class Storage:
         storage._storage = copy(self._storage)
         return storage
 
+    def __str__(self):
+        return str(self._storage)
+
 
 class Account:
     """Account class representing ethereum accounts."""
