@@ -112,7 +112,7 @@ jobs:
                 --plugin-dir /opt/mythril \
                 --s3 \
                 --circle-ci CircleCI/mythril.csv\
-                --ignore-regressions $IGNORE_REGRESSIONS
+                --ignore-false-positives $IGNORE_FALSE_POSITIVES
 
   pypi_release:
     <<: *defaults
