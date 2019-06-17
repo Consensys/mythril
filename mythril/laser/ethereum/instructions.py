@@ -768,9 +768,7 @@ class Instruction:
             size_sym = True
 
         if size_sym:
-            size = (
-                320
-            )  # This excess stuff will get overwritten as memory is dynamically sized
+            size = 320  # The excess size will get overwritten
 
         size = cast(int, size)
         if size > 0:
@@ -1381,15 +1379,7 @@ class Instruction:
                 return self._sload_helper(global_state, str(index))
 
             storage_keys = global_state.environment.active_account.storage.keys()
-            keys = filter(keccak_function_manager.is_keccak, storage_keys)
-            addr = global_state.get_current_instruction()["address"]
-            keccak_keys = [
-                key
-                for key in keys
-                if global_state.environment.active_account.storage.potential_func(
-                    key, addr
-                )
-            ]
+            keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
 
             results = []  # type: List[GlobalState]
             constraints = []
@@ -1427,16 +1417,11 @@ class Instruction:
         :param constraints:
         :return:
         """
-        address = global_state.get_current_instruction()["address"]
         try:
-            data = global_state.environment.active_account.storage.get(
-                index, addr=address
-            )
+            data = global_state.environment.active_account.storage[index]
         except KeyError:
             data = global_state.new_bitvec("storage_" + str(index), 256)
-            global_state.environment.active_account.storage.put(
-                key=index, value=data, addr=address
-            )
+            global_state.environment.active_account.storage[index] = data
 
         if constraints is not None:
             global_state.mstate.constraints += constraints
@@ -1480,15 +1465,7 @@ class Instruction:
                 return self._sstore_helper(global_state, str(index), value)
 
             storage_keys = global_state.environment.active_account.storage.keys()
-            keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
-            addr = global_state.get_current_instruction()["address"]
-            keccak_keys = [
-                key
-                for key in keccak_keys
-                if global_state.environment.active_account.storage.potential_func(
-                    key, addr
-                )
-            ]
+            keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
 
             results = []  # type: List[GlobalState]
             new = symbol_factory.Bool(False)
@@ -1541,18 +1518,19 @@ class Instruction:
         :param constraint:
         :return:
         """
-        global_state.environment.active_account = deepcopy(
-            global_state.environment.active_account
-        )
-        global_state.accounts[
-            global_state.environment.active_account.address.value
-        ] = global_state.environment.active_account
-        address = global_state.get_current_instruction()["address"]
-        global_state.environment.active_account.storage.put(
-            key=index,
-            value=value if not isinstance(value, Expression) else simplify(value),
-            addr=address,
-        )
+        try:
+            global_state.environment.active_account = deepcopy(
+                global_state.environment.active_account
+            )
+            global_state.accounts[
+                global_state.environment.active_account.address.value
+            ] = global_state.environment.active_account
+
+            global_state.environment.active_account.storage[index] = (
+                value if not isinstance(value, Expression) else simplify(value)
+            )
+        except KeyError:
+            log.debug("Error writing to storage: Invalid index")
 
         if constraint is not None:
             global_state.mstate.constraints.append(constraint)
@@ -1864,6 +1842,14 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -1881,7 +1867,6 @@ class Instruction:
         )
         if native_result:
             return native_result
-
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,

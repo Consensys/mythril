@@ -24,12 +24,8 @@ class Storage:
         self.concrete = concrete
         self.dynld = dynamic_loader
         self.address = address
-        self._storage_opcodes = {}  # type: Dict
 
-    def get(self, item: Union[str, int], addr: int) -> Any:
-        if item not in self._storage_opcodes:
-            self._storage_opcodes[item] = set()
-        self._storage_opcodes[item].add(addr)
+    def __getitem__(self, item: Union[str, int]) -> Any:
         try:
             return self._storage[item]
         except KeyError:
@@ -60,16 +56,8 @@ class Storage:
         )
         return self._storage[item]
 
-    def put(self, key: Union[int, str], value: Any, addr) -> None:
-        if key not in self._storage_opcodes:
-            self._storage_opcodes[key] = set()
-        self._storage_opcodes[key].add(addr)
+    def __setitem__(self, key: Union[int, str], value: Any) -> None:
         self._storage[key] = value
-
-    def potential_func(self, key, opcode) -> bool:
-        if key not in self._storage_opcodes:
-            return False
-        return opcode in self._storage_opcodes[key]
 
     def keys(self) -> KeysView:
         """
@@ -84,6 +72,9 @@ class Storage:
         )
         storage._storage = copy(self._storage)
         return storage
+
+    def __str__(self):
+        return str(self._storage)
 
 
 class Account:
