@@ -243,6 +243,13 @@ class BitVec(Expression[z3.BitVecRef]):
         """
         return self._handle_shift(other, rshift)
 
+    def __hash__(self) -> int:
+        """
+
+        :return:
+        """
+        return self.raw.__hash__()
+
 
 def _comparison_helper(
     a: BitVec, b: BitVec, operation: Callable, default_value: bool, inputs_equal: bool

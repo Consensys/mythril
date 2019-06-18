@@ -4,7 +4,6 @@
         {
             "address": 317,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "Use of tx.origin is deprecated.\nThe smart contract retrieves the transaction origin (tx.origin) using msg.origin. Use of msg.origin is deprecated and the instruction may be removed in the  future. Use msg.sender instead.\nSee also: https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin",
             "function": "transferOwnership(address)",
             "max_gas_used": 1051,
@@ -12,7 +11,8 @@
             "severity": "Medium",
             "sourceMap": null,
             "swc-id": "111",
-            "title": "Use of tx.origin"
+            "title": "Use of tx.origin",
+            "tx_sequence": "<TX-DATA>"
         }
     ],
     "success": true
