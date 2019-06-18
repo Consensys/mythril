@@ -2,7 +2,7 @@
 import json
 import logging
 from copy import copy
-from typing import List, cast
+from typing import List, cast, Dict
 
 from mythril.analysis import solver
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
@@ -27,7 +27,7 @@ class DelegateCallAnnotation(StateAnnotation):
             "retval_{}".format(call_state.get_current_instruction()["address"]), 256
         )
 
-    def get_issue(self, global_state: GlobalState, transaction_sequence: str) -> Issue:
+    def get_issue(self, global_state: GlobalState, transaction_sequence: Dict) -> Issue:
         """
         Returns Issue for the annotation
         :param global_state: Global State
@@ -58,7 +58,7 @@ class DelegateCallAnnotation(StateAnnotation):
             severity="Medium",
             description_head=description_head,
             description_tail=description_tail,
-            debug=transaction_sequence,
+            transaction_sequence=transaction_sequence,
             gas_used=(
                 global_state.mstate.min_gas_used,
                 global_state.mstate.max_gas_used,
@@ -128,8 +128,11 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
                 transaction_sequence = solver.get_transaction_sequence(
                     state, state.mstate.constraints + [annotation.return_value == 1]
                 )
-                debug = json.dumps(transaction_sequence, indent=4)
-                issues.append(annotation.get_issue(state, transaction_sequence=debug))
+                issues.append(
+                    annotation.get_issue(
+                        state, transaction_sequence=transaction_sequence
+                    )
+                )
             except UnsatError:
                 continue
 
