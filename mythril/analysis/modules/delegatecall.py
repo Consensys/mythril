@@ -32,6 +32,7 @@ class DelegateCallAnnotation(StateAnnotation):
             "retval_{}".format(call_state.get_current_instruction()["address"]), 256
         )
 
+    def _copy__(self):
         return DelegateCallAnnotation(self.call_state, copy(self.constraints))
 
     def get_issue(self, global_state: GlobalState, transaction_sequence: Dict) -> Issue:
