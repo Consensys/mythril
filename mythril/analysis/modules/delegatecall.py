@@ -6,6 +6,10 @@ from typing import List, cast, Dict
 
 from mythril.analysis import solver
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
+from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.transaction_models import (
+    ContractCreationTransaction,
+)
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
@@ -17,15 +21,18 @@ log = logging.getLogger(__name__)
 
 
 class DelegateCallAnnotation(StateAnnotation):
-    def __init__(self, call_state: GlobalState) -> None:
+    def __init__(self, call_state: GlobalState, constraints: List) -> None:
         """
         Initialize DelegateCall Annotation
         :param call_state: Call state
         """
         self.call_state = call_state
+        self.constraints = constraints
         self.return_value = call_state.new_bitvec(
             "retval_{}".format(call_state.get_current_instruction()["address"]), 256
         )
+
+        return DelegateCallAnnotation(self.call_state, copy(self.constraints))
 
     def get_issue(self, global_state: GlobalState, transaction_sequence: Dict) -> Issue:
         """
@@ -107,26 +114,26 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
         gas = state.mstate.stack[-1]
         to = state.mstate.stack[-2]
 
-        constraints = copy(state.mstate.constraints)
-        # Check whether we can also set the callee address
-
-        constraints += [
-            to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF,
+        constraints = [
+            to == ATTACKER_ADDRESS,
             UGT(gas, symbol_factory.BitVecVal(2300, 256)),
         ]
-        try:
-            solver.get_model(constraints)
-            state.annotate(DelegateCallAnnotation(call_state=state))
 
-        except UnsatError:
-            log.debug("[DELEGATECALL] Annotation skipped.")
+        for tx in state.world_state.transaction_sequence:
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints.append(tx.caller == ATTACKER_ADDRESS)
+
+        state.annotate(DelegateCallAnnotation(state, constraints))
 
         return []
     else:
         for annotation in annotations:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.mstate.constraints + [annotation.return_value == 1]
+                    state,
+                    state.mstate.constraints
+                    + annotation.constraints
+                    + [annotation.return_value == 1],
                 )
                 issues.append(
                     annotation.get_issue(
