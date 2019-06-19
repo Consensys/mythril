@@ -38,7 +38,8 @@ class Storage:
                     self._storage[item] = symbol_factory.BitVecVal(
                         int(
                             self.dynld.read_storage(
-                                contract_address=hex(self.address.value), index=int(item)
+                                contract_address=hex(self.address.value),
+                                index=int(item),
                             ),
                             16,
                         ),
