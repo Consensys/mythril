@@ -38,6 +38,7 @@ class MythrilAnalyzer:
         loop_bound: Optional[int] = None,
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
+        disable_dependency_pruning: bool = False,
     ):
         """
 
@@ -57,6 +58,7 @@ class MythrilAnalyzer:
         self.loop_bound = loop_bound
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
+        self.disable_dependency_pruning = disable_dependency_pruning
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -77,6 +79,7 @@ class MythrilAnalyzer:
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
         )
 
@@ -111,6 +114,7 @@ class MythrilAnalyzer:
             transaction_count=transaction_count,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
@@ -150,6 +154,7 @@ class MythrilAnalyzer:
                     modules=modules,
                     compulsory_statespace=False,
                     enable_iprof=self.enable_iprof,
+                    disable_dependency_pruning=self.disable_dependency_pruning,
                 )
 
                 issues = fire_lasers(sym, modules)
