@@ -56,6 +56,7 @@ class SymExecWrapper:
         modules=(),
         compulsory_statespace=True,
         enable_iprof=False,
+        disable_dependency_pruning=False,
         run_analysis_modules=True,
     ):
         """
@@ -121,6 +122,9 @@ class SymExecWrapper:
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+
+        if not disable_dependency_pruning:
+            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
 
         world_state = WorldState()
         for account in self.accounts.values():
