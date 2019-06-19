@@ -7,6 +7,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 from mythril.exceptions import UnsatError
+from z3.z3types import Z3Exception
 from mythril.analysis import solver
 from typing import cast, List, Dict, Set
 from copy import copy
@@ -145,13 +146,16 @@ class DependencyPruner(LaserPlugin):
         :param target_location
         """
 
-        for address in path:
-
-            if address in self.dependency_map:
-                if target_location not in self.dependency_map[address]:
-                    self.dependency_map[address].append(target_location)
-            else:
-                self.dependency_map[address] = [target_location]
+        try:
+            for address in path:
+                if address in self.dependency_map:
+                    if target_location not in self.dependency_map[address]:
+                        self.dependency_map[address].append(target_location)
+                else:
+                    self.dependency_map[address] = [target_location]
+        except Z3Exception as e:
+            # This should not happen unless there's a bug in laser, such as an invalid type being generated.
+            log.debug("Error updating dependency map: {}".format(e))
 
     def protect_path(self, path: List[int]) -> None:
         """Prevent an execution path of being pruned.
