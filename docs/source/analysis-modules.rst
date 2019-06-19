@@ -1,7 +1,7 @@
 Analysis Modules
 ================
 
-Mythril Classic's detection capabilities are written in modules in the `/analysis/modules <https://github.com/ConsenSys/mythril-classic/tree/master/mythril/analysis/modules>`_ directory.
+Mythril's detection capabilities are written in modules in the `/analysis/modules <https://github.com/ConsenSys/mythril/tree/master/mythril/analysis/modules>`_ directory.
 
 
 .. toctree::

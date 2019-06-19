@@ -18,8 +18,6 @@ def _analyze_state(state) -> list:
     :param state:
     :return:
     """
-    log.info("Exceptions module: found ASSERT_FAIL instruction")
-
     log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
 
     try:
@@ -36,7 +34,6 @@ def _analyze_state(state) -> list:
         transaction_sequence = solver.get_transaction_sequence(
             state, state.mstate.constraints
         )
-        debug = json.dumps(transaction_sequence, indent=4)
 
         issue = Issue(
             contract=state.environment.active_account.contract_name,
@@ -48,7 +45,7 @@ def _analyze_state(state) -> list:
             description_head="A reachable exception has been detected.",
             description_tail=description_tail,
             bytecode=state.environment.code.bytecode,
-            debug=debug,
+            transaction_sequence=transaction_sequence,
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
         )
         return [issue]
