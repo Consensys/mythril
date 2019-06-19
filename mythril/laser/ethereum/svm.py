@@ -14,6 +14,7 @@ from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
@@ -68,6 +69,7 @@ class LaserEVM:
         :param enable_iprof: Variable indicating whether instruction profiling should be turned on
         """
         self.open_states = []  # type: List[WorldState]
+
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
@@ -102,6 +104,9 @@ class LaserEVM:
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
+    def extend_strategy(self, extension: ABCMeta, *args) -> None:
+        self.strategy = extension(self.strategy, args)
+
     def sym_exec(
         self,
         world_state: WorldState = None,
@@ -121,7 +126,7 @@ class LaserEVM:
         :param creation_code The creation code to create the target contract in the symbolic environment
         :param contract_name The name that the created account should be associated with
         """
-        pre_configuration_mode = world_state is not None and target_address is not None
+        pre_configuration_mode = target_address is not None
         scratch_mode = creation_code is not None and contract_name is not None
         if pre_configuration_mode == scratch_mode:
             raise ValueError("Symbolic execution started with invalid parameters")
@@ -140,14 +145,16 @@ class LaserEVM:
 
         elif scratch_mode:
             log.info("Starting contract creation transaction")
+
             created_account = execute_contract_creation(
-                self, creation_code, contract_name
+                self, creation_code, contract_name, world_state=world_state
             )
             log.info(
                 "Finished contract creation, found {} open states".format(
                     len(self.open_states)
                 )
             )
+
             if len(self.open_states) == 0:
                 log.warning(
                     "No contract was created during the execution of contract creation "

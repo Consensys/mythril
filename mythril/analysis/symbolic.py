@@ -16,6 +16,19 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
+
+from mythril.laser.ethereum.transaction.symbolic import (
+    ATTACKER_ADDRESS,
+    CREATOR_ADDRESS,
+)
+
+
+from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
+from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
+
+from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
+    BoundedLoopsStrategy,
+)
 from mythril.laser.smt import symbol_factory, BitVec
 from typing import Union, List, Dict, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
@@ -37,6 +50,7 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
+        loop_bound=4,
         create_timeout=None,
         transaction_count=2,
         modules=(),
@@ -72,9 +86,23 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
+        creator_account = Account(
+            hex(CREATOR_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+        )
+        attacker_account = Account(
+            hex(ATTACKER_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+        )
+
         requires_statespace = (
             compulsory_statespace or len(get_detection_modules("post", modules)) > 0
         )
+        if not contract.creation_code:
+            self.accounts = {hex(ATTACKER_ADDRESS): attacker_account}
+        else:
+            self.accounts = {
+                hex(CREATOR_ADDRESS): creator_account,
+                hex(ATTACKER_ADDRESS): attacker_account,
+            }
 
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
@@ -87,9 +115,16 @@ class SymExecWrapper:
             enable_iprof=enable_iprof,
         )
 
+        if loop_bound is not None:
+            self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
+
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+
+        world_state = WorldState()
+        for account in self.accounts.values():
+            world_state.put_account(account)
 
         if run_analysis_modules:
             self.laser.register_hooks(
@@ -103,11 +138,15 @@ class SymExecWrapper:
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(
-                creation_code=contract.creation_code, contract_name=contract.name
+                creation_code=contract.creation_code,
+                contract_name=contract.name,
+                world_state=world_state,
             )
         elif isinstance(contract, EVMContract) and contract.creation_code:
             self.laser.sym_exec(
-                creation_code=contract.creation_code, contract_name=contract.name
+                creation_code=contract.creation_code,
+                contract_name=contract.name,
+                world_state=world_state,
             )
         else:
             account = Account(
@@ -117,7 +156,6 @@ class SymExecWrapper:
                 contract_name=contract.name,
                 concrete_storage=False,
             )
-            world_state = WorldState()
             world_state.put_account(account)
             self.laser.sym_exec(world_state=world_state, target_address=address.value)
 

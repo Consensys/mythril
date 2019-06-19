@@ -3,6 +3,10 @@ calls."""
 
 from mythril.analysis import solver
 from mythril.analysis.swc_data import REENTRANCY
+from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.transaction_models import (
+    ContractCreationTransaction,
+)
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
 from mythril.laser.smt import UGT, symbol_factory, Or, BitVec
@@ -44,10 +48,14 @@ def _analyze_state(state):
         # Check whether we can also set the callee address
 
         try:
-            constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
+            constraints += [to == ATTACKER_ADDRESS]
+
+            for tx in state.world_state.transaction_sequence:
+                if not isinstance(tx, ContractCreationTransaction):
+                    constraints.append(tx.caller == ATTACKER_ADDRESS)
+
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = json.dumps(transaction_sequence, indent=4)
             description_head = "A call to a user-supplied address is executed."
             description_tail = (
                 "The callee address of an external message call can be set by "
@@ -66,7 +74,7 @@ def _analyze_state(state):
                 severity="Medium",
                 description_head=description_head,
                 description_tail=description_tail,
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
@@ -95,7 +103,7 @@ def _analyze_state(state):
                 severity="Low",
                 description_head=description_head,
                 description_tail=description_tail,
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
 
