@@ -111,8 +111,9 @@ jobs:
                 --output-dir /opt/edelweiss \
                 --plugin-dir /opt/mythril \
                 --s3 \
-                --circle-ci CircleCI/mythril.csv\
-                --ignore-false-positives guess_the_random_number_fixed.sol simple_dao.sol old_blockhash.sol
+                --circle-ci CircleCI/mythril.csv \
+                --ignore-false-positives $IGNORE_FALSE_POSITVES \
+                --ignore-regressions $IGNORE_REGRESSIONS
 
   pypi_release:
     <<: *defaults
