@@ -197,12 +197,19 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         default=50,
         help="Maximum recursion depth for symbolic execution",
     )
-
     options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",
         help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "-b",
+        "--loop-bound",
+        type=int,
+        default=4,
+        help="Bound loops at n iterations",
+        metavar="N",
     )
     options.add_argument(
         "-t",
@@ -241,6 +248,11 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
     )
     options.add_argument(
         "--enable-iprof", action="store_true", help="enable the instruction profiler"
+    )
+    options.add_argument(
+        "--disable-dependency-pruning",
+        action="store_true",
+        help="Deactivate dependency-based pruning",
     )
 
     rpc = parser.add_argument_group("RPC options")
@@ -407,8 +419,10 @@ def execute_command(
         address=address,
         max_depth=args.max_depth,
         execution_timeout=args.execution_timeout,
+        loop_bound=args.loop_bound,
         create_timeout=args.create_timeout,
         enable_iprof=args.enable_iprof,
+        disable_dependency_pruning=args.disable_dependency_pruning,
         onchain_storage_access=not args.no_onchain_storage_access,
     )
 

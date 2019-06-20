@@ -35,8 +35,10 @@ class MythrilAnalyzer:
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
         execution_timeout: Optional[int] = None,
+        loop_bound: Optional[int] = None,
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
+        disable_dependency_pruning: bool = False,
     ):
         """
 
@@ -53,8 +55,10 @@ class MythrilAnalyzer:
         self.address = address
         self.max_depth = max_depth
         self.execution_timeout = execution_timeout
+        self.loop_bound = loop_bound
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
+        self.disable_dependency_pruning = disable_dependency_pruning
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -75,6 +79,8 @@ class MythrilAnalyzer:
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            disable_dependency_pruning=self.disable_dependency_pruning,
+            run_analysis_modules=False,
         )
 
         return get_serializable_statespace(sym)
@@ -108,6 +114,8 @@ class MythrilAnalyzer:
             transaction_count=transaction_count,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            disable_dependency_pruning=self.disable_dependency_pruning,
+            run_analysis_modules=False,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
@@ -140,12 +148,15 @@ class MythrilAnalyzer:
                     ),
                     max_depth=self.max_depth,
                     execution_timeout=self.execution_timeout,
+                    loop_bound=self.loop_bound,
                     create_timeout=self.create_timeout,
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
                     enable_iprof=self.enable_iprof,
+                    disable_dependency_pruning=self.disable_dependency_pruning,
                 )
+
                 issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
