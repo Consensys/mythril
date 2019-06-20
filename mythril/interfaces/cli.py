@@ -97,7 +97,6 @@ def get_output_parser() -> ArgumentParser:
     :return: Parser which handles output
     """
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
         "-o",
         "--outform",
@@ -110,9 +109,6 @@ def get_output_parser() -> ArgumentParser:
         "--verbose-report",
         action="store_true",
         help="Include debugging information in report",
-    )
-    parser.add_argument(
-        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
     )
     return parser
 
@@ -160,42 +156,41 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
+    parser.add_argument("--epic", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "-v", type=int, help="log level (0-5)", metavar="LOG_LEVEL", default=2
+    )
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
-    for analyze_string in ANALYZE_LIST:
-        analyzer_parser = subparsers.add_parser(
-            analyze_string,
-            help="Triggers the analysis of the smart contract",
-            parents=[rpc_parser, utilities_parser, input_parser, output_parser],
-        )
-        create_analyzer_parser(analyzer_parser)
+    analyzer_parser = subparsers.add_parser(
+        "analyze",
+        help="Triggers the analysis of the smart contract",
+        parents=[rpc_parser, utilities_parser, input_parser, output_parser],
+        aliases=["a"],
+    )
+    create_analyzer_parser(analyzer_parser)
 
-    for disassemble_string in DISASSEMBLE_LIST:
-        disassemble_parser = subparsers.add_parser(
-            disassemble_string,
-            help="Disassembles the smart contract",
-            parents=[rpc_parser, utilities_parser, input_parser, output_parser],
-        )
-        create_disassemble_parser(disassemble_parser)
+    disassemble_parser = subparsers.add_parser(
+        "disassemble",
+        help="Disassembles the smart contract",
+        aliases=["d"],
+        parents=[rpc_parser, utilities_parser, input_parser],
+    )
+    create_disassemble_parser(disassemble_parser)
 
     read_storage_parser = subparsers.add_parser(
         "read-storage",
         help="Retrieves storage slots from a given address through rpc",
-        parents=[rpc_parser, output_parser],
+        parents=[rpc_parser],
     )
     leveldb_search_parser = subparsers.add_parser(
-        "leveldb-search",
-        parents=[output_parser],
-        help="Searches the code fragment in local leveldb",
+        "leveldb-search", help="Searches the code fragment in local leveldb"
     )
     contract_func_to_hash = subparsers.add_parser(
-        "function-to-hash",
-        parents=[output_parser],
-        help="Returns the hash signature of the function",
+        "function-to-hash", help="Returns the hash signature of the function"
     )
     contract_hash_to_addr = subparsers.add_parser(
         "hash-to-address",
-        parents=[output_parser],
         help="converts the hashes in the blockchain to ethereum address",
     )
     subparsers.add_parser(
@@ -233,7 +228,7 @@ def create_read_storage_parser(read_storage_parser: ArgumentParser):
 
     read_storage_parser.add_argument(
         "storage_slots",
-        help="read state variables from storage index, use with -a",
+        help="read state variables from storage index",
         metavar="INDEX,NUM_SLOTS,[array] / mapping,INDEX,[KEY1, KEY2...]",
     )
     read_storage_parser.add_argument(
@@ -502,8 +497,8 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
         )  # list of files
     else:
         exit_with_error(
-            args.outform,
-            "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, or -i SOLIDITY_FILES",
+            args.__dict__.get("outform", "text"),
+            "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, -f BYTECODE_FILE or <SOLIDITY_FILE>",
         )
     return address
 
@@ -602,7 +597,7 @@ def execute_command(
                 print(outputs[args.outform])
             except ModuleNotFoundError as e:
                 exit_with_error(
-                    args.outform, "Error loading analyis modules: " + format(e)
+                    args.outform, "Error loading analysis modules: " + format(e)
                 )
 
     else:
@@ -626,7 +621,7 @@ def parse_args(parser: ArgumentParser, args: Namespace) -> None:
     :param args: The args
     """
 
-    if args.epic:
+    if args.__dict__.get("epic", None):
         path = os.path.dirname(os.path.realpath(__file__))
         sys.argv.remove("--epic")
         os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
@@ -670,9 +665,9 @@ def parse_args(parser: ArgumentParser, args: Namespace) -> None:
             disassembler=disassembler, address=address, parser=parser, args=args
         )
     except CriticalError as ce:
-        exit_with_error(args.outform, str(ce))
+        exit_with_error(args.__dict__.get("outform", "text"), str(ce))
     except Exception:
-        exit_with_error(args.outform, traceback.format_exc())
+        exit_with_error(args.__dict__.get("outform", "text"), traceback.format_exc())
 
 
 if __name__ == "__main__":
