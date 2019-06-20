@@ -4,33 +4,32 @@
         {
             "address": 196,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
-            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
             "function": "callchecked()",
             "max_gas_used": 1210,
             "min_gas_used": 599,
-            "severity": "Low",
+            "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address"
+            "title": "External Call To User-Supplied Address",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 285,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
-            "description": "The contract executes an external message call.\nAn external function call to a fixed contract address is executed. Make sure that the callee contract has been reviewed carefully.",
+            "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
             "function": "callnotchecked()",
             "max_gas_used": 1232,
             "min_gas_used": 621,
-            "severity": "Low",
+            "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To Fixed Address"
+            "title": "External Call To User-Supplied Address",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 285,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
             "function": "callnotchecked()",
             "max_gas_used": 35950,
@@ -38,7 +37,8 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "104",
-            "title": "Unchecked Call Return Value"
+            "title": "Unchecked Call Return Value",
+            "tx_sequence": "<TX-DATA>"
         }
     ],
     "success": true

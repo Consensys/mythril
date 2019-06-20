@@ -1,4 +1,4 @@
-Welcome to Mythril Classic's documentation!
+Welcome to Mythril's documentation!
 ===========================================
 
 .. toctree::

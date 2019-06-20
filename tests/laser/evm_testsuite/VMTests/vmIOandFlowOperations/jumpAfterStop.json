@@ -1,0 +1,52 @@
+{
+    "jumpAfterStop" : {
+        "_info" : {
+            "comment" : "",
+            "filledwith" : "testeth 1.5.0.dev2-52+commit.d419e0a2",
+            "lllcversion" : "Version: 0.4.26-develop.2018.9.19+commit.785cbf40.Linux.g++",
+            "source" : "src/VMTestsFiller/vmIOandFlowOperations/jumpAfterStopFiller.json",
+            "sourceHash" : "1527b83fd9a930436902b171302c40812a33a035bf148e5c40f362e811b1ad54"
+        },
+        "callcreates" : [
+        ],
+        "env" : {
+            "currentCoinbase" : "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+            "currentDifficulty" : "0x0100",
+            "currentGasLimit" : "0x0f4240",
+            "currentNumber" : "0x00",
+            "currentTimestamp" : "0x01"
+        },
+        "exec" : {
+            "address" : "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6",
+            "caller" : "0xcd1722f3947def4cf144679da39c4c32bdc35681",
+            "code" : "0x6006560060015b6002600355",
+            "data" : "0x",
+            "gas" : "0x0186a0",
+            "gasPrice" : "0x5af3107a4000",
+            "origin" : "0xcd1722f3947def4cf144679da39c4c32bdc35681",
+            "value" : "0x0de0b6b3a7640000"
+        },
+        "gas" : "0x01386e",
+        "logs" : "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+        "out" : "0x",
+        "post" : {
+            "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6" : {
+                "balance" : "0x152d02c7e14af6800000",
+                "code" : "0x6006560060015b6002600355",
+                "nonce" : "0x00",
+                "storage" : {
+                    "0x03" : "0x02"
+                }
+            }
+        },
+        "pre" : {
+            "0x0f572e5295c57f15886f9b263e2f6d2d6c7b5ec6" : {
+                "balance" : "0x152d02c7e14af6800000",
+                "code" : "0x6006560060015b6002600355",
+                "nonce" : "0x00",
+                "storage" : {
+                }
+            }
+        }
+    }
+}

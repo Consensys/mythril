@@ -23,9 +23,7 @@ from mythril.mythril import (
     MythrilConfig,
     MythrilLevelDB,
 )
-from mythril.version import VERSION
-
-# logging.basicConfig(level=logging.DEBUG)
+from mythril.__version__ import __version__ as VERSION
 
 ANALYZE_LIST = ("a", "analyze")
 DISASSEMBLE_LIST = ("d", "disassemble")
@@ -317,12 +315,19 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         default=50,
         help="Maximum recursion depth for symbolic execution",
     )
-
     options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",
         help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "-b",
+        "--loop-bound",
+        type=int,
+        default=4,
+        help="Bound loops at n iterations",
+        metavar="N",
     )
     options.add_argument(
         "-t",
@@ -334,7 +339,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     options.add_argument(
         "--execution-timeout",
         type=int,
-        default=600,
+        default=86400,
         help="The amount of seconds to spend on symbolic execution",
     )
     options.add_argument(
@@ -369,6 +374,11 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     )
     options.add_argument(
         "--enable-iprof", action="store_true", help="enable the instruction profiler"
+    )
+    options.add_argument(
+        "--disable-dependency-pruning",
+        action="store_true",
+        help="Deactivate dependency-based pruning",
     )
 
 
@@ -522,7 +532,6 @@ def execute_command(
         return
 
     if args.command in DISASSEMBLE_LIST:
-
         if disassembler.contracts[0].code:
             print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
         if disassembler.contracts[0].creation_code:
@@ -537,6 +546,7 @@ def execute_command(
             execution_timeout=args.execution_timeout,
             create_timeout=args.create_timeout,
             enable_iprof=args.enable_iprof,
+            disable_dependency_pruning=args.disable_dependency_pruning,
             onchain_storage_access=not args.no_onchain_storage_access,
         )
 

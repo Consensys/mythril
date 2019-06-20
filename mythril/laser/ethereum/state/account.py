@@ -38,7 +38,8 @@ class Storage:
                     self._storage[item] = symbol_factory.BitVecVal(
                         int(
                             self.dynld.read_storage(
-                                contract_address=self.address, index=int(item)
+                                contract_address=hex(self.address.value),
+                                index=int(item),
                             ),
                             16,
                         ),
@@ -47,9 +48,13 @@ class Storage:
                     return self._storage[item]
                 except ValueError:
                     pass
+
         if self.concrete:
             return symbol_factory.BitVecVal(0, 256)
-        self._storage[item] = symbol_factory.BitVecVal(0, 256)
+
+        self._storage[item] = symbol_factory.BitVecSym(
+            "storage_{}_{}".format(str(item), str(self.address)), 256
+        )
         return self._storage[item]
 
     def __setitem__(self, key: Union[int, str], value: Any) -> None:
@@ -68,6 +73,9 @@ class Storage:
         )
         storage._storage = copy(self._storage)
         return storage
+
+    def __str__(self):
+        return str(self._storage)
 
 
 class Account:

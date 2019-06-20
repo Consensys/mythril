@@ -16,6 +16,7 @@ from z3 import ExprRef, simplify
 
 evm_test_dir = Path(__file__).parent / "VMTests"
 
+
 test_types = [
     "vmArithmeticTest",
     "vmBitwiseLogicOperation",
@@ -23,7 +24,39 @@ test_types = [
     "vmPushDupSwapTest",
     "vmTests",
     "vmSha3Test",
+    "vmSystemOperations",
+    "vmRandomTest",
+    "vmIOandFlowOperations",
 ]
+
+tests_with_gas_support = ["gas0", "gas1"]
+tests_with_block_number_support = [
+    "BlockNumberDynamicJumpi0",
+    "BlockNumberDynamicJumpi1",
+    "BlockNumberDynamicJump0_jumpdest2",
+    "DynamicJumpPathologicalTest0",
+    "BlockNumberDynamicJumpifInsidePushWithJumpDest",
+    "BlockNumberDynamicJumpiAfterStop",
+    "BlockNumberDynamicJumpifInsidePushWithoutJumpDest",
+    "BlockNumberDynamicJump0_jumpdest0",
+    "BlockNumberDynamicJumpi1_jumpdest",
+    "BlockNumberDynamicJumpiOutsideBoundary",
+    "DynamicJumpJD_DependsOnJumps1",
+]
+tests_with_log_support = ["log1MemExp"]
+tests_not_relevent = [
+    "loop_stacklimit_1020",  # We won't be looping till 1020 as we have a max_depth
+    "loop_stacklimit_1021",
+]
+tests_to_resolve = ["jumpTo1InstructionafterJump", "sstore_load_2", "jumpi_at_the_end"]
+ignored_test_names = (
+    tests_with_gas_support
+    + tests_with_log_support
+    + tests_with_block_number_support
+    + tests_with_block_number_support
+    + tests_not_relevent
+    + tests_to_resolve
+)
 
 
 def load_test_data(designations):
@@ -80,16 +113,20 @@ def test_vmtest(
     gas_used: int,
     post_condition: dict,
 ) -> None:
+
     # Arrange
-    if test_name == "gasprice":
+    if test_name in ignored_test_names:
         return
 
     world_state = WorldState()
 
     for address, details in pre_condition.items():
-        account = Account(address)
+        account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
         account.nonce = int(details["nonce"], 16)
+        for key, value in details["storage"].items():
+            account.storage[int(key, 16)] = int(value, 16)
+
         world_state.put_account(account)
         account.set_balance(int(details["balance"], 16))
 
@@ -123,16 +160,12 @@ def test_vmtest(
         assert all(map(lambda g: g[0] <= g[1], gas_min_max))
         assert any(gas_ranges)
 
-    if any((v in test_name for v in ["error", "oog"])) and post_condition == {}:
+    if post_condition == {}:
         # no more work to do if error happens or out of gas
         assert len(laser_evm.open_states) == 0
     else:
         assert len(laser_evm.open_states) == 1
         world_state = laser_evm.open_states[0]
-        model = get_model(
-            next(iter(laser_evm.nodes.values())).states[0].mstate.constraints,
-            enforce_execution_time=False,
-        )
 
         for address, details in post_condition.items():
             account = world_state[symbol_factory.BitVecVal(int(address, 16), 256)]
@@ -143,6 +176,7 @@ def test_vmtest(
             for index, value in details["storage"].items():
                 expected = int(value, 16)
                 actual = account.storage[int(index, 16)]
+
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual

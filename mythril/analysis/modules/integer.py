@@ -4,7 +4,7 @@ underflows."""
 import json
 
 from math import log2, ceil
-from typing import Dict, cast, List
+from typing import cast, List, Dict, Set
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
@@ -13,6 +13,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
+from copy import copy
 
 from mythril.laser.smt import (
     BVAddNoOverflow,
@@ -28,10 +29,7 @@ from mythril.laser.smt import (
 
 import logging
 
-
 log = logging.getLogger(__name__)
-
-DISABLE_EFFECT_CHECK = True
 
 
 class OverUnderflowAnnotation:
@@ -48,12 +46,19 @@ class OverUnderflowAnnotation:
 class OverUnderflowStateAnnotation(StateAnnotation):
     """ State Annotation used if an overflow is both possible and used in the annotated path"""
 
-    def __init__(
-        self, overflowing_state: GlobalState, operator: str, constraint: Bool
-    ) -> None:
-        self.overflowing_state = overflowing_state
-        self.operator = operator
-        self.constraint = constraint
+    def __init__(self) -> None:
+        self.overflowing_state_annotations = []  # type: List[OverUnderflowAnnotation]
+        self.ostates_seen = set()  # type: Set[GlobalState]
+
+    def __copy__(self):
+        new_annotation = OverUnderflowStateAnnotation()
+
+        new_annotation.overflowing_state_annotations = copy(
+            self.overflowing_state_annotations
+        )
+        new_annotation.ostates_seen = copy(self.ostates_seen)
+
+        return new_annotation
 
 
 class IntegerOverflowUnderflowModule(DetectionModule):
@@ -72,8 +77,19 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             entrypoint="callback",
             pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
         )
+
+        """
+        Cache addresses for which overflows or underflows already have been detected.
+        """
+
         self._overflow_cache = {}  # type: Dict[int, bool]
-        self._underflow_cache = {}  # type: Dict[int, bool]
+
+        """
+        Cache satisfiability of overflow constraints
+        """
+
+        self._ostates_satisfiable = set()  # type: Set[GlobalState]
+        self._ostates_unsatisfiable = set()  # type: Set[GlobalState]
 
     def reset_module(self):
         """
@@ -82,20 +98,23 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         super().reset_module()
         self._overflow_cache = {}
-        self._underflow_cache = {}
+        self._ostates_satisfiable = set()
+        self._ostates_unsatisfiable = set()
 
-    def execute(self, state: GlobalState):
+    def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
 
         :param state: Statespace to analyse
         :return: Found issues
         """
+
         address = _get_address_from_state(state)
-        has_overflow = self._overflow_cache.get(address, False)
-        has_underflow = self._underflow_cache.get(address, False)
-        if has_overflow or has_underflow:
+
+        if self._overflow_cache.get(address, False):
             return
+
         opcode = state.get_current_instruction()["opcode"]
+
         funcs = {
             "ADD": [self._handle_add],
             "SUB": [self._handle_sub],
@@ -121,11 +140,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         op0, op1 = self._get_args(state)
         c = Not(BVAddNoOverflow(op0, op1, False))
 
-        # Check satisfiable
-        model = self._try_constraints(state.mstate.constraints, [c])
-        if model is None:
-            return
-
         annotation = OverUnderflowAnnotation(state, "addition", c)
         op0.annotate(annotation)
 
@@ -133,22 +147,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         op0, op1 = self._get_args(state)
         c = Not(BVMulNoOverflow(op0, op1, False))
 
-        # Check satisfiable
-        model = self._try_constraints(state.mstate.constraints, [c])
-        if model is None:
-            return
-
         annotation = OverUnderflowAnnotation(state, "multiplication", c)
         op0.annotate(annotation)
 
     def _handle_sub(self, state):
         op0, op1 = self._get_args(state)
         c = Not(BVSubNoUnderflow(op0, op1, False))
-
-        # Check satisfiable
-        model = self._try_constraints(state.mstate.constraints, [c])
-        if model is None:
-            return
 
         annotation = OverUnderflowAnnotation(state, "subtraction", c)
         op0.annotate(annotation)
@@ -174,9 +178,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
         else:
             constraint = op0.value ** op1.value >= 2 ** 256
-        model = self._try_constraints(state.mstate.constraints, [constraint])
-        if model is None:
-            return
+
         annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
         op0.annotate(annotation)
 
@@ -213,36 +215,42 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
     @staticmethod
     def _handle_sstore(state: GlobalState) -> None:
+
         stack = state.mstate.stack
         value = stack[-2]
+
         if not isinstance(value, Expression):
             return
+
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
         for annotation in value.annotations:
-            if not isinstance(annotation, OverUnderflowAnnotation):
+            if (
+                not isinstance(annotation, OverUnderflowAnnotation)
+                or annotation.overflowing_state in state_annotation.ostates_seen
+            ):
                 continue
-            state.annotate(
-                OverUnderflowStateAnnotation(
-                    annotation.overflowing_state,
-                    annotation.operator,
-                    annotation.constraint,
-                )
-            )
+
+            state_annotation.overflowing_state_annotations.append(annotation)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
     @staticmethod
     def _handle_jumpi(state):
+
         stack = state.mstate.stack
         value = stack[-2]
 
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
         for annotation in value.annotations:
-            if not isinstance(annotation, OverUnderflowAnnotation):
+            if (
+                not isinstance(annotation, OverUnderflowAnnotation)
+                or annotation.overflowing_state in state_annotation.ostates_seen
+            ):
                 continue
-            state.annotate(
-                OverUnderflowStateAnnotation(
-                    annotation.overflowing_state,
-                    annotation.operator,
-                    annotation.constraint,
-                )
-            )
+
+            state_annotation.overflowing_state_annotations.append(annotation)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
     @staticmethod
     def _handle_return(state: GlobalState) -> None:
@@ -251,50 +259,58 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         locations in the memory returned by RETURN opcode.
         :param state: The Global State
         """
+
         stack = state.mstate.stack
         try:
             offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
         except TypeError:
             return
+
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
         for element in state.mstate.memory[offset : offset + length]:
+
             if not isinstance(element, Expression):
                 continue
+
             for annotation in element.annotations:
-                if isinstance(annotation, OverUnderflowAnnotation):
-                    state.annotate(
-                        OverUnderflowStateAnnotation(
-                            annotation.overflowing_state,
-                            annotation.operator,
-                            annotation.constraint,
-                        )
-                    )
+                if (
+                    isinstance(annotation, OverUnderflowAnnotation)
+                    and annotation not in state_annotation.overflowing_state_annotations
+                ):
+                    state_annotation.overflowing_state_annotations.append(annotation)
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
-        for annotation in cast(
-            List[OverUnderflowStateAnnotation],
-            state.get_annotations(OverUnderflowStateAnnotation),
-        ):
+
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
+        for annotation in state_annotation.overflowing_state_annotations:
 
             ostate = annotation.overflowing_state
-            address = _get_address_from_state(ostate)
 
-            if annotation.operator == "subtraction" and self._underflow_cache.get(
-                address, False
-            ):
+            if ostate in self._ostates_unsatisfiable:
                 continue
 
-            if annotation.operator != "subtraction" and self._overflow_cache.get(
-                address, False
-            ):
-                continue
+            if ostate not in self._ostates_satisfiable:
+                try:
+                    constraints = ostate.mstate.constraints + [annotation.constraint]
+                    solver.get_model(constraints)
+                    self._ostates_satisfiable.add(ostate)
+                except:
+                    self._ostates_unsatisfiable.add(ostate)
+                    continue
+
+            log.debug(
+                "Checking overflow in {} at transaction end address {}, ostate address {}".format(
+                    state.get_current_instruction()["opcode"],
+                    state.get_current_instruction()["address"],
+                    ostate.get_current_instruction()["address"],
+                )
+            )
 
             try:
-                # This check can be disabled if the contraints are to difficult for z3 to solve
-                # within any reasonable time.
-                if DISABLE_EFFECT_CHECK:
-                    constraints = ostate.mstate.constraints + [annotation.constraint]
-                else:
-                    constraints = state.mstate.constraints + [annotation.constraint]
+
+                constraints = state.mstate.constraints + [annotation.constraint]
 
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
@@ -314,25 +330,12 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 description_head=self._get_description_head(annotation, _type),
                 description_tail=self._get_description_tail(annotation, _type),
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
 
-            issue.debug = json.dumps(transaction_sequence, indent=4)
-
-            if annotation.operator == "subtraction":
-                self._underflow_cache[address] = True
-            else:
-                self._overflow_cache[address] = True
+            address = _get_address_from_state(ostate)
+            self._overflow_cache[address] = True
             self._issues.append(issue)
-
-    @staticmethod
-    def _try_constraints(constraints, new_constraints):
-        """        Tries new constraints
-        :return Model if satisfiable otherwise None
-        """
-        try:
-            return solver.get_model(constraints + new_constraints)
-        except UnsatError:
-            return None
 
 
 detector = IntegerOverflowUnderflowModule()
@@ -340,3 +343,19 @@ detector = IntegerOverflowUnderflowModule()
 
 def _get_address_from_state(state):
     return state.get_current_instruction()["address"]
+
+
+def _get_overflowunderflow_state_annotation(
+    state: GlobalState
+) -> OverUnderflowStateAnnotation:
+    state_annotations = cast(
+        List[OverUnderflowStateAnnotation],
+        list(state.get_annotations(OverUnderflowStateAnnotation)),
+    )
+
+    if len(state_annotations) == 0:
+        state_annotation = OverUnderflowStateAnnotation()
+        state.annotate(state_annotation)
+        return state_annotation
+    else:
+        return state_annotations[0]

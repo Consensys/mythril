@@ -131,6 +131,8 @@ class StateTransition(object):
         min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
+        self.check_gas_usage_limit(global_state)
+
         return global_state
 
     def __call__(self, func: Callable) -> Callable:
@@ -766,18 +768,8 @@ class Instruction:
             size_sym = True
 
         if size_sym:
-            state.mem_extend(mstart, 1)
-            state.memory[mstart] = global_state.new_bitvec(
-                "calldata_"
-                + str(environment.active_account.contract_name)
-                + "["
-                + str(dstart)
-                + ": + "
-                + str(size)
-                + "]",
-                8,
-            )
-            return [global_state]
+            size = 320  # The excess size will get overwritten
+
         size = cast(int, size)
         if size > 0:
             try:
@@ -939,9 +931,20 @@ class Instruction:
             data = symbol_factory.BitVecVal(0, 1)
 
         if data.symbolic:
+
+            annotations = []
+
+            for b in state.memory[index : index + length]:
+                if isinstance(b, BitVec):
+                    annotations.append(b.annotations)
+
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str), "keccak256", 256, input_=data
+                "KECCAC[{}]".format(argument_str),
+                "keccak256",
+                256,
+                input_=data,
+                annotations=annotations,
             )
             log.debug("Created BitVecFunc hash.")
 
@@ -963,7 +966,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("gasprice", 256))
+        global_state.mstate.stack.append(global_state.environment.gasprice)
         return [global_state]
 
     @staticmethod
@@ -1243,7 +1246,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("block_number", 256))
+        global_state.mstate.stack.append(global_state.environment.block_number)
         return [global_state]
 
     @StateTransition()
@@ -1631,7 +1634,7 @@ class Instruction:
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
-        if not index:
+        if index is None:
             log.debug("Invalid jump destination: " + str(jump_addr))
             return states
 
@@ -1660,7 +1663,12 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.mstate.pc - 1)
+        index = global_state.mstate.pc
+        program_counter = global_state.environment.code.instruction_list[index][
+            "address"
+        ]
+        global_state.mstate.stack.append(program_counter)
+
         return [global_state]
 
     @StateTransition()
@@ -1670,7 +1678,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.new_bitvec("msize", 256))
+        global_state.mstate.stack.append(global_state.mstate.memory_size)
         return [global_state]
 
     @StateTransition()
@@ -1742,8 +1750,12 @@ class Instruction:
         offset, length = state.stack.pop(), state.stack.pop()
         return_data = [global_state.new_bitvec("return_data", 8)]
         try:
+            concrete_offset = util.get_concrete_int(offset)
+            concrete_length = util.get_concrete_int(length)
+            state.mem_extend(concrete_offset, concrete_length)
+            StateTransition.check_gas_usage_limit(global_state)
             return_data = state.memory[
-                util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
+                concrete_offset : concrete_offset + concrete_length
             ]
         except TypeError:
             log.debug("Return with symbolic length or offset. Not supported")
@@ -1830,6 +1842,14 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -1847,7 +1867,6 @@ class Instruction:
         )
         if native_result:
             return native_result
-
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
@@ -2098,7 +2117,6 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
             return [global_state]
 
         try:

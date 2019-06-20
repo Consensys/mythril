@@ -4,7 +4,6 @@
         {
             "address": 142,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "Anyone can withdraw ETH from the contract account.\nArbitrary senders other than the contract creator can withdraw ETH from the contract account without previously having sent an equivalent amount of ETH to it. This is likely to be a vulnerability.",
             "function": "transfer()",
             "max_gas_used": 467,
@@ -12,7 +11,8 @@
             "severity": "High",
             "sourceMap": null,
             "swc-id": "105",
-            "title": "Unprotected Ether Withdrawal"
+            "title": "Unprotected Ether Withdrawal",
+            "tx_sequence": "<TX-DATA>"
         }
     ],
     "success": true

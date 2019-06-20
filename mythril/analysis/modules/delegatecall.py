@@ -1,17 +1,77 @@
 """This module contains the detection code for insecure delegate call usage."""
-import re
+import json
 import logging
-from typing import List
+from copy import copy
+from typing import List, cast, Dict
 
+from mythril.analysis import solver
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
-from mythril.analysis.ops import get_variable, VarType, Call, Variable
+from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.transaction_models import (
+    ContractCreationTransaction,
+)
 from mythril.analysis.report import Issue
-from mythril.analysis.call_helpers import get_call_from_state
 from mythril.analysis.modules.base import DetectionModule
+from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
-
+from mythril.laser.smt import symbol_factory, UGT
 
 log = logging.getLogger(__name__)
+
+
+class DelegateCallAnnotation(StateAnnotation):
+    def __init__(self, call_state: GlobalState, constraints: List) -> None:
+        """
+        Initialize DelegateCall Annotation
+        :param call_state: Call state
+        """
+        self.call_state = call_state
+        self.constraints = constraints
+        self.return_value = call_state.new_bitvec(
+            "retval_{}".format(call_state.get_current_instruction()["address"]), 256
+        )
+
+    def _copy__(self):
+        return DelegateCallAnnotation(self.call_state, copy(self.constraints))
+
+    def get_issue(self, global_state: GlobalState, transaction_sequence: Dict) -> Issue:
+        """
+        Returns Issue for the annotation
+        :param global_state: Global State
+        :param transaction_sequence: Transaction sequence
+        :return: Issue
+        """
+
+        address = self.call_state.get_current_instruction()["address"]
+        logging.debug(
+            "[DELEGATECALL] Detected delegatecall to a user-supplied address : {}".format(
+                address
+            )
+        )
+        description_head = "The contract delegates execution to another contract with a user-supplied address."
+        description_tail = (
+            "The smart contract delegates execution to a user-supplied address. Note that callers "
+            "can execute arbitrary contracts and that the callee contract "
+            "can access the storage of the calling contract. "
+        )
+
+        return Issue(
+            contract=self.call_state.environment.active_account.contract_name,
+            function_name=self.call_state.environment.active_function_name,
+            address=address,
+            swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+            title="Delegatecall Proxy To User-Supplied Address",
+            bytecode=global_state.environment.code.bytecode,
+            severity="Medium",
+            description_head=description_head,
+            description_tail=description_tail,
+            transaction_sequence=transaction_sequence,
+            gas_used=(
+                global_state.mstate.min_gas_used,
+                global_state.mstate.max_gas_used,
+            ),
+        )
 
 
 class DelegateCallModule(DetectionModule):
@@ -24,18 +84,16 @@ class DelegateCallModule(DetectionModule):
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
             description="Check for invocations of delegatecall(msg.data) in the fallback function.",
             entrypoint="callback",
-            pre_hooks=["DELEGATECALL"],
+            pre_hooks=["DELEGATECALL", "RETURN", "STOP"],
         )
 
-    def execute(self, state: GlobalState) -> list:
+    def _execute(self, state: GlobalState) -> None:
         """
 
         :param state:
         :return:
         """
-        log.debug("Executing module: DELEGATE_CALL")
         self._issues.extend(_analyze_states(state))
-        return self.issues
 
 
 def _analyze_states(state: GlobalState) -> List[Issue]:
@@ -43,59 +101,50 @@ def _analyze_states(state: GlobalState) -> List[Issue]:
     :param state: the current state
     :return: returns the issues for that corresponding state
     """
-    call = get_call_from_state(state)
-    if call is None:
-        return []
-    issues = []  # type: List[Issue]
-
-    if call.type is not "DELEGATECALL":
-        return []
-    if state.environment.active_function_name is not "fallback":
-        return []
-
-    state = call.state
-    address = state.get_current_instruction()["address"]
-    meminstart = get_variable(state.mstate.stack[-3])
-
-    if meminstart.type == VarType.CONCRETE:
-        issues += _concrete_call(call, state, address, meminstart)
-
-    return issues
-
-
-def _concrete_call(
-    call: Call, state: GlobalState, address: int, meminstart: Variable
-) -> List[Issue]:
-    """
-    :param call: The current call's information
-    :param state: The current state
-    :param address: The PC address
-    :param meminstart: memory starting position
-    :return: issues
-    """
-    if not re.search(r"calldata.*\[0", str(state.mstate.memory[meminstart.val])):
-        return []
-
-    issue = Issue(
-        contract=state.environment.active_account.contract_name,
-        function_name=state.environment.active_function_name,
-        address=address,
-        swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-        bytecode=state.environment.code.bytecode,
-        title="Delegatecall Proxy",
-        severity="Low",
-        description_head="The contract implements a delegatecall proxy.",
-        description_tail="The smart contract forwards the received calldata via delegatecall. Note that callers "
-        "can execute arbitrary functions in the callee contract and that the callee contract "
-        "can access the storage of the calling contract. "
-        "Make sure that the callee contract is audited properly.",
-        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+    issues = []
+    op_code = state.get_current_instruction()["opcode"]
+    annotations = cast(
+        List[DelegateCallAnnotation],
+        list(state.get_annotations(DelegateCallAnnotation)),
     )
 
-    target = hex(call.to.val) if call.to.type == VarType.CONCRETE else str(call.to)
-    issue.description += "DELEGATECALL target: {}".format(target)
+    if len(annotations) == 0 and op_code in ("RETURN", "STOP"):
+        return []
 
-    return [issue]
+    if op_code == "DELEGATECALL":
+        gas = state.mstate.stack[-1]
+        to = state.mstate.stack[-2]
+
+        constraints = [
+            to == ATTACKER_ADDRESS,
+            UGT(gas, symbol_factory.BitVecVal(2300, 256)),
+        ]
+
+        for tx in state.world_state.transaction_sequence:
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints.append(tx.caller == ATTACKER_ADDRESS)
+
+        state.annotate(DelegateCallAnnotation(state, constraints))
+
+        return []
+    else:
+        for annotation in annotations:
+            try:
+                transaction_sequence = solver.get_transaction_sequence(
+                    state,
+                    state.mstate.constraints
+                    + annotation.constraints
+                    + [annotation.return_value == 1],
+                )
+                issues.append(
+                    annotation.get_issue(
+                        state, transaction_sequence=transaction_sequence
+                    )
+                )
+            except UnsatError:
+                continue
+
+        return issues
 
 
 detector = DelegateCallModule()

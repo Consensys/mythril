@@ -4,7 +4,6 @@
         {
             "address": 618,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
             "function": "_function_0x141f32ff",
             "max_gas_used": 35865,
@@ -12,12 +11,12 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "104",
-            "title": "Unchecked Call Return Value"
+            "title": "Unchecked Call Return Value",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 618,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "Use of callcode is deprecated.\nThe callcode method executes code of another contract in the context of the caller account. Due to a bug in the implementation it does not persist sender and value over the call. It was therefore deprecated and may be removed in the future. Use the delegatecall method instead.",
             "function": "_function_0x141f32ff",
             "max_gas_used": 1141,
@@ -25,12 +24,25 @@
             "severity": "Medium",
             "sourceMap": null,
             "swc-id": "111",
-            "title": "Use of callcode"
+            "title": "Use of callcode",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 849,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
+            "description": "The contract delegates execution to another contract with a user-supplied address.\nThe smart contract delegates execution to a user-supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract. ",
+            "function": "_function_0x9b58bc26",
+            "max_gas_used": 35928,
+            "min_gas_used": 1176,
+            "severity": "Medium",
+            "sourceMap": null,
+            "swc-id": "112",
+            "title": "Delegatecall Proxy To User-Supplied Address",
+            "tx_sequence": "<TX-DATA>"
+        },
+        {
+            "address": 849,
+            "contract": "Unknown",
             "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
             "function": "_function_0x9b58bc26",
             "max_gas_used": 35928,
@@ -38,12 +50,12 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "104",
-            "title": "Unchecked Call Return Value"
+            "title": "Unchecked Call Return Value",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 1038,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "A call to a user-supplied address is executed.\nThe callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.",
             "function": "_function_0xeea4c864",
             "max_gas_used": 1229,
@@ -51,12 +63,12 @@
             "severity": "Medium",
             "sourceMap": null,
             "swc-id": "107",
-            "title": "External Call To User-Supplied Address"
+            "title": "External Call To User-Supplied Address",
+            "tx_sequence": "<TX-DATA>"
         },
         {
             "address": 1038,
             "contract": "Unknown",
-            "debug": "<DEBUG-DATA>",
             "description": "The return value of a message call is not checked.\nExternal calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.",
             "function": "_function_0xeea4c864",
             "max_gas_used": 35953,
@@ -64,7 +76,8 @@
             "severity": "Low",
             "sourceMap": null,
             "swc-id": "104",
-            "title": "Unchecked Call Return Value"
+            "title": "Unchecked Call Return Value",
+            "tx_sequence": "<TX-DATA>"
         }
     ],
     "success": true

@@ -8,7 +8,7 @@ ethereum>=2.3.2
 ethereum-input-decoder>=0.2.2
 eth-hash>=0.1.0
 eth-keyfile>=0.5.1
-eth-keys>=0.2.0b3
+eth-keys>=0.2.0b3,<0.3.0
 eth-rlp>=0.1.0
 eth-tester==0.1.0b32
 eth-typing>=2.0.0
@@ -25,6 +25,6 @@ pytest_mock
 requests
 rlp>=1.0.1
 transaction>=2.2.1
-z3-solver-mythril>=4.8.4.1
+z3-solver>=4.8.5.0
 pysha3
 matplotlib
