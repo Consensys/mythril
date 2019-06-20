@@ -1144,8 +1144,8 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        addr = state.stack.pop()
-        memory_offset, code_offset, size = (
+        addr, memory_offset, code_offset, size = (
+            state.stack.pop(),
             state.stack.pop(),
             state.stack.pop(),
             state.stack.pop(),
