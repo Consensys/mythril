@@ -25,10 +25,19 @@ from mythril.mythril import (
 )
 from mythril.__version__ import __version__ as VERSION
 
-ANALYZE_LIST = ("a", "analyze")
-DISASSEMBLE_LIST = ("d", "disassemble")
+ANALYZE_LIST = ("analyze", "a")
+DISASSEMBLE_LIST = ("disassemble", "d")
 
 log = logging.getLogger(__name__)
+
+COMMAND_LIST = ANALYZE_LIST + DISASSEMBLE_LIST + (
+    "read-storage",
+    "leveldb-search",
+    "function-to-hash",
+    "hash-to-address",
+    "version",
+    "truffle",
+)
 
 
 def exit_with_error(format_, message):
@@ -163,17 +172,17 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     analyzer_parser = subparsers.add_parser(
-        "analyze",
+        ANALYZE_LIST[0],
         help="Triggers the analysis of the smart contract",
         parents=[rpc_parser, utilities_parser, input_parser, output_parser],
-        aliases=["a"],
+        aliases=ANALYZE_LIST[1:],
     )
     create_analyzer_parser(analyzer_parser)
 
     disassemble_parser = subparsers.add_parser(
-        "disassemble",
+        DISASSEMBLE_LIST[0],
         help="Disassembles the smart contract",
-        aliases=["d"],
+        aliases=DISASSEMBLE_LIST[1:],
         parents=[rpc_parser, utilities_parser, input_parser],
     )
     create_disassemble_parser(disassemble_parser)
@@ -620,8 +629,10 @@ def parse_args(parser: ArgumentParser, args: Namespace) -> None:
     :param parser: The parser
     :param args: The args
     """
+    if args.command not in COMMAND_LIST:
+        parser.print_usage()
 
-    if args.__dict__.get("epic", None):
+    if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
         sys.argv.remove("--epic")
         os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
