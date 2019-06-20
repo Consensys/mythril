@@ -448,7 +448,11 @@ class LaserEVM:
 
         environment = state.environment
         disassembly = environment.code
-        if address in disassembly.address_to_function_name:
+        if isinstance(
+            state.world_state.transaction_sequence[-1], ContractCreationTransaction
+        ):
+            environment.active_function_name = "constructor"
+        elif address in disassembly.address_to_function_name:
             # Enter a new function
             environment.active_function_name = disassembly.address_to_function_name[
                 address
