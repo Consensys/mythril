@@ -40,6 +40,7 @@ COMMAND_LIST = (
         "hash-to-address",
         "version",
         "truffle",
+        "help",
     )
 )
 
@@ -209,18 +210,18 @@ def main() -> None:
     subparsers.add_parser(
         "version", parents=[output_parser], help="Outputs the version"
     )
-
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
     create_leveldb_parser(leveldb_search_parser)
 
     subparsers.add_parser("truffle", parents=[analyzer_parser], add_help=False)
+    subparsers.add_parser("help", add_help=False)
 
     # Get config values
 
     args = parser.parse_args()
-    parse_args(parser=parser, args=args)
+    parse_args_and_execute(parser=parser, args=args)
 
 
 def create_disassemble_parser(parser: ArgumentParser):
@@ -627,7 +628,7 @@ def contract_hash_to_address(args: Namespace):
     sys.exit()
 
 
-def parse_args(parser: ArgumentParser, args: Namespace) -> None:
+def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     """
     Parses the arguments
     :param parser: The parser
@@ -647,6 +648,10 @@ def parse_args(parser: ArgumentParser, args: Namespace) -> None:
             print(json.dumps({"version_str": VERSION}))
         else:
             print("Mythril version {}".format(VERSION))
+        sys.exit()
+
+    if args.command == "help":
+        parser.print_help()
         sys.exit()
 
     # Parse cmdline args
