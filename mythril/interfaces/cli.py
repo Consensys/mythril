@@ -30,13 +30,17 @@ DISASSEMBLE_LIST = ("disassemble", "d")
 
 log = logging.getLogger(__name__)
 
-COMMAND_LIST = ANALYZE_LIST + DISASSEMBLE_LIST + (
-    "read-storage",
-    "leveldb-search",
-    "function-to-hash",
-    "hash-to-address",
-    "version",
-    "truffle",
+COMMAND_LIST = (
+    ANALYZE_LIST
+    + DISASSEMBLE_LIST
+    + (
+        "read-storage",
+        "leveldb-search",
+        "function-to-hash",
+        "hash-to-address",
+        "version",
+        "truffle",
+    )
 )
 
 
