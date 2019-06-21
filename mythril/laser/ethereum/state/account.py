@@ -3,11 +3,10 @@
 This includes classes representing accounts and their storage.
 """
 from copy import deepcopy, copy
-from typing import Any, Dict, KeysView, Union
+from typing import Any, Dict, Union
 
-from z3 import ExprRef
 
-from mythril.laser.smt import Array, symbol_factory, BitVec
+from mythril.laser.smt import Array, K, BitVec, simplify, BitVecFunc, Extract
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
@@ -15,66 +14,74 @@ from mythril.laser.smt import symbol_factory
 class Storage:
     """Storage class represents the storage of an Account."""
 
-    def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
+    def __init__(
+        self, concrete=False, address=None, dynamic_loader=None, keys=None
+    ) -> None:
         """Constructor for Storage.
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        self._storage = {}  # type: Dict[Union[int, str], Any]
-        self.concrete = concrete
+        if concrete:
+            self._standard_storage = K(256, 256, 0)
+            self._map_storage = {}
+        else:
+            self._standard_storage = Array("Storage", 256, 256)
+            self._map_storage = {}
+
+        self._keys = keys or set()
         self.dynld = dynamic_loader
         self.address = address
 
     def __getitem__(self, item: Union[str, int]) -> Any:
-        try:
-            return self._storage[item]
-        except KeyError:
-            if (
-                self.address
-                and self.address.value != 0
-                and (self.dynld and self.dynld.storage_loading)
-            ):
-                try:
-                    self._storage[item] = symbol_factory.BitVecVal(
-                        int(
-                            self.dynld.read_storage(
-                                contract_address=self.address, index=int(item)
-                            ),
-                            16,
-                        ),
-                        256,
-                    )
-                    return self._storage[item]
-                except ValueError:
-                    pass
+        self._keys.add(item)
+        storage = self._get_corresponding_storage(item)
+        return simplify(storage[item])
 
-        if self.concrete:
-            return symbol_factory.BitVecVal(0, 256)
+    @staticmethod
+    def get_map_index(key):
+        if not isinstance(key, BitVecFunc) or key.func_name != "keccak256":
+            return None
+        index = Extract(255, 0, key.input_)
+        print(simplify(index), key.input_)
+        return simplify(index)
 
-        self._storage[item] = symbol_factory.BitVecSym(
-            "storage_{}_{}".format(str(item), str(self.address)), 256
-        )
-        return self._storage[item]
+    def _get_corresponding_storage(self, key):
+        index = self.get_map_index(key)
+        if index is None:
+            storage = self._standard_storage
+        else:
+            try:
+                storage = self._map_storage[index]
+            except KeyError:
+                if isinstance(self._standard_storage, Array):
+                    self._map_storage[index] = Array("Storage", 256, 256)
+                else:
+                    self._map_storage[index] = K(256, 256, 0)
+                storage = self._map_storage[index]
+        return storage
 
-    def __setitem__(self, key: Union[int, str], value: Any) -> None:
-        self._storage[key] = value
-
-    def keys(self) -> KeysView:
-        """
-
-        :return:
-        """
-        return self._storage.keys()
+    def __setitem__(self, key, value: Any) -> None:
+        self._keys.add(key)
+        storage = self._get_corresponding_storage(key)
+        storage[key] = value
 
     def __deepcopy__(self, memodict={}):
+        concrete = isinstance(self._standard_storage, K)
         storage = Storage(
-            concrete=self.concrete, address=self.address, dynamic_loader=self.dynld
+            concrete=concrete,
+            address=self.address,
+            dynamic_loader=self.dynld,
+            keys=deepcopy(self._keys),
         )
-        storage._storage = copy(self._storage)
+        storage._standard_storage = deepcopy(self._standard_storage)
+        storage._map_storage = deepcopy(self._map_storage)
         return storage
 
     def __str__(self):
-        return str(self._storage)
+        return str(self._standard_storage)
+
+    def keys(self):
+        return self._keys
 
 
 class Account:
@@ -158,13 +165,13 @@ class Account:
             "storage": self.storage,
         }
 
-    def __deepcopy__(self, memodict={}):
+    def __copy__(self, memodict={}):
         new_account = Account(
             address=self.address,
             code=self.code,
             contract_name=self.contract_name,
             balances=self._balances,
         )
-        new_account.storage = deepcopy(self.storage)
+        new_account.storage = copy(self.storage)
         new_account.code = self.code
         return new_account

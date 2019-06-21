@@ -205,7 +205,7 @@ class BitVecFunc(BitVec):
         :return: The resulting Bool
         """
         return _comparison_helper(
-            self, other, operator.eq, default_value=True, inputs_equal=False
+            self, other, operator.ne, default_value=True, inputs_equal=False
         )
 
     def __lshift__(self, other: Union[int, "BitVec"]) -> "BitVec":
@@ -223,3 +223,6 @@ class BitVecFunc(BitVec):
         :return The resulting right shifted output:
         """
         return _arithmetic_helper(self, other, operator.rshift)
+
+    def __hash__(self) -> int:
+        return self.raw.__hash__()
