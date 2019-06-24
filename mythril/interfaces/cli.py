@@ -538,9 +538,8 @@ def execute_command(
             params=[a.strip() for a in args.storage_slots.strip().split(",")],
         )
         print(storage)
-        return
 
-    if args.command in DISASSEMBLE_LIST:
+    elif args.command in DISASSEMBLE_LIST:
         if disassembler.contracts[0].code:
             print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
         if disassembler.contracts[0].creation_code:
@@ -634,13 +633,15 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     :param parser: The parser
     :param args: The args
     """
-    if args.command not in COMMAND_LIST:
-        parser.print_usage()
 
     if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
         sys.argv.remove("--epic")
         os.system(" ".join(sys.argv) + " | python3 " + path + "/epic.py")
+        sys.exit()
+
+    if args.command not in COMMAND_LIST or args.command is None:
+        parser.print_help()
         sys.exit()
 
     if args.command == "version":

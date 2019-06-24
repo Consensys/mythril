@@ -58,6 +58,10 @@ class CommandLineToolTestCase(BaseTestCase):
         )
         self.assertIn(""""success": false""", output_of(command))
 
+    def test_only_epic(self):
+        command = "python3 {}".format(MYTH)
+        self.assertIn("usage: ", output_of(command))
+
     def test_storage(self):
         solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
         command = """python3 {} read-storage "438767356, 3" 0x76799f77587738bfeef09452df215b63d2cfb08a """.format(
