@@ -224,7 +224,6 @@ class Report:
         :return:
         """
         _issues = []
-        source_list = []
 
         for key, issue in self.issues.items():
 
