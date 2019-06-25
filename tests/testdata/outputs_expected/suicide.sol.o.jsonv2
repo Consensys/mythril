@@ -7,7 +7,8 @@
                     "tail": "Anyone can kill this contract and withdraw its balance to an arbitrary address."
                 },
                 "extra": {
-                    "discoveryTime": "<DISCOVERY-TIME-DATA>"
+                    "discoveryTime": "<DISCOVERY-TIME-DATA>",
+                    "testCase": "<TEST-CASE>"
                 },
                 "locations": [
                     {

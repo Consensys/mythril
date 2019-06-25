@@ -122,8 +122,6 @@ class EtherThief(DetectionModule):
 
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
-            debug = json.dumps(transaction_sequence, indent=4)
-
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
@@ -136,14 +134,14 @@ class EtherThief(DetectionModule):
                 description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
                 + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
                 + " a vulnerability.",
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
         except UnsatError:
             log.debug("[ETHER_THIEF] no model found")
             return []
 
-        self._cache_addresses[address] = True
+        # self._cache_addresses[address] = True
 
         return [issue]
 

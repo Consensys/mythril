@@ -39,8 +39,6 @@ COPY . /opt/mythril
 RUN cd /opt/mythril \
   && python setup.py install
 
-RUN useradd -m mythril
-USER mythril
 WORKDIR /home/mythril
 
 RUN ( [ ! -z "${SOLC}" ] && set -e && for ver in $SOLC; do python -m solc.install v${ver}; done ) || true

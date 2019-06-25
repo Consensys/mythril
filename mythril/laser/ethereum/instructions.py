@@ -768,18 +768,8 @@ class Instruction:
             size_sym = True
 
         if size_sym:
-            state.mem_extend(mstart, 1)
-            state.memory[mstart] = global_state.new_bitvec(
-                "calldata_"
-                + str(environment.active_account.contract_name)
-                + "["
-                + str(dstart)
-                + ": + "
-                + str(size)
-                + "]",
-                8,
-            )
-            return [global_state]
+            size = 320  # The excess size will get overwritten
+
         size = cast(int, size)
         if size > 0:
             try:
@@ -1019,16 +1009,61 @@ class Instruction:
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
         )
+        return self._code_copy_helper(
+            code=global_state.environment.code.bytecode,
+            memory_offset=memory_offset,
+            code_offset=code_offset,
+            size=size,
+            op="CODECOPY",
+            global_state=global_state,
+        )
 
+    @StateTransition()
+    def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        state = global_state.mstate
+        addr = state.stack.pop()
+        try:
+            addr = hex(helper.get_concrete_int(addr))
+        except TypeError:
+            log.debug("unsupported symbolic address for EXTCODESIZE")
+            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
+            return [global_state]
+        try:
+            code = global_state.world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            )
+        except (ValueError, AttributeError) as e:
+            log.debug("error accessing contract storage due to: " + str(e))
+            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
+            return [global_state]
+
+        state.stack.append(len(code) // 2)
+
+        return [global_state]
+
+    @staticmethod
+    def _code_copy_helper(
+        code: str,
+        memory_offset: BitVec,
+        code_offset: BitVec,
+        size: BitVec,
+        op: str,
+        global_state: GlobalState,
+    ) -> List[GlobalState]:
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
         except TypeError:
-            log.debug("Unsupported symbolic memory offset in CODECOPY")
+            log.debug("Unsupported symbolic memory offset in {}".format(op))
             return [global_state]
 
         try:
-            size = helper.get_concrete_int(size)
-            global_state.mstate.mem_extend(concrete_memory_offset, size)
+            concrete_size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
 
         except TypeError:
             # except both attribute error and Exception
@@ -1046,9 +1081,9 @@ class Instruction:
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
         except TypeError:
-            log.debug("Unsupported symbolic code offset in CODECOPY")
-            global_state.mstate.mem_extend(concrete_memory_offset, size)
-            for i in range(size):
+            log.debug("Unsupported symbolic code offset in {}".format(op))
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+            for i in range(concrete_size):
                 global_state.mstate.memory[
                     concrete_memory_offset + i
                 ] = global_state.new_bitvec(
@@ -1059,21 +1094,20 @@ class Instruction:
                 )
             return [global_state]
 
-        bytecode = global_state.environment.code.bytecode
-        if bytecode[0:2] == "0x":
-            bytecode = bytecode[2:]
+        if code[0:2] == "0x":
+            code = code[2:]
 
-        if size == 0 and isinstance(
+        if concrete_size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
-            if concrete_code_offset >= len(bytecode) // 2:
-                self._handle_symbolic_args(global_state, concrete_memory_offset)
+            if concrete_code_offset >= len(code) // 2:
+                Instruction._handle_symbolic_args(global_state, concrete_memory_offset)
                 return [global_state]
 
-        for i in range(size):
-            if 2 * (concrete_code_offset + i + 1) <= len(bytecode):
+        for i in range(concrete_size):
+            if 2 * (concrete_code_offset + i + 1) <= len(code):
                 global_state.mstate.memory[concrete_memory_offset + i] = int(
-                    bytecode[
+                    code[
                         2
                         * (concrete_code_offset + i) : 2
                         * (concrete_code_offset + i + 1)
@@ -1093,35 +1127,41 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
+    def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
         :return:
         """
         state = global_state.mstate
-        addr = state.stack.pop()
-        environment = global_state.environment
+        addr, memory_offset, code_offset, size = (
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+        )
         try:
             addr = hex(helper.get_concrete_int(addr))
         except TypeError:
-            log.debug("unsupported symbolic address for EXTCODESIZE")
-            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
+            log.debug("unsupported symbolic address for EXTCODECOPY")
             return [global_state]
 
         try:
-            code = self.dynamic_loader.dynld(addr)
+            code = global_state.world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            )
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
-            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
-        if code is None:
-            state.stack.append(0)
-        else:
-            state.stack.append(len(code.bytecode) // 2)
-
-        return [global_state]
+        return self._code_copy_helper(
+            code=code,
+            memory_offset=memory_offset,
+            code_offset=code_offset,
+            size=size,
+            op="EXTCODECOPY",
+            global_state=global_state,
+        )
 
     @StateTransition
     def extcodehash_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1135,20 +1175,6 @@ class Instruction:
         global_state.mstate.stack.append(
             global_state.new_bitvec("extcodehash_{}".format(str(address)), 256)
         )
-        return [global_state]
-
-    @StateTransition()
-    def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
-        """
-
-        :param global_state:
-        :return:
-        """
-        # FIXME: not implemented
-        state = global_state.mstate
-        addr = state.stack.pop()
-        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
-
         return [global_state]
 
     @StateTransition()
@@ -1852,6 +1878,14 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -1869,7 +1903,6 @@ class Instruction:
         )
         if native_result:
             return native_result
-
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
