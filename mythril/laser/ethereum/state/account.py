@@ -2,7 +2,7 @@
 
 This includes classes representing accounts and their storage.
 """
-from copy import deepcopy
+from copy import copy, deepcopy
 from typing import Any, Dict, Union
 
 
@@ -25,6 +25,8 @@ class Storage:
         else:
             self._standard_storage = Array("Storage", 256, 256)
             self._map_storage = {}
+
+        self.print_storage = {}  # type: Dict[BitVec, BitVec]
 
         self.dynld = dynamic_loader
         self.address = address
@@ -50,6 +52,7 @@ class Storage:
                     ),
                     256,
                 )
+                self.print_storage[item] = storage[item]
                 return storage[item]
             except ValueError:
                 pass
@@ -84,6 +87,7 @@ class Storage:
 
     def __setitem__(self, key, value: Any) -> None:
         storage = self._get_corresponding_storage(key)
+        self.print_storage[key] = value
         storage[key] = value
 
     def __deepcopy__(self, memodict={}):
@@ -93,10 +97,12 @@ class Storage:
         )
         storage._standard_storage = deepcopy(self._standard_storage)
         storage._map_storage = deepcopy(self._map_storage)
+        storage.print_storage = copy(self.print_storage)
         return storage
 
     def __str__(self) -> str:
-        return str(self._standard_storage)
+        # TODO: Do something better here
+        return str(self.print_storage)
 
 
 class Account:
