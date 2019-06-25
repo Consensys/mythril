@@ -76,9 +76,12 @@ class Issue:
 
     @property
     def transaction_sequence_jsonv2(self):
-        """ Returns the transaction sequence in json with pre-generated block data"""
+        """
+        Returns the transaction sequence with pre-generated block data.
+        Jsonv2 tx sequence isn't formatted for user readability.
+        """
         return (
-            json.dumps(self.add_block_data(self.transaction_sequence), indent=4)
+            self.add_block_data(self.transaction_sequence)
             if self.transaction_sequence
             else None
         )
@@ -226,7 +229,6 @@ class Report:
         :return:
         """
         _issues = []
-        source_list = []
 
         for key, issue in self.issues.items():
 
@@ -237,7 +239,8 @@ class Report:
                 title = "Unspecified Security Issue"
             extra = {"discoveryTime": int(issue.discovery_time * 10 ** 9)}
             if issue.transaction_sequence_jsonv2:
-                extra["testCase"] = str(issue.transaction_sequence_jsonv2)
+                extra["testCase"] = issue.transaction_sequence_jsonv2
+
             _issues.append(
                 {
                     "swcID": "SWC-" + issue.swc_id,
