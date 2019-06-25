@@ -13,6 +13,7 @@
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
 
+
 ## Use of callcode
 - SWC ID: 111
 - Severity: Medium
@@ -25,6 +26,7 @@ External calls return a boolean value. If the callee contract halts with an exce
 
 Use of callcode is deprecated.
 The callcode method executes code of another contract in the context of the caller account. Due to a bug in the implementation it does not persist sender and value over the call. It was therefore deprecated and may be removed in the future. Use the delegatecall method instead.
+
 
 ## Delegatecall Proxy To User-Supplied Address
 - SWC ID: 112
@@ -39,6 +41,11 @@ The callcode method executes code of another contract in the context of the call
 The contract delegates execution to another contract with a user-supplied address.
 The smart contract delegates execution to a user-supplied address. Note that callers can execute arbitrary contracts and that the callee contract can access the storage of the calling contract.
 
+### Transaction Sequence
+
+Caller: [ATTACKER], data: 0x9b58bc26bebebebebebebebebebebebedeadbeefdeadbeefdeadbeefdeadbeefdeadbeef, value: 0x0
+
+
 ## Unchecked Call Return Value
 - SWC ID: 104
 - Severity: Low
@@ -51,6 +58,7 @@ The smart contract delegates execution to a user-supplied address. Note that cal
 
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
+
 
 ## External Call To User-Supplied Address
 - SWC ID: 107
@@ -65,6 +73,11 @@ External calls return a boolean value. If the callee contract halts with an exce
 A call to a user-supplied address is executed.
 The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 
+### Transaction Sequence
+
+Caller: [ATTACKER], data: 0xeea4c864bebebebebebebebebebebebedeadbeefdeadbeefdeadbeefdeadbeefdeadbeef, value: 0x0
+
+
 ## Unchecked Call Return Value
 - SWC ID: 104
 - Severity: Low
@@ -77,3 +90,4 @@ The callee address of an external message call can be set by the caller. Note th
 
 The return value of a message call is not checked.
 External calls return a boolean value. If the callee contract halts with an exception, 'false' is returned and execution continues in the caller. It is usually recommended to wrap external calls into a require statement to prevent unexpected states.
+

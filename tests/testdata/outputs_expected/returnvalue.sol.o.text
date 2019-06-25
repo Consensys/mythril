@@ -8,6 +8,9 @@ Estimated Gas Usage: 599 - 1210
 A call to a user-supplied address is executed.
 The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 --------------------
+Transaction Sequence:
+
+Caller: [ATTACKER], data: 0x633ab5e0, value: 0x0
 
 ==== External Call To User-Supplied Address ====
 SWC ID: 107
@@ -19,6 +22,9 @@ Estimated Gas Usage: 621 - 1232
 A call to a user-supplied address is executed.
 The callee address of an external message call can be set by the caller. Note that the callee can contain arbitrary code and may re-enter any function in this contract. Review the business logic carefully to prevent averse effects on the contract state.
 --------------------
+Transaction Sequence:
+
+Caller: [ATTACKER], data: 0xe3bea282, value: 0x0
 
 ==== Unchecked Call Return Value ====
 SWC ID: 104
