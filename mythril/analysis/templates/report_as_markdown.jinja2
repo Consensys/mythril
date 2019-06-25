@@ -27,12 +27,12 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 {% if issue.tx_sequence %}
 
 ### Transaction Sequence
-    
+
 {% for step in issue.tx_sequence.steps %}
 {% if step == issue.tx_sequence.steps[0] and step.input != "0x" and step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}
-Caller: {{ step.origin }}, data: [CONTRACT CREATION], value: {{ step.value }}
+Caller: [CREATOR], data: [CONTRACT CREATION], value: {{ step.value }}
 {% else %}
-Caller: {{ step.origin }}, data: {{ step.input }}, value: {{ step.value }}
+Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, data: {{ step.input }}, value: {{ step.value }}
 {% endif %}
 {% endfor %}
 {% endif %}
