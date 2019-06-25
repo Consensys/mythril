@@ -67,16 +67,12 @@ class Issue:
 
     @property
     def transaction_sequence_users(self):
-        """ Returns the transaction sequence in json without pre-generated block data"""
-        return (
-            json.dumps(self.transaction_sequence, indent=4)
-            if self.transaction_sequence
-            else None
-        )
+        """ Returns the transaction sequence without pre-generated block data"""
+        return self.transaction_sequence
 
     @property
     def transaction_sequence_jsonv2(self):
-        """ Returns the transaction sequence in json with pre-generated block data"""
+        """ Returns the transaction sequence as a json string with pre-generated block data"""
         return (
             json.dumps(self.add_block_data(self.transaction_sequence), indent=4)
             if self.transaction_sequence
@@ -102,6 +98,7 @@ class Issue:
 
         :return:
         """
+
         issue = {
             "title": self.title,
             "swc-id": self.swc_id,
@@ -110,7 +107,7 @@ class Issue:
             "function": self.function,
             "severity": self.severity,
             "address": self.address,
-            "tx_sequence": self.transaction_sequence_users,
+            "tx_sequence": self.transaction_sequence,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
             "sourceMap": self.source_mapping,
@@ -165,8 +162,8 @@ class Report:
     def __init__(self, contracts=None, exceptions=None):
         """
 
-        :param :contracts:
-        :param :exceptions:
+        :param contracts:
+        :param exceptions:
         """
         self.issues = {}
         self.solc_version = ""
@@ -224,6 +221,7 @@ class Report:
         :return:
         """
         _issues = []
+        source_list = []
 
         for key, issue in self.issues.items():
 
