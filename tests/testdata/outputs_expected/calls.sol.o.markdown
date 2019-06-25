@@ -84,7 +84,6 @@ External calls return a boolean value. If the callee contract halts with an exce
 - Contract: Unknown
 - Function name: `reentrancy()`
 - PC address: 869
-- Estimated Gas Usage: None - None
 
 ### Description
 

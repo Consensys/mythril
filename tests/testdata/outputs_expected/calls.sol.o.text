@@ -70,7 +70,6 @@ Severity: Medium
 Contract: Unknown
 Function name: reentrancy()
 PC address: 869
-Estimated Gas Usage: None - None
 The contract account state is changed after an external call. 
 Consider that the called contract could re-enter the function before this state change takes place. This can lead to business logic vulnerabilities.
 --------------------

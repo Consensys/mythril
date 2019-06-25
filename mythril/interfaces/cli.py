@@ -611,6 +611,7 @@ def execute_command(
             address=address,
             max_depth=args.max_depth,
             execution_timeout=args.execution_timeout,
+            loop_bound=args.loop_bound,
             create_timeout=args.create_timeout,
             enable_iprof=args.enable_iprof,
             disable_dependency_pruning=args.disable_dependency_pruning,

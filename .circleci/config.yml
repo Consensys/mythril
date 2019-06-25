@@ -109,7 +109,6 @@ jobs:
                 --rm edelweiss-mythril:latest \
                 --timeout 30 \
                 --output-dir /opt/edelweiss \
-                --plugin-dir /opt/mythril \
                 --s3 \
                 --circle-ci CircleCI/mythril.csv \
                 --ignore-false-positives $IGNORE_FALSE_POSITIVES \
