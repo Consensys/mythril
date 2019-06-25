@@ -162,13 +162,13 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, contracts=None, exceptions=None):
+    def __init__(self, contracts=None, exceptions=None):
         """
 
-        :param verbose:
+        :param :contracts:
+        :param :exceptions:
         """
         self.issues = {}
-        self.verbose = verbose
         self.solc_version = ""
         self.meta = {}
         self.source = Source()
@@ -200,9 +200,7 @@ class Report:
         name = self._file_name()
         template = Report.environment.get_template("report_as_text.jinja2")
 
-        return template.render(
-            filename=name, issues=self.sorted_issues(), verbose=self.verbose
-        )
+        return template.render(filename=name, issues=self.sorted_issues())
 
     def as_json(self):
         """
@@ -271,9 +269,7 @@ class Report:
         """
         filename = self._file_name()
         template = Report.environment.get_template("report_as_markdown.jinja2")
-        return template.render(
-            filename=filename, issues=self.sorted_issues(), verbose=self.verbose
-        )
+        return template.render(filename=filename, issues=self.sorted_issues())
 
     def _file_name(self):
         """

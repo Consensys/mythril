@@ -119,11 +119,6 @@ def get_output_parser() -> ArgumentParser:
         help="report output format",
         metavar="<text/markdown/json/jsonv2>",
     )
-    parser.add_argument(
-        "--verbose-report",
-        action="store_true",
-        help="Include debugging information in report",
-    )
     return parser
 
 
@@ -599,7 +594,6 @@ def execute_command(
                     modules=[m.strip() for m in args.modules.strip().split(",")]
                     if args.modules
                     else [],
-                    verbose_report=args.verbose_report,
                     transaction_count=args.transaction_count,
                 )
                 outputs = {
