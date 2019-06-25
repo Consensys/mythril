@@ -3,7 +3,25 @@
 """mythril.py: Bug hunting on the Ethereum blockchain
    http://www.github.com/b-mueller/mythril
    """
+from sys import argv, exit
+from mythril.interfaces.cli import COMMAND_LIST
 import mythril.interfaces.cli
+import mythril.interfaces.old_cli
+import warnings
+
+
+def format_Warning(message, category, filename, lineno, line=""):
+    return "Deprecated Warning: {}\n\n".format(str(message))
+
+
+warnings.formatwarning = format_Warning
 
 if __name__ == "__main__":
-    mythril.interfaces.cli.main()
+    for arg in argv:
+        if arg in COMMAND_LIST:
+            mythril.interfaces.cli.main()
+            exit()
+    warnings.warn("The old cli arguments are deprecated, Please use 'myth -h' to view the new command line interface")
+    mythril.interfaces.old_cli.main()
+
+
