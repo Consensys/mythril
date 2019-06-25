@@ -50,6 +50,7 @@ REQUIRED = [
     "persistent>=4.2.0",
     "ethereum-input-decoder>=0.2.2",
     "matplotlib",
+    "pythx",
 ]
 
 TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]

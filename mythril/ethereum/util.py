@@ -34,6 +34,7 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
     """
 
     cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap,srcmap-runtime,ast"]
+    cmd = [solc_binary, "--standard-json", "bin,bin-runtime,srcmap,srcmap-runtime,ast"]
 
     if solc_args:
         cmd.extend(solc_args.split())
@@ -46,10 +47,24 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
 
     cmd.append(file)
 
-    try:
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    input_json = json.dumps(
+        {
+            "language": "Solidity",
+            "sources": {file: {"urls": [file]}},
+            "settings": {
+                "outputSelection": {
+                    "*": {
+                        "": ["ast"],
+                        "*": ["metadata", "evm.bytecode", "evm.deployedBytecode"],
+                    }
+                }
+            },
+        }
+    )
 
-        stdout, stderr = p.communicate()
+    try:
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate(bytes(input_json, "utf8"))
         ret = p.returncode
 
         if ret != 0:

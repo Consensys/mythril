@@ -16,6 +16,8 @@ import traceback
 
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace
+
+from mythril import mythx
 from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -27,12 +29,14 @@ from mythril.__version__ import __version__ as VERSION
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
+PRO_LIST = ("pro", "p")
 
 log = logging.getLogger(__name__)
 
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
+    + PRO_LIST
     + (
         "read-storage",
         "leveldb-search",
@@ -41,6 +45,7 @@ COMMAND_LIST = (
         "version",
         "truffle",
         "help",
+        "pro",
     )
 )
 
@@ -72,7 +77,27 @@ def exit_with_error(format_, message):
     sys.exit()
 
 
-def get_input_parser() -> ArgumentParser:
+def get_runtime_input_parser() -> ArgumentParser:
+    """
+    Returns Parser which handles input
+    :return: Parser which handles input
+    """
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument(
+        "-a",
+        "--address",
+        help="pull contract from the blockchain",
+        metavar="CONTRACT_ADDRESS",
+    )
+    parser.add_argument(
+        "--bin-runtime",
+        action="store_true",
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
+    )
+    return parser
+
+
+def get_creation_input_parser() -> ArgumentParser:
     """
     Returns Parser which handles input
     :return: Parser which handles input
@@ -90,17 +115,6 @@ def get_input_parser() -> ArgumentParser:
         help="file containing hex-encoded bytecode string",
         metavar="BYTECODEFILE",
         type=argparse.FileType("r"),
-    )
-    parser.add_argument(
-        "-a",
-        "--address",
-        help="pull contract from the blockchain",
-        metavar="CONTRACT_ADDRESS",
-    )
-    parser.add_argument(
-        "--bin-runtime",
-        action="store_true",
-        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
     )
     return parser
 
@@ -165,7 +179,8 @@ def main() -> None:
 
     rpc_parser = get_rpc_parser()
     utilities_parser = get_utilities_parser()
-    input_parser = get_input_parser()
+    runtime_input_parser = get_runtime_input_parser()
+    creation_input_parser = get_creation_input_parser()
     output_parser = get_output_parser()
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
@@ -179,7 +194,13 @@ def main() -> None:
     analyzer_parser = subparsers.add_parser(
         ANALYZE_LIST[0],
         help="Triggers the analysis of the smart contract",
-        parents=[rpc_parser, utilities_parser, input_parser, output_parser],
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            creation_input_parser,
+            runtime_input_parser,
+            output_parser,
+        ],
         aliases=ANALYZE_LIST[1:],
     )
     create_analyzer_parser(analyzer_parser)
@@ -188,9 +209,22 @@ def main() -> None:
         DISASSEMBLE_LIST[0],
         help="Disassembles the smart contract",
         aliases=DISASSEMBLE_LIST[1:],
-        parents=[rpc_parser, utilities_parser, input_parser],
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            creation_input_parser,
+            runtime_input_parser,
+        ],
     )
     create_disassemble_parser(disassemble_parser)
+
+    pro_parser = subparsers.add_parser(
+        PRO_LIST[0],
+        help="Analyzes input with the MythX API (https://mythx.io)",
+        aliases=PRO_LIST[1],
+        parents=[utilities_parser, creation_input_parser, output_parser],
+    )
+    create_pro_parser(pro_parser)
 
     read_storage_parser = subparsers.add_parser(
         "read-storage",
@@ -230,6 +264,20 @@ def create_disassemble_parser(parser: ArgumentParser):
     :param parser:
     :return:
     """
+    parser.add_argument("solidity_file", nargs="*")
+
+
+def create_pro_parser(parser: ArgumentParser):
+    """
+    Modify parser to handle mythx analysis
+    :param parser:
+    :return:
+    """
+    parser.add_argument(
+        "--full",
+        help="Run a full analysis. Default: quick analysis",
+        action="store_true",
+    )
     parser.add_argument("solidity_file", nargs="*")
 
 
@@ -538,6 +586,17 @@ def execute_command(
             params=[a.strip() for a in args.storage_slots.strip().split(",")],
         )
         print(storage)
+
+    elif args.command in PRO_LIST:
+        mode = "full" if args.full else "quick"
+        report = mythx.analyze(disassembler.contracts, mode)
+        outputs = {
+            "json": report.as_json(),
+            "jsonv2": report.as_swc_standard_format(),
+            "text": report.as_text(),
+            "markdown": report.as_markdown(),
+        }
+        print(outputs[args.outform])
 
     elif args.command in DISASSEMBLE_LIST:
         if disassembler.contracts[0].code:

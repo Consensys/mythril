@@ -28,3 +28,4 @@ transaction>=2.2.1
 z3-solver>=4.8.5.0
 pysha3
 matplotlib
+pythx

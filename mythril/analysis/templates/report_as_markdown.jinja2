@@ -6,15 +6,21 @@
 - SWC ID: {{ issue['swc-id'] }}
 - Severity: {{ issue.severity }}
 - Contract: {{ issue.contract | default("Unknown") }}
+{% if issue.function %}
 - Function name: `{{ issue.function }}`
+{% endif %}
 - PC address: {{ issue.address }}
+{% if issue.min_gas_used or issue.max_gas_used %}
 - Estimated Gas Usage: {{ issue.min_gas_used }} - {{ issue.max_gas_used }}
+{% endif %}
 
 ### Description
 
 {{ issue.description.rstrip() }}
 {% if issue.filename and issue.lineno %}
 In file: {{ issue.filename }}:{{ issue.lineno }}
+{% elif issue.filename %}
+In file: {{ issue.filename }}
 {% endif %}
 {% if issue.code %}
 
