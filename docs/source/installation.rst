@@ -57,10 +57,10 @@ Use :code:`docker run mythril/myth` the same way you would use the :code:`myth` 
    .. code-block:: bash
 
       docker run mythril/myth --help
-      docker run mythril/myth -dc "0x6060"
+      docker run mythril/myth disassemble -c "0x6060"
 
 To pass a file from your host machine to the dockerized Mythril, you must mount its containing folder to the container properly. For :code:`contract.sol` in the current working directory, do:
 
    .. code-block:: bash
 
-      docker run -v $(pwd):/tmp mythril/myth -x /tmp/contract.sol
+      docker run -v $(pwd):/tmp mythril/myth analyze /tmp/contract.sol
