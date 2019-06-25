@@ -31,6 +31,29 @@ class Storage:
 
     def __getitem__(self, item: BitVec) -> Any:
         storage = self._get_corresponding_storage(item)
+        value = storage[item]
+        if (
+            value.value == 0
+            and self.address
+            and item.symbolic is False
+            and self.address.value != 0
+            and (self.dynld and self.dynld.storage_loading)
+        ):
+            try:
+                storage[item] = symbol_factory.BitVecVal(
+                    int(
+                        self.dynld.read_storage(
+                            contract_address=hex(self.address.value),
+                            index=int(item.value),
+                        ),
+                        16,
+                    ),
+                    256,
+                )
+                return storage[item]
+            except ValueError:
+                pass
+
         return simplify(storage[item])
 
     @staticmethod

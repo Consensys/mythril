@@ -30,3 +30,12 @@ class PluginFactory:
         )
 
         return InstructionCoveragePlugin()
+
+    @staticmethod
+    def build_dependency_pruner_plugin() -> LaserPlugin:
+        """ Creates an instance of the mutation pruner plugin"""
+        from mythril.laser.ethereum.plugins.implementations.dependency_pruner import (
+            DependencyPruner,
+        )
+
+        return DependencyPruner()

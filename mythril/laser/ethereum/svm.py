@@ -10,7 +10,7 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
-from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
+from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -274,7 +274,12 @@ class LaserEVM:
             self._add_world_state(global_state)
             return [], None
 
-        self._execute_pre_hook(op_code, global_state)
+        try:
+            self._execute_pre_hook(op_code, global_state)
+        except PluginSkipState:
+            self._add_world_state(global_state)
+            return [], None
+
         try:
             new_global_states = Instruction(
                 op_code, self.dynamic_loader, self.iprof
@@ -443,7 +448,11 @@ class LaserEVM:
 
         environment = state.environment
         disassembly = environment.code
-        if address in disassembly.address_to_function_name:
+        if isinstance(
+            state.world_state.transaction_sequence[-1], ContractCreationTransaction
+        ):
+            environment.active_function_name = "constructor"
+        elif address in disassembly.address_to_function_name:
             # Enter a new function
             environment.active_function_name = disassembly.address_to_function_name[
                 address
@@ -541,7 +550,10 @@ class LaserEVM:
 
         for hook in self.post_hooks[op_code]:
             for global_state in global_states:
-                hook(global_state)
+                try:
+                    hook(global_state)
+                except PluginSkipState:
+                    global_states.remove(global_state)
 
     def pre_hook(self, op_code: str) -> Callable:
         """

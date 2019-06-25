@@ -56,6 +56,7 @@ class SymExecWrapper:
         modules=(),
         compulsory_statespace=True,
         enable_iprof=False,
+        disable_dependency_pruning=False,
         run_analysis_modules=True,
     ):
         """
@@ -122,6 +123,9 @@ class SymExecWrapper:
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
 
+        if not disable_dependency_pruning:
+            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+
         world_state = WorldState()
         for account in self.accounts.values():
             world_state.put_account(account)
@@ -154,7 +158,9 @@ class SymExecWrapper:
                 contract.disassembly,
                 dynamic_loader=dynloader,
                 contract_name=contract.name,
-                concrete_storage=False,
+                concrete_storage=True
+                if (dynloader is not None and dynloader.storage_loading)
+                else False,
             )
             world_state.put_account(account)
             self.laser.sym_exec(world_state=world_state, target_address=address.value)
