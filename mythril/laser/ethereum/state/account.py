@@ -6,7 +6,7 @@ from copy import deepcopy
 from typing import Any, Dict, Union
 
 
-from mythril.laser.smt import Array, K, BitVec, simplify, BitVecFunc, Extract
+from mythril.laser.smt import Array, K, BitVec, simplify, BitVecFunc, Extract, BaseArray
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
@@ -20,8 +20,8 @@ class Storage:
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
         if concrete:
-            self._standard_storage = K(256, 256, 0)
-            self._map_storage = {}
+            self._standard_storage = K(256, 256, 0)  # type: BaseArray
+            self._map_storage = {}  # type: Dict[BitVec, BaseArray]
         else:
             self._standard_storage = Array("Storage", 256, 256)
             self._map_storage = {}
@@ -29,18 +29,22 @@ class Storage:
         self.dynld = dynamic_loader
         self.address = address
 
-    def __getitem__(self, item: Union[str, int]) -> Any:
+    def __getitem__(self, item: BitVec) -> Any:
         storage = self._get_corresponding_storage(item)
         return simplify(storage[item])
 
     @staticmethod
-    def get_map_index(key):
-        if not isinstance(key, BitVecFunc) or key.func_name != "keccak256":
+    def get_map_index(key: BitVec) -> BitVec:
+        if (
+            not isinstance(key, BitVecFunc)
+            or key.func_name != "keccak256"
+            or key.input_ is None
+        ):
             return None
         index = Extract(255, 0, key.input_)
         return simplify(index)
 
-    def _get_corresponding_storage(self, key):
+    def _get_corresponding_storage(self, key: BitVec) -> BaseArray:
         index = self.get_map_index(key)
         if index is None:
             storage = self._standard_storage
@@ -68,7 +72,7 @@ class Storage:
         storage._map_storage = deepcopy(self._map_storage)
         return storage
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._standard_storage)
 
 
