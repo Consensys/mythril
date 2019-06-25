@@ -2,7 +2,7 @@
 
 This includes classes representing accounts and their storage.
 """
-from copy import deepcopy, copy
+from copy import deepcopy
 from typing import Any, Dict, Union
 
 
@@ -14,9 +14,7 @@ from mythril.laser.smt import symbol_factory
 class Storage:
     """Storage class represents the storage of an Account."""
 
-    def __init__(
-        self, concrete=False, address=None, dynamic_loader=None, keys=None
-    ) -> None:
+    def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
         """Constructor for Storage.
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
@@ -28,12 +26,10 @@ class Storage:
             self._standard_storage = Array("Storage", 256, 256)
             self._map_storage = {}
 
-        self._keys = keys or set()
         self.dynld = dynamic_loader
         self.address = address
 
     def __getitem__(self, item: Union[str, int]) -> Any:
-        self._keys.add(item)
         storage = self._get_corresponding_storage(item)
         return simplify(storage[item])
 
@@ -42,7 +38,6 @@ class Storage:
         if not isinstance(key, BitVecFunc) or key.func_name != "keccak256":
             return None
         index = Extract(255, 0, key.input_)
-        print(simplify(index), key.input_)
         return simplify(index)
 
     def _get_corresponding_storage(self, key):
@@ -61,17 +56,13 @@ class Storage:
         return storage
 
     def __setitem__(self, key, value: Any) -> None:
-        self._keys.add(key)
         storage = self._get_corresponding_storage(key)
         storage[key] = value
 
     def __deepcopy__(self, memodict={}):
         concrete = isinstance(self._standard_storage, K)
         storage = Storage(
-            concrete=concrete,
-            address=self.address,
-            dynamic_loader=self.dynld,
-            keys=deepcopy(self._keys),
+            concrete=concrete, address=self.address, dynamic_loader=self.dynld
         )
         storage._standard_storage = deepcopy(self._standard_storage)
         storage._map_storage = deepcopy(self._map_storage)
@@ -79,9 +70,6 @@ class Storage:
 
     def __str__(self):
         return str(self._standard_storage)
-
-    def keys(self):
-        return self._keys
 
 
 class Account:
@@ -172,6 +160,6 @@ class Account:
             contract_name=self.contract_name,
             balances=self._balances,
         )
-        new_account.storage = copy(self.storage)
+        new_account.storage = deepcopy(self.storage)
         new_account.code = self.code
         return new_account

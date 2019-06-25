@@ -28,7 +28,7 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     :return:
     """
     s = Optimize()
-    timeout = 100000
+    timeout = 200000
     if enforce_execution_time:
         timeout = min(timeout, time_handler.time_remaining() - 500)
         if timeout <= 0:

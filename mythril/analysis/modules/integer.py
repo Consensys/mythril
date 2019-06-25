@@ -230,7 +230,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 or annotation.overflowing_state in state_annotation.ostates_seen
             ):
                 continue
-
             state_annotation.overflowing_state_annotations.append(annotation)
             state_annotation.ostates_seen.add(annotation.overflowing_state)
 
@@ -248,7 +247,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 or annotation.overflowing_state in state_annotation.ostates_seen
             ):
                 continue
-
             state_annotation.overflowing_state_annotations.append(annotation)
             state_annotation.ostates_seen.add(annotation.overflowing_state)
 
@@ -311,7 +309,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             try:
 
                 constraints = state.mstate.constraints + [annotation.constraint]
-
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )

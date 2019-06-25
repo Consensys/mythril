@@ -18,15 +18,11 @@ from mythril.laser.smt import (
     ULT,
     UGT,
     BitVec,
-    is_true,
-    Bool,
-    BitVecFunc,
     is_false,
     URem,
     SRem,
     If,
     Bool,
-    Or,
     Not,
     LShR,
 )
@@ -43,7 +39,6 @@ from mythril.laser.ethereum.evm_exceptions import (
     OutOfGasException,
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
-from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -57,8 +52,6 @@ log = logging.getLogger(__name__)
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
-
-keccak_function_manager = KeccakFunctionManager()
 
 
 class StateTransition(object):
@@ -195,7 +188,6 @@ class Instruction:
             if not post
             else getattr(self, op + "_" + "post", None)
         )
-
         if instruction_mutator is None:
             raise NotImplementedError
 
@@ -419,6 +411,7 @@ class Instruction:
                 * helper.pop_bitvec(global_state.mstate)
             )
         )
+
         return [global_state]
 
     @StateTransition()
@@ -895,7 +888,6 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
 
         state = global_state.mstate
         op0, op1 = state.stack.pop(), state.stack.pop()
@@ -950,7 +942,6 @@ class Instruction:
             )
             log.debug("Created BitVecFunc hash.")
 
-            keccak_function_manager.add_keccak(result, state.memory[index])
         else:
             keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
             result = symbol_factory.BitVecFuncVal(
@@ -1366,63 +1357,12 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
 
         state = global_state.mstate
         index = state.stack.pop()
         log.debug("Storage access at index " + str(index))
-        """
-        if index not in global_state.environment.active_account.storage.keys():
-            for key in global_state.environment.active_account.storage.keys():
-                if not isinstance(index, BitVecFunc) or not isinstance(key, BitVecFunc):
-                    global_state.mstate.constraints.append(Bool(key.raw != index.raw))
-                    continue
-                key_map = Extract(255, 0, key.input_)
-                index_map = Extract(255, 0, index.input_)
-                if simplify(key_map == index_map):
-                    continue
-                global_state.mstate.constraints.append(key != index)
-        """
         state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
-
-    @staticmethod
-    def _sload_helper(
-        global_state: GlobalState, index: Union[str, int], constraints=None
-    ):
-        """
-
-        :param global_state:
-        :param index:
-        :param constraints:
-        :return:
-        """
-        try:
-            data = global_state.environment.active_account.storage[index]
-        except KeyError:
-            data = global_state.new_bitvec("storage_" + str(index), 256)
-            global_state.environment.active_account.storage[index] = data
-
-        if constraints is not None:
-            global_state.mstate.constraints += constraints
-
-        global_state.mstate.stack.append(data)
-        return [global_state]
-
-    @staticmethod
-    def _get_constraints(keccak_keys, this_key, argument):
-        """
-
-        :param keccak_keys:
-        :param this_key:
-        :param argument:
-        """
-        global keccak_function_manager
-        for keccak_key in keccak_keys:
-            if keccak_key == this_key:
-                continue
-            keccak_argument = keccak_function_manager.get_argument(keccak_key)
-            yield keccak_argument != argument
 
     @StateTransition()
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1431,52 +1371,10 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-        """
-        if index not in global_state.environment.active_account.storage.keys():
-            for key in global_state.environment.active_account.storage.keys():
-                if not isinstance(index, BitVecFunc) or not isinstance(key, BitVecFunc):
-                    global_state.mstate.constraints.append(Bool(key.raw != index.raw))
-                    continue
-                key_map = Extract(255, 0, key.input_)
-                index_map = Extract(255, 0, index.input_)
-                if simplify(key_map == index_map):
-                    continue
-                global_state.mstate.constraints.append(key != index)
-        """
         log.debug("Write to storage[" + str(index) + "]")
         global_state.environment.active_account.storage[index] = value
-        return [global_state]
-
-    @staticmethod
-    def _sstore_helper(global_state, index, value, constraint=None):
-        """
-
-        :param global_state:
-        :param index:
-        :param value:
-        :param constraint:
-        :return:
-        """
-        try:
-            global_state.environment.active_account = deepcopy(
-                global_state.environment.active_account
-            )
-            global_state.accounts[
-                global_state.environment.active_account.address.value
-            ] = global_state.environment.active_account
-
-            global_state.environment.active_account.storage[index] = (
-                value if not isinstance(value, Expression) else simplify(value)
-            )
-        except KeyError:
-            log.debug("Error writing to storage: Invalid index")
-
-        if constraint is not None:
-            global_state.mstate.constraints.append(constraint)
-
         return [global_state]
 
     @StateTransition(increment_pc=False, enable_gas=False)
