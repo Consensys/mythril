@@ -21,6 +21,10 @@ if __name__ == "__main__":
         if arg in COMMAND_LIST:
             mythril.interfaces.cli.main()
             exit()
+    if "--help" in argv or "-h" in argv:
+        mythril.interfaces.cli.main()
+        exit()
+
     warnings.warn("The old cli arguments are deprecated, Please use 'myth -h' to view the new command line interface")
     mythril.interfaces.old_cli.main()
 
