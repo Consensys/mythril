@@ -21,10 +21,10 @@ class Storage:
         """
         if concrete:
             self._standard_storage = K(256, 256, 0)  # type: BaseArray
-            self._map_storage = {}  # type: Dict[BitVec, BaseArray]
         else:
             self._standard_storage = Array("Storage", 256, 256)
-            self._map_storage = {}
+        self._map_storage = {}
+        self._keccak_map_storage = {}  # type: Dict[BitVec, BaseArray]
 
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
@@ -74,9 +74,14 @@ class Storage:
         index = self.get_map_index(key)
         if index is None:
             storage = self._standard_storage
+
         else:
+            if isinstance(key, BitVecFunc) and key.func_name == "keccak256":
+                storage_map = self._keccak_map_storage
+            else:
+                storage_map = self._map_storage
             try:
-                storage = self._map_storage[index]
+                storage = storage_map[index]
             except KeyError:
                 if isinstance(self._standard_storage, Array):
                     self._map_storage[index] = Array("Storage", 256, 256)
