@@ -72,7 +72,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
                 annotation._reached_count[address] = 1
 
             if annotation._reached_count[address] > self.bound:
-                log.info("Loop bound reached, skipping state")
+                log.debug("Loop bound reached, skipping state")
                 continue
 
             return state
