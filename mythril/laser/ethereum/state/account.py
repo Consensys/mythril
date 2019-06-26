@@ -23,7 +23,7 @@ class Storage:
             self._standard_storage = K(256, 256, 0)  # type: BaseArray
         else:
             self._standard_storage = Array("Storage", 256, 256)
-        self._map_storage = {}         # type: Dict[BitVec, BaseArray]
+        self._map_storage = {}  # type: Dict[BitVec, BaseArray]
         self._keccak_map_storage = {}  # type: Dict[BitVec, BaseArray]
 
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
