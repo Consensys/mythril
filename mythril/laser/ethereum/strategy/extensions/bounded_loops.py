@@ -49,20 +49,20 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         :return: Global state
         """
 
-        state = self.super_strategy.get_strategic_global_state()
-
-        annotations = cast(
-            List[JumpdestCountAnnotation],
-            list(state.get_annotations(JumpdestCountAnnotation)),
-        )
-
-        if len(annotations) == 0:
-            annotation = JumpdestCountAnnotation()
-            state.annotate(annotation)
-        else:
-            annotation = annotations[0]
-
         while True:
+
+            state = self.super_strategy.get_strategic_global_state()
+
+            annotations = cast(
+                List[JumpdestCountAnnotation],
+                list(state.get_annotations(JumpdestCountAnnotation)),
+            )
+
+            if len(annotations) == 0:
+                annotation = JumpdestCountAnnotation()
+                state.annotate(annotation)
+            else:
+                annotation = annotations[0]
 
             address = state.get_current_instruction()["address"]
 
@@ -73,7 +73,6 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             if annotation._reached_count[address] > self.bound:
                 log.info("Loop bound reached, skipping state")
-                state = self.super_strategy.get_strategic_global_state()
                 continue
 
             return state
