@@ -122,12 +122,10 @@ class MythrilAnalyzer:
     def fire_lasers(
         self,
         modules: Optional[List[str]] = None,
-        verbose_report: bool = False,
         transaction_count: Optional[int] = None,
     ) -> Report:
         """
         :param modules: The analysis modules which should be executed
-        :param verbose_report: Gives out the transaction sequence of the vulnerability
         :param transaction_count: The amount of transactions to be executed
         :return: The Report class which contains the all the issues/vulnerabilities
         """
@@ -177,7 +175,7 @@ class MythrilAnalyzer:
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report, contracts=self.contracts, exceptions=exceptions)
+        report = Report(contracts=self.contracts, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 

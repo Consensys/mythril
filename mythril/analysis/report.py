@@ -67,19 +67,12 @@ class Issue:
 
     @property
     def transaction_sequence_users(self):
-        """ Returns the transaction sequence in json without pre-generated block data"""
-        return (
-            json.dumps(self.transaction_sequence, indent=4)
-            if self.transaction_sequence
-            else None
-        )
+        """ Returns the transaction sequence without pre-generated block data"""
+        return self.transaction_sequence
 
     @property
     def transaction_sequence_jsonv2(self):
-        """
-        Returns the transaction sequence with pre-generated block data.
-        Jsonv2 tx sequence isn't formatted for user readability.
-        """
+        """ Returns the transaction sequence as a json string with pre-generated block data"""
         return (
             self.add_block_data(self.transaction_sequence)
             if self.transaction_sequence
@@ -105,6 +98,7 @@ class Issue:
 
         :return:
         """
+
         issue = {
             "title": self.title,
             "swc-id": self.swc_id,
@@ -113,7 +107,7 @@ class Issue:
             "function": self.function,
             "severity": self.severity,
             "address": self.address,
-            "tx_sequence": self.transaction_sequence_users,
+            "tx_sequence": self.transaction_sequence,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
             "sourceMap": self.source_mapping,
@@ -165,13 +159,13 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, contracts=None, exceptions=None):
+    def __init__(self, contracts=None, exceptions=None):
         """
 
-        :param verbose:
+        :param contracts:
+        :param exceptions:
         """
         self.issues = {}
-        self.verbose = verbose
         self.solc_version = ""
         self.meta = {}
         self.source = Source()
@@ -203,9 +197,7 @@ class Report:
         name = self._file_name()
         template = Report.environment.get_template("report_as_text.jinja2")
 
-        return template.render(
-            filename=name, issues=self.sorted_issues(), verbose=self.verbose
-        )
+        return template.render(filename=name, issues=self.sorted_issues())
 
     def as_json(self):
         """
@@ -274,9 +266,7 @@ class Report:
         """
         filename = self._file_name()
         template = Report.environment.get_template("report_as_markdown.jinja2")
-        return template.render(
-            filename=filename, issues=self.sorted_issues(), verbose=self.verbose
-        )
+        return template.render(filename=filename, issues=self.sorted_issues())
 
     def _file_name(self):
         """
