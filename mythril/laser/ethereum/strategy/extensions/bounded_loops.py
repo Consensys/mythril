@@ -14,11 +14,11 @@ class JumpdestCountAnnotation(StateAnnotation):
     """State annotation that counts the number of jumps per destination."""
 
     def __init__(self) -> None:
-        self._jumpdest_count = {}  # type: Dict[int, int]
+        self._reached_count = {}  # type: Dict[int, int]
 
     def __copy__(self):
         result = JumpdestCountAnnotation()
-        result._jumpdest_count = copy(self._jumpdest_count)
+        result._reached_count = copy(self._reached_count)
         return result
 
 
@@ -31,11 +31,11 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         """"""
 
         self.super_strategy = super_strategy
-        self.jumpdest_limit = args[0][0]
+        self.bound = args[0][0]
 
         log.info(
             "Loaded search strategy extension: Loop bounds (limit = {})".format(
-                self.jumpdest_limit
+                self.bound
             )
         )
 
@@ -44,41 +44,36 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         )
 
     def get_strategic_global_state(self) -> GlobalState:
+        """ Returns the next state
+
+        :return: Global state
         """
-        :return:
-        """
+
+        state = self.super_strategy.get_strategic_global_state()
+
+        annotations = cast(
+            List[JumpdestCountAnnotation],
+            list(state.get_annotations(JumpdestCountAnnotation)),
+        )
+
+        if len(annotations) == 0:
+            annotation = JumpdestCountAnnotation()
+            state.annotate(annotation)
+        else:
+            annotation = annotations[0]
 
         while True:
 
-            state = self.super_strategy.get_strategic_global_state()
-            opcode = state.get_current_instruction()["opcode"]
+            address = state.get_current_instruction()["address"]
 
-            if opcode != "JUMPI":
-                return state
-
-            annotations = cast(
-                List[JumpdestCountAnnotation],
-                list(state.get_annotations(JumpdestCountAnnotation)),
-            )
-
-            if len(annotations) == 0:
-                annotation = JumpdestCountAnnotation()
-                state.annotate(annotation)
+            if address in annotation._reached_count:
+                annotation._reached_count[address] += 1
             else:
-                annotation = annotations[0]
+                annotation._reached_count[address] = 1
 
-            try:
-                target = util.get_concrete_int(state.mstate.stack[-1])
-            except TypeError:
-                return state
-
-            try:
-                annotation._jumpdest_count[target] += 1
-            except KeyError:
-                annotation._jumpdest_count[target] = 1
-
-            if annotation._jumpdest_count[target] > self.jumpdest_limit:
-                log.debug("JUMPDEST limit reached, skipping JUMPI")
+            if annotation._reached_count[address] > self.bound:
+                log.info("Loop bound reached, skipping state")
+                state = self.super_strategy.get_strategic_global_state()
                 continue
 
             return state
