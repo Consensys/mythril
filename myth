@@ -11,7 +11,7 @@ import warnings
 
 
 def format_Warning(message, category, filename, lineno, line=""):
-    return "Deprecated Warning: {}\n\n".format(str(message))
+    return "Deprecation warning: {}\n\n".format(str(message))
 
 
 warnings.formatwarning = format_Warning
