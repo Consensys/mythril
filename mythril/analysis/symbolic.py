@@ -50,7 +50,7 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
-        loop_bound=4,
+        loop_bound=2,
         create_timeout=None,
         transaction_count=2,
         modules=(),
