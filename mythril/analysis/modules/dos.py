@@ -8,6 +8,7 @@ from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.laser.ethereum import util
 from copy import copy
 
 log = logging.getLogger(__name__)
@@ -17,13 +18,14 @@ class VisitsAnnotation(StateAnnotation):
     """State annotation that stores the addresses of state-modifying operations"""
 
     def __init__(self) -> None:
-        self.last_jumpdest = 0
-        self._visited = {}  # type: Dict[int, str]
+        self.loop_start = None
+        self.jump_targets = []  # type: List[int]
 
     def __copy__(self):
         result = VisitsAnnotation()
-        result.last_jumpdest = self.last_jumpdest
-        result._visited = copy(self._visited)
+
+        result.loop_start = self.loop_start
+        result.jump_targets = copy(self.jump_targets)
         return result
 
 
@@ -42,7 +44,7 @@ class DOS(DetectionModule):
             swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
             description="Check for DOS",
             entrypoint="callback",
-            pre_hooks=["JUMPDEST", "CALL", "SSTORE"],
+            pre_hooks=["JUMP", "JUMPI", "CALL", "SSTORE"],
         )
 
     def _execute(self, state: GlobalState) -> None:
@@ -73,12 +75,18 @@ class DOS(DetectionModule):
         else:
             annotation = annotations[0]
 
-        if opcode == "JUMPDEST":
-            annotation.last_jumpdest == address
+        if opcode in ["JUMP", "JUMPI"]:
+            target = util.get_concrete_int(state.mstate.stack[-1])
 
-        if address in annotation._visited:
+            if target in annotation.jump_targets:
+                annotation.is_loop = True
+                annotation.loop_start = address
+            else:
+                annotation.jump_targets.append(target)
 
-            if annotation._visited[address] == "CALL":
+        elif annotation.loop_start is not None:
+
+            if opcode == "CALL":
                 operation = "A message call"
             else:
                 operation = "A storage modification"
@@ -93,7 +101,7 @@ class DOS(DetectionModule):
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
-                address=annotation.last_jumpdest,
+                address=annotation.loop_start,
                 swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
                 bytecode=state.environment.code.bytecode,
                 title="Potential denial-of-service if block gas limit is reached",
@@ -104,9 +112,6 @@ class DOS(DetectionModule):
             )
 
             return [issue]
-
-        else:
-            annotation._visited[address] = opcode
 
         return []
 
