@@ -8,18 +8,23 @@ from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.laser.ethereum import util
+from copy import copy
 
 log = logging.getLogger(__name__)
 
 
-class LoopAnnotation(StateAnnotation):
-    def __init__(self, loop_start: int, loop_end: int) -> None:
-        self.loop_start = loop_start
-        self.loop_end = loop_end
+class VisitsAnnotation(StateAnnotation):
+    """State annotation that stores the addresses of state-modifying operations"""
 
-    def contains(self, address: int) -> bool:
-        return self.loop_start < address < self.loop_end
+    def __init__(self) -> None:
+        self.last_jumpdest = 0
+        self._visited = {}  # type: Dict[int, str]
+
+    def __copy__(self):
+        result = VisitsAnnotation()
+        result.last_jumpdest = self.last_jumpdest
+        result._visited = copy(self._visited)
+        return result
 
 
 class DOS(DetectionModule):
@@ -37,11 +42,8 @@ class DOS(DetectionModule):
             swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
             description="Check for DOS",
             entrypoint="callback",
-            pre_hooks=["JUMPI", "CALL", "SSTORE"],
+            pre_hooks=["JUMPDEST", "CALL", "SSTORE"],
         )
-
-        """Keeps track of how often jump destinations are reached."""
-        self._jumpdest_count = {}  # type: Dict[object, dict]
 
     def _execute(self, state: GlobalState) -> None:
 
@@ -61,65 +63,50 @@ class DOS(DetectionModule):
         opcode = state.get_current_instruction()["opcode"]
         address = state.get_current_instruction()["address"]
 
-        if opcode == "JUMPI":
+        annotations = cast(
+            List[VisitsAnnotation], list(state.get_annotations(VisitsAnnotation))
+        )
 
-            target = util.get_concrete_int(state.mstate.stack[-1])
-
-            transaction = state.current_transaction
-            if state.current_transaction in self._jumpdest_count:
-
-                try:
-                    self._jumpdest_count[transaction][target] += 1
-                    if self._jumpdest_count[transaction][target] == 3:
-
-                        annotation = (
-                            LoopAnnotation(address, target)
-                            if target > address
-                            else LoopAnnotation(target, address)
-                        )
-
-                        state.annotate(annotation)
-                except KeyError:
-                    self._jumpdest_count[transaction][target] = 0
-
-            else:
-                self._jumpdest_count[transaction] = {}
-                self._jumpdest_count[transaction][target] = 0
-
+        if len(annotations) == 0:
+            annotation = VisitsAnnotation()
+            state.annotate(annotation)
         else:
+            annotation = annotations[0]
 
-            annotations = cast(
-                List[LoopAnnotation], list(state.get_annotations(LoopAnnotation))
+        if opcode == "JUMPDEST":
+            annotation.last_jumpdest == address
+
+        if address in annotation._visited:
+
+            if annotation._visited[address] == "CALL":
+                operation = "A message call"
+            else:
+                operation = "A storage modification"
+
+            description_head = (
+                "Potential denial-of-service if block gas limit is reached."
+            )
+            description_tail = "{} is executed in a loop. Be aware that the transaction may fail to execute if the loop is unbounded and the necessary gas exceeds the block gas limit. ".format(
+                operation
             )
 
-            for annotation in annotations:
+            issue = Issue(
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
+                address=annotation.last_jumpdest,
+                swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
+                bytecode=state.environment.code.bytecode,
+                title="Potential denial-of-service if block gas limit is reached",
+                severity="Low",
+                description_head=description_head,
+                description_tail=description_tail,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
 
-                if annotation.contains(address):
+            return [issue]
 
-                    operation = (
-                        "A storage modification"
-                        if opcode == "SSTORE"
-                        else "An external call"
-                    )
-
-                    description_head = (
-                        "Potential denial-of-service if block gas limit is reached."
-                    )
-                    description_tail = "{} is executed in a loop.".format(operation)
-
-                    issue = Issue(
-                        contract=state.environment.active_account.contract_name,
-                        function_name=state.environment.active_function_name,
-                        address=annotation.loop_start,
-                        swc_id=DOS_WITH_BLOCK_GAS_LIMIT,
-                        bytecode=state.environment.code.bytecode,
-                        title="Potential denial-of-service if block gas limit is reached",
-                        severity="Low",
-                        description_head=description_head,
-                        description_tail=description_tail,
-                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                    )
-                    return [issue]
+        else:
+            annotation._visited[address] = opcode
 
         return []
 

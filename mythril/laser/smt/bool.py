@@ -80,6 +80,9 @@ class Bool(Expression[z3.BoolRef]):
         else:
             return False
 
+    def __hash__(self) -> int:
+        return self.raw.__hash__()
+
 
 def And(*args: Union[Bool, bool]) -> Bool:
     """Create an And expression."""
@@ -88,6 +91,13 @@ def And(*args: Union[Bool, bool]) -> Bool:
     for arg in args_list:
         union.append(arg.annotations)
     return Bool(z3.And([a.raw for a in args_list]), union)
+
+
+def Xor(a: Bool, b: Bool) -> Bool:
+    """Create an And expression."""
+
+    union = a.annotations + b.annotations
+    return Bool(z3.Xor(a.raw, b.raw), union)
 
 
 def Or(*args: Union[Bool, bool]) -> Bool:
