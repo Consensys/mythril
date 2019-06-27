@@ -1,6 +1,9 @@
 import pytest
+from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.state.account import Storage
 from mythril.laser.smt import Expression
+
+BVV = symbol_factory.BitVecVal
 
 storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
 
@@ -9,10 +12,11 @@ storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
 def test_concrete_storage_uninitialized_index(initial_storage, key):
     # Arrange
     storage = Storage(concrete=True)
-    storage._storage = initial_storage
+    for k, val in initial_storage.items():
+        storage[BVV(k, 256)] = BVV(val, 256)
 
     # Act
-    value = storage[key]
+    value = storage[BVV(key, 256)]
 
     # Assert
     assert value == 0
@@ -22,10 +26,11 @@ def test_concrete_storage_uninitialized_index(initial_storage, key):
 def test_symbolic_storage_uninitialized_index(initial_storage, key):
     # Arrange
     storage = Storage(concrete=False)
-    storage._storage = initial_storage
+    for k, val in initial_storage.items():
+        storage[BVV(k, 256)] = BVV(val, 256)
 
     # Act
-    value = storage[key]
+    value = storage[BVV(key, 256)]
 
     # Assert
     assert isinstance(value, Expression)
@@ -36,18 +41,18 @@ def test_storage_set_item():
     storage = Storage()
 
     # Act
-    storage[1] = 13
+    storage[BVV(1, 256)] = BVV(13, 256)
 
     # Assert
-    assert storage[1] == 13
+    assert storage[BVV(1, 256)] == BVV(13, 256)
 
 
 def test_storage_change_item():
     # Arrange
     storage = Storage()
-    storage._storage = {1: 12}
+    storage[BVV(1, 256)] = BVV(12, 256)
     # Act
-    storage[1] = 14
+    storage[BVV(1, 256)] = BVV(14, 256)
 
     # Assert
-    assert storage[1] == 14
+    assert storage[BVV(1, 256)] == BVV(14, 256)

@@ -61,6 +61,7 @@ class GlobalState:
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         transaction_stack = copy(self.transaction_stack)
+        environment.active_account = world_state[environment.active_account.address]
         return GlobalState(
             world_state,
             environment,

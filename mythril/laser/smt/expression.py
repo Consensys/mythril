@@ -45,6 +45,12 @@ class Expression(Generic[T]):
     def __repr__(self) -> str:
         return repr(self.raw)
 
+    def size(self):
+        return self.raw.size()
+
+    def __hash__(self) -> int:
+        return self.raw.__hash__()
+
 
 G = TypeVar("G", bound=Expression)
 

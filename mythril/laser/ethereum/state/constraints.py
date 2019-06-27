@@ -1,7 +1,7 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 
-from mythril.laser.smt import Solver, Bool, symbol_factory
+from mythril.laser.smt import Solver, Bool, symbol_factory, simplify
 
 from typing import Iterable, List, Optional, Union
 from z3 import unsat
@@ -54,7 +54,9 @@ class Constraints(list):
 
         :param constraint: The constraint to be appended
         """
-        constraint = constraint if isinstance(constraint, Bool) else Bool(constraint)
+        constraint = (
+            simplify(constraint) if isinstance(constraint, Bool) else Bool(constraint)
+        )
         super(Constraints, self).append(constraint)
         self._is_possible = None
 
