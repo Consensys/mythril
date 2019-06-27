@@ -78,10 +78,11 @@ class DOS(DetectionModule):
         if opcode in ["JUMP", "JUMPI"]:
             target = util.get_concrete_int(state.mstate.stack[-1])
 
-            if target in annotation.jump_targets:
-                annotation.loop_start = address
-            else:
-                annotation.jump_targets.append(target)
+            if annotation.loop_start is None:
+                if target in annotation.jump_targets:
+                    annotation.loop_start = address
+                else:
+                    annotation.jump_targets.append(target)
 
         elif annotation.loop_start is not None:
 
@@ -93,7 +94,7 @@ class DOS(DetectionModule):
             description_head = (
                 "Potential denial-of-service if block gas limit is reached."
             )
-            description_tail = "{} is executed in a loop. Be aware that the transaction may fail to execute if the loop is unbounded and the necessary gas exceeds the block gas limit. ".format(
+            description_tail = "{} is executed in a loop. Be aware that the transaction may fail to execute if the loop is unbounded and the necessary gas exceeds the block gas limit.".format(
                 operation
             )
 
