@@ -79,7 +79,6 @@ class DOS(DetectionModule):
             target = util.get_concrete_int(state.mstate.stack[-1])
 
             if target in annotation.jump_targets:
-                annotation.is_loop = True
                 annotation.loop_start = address
             else:
                 annotation.jump_targets.append(target)
