@@ -1,8 +1,6 @@
 """This module contains the detection code for integer overflows and
 underflows."""
 
-import json
-
 from math import log2, ceil
 from typing import cast, List, Dict, Set
 from mythril.analysis import solver
