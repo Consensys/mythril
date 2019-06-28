@@ -547,11 +547,15 @@ class Instruction:
 
             state.stack.append(
                 global_state.new_bitvec(
-                    "(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")",
+                    "invhash("
+                    + str(hash(simplify(base)))
+                    + ")**invhash("
+                    + str(hash(simplify(exponent)))
+                    + ")",
                     256,
                     base.annotations + exponent.annotations,
                 )
-            )
+            )  # Hash is used because str(symbol) takes a long time to be converted to a string
         else:
 
             state.stack.append(
@@ -1311,20 +1315,18 @@ class Instruction:
         state = global_state.mstate
         op0 = state.stack.pop()
 
-        log.debug("MLOAD[" + str(op0) + "]")
-
         try:
             offset = util.get_concrete_int(op0)
         except TypeError:
             log.debug("Can't MLOAD from symbolic index")
-            data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
+            data = global_state.new_bitvec(
+                "mem[invhash(" + str(hash(simplify(op0))) + ")]", 256
+            )
             state.stack.append(data)
             return [global_state]
 
         state.mem_extend(offset, 32)
         data = state.memory.get_word_at(offset)
-
-        log.debug("Load from memory[" + str(offset) + "]: " + str(data))
 
         state.stack.append(data)
         return [global_state]
@@ -1348,9 +1350,7 @@ class Instruction:
         try:
             state.mem_extend(mstart, 32)
         except Exception:
-            log.debug("Error extending memory, mstart = " + str(mstart) + ", size = 32")
-
-        log.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
+            log.debug("Error extending memory")
 
         state.memory.write_word_at(mstart, value)
 
@@ -1380,7 +1380,6 @@ class Instruction:
             )  # type: Union[int, BitVec]
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
-        log.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
 
         state.memory[offset] = value_to_write
 
