@@ -38,17 +38,28 @@ class DependencyAnnotation(StateAnnotation):
         return result
 
     def get_storage_write_cache(self, iteration: int):
-        if iteration not in self.storage_written:
-            self.storage_written[iteration] = []
+        try:
+            if iteration not in self.storage_written:
+                self.storage_written[iteration] = []
 
-        return self.storage_written[iteration]
+            return self.storage_written[iteration]
+        except Z3Exception:
+            return
 
     def extend_storage_write_cache(self, iteration: int, value: object):
-        if iteration not in self.storage_written:
-            self.storage_written[iteration] = [value]
-        else:
-            if value not in self.storage_written[iteration]:
-                self.storage_written[iteration].append(value)
+        """
+        FIXME: Catching Z3Exceptions here because laser returns BitVec512 symbols on rare occasions.
+        This shouldn't actually happen.
+        """
+
+        try:
+            if iteration not in self.storage_written:
+                self.storage_written[iteration] = [value]
+            else:
+                if value not in self.storage_written[iteration]:
+                    self.storage_written[iteration].append(value)
+        except Z3Exception:
+            return
 
 
 class WSDependencyAnnotation(StateAnnotation):
