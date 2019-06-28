@@ -553,7 +553,7 @@ class Instruction:
                     + str(hash(simplify(exponent)))
                     + ")",
                     256,
-                    base.annotations + exponent.annotations,
+                    base.annotations.union(exponent.annotations),
                 )
             )  # Hash is used because str(symbol) takes a long time to be converted to a string
         else:
@@ -925,7 +925,7 @@ class Instruction:
 
         if data.symbolic:
 
-            annotations = set()
+            annotations = set()  # Type: Set
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
