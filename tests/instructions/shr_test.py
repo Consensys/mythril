@@ -12,9 +12,11 @@ from mythril.laser.smt import symbol_factory, simplify, LShR
 
 
 def get_state():
-    active_account = Account("0x0", code=Disassembly("60606040"))
-    environment = Environment(active_account, None, None, None, None, None)
-    state = GlobalState(None, environment, None, MachineState(gas_limit=8000000))
+    world_state = WorldState()
+    account = world_state.create_account(balance=10, address=101)
+    account.code = Disassembly("60606040")
+    environment = Environment(account, None, None, None, None, None)
+    state = GlobalState(world_state, environment, None, MachineState(gas_limit=8000000))
     state.transaction_stack.append(
         (MessageCallTransaction(world_state=WorldState(), gas_limit=8000000), None)
     )

@@ -75,7 +75,17 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 "there's a possible state where op1 + op0 > 2^32 - 1"
             ),
             entrypoint="callback",
-            pre_hooks=["ADD", "MUL", "EXP", "SUB", "SSTORE", "JUMPI", "STOP", "RETURN"],
+            pre_hooks=[
+                "ADD",
+                "MUL",
+                "EXP",
+                "SUB",
+                "SSTORE",
+                "JUMPI",
+                "STOP",
+                "RETURN",
+                "CALL",
+            ],
         )
 
         """
@@ -121,6 +131,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             "MUL": [self._handle_mul],
             "SSTORE": [self._handle_sstore],
             "JUMPI": [self._handle_jumpi],
+            "CALL": [self._handle_call],
             "RETURN": [self._handle_return, self._handle_transaction_end],
             "STOP": [self._handle_transaction_end],
             "EXP": [self._handle_exp],
@@ -230,7 +241,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 or annotation.overflowing_state in state_annotation.ostates_seen
             ):
                 continue
-
             state_annotation.overflowing_state_annotations.append(annotation)
             state_annotation.ostates_seen.add(annotation.overflowing_state)
 
@@ -248,7 +258,23 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 or annotation.overflowing_state in state_annotation.ostates_seen
             ):
                 continue
+            state_annotation.overflowing_state_annotations.append(annotation)
+            state_annotation.ostates_seen.add(annotation.overflowing_state)
 
+    @staticmethod
+    def _handle_call(state):
+
+        stack = state.mstate.stack
+        value = stack[-3]
+
+        state_annotation = _get_overflowunderflow_state_annotation(state)
+
+        for annotation in value.annotations:
+            if (
+                not isinstance(annotation, OverUnderflowAnnotation)
+                or annotation.overflowing_state in state_annotation.ostates_seen
+            ):
+                continue
             state_annotation.overflowing_state_annotations.append(annotation)
             state_annotation.ostates_seen.add(annotation.overflowing_state)
 
@@ -311,7 +337,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             try:
 
                 constraints = state.mstate.constraints + [annotation.constraint]
-
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )

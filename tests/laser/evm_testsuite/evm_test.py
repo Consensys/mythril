@@ -125,7 +125,8 @@ def test_vmtest(
         account.code = Disassembly(details["code"][2:])
         account.nonce = int(details["nonce"], 16)
         for key, value in details["storage"].items():
-            account.storage[int(key, 16)] = int(value, 16)
+            key_bitvec = symbol_factory.BitVecVal(int(key, 16), 256)
+            account.storage[key_bitvec] = symbol_factory.BitVecVal(int(value, 16), 256)
 
         world_state.put_account(account)
         account.set_balance(int(details["balance"], 16))
@@ -175,8 +176,7 @@ def test_vmtest(
 
             for index, value in details["storage"].items():
                 expected = int(value, 16)
-                actual = account.storage[int(index, 16)]
-
+                actual = account.storage[symbol_factory.BitVecVal(int(index, 16), 256)]
                 if isinstance(actual, Expression):
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual

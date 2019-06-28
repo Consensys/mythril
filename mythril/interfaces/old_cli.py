@@ -148,11 +148,6 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         help="report output format",
         metavar="<text/markdown/json/jsonv2>",
     )
-    outputs.add_argument(
-        "--verbose-report",
-        action="store_true",
-        help="Include debugging information in report",
-    )
 
     database = parser.add_argument_group("local contracts database")
     database.add_argument(
@@ -463,7 +458,6 @@ def execute_command(
                     modules=[m.strip() for m in args.modules.strip().split(",")]
                     if args.modules
                     else [],
-                    verbose_report=args.verbose_report,
                     transaction_count=args.transaction_count,
                 )
                 outputs = {
