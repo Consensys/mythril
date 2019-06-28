@@ -1380,7 +1380,6 @@ class Instruction:
             )  # type: Union[int, BitVec]
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
-        log.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
 
         state.memory[offset] = value_to_write
 
