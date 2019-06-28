@@ -48,7 +48,6 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = set()  # type: Set[OverUnderflowAnnotation]
-        self.ostates_seen = set()  # type: Set[GlobalState]
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
@@ -56,7 +55,6 @@ class OverUnderflowStateAnnotation(StateAnnotation):
         new_annotation.overflowing_state_annotations = copy(
             self.overflowing_state_annotations
         )
-        new_annotation.ostates_seen = copy(self.ostates_seen)
 
         return new_annotation
 
@@ -191,7 +189,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             constraint = op0.value ** op1.value >= 2 ** 256
 
         annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
-        # op0.annotate(annotation)
+        op0.annotate(annotation)
 
     @staticmethod
     def _make_bitvec_if_not(stack, index):
@@ -236,13 +234,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
-            if (
-                not isinstance(annotation, OverUnderflowAnnotation)
-                or annotation.overflowing_state in state_annotation.ostates_seen
-            ):
-                continue
-            state_annotation.overflowing_state_annotations.add(annotation)
-            state_annotation.ostates_seen.add(annotation.overflowing_state)
+            if isinstance(annotation, OverUnderflowAnnotation):
+                state_annotation.overflowing_state_annotations.add(annotation)
 
     @staticmethod
     def _handle_jumpi(state):
@@ -253,13 +246,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
-            if (
-                not isinstance(annotation, OverUnderflowAnnotation)
-                or annotation.overflowing_state in state_annotation.ostates_seen
-            ):
-                continue
-            state_annotation.overflowing_state_annotations.add(annotation)
-            state_annotation.ostates_seen.add(annotation.overflowing_state)
+            if isinstance(annotation, OverUnderflowAnnotation):
+                state_annotation.overflowing_state_annotations.add(annotation)
 
     @staticmethod
     def _handle_call(state):
@@ -270,13 +258,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         state_annotation = _get_overflowunderflow_state_annotation(state)
 
         for annotation in value.annotations:
-            if (
-                not isinstance(annotation, OverUnderflowAnnotation)
-                or annotation.overflowing_state in state_annotation.ostates_seen
-            ):
-                continue
-            state_annotation.overflowing_state_annotations.add(annotation)
-            state_annotation.ostates_seen.add(annotation.overflowing_state)
+            if isinstance(annotation, OverUnderflowAnnotation):
+                state_annotation.overflowing_state_annotations.add(annotation)
 
     @staticmethod
     def _handle_return(state: GlobalState) -> None:
@@ -300,10 +283,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 continue
 
             for annotation in element.annotations:
-                if (
-                    isinstance(annotation, OverUnderflowAnnotation)
-                    and annotation not in state_annotation.overflowing_state_annotations
-                ):
+                if isinstance(annotation, OverUnderflowAnnotation):
                     state_annotation.overflowing_state_annotations.add(annotation)
 
     def _handle_transaction_end(self, state: GlobalState) -> None:
