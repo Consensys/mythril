@@ -1,7 +1,6 @@
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.strategy.basic import BasicSearchStrategy
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.laser.ethereum import util
 from typing import Dict, cast, List
 from copy import copy
 import logging
