@@ -773,13 +773,8 @@ class Instruction:
         if size > 0:
             try:
                 state.mem_extend(mstart, size)
-            except TypeError:
-                log.debug(
-                    "Memory allocation error: mstart = "
-                    + str(mstart)
-                    + ", size = "
-                    + str(size)
-                )
+            except TypeError as e:
+                log.debug("Memory allocation error: {}".format(e))
                 state.mem_extend(mstart, 1)
                 state.memory[mstart] = global_state.new_bitvec(
                     "calldata_"
@@ -1395,7 +1390,7 @@ class Instruction:
 
         state = global_state.mstate
         index = state.stack.pop()
-        log.debug("Storage access at index " + str(index))
+
         state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
 
@@ -1408,7 +1403,7 @@ class Instruction:
         """
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-        log.debug("Write to storage[" + str(index) + "]")
+
         global_state.environment.active_account.storage[index] = value
         return [global_state]
 
