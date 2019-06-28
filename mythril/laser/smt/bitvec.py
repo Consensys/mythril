@@ -448,11 +448,11 @@ def Sum(*args: BitVec) -> BitVec:
     :return:
     """
     raw = z3.Sum([a.raw for a in args])
-    annotations = []  # type: Annotations
+    annotations = set()  # type: Annotations
     bitvecfuncs = []
 
     for bv in args:
-        annotations += bv.annotations
+        annotations = annotations.union(bv.annotations)
         if isinstance(bv, BitVecFunc):
             bitvecfuncs.append(bv)
 
