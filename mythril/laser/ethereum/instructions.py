@@ -562,7 +562,7 @@ class Instruction:
                 symbol_factory.BitVecVal(
                     pow(base.value, exponent.value, 2 ** 256),
                     256,
-                    annotations=base.annotations + exponent.annotations,
+                    annotations=base.annotations.union(exponent.annotations),
                 )
             )
 
@@ -925,11 +925,11 @@ class Instruction:
 
         if data.symbolic:
 
-            annotations = []
+            annotations = set()
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
-                    annotations += b.annotations
+                    annotations = annotations.union(b.annotations)
 
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
