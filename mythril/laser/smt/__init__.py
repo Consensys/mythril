@@ -22,11 +22,11 @@ from mythril.laser.smt.array import K, Array, BaseArray
 from mythril.laser.smt.solver import Solver, Optimize, SolverStatistics
 from mythril.laser.smt.model import Model
 
-from typing import Union, Any, Optional, List, TypeVar, Generic
+from typing import Union, Any, Optional, Set, TypeVar, Generic
 import z3
 
 
-Annotations = Optional[List[Any]]
+Annotations = Optional[Set[Any]]
 T = TypeVar("T", bound=Union[bool.Bool, z3.BoolRef])
 U = TypeVar("U", bound=Union[BitVec, z3.BitVecRef])
 

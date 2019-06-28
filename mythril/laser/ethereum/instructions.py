@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union, Tuple
+from typing import cast, Callable, List, Set, Union, Tuple, Any
 from datetime import datetime
 from math import ceil
 from ethereum import utils
@@ -553,7 +553,7 @@ class Instruction:
                     + str(hash(simplify(exponent)))
                     + ")",
                     256,
-                    base.annotations + exponent.annotations,
+                    base.annotations.union(exponent.annotations),
                 )
             )  # Hash is used because str(symbol) takes a long time to be converted to a string
         else:
@@ -562,7 +562,7 @@ class Instruction:
                 symbol_factory.BitVecVal(
                     pow(base.value, exponent.value, 2 ** 256),
                     256,
-                    annotations=base.annotations + exponent.annotations,
+                    annotations=base.annotations.union(exponent.annotations),
                 )
             )
 
@@ -925,11 +925,11 @@ class Instruction:
 
         if data.symbolic:
 
-            annotations = []
+            annotations = set()  # type: Set[Any]
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
-                    annotations += b.annotations
+                    annotations = annotations.union(b.annotations)
 
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
