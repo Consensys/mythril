@@ -1,13 +1,13 @@
 """This module provides classes for an SMT abstraction of bit vectors."""
 
-from typing import Union, overload, List, cast, Any, Optional, Callable
+from typing import Union, overload, Set, cast, Any, Optional, Callable
 from operator import lshift, rshift
 import z3
 
 from mythril.laser.smt.bool import Bool, And, Or
 from mythril.laser.smt.expression import Expression
 
-Annotations = List[Any]
+Annotations = Set[Any]
 
 # fmt: off
 

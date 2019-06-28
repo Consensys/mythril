@@ -55,7 +55,7 @@ class Bool(Expression[z3.BoolRef]):
         """
         if isinstance(other, Expression):
             return Bool(cast(z3.BoolRef, self.raw == other.raw),
-                        self.annotations + other.annotations)
+                        self.annotations.union(other.annotations))
         return Bool(cast(z3.BoolRef, self.raw == other), self.annotations)
 
     # MYPY: complains about overloading __ne__ # noqa
@@ -67,7 +67,7 @@ class Bool(Expression[z3.BoolRef]):
         """
         if isinstance(other, Expression):
             return Bool(cast(z3.BoolRef, self.raw != other.raw),
-                        self.annotations + other.annotations)
+                        self.annotations.union(other.annotations))
         return Bool(cast(z3.BoolRef, self.raw != other), self.annotations)
 
     def __bool__(self) -> bool:

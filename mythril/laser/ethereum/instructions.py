@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union, Tuple
+from typing import cast, Callable, List, Set, Union, Tuple, Any
 from datetime import datetime
 from math import ceil
 from ethereum import utils
@@ -925,7 +925,7 @@ class Instruction:
 
         if data.symbolic:
 
-            annotations = set()  # Type: Set
+            annotations = set()  # type: Set[Any]
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
