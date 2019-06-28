@@ -24,41 +24,37 @@ def safe_decode(hex_encoded_string):
         return bytes.fromhex(hex_encoded_string)
 
 
-def get_solc_json(file, solc_binary="solc", solc_args=None):
+def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     """
 
     :param file:
     :param solc_binary:
-    :param solc_args:
+    :param solc_settings_json:
     :return:
     """
+    cmd = [solc_binary, "--standard-json", "--allow-paths", "."]
 
-    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap,srcmap-runtime,ast"]
-    cmd = [solc_binary, "--standard-json", "bin,bin-runtime,srcmap,srcmap-runtime,ast"]
-
-    if solc_args:
-        cmd.extend(solc_args.split())
-    if not "--allow-paths" in cmd:
-        cmd.extend(["--allow-paths", "."])
-    else:
-        for i, arg in enumerate(cmd):
-            if arg == "--allow-paths":
-                cmd[i + 1] += ",."
-
-    cmd.append(file)
-
+    settings = json.loads(solc_settings_json) if solc_settings_json else {}
+    settings.update(
+        {
+            "outputSelection": {
+                "*": {
+                    "": ["ast"],
+                    "*": [
+                        "metadata",
+                        "evm.bytecode",
+                        "evm.deployedBytecode",
+                        "evm.methodIdentifiers",
+                    ],
+                }
+            }
+        }
+    )
     input_json = json.dumps(
         {
             "language": "Solidity",
             "sources": {file: {"urls": [file]}},
-            "settings": {
-                "outputSelection": {
-                    "*": {
-                        "": ["ast"],
-                        "*": ["metadata", "evm.bytecode", "evm.deployedBytecode"],
-                    }
-                }
-            },
+            "settings": settings,
         }
     )
 
@@ -67,6 +63,7 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
         stdout, stderr = p.communicate(bytes(input_json, "utf8"))
         ret = p.returncode
 
+        # TODO: check json.loads(out)['errors'] for fatal errors.
         if ret != 0:
             raise CompilerError(
                 "Solc experienced a fatal error (code %d).\n\n%s"

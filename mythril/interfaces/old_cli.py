@@ -230,7 +230,10 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         default=10,
         help="The amount of seconds to spend on " "the initial contract creation",
     )
-    options.add_argument("--solc-args", help="Extra arguments for solc")
+    options.add_argument(
+        "--solc-json",
+        help="Json for the optional 'settings' parameter of solc's standard-json input",
+    )
     options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
@@ -523,7 +526,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
-            solc_args=args.solc_args,
+            solc_json=args.solc_json,
             enable_online_lookup=args.query_signature,
         )
         if args.truffle:

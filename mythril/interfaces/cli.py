@@ -165,7 +165,10 @@ def get_utilities_parser() -> ArgumentParser:
     :return: Parser which handles utility flags
     """
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--solc-args", help="Extra arguments for solc")
+    parser.add_argument(
+        "--solc-json",
+        help="Json for the optional 'settings' parameter of solc's standard-json input",
+    )
     parser.add_argument(
         "--solv",
         help="specify solidity compiler version. If not present, will try to install it (Experimental)",
@@ -723,12 +726,12 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         config = set_config(args)
         leveldb_search(config, args)
         query_signature = args.__dict__.get("query_signature", None)
-        solc_args = args.__dict__.get("solc_args", None)
+        solc_json = args.__dict__.get("solc_json", None)
         solv = args.__dict__.get("solv", None)
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=solv,
-            solc_args=solc_args,
+            solc_settings_json=solc_json,
             enable_online_lookup=query_signature,
         )
         if args.command == "truffle":

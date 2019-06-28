@@ -44,14 +44,16 @@ class SourceCodeInfo:
         self.solc_mapping = mapping
 
 
-def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
+def get_contracts_from_file(input_file, solc_settings_json=None, solc_binary="solc"):
     """
 
     :param input_file:
-    :param solc_args:
+    :param solc_settings_json:
     :param solc_binary:
     """
-    data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
+    data = get_solc_json(
+        input_file, solc_settings_json=solc_settings_json, solc_binary=solc_binary
+    )
 
     try:
         for contractName in data["contracts"][input_file].keys():
@@ -63,7 +65,7 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
                 yield SolidityContract(
                     input_file=input_file,
                     name=contractName,
-                    solc_args=solc_args,
+                    solc_settings_json=solc_settings_json,
                     solc_binary=solc_binary,
                 )
     except KeyError:
@@ -73,8 +75,12 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
 class SolidityContract(EVMContract):
     """Representation of a Solidity contract."""
 
-    def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
-        data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
+    def __init__(
+        self, input_file, name=None, solc_settings_json=None, solc_binary="solc"
+    ):
+        data = get_solc_json(
+            input_file, solc_settings_json=solc_settings_json, solc_binary=solc_binary
+        )
 
         self.solidity_files = []
         self.solc_json = data
