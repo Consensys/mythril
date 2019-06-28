@@ -76,7 +76,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             if isinstance(
                 state.current_transaction, ContractCreationTransaction
-            ) and annotation._reached_count[address] < min(8, self.bound):
+            ) and annotation._reached_count[address] < max(8, self.bound):
                 return state
 
             elif annotation._reached_count[address] > self.bound:
