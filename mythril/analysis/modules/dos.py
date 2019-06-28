@@ -116,4 +116,4 @@ class DoSModule(DetectionModule):
         return []
 
 
-detector = DOS()
+detector = DoSModule()
