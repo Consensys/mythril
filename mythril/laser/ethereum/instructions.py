@@ -929,7 +929,7 @@ class Instruction:
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
-                    annotations.append(b.annotations)
+                    annotations += b.annotations
 
             argument_str = str(state.memory[index]).replace(" ", "_")
             result = symbol_factory.BitVecFuncSym(
