@@ -36,9 +36,11 @@ class OverUnderflowAnnotation:
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint: Bool
     ) -> None:
-        self.overflowing_state = overflowing_state
+
+        self.address = overflowing_state.get_current_instruction()["address"]
+        self.function_name = overflowing_state.environment.active_function_name
+        self.constraint = overflowing_state.mstate.constraints + [constraint]
         self.operator = operator
-        self.constraint = constraint
 
 
 class OverUnderflowStateAnnotation(StateAnnotation):
@@ -104,8 +106,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
         super().reset_module()
         self._overflow_cache = {}
-        self._ostates_satisfiable = set()
-        self._ostates_unsatisfiable = set()
 
     def _execute(self, state: GlobalState) -> None:
         """Executes analysis module for integer underflow and integer overflow.
@@ -290,31 +290,18 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         for annotation in state_annotation.overflowing_state_annotations:
 
-            ostate = annotation.overflowing_state
-
-            if ostate in self._ostates_unsatisfiable:
-                continue
-
-            if ostate not in self._ostates_satisfiable:
-                try:
-                    constraints = ostate.mstate.constraints + [annotation.constraint]
-                    solver.get_model(constraints)
-                    self._ostates_satisfiable.add(ostate)
-                except:
-                    self._ostates_unsatisfiable.add(ostate)
-                    continue
-
             log.debug(
                 "Checking overflow in {} at transaction end address {}, ostate address {}".format(
                     state.get_current_instruction()["opcode"],
                     state.get_current_instruction()["address"],
-                    ostate.get_current_instruction()["address"],
+                    annotation.address,
                 )
             )
 
             try:
 
-                constraints = state.mstate.constraints + [annotation.constraint]
+                constraints = state.mstate.constraints + annotation.constraint
+
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )
@@ -323,11 +310,11 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
             issue = Issue(
-                contract=ostate.environment.active_account.contract_name,
-                function_name=ostate.environment.active_function_name,
-                address=ostate.get_current_instruction()["address"],
+                contract=state.environment.active_account.contract_name,
+                function_name=annotation.function_name,
+                address=annotation.address,
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
-                bytecode=ostate.environment.code.bytecode,
+                bytecode=state.environment.code.bytecode,
                 title=self._get_title(_type),
                 severity="High",
                 description_head=self._get_description_head(annotation, _type),
@@ -336,8 +323,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
                 transaction_sequence=transaction_sequence,
             )
 
-            address = _get_address_from_state(ostate)
-            self._overflow_cache[address] = True
+            self._overflow_cache[annotation.address] = True
             self._issues.append(issue)
 
 
