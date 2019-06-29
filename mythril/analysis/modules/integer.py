@@ -44,6 +44,7 @@ class OverUnderflowAnnotation:
         new_annotation = copy(self)
         return new_annotation
 
+
 class OverUnderflowStateAnnotation(StateAnnotation):
     """ State Annotation used if an overflow is both possible and used in the annotated path"""
 
