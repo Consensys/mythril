@@ -329,7 +329,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         "-b",
         "--loop-bound",
         type=int,
-        default=2,
+        default=3,
         help="Bound loops at n iterations",
         metavar="N",
     )

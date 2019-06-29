@@ -40,6 +40,9 @@ class OverUnderflowAnnotation:
         self.operator = operator
         self.constraint = constraint
 
+    def __deepcopy__(self, memodict={}):
+        new_annotation = copy(self)
+        return new_annotation
 
 class OverUnderflowStateAnnotation(StateAnnotation):
     """ State Annotation used if an overflow is both possible and used in the annotated path"""
