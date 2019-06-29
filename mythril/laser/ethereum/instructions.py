@@ -931,9 +931,9 @@ class Instruction:
                 if isinstance(b, BitVec):
                     annotations = annotations.union(b.annotations)
 
-            argument_str = str(state.memory[index]).replace(" ", "_")
+            argument_hash = hash(state.memory[index])
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str),
+                "KECCAC[invhash({})]".format(hash(argument_hash)),
                 "keccak256",
                 256,
                 input_=data,
