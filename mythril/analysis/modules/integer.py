@@ -39,7 +39,7 @@ class OverUnderflowAnnotation:
 
         self.address = overflowing_state.get_current_instruction()["address"]
         self.function_name = overflowing_state.environment.active_function_name
-        self.constraint = overflowing_state.mstate.constraints + [constraint]
+        self.constraint = constraint
         self.operator = operator
 
 
@@ -300,7 +300,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             try:
 
-                constraints = state.mstate.constraints + annotation.constraint
+                constraints = state.mstate.constraints + [annotation.constraint]
 
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
