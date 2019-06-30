@@ -88,7 +88,7 @@ class DOS(DetectionModule):
                 annotation.jump_targets[target] = 1
 
             if annotation.jump_targets[target] > 2:
-                annotation.loop_start = target
+                annotation.loop_start = address
 
         elif annotation.loop_start is not None:
 
