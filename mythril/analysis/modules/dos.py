@@ -19,7 +19,7 @@ class VisitsAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.loop_start = None
-        self.jump_targets = []  # type: List[int]
+        self.jump_targets = {}  # type: Dict[int]
 
     def __copy__(self):
         result = VisitsAnnotation()
@@ -76,13 +76,19 @@ class DOS(DetectionModule):
             annotation = annotations[0]
 
         if opcode in ["JUMP", "JUMPI"]:
+
+            if annotation.loop_start is not None:
+                return []
+
             target = util.get_concrete_int(state.mstate.stack[-1])
 
-            if annotation.loop_start is None:
-                if target in annotation.jump_targets:
-                    annotation.loop_start = address
-                else:
-                    annotation.jump_targets.append(target)
+            if target in annotation.jump_targets:
+                annotation.jump_targets[target] += 1
+            else:
+                annotation.jump_targets[target] = 1
+
+            if annotation.jump_targets[target] > 2:
+                annotation.loop_start = target
 
         elif annotation.loop_start is not None:
 
