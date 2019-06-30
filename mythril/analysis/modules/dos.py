@@ -19,7 +19,7 @@ class VisitsAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self.loop_start = None
-        self.jump_targets = {}  # type: Dict[int]
+        self.jump_targets = {}  # type: Dict[int, int]
 
     def __copy__(self):
         result = VisitsAnnotation()
