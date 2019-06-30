@@ -44,11 +44,15 @@ class DependencyAnnotation(StateAnnotation):
         return self.storage_written[iteration]
 
     def extend_storage_write_cache(self, iteration: int, value: object):
-        if iteration not in self.storage_written:
-            self.storage_written[iteration] = [value]
-        else:
-            if value not in self.storage_written[iteration]:
-                self.storage_written[iteration].append(value)
+        try:
+            if iteration not in self.storage_written:
+                self.storage_written[iteration] = [value]
+            else:
+                if value not in self.storage_written[iteration]:
+                    self.storage_written[iteration].append(value)
+        except Z3Exception as e:
+            # FIXME: This should not happen unless there's a bug in laser such as a BitVec512 being generated
+            log.debug("Error updating storage write cache: {}".format(e))
 
 
 class WSDependencyAnnotation(StateAnnotation):
@@ -154,7 +158,7 @@ class DependencyPruner(LaserPlugin):
                 else:
                     self.dependency_map[address] = [target_location]
         except Z3Exception as e:
-            # This should not happen unless there's a bug in laser, such as an invalid type being generated.
+            # FIXME: This should not happen unless there's a bug in laser such as a BitVec512 being generated
             log.debug("Error updating dependency map: {}".format(e))
 
     def protect_path(self, path: List[int]) -> None:

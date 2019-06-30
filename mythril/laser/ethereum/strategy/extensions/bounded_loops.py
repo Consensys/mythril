@@ -1,7 +1,7 @@
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.strategy.basic import BasicSearchStrategy
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.laser.ethereum import util
+from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from typing import Dict, cast, List
 from copy import copy
 import logging
@@ -71,7 +71,15 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             else:
                 annotation._reached_count[address] = 1
 
-            if annotation._reached_count[address] > self.bound:
+            # The creation transaction gets a higher loop bound to give it a better chance of success.
+            # TODO: There's probably a nicer way to do this
+
+            if isinstance(
+                state.current_transaction, ContractCreationTransaction
+            ) and annotation._reached_count[address] < max(8, self.bound):
+                return state
+
+            elif annotation._reached_count[address] > self.bound:
                 log.debug("Loop bound reached, skipping state")
                 continue
 

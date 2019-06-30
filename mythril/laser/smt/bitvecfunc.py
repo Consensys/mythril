@@ -23,7 +23,7 @@ def _arithmetic_helper(
         b = BitVec(z3.BitVecVal(b, a.size()))
 
     raw = operation(a.raw, b.raw)
-    union = a.annotations + b.annotations
+    union = a.annotations.union(b.annotations)
 
     if isinstance(b, BitVecFunc):
         # TODO: Find better value to set input and name to in this case?
@@ -53,7 +53,7 @@ def _comparison_helper(
     if isinstance(b, int):
         b = BitVec(z3.BitVecVal(b, a.size()))
 
-    union = a.annotations + b.annotations
+    union = a.annotations.union(b.annotations)
 
     if not a.symbolic and not b.symbolic:
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
