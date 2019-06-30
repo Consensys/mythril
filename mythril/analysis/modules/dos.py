@@ -18,7 +18,7 @@ class VisitsAnnotation(StateAnnotation):
     """State annotation that stores the addresses of state-modifying operations"""
 
     def __init__(self) -> None:
-        self.loop_start = None
+        self.loop_start = None  # type: int
         self.jump_targets = {}  # type: Dict[int, int]
 
     def __copy__(self):
