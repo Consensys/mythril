@@ -4,6 +4,7 @@ from copy import copy
 from typing import cast, List
 
 from mythril.analysis.report import Issue
+from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.annotation import StateAnnotation
@@ -73,7 +74,12 @@ def _analyze_state(state: GlobalState):
     else:  # RETURN or STOP
 
         for offset in call_offsets[1:]:
-
+            try:
+                transaction_sequence = get_transaction_sequence(
+                    state, state.mstate.constraints
+                )
+            except UnsatError:
+                continue
             description_tail = (
                 "This call is executed after a previous call in the same transaction. "
                 "Try to isolate each call, transfer or send into its own transaction."
@@ -90,6 +96,7 @@ def _analyze_state(state: GlobalState):
                 description_head="Multiple calls are executed in the same transaction.",
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
 
             return [issue]

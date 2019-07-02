@@ -6,6 +6,7 @@ from typing import Dict, cast, List
 from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
@@ -103,7 +104,12 @@ class DOS(DetectionModule):
             description_tail = "{} is executed in a loop. Be aware that the transaction may fail to execute if the loop is unbounded and the necessary gas exceeds the block gas limit.".format(
                 operation
             )
-
+            try:
+                transaction_sequence = get_transaction_sequence(
+                    state, state.mstate.constraints
+                )
+            except UnsatError:
+                return []
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
@@ -115,6 +121,7 @@ class DOS(DetectionModule):
                 description_head=description_head,
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
 
             return [issue]

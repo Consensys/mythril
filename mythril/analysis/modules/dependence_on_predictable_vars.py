@@ -27,22 +27,25 @@ def is_prehook() -> bool:
 class PredictableValueAnnotation:
     """Symbol annotation used if a variable is initialized from a predictable environment variable."""
 
-    def __init__(self, operation: str) -> None:
+    def __init__(self, operation: str, add_constraints=None) -> None:
         self.operation = operation
+        self.add_constraints = add_constraints
 
 
 class PredictablePathAnnotation(StateAnnotation):
     """State annotation used when a path is chosen based on a predictable variable."""
 
-    def __init__(self, operation: str, location: int) -> None:
+    def __init__(self, operation: str, location: int, add_constraints=None) -> None:
         self.operation = operation
         self.location = location
+        self.add_constraints = add_constraints
 
 
 class OldBlockNumberUsedAnnotation(StateAnnotation):
     """State annotation set in blockhash prehook if the input value is lower than the current block number."""
 
-    def __init__(self) -> None:
+    def __init__(self, constraints) -> None:
+        self.block_constraints = constraints
         pass
 
 
@@ -92,6 +95,13 @@ def _analyze_states(state: GlobalState) -> list:
             for annotation in state.annotations:
 
                 if isinstance(annotation, PredictablePathAnnotation):
+                    constraints = state.mstate.constraints + annotation.add_constraints
+                    try:
+                        transaction_sequence = solver.get_transaction_sequence(
+                            state, constraints
+                        )
+                    except UnsatError:
+                        continue
                     description = (
                         "The "
                         + annotation.operation
@@ -133,6 +143,7 @@ def _analyze_states(state: GlobalState) -> list:
                         description_head="A control flow decision is made based on a predictable variable.",
                         description_tail=description,
                         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                        transaction_sequence=transaction_sequence,
                     )
                     issues.append(issue)
 
@@ -147,6 +158,7 @@ def _analyze_states(state: GlobalState) -> list:
                         PredictablePathAnnotation(
                             annotation.operation,
                             state.get_current_instruction()["address"],
+                            add_constraints=annotation.add_constraints,
                         )
                     )
                     break
@@ -166,8 +178,8 @@ def _analyze_states(state: GlobalState) -> list:
 
                 # Why the second constraint? Because without it Z3 returns a solution where param overflows.
 
-                solver.get_model(constraint)
-                state.annotate(OldBlockNumberUsedAnnotation())
+                solver.get_model(state.mstate.constraints + constraint)
+                state.annotate(OldBlockNumberUsedAnnotation(constraint))
 
             except UnsatError:
                 pass
@@ -186,8 +198,12 @@ def _analyze_states(state: GlobalState) -> list:
             )
 
             if len(annotations):
+                # We can append any block constraint here
                 state.mstate.stack[-1].annotate(
-                    PredictableValueAnnotation("block hash of a previous block")
+                    PredictableValueAnnotation(
+                        "block hash of a previous block",
+                        add_constraints=annotations[0].block_constraints,
+                    )
                 )
         else:
             # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.

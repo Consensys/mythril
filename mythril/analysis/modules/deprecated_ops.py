@@ -1,5 +1,6 @@
 """This module contains the detection code for deprecated op codes."""
 from mythril.analysis.report import Issue
+from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.analysis.swc_data import DEPRECATED_FUNCTIONS_USAGE
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -47,7 +48,10 @@ def _analyze_state(state):
         swc_id = DEPRECATED_FUNCTIONS_USAGE
     else:
         return
-
+    try:
+        transaction_sequence = get_transaction_sequence(state, state.mstate.constraints)
+    except UnsatError:
+        return
     issue = Issue(
         contract=state.environment.active_account.contract_name,
         function_name=state.environment.active_function_name,
@@ -59,6 +63,7 @@ def _analyze_state(state):
         description_head=description_head,
         description_tail=description_tail,
         gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+        transaction_sequence=transaction_sequence,
     )
     return [issue]
 

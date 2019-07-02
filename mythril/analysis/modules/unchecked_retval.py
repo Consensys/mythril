@@ -78,7 +78,9 @@ def _analyze_state(state: GlobalState) -> list:
         issues = []
         for retval in retvals:
             try:
-                solver.get_model(state.mstate.constraints + [retval["retval"] == 0])
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, state.mstate.constraints + [retval["retval"] == 0]
+                )
             except UnsatError:
                 continue
 
@@ -99,6 +101,7 @@ def _analyze_state(state: GlobalState) -> list:
                 description_head="The return value of a message call is not checked.",
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
 
             issues.append(issue)

@@ -35,7 +35,25 @@ class StateChangeCallsAnnotation(StateAnnotation):
     def get_issue(self, global_state: GlobalState) -> Optional[Issue]:
         if not self.state_change_states:
             return None
+        constraints = copy(global_state.mstate.constraints)
+        gas = self.call_state.mstate.stack[-1]
+        to = self.call_state.mstate.stack[-2]
+        constraints += [
+            UGT(gas, symbol_factory.BitVecVal(2300, 256)),
+            Or(
+                to > symbol_factory.BitVecVal(16, 256),
+                to == symbol_factory.BitVecVal(0, 256),
+            ),
+        ]
+        if self.user_defined_address:
+            constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
 
+        try:
+            transaction_sequence = solver.get_transaction_sequence(
+                global_state, constraints
+            )
+        except UnsatError:
+            return None
         severity = "Medium" if self.user_defined_address else "Low"
         address = global_state.get_current_instruction()["address"]
         logging.debug(
@@ -59,6 +77,7 @@ class StateChangeCallsAnnotation(StateAnnotation):
             description_tail=description_tail,
             swc_id=REENTRANCY,
             bytecode=global_state.environment.code.bytecode,
+            transaction_sequence=transaction_sequence,
         )
 
 
