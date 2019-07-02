@@ -35,6 +35,7 @@ class DetectionModule:
             )
         self.entrypoint = entrypoint
         self._issues = []  # type: List[Issue]
+        self._cache = set()
 
     @property
     def issues(self):
