@@ -56,9 +56,12 @@ class DOS(DetectionModule):
         """
         if state.get_current_instruction()["address"] in self._cache:
             return
-        self._issues.extend(self._analyze_states(state))
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-    def _analyze_states(self, state: GlobalState) -> List[Issue]:
+    def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
         :param state: the current state
         :return: returns the issues for that corresponding state

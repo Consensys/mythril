@@ -45,63 +45,68 @@ class MultipleSendsModule(DetectionModule):
         )
 
     def _execute(self, state: GlobalState) -> None:
-        self._issues.extend(_analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
+    @staticmethod
+    def _analyze_state(state: GlobalState):
+        """
+        :param state: the current state
+        :return: returns the issues for that corresponding state
+        """
+        instruction = state.get_current_instruction()
 
-def _analyze_state(state: GlobalState):
-    """
-    :param state: the current state
-    :return: returns the issues for that corresponding state
-    """
-    instruction = state.get_current_instruction()
-
-    annotations = cast(
-        List[MultipleSendsAnnotation],
-        list(state.get_annotations(MultipleSendsAnnotation)),
-    )
-    if len(annotations) == 0:
-        state.annotate(MultipleSendsAnnotation())
         annotations = cast(
             List[MultipleSendsAnnotation],
             list(state.get_annotations(MultipleSendsAnnotation)),
         )
+        if len(annotations) == 0:
+            state.annotate(MultipleSendsAnnotation())
+            annotations = cast(
+                List[MultipleSendsAnnotation],
+                list(state.get_annotations(MultipleSendsAnnotation)),
+            )
 
-    call_offsets = annotations[0].call_offsets
+        call_offsets = annotations[0].call_offsets
 
-    if instruction["opcode"] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
-        call_offsets.append(state.get_current_instruction()["address"])
+        if instruction["opcode"] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
+            call_offsets.append(state.get_current_instruction()["address"])
 
-    else:  # RETURN or STOP
+        else:  # RETURN or STOP
 
-        for offset in call_offsets[1:]:
-            try:
-                transaction_sequence = get_transaction_sequence(
-                    state, state.mstate.constraints
+            for offset in call_offsets[1:]:
+                try:
+                    transaction_sequence = get_transaction_sequence(
+                        state, state.mstate.constraints
+                    )
+                except UnsatError:
+                    continue
+                description_tail = (
+                    "This call is executed after a previous call in the same transaction. "
+                    "Try to isolate each call, transfer or send into its own transaction."
                 )
-            except UnsatError:
-                continue
-            description_tail = (
-                "This call is executed after a previous call in the same transaction. "
-                "Try to isolate each call, transfer or send into its own transaction."
-            )
 
-            issue = Issue(
-                contract=state.environment.active_account.contract_name,
-                function_name=state.environment.active_function_name,
-                address=offset,
-                swc_id=MULTIPLE_SENDS,
-                bytecode=state.environment.code.bytecode,
-                title="Multiple Calls in a Single Transaction",
-                severity="Low",
-                description_head="Multiple calls are executed in the same transaction.",
-                description_tail=description_tail,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                transaction_sequence=transaction_sequence,
-            )
+                issue = Issue(
+                    contract=state.environment.active_account.contract_name,
+                    function_name=state.environment.active_function_name,
+                    address=offset,
+                    swc_id=MULTIPLE_SENDS,
+                    bytecode=state.environment.code.bytecode,
+                    title="Multiple Calls in a Single Transaction",
+                    severity="Low",
+                    description_head="Multiple calls are executed in the same transaction.",
+                    description_tail=description_tail,
+                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                    transaction_sequence=transaction_sequence,
+                )
 
-            return [issue]
+                return [issue]
 
-    return []
+        return []
 
 
 detector = MultipleSendsModule()

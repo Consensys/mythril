@@ -89,12 +89,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         )
 
         """
-        Cache addresses for which overflows or underflows already have been detected.
-        """
-
-        self._overflow_cache = {}  # type: Dict[int, bool]
-
-        """
         Cache satisfiability of overflow constraints
         """
 
@@ -107,7 +101,6 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         :return:
         """
         super().reset_module()
-        self._overflow_cache = {}
         self._ostates_satisfiable = set()
         self._ostates_unsatisfiable = set()
 
@@ -120,7 +113,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         address = _get_address_from_state(state)
 
-        if self._overflow_cache.get(address, False):
+        if address in self._cache:
             return
 
         opcode = state.get_current_instruction()["opcode"]
@@ -341,7 +334,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
 
             address = _get_address_from_state(ostate)
-            self._overflow_cache[address] = True
+            self._cache.add(address)
             self._issues.append(issue)
 
 

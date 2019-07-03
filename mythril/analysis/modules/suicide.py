@@ -39,7 +39,6 @@ class SuicideModule(DetectionModule):
         :return:
         """
         super().reset_module()
-        self._cache_address = {}
 
     def _execute(self, state: GlobalState) -> None:
         """
@@ -47,13 +46,18 @@ class SuicideModule(DetectionModule):
         :param state:
         :return:
         """
-        self._issues.extend(self._analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-    def _analyze_state(self, state):
+    @staticmethod
+    def _analyze_state(state):
         log.info("Suicide module: Analyzing suicide instruction")
         instruction = state.get_current_instruction()
-        if self._cache_address.get(instruction["address"], False):
-            return []
+
         to = state.mstate.stack[-1]
 
         log.debug(
@@ -83,8 +87,6 @@ class SuicideModule(DetectionModule):
                     state, state.mstate.constraints + constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
-
-            self._cache_address[instruction["address"]] = True
 
             issue = Issue(
                 contract=state.environment.active_account.contract_name,

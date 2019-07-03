@@ -73,148 +73,160 @@ class PredictableDependenceModule(DetectionModule):
         :param state:
         :return:
         """
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-        self._issues.extend(_analyze_states(state))
+    @staticmethod
+    def _analyze_state(state: GlobalState) -> list:
+        """
 
+        :param state:
+        :return:
+        """
 
-def _analyze_states(state: GlobalState) -> list:
-    """
+        issues = []
 
-    :param state:
-    :return:
-    """
+        if is_prehook():
 
-    issues = []
+            opcode = state.get_current_instruction()["opcode"]
 
-    if is_prehook():
+            if opcode in final_ops:
 
-        opcode = state.get_current_instruction()["opcode"]
+                for annotation in state.annotations:
 
-        if opcode in final_ops:
-
-            for annotation in state.annotations:
-
-                if isinstance(annotation, PredictablePathAnnotation):
-                    constraints = state.mstate.constraints + annotation.add_constraints
-                    try:
-                        transaction_sequence = solver.get_transaction_sequence(
-                            state, constraints
+                    if isinstance(annotation, PredictablePathAnnotation):
+                        constraints = (
+                            state.mstate.constraints + annotation.add_constraints
                         )
-                    except UnsatError:
-                        continue
-                    description = (
-                        "The "
-                        + annotation.operation
-                        + " is used in to determine a control flow decision. "
-                    )
-                    description += (
-                        "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
-                        "are predictable and can be manipulated by a malicious miner. Also keep in mind that attackers "
-                        "know hashes of earlier blocks. Don't use any of those environment variables for random number "
-                        "generation or to make critical control flow decisions."
-                    )
+                        try:
+                            transaction_sequence = solver.get_transaction_sequence(
+                                state, constraints
+                            )
+                        except UnsatError:
+                            continue
+                        description = (
+                            "The "
+                            + annotation.operation
+                            + " is used in to determine a control flow decision. "
+                        )
+                        description += (
+                            "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
+                            "are predictable and can be manipulated by a malicious miner. Also keep in mind that attackers "
+                            "know hashes of earlier blocks. Don't use any of those environment variables for random number "
+                            "generation or to make critical control flow decisions."
+                        )
 
-                    """
-                    Usually report low severity except in cases where the hash of a previous block is used to
-                    determine control flow. 
-                    """
+                        """
+                        Usually report low severity except in cases where the hash of a previous block is used to
+                        determine control flow. 
+                        """
 
-                    severity = "Medium" if "hash" in annotation.operation else "Low"
+                        severity = "Medium" if "hash" in annotation.operation else "Low"
 
-                    """
-                    Note: We report the location of the JUMPI that lead to this path. Usually this maps to an if or
-                    require statement.
-                    """
+                        """
+                        Note: We report the location of the JUMPI that lead to this path. Usually this maps to an if or
+                        require statement.
+                        """
 
-                    swc_id = (
-                        TIMESTAMP_DEPENDENCE
-                        if "timestamp" in annotation.operation
-                        else WEAK_RANDOMNESS
-                    )
+                        swc_id = (
+                            TIMESTAMP_DEPENDENCE
+                            if "timestamp" in annotation.operation
+                            else WEAK_RANDOMNESS
+                        )
 
-                    issue = Issue(
-                        contract=state.environment.active_account.contract_name,
-                        function_name=state.environment.active_function_name,
-                        address=annotation.location,
-                        swc_id=swc_id,
-                        bytecode=state.environment.code.bytecode,
-                        title="Dependence on predictable environment variable",
-                        severity=severity,
-                        description_head="A control flow decision is made based on a predictable variable.",
-                        description_tail=description,
-                        gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                        transaction_sequence=transaction_sequence,
-                    )
-                    issues.append(issue)
+                        issue = Issue(
+                            contract=state.environment.active_account.contract_name,
+                            function_name=state.environment.active_function_name,
+                            address=annotation.location,
+                            swc_id=swc_id,
+                            bytecode=state.environment.code.bytecode,
+                            title="Dependence on predictable environment variable",
+                            severity=severity,
+                            description_head="A control flow decision is made based on a predictable variable.",
+                            description_tail=description,
+                            gas_used=(
+                                state.mstate.min_gas_used,
+                                state.mstate.max_gas_used,
+                            ),
+                            transaction_sequence=transaction_sequence,
+                        )
 
-        elif opcode == "JUMPI":
+                        issues.append(issue)
 
-            # Look for predictable state variables in jump condition
+            elif opcode == "JUMPI":
 
-            for annotation in state.mstate.stack[-2].annotations:
+                # Look for predictable state variables in jump condition
 
-                if isinstance(annotation, PredictableValueAnnotation):
-                    state.annotate(
-                        PredictablePathAnnotation(
-                            annotation.operation,
-                            state.get_current_instruction()["address"],
-                            add_constraints=annotation.add_constraints,
+                for annotation in state.mstate.stack[-2].annotations:
+
+                    if isinstance(annotation, PredictableValueAnnotation):
+                        state.annotate(
+                            PredictablePathAnnotation(
+                                annotation.operation,
+                                state.get_current_instruction()["address"],
+                                add_constraints=annotation.add_constraints,
+                            )
+                        )
+                        break
+
+            elif opcode == "BLOCKHASH":
+
+                param = state.mstate.stack[-1]
+
+                try:
+                    constraint = [
+                        ULT(param, state.environment.block_number),
+                        ULT(
+                            state.environment.block_number,
+                            symbol_factory.BitVecVal(2 ** 255, 256),
+                        ),
+                    ]
+
+                    # Why the second constraint? Because without it Z3 returns a solution where param overflows.
+
+                    solver.get_model(state.mstate.constraints + constraint)
+                    state.annotate(OldBlockNumberUsedAnnotation(constraint))
+
+                except UnsatError:
+                    pass
+
+        else:
+            # we're in post hook
+
+            opcode = state.environment.code.instruction_list[state.mstate.pc - 1][
+                "opcode"
+            ]
+
+            if opcode == "BLOCKHASH":
+                # if we're in the post hook of a BLOCKHASH op, check if an old block number was used to create it.
+
+                annotations = cast(
+                    List[OldBlockNumberUsedAnnotation],
+                    list(state.get_annotations(OldBlockNumberUsedAnnotation)),
+                )
+
+                if len(annotations):
+                    # We can append any block constraint here
+                    state.mstate.stack[-1].annotate(
+                        PredictableValueAnnotation(
+                            "block hash of a previous block",
+                            add_constraints=annotations[0].block_constraints,
                         )
                     )
-                    break
+            else:
+                # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
 
-        elif opcode == "BLOCKHASH":
-
-            param = state.mstate.stack[-1]
-
-            try:
-                constraint = [
-                    ULT(param, state.environment.block_number),
-                    ULT(
-                        state.environment.block_number,
-                        symbol_factory.BitVecVal(2 ** 255, 256),
-                    ),
-                ]
-
-                # Why the second constraint? Because without it Z3 returns a solution where param overflows.
-
-                solver.get_model(state.mstate.constraints + constraint)
-                state.annotate(OldBlockNumberUsedAnnotation(constraint))
-
-            except UnsatError:
-                pass
-
-    else:
-        # we're in post hook
-
-        opcode = state.environment.code.instruction_list[state.mstate.pc - 1]["opcode"]
-
-        if opcode == "BLOCKHASH":
-            # if we're in the post hook of a BLOCKHASH op, check if an old block number was used to create it.
-
-            annotations = cast(
-                List[OldBlockNumberUsedAnnotation],
-                list(state.get_annotations(OldBlockNumberUsedAnnotation)),
-            )
-
-            if len(annotations):
-                # We can append any block constraint here
                 state.mstate.stack[-1].annotate(
                     PredictableValueAnnotation(
-                        "block hash of a previous block",
-                        add_constraints=annotations[0].block_constraints,
+                        "block.{} environment variable".format(opcode.lower())
                     )
                 )
-        else:
-            # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
 
-            state.mstate.stack[-1].annotate(
-                PredictableValueAnnotation(
-                    "block.{} environment variable".format(opcode.lower())
-                )
-            )
-
-    return issues
+        return issues
 
 
 detector = PredictableDependenceModule()

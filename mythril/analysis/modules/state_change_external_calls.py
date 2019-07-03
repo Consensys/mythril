@@ -104,7 +104,12 @@ class StateChange(DetectionModule):
         )
 
     def _execute(self, state: GlobalState) -> None:
-        self._issues.extend(self._analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
     @staticmethod
     def _add_external_call(global_state: GlobalState) -> None:
