@@ -200,7 +200,7 @@ class DependencyPruner(LaserPlugin):
                 # Is there a known read operation along this path that matches a write in the previous transaction?
 
                 try:
-                    solver.get_model([location == dependency])
+                    solver.get_model((location == dependency,))
                     return True
 
                 except UnsatError:
