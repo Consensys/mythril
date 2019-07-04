@@ -30,7 +30,7 @@ class VisitsAnnotation(StateAnnotation):
         return result
 
 
-class DOS(DetectionModule):
+class DosModule(DetectionModule):
     """This module consists of a makeshift loop detector that annotates the state with
     a list of byte ranges likely to be loops. If a CALL or SSTORE detection is found in
     one of the ranges it creates a low-severity issue. This is not super precise but
@@ -131,4 +131,4 @@ class DOS(DetectionModule):
         return []
 
 
-detector = DOS()
+detector = DosModule()
