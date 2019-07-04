@@ -185,6 +185,8 @@ class DependencyPruner(LaserPlugin):
 
         storage_write_cache = annotation.get_storage_write_cache(self.iteration - 1)
 
+        # Execute the block if it's marked as "protected" or doesn't yet have an entry in the dependency map.
+
         if address in self.protected_addresses or address not in self.dependency_map:
             return True
 
@@ -195,12 +197,16 @@ class DependencyPruner(LaserPlugin):
         for location in storage_write_cache:
             for dependency in dependencies:
 
+                # Is there a known read operation along this path that matches a write in the previous transaction?
+
                 try:
                     solver.get_model([location == dependency])
                     return True
 
                 except UnsatError:
                     continue
+
+            # Has the *currently executed* path been influenced by a write operation in the previous transaction?
 
             for dependency in annotation.storage_loaded:
                 try:
