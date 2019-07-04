@@ -17,8 +17,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
-
-@lru_cache(maxsize=10000000)
+# LRU cache works great when used in powers of 2
+@lru_cache(maxsize=2 ** 23)
 def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
     """
 
