@@ -93,58 +93,63 @@ class DelegateCallModule(DetectionModule):
         :param state:
         :return:
         """
-        self._issues.extend(_analyze_states(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
+    @staticmethod
+    def _analyze_state(state: GlobalState) -> List[Issue]:
+        """
+        :param state: the current state
+        :return: returns the issues for that corresponding state
+        """
+        issues = []
+        op_code = state.get_current_instruction()["opcode"]
+        annotations = cast(
+            List[DelegateCallAnnotation],
+            list(state.get_annotations(DelegateCallAnnotation)),
+        )
 
-def _analyze_states(state: GlobalState) -> List[Issue]:
-    """
-    :param state: the current state
-    :return: returns the issues for that corresponding state
-    """
-    issues = []
-    op_code = state.get_current_instruction()["opcode"]
-    annotations = cast(
-        List[DelegateCallAnnotation],
-        list(state.get_annotations(DelegateCallAnnotation)),
-    )
+        if len(annotations) == 0 and op_code in ("RETURN", "STOP"):
+            return []
 
-    if len(annotations) == 0 and op_code in ("RETURN", "STOP"):
-        return []
+        if op_code == "DELEGATECALL":
+            gas = state.mstate.stack[-1]
+            to = state.mstate.stack[-2]
 
-    if op_code == "DELEGATECALL":
-        gas = state.mstate.stack[-1]
-        to = state.mstate.stack[-2]
+            constraints = [
+                to == ATTACKER_ADDRESS,
+                UGT(gas, symbol_factory.BitVecVal(2300, 256)),
+            ]
 
-        constraints = [
-            to == ATTACKER_ADDRESS,
-            UGT(gas, symbol_factory.BitVecVal(2300, 256)),
-        ]
+            for tx in state.world_state.transaction_sequence:
+                if not isinstance(tx, ContractCreationTransaction):
+                    constraints.append(tx.caller == ATTACKER_ADDRESS)
 
-        for tx in state.world_state.transaction_sequence:
-            if not isinstance(tx, ContractCreationTransaction):
-                constraints.append(tx.caller == ATTACKER_ADDRESS)
+            state.annotate(DelegateCallAnnotation(state, constraints))
 
-        state.annotate(DelegateCallAnnotation(state, constraints))
-
-        return []
-    else:
-        for annotation in annotations:
-            try:
-                transaction_sequence = solver.get_transaction_sequence(
-                    state,
-                    state.mstate.constraints
-                    + annotation.constraints
-                    + [annotation.return_value == 1],
-                )
-                issues.append(
-                    annotation.get_issue(
-                        state, transaction_sequence=transaction_sequence
+            return []
+        else:
+            for annotation in annotations:
+                try:
+                    transaction_sequence = solver.get_transaction_sequence(
+                        state,
+                        state.mstate.constraints
+                        + annotation.constraints
+                        + [annotation.return_value == 1],
                     )
-                )
-            except UnsatError:
-                continue
+                    issues.append(
+                        annotation.get_issue(
+                            state, transaction_sequence=transaction_sequence
+                        )
+                    )
+                except UnsatError:
+                    continue
 
-        return issues
+            return issues
 
 
 detector = DelegateCallModule()

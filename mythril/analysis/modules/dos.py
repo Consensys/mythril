@@ -6,6 +6,7 @@ from typing import Dict, cast, List
 from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
@@ -53,10 +54,14 @@ class DOS(DetectionModule):
         :param state:
         :return:
         """
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-        self._issues.extend(self._analyze_states(state))
-
-    def _analyze_states(self, state: GlobalState) -> List[Issue]:
+    def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
         :param state: the current state
         :return: returns the issues for that corresponding state
@@ -104,6 +109,13 @@ class DOS(DetectionModule):
                 operation
             )
 
+            try:
+                transaction_sequence = get_transaction_sequence(
+                    state, state.mstate.constraints
+                )
+            except UnsatError:
+                return []
+            self._cache.add(annotation.loop_start)
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
@@ -115,6 +127,7 @@ class DOS(DetectionModule):
                 description_head=description_head,
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
 
             return [issue]
