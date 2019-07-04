@@ -54,11 +54,7 @@ class DOS(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self._cache:
-            return
         issues = self._analyze_state(state)
-        for issue in issues:
-            self._cache.add(issue.address)
         self._issues.extend(issues)
 
     def _analyze_state(self, state: GlobalState) -> List[Issue]:
@@ -115,7 +111,7 @@ class DOS(DetectionModule):
                 )
             except UnsatError:
                 return []
-            self._cache.add(annotation.loop_start)
+
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
