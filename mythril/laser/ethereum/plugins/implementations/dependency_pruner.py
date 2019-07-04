@@ -188,7 +188,7 @@ class DependencyPruner(LaserPlugin):
             for dependency in dependencies:
 
                 try:
-                    solver.get_model([location == dependency])
+                    solver.get_model((location == dependency,))
                     return True
                 except UnsatError:
                     continue
