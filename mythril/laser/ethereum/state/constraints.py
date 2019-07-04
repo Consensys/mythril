@@ -82,6 +82,9 @@ class Constraints(list):
         constraint_list = super(Constraints, self).copy()
         return Constraints(constraint_list, is_possible=self._is_possible)
 
+    def copy(self) -> "Constraints":
+        return self.__copy__()
+
     def __deepcopy__(self, memodict=None) -> "Constraints":
         """
 
@@ -117,3 +120,6 @@ class Constraints(list):
             constraint if isinstance(constraint, Bool) else Bool(constraint)
             for constraint in constraints
         ]
+
+    def __hash__(self):
+        return tuple(self[:]).__hash__()

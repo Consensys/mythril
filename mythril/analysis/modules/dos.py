@@ -104,6 +104,7 @@ class DOS(DetectionModule):
             description_tail = "{} is executed in a loop. Be aware that the transaction may fail to execute if the loop is unbounded and the necessary gas exceeds the block gas limit.".format(
                 operation
             )
+
             try:
                 transaction_sequence = get_transaction_sequence(
                     state, state.mstate.constraints
