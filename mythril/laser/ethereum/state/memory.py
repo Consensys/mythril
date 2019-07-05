@@ -1,6 +1,6 @@
 """This module contains a representation of a smart contract's memory."""
+from copy import copy
 from typing import cast, List, Union, overload
-
 from z3 import Z3Exception
 
 from mythril.laser.ethereum import util
@@ -15,31 +15,39 @@ from mythril.laser.smt import (
 )
 
 
+def convert_bv(val: Union[int, BitVec]) -> BitVec:
+    if isinstance(val, BitVec):
+        return val
+    return symbol_factory.BitVecVal(val, 256)
+
+
 class Memory:
     """A class representing contract memory with random access."""
 
     def __init__(self):
         """"""
-        self._memory = []  # type: List[Union[int, BitVec]]
+        self._msize = 0
+        self._memory = {}
 
     def __len__(self):
         """
 
         :return:
         """
-        return len(self._memory)
+        return self._msize
 
     def __copy__(self):
-        copy = Memory()
-        copy._memory = self._memory[:]
-        return copy
+        new_memory = Memory()
+        new_memory._memory = copy(self._memory)
+        new_memory._msize = self._msize
+        return new_memory
 
-    def extend(self, size):
+    def extend(self, size: int):
         """
 
         :param size:
         """
-        self._memory.extend(bytearray(size))
+        self._msize += size
 
     def get_word_at(self, index: int) -> Union[int, BitVec]:
         """Access a word from a specified memory index.
@@ -126,12 +134,17 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
-            return [cast(Union[int, BitVec], self[i]) for i in range(start, stop, step)]
+            start, stop, step = convert_bv(start), convert_bv(stop), convert_bv(step)
+            ret_lis = []
+            itr = symbol_factory.BitVecVal(0, 256)
+            while simplify(start + itr != stop) and itr <= 10000000:
+                ret_lis.append(self[start + step * itr])
+                itr += 1
 
-        try:
-            return self._memory[item]
-        except IndexError:
-            return 0
+            return ret_lis
+
+        item = simplify(convert_bv(item))
+        return self._memory.get(item, 0)
 
     def __setitem__(
         self,
@@ -152,11 +165,17 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
+            else:
+                assert False, "Currently mentioning step size is not supported"
             assert type(value) == list
-            for i in range(0, stop - start, step):
-                self[start + i] = cast(List[Union[int, BitVec]], value)[i]
+            start, stop, step = convert_bv(start), convert_bv(stop), convert_bv(step)
+            itr = symbol_factory.BitVecVal(0, 256)
+            while simplify(start + itr != stop) and itr <= 10000000:
+                self[start + itr] = value[itr.value]
+                itr += 1
 
         else:
+            key = simplify(convert_bv(key))
             if key >= len(self):
                 return
             if isinstance(value, int):
