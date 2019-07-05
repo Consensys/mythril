@@ -1596,9 +1596,13 @@ class Instruction:
         """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        state.mem_extend(offset, length)
-        StateTransition.check_gas_usage_limit(global_state)
-        return_data = state.memory[offset : offset + length]
+        if length.symbolic:
+            return_data = [global_state.new_bitvec("return_data", 8)]
+            log.debug("Return with symbolic length or offset. Not supported")
+        else:
+            state.mem_extend(offset, length)
+            StateTransition.check_gas_usage_limit(global_state)
+            return_data = state.memory[offset : offset + length]
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition()

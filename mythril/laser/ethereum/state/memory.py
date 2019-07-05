@@ -137,7 +137,7 @@ class Memory:
             start, stop, step = convert_bv(start), convert_bv(stop), convert_bv(step)
             ret_lis = []
             itr = symbol_factory.BitVecVal(0, 256)
-            while simplify(start + itr != stop) and itr <= 10000000:
+            while simplify(start + itr < stop) and itr <= 10000000:
                 ret_lis.append(self[start + step * itr])
                 itr += 1
 
@@ -170,7 +170,7 @@ class Memory:
             assert type(value) == list
             start, stop, step = convert_bv(start), convert_bv(stop), convert_bv(step)
             itr = symbol_factory.BitVecVal(0, 256)
-            while simplify(start + itr != stop) and itr <= 10000000:
+            while simplify(start + itr < stop) and itr <= 10000000:
                 self[start + itr] = value[itr.value]
                 itr += 1
 
