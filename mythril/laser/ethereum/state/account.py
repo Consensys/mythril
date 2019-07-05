@@ -29,9 +29,9 @@ class Storage:
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
         if concrete:
-            self._standard_storage = K(256, 256, 0)  # type: BaseArray
+            self._standard_storage = K(512, 256, 0)  # type: BaseArray
         else:
-            self._standard_storage = Array("Storage", 256, 256)
+            self._standard_storage = Array("Storage", 512, 256)
         self._map_storage = {}  # type: Dict[BitVec, BaseArray]
 
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
