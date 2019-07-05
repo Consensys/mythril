@@ -30,7 +30,7 @@ class VisitsAnnotation(StateAnnotation):
         return result
 
 
-class DOS(DetectionModule):
+class DosModule(DetectionModule):
     """This module consists of a makeshift loop detector that annotates the state with
     a list of byte ranges likely to be loops. If a CALL or SSTORE detection is found in
     one of the ranges it creates a low-severity issue. This is not super precise but
@@ -54,11 +54,7 @@ class DOS(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self._cache:
-            return
         issues = self._analyze_state(state)
-        for issue in issues:
-            self._cache.add(issue.address)
         self._issues.extend(issues)
 
     def _analyze_state(self, state: GlobalState) -> List[Issue]:
@@ -115,7 +111,7 @@ class DOS(DetectionModule):
                 )
             except UnsatError:
                 return []
-            self._cache.add(annotation.loop_start)
+
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
@@ -135,4 +131,4 @@ class DOS(DetectionModule):
         return []
 
 
-detector = DOS()
+detector = DosModule()
