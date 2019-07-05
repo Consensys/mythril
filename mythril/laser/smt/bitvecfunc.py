@@ -134,56 +134,68 @@ class BitVecFunc(BitVec):
         """
         return _arithmetic_helper(self, other, operator.and_)
 
-    def __or__(self, other: "BitVec") -> "BitVecFunc":
+    def __or__(self, other: Union[int, "BitVec"]) -> "BitVecFunc":
         """Create an or expression.
 
         :param other: The int or BitVec to or with this BitVecFunc
         :return: The resulting BitVecFunc
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return _arithmetic_helper(self, other, operator.or_)
 
-    def __xor__(self, other: "BitVec") -> "BitVecFunc":
+    def __xor__(self, other: Union[int, "BitVec"]) -> "BitVecFunc":
         """Create a xor expression.
 
         :param other: The int or BitVec to xor with this BitVecFunc
         :return: The resulting BitVecFunc
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return _arithmetic_helper(self, other, operator.xor)
 
-    def __lt__(self, other: "BitVec") -> Bool:
+    def __lt__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed less than expression.
 
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return _comparison_helper(
             self, other, operator.lt, default_value=False, inputs_equal=False
         )
 
-    def __gt__(self, other: "BitVec") -> Bool:
+    def __gt__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed greater than expression.
 
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return _comparison_helper(
             self, other, operator.gt, default_value=False, inputs_equal=False
         )
 
-    def __le__(self, other: "BitVec") -> Bool:
+    def __le__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed less than or equal to expression.
 
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return Or(self < other, self == other)
 
-    def __ge__(self, other: "BitVec") -> Bool:
+    def __ge__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed greater than or equal to expression.
 
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return Or(self > other, self == other)
 
     # MYPY: fix complains about overriding __eq__
@@ -193,6 +205,8 @@ class BitVecFunc(BitVec):
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return _comparison_helper(
             self, other, operator.eq, default_value=False, inputs_equal=True
         )
@@ -204,6 +218,8 @@ class BitVecFunc(BitVec):
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         return _comparison_helper(
             self, other, operator.ne, default_value=True, inputs_equal=False
         )

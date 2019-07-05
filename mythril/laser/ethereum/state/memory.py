@@ -1,6 +1,6 @@
 """This module contains a representation of a smart contract's memory."""
 from copy import copy
-from typing import cast, List, Union, overload
+from typing import cast, Dict, List, Union, overload
 from z3 import Z3Exception
 
 from mythril.laser.ethereum import util
@@ -27,7 +27,7 @@ class Memory:
     def __init__(self):
         """"""
         self._msize = 0
-        self._memory = {}
+        self._memory = {}  # type: Dict[BitVec, Union[int, BitVec]]
 
     def __len__(self):
         """
@@ -111,7 +111,7 @@ class Memory:
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
 
     @overload
-    def __getitem__(self, item: int) -> Union[int, BitVec]:
+    def __getitem__(self, item: BitVec) -> Union[int, BitVec]:
         ...
 
     @overload
@@ -119,7 +119,7 @@ class Memory:
         ...
 
     def __getitem__(
-        self, item: Union[int, slice]
+        self, item: Union[BitVec, slice]
     ) -> Union[BitVec, int, List[Union[int, BitVec]]]:
         """
 
@@ -134,11 +134,15 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
-            start, stop, step = convert_bv(start), convert_bv(stop), convert_bv(step)
+            bvstart, bvstop, bvstep = (
+                convert_bv(start),
+                convert_bv(stop),
+                convert_bv(step),
+            )
             ret_lis = []
             itr = symbol_factory.BitVecVal(0, 256)
-            while simplify(start + itr < stop) and itr <= 10000000:
-                ret_lis.append(self[start + step * itr])
+            while simplify(bvstart + itr < bvstop) and itr <= 10000000:
+                ret_lis.append(self[bvstart + bvstep * itr])
                 itr += 1
 
             return ret_lis
@@ -148,7 +152,7 @@ class Memory:
 
     def __setitem__(
         self,
-        key: Union[int, slice],
+        key: Union[int, BitVec, slice],
         value: Union[BitVec, int, List[Union[int, BitVec]]],
     ):
         """
@@ -168,18 +172,24 @@ class Memory:
             else:
                 assert False, "Currently mentioning step size is not supported"
             assert type(value) == list
-            start, stop, step = convert_bv(start), convert_bv(stop), convert_bv(step)
+            bvstart, bvstop, bvstep = (
+                convert_bv(start),
+                convert_bv(stop),
+                convert_bv(step),
+            )
             itr = symbol_factory.BitVecVal(0, 256)
-            while simplify(start + itr < stop) and itr <= 10000000:
-                self[start + itr] = value[itr.value]
+            while simplify(bvstart + bvstep * itr < bvstop) and itr <= 10000000:
+                self[bvstart + itr * bvstep] = cast(List[Union[int, BitVec]], value)[
+                    itr.value
+                ]
                 itr += 1
 
         else:
-            key = simplify(convert_bv(key))
-            if key >= len(self):
+            bv_key = simplify(convert_bv(key))
+            if bv_key >= len(self):
                 return
             if isinstance(value, int):
                 assert 0 <= value <= 0xFF
             if isinstance(value, BitVec):
                 assert value.size() == 8
-            self._memory[key] = cast(Union[int, BitVec], value)
+            self._memory[bv_key] = cast(Union[int, BitVec], value)
