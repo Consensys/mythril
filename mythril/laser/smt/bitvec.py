@@ -386,9 +386,12 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
             bitvecfunc = True
 
     if bitvecfunc:
-        # Is there a better value to set func_name and input to in this case?
+        # Added this not so good and misleading NOTATION to help with this
+        str_hash = ",".join(["hashed({})".format(hash(bv)) for bv in bvs])
+        input_string = "MisleadingNotationConcat({})".format(str_hash)
+
         return BitVecFunc(
-            raw=nraw, func_name=None, input_=None, annotations=annotations
+            raw=nraw, func_name="Hybrid", input_=BitVec(z3.BitVec(input_string, 256), annotations=annotations)
         )
 
     return BitVec(nraw, annotations)
@@ -404,9 +407,10 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     """
     raw = z3.Extract(high, low, bv.raw)
     if isinstance(bv, BitVecFunc):
+        input_string = "MisleadingNotationExtract({}, {}, hashed({}))".format(high, low, hash(bv))
         # Is there a better value to set func_name and input to in this case?
         return BitVecFunc(
-            raw=raw, func_name=None, input_=None, annotations=bv.annotations
+            raw=raw, func_name="Hybrid", input_=BitVec(z3.BitVec(input_string, 256), annotations=bv.annotations)
         )
 
     return BitVec(raw, annotations=bv.annotations)
@@ -457,7 +461,7 @@ def Sum(*args: BitVec) -> BitVec:
             bitvecfuncs.append(bv)
 
     if len(bitvecfuncs) >= 2:
-        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=annotations)
+        return BitVecFunc(raw=raw, func_name="Hybrid", input_=None, annotations=annotations)
     elif len(bitvecfuncs) == 1:
         return BitVecFunc(
             raw=raw,

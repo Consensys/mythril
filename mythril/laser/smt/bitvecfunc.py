@@ -27,7 +27,14 @@ def _arithmetic_helper(
 
     if isinstance(b, BitVecFunc):
         # TODO: Find better value to set input and name to in this case?
-        return BitVecFunc(raw=raw, func_name=None, input_=None, annotations=union)
+        input_string = "MisleadingNotationop(invhash({}) {} invhash({})".format(
+            hash(a), operation, hash(b)
+        )
+        return BitVecFunc(
+            raw=raw,
+            func_name="Hybrid",
+            input_=BitVec(z3.BitVec(input_string, 256), annotations=union),
+        )
 
     return BitVecFunc(
         raw=raw, func_name=a.func_name, input_=a.input_, annotations=union
@@ -52,7 +59,6 @@ def _comparison_helper(
     # Is there some hack for gt/lt comparisons?
     if isinstance(b, int):
         b = BitVec(z3.BitVecVal(b, a.size()))
-
     union = a.annotations.union(b.annotations)
 
     if not a.symbolic and not b.symbolic:
@@ -193,6 +199,7 @@ class BitVecFunc(BitVec):
         :param other: The int or BitVec to compare to this BitVecFunc
         :return: The resulting Bool
         """
+
         return _comparison_helper(
             self, other, operator.eq, default_value=False, inputs_equal=True
         )
