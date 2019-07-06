@@ -44,11 +44,15 @@ class DependencyAnnotation(StateAnnotation):
         return self.storage_written[iteration]
 
     def extend_storage_write_cache(self, iteration: int, value: object):
-        if iteration not in self.storage_written:
-            self.storage_written[iteration] = [value]
-        else:
-            if value not in self.storage_written[iteration]:
-                self.storage_written[iteration].append(value)
+        try:
+            if iteration not in self.storage_written:
+                self.storage_written[iteration] = [value]
+            else:
+                if value not in self.storage_written[iteration]:
+                    self.storage_written[iteration].append(value)
+        except Z3Exception as e:
+            # FIXME: This should not happen unless there's a bug in laser such as a BitVec512 being generated
+            log.debug("Error updating storage write cache: {}".format(e))
 
 
 class WSDependencyAnnotation(StateAnnotation):
@@ -146,6 +150,12 @@ class DependencyPruner(LaserPlugin):
         :param target_location
         """
 
+        log.debug(
+            "Updating dependency map for path: {} with location: {}".format(
+                path, target_location
+            )
+        )
+
         try:
             for address in path:
                 if address in self.dependency_map:
@@ -154,7 +164,7 @@ class DependencyPruner(LaserPlugin):
                 else:
                     self.dependency_map[address] = [target_location]
         except Z3Exception as e:
-            # This should not happen unless there's a bug in laser, such as an invalid type being generated.
+            # FIXME: This should not happen unless there's a bug in laser such as a BitVec512 being generated
             log.debug("Error updating dependency map: {}".format(e))
 
     def protect_path(self, path: List[int]) -> None:
@@ -166,12 +176,16 @@ class DependencyPruner(LaserPlugin):
         for address in path:
             self.protected_addresses.add(address)
 
-    def wanna_execute(self, address: int, storage_write_cache) -> bool:
+    def wanna_execute(self, address: int, annotation: DependencyAnnotation) -> bool:
         """Decide whether the basic block starting at 'address' should be executed.
 
         :param address
         :param storage_write_cache
         """
+
+        storage_write_cache = annotation.get_storage_write_cache(self.iteration - 1)
+
+        # Execute the block if it's marked as "protected" or doesn't yet have an entry in the dependency map.
 
         if address in self.protected_addresses or address not in self.dependency_map:
             return True
@@ -183,8 +197,20 @@ class DependencyPruner(LaserPlugin):
         for location in storage_write_cache:
             for dependency in dependencies:
 
+                # Is there a known read operation along this path that matches a write in the previous transaction?
+
                 try:
-                    solver.get_model([location == dependency])
+                    solver.get_model((location == dependency,))
+                    return True
+
+                except UnsatError:
+                    continue
+
+            # Has the *currently executed* path been influenced by a write operation in the previous transaction?
+
+            for dependency in annotation.storage_loaded:
+                try:
+                    solver.get_model((location == dependency,))
                     return True
                 except UnsatError:
                     continue
@@ -212,27 +238,25 @@ class DependencyPruner(LaserPlugin):
         @symbolic_vm.post_hook("JUMP")
         def jump_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
-            annotation = get_dependency_annotation(state)
 
-            _check_basic_block(address, annotation)
-
-        @symbolic_vm.pre_hook("JUMPDEST")
-        def jumpdest_hook(state: GlobalState):
-            address = state.get_current_instruction()["address"]
             annotation = get_dependency_annotation(state)
+            annotation.path.append(address)
 
             _check_basic_block(address, annotation)
 
         @symbolic_vm.post_hook("JUMPI")
         def jumpi_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
+
             annotation = get_dependency_annotation(state)
+            annotation.path.append(address)
 
             _check_basic_block(address, annotation)
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
+
             annotation.extend_storage_write_cache(
                 self.iteration, state.mstate.stack[-1]
             )
@@ -284,15 +308,11 @@ class DependencyPruner(LaserPlugin):
             if self.iteration < 2:
                 return
 
-            annotation.path.append(address)
-
-            if self.wanna_execute(
-                address, annotation.get_storage_write_cache(self.iteration - 1)
-            ):
+            if self.wanna_execute(address, annotation):
                 return
             else:
                 log.debug(
-                    "Skipping state: Storage slots {} not read in block at address {}".format(
+                    "Skipping state: Storage slots {} not read in block at address {}, function".format(
                         annotation.get_storage_write_cache(self.iteration - 1), address
                     )
                 )

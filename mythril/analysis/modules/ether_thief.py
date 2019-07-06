@@ -47,7 +47,6 @@ class EtherThief(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
-        self._cache_addresses = {}
 
     def reset_module(self):
         """
@@ -55,7 +54,6 @@ class EtherThief(DetectionModule):
         :return:
         """
         super().reset_module()
-        self._cache_addresses = {}
 
     def _execute(self, state: GlobalState) -> None:
         """
@@ -63,9 +61,15 @@ class EtherThief(DetectionModule):
         :param state:
         :return:
         """
-        self._issues.extend(self._analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-    def _analyze_state(self, state):
+    @staticmethod
+    def _analyze_state(state):
         """
 
         :param state:
@@ -77,8 +81,7 @@ class EtherThief(DetectionModule):
             return []
 
         address = instruction["address"]
-        if self._cache_addresses.get(address, False):
-            return []
+
         value = state.mstate.stack[-3]
         target = state.mstate.stack[-2]
 
@@ -140,8 +143,6 @@ class EtherThief(DetectionModule):
         except UnsatError:
             log.debug("[ETHER_THIEF] no model found")
             return []
-
-        # self._cache_addresses[address] = True
 
         return [issue]
 

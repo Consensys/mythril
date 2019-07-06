@@ -2,7 +2,7 @@
 modules."""
 
 import logging
-from typing import List
+from typing import List, Set
 from mythril.analysis.report import Issue
 
 log = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ class DetectionModule:
             )
         self.entrypoint = entrypoint
         self._issues = []  # type: List[Issue]
+        self._cache = set()  # type: Set[int]
 
     @property
     def issues(self):
