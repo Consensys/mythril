@@ -1,6 +1,7 @@
 """This module contains the detection code for predictable variable
 dependence."""
 import logging
+from copy import copy
 
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
@@ -99,9 +100,12 @@ class PredictableDependenceModule(DetectionModule):
                 for annotation in state.annotations:
 
                     if isinstance(annotation, PredictablePathAnnotation):
-                        constraints = (
-                            state.mstate.constraints + annotation.add_constraints
-                        )
+                        if annotation.add_constraints:
+                            constraints = (
+                                state.mstate.constraints + annotation.add_constraints
+                            )
+                        else:
+                            constraints = copy(state.mstate.constraints)
                         try:
                             transaction_sequence = solver.get_transaction_sequence(
                                 state, constraints
