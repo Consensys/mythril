@@ -107,7 +107,7 @@ jobs:
                 -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
                 -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
                 --rm edelweiss-mythril:latest \
-                --timeout 45 \
+                --timeout 60 \
                 --output-dir /opt/edelweiss \
                 --s3 \
                 --circle-ci CircleCI/mythril.csv \
