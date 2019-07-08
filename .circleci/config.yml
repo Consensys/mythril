@@ -107,9 +107,10 @@ jobs:
                 -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
                 -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
                 --rm edelweiss-mythril:latest \
-                --timeout 45 \
+                --timeout 60 \
                 --output-dir /opt/edelweiss \
                 --s3 \
+                --dynamodb \
                 --circle-ci CircleCI/mythril.csv \
                 --ignore-false-positives $IGNORE_FALSE_POSITIVES \
                 --ignore-regressions $IGNORE_REGRESSIONS
