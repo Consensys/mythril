@@ -110,6 +110,7 @@ jobs:
                 --timeout 60 \
                 --output-dir /opt/edelweiss \
                 --s3 \
+                --dynamodb \
                 --circle-ci CircleCI/mythril.csv \
                 --ignore-false-positives $IGNORE_FALSE_POSITIVES \
                 --ignore-regressions $IGNORE_REGRESSIONS
