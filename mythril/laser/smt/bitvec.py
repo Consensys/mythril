@@ -190,6 +190,8 @@ class BitVec(Expression[z3.BitVecRef]):
             )
 
         union = self.annotations.union(other.annotations)
+        if self.raw.size() != other.raw.size():
+            return Bool(z3.BoolVal(False), annotations=union)
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw == other.raw), annotations=union)
 
@@ -208,6 +210,8 @@ class BitVec(Expression[z3.BitVecRef]):
             )
 
         union = self.annotations.union(other.annotations)
+        if self.raw.size() != other.raw.size():
+            return Bool(z3.BoolVal(True), annotations=union)
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, self.raw != other.raw), annotations=union)
 
