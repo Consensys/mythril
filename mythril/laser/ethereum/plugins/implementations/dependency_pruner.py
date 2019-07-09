@@ -142,6 +142,7 @@ class DependencyPruner(LaserPlugin):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List[object]]
         self.protected_addresses = set()  # type: Set[int]
+        self.loop_address = set()         # type: Set[int]
 
     def update_dependency_map(self, path: List[int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.
@@ -241,8 +242,9 @@ class DependencyPruner(LaserPlugin):
 
             annotation = get_dependency_annotation(state)
             annotation.path.append(address)
-
-            _check_basic_block(address, annotation)
+            if annotation.path.count(address) >= 2 or address in self.loop_address:
+                self.loop_address.add(address)
+                _check_basic_block(address, annotation)
 
         @symbolic_vm.post_hook("JUMPI")
         def jumpi_hook(state: GlobalState):
@@ -250,8 +252,9 @@ class DependencyPruner(LaserPlugin):
 
             annotation = get_dependency_annotation(state)
             annotation.path.append(address)
-
-            _check_basic_block(address, annotation)
+            if annotation.path.count(address) >= 2 or address in self.loop_address:
+                self.loop_address.add(address)
+                _check_basic_block(address, annotation)
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
@@ -345,6 +348,6 @@ class DependencyPruner(LaserPlugin):
                     state.get_current_instruction()["address"],
                     state.node.function_name,
                     self.dependency_map,
-                    annotation.storage_written[self.iteration],
+                    annotation.get_storage_write_cache(self.iteration),
                 )
             )
