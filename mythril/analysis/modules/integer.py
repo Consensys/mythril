@@ -265,10 +265,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         """
 
         stack = state.mstate.stack
-        try:
-            offset, length = get_concrete_int(stack[-1]), get_concrete_int(stack[-2])
-        except TypeError:
-            return
+        offset, length = stack[-1], stack[-2]
 
         state_annotation = _get_overflowunderflow_state_annotation(state)
 
