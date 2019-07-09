@@ -231,7 +231,7 @@ class Report:
                 title = "Unspecified Security Issue"
             extra = {"discoveryTime": int(issue.discovery_time * 10 ** 9)}
             if issue.transaction_sequence_jsonv2:
-                extra["testCase"] = issue.transaction_sequence_jsonv2
+                extra["testCases"] = [issue.transaction_sequence_jsonv2]
 
             _issues.append(
                 {

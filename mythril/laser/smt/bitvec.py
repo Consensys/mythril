@@ -113,7 +113,7 @@ class BitVec(Expression[z3.BitVecRef]):
         union = self.annotations.union(other.annotations)
         return BitVec(self.raw & other.raw, annotations=union)
 
-    def __or__(self, other: "BitVec") -> "BitVec":
+    def __or__(self, other: Union[int, "BitVec"]) -> "BitVec":
         """Create an or expression.
 
         :param other:
@@ -121,10 +121,12 @@ class BitVec(Expression[z3.BitVecRef]):
         """
         if isinstance(other, BitVecFunc):
             return other | self
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
         return BitVec(self.raw | other.raw, annotations=union)
 
-    def __xor__(self, other: "BitVec") -> "BitVec":
+    def __xor__(self, other: Union[int, "BitVec"]) -> "BitVec":
         """Create a xor expression.
 
         :param other:
@@ -132,10 +134,12 @@ class BitVec(Expression[z3.BitVecRef]):
         """
         if isinstance(other, BitVecFunc):
             return other ^ self
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
         return BitVec(self.raw ^ other.raw, annotations=union)
 
-    def __lt__(self, other: "BitVec") -> Bool:
+    def __lt__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed less than expression.
 
         :param other:
@@ -143,10 +147,12 @@ class BitVec(Expression[z3.BitVecRef]):
         """
         if isinstance(other, BitVecFunc):
             return other > self
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
         return Bool(self.raw < other.raw, annotations=union)
 
-    def __gt__(self, other: "BitVec") -> Bool:
+    def __gt__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed greater than expression.
 
         :param other:
@@ -154,24 +160,30 @@ class BitVec(Expression[z3.BitVecRef]):
         """
         if isinstance(other, BitVecFunc):
             return other < self
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
         return Bool(self.raw > other.raw, annotations=union)
 
-    def __le__(self, other: "BitVec") -> Bool:
+    def __le__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed less than expression.
 
         :param other:
         :return:
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
         return Bool(self.raw <= other.raw, annotations=union)
 
-    def __ge__(self, other: "BitVec") -> Bool:
+    def __ge__(self, other: Union[int, "BitVec"]) -> Bool:
         """Create a signed greater than expression.
 
         :param other:
         :return:
         """
+        if not isinstance(other, BitVec):
+            other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
         return Bool(self.raw >= other.raw, annotations=union)
 

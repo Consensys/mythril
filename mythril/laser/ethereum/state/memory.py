@@ -1,6 +1,6 @@
 """This module contains a representation of a smart contract's memory."""
-from typing import cast, List, Union, overload
-
+from copy import copy
+from typing import cast, Dict, List, Union, overload
 from z3 import Z3Exception
 
 from mythril.laser.ethereum import util
@@ -15,31 +15,43 @@ from mythril.laser.smt import (
 )
 
 
+def convert_bv(val: Union[int, BitVec]) -> BitVec:
+    if isinstance(val, BitVec):
+        return val
+    return symbol_factory.BitVecVal(val, 256)
+
+
+# No of iterations to perform when iteration size is symbolic
+APPROX_ITR = 100
+
+
 class Memory:
     """A class representing contract memory with random access."""
 
     def __init__(self):
         """"""
-        self._memory = []  # type: List[Union[int, BitVec]]
+        self._msize = 0
+        self._memory = {}  # type: Dict[BitVec, Union[int, BitVec]]
 
     def __len__(self):
         """
 
         :return:
         """
-        return len(self._memory)
+        return self._msize
 
     def __copy__(self):
-        copy = Memory()
-        copy._memory = self._memory[:]
-        return copy
+        new_memory = Memory()
+        new_memory._memory = copy(self._memory)
+        new_memory._msize = self._msize
+        return new_memory
 
-    def extend(self, size):
+    def extend(self, size: int):
         """
 
         :param size:
         """
-        self._memory.extend(bytearray(size))
+        self._msize += size
 
     def get_word_at(self, index: int) -> Union[int, BitVec]:
         """Access a word from a specified memory index.
@@ -103,7 +115,7 @@ class Memory:
                 self[index + 31 - (i // 8)] = Extract(i + 7, i, value_to_write)
 
     @overload
-    def __getitem__(self, item: int) -> Union[int, BitVec]:
+    def __getitem__(self, item: BitVec) -> Union[int, BitVec]:
         ...
 
     @overload
@@ -111,7 +123,7 @@ class Memory:
         ...
 
     def __getitem__(
-        self, item: Union[int, slice]
+        self, item: Union[BitVec, slice]
     ) -> Union[BitVec, int, List[Union[int, BitVec]]]:
         """
 
@@ -126,16 +138,31 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
-            return [cast(Union[int, BitVec], self[i]) for i in range(start, stop, step)]
+            bvstart, bvstop, bvstep = (
+                convert_bv(start),
+                convert_bv(stop),
+                convert_bv(step),
+            )
+            ret_lis = []
+            symbolic_len = False
+            itr = symbol_factory.BitVecVal(0, 256)
+            if (bvstop - bvstart).symbolic:
+                symbolic_len = True
 
-        try:
-            return self._memory[item]
-        except IndexError:
-            return 0
+            while simplify(bvstart + bvstep * itr != bvstop) and (
+                not symbolic_len or itr <= APPROX_ITR
+            ):
+                ret_lis.append(self[bvstart + bvstep * itr])
+                itr += 1
+
+            return ret_lis
+
+        item = simplify(convert_bv(item))
+        return self._memory.get(item, 0)
 
     def __setitem__(
         self,
-        key: Union[int, slice],
+        key: Union[int, BitVec, slice],
         value: Union[BitVec, int, List[Union[int, BitVec]]],
     ):
         """
@@ -152,15 +179,32 @@ class Memory:
                 raise IndexError("Invalid Memory Slice")
             if step is None:
                 step = 1
+            else:
+                assert False, "Currently mentioning step size is not supported"
             assert type(value) == list
-            for i in range(0, stop - start, step):
-                self[start + i] = cast(List[Union[int, BitVec]], value)[i]
+            bvstart, bvstop, bvstep = (
+                convert_bv(start),
+                convert_bv(stop),
+                convert_bv(step),
+            )
+            symbolic_len = False
+            itr = symbol_factory.BitVecVal(0, 256)
+            if (bvstop - bvstart).symbolic:
+                symbolic_len = True
+            while simplify(bvstart + bvstep * itr != bvstop) and (
+                not symbolic_len or itr <= APPROX_ITR
+            ):
+                self[bvstart + itr * bvstep] = cast(List[Union[int, BitVec]], value)[
+                    itr.value
+                ]
+                itr += 1
 
         else:
-            if key >= len(self):
+            bv_key = simplify(convert_bv(key))
+            if bv_key >= len(self):
                 return
             if isinstance(value, int):
                 assert 0 <= value <= 0xFF
             if isinstance(value, BitVec):
                 assert value.size() == 8
-            self._memory[key] = cast(Union[int, BitVec], value)
+            self._memory[bv_key] = cast(Union[int, BitVec], value)

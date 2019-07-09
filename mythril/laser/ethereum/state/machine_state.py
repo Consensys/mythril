@@ -155,12 +155,20 @@ class MachineState:
         if self.min_gas_used > self.gas_limit:
             raise OutOfGasException()
 
-    def mem_extend(self, start: int, size: int) -> None:
+    def mem_extend(self, start: Union[int, BitVec], size: Union[int, BitVec]) -> None:
         """Extends the memory of this machine state.
 
         :param start: Start of memory extension
         :param size: Size of memory extension
         """
+        if (isinstance(start, BitVec) and start.symbolic) or (
+            isinstance(size, BitVec) and size.symbolic
+        ):
+            return
+        if isinstance(start, BitVec):
+            start = start.value
+        if isinstance(size, BitVec):
+            size = size.value
         m_extend = self.calculate_extension_size(start, size)
         if m_extend:
             extend_gas = self.calculate_memory_gas(start, size)
