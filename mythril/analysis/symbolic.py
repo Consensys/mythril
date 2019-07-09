@@ -215,7 +215,7 @@ class SymExecWrapper:
                                     gas,
                                     value,
                                     state.mstate.memory[
-                                        meminstart.val : meminsz.val * 4
+                                        meminstart.val : meminsz.val + meminstart.val
                                     ],
                                 )
                             )

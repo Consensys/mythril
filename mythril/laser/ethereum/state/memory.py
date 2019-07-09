@@ -21,6 +21,10 @@ def convert_bv(val: Union[int, BitVec]) -> BitVec:
     return symbol_factory.BitVecVal(val, 256)
 
 
+# No of iterations to perform when iteration size is symbolic
+APPROX_ITR = 100
+
+
 class Memory:
     """A class representing contract memory with random access."""
 
@@ -140,8 +144,14 @@ class Memory:
                 convert_bv(step),
             )
             ret_lis = []
+            symbolic_len = False
             itr = symbol_factory.BitVecVal(0, 256)
-            while simplify(bvstart + itr < bvstop) and itr <= 10000000:
+            if (bvstop - bvstart).symbolic:
+                symbolic_len = True
+
+            while simplify(bvstart + bvstep * itr != bvstop) and (
+                not symbolic_len or itr <= APPROX_ITR
+            ):
                 ret_lis.append(self[bvstart + bvstep * itr])
                 itr += 1
 
@@ -177,8 +187,13 @@ class Memory:
                 convert_bv(stop),
                 convert_bv(step),
             )
+            symbolic_len = False
             itr = symbol_factory.BitVecVal(0, 256)
-            while simplify(bvstart + bvstep * itr < bvstop) and itr <= 10000000:
+            if (bvstop - bvstart).symbolic:
+                symbolic_len = True
+            while simplify(bvstart + bvstep * itr != bvstop) and (
+                not symbolic_len or itr <= APPROX_ITR
+            ):
                 self[bvstart + itr * bvstep] = cast(List[Union[int, BitVec]], value)[
                     itr.value
                 ]
