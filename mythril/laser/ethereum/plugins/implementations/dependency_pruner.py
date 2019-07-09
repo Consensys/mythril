@@ -142,7 +142,7 @@ class DependencyPruner(LaserPlugin):
         self.iteration = 0
         self.dependency_map = {}  # type: Dict[int, List[object]]
         self.protected_addresses = set()  # type: Set[int]
-        self.loop_address = set()         # type: Set[int]
+        self.loop_address = set()  # type: Set[int]
 
     def update_dependency_map(self, path: List[int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.
