@@ -337,7 +337,6 @@ class DependencyPruner(LaserPlugin):
 
             annotation.path = [0]
             annotation.storage_loaded = []
-            annotation.has_call = False
 
             world_state_annotation.annotations_stack.append(annotation)
 
