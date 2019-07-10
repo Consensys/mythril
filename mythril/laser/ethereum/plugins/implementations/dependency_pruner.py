@@ -45,9 +45,8 @@ class DependencyAnnotation(StateAnnotation):
     def extend_storage_write_cache(self, iteration: int, value: object):
         if iteration not in self.storage_written:
             self.storage_written[iteration] = [value]
-        else:
-            if value not in self.storage_written[iteration]:
-                self.storage_written[iteration].append(value)
+        elif value not in self.storage_written[iteration]:
+            self.storage_written[iteration].append(value)
 
 
 class WSDependencyAnnotation(StateAnnotation):
