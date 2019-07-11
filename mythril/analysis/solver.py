@@ -135,7 +135,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
         data["storage"] = str(account.storage)
         data["balance"] = min_price_dict.get(address, 0)
         accounts[hex(address)] = data
-    return accounts
+    return {"accounts": accounts}
 
 
 def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
