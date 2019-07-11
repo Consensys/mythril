@@ -1,13 +1,14 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
-from mythril.laser.smt import symbol_factory, simplify
+from mythril.laser.smt import symbol_factory, simplify, Or
+from mythril.laser.ethereum.state.world_state import WorldState
 import logging
+import z3
 
 log = logging.getLogger(__name__)
 
 
 class StateMerge(LaserPlugin):
-
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the mutation pruner
 
@@ -33,14 +34,18 @@ class StateMerge(LaserPlugin):
                 other_state = open_states.pop(-1)
                 self.merge_states(merged_state, 0, other_state, i)
 
-
     @staticmethod
-    def merge_states(state1, i1, state2, i2):
+    def merge_states(state1: WorldState, i1, state2: WorldState, i2):
 
         ws_id = symbol_factory.BitVecSym("ws_id", 256)
 
-        state1.node.constraints = [simplify((state1.node.constraints and ws_id == i1) or (state2.node.constraints and ws_id == i2))]
+        state1.node.constraints = [
+            simplify(
+                (state1.node.constraints and ws_id == i1)
+                or (state2.node.constraints and ws_id == i2)
+            )
+        ]
 
-        # TODO Merge annotations
+        # TODO Merge world state annotations
 
-        # TODO Merge storage
+        # TODO Merge accounts
