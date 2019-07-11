@@ -80,9 +80,11 @@ class DosModule(DetectionModule):
 
             if annotation.loop_start is not None:
                 return []
-
-            target = util.get_concrete_int(state.mstate.stack[-1])
-
+            try:
+                target = util.get_concrete_int(state.mstate.stack[-1])
+            except TypeError:
+                log.debug("Symbolic target encountered in dos module")
+                return []
             if target in annotation.jump_targets:
                 annotation.jump_targets[target] += 1
             else:
