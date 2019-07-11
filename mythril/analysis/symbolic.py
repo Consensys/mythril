@@ -119,9 +119,10 @@ class SymExecWrapper:
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
         plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+        plugin_loader.load(PluginFactory.build_state_merge_plugin())
 
-        if not disable_dependency_pruning:
-            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+        # if not disable_dependency_pruning:
+        #    plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
 
         world_state = WorldState()
         for account in self.accounts.values():

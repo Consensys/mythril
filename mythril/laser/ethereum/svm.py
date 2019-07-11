@@ -198,7 +198,7 @@ class LaserEVM:
             execute_message_call(self, address)
 
             for hook in self._stop_sym_trans_hooks:
-                hook()
+                hook(self)
 
     def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
         """

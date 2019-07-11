@@ -39,3 +39,12 @@ class PluginFactory:
         )
 
         return DependencyPruner()
+
+    @staticmethod
+    def build_state_merge_plugin() -> LaserPlugin:
+        """ Creates an instance of the state merge plugin"""
+        from mythril.laser.ethereum.plugins.implementations.state_merge import (
+            StateMerge,
+        )
+
+        return StateMerge()

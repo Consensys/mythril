@@ -70,7 +70,7 @@ class InstructionCoveragePlugin(LaserPlugin):
             self.initial_coverage = self._get_covered_instructions()
 
         @symbolic_vm.laser_hook("stop_sym_trans")
-        def execute_stop_sym_trans_hook():
+        def execute_stop_sym_trans_hook(svm: LaserEVM):
             end_coverage = self._get_covered_instructions()
             log.info(
                 "Number of new instructions covered in tx %d: %d"
