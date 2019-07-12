@@ -12,6 +12,7 @@ import os
 import sys
 
 import coloredlogs
+import re
 import traceback
 
 import mythril.support.signatures as sigs
@@ -622,6 +623,30 @@ def contract_hash_to_address(args: Namespace):
     sys.exit()
 
 
+def is_solv_mismatch_error(error_message: str):
+    """
+    checks an error message to determine if related to solidity version mismatch
+    :param error_message:
+    :return: Boolean
+    """
+
+    return True if "Error: Source file requires different compiler version" in error_message else False
+
+
+def extract_compatible_solv(error_message: str):
+    """
+    extracts the desired solidity version from the CompilerError message
+    :param error_message:
+    :return: String, (ie. 0.5.10)
+    """
+
+    # this corresponds to the line "pragma solidity <solv>..."
+    solv_definition = error_message.split("\n")[-3]
+    # get the version number
+    solv_match = re.search(r'[0-9]+\.[0-9]+\.[0-9]+', solv_definition)
+    return "<version_number>" if solv_match is None else solv_match[0]
+
+
 def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     """
     Parses the arguments
@@ -681,7 +706,14 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             disassembler=disassembler, address=address, parser=parser, args=args
         )
     except CriticalError as ce:
-        exit_with_error(args.__dict__.get("outform", "text"), str(ce))
+        # Extract error message
+        error_msg = str(ce)
+        # Check if error is related to solv mismatch
+        if is_solv_mismatch_error(error_msg):
+            # Inform users of potential fix
+            error_msg = error_msg + "\nSolidityVersionMismatch: Try adding the option \"--solv " + extract_compatible_solv(error_msg) + "\"\n"
+
+        exit_with_error(args.__dict__.get("outform", "text"), error_msg)
     except Exception:
         exit_with_error(args.__dict__.get("outform", "text"), traceback.format_exc())
 
