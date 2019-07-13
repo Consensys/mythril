@@ -1,7 +1,7 @@
 """This module provides classes for an SMT abstraction of bit vectors."""
 
 from typing import Union, overload, List, Set, cast, Any, Optional, Callable
-from operator import lshift, rshift
+from operator import lshift, rshift, ne, eq
 import z3
 
 from mythril.laser.smt.bool import Bool, And, Or
@@ -10,7 +10,6 @@ from mythril.laser.smt.expression import Expression
 Annotations = Set[Any]
 
 # fmt: off
-import operator
 
 
 def _padded_operation(a: z3.BitVec, b: z3.BitVec, operator):
@@ -213,7 +212,7 @@ class BitVec(Expression[z3.BitVecRef]):
 
         union = self.annotations.union(other.annotations)
         # Some of the BitVecs can be 512 bit due to sha3()
-        eq_check = _padded_operation(self.raw, other.raw, operator.eq)
+        eq_check = _padded_operation(self.raw, other.raw, eq)
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, eq_check), annotations=union)
 
@@ -233,7 +232,7 @@ class BitVec(Expression[z3.BitVecRef]):
 
         union = self.annotations.union(other.annotations)
         # Some of the BitVecs can be 512 bit due to sha3()
-        neq_check = _padded_operation(self.raw, other.raw, operator.ne)
+        neq_check = _padded_operation(self.raw, other.raw, ne)
         # MYPY: fix complaints due to z3 overriding __eq__
         return Bool(cast(z3.BoolRef, neq_check), annotations=union)
 
