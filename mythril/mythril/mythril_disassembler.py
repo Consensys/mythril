@@ -186,7 +186,27 @@ class MythrilDisassembler:
             except FileNotFoundError:
                 raise CriticalError("Input file not found: " + file)
             except CompilerError as e:
-                raise CriticalError(e)
+                error_msg = str(e)
+                # Check if error is related to solidity version mismatch
+                if (
+                    "Error: Source file requires different compiler version"
+                    in error_msg
+                ):
+                    # Grab relevant line "pragma solidity <solv>...", excluding any comments
+                    solv_pragma_line = error_msg.split("\n")[-3].split("//")[0]
+                    # Grab solidity version from relevant line
+                    solv_match = re.findall(r"[0-9]+\.[0-9]+\.[0-9]+", solv_pragma_line)
+                    error_suggestion = (
+                        "<version_number>" if len(solv_match) != 1 else solv_match[0]
+                    )
+                    error_msg = (
+                        error_msg
+                        + '\nSolidityVersionMismatch: Try adding the option "--solv '
+                        + error_suggestion
+                        + '"\n'
+                    )
+
+                raise CriticalError(error_msg)
             except NoContractFoundError:
                 log.error(
                     "The file " + file + " does not contain a compilable contract."
