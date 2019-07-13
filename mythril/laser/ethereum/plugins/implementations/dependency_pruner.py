@@ -301,7 +301,7 @@ class DependencyPruner(LaserPlugin):
              """
 
             # Don't skip any blocks in the contract creation transaction
-            if self.iteration < 1:
+            if self.iteration < 2:
                 return
 
             # Don't skip newly discovered blocks
