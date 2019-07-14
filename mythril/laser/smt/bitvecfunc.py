@@ -72,10 +72,15 @@ def _comparison_helper(
     ):
         return Bool(z3.BoolVal(default_value), annotations=union)
 
+    '''
     return And(
         Bool(cast(z3.BoolRef, operation(a.raw, b.raw)), annotations=union),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
+    '''
+
+    return a.input_ == b.input_
+
 
 
 class BitVecFunc(BitVec):
