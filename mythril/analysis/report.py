@@ -11,6 +11,7 @@ from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
 from mythril.support.start_time import StartTime
 from mythril.support.support_utils import get_code_hash
+from mythril.support.signatures import SignatureDB
 from time import time
 
 log = logging.getLogger(__name__)
@@ -151,6 +152,26 @@ class Issue:
         else:
             self.source_mapping = self.address
 
+    def resolve_function_names(self):
+        """ Resolves function names for each step """
+
+        if (
+            self.transaction_sequence is None
+            or "steps" not in self.transaction_sequence
+        ):
+            return
+
+        signatures = SignatureDB()
+
+        for step in self.transaction_sequence["steps"]:
+            _hash = step["input"][:10]
+            sig = signatures.get(_hash)
+
+            if len(sig) > 0:
+                step["name"] = sig[0]
+            else:
+                step["name"] = "unknown"
+
 
 class Report:
     """A report containing the content of multiple issues."""
@@ -187,6 +208,7 @@ class Report:
         """
         m = hashlib.md5()
         m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
+        issue.resolve_function_names()
         self.issues[m.digest()] = issue
 
     def as_text(self):
