@@ -194,3 +194,44 @@ def test_bitvecfunc_ext_unequal_nested_comparison_f():
 
     # Assert
     assert s.check() == z3.unsat
+
+
+def test_bitvecfunc_find_input():
+    # Arrange
+    s = Solver()
+
+    input1 = symbol_factory.BitVecSym("input1", 256)
+    input2 = symbol_factory.BitVecSym("input2", 256)
+
+    bvf1 = symbol_factory.BitVecFuncSym("bvf1", "sha3", 256, input_=input1)
+    bvf2 = symbol_factory.BitVecFuncSym("bvf3", "sha3", 256, input_=input2)
+
+    # Act
+    s.add(input1 == symbol_factory.BitVecVal(1, 256))
+    s.add(bvf1 == bvf2)
+
+    # Assert
+    assert s.check() == z3.sat
+    assert s.model()[input2.raw] == 1
+
+
+def test_bitvecfunc_nested_find_input():
+    # Arrange
+    s = Solver()
+
+    input1 = symbol_factory.BitVecSym("input1", 256)
+    input2 = symbol_factory.BitVecSym("input2", 256)
+
+    bvf1 = symbol_factory.BitVecFuncSym("bvf1", "sha3", 256, input_=input1)
+    bvf2 = symbol_factory.BitVecFuncSym("bvf2", "sha3", 256, input_=bvf1)
+
+    bvf3 = symbol_factory.BitVecFuncSym("bvf3", "sha3", 256, input_=input2)
+    bvf4 = symbol_factory.BitVecFuncSym("bvf4", "sha3", 256, input_=bvf3)
+
+    # Act
+    s.add(input1 == symbol_factory.BitVecVal(123, 256))
+    s.add(bvf2 == bvf4)
+
+    # Assert
+    assert s.check() == z3.sat
+    assert s.model()[input2.raw] == 123
