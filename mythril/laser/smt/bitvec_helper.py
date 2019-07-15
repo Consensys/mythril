@@ -99,11 +99,13 @@ def ULE(a: BitVec, b: BitVec) -> Bool:
 
 
 @overload
-def Concat(*args: List[BitVec]) -> BitVec:    ...
+def Concat(*args: List[BitVec]) -> BitVec:
+    ...
 
 
 @overload
-def Concat(*args: BitVec) -> BitVec:    ...
+def Concat(*args: BitVec) -> BitVec:
+    ...
 
 
 def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
@@ -130,8 +132,10 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
 
     if nested_functions:
         return BitVecFunc(
-            raw=nraw, func_name="Hybrid", input_=BitVec(z3.BitVec("", 256), annotations=annotations),
-            nested_functions=nested_functions
+            raw=nraw,
+            func_name="Hybrid",
+            input_=BitVec(z3.BitVec("", 256), annotations=annotations),
+            nested_functions=nested_functions,
         )
 
     return BitVec(nraw, annotations)
@@ -150,8 +154,10 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
         input_string = ""
         # Is there a better value to set func_name and input to in this case?
         return BitVecFunc(
-            raw=raw, func_name="Hybrid", input_=BitVec(z3.BitVec(input_string, 256), annotations=bv.annotations),
-            nested_functions=bv.nested_functions + [bv]
+            raw=raw,
+            func_name="Hybrid",
+            input_=BitVec(z3.BitVec(input_string, 256), annotations=bv.annotations),
+            nested_functions=bv.nested_functions + [bv],
         )
 
     return BitVec(raw, annotations=bv.annotations)
@@ -201,7 +207,9 @@ def Sum(*args: BitVec) -> BitVec:
         if isinstance(bv, BitVecFunc):
             bitvecfuncs.append(bv)
 
-    nested_functions = [nf for func in bitvecfuncs for nf in func.nested_functions] + bitvecfuncs
+    nested_functions = [
+        nf for func in bitvecfuncs for nf in func.nested_functions
+    ] + bitvecfuncs
 
     if len(bitvecfuncs) >= 2:
         return BitVecFunc(
@@ -209,7 +217,7 @@ def Sum(*args: BitVec) -> BitVec:
             func_name="Hybrid",
             input_=None,
             annotations=annotations,
-            nested_functions=nested_functions
+            nested_functions=nested_functions,
         )
     elif len(bitvecfuncs) == 1:
         return BitVecFunc(
@@ -217,7 +225,7 @@ def Sum(*args: BitVec) -> BitVec:
             func_name=bitvecfuncs[0].func_name,
             input_=bitvecfuncs[0].input_,
             annotations=annotations,
-            nested_functions=nested_functions
+            nested_functions=nested_functions,
         )
 
     return BitVec(raw, annotations)
@@ -270,5 +278,3 @@ def BVSubNoUnderflow(
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
-
-

@@ -1,6 +1,4 @@
-from mythril.laser.smt.bitvec import (
-    BitVec,
-)
+from mythril.laser.smt.bitvec import BitVec
 
 from mythril.laser.smt.bitvec_helper import (
     If,
