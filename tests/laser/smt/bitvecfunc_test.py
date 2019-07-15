@@ -89,7 +89,6 @@ def test_bitvecfunc_nested_comparison():
     input1 = symbol_factory.BitVecSym("input1", 256)
     input2 = symbol_factory.BitVecSym("input2", 256)
 
-
     bvf1 = symbol_factory.BitVecFuncSym("bvf1", "sha3", 256, input_=input1)
     bvf2 = symbol_factory.BitVecFuncSym("bvf2", "sha3", 256, input_=bvf1)
 
@@ -110,7 +109,6 @@ def test_bitvecfunc_unequal_nested_comparison():
 
     input1 = symbol_factory.BitVecSym("input1", 256)
     input2 = symbol_factory.BitVecSym("input2", 256)
-
 
     bvf1 = symbol_factory.BitVecFuncSym("bvf1", "sha3", 256, input_=input1)
     bvf2 = symbol_factory.BitVecFuncSym("bvf2", "sha3", 256, input_=bvf1)
@@ -196,4 +194,3 @@ def test_bitvecfunc_ext_unequal_nested_comparison_f():
 
     # Assert
     assert s.check() == z3.unsat
-
