@@ -77,6 +77,8 @@ def _comparison_helper(
     for a_nest, b_nest in product(a.nested_functions, b.nested_functions):
         if a_nest.func_name != b_nest.func_name:
             continue
+        if a_nest.func_name == "Hybrid":
+            continue
         # a.input (eq/neq) b.input ==> a == b
         if inputs_equal:
             condition = z3.And(
