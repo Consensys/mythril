@@ -1,11 +1,11 @@
-from typing import Optional, Union, cast, Callable
+import operator
+from itertools import product
+from typing import Optional, Union, cast, Callable, List
 
 import z3
 
-from mythril.laser.smt.bitvec import BitVec, Bool, And, Annotations
-from mythril.laser.smt.bool import Or
-
-import operator
+from mythril.laser.smt.bitvec import BitVec, Annotations
+from mythril.laser.smt.bool import Or, Bool, And
 
 
 def _arithmetic_helper(
@@ -26,18 +26,19 @@ def _arithmetic_helper(
     union = a.annotations.union(b.annotations)
 
     if isinstance(b, BitVecFunc):
-        # TODO: Find better value to set input and name to in this case?
-        input_string = "MisleadingNotationop(invhash({}) {} invhash({})".format(
-            hash(a), operation, hash(b)
-        )
         return BitVecFunc(
             raw=raw,
             func_name="Hybrid",
-            input_=BitVec(z3.BitVec(input_string, 256), annotations=union),
+            input_=BitVec(z3.BitVec("", 256), annotations=union),
+            nested_functions=a.nested_functions + b.nested_functions + [a, b],
         )
 
     return BitVecFunc(
-        raw=raw, func_name=a.func_name, input_=a.input_, annotations=union
+        raw=raw,
+        func_name=a.func_name,
+        input_=a.input_,
+        annotations=union,
+        nested_functions=a.nested_functions + [a],
     )
 
 
@@ -72,12 +73,33 @@ def _comparison_helper(
     ):
         return Bool(z3.BoolVal(default_value), annotations=union)
 
+    condition = True
+    for a_nest, b_nest in product(a.nested_functions, b.nested_functions):
+        if a_nest.func_name != b_nest.func_name:
+            continue
+        # a.input (eq/neq) b.input ==> a == b
+        if inputs_equal:
+            condition = z3.And(
+                condition,
+                z3.Or(
+                    z3.Not((a_nest.input_ == b_nest.input_).raw),
+                    (a_nest.raw == b_nest.raw),
+                ),
+            )
+        else:
+            condition = z3.And(
+                condition,
+                z3.Or(
+                    z3.Not((a_nest.input_ != b_nest.input_).raw),
+                    (a_nest.raw == b_nest.raw),
+                ),
+            )
+
     return And(
         Bool(cast(z3.BoolRef, operation(a.raw, b.raw)), annotations=union),
+        Bool(condition) if b.nested_functions else Bool(True),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
-
-    return a.input_ == b.input_
 
 
 class BitVecFunc(BitVec):
@@ -89,6 +111,7 @@ class BitVecFunc(BitVec):
         func_name: Optional[str],
         input_: "BitVec" = None,
         annotations: Optional[Annotations] = None,
+        nested_functions: Optional[List["BitVecFunc"]] = None,
     ):
         """
 
@@ -100,6 +123,9 @@ class BitVecFunc(BitVec):
 
         self.func_name = func_name
         self.input_ = input_
+        self.nested_functions = nested_functions or []
+        if isinstance(input_, BitVecFunc):
+            self.nested_functions.extend(input_.nested_functions)
         super().__init__(raw, annotations)
 
     def __add__(self, other: Union[int, "BitVec"]) -> "BitVecFunc":
