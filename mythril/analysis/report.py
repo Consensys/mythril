@@ -165,11 +165,15 @@ class Issue:
 
         for step in self.transaction_sequence["steps"]:
             _hash = step["input"][:10]
-            sig = signatures.get(_hash)
 
-            if len(sig) > 0:
-                step["name"] = sig[0]
-            else:
+            try:
+                sig = signatures.get(_hash)
+
+                if len(sig) > 0:
+                    step["name"] = sig[0]
+                else:
+                    step["name"] = "unknown"
+            except ValueError:
                 step["name"] = "unknown"
 
 
