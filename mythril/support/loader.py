@@ -3,6 +3,11 @@ and dependencies."""
 from mythril.disassembler.disassembly import Disassembly
 import logging
 import re
+import functools
+from mythril.ethereum.interface.rpc.client import EthJsonRpc
+from typing import Optional, Dict
+
+LRU_CACHE_SIZE = 4096
 
 log = logging.getLogger(__name__)
 
@@ -10,7 +15,9 @@ log = logging.getLogger(__name__)
 class DynLoader:
     """The dynamic loader class."""
 
-    def __init__(self, eth, contract_loading=True, storage_loading=True):
+    def __init__(
+        self, eth: Optional[EthJsonRpc], contract_loading=True, storage_loading=True
+    ):
         """
 
         :param eth:
@@ -18,55 +25,41 @@ class DynLoader:
         :param storage_loading:
         """
         self.eth = eth
-        self.storage_cache = {}
         self.contract_loading = contract_loading
         self.storage_loading = storage_loading
 
-    def read_storage(self, contract_address: str, index: int):
+    @functools.lru_cache(LRU_CACHE_SIZE)
+    def read_storage(self, contract_address: str, index: int) -> str:
         """
 
         :param contract_address:
         :param index:
         :return:
         """
+        # TODO: Don't raise Exception. Generic and inconsistent with below (ValueError).
         if not self.storage_loading:
             raise Exception(
                 "Cannot load from the storage when the storage_loading flag is false"
             )
+        if not self.eth:
+            raise Exception("Cannot load from the storage when eth is None")
 
-        try:
-            contract_ref = self.storage_cache[contract_address]
-            data = contract_ref[index]
+        return self.eth.eth_getStorageAt(
+            contract_address, position=index, block="latest"
+        )
 
-        except KeyError:
-
-            self.storage_cache[contract_address] = {}
-
-            data = self.eth.eth_getStorageAt(
-                contract_address, position=index, block="latest"
-            )
-
-            self.storage_cache[contract_address][index] = data
-
-        except IndexError:
-
-            data = self.eth.eth_getStorageAt(
-                contract_address, position=index, block="latest"
-            )
-
-            self.storage_cache[contract_address][index] = data
-
-        return data
-
-    def dynld(self, dependency_address):
+    @functools.lru_cache(LRU_CACHE_SIZE)
+    def dynld(self, dependency_address: str) -> Disassembly:
         """
         :param dependency_address:
         :return:
         """
         if not self.contract_loading:
             raise ValueError("Cannot load contract when contract_loading flag is false")
+        if not self.eth:
+            raise ValueError("Cannot load from the storage when eth is None")
 
-        log.debug("Dynld at contract " + dependency_address)
+        log.debug("Dynld at contract %s", dependency_address)
 
         # Ensure that dependency_address is the correct length, with 0s prepended as needed.
         dependency_address = (
@@ -81,7 +74,7 @@ class DynLoader:
         else:
             return None
 
-        log.debug("Dependency address: " + dependency_address)
+        log.debug("Dependency address: %s", dependency_address)
 
         code = self.eth.eth_getCode(dependency_address)
 
