@@ -18,7 +18,7 @@ def _comparison_helper(
 ) -> Bool:
     annotations = a.annotations.union(b.annotations)
     if isinstance(a, BitVecFunc):
-        _func_comparison_helper(a, b, operation, default_value, inputs_equal)
+        return _func_comparison_helper(a, b, operation, default_value, inputs_equal)
     return Bool(operation(a.raw, b.raw), annotations)
 
 
