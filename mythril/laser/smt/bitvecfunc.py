@@ -64,12 +64,12 @@ def _comparison_helper(
 
     if not a.symbolic and not b.symbolic:
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
-
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
         or not a.input_
         or not a.func_name == b.func_name
+        or str(operation) not in ("<built-in function eq>", "<built-in function ne>")
     ):
         return Bool(z3.BoolVal(default_value), annotations=union)
 

@@ -1,4 +1,4 @@
-from mythril.laser.smt import Solver, symbol_factory, bitvec
+from mythril.laser.smt import Solver, symbol_factory, UGT, UGE, ULT, ULE
 import z3
 import pytest
 
@@ -42,10 +42,10 @@ def test_bitvecfunc_arithmetic(operation, expected):
         (operator.le, z3.sat),
         (operator.gt, z3.unsat),
         (operator.ge, z3.sat),
-        (bitvec.UGT, z3.unsat),
-        (bitvec.UGE, z3.sat),
-        (bitvec.ULT, z3.unsat),
-        (bitvec.ULE, z3.sat),
+        (UGT, z3.unsat),
+        (UGE, z3.sat),
+        (ULT, z3.unsat),
+        (ULE, z3.sat),
     ],
 )
 def test_bitvecfunc_bitvecfunc_comparison(operation, expected):
