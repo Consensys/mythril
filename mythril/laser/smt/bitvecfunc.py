@@ -87,6 +87,10 @@ def _comparison_helper(
                     z3.Not((a_nest.input_ == b_nest.input_).raw),
                     (a_nest.raw == b_nest.raw),
                 ),
+                z3.Or(
+                    z3.Not((a_nest.raw == b_nest.raw)),
+                    (a_nest.input_ == b_nest.input_).raw,
+                ),
             )
         else:
             condition = z3.And(
@@ -94,6 +98,10 @@ def _comparison_helper(
                 z3.Or(
                     z3.Not((a_nest.input_ != b_nest.input_).raw),
                     (a_nest.raw == b_nest.raw),
+                ),
+                z3.Or(
+                    z3.Not((a_nest.raw == b_nest.raw)),
+                    (a_nest.input_ != b_nest.input_).raw,
                 ),
             )
 
@@ -126,6 +134,7 @@ class BitVecFunc(BitVec):
         self.func_name = func_name
         self.input_ = input_
         self.nested_functions = nested_functions or []
+        self.nested_functions = list(dict.fromkeys(self.nested_functions))
         if isinstance(input_, BitVecFunc):
             self.nested_functions.extend(input_.nested_functions)
         super().__init__(raw, annotations)
