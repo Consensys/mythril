@@ -49,7 +49,7 @@ class DynLoader:
         )
 
     @functools.lru_cache(LRU_CACHE_SIZE)
-    def dynld(self, dependency_address: str) -> Disassembly:
+    def dynld(self, dependency_address: str) -> Optional[Disassembly]:
         """
         :param dependency_address:
         :return:
