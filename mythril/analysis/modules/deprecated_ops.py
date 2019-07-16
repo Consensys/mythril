@@ -35,6 +35,7 @@ class DeprecatedOperationsModule(DetectionModule):
         if state.get_current_instruction()["address"] in self._cache:
             return
         issues = self._analyze_state(state)
+
         for issue in issues:
             self._cache.add(issue.address)
         self._issues.extend(issues)
@@ -74,13 +75,13 @@ class DeprecatedOperationsModule(DetectionModule):
             )
             swc_id = DEPRECATED_FUNCTIONS_USAGE
         else:
-            return
+            return []
         try:
             transaction_sequence = get_transaction_sequence(
                 state, state.mstate.constraints
             )
         except UnsatError:
-            return
+            return []
         issue = Issue(
             contract=state.environment.active_account.contract_name,
             function_name=state.environment.active_function_name,
