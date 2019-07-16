@@ -68,7 +68,6 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
         nested_functions = [nf for func in bvf for nf in func.nested_functions] + bvf
         return BitVecFunc(raw, func_name="Hybrid", nested_functions=nested_functions)
 
-
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
 
