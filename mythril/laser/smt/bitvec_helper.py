@@ -55,6 +55,20 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
     if not isinstance(c, BitVec):
         c = BitVec(z3.BitVecVal(c, 256))
     union = a.annotations.union(b.annotations).union(c.annotations)
+
+    bvf = []
+    if isinstance(a, BitVecFunc):
+        bvf += a
+    if isinstance(b, BitVecFunc):
+        bvf += b
+    if isinstance(c, BitVecFunc):
+        bvf += c
+    if bvf:
+        raw = z3.If(a.raw, b.raw, c.raw)
+        nested_functions = [nf for func in bvf for nf in func.nested_functions] + bvf
+        return BitVecFunc(raw, func_name="Hybrid", nested_functions=nested_functions)
+
+
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
 
@@ -128,7 +142,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
         annotations = annotations.union(bv.annotations)
         if isinstance(bv, BitVecFunc):
             nested_functions += bv.nested_functions
-            nested_functions += bv
+            nested_functions += [bv]
 
     if nested_functions:
         return BitVecFunc(
