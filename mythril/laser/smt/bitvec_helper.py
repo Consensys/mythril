@@ -1,5 +1,3 @@
-"""This module provides classes for an SMT abstraction of bit vectors."""
-
 from typing import Union, overload, List, Set, cast, Any, Optional, Callable
 from operator import lshift, rshift, ne, eq
 import z3
@@ -56,13 +54,13 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
         c = BitVec(z3.BitVecVal(c, 256))
     union = a.annotations.union(b.annotations).union(c.annotations)
 
-    bvf = []
+    bvf = []  # type: List[BitVecFunc]
     if isinstance(a, BitVecFunc):
-        bvf += a
+        bvf += [a]
     if isinstance(b, BitVecFunc):
-        bvf += b
+        bvf += [b]
     if isinstance(c, BitVecFunc):
-        bvf += c
+        bvf += [c]
     if bvf:
         raw = z3.If(a.raw, b.raw, c.raw)
         nested_functions = [nf for func in bvf for nf in func.nested_functions] + bvf
@@ -136,7 +134,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     nraw = z3.Concat([a.raw for a in bvs])
     annotations = set()  # type: Annotations
 
-    nested_functions = []
+    nested_functions = []  # type: List[BitVecFunc]
     for bv in bvs:
         annotations = annotations.union(bv.annotations)
         if isinstance(bv, BitVecFunc):
