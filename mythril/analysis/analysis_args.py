@@ -11,10 +11,12 @@ class AnalysisArgs(object, metaclass=Singleton):
         self._solver_timeout = 100000
 
     def set_loop_bound(self, loop_bound: int):
-        self._loop_bound = loop_bound
+        if loop_bound is not None:
+            self._loop_bound = loop_bound
 
     def set_solver_timeout(self, solver_timeout: int):
-        self._solver_timeout = solver_timeout
+        if solver_timeout is not None:
+            self._solver_timeout = solver_timeout
 
     @property
     def loop_bound(self):
