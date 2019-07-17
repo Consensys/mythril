@@ -176,7 +176,9 @@ class Storage:
         # type ignored as it causes runtime performance overhead to cast() everywhere
         return (
             isinstance(key, BitVecFunc) is False
-            or (key.func_name == "keccak256" and len(key.nested_functions) <= 1)   # type: ignore
+            or (
+                key.func_name == "keccak256" and len(key.nested_functions) <= 1
+            )  # type: ignore
             or key.symbolic is False
         )
 
