@@ -147,14 +147,12 @@ class IteStorageRegion(StorageRegion):
         self.itelist = []
 
     def __getitem__(self, item: BitVecFunc):
-        print("HERE", item.nested_functions)
         storage = symbol_factory.BitVecVal(0, 256)
         for key, val in self.itelist[::-1]:
             storage = If(item == key, val, storage)
         return storage
 
     def __setitem__(self, key: BitVecFunc, value):
-        print("HERE", key.nested_functions)
         self.itelist.append((key, value))
 
     def __deepcopy__(self, memodict={}):
@@ -180,6 +178,7 @@ class Storage:
         else:
             self.array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
             self.ite_region = IteStorageRegion()
+        self.printable_storage = ""
 
     @staticmethod
     def _array_condition(key):
@@ -210,7 +209,7 @@ class Storage:
 
     def __str__(self) -> str:
         # TODO: Do something better here
-        return ""
+        return self.printable_storage
 
 
 class Account:

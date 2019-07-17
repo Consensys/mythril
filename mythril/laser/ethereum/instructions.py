@@ -1596,7 +1596,7 @@ class Instruction:
         """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        print(offset, length)
+
         if length.symbolic:
             return_data = [global_state.new_bitvec("return_data", 8)]
             log.debug("Return with symbolic length or offset. Not supported")
