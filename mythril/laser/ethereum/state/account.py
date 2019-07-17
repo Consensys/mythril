@@ -121,7 +121,7 @@ class ArrayStorageRegion(StorageRegion):
 
     def __deepcopy__(self, memodict=dict()):
         concrete = isinstance(self._standard_storage, K)
-        storage = Storage(
+        storage = ArrayStorageRegion(
             concrete=concrete, address=self.address, dynamic_loader=self.dynld
         )
         storage._standard_storage = deepcopy(self._standard_storage)
@@ -165,12 +165,12 @@ class Storage:
         """
         if copy_call:
             # This is done because it was costly create these instances
-            self.array_region = None
-            self.ite_region = None
+            self._array_region = None
+            self._ite_region = None
         else:
-            self.array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
-            self.ite_region = IteStorageRegion()
-        self.printable_storage = {}  # type: Dict[BitVec, BitVec]
+            self._array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
+            self._ite_region = IteStorageRegion()
+        self._printable_storage = {}  # type: Dict[BitVec, BitVec]
 
     @staticmethod
     def _array_condition(key):
@@ -182,29 +182,28 @@ class Storage:
 
     def __getitem__(self, key: BitVec) -> BitVec:
         if self._array_condition(key):
-            value = self.array_region[key]
-        else:
-            value = self.ite_region[key]
-        self.printable_storage[key] = value
-        return value
+            return self._array_region[key]
+
+        return self._ite_region[key]
 
     def __setitem__(self, key: BitVec, value: Any) -> None:
+        self._printable_storage[key] = value
         if self._array_condition(key):
-            self.array_region[key] = value
+            self._array_region[key] = value
             return
 
-        self.ite_region[key] = value
+        self._ite_region[key] = value
 
     def __deepcopy__(self, memodict=dict()):
         storage = Storage(copy_call=True)
-        storage.array_region = deepcopy(self.array_region)
-        storage.ite_region = deepcopy(self.ite_region)
-        storage.printable_storage = copy(self.printable_storage)
+        storage._array_region = deepcopy(self._array_region)
+        storage._ite_region = deepcopy(self._ite_region)
+        storage._printable_storage = copy(self._printable_storage)
         return storage
 
     def __str__(self) -> str:
         # TODO: Do something better here
-        return str(self.printable_storage)
+        return str(self._printable_storage)
 
 
 class Account:
