@@ -173,12 +173,14 @@ class Storage:
 
     @staticmethod
     def _array_condition(key: BitVec):
-        # type ignored as it causes runtime performance overhead to cast() everywhere
+
         return (
-            isinstance(key, BitVecFunc) is False
+            not isinstance(key, BitVecFunc)
             or (
-                key.func_name == "keccak256" and len(key.nested_functions) <= 1
-            )  # type: ignore
+                isinstance(key, BitVecFunc)
+                and key.func_name == "keccak256"
+                and len(key.nested_functions) <= 1
+            )
             or key.symbolic is False
         )
 
