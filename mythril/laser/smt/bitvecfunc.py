@@ -1,7 +1,6 @@
 import operator
 from itertools import product
 from typing import Optional, Union, cast, Callable, List
-
 import z3
 
 from mythril.laser.smt.bitvec import BitVec, Annotations
@@ -63,7 +62,11 @@ def _comparison_helper(
     union = a.annotations.union(b.annotations)
 
     if not a.symbolic and not b.symbolic:
-        return Bool(z3.BoolVal(operation(a.raw, b.raw)), annotations=union)
+        if operation == z3.UGT:
+            operation = operator.gt
+        if operation == z3.ULT:
+            operation = operator.lt
+        return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name

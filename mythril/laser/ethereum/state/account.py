@@ -21,8 +21,16 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 
-class ArrayStorageRegion:
-    """ An ArrayStorageRegion is a storage region that leverages smt array theory to resolve expressions"""
+class StorageRegion:
+    def __getitem__(self, item):
+        raise NotImplementedError
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError
+
+
+class ArrayStorageRegion(StorageRegion):
+    """Storage class represents the storage of an Account."""
 
     def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
         """Constructor for Storage.
@@ -130,7 +138,7 @@ class ArrayStorageRegion:
         return str(self.printable_storage)
 
 
-class IteStorageRegion:
+class IteStorageRegion(StorageRegion):
     """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
 
     def __init__(self) -> None:
