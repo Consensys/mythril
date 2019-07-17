@@ -4,7 +4,7 @@ This includes classes representing accounts and their storage.
 """
 from copy import copy, deepcopy
 from typing import Any, Dict, Union, Tuple, cast
-
+from time import time
 
 from mythril.laser.smt import (
     Array,
@@ -122,7 +122,7 @@ class ArrayStorageRegion:
         )
         storage._standard_storage = deepcopy(self._standard_storage)
         storage._map_storage = deepcopy(self._map_storage)
-        storage.print_storage = copy(self.printable_storage)
+
         return storage
 
     def __str__(self) -> str:
@@ -139,14 +139,14 @@ class IteStorageRegion:
         self.itelist = []
 
     def __getitem__(self, item: BitVecFunc):
-        print(item, item.nested_functions)
+        print("HERE", item.nested_functions)
         storage = symbol_factory.BitVecVal(0, 256)
         for key, val in self.itelist[::-1]:
             storage = If(item == key, val, storage)
         return storage
 
     def __setitem__(self, key: BitVecFunc, value):
-        print(key, key.nested_functions)
+        print("HERE", key.nested_functions)
         self.itelist.append((key, value))
 
     def __deepcopy__(self, memodict={}):
@@ -158,18 +158,27 @@ class IteStorageRegion:
 class Storage:
     """Storage class represents the storage of an Account."""
 
-    def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
+    def __init__(
+        self, concrete=False, address=None, dynamic_loader=None, copy_call=False
+    ) -> None:
         """Constructor for Storage.
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        self.array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
-        self.ite_region = IteStorageRegion()
+        if copy_call:
+            # This is done because it was costly create these instances
+            self.array_region = None
+            self.ite_region = None
+        else:
+            self.array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
+            self.ite_region = IteStorageRegion()
 
     @staticmethod
     def _array_condition(key):
-        return isinstance(key, BitVecFunc) is False or (
-            key.func_name == "keccak256" and len(key.nested_functions) <= 1
+        return (
+            isinstance(key, BitVecFunc) is False
+            or (key.func_name == "keccak256" and len(key.nested_functions) <= 1)
+            or key.symbolic is False
         )
 
     def __getitem__(self, key: BitVec) -> BitVec:
@@ -185,9 +194,10 @@ class Storage:
         self.ite_region[key] = value
 
     def __deepcopy__(self, memodict=dict()):
-        storage = Storage()
+        storage = Storage(copy_call=True)
         storage.array_region = deepcopy(self.array_region)
         storage.ite_region = deepcopy(self.ite_region)
+
         return storage
 
     def __str__(self) -> str:
