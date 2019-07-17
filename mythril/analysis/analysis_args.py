@@ -7,8 +7,8 @@ class AnalysisArgs(object, metaclass=Singleton):
     """
 
     def __init__(self):
-        self._loop_bound = 4
-        self._solver_timeout = 100000
+        self._loop_bound = 3
+        self._solver_timeout = 10000
 
     def set_loop_bound(self, loop_bound: int):
         if loop_bound is not None:
