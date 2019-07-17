@@ -15,33 +15,14 @@ from mythril.laser.smt import (
     Extract,
     BaseArray,
     Concat,
+    If,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 
-class StorageRegion:
-    def __getitem__(self, item):
-        raise NotImplementedError
-
-    def __setitem__(self, key, value):
-        raise NotImplementedError
-
-
-class ArrayStorageRegion(StorageRegion):
+class ArrayStorageRegion:
     """ An ArrayStorageRegion is a storage region that leverages smt array theory to resolve expressions"""
-
-    pass
-
-
-class IteStorageRegion(StorageRegion):
-    """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
-
-    pass
-
-
-class Storage:
-    """Storage class represents the storage of an Account."""
 
     def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
         """Constructor for Storage.
@@ -147,6 +128,71 @@ class Storage:
     def __str__(self) -> str:
         # TODO: Do something better here
         return str(self.printable_storage)
+
+
+class IteStorageRegion:
+    """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
+
+    def __init__(self) -> None:
+        """Constructor for Storage.
+        """
+        self.itelist = []
+
+    def __getitem__(self, item: BitVecFunc):
+        print(item, item.nested_functions)
+        storage = symbol_factory.BitVecVal(0, 256)
+        for key, val in self.itelist[::-1]:
+            storage = If(item == key, val, storage)
+        return storage
+
+    def __setitem__(self, key: BitVecFunc, value):
+        print(key, key.nested_functions)
+        self.itelist.append((key, value))
+
+    def __deepcopy__(self, memodict={}):
+        ite_copy = IteStorageRegion()
+        ite_copy.itelist = copy(self.itelist)
+        return ite_copy
+
+
+class Storage:
+    """Storage class represents the storage of an Account."""
+
+    def __init__(self, concrete=False, address=None, dynamic_loader=None) -> None:
+        """Constructor for Storage.
+
+        :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
+        """
+        self.array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
+        self.ite_region = IteStorageRegion()
+
+    @staticmethod
+    def _array_condition(key):
+        return isinstance(key, BitVecFunc) is False or (
+            key.func_name == "keccak256" and len(key.nested_functions) <= 1
+        )
+
+    def __getitem__(self, key: BitVec) -> BitVec:
+        if self._array_condition(key):
+            return self.array_region[key]
+        return self.ite_region[key]
+
+    def __setitem__(self, key: BitVec, value: Any) -> None:
+        if self._array_condition(key):
+            self.array_region[key] = value
+            return
+
+        self.ite_region[key] = value
+
+    def __deepcopy__(self, memodict=dict()):
+        storage = Storage()
+        storage.array_region = deepcopy(self.array_region)
+        storage.ite_region = deepcopy(self.ite_region)
+        return storage
+
+    def __str__(self) -> str:
+        # TODO: Do something better here
+        return ""
 
 
 class Account:
