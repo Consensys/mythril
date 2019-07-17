@@ -63,7 +63,7 @@ def _comparison_helper(
     union = a.annotations.union(b.annotations)
 
     if not a.symbolic and not b.symbolic:
-        return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
+        return Bool(z3.BoolVal(operation(a.raw, b.raw)), annotations=union)
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
