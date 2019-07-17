@@ -53,7 +53,7 @@ class StateChangeCallsAnnotation(StateAnnotation):
                 global_state, constraints
             )
         except UnsatError:
-            return []
+            return None
         severity = "Medium" if self.user_defined_address else "Low"
         address = global_state.get_current_instruction()["address"]
         logging.debug(
@@ -67,20 +67,18 @@ class StateChangeCallsAnnotation(StateAnnotation):
             "state change takes place. This can lead to business logic vulnerabilities."
         )
 
-        return [
-            Issue(
-                contract=global_state.environment.active_account.contract_name,
-                function_name=global_state.environment.active_function_name,
-                address=address,
-                title="State change after external call",
-                severity=severity,
-                description_head=description_head,
-                description_tail=description_tail,
-                swc_id=REENTRANCY,
-                bytecode=global_state.environment.code.bytecode,
-                transaction_sequence=transaction_sequence,
-            )
-        ]
+        return Issue(
+            contract=global_state.environment.active_account.contract_name,
+            function_name=global_state.environment.active_function_name,
+            address=address,
+            title="State change after external call",
+            severity=severity,
+            description_head=description_head,
+            description_tail=description_tail,
+            swc_id=REENTRANCY,
+            bytecode=global_state.environment.code.bytecode,
+            transaction_sequence=transaction_sequence,
+        )
 
 
 class StateChange(DetectionModule):
@@ -173,7 +171,9 @@ class StateChange(DetectionModule):
         for annotation in annotations:
             if not annotation.state_change_states:
                 continue
-            vulnerabilities += annotation.get_issue(global_state)
+            issue = annotation.get_issue(global_state)
+            if issue:
+                vulnerabilities.append(issue)
         return vulnerabilities
 
     @staticmethod
