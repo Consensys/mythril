@@ -43,8 +43,6 @@ class ArrayStorageRegion(StorageRegion):
             self._standard_storage = Array("Storage", 256, 256)
         self._map_storage = {}  # type: Dict[BitVec, BaseArray]
 
-        self.printable_storage = {}  # type: Dict[BitVec, BitVec]
-
         self.dynld = dynamic_loader
         self.address = address
 
@@ -80,7 +78,6 @@ class ArrayStorageRegion(StorageRegion):
                     ),
                     256,
                 )
-                self.printable_storage[item] = storage[item]
                 return storage[item]
             except ValueError:
                 pass
@@ -118,7 +115,6 @@ class ArrayStorageRegion(StorageRegion):
 
     def __setitem__(self, key, value: Any) -> None:
         storage, is_keccak_storage = self._get_corresponding_storage(key)
-        self.printable_storage[key] = value
         if is_keccak_storage:
             key = self._sanitize(key.input_)
         storage[key] = value
@@ -132,10 +128,6 @@ class ArrayStorageRegion(StorageRegion):
         storage._map_storage = deepcopy(self._map_storage)
 
         return storage
-
-    def __str__(self) -> str:
-        # TODO: Do something better here
-        return str(self.printable_storage)
 
 
 class IteStorageRegion(StorageRegion):
@@ -178,7 +170,7 @@ class Storage:
         else:
             self.array_region = ArrayStorageRegion(concrete, address, dynamic_loader)
             self.ite_region = IteStorageRegion()
-        self.printable_storage = ""
+        self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
     @staticmethod
     def _array_condition(key):
@@ -190,8 +182,11 @@ class Storage:
 
     def __getitem__(self, key: BitVec) -> BitVec:
         if self._array_condition(key):
-            return self.array_region[key]
-        return self.ite_region[key]
+            value = self.array_region[key]
+        else:
+            value = self.ite_region[key]
+        self.printable_storage[key] = value
+        return value
 
     def __setitem__(self, key: BitVec, value: Any) -> None:
         if self._array_condition(key):
@@ -204,12 +199,12 @@ class Storage:
         storage = Storage(copy_call=True)
         storage.array_region = deepcopy(self.array_region)
         storage.ite_region = deepcopy(self.ite_region)
-
+        storage.printable_storage = copy(self.printable_storage)
         return storage
 
     def __str__(self) -> str:
         # TODO: Do something better here
-        return self.printable_storage
+        return str(self.printable_storage)
 
 
 class Account:
