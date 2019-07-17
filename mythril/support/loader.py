@@ -36,13 +36,12 @@ class DynLoader:
         :param index:
         :return:
         """
-        # TODO: Don't raise Exception. Generic and inconsistent with below (ValueError).
         if not self.storage_loading:
-            raise Exception(
+            raise ValueError(
                 "Cannot load from the storage when the storage_loading flag is false"
             )
         if not self.eth:
-            raise Exception("Cannot load from the storage when eth is None")
+            raise ValueError("Cannot load from the storage when eth is None")
 
         return self.eth.eth_getStorageAt(
             contract_address, position=index, block="latest"
