@@ -5,7 +5,7 @@ import logging
 import re
 import functools
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
-from typing import Optional, Dict
+from typing import Optional
 
 LRU_CACHE_SIZE = 4096
 
