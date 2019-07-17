@@ -3,8 +3,7 @@
 This includes classes representing accounts and their storage.
 """
 from copy import copy, deepcopy
-from typing import Any, Dict, Union, Tuple, cast
-from time import time
+from typing import Any, Dict, Union, Tuple, cast, List
 
 from mythril.laser.smt import (
     Array,
@@ -136,7 +135,7 @@ class IteStorageRegion(StorageRegion):
     def __init__(self) -> None:
         """Constructor for Storage.
         """
-        self.itelist = []
+        self.itelist = []  # type: List[Tuple[BitVecFunc, Any]]
 
     def __getitem__(self, item: BitVecFunc):
         storage = symbol_factory.BitVecVal(0, 256)
@@ -173,10 +172,11 @@ class Storage:
         self._printable_storage = {}  # type: Dict[BitVec, BitVec]
 
     @staticmethod
-    def _array_condition(key):
+    def _array_condition(key: BitVec):
+        # type ignored as it causes runtime performance overhead to cast() everywhere
         return (
             isinstance(key, BitVecFunc) is False
-            or (key.func_name == "keccak256" and len(key.nested_functions) <= 1)
+            or (key.func_name == "keccak256" and len(key.nested_functions) <= 1)   # type: ignore
             or key.symbolic is False
         )
 
@@ -184,7 +184,7 @@ class Storage:
         if self._array_condition(key):
             return self._array_region[key]
 
-        return self._ite_region[key]
+        return self._ite_region[cast(BitVecFunc, key)]
 
     def __setitem__(self, key: BitVec, value: Any) -> None:
         self._printable_storage[key] = value
@@ -192,7 +192,7 @@ class Storage:
             self._array_region[key] = value
             return
 
-        self._ite_region[key] = value
+        self._ite_region[cast(BitVecFunc, key)] = value
 
     def __deepcopy__(self, memodict=dict()):
         storage = Storage(copy_call=True)
