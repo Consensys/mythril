@@ -48,17 +48,16 @@ Or:
 $ myth analyze -a <contract-address>
 ```
 
-Specify the maximum number of transaction to explore with `-t <number>`. You can also set a timeout with `--execution timeout <seconds>`. Example ([source code](https://gist.github.com/b-mueller/b7c852f5ccaee91da04a789bd1c5ee4b)):
+Specify the maximum number of transaction to explore with `-t <number>`. You can also set a timeout with `--execution timeout <seconds>`. Example ([source code](https://gist.github.com/b-mueller/2b251297ce88aa7628680f50f177a81a#file-killbilly-sol)):
 
 ```
-$ myth analyze killbilly.sol -t3 --execution-timeout 60
 ==== Unprotected Selfdestruct ====
 SWC ID: 106
 Severity: High
 Contract: KillBilly
 Function name: commencekilling()
-PC address: 534
-Estimated Gas Usage: 596 - 1021
+PC address: 354
+Estimated Gas Usage: 574 - 999
 The contract can be killed by anyone.
 Anyone can kill this contract and withdraw its balance to an arbitrary address.
 --------------------
@@ -70,8 +69,8 @@ selfdestruct(msg.sender)
 Transaction Sequence:
 
 Caller: [CREATOR], data: [CONTRACT CREATION], value: 0x0
-Caller: [ATTACKER], function: killerize(address), txdata: 0x9fa299cc0101010101010101010101011020200840000080808004014001010101010101, value: 0x0
-Caller: [ATTACKER], function: activatekillability(address), txdata: 0x5aa60cd80101010101010101010101011020200840000080808004014001010101010101, value: 0x0
+Caller: [ATTACKER], function: killerize(address), txdata: 0x9fa299ccbebebebebebebebebebebebedeadbeefdeadbeefdeadbeefdeadbeefdeadbeef, value: 0x0
+Caller: [ATTACKER], function: activatekillability(), txdata: 0x84057065, value: 0x0
 Caller: [ATTACKER], function: commencekilling(), txdata: 0x7c11da20, value: 0x0
 ```
 
