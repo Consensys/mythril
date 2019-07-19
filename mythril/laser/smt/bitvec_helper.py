@@ -130,6 +130,9 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
         bvs = args[0]  # type: List[BitVec]
     else:
         bvs = cast(List[BitVec], args)
+    concat_list = []
+    for bv in bvs:
+        concat_list.append(bv)
 
     nraw = z3.Concat([a.raw for a in bvs])
     annotations = set()  # type: Annotations
@@ -147,6 +150,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
             func_name="Hybrid",
             input_=BitVec(z3.BitVec("", 256), annotations=annotations),
             nested_functions=nested_functions,
+            concat_args=concat_list,
         )
 
     return BitVec(nraw, annotations)
@@ -162,6 +166,25 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     """
     raw = z3.Extract(high, low, bv.raw)
     if isinstance(bv, BitVecFunc):
+        count = 0
+        val = None
+        for small_bv in bv.concat_args[::-1]:
+            if low == count:
+                if low + small_bv.size() <= high:
+                    val = small_bv
+                else:
+                    val = Extract(low + small_bv.size() - 1, low, small_bv)
+            if high < count:
+                break
+            if low < count:
+                if low + small_bv.size() <= high:
+                    val = Concat(small_bv, val)
+                else:
+                    val = Extract(low + small_bv.size() - 1, low, small_bv)
+            count += small_bv.size()
+            val.simplify()
+        if val is not None:
+            return val
         input_string = ""
         # Is there a better value to set func_name and input to in this case?
         return BitVecFunc(

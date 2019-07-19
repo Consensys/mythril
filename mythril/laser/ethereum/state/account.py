@@ -2,9 +2,10 @@
 
 This includes classes representing accounts and their storage.
 """
+from hashlib import sha3_256
 from copy import copy, deepcopy
 from typing import Any, Dict, Union, Tuple, cast, List
-
+from random import randint
 from mythril.laser.smt import (
     Array,
     K,
@@ -18,6 +19,7 @@ from mythril.laser.smt import (
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
+from z3.z3types import Z3Exception
 
 
 class StorageRegion:
@@ -181,7 +183,7 @@ class Storage:
                 and key.func_name == "keccak256"
                 and len(key.nested_functions) <= 1
             )
-            or key.symbolic is False
+            or key.potential_value is not None
         )
 
     def __getitem__(self, key: BitVec) -> BitVec:
@@ -208,6 +210,76 @@ class Storage:
     def __str__(self) -> str:
         # TODO: Do something better here
         return str(self._printable_storage)
+
+    def concretize(self, model):
+        constraints = []
+        for key, value in self._ite_region.itelist:
+            if simplify(Extract(255, 0, key.input_)).symbolic or not isinstance(
+                key.input_, BitVecFunc
+            ):
+                continue
+            new_constraints, key = self._traverse_concretise(key, model)
+            constraints += new_constraints
+            self._array_region[key] = value
+        self._ite_region.itelist = []
+
+        return constraints
+
+    def calc_sha3(self, val):
+        try:
+            val = int(sha3_256(str(val.as_long()).encode("utf-8")).hexdigest(), 16)
+        except AttributeError:
+            val = int(
+                sha3_256(
+                    str(randint(0, 2 ** val.input_ - 1)).encode("utf-8")
+                ).hexdigest(),
+                16,
+            )
+        return symbol_factory.BitVecVal(val, 256)
+
+    def _find_value(self, symbol, model):
+        modify = symbol
+        if symbol.size() > 256:
+            index = simplify(Extract(255, 0, symbol))
+        else:
+            index = None
+        if index and not index.symbolic:
+            modify = Extract(511, 256, modify)
+        modify = model.eval(modify.raw)
+        try:
+            modify = modify.as_long()
+        except AttributeError:
+            modify = randint(0, 2 ** modify.size() - 1)
+        modify = symbol_factory.BitVecVal(modify, 256)
+        if index and not index.symbolic:
+            modify = Concat(modify, index)
+        return modify
+
+    def _traverse_concretise(self, key, model):
+        """
+        Breadth first Search
+        :param key:
+        :param model:
+        :return:
+        """
+        constraints = []
+        if not isinstance(key, BitVecFunc):
+            concrete_value = self._find_value(key, model)
+            constraints.append(concrete_value == key)
+            return constraints, concrete_value
+        for arg in key.concat_args:
+            new_const, val = self._traverse_concretise(arg, model)
+            constraints += new_const
+        if isinstance(key.input_, BitVec) or (
+            isinstance(key.input_, BitVecFunc) and key.input_.func_name == "sha3"
+        ):
+            new_const, _ = self._traverse_concretise(key.input_, model)
+            constraints += new_const
+
+        if key.func_name == "sha3":
+            key.potential_value = self.calc_sha3(key.input_)
+
+        return constraints, key
 
 
 class Account:

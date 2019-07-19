@@ -16,6 +16,8 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
+from mythril.laser.smt import Solver
+from z3 import unsat
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -320,7 +322,7 @@ class LaserEVM:
             transaction, return_global_state = end_signal.global_state.transaction_stack[
                 -1
             ]
-
+            self.concretize_ite_storage(end_signal.global_state)
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
@@ -344,6 +346,17 @@ class LaserEVM:
 
         return new_global_states, op_code
 
+    def concretize_ite_storage(self, global_state):
+        solver = Solver()
+        for constraint in global_state.mstate.constraints:
+            solver.add(constraint)
+
+        if solver.check() == unsat:
+            return []
+        model = solver.model()
+        for account in global_state.world_state.accounts.values():
+            global_state.mstate.constraints += account.storage.concretize(model)
+
     def _end_message_call(
         self,
         return_global_state: GlobalState,
@@ -359,7 +372,6 @@ class LaserEVM:
         :param return_data:
         :return:
         """
-
         return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[

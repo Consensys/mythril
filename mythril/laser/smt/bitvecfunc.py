@@ -28,7 +28,7 @@ def _arithmetic_helper(
         return BitVecFunc(
             raw=raw,
             func_name="Hybrid",
-            input_=BitVec(z3.BitVec("", 256), annotations=union),
+            input_=BitVec(z3.BitVec("{} op {}".format(a, b), 256), annotations=union),
             nested_functions=a.nested_functions + b.nested_functions + [a, b],
         )
 
@@ -108,11 +108,14 @@ def _comparison_helper(
                 ),
             )
 
-    return And(
+    comparision = And(
         Bool(cast(z3.BoolRef, operation(a.raw, b.raw)), annotations=union),
         Bool(condition) if b.nested_functions else Bool(True),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
+    if a.potential_value is not None:
+        return Or(comparision, b == a.potential_value)
+    return comparision
 
 
 class BitVecFunc(BitVec):
@@ -125,6 +128,7 @@ class BitVecFunc(BitVec):
         input_: "BitVec" = None,
         annotations: Optional[Annotations] = None,
         nested_functions: Optional[List["BitVecFunc"]] = None,
+        concat_args: List = None,
     ):
         """
 
@@ -138,6 +142,8 @@ class BitVecFunc(BitVec):
         self.input_ = input_
         self.nested_functions = nested_functions or []
         self.nested_functions = list(dict.fromkeys(self.nested_functions))
+        self.potential_value = None
+        self.concat_args = concat_args or []
         if isinstance(input_, BitVecFunc):
             self.nested_functions.extend(input_.nested_functions)
         super().__init__(raw, annotations)
