@@ -10,6 +10,7 @@ from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.analysis_args import analysis_args
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report, Issue
@@ -39,6 +40,7 @@ class MythrilAnalyzer:
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
         disable_dependency_pruning: bool = False,
+        solver_timeout: Optional[int] = None,
     ):
         """
 
@@ -59,6 +61,9 @@ class MythrilAnalyzer:
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
         self.disable_dependency_pruning = disable_dependency_pruning
+
+        analysis_args.set_loop_bound(loop_bound)
+        analysis_args.set_solver_timeout(solver_timeout)
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """

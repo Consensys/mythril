@@ -1,8 +1,10 @@
-from mythril.laser.smt.bitvec import (
-    BitVec,
+from mythril.laser.smt.bitvec import BitVec
+
+from mythril.laser.smt.bitvec_helper import (
     If,
     UGT,
     ULT,
+    ULE,
     Concat,
     Extract,
     URem,
@@ -15,6 +17,7 @@ from mythril.laser.smt.bitvec import (
     BVSubNoUnderflow,
     LShR,
 )
+
 from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not, And

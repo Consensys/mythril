@@ -15,8 +15,7 @@ from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import UGT, Sum, symbol_factory, BVAddNoOverflow
-from mythril.laser.smt.bitvec import If
+from mythril.laser.smt import UGT, Sum, symbol_factory, BVAddNoOverflow, If
 
 log = logging.getLogger(__name__)
 
