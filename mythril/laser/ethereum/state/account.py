@@ -135,7 +135,7 @@ class IteStorageRegion(StorageRegion):
     def __init__(self) -> None:
         """Constructor for Storage.
         """
-        self.itedict = {}  # type: Dict[BitVecFunc, Tuple[BitVecFunc, Any]]
+        self.itedict = {}  # type: Dict[BitVecFunc, Any]
 
     def __getitem__(self, item: BitVecFunc):
         storage = symbol_factory.BitVecVal(0, 256)
@@ -144,7 +144,7 @@ class IteStorageRegion(StorageRegion):
         return storage
 
     def __setitem__(self, key: BitVecFunc, value):
-        self.itedict[key] = (key, value)
+        self.itedict[key] = value
 
     def __deepcopy__(self, memodict={}):
         ite_copy = IteStorageRegion()
