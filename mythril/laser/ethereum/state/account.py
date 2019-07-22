@@ -214,15 +214,12 @@ class Storage:
     def concretize(self, model):
         constraints = []
         for key, value in self._ite_region.itelist:
-            print("HERE")
             if simplify(Extract(255, 0, key.input_)).symbolic or not isinstance(
                 key.input_, BitVecFunc
             ):
                 continue
-            print(key, "ROOT", key.input_.concat_args, key.input_.func_name)
             new_constraints, key = self._traverse_concretise(key, model)
             constraints += new_constraints
-            print(new_constraints)
             self._array_region[key] = value
         self._ite_region.itelist = []
 
