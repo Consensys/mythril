@@ -25,7 +25,7 @@ from mythril.laser.smt import (
     Bool,
     Not,
     LShR,
-)
+    BVSubNoUnderflow, UGE)
 from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.util as helper
@@ -840,7 +840,11 @@ class Instruction:
         """
         state = global_state.mstate
         address = state.stack.pop()
-        state.stack.append(global_state.new_bitvec("balance_at_" + str(address), 256))
+
+        balance = global_state.world_state.balances[
+            global_state.environment.active_account.address
+        ]
+        state.stack.append(balance)
         return [global_state]
 
     @StateTransition()
@@ -1688,7 +1692,14 @@ class Instruction:
             )
 
             if callee_account is not None and callee_account.code.bytecode == "":
-                log.debug("The call is related to ether transfer between accounts")
+                log.warning(
+                    "The call is related to ether transfer between accounts"
+                )  # TODO: was debug
+
+                global_state.mstate.constraints.append(UGE(global_state.world_state.balances[environment.active_account.address], value))
+                #global_state.world_state.balances[environment.active_account.address] -= value
+                global_state.world_state.balances[callee_account.address] += value
+
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
                 )

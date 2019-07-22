@@ -114,15 +114,21 @@ class EtherThief(DetectionModule):
         Require that the current transaction is sent by the attacker and
         that the Ether is sent to the attacker's address.
         """
-
+        attacker_address_bitvec = symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256)
+        eth_recieved_by_attacker = (
+            value
+            + state.world_state.balances[attacker_address_bitvec]
+            - state.world_state.starting_balances[attacker_address_bitvec]
+        )
+        eth_recieved_by_attacker.simplify()
+        print(eth_recieved_by_attacker)
         constraints += [
-            UGT(value, eth_sent_by_attacker),
+            UGT(eth_recieved_by_attacker, eth_sent_by_attacker),
             target == ATTACKER_ADDRESS,
             state.current_transaction.caller == ATTACKER_ADDRESS,
         ]
 
         try:
-
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
 
             issue = Issue(

@@ -13,7 +13,7 @@ from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import symbol_factory, BVSubNoUnderflow, UGE
 
 _next_transaction_id = 0
 
@@ -117,7 +117,8 @@ class BaseTransaction:
         receiver = environment.active_account.address
         value = environment.callvalue
 
-        global_state.world_state.balances[sender] -= value
+        global_state.mstate.constraints.append(UGE(global_state.world_state.balances[sender], value))
+        #global_state.world_state.balances[sender] -= value
         global_state.world_state.balances[receiver] += value
 
         return global_state

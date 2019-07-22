@@ -21,6 +21,8 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 {% if issue.tx_sequence %}
 Transaction Sequence:
 
+{{ issue.tx_sequence.initialState }}
+
 {% for step in issue.tx_sequence.steps %}
 {% if step == issue.tx_sequence.steps[0] and step.input != "0x" and step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}
 Caller: [CREATOR], data: [CONTRACT CREATION], value: {{ step.value }}

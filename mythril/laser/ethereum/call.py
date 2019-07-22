@@ -49,7 +49,11 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-    if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
+    if (
+        isinstance(callee_address, BitVec)
+        or int(callee_address, 16) >= 5
+        or int(callee_address, 16) == 0
+    ):
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
@@ -88,6 +92,8 @@ def get_callee_address(
         log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
+            # TODO: Fix types
+            return symbolic_to_address
             raise ValueError()
 
         index = int(match.group(1))
@@ -111,7 +117,9 @@ def get_callee_address(
 
 
 def get_callee_account(
-    global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
+    global_state: GlobalState,
+    callee_address: Union[str, BitVec],
+    dynamic_loader: DynLoader,
 ):
     """Gets the callees account from the global_state.
 
@@ -122,6 +130,12 @@ def get_callee_account(
     """
     environment = global_state.environment
     accounts = global_state.accounts
+
+    if isinstance(callee_address, BitVec):
+        if callee_address.symbolic:
+            return Account(callee_address, balances=global_state.world_state.balances)
+        else:
+            callee_address = callee_address.value
 
     try:
         return global_state.accounts[int(callee_address, 16)]
