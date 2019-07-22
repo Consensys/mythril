@@ -214,12 +214,15 @@ class Storage:
     def concretize(self, model):
         constraints = []
         for key, value in self._ite_region.itelist:
+            print("HERE")
             if simplify(Extract(255, 0, key.input_)).symbolic or not isinstance(
                 key.input_, BitVecFunc
             ):
                 continue
+            print(key, "ROOT", key.input_.concat_args, key.input_.func_name)
             new_constraints, key = self._traverse_concretise(key, model)
             constraints += new_constraints
+            print(new_constraints)
             self._array_region[key] = value
         self._ite_region.itelist = []
 
@@ -262,14 +265,38 @@ class Storage:
         :param model:
         :return:
         """
+        print(simplify(key))
         constraints = []
         if not isinstance(key, BitVecFunc):
             concrete_value = self._find_value(key, model)
             constraints.append(concrete_value == key)
             return constraints, concrete_value
-        for arg in key.concat_args:
-            new_const, val = self._traverse_concretise(arg, model)
-            constraints += new_const
+        if key.size() != 512 and str(key.input_) == "":
+            print("SHIT")
+            for arg in key.concat_args:
+                new_const, val = self._traverse_concretise(arg, model)
+                constraints += new_const
+        else:
+            cnt = 0
+            val = None
+            i = 0
+            while cnt != 256 and i < len(key.concat_args):
+                if val is None:
+                    val = key.concat_args[i]
+                else:
+                    val = Concat(val, key.concat_args[i])
+                cnt += key.concat_args[i].size()
+                i += 1
+            if val is not None:
+                val.simplify()
+                print(key.concat_args[i:], val, "CONCAT")
+                new_const, concrete_val = self._traverse_concretise(val, model)
+                constraints += new_const
+            if i < len(key.concat_args):
+                for arg in key.concat_args[i:]:
+                    new_const, val = self._traverse_concretise(arg, model)
+                    constraints += new_const
+
         if isinstance(key.input_, BitVec) or (
             isinstance(key.input_, BitVecFunc) and key.input_.func_name == "sha3"
         ):

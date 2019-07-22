@@ -118,6 +118,8 @@ def Concat(*args: List[BitVec]) -> BitVec:
 def Concat(*args: BitVec) -> BitVec:
     ...
 
+from time import time
+
 
 def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     """Create a concatenation expression.
@@ -130,14 +132,13 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
         bvs = args[0]  # type: List[BitVec]
     else:
         bvs = cast(List[BitVec], args)
-    concat_list = []
-    for bv in bvs:
-        concat_list.append(bv)
 
+    concat_list = bvs
     nraw = z3.Concat([a.raw for a in bvs])
     annotations = set()  # type: Annotations
 
     nested_functions = []  # type: List[BitVecFunc]
+
     for bv in bvs:
         annotations = annotations.union(bv.annotations)
         if isinstance(bv, BitVecFunc):
