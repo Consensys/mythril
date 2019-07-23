@@ -391,6 +391,9 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         action="store_true",
         help="Deactivate dependency-based pruning",
     )
+    options.add_argument(
+        "--enable-coverage-strategy", action="store_true", help="enable coverage based search strategy"
+    )
 
 
 def validate_args(args: Namespace):
@@ -561,6 +564,7 @@ def execute_command(
             onchain_storage_access=not args.no_onchain_storage_access,
             solver_timeout=args.solver_timeout,
             requires_dynld=not args.no_onchain_storage_access,
+            enable_coverage_strategy=args.enable_coverage_strategy,
         )
 
         if not disassembler.contracts:

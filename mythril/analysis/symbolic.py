@@ -55,6 +55,7 @@ class SymExecWrapper:
         enable_iprof=False,
         disable_dependency_pruning=False,
         run_analysis_modules=True,
+        enable_coverage_strategy=False,
     ):
         """
 
@@ -111,6 +112,7 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
+            enable_coverage_strategy=enable_coverage_strategy,
         )
 
         if loop_bound is not None:
