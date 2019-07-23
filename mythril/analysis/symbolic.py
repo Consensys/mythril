@@ -103,6 +103,8 @@ class SymExecWrapper:
                 hex(ATTACKER_ADDRESS): attacker_account,
             }
 
+        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
+
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
             max_depth=max_depth,
@@ -113,6 +115,7 @@ class SymExecWrapper:
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
             enable_coverage_strategy=enable_coverage_strategy,
+            instruction_laser_plugin=instruction_laser_plugin,
         )
 
         if loop_bound is not None:
