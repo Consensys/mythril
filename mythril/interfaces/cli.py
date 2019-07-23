@@ -392,7 +392,9 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Deactivate dependency-based pruning",
     )
     options.add_argument(
-        "--enable-coverage-strategy", action="store_true", help="enable coverage based search strategy"
+        "--enable-coverage-strategy",
+        action="store_true",
+        help="enable coverage based search strategy",
     )
 
 

@@ -104,12 +104,17 @@ class LaserEVM:
         self.iprof = InstructionProfiler() if enable_iprof else None
 
         if enable_coverage_strategy:
-            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_plugin import InstructionCoveragePlugin
-            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import CoverageStrategy
+            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_plugin import (
+                InstructionCoveragePlugin,
+            )
+            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
+                CoverageStrategy,
+            )
+
             instruction = InstructionCoveragePlugin()
             instruction.initialize(self)
             self.strategy = CoverageStrategy(self.strategy, instruction)
-            
+
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def extend_strategy(self, extension: ABCMeta, *args) -> None:
