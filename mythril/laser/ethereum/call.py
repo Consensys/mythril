@@ -92,7 +92,6 @@ def get_callee_address(
         log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
-            # TODO: Fix types
             return symbolic_to_address
 
         index = int(match.group(1))

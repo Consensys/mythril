@@ -25,7 +25,6 @@ from mythril.laser.smt import (
     Bool,
     Not,
     LShR,
-    BVSubNoUnderflow,
     UGE,
 )
 from mythril.laser.smt import symbol_factory
@@ -54,6 +53,30 @@ log = logging.getLogger(__name__)
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
+
+
+def transfer_ether(
+    global_state: GlobalState,
+    sender: BitVec,
+    receiver: BitVec,
+    value: Union[int, BitVec],
+):
+    """
+    Perform an Ether transfer between two accounts
+
+    :param global_state: The global state in which the Ether transfer occurs
+    :param sender: The sender of the Ether
+    :param receiver: The recipient of the Ether
+    :param value: The amount of Ether to send
+    :return:
+    """
+    value = value if isinstance(value, BitVec) else symbol_factory.BitVecVal(value, 256)
+
+    global_state.mstate.constraints.append(
+        UGE(global_state.world_state.balances[sender], value)
+    )
+    global_state.world_state.balances[receiver] += value
+    global_state.world_state.balances[sender] -= value
 
 
 class StateTransition(object):
@@ -1697,17 +1720,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = environment.active_account.address
                 receiver = callee_account.address
-                value = (
-                    value
-                    if isinstance(value, BitVec)
-                    else symbol_factory.BitVecVal(value, 256)
-                )
-
-                global_state.mstate.constraints.append(
-                    UGE(global_state.world_state.balances[sender], value)
-                )
-                global_state.world_state.balances[receiver] += value
-                global_state.world_state.balances[sender] -= value
+                transfer_ether(sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1829,17 +1842,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
                 receiver = callee_account.address
-                value = (
-                    value
-                    if isinstance(value, BitVec)
-                    else symbol_factory.BitVecVal(value, 256)
-                )
-
-                global_state.mstate.constraints.append(
-                    UGE(global_state.world_state.balances[sender], value)
-                )
-                global_state.world_state.balances[receiver] += value
-                global_state.world_state.balances[sender] -= value
+                transfer_ether(sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1954,17 +1957,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = environment.active_account.address
                 receiver = callee_account.address
-                value = (
-                    value
-                    if isinstance(value, BitVec)
-                    else symbol_factory.BitVecVal(value, 256)
-                )
-
-                global_state.mstate.constraints.append(
-                    UGE(global_state.world_state.balances[sender], value)
-                )
-                global_state.world_state.balances[receiver] += value
-                global_state.world_state.balances[sender] -= value
+                transfer_ether(sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -2077,17 +2070,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
                 receiver = callee_account.address
-                value = (
-                    value
-                    if isinstance(value, BitVec)
-                    else symbol_factory.BitVecVal(value, 256)
-                )
-
-                global_state.mstate.constraints.append(
-                    UGE(global_state.world_state.balances[sender], value)
-                )
-                global_state.world_state.balances[receiver] += value
-                global_state.world_state.balances[sender] -= value
+                transfer_ether(sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)

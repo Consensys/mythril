@@ -1,29 +1,16 @@
 """This module contains the detection code for unauthorized ether
 withdrawal."""
 import logging
-import json
 from copy import copy
 
 from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
-from mythril.laser.ethereum.transaction.symbolic import (
-    ATTACKER_ADDRESS,
-    CREATOR_ADDRESS,
-)
+from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import (
-    UGT,
-    Sum,
-    symbol_factory,
-    BVAddNoOverflow,
-    If,
-    simplify,
-    UGE,
-)
+from mythril.laser.smt import UGT, symbol_factory, UGE
 
 log = logging.getLogger(__name__)
 

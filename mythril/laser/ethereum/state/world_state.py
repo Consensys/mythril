@@ -182,6 +182,5 @@ class WorldState:
 
         :param account:
         """
-        assert not account.address.symbolic  # ???
         self._accounts[account.address.value] = account
         account._balances = self.balances
