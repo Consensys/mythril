@@ -88,13 +88,12 @@ def get_callee_address(
     except TypeError:
         log.debug("Symbolic call encountered")
 
-        match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
+        match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
         log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
             # TODO: Fix types
             return symbolic_to_address
-            raise ValueError()
 
         index = int(match.group(1))
         log.debug("Dynamic contract address at storage index {}".format(index))
@@ -106,8 +105,7 @@ def get_callee_address(
             )
         # TODO: verify whether this happens or not
         except:
-            log.debug("Error accessing contract storage.")
-            raise ValueError
+            return symbolic_to_address
 
         # testrpc simply returns the address, geth response is more elaborate.
         if not re.match(r"^0x[0-9a-f]{40}$", callee_address):
@@ -135,7 +133,7 @@ def get_callee_account(
         if callee_address.symbolic:
             return Account(callee_address, balances=global_state.world_state.balances)
         else:
-            callee_address = callee_address.value
+            callee_address = hex(callee_address.value)[2:]
 
     try:
         return global_state.accounts[int(callee_address, 16)]
@@ -223,12 +221,12 @@ def get_call_data(
 
 def native_call(
     global_state: GlobalState,
-    callee_address: str,
+    callee_address: Union[str, BitVec],
     call_data: BaseCalldata,
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
 ) -> Union[List[GlobalState], None]:
-    if not 0 < int(callee_address, 16) < 5:
+    if isinstance(callee_address, BitVec) or not 0 < int(callee_address, 16) < 5:
         return None
 
     log.debug("Native contract called: " + callee_address)

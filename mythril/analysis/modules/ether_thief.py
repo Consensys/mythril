@@ -15,7 +15,15 @@ from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import UGT, Sum, symbol_factory, BVAddNoOverflow, If
+from mythril.laser.smt import (
+    UGT,
+    Sum,
+    symbol_factory,
+    BVAddNoOverflow,
+    If,
+    simplify,
+    UGE,
+)
 
 log = logging.getLogger(__name__)
 
@@ -74,55 +82,35 @@ class EtherThief(DetectionModule):
         :param state:
         :return:
         """
+        state = copy(state)
         instruction = state.get_current_instruction()
-
-        if instruction["opcode"] != "CALL":
-            return []
-
-        address = instruction["address"]
 
         value = state.mstate.stack[-3]
         target = state.mstate.stack[-2]
 
-        eth_sent_by_attacker = symbol_factory.BitVecVal(0, 256)
-
         constraints = copy(state.mstate.constraints)
-
-        for tx in state.world_state.transaction_sequence:
-            """
-            Constraint: The call value must be greater than the sum of Ether sent by the attacker over all
-            transactions. This prevents false positives caused by legitimate refund functions.
-            Also constrain the addition from overflowing (otherwise the solver produces solutions with 
-            ridiculously high call values).
-            """
-            constraints += [BVAddNoOverflow(eth_sent_by_attacker, tx.call_value, False)]
-            eth_sent_by_attacker = Sum(
-                eth_sent_by_attacker,
-                tx.call_value * If(tx.caller == ATTACKER_ADDRESS, 1, 0),
-            )
-
-            """
-            Constraint: All transactions must originate from regular users (not the creator/owner).
-            This prevents false positives where the owner willingly transfers ownership to another address.
-            """
-
-            if not isinstance(tx, ContractCreationTransaction):
-                constraints += [tx.caller != CREATOR_ADDRESS]
 
         """
         Require that the current transaction is sent by the attacker and
-        that the Ether is sent to the attacker's address.
+        that the Ether sent to the attacker's address is greater than the
+        amount of Ether the attacker sent.
         """
         attacker_address_bitvec = symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256)
-        eth_recieved_by_attacker = (
-            value
-            + state.world_state.balances[attacker_address_bitvec]
-            - state.world_state.starting_balances[attacker_address_bitvec]
-        )
-        eth_recieved_by_attacker.simplify()
-        print(eth_recieved_by_attacker)
+
         constraints += [
-            UGT(eth_recieved_by_attacker, eth_sent_by_attacker),
+            UGE(
+                state.world_state.balances[state.environment.active_account.address],
+                value,
+            )
+        ]
+        state.world_state.balances[attacker_address_bitvec] += value
+        state.world_state.balances[state.environment.active_account.address] -= value
+
+        constraints += [
+            UGT(
+                state.world_state.balances[attacker_address_bitvec],
+                state.world_state.starting_balances[attacker_address_bitvec],
+            ),
             target == ATTACKER_ADDRESS,
             state.current_transaction.caller == ATTACKER_ADDRESS,
         ]

@@ -189,8 +189,6 @@ class Account:
         self._balances = balances
         self.balance = lambda: self._balances[self.address]
 
-        # TODO: Add initial balance
-
     def __str__(self) -> str:
         return str(self.as_dict)
 

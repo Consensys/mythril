@@ -165,8 +165,8 @@ def test_vmtest(
         # no more work to do if error happens or out of gas
         assert len(laser_evm.open_states) == 0
     else:
-        assert len(laser_evm.open_states) == 1
-        world_state = laser_evm.open_states[0]
+        assert len(final_states) == 1
+        world_state = final_states[0].world_state
 
         for address, details in post_condition.items():
             account = world_state[symbol_factory.BitVecVal(int(address, 16), 256)]

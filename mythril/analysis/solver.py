@@ -95,7 +95,7 @@ def get_transaction_sequence(
     concrete_transactions = []
 
     tx_constraints, minimize = _set_minimisation_constraints(
-        transaction_sequence, constraints.copy(), [], 5000
+        transaction_sequence, constraints.copy(), [], 5000, global_state.world_state
     )
 
     try:
@@ -103,19 +103,23 @@ def get_transaction_sequence(
     except UnsatError:
         raise UnsatError
 
-    min_price_dict = {}  # type: Dict[str, int]
+    # Include creation account in initial state
+    # Note: This contains the code, which should not exist until after the first tx
+    initial_world_state = transaction_sequence[0].world_state
+    initial_accounts = initial_world_state.accounts
+
     for transaction in transaction_sequence:
         concrete_transaction = _get_concrete_transaction(model, transaction)
         concrete_transactions.append(concrete_transaction)
 
-        caller = concrete_transaction["origin"]
-        value = int(concrete_transaction["value"], 16)
-        min_price_dict[caller] = min_price_dict.get(caller, 0) + value
-
-    if isinstance(transaction_sequence[0], ContractCreationTransaction):
-        initial_accounts = transaction_sequence[0].prev_world_state.accounts
-    else:
-        initial_accounts = transaction_sequence[0].world_state.accounts
+    min_price_dict = {}  # type: Dict[str, int]
+    for address in initial_accounts.keys():
+        min_price_dict[address] = model.eval(
+            initial_world_state.starting_balances[
+                symbol_factory.BitVecVal(address, 256)
+            ].raw,
+            model_completion=True,
+        ).as_long()
 
     concrete_initial_state = _get_concrete_state(initial_accounts, min_price_dict)
 
@@ -171,7 +175,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
 
 
 def _set_minimisation_constraints(
-    transaction_sequence, constraints, minimize, max_size
+    transaction_sequence, constraints, minimize, max_size, world_state
 ) -> Tuple[Constraints, tuple]:
     """ Set constraints that minimise key transaction values
 
@@ -192,6 +196,15 @@ def _set_minimisation_constraints(
 
         # Minimize
         minimize.append(transaction.call_data.calldatasize)
-        minimize.append(transaction.call_value)
+
+    for account in world_state.accounts.values():
+        # Lazy way to prevent overflows and to ensure "reasonable" balances
+        # Each account starts with less than 100 ETH
+        constraints.append(
+            UGE(
+                symbol_factory.BitVecVal(100000000000000000000, 256),
+                world_state.starting_balances[account.address],
+            )
+        )
 
     return constraints, tuple(minimize)

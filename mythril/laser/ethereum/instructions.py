@@ -25,7 +25,9 @@ from mythril.laser.smt import (
     Bool,
     Not,
     LShR,
-    BVSubNoUnderflow, UGE)
+    BVSubNoUnderflow,
+    UGE,
+)
 from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.util as helper
@@ -1619,7 +1621,7 @@ class Instruction:
         transfer_amount = global_state.environment.active_account.balance()
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then we'll transfer the balance to the indicated contract
-        global_state.world_state[target].add_balance(transfer_amount)
+        global_state.world_state.balances[target] += transfer_amount
 
         global_state.environment.active_account = deepcopy(
             global_state.environment.active_account
@@ -1692,13 +1694,20 @@ class Instruction:
             )
 
             if callee_account is not None and callee_account.code.bytecode == "":
-                log.warning(
-                    "The call is related to ether transfer between accounts"
-                )  # TODO: was debug
+                log.debug("The call is related to ether transfer between accounts")
+                sender = environment.active_account.address
+                receiver = callee_account.address
+                value = (
+                    value
+                    if isinstance(value, BitVec)
+                    else symbol_factory.BitVecVal(value, 256)
+                )
 
-                global_state.mstate.constraints.append(UGE(global_state.world_state.balances[environment.active_account.address], value))
-                #global_state.world_state.balances[environment.active_account.address] -= value
-                global_state.world_state.balances[callee_account.address] += value
+                global_state.mstate.constraints.append(
+                    UGE(global_state.world_state.balances[sender], value)
+                )
+                global_state.world_state.balances[receiver] += value
+                global_state.world_state.balances[sender] -= value
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1815,6 +1824,28 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = global_state.environment.active_account.address
+                receiver = callee_account.address
+                value = (
+                    value
+                    if isinstance(value, BitVec)
+                    else symbol_factory.BitVecVal(value, 256)
+                )
+
+                global_state.mstate.constraints.append(
+                    UGE(global_state.world_state.balances[sender], value)
+                )
+                global_state.world_state.balances[receiver] += value
+                global_state.world_state.balances[sender] -= value
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -1918,6 +1949,28 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = environment.active_account.address
+                receiver = callee_account.address
+                value = (
+                    value
+                    if isinstance(value, BitVec)
+                    else symbol_factory.BitVecVal(value, 256)
+                )
+
+                global_state.mstate.constraints.append(
+                    UGE(global_state.world_state.balances[sender], value)
+                )
+                global_state.world_state.balances[receiver] += value
+                global_state.world_state.balances[sender] -= value
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -2019,6 +2072,28 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = global_state.environment.active_account.address
+                receiver = callee_account.address
+                value = (
+                    value
+                    if isinstance(value, BitVec)
+                    else symbol_factory.BitVecVal(value, 256)
+                )
+
+                global_state.mstate.constraints.append(
+                    UGE(global_state.world_state.balances[sender], value)
+                )
+                global_state.world_state.balances[receiver] += value
+                global_state.world_state.balances[sender] -= value
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(

@@ -4,7 +4,7 @@ execution."""
 import array
 from copy import deepcopy
 from z3 import ExprRef
-from typing import Union, Optional, cast
+from typing import Union, Optional
 
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
@@ -12,8 +12,10 @@ from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
-from mythril.disassembler.disassembly import Disassembly
-from mythril.laser.smt import symbol_factory, BVSubNoUnderflow, UGE
+from mythril.laser.smt import symbol_factory, UGE, BitVec
+import logging
+
+log = logging.getLogger(__name__)
 
 _next_transaction_id = 0
 
@@ -115,11 +117,17 @@ class BaseTransaction:
 
         sender = environment.sender
         receiver = environment.active_account.address
-        value = environment.callvalue
+        value = (
+            environment.callvalue
+            if isinstance(environment.callvalue, BitVec)
+            else symbol_factory.BitVecVal(environment.callvalue, 256)
+        )
 
-        global_state.mstate.constraints.append(UGE(global_state.world_state.balances[sender], value))
-        #global_state.world_state.balances[sender] -= value
+        global_state.mstate.constraints.append(
+            UGE(global_state.world_state.balances[sender], value)
+        )
         global_state.world_state.balances[receiver] += value
+        global_state.world_state.balances[sender] -= value
 
         return global_state
 
