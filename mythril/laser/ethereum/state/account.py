@@ -49,6 +49,8 @@ class ArrayStorageRegion(StorageRegion):
 
     @staticmethod
     def _sanitize(input_: BitVec) -> BitVec:
+        if input_.potential_value:
+            input_ = input_.potential_value
         if input_.size() == 512:
             return input_
         if input_.size() > 512:
@@ -118,6 +120,7 @@ class ArrayStorageRegion(StorageRegion):
         storage, is_keccak_storage = self._get_corresponding_storage(key)
         if is_keccak_storage:
             key = self._sanitize(key.input_)
+
         storage[key] = value
 
     def __deepcopy__(self, memodict=dict()):
@@ -218,27 +221,26 @@ class Storage:
                 key.input_, BitVecFunc
             ):
                 continue
-            new_constraints, key = self._traverse_concretise(key, model)
+            new_constraints, key_concrete = self._traverse_concretise(key, model)
+            key.potential_value = key_concrete
             constraints += new_constraints
             self._array_region[key] = value
         self._ite_region.itelist = []
 
         return constraints
 
-    def calc_sha3(self, val):
+    def calc_sha3(self, val, size):
         try:
-            val = int(sha3_256(str(val.as_long()).encode("utf-8")).hexdigest(), 16)
+            val = int(sha3_256(str(val.value).encode("utf-8")).hexdigest(), 16)
         except AttributeError:
             val = int(
-                sha3_256(
-                    str(randint(0, 2 ** val.input_ - 1)).encode("utf-8")
-                ).hexdigest(),
-                16,
+                sha3_256(str(randint(0, 2 ** size - 1)).encode("utf-8")).hexdigest(), 16
             )
         return symbol_factory.BitVecVal(val, 256)
 
     def _find_value(self, symbol, model):
         modify = symbol
+        size = min(symbol.size(), 256)
         if symbol.size() > 256:
             index = simplify(Extract(255, 0, symbol))
         else:
@@ -250,9 +252,10 @@ class Storage:
             modify = modify.as_long()
         except AttributeError:
             modify = randint(0, 2 ** modify.size() - 1)
-        modify = symbol_factory.BitVecVal(modify, 256)
+        modify = symbol_factory.BitVecVal(modify, size)
         if index and not index.symbolic:
             modify = Concat(modify, index)
+        assert modify.size() == symbol.size()
         return modify
 
     def _traverse_concretise(self, key, model):
@@ -262,37 +265,18 @@ class Storage:
         :param model:
         :return:
         """
-        print(simplify(key))
         constraints = []
         if not isinstance(key, BitVecFunc):
             concrete_value = self._find_value(key, model)
-            constraints.append(concrete_value == key)
+            key.potential_value = concrete_value
             return constraints, concrete_value
-        if key.size() != 512 and str(key.input_) == "":
-            print("SHIT")
-            for arg in key.concat_args:
-                new_const, val = self._traverse_concretise(arg, model)
-                constraints += new_const
-        else:
-            cnt = 0
-            val = None
-            i = 0
-            while cnt != 256 and i < len(key.concat_args):
-                if val is None:
-                    val = key.concat_args[i]
-                else:
-                    val = Concat(val, key.concat_args[i])
-                cnt += key.concat_args[i].size()
-                i += 1
-            if val is not None:
-                val.simplify()
-                print(key.concat_args[i:], val, "CONCAT")
-                new_const, concrete_val = self._traverse_concretise(val, model)
-                constraints += new_const
-            if i < len(key.concat_args):
-                for arg in key.concat_args[i:]:
-                    new_const, val = self._traverse_concretise(arg, model)
-                    constraints += new_const
+        if key.size() == 512:
+            val = simplify(Extract(511, 256, key))
+            new_const, concrete_val = self._traverse_concretise(val, model)
+            constraints += new_const
+            new_const, val2 = self._traverse_concretise(Extract(255, 0, key), model)
+            key.potential_value = Concat(concrete_val, val2)
+            constraints += new_const
 
         if isinstance(key.input_, BitVec) or (
             isinstance(key.input_, BitVecFunc) and key.input_.func_name == "sha3"
@@ -300,10 +284,21 @@ class Storage:
             new_const, _ = self._traverse_concretise(key.input_, model)
             constraints += new_const
 
-        if key.func_name == "sha3":
-            key.potential_value = self.calc_sha3(key.input_)
-
-        return constraints, key
+        if isinstance(key, BitVecFunc):
+            if key.size() == 512:
+                p1 = Extract(511, 256, key)
+                p1 = self.calc_sha3(p1.input_.potential_value, p1.input_.size())
+                key.potential_value = Concat(p1, Extract(255, 0, key))
+                if str(key.raw) != "":
+                    constraints += [key.raw == key.potential_value.value]
+            else:
+                key.potential_value = self.calc_sha3(
+                    key.input_.potential_value, key.input_.size()
+                )
+                if str(key.raw) != "":
+                    constraints += [key.raw == key.potential_value.value]
+        assert key.size() == key.potential_value.size()
+        return constraints, key.potential_value
 
 
 class Account:

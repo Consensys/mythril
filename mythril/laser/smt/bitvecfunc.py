@@ -113,8 +113,6 @@ def _comparison_helper(
         Bool(condition) if b.nested_functions else Bool(True),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
-    if a.potential_value is not None:
-        return Or(comparision, b == a.potential_value)
     return comparision
 
 
@@ -142,7 +140,6 @@ class BitVecFunc(BitVec):
         self.input_ = input_
         self.nested_functions = nested_functions or []
         self.nested_functions = list(dict.fromkeys(self.nested_functions))
-        self.potential_value = None
         self.concat_args = concat_args or []
         if isinstance(input_, BitVecFunc):
             self.nested_functions.extend(input_.nested_functions)

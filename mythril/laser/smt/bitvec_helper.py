@@ -147,14 +147,14 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
             if isinstance(bv, BitVecFuncExtract):
                 if parent is None:
                     parent = bv.parent
-                if parent != bv.parent:
+                if hash(parent.raw) != hash(bv.parent.raw):
                     continue
                 bfne_cnt += 1
 
     if bfne_cnt == len(bvs):
         # check for continuity
         fail = True
-        if bvs[0].high == bvs[0].parent.size() - 1 and bvs[-1].low == 0:
+        if bvs[-1].low == 0:
             fail = False
             for index, bv in enumerate(bvs):
                 if index == 0:
@@ -162,10 +162,26 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
                 if bv.high + 1 != bvs[index - 1].low:
                     fail = True
                     break
+
         if fail is False:
-            return bvs[0].parent
+            if bvs[0].high == bvs[0].parent.size() - 1:
+                return bvs[0].parent
+            else:
+                return BitVecFuncExtract(
+                    raw=nraw,
+                    func_name=bvs[0].func_name,
+                    input_=bvs[0].input_,
+                    nested_functions=nested_functions,
+                    concat_args=concat_list,
+                    low=bvs[-1].low,
+                    high=bvs[0].high,
+                    parent=bvs[0].parent,
+                )
 
     if nested_functions:
+        for bv in bvs:
+            bv.simplify()
+
         return BitVecFunc(
             raw=nraw,
             func_name="Hybrid",
@@ -185,6 +201,7 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     :param bv:
     :return:
     """
+
     raw = z3.Extract(high, low, bv.raw)
     if isinstance(bv, BitVecFunc):
         count = 0
@@ -199,9 +216,9 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
                         small_bv.size() - (high - low + 1),
                         small_bv,
                     )
-            if high < count:
+            elif high < count:
                 break
-            if low < count:
+            elif low < count:
                 if low + small_bv.size() <= high:
                     val = Concat(small_bv, val)
                 else:
@@ -219,6 +236,7 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
                 val.raw == val.parent.raw
             ):
                 val = val.parent
+            val.simplify()
             return val
         input_string = ""
         # Is there a better value to set func_name and input to in this case?

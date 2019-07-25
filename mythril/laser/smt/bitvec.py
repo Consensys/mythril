@@ -31,6 +31,7 @@ class BitVec(Expression[z3.BitVecRef]):
         :param raw:
         :param annotations:
         """
+        self.potential_value = None
         super().__init__(raw, annotations)
 
     def size(self) -> int:

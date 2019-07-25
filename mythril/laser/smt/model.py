@@ -2,6 +2,10 @@ import z3
 
 from typing import Union, List
 
+z3.set_option(
+    max_args=10000000, max_lines=10000000, max_depth=10000000, max_visited=1000000
+)
+
 
 class Model:
     """ The model class wraps a z3 model
