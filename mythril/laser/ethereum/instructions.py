@@ -1720,7 +1720,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = environment.active_account.address
                 receiver = callee_account.address
-                transfer_ether(sender, receiver, value)
+                transfer_ether(global_state, sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1842,7 +1842,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
                 receiver = callee_account.address
-                transfer_ether(sender, receiver, value)
+                transfer_ether(global_state, sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1957,7 +1957,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = environment.active_account.address
                 receiver = callee_account.address
-                transfer_ether(sender, receiver, value)
+                transfer_ether(global_state, sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -2070,7 +2070,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
                 receiver = callee_account.address
-                transfer_ether(sender, receiver, value)
+                transfer_ether(global_state, sender, receiver, value)
 
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
