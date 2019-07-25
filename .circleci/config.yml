@@ -103,6 +103,8 @@ jobs:
           name: Run Edelweiss
           command: |
               docker run \
+                -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
+                -e CIRCLE_SHA1=$CIRCLE_SHA1 \
                 -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
                 -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
                 -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
