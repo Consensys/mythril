@@ -55,6 +55,8 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         enable_iprof=False,
+        enable_coverage_strategy=False,
+        instruction_laser_plugin=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -101,6 +103,13 @@ class LaserEVM:
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
         self.iprof = InstructionProfiler() if enable_iprof else None
+
+        if enable_coverage_strategy:
+            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
+                CoverageStrategy,
+            )
+
+            self.strategy = CoverageStrategy(self.strategy, instruction_laser_plugin)
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
