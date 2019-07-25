@@ -189,7 +189,6 @@ class ContractCreationTransaction(BaseTransaction):
             0, concrete_storage=True, creator=caller.value
         )
         callee_account.contract_name = contract_name
-        # TODO: set correct balance for new account
         super().__init__(
             world_state=world_state,
             callee_account=callee_account,
