@@ -43,6 +43,7 @@ class ReachableExceptionsModule(DetectionModule):
         :param state:
         :return:
         """
+        print("SHIT ASSERT")
         log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
 
         try:
@@ -76,6 +77,7 @@ class ReachableExceptionsModule(DetectionModule):
             return [issue]
 
         except UnsatError:
+            print("SHIT NO Model", state.mstate.constraints)
             log.debug("no model found")
 
         return []

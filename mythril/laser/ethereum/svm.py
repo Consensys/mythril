@@ -16,8 +16,8 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
-from mythril.laser.smt import Solver
-from z3 import unsat
+from mythril.analysis.solver import get_model, UnsatError
+
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -26,6 +26,12 @@ from mythril.laser.ethereum.transaction import (
     execute_message_call,
 )
 from mythril.laser.smt import symbol_factory
+
+ACTOR_ADDRESSES = [
+    symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
+    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF, 256),
+    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEE, 256),
+]
 
 log = logging.getLogger(__name__)
 
@@ -347,15 +353,17 @@ class LaserEVM:
         return new_global_states, op_code
 
     def concretize_ite_storage(self, global_state):
-        solver = Solver()
-        for constraint in global_state.mstate.constraints:
-            solver.add(constraint)
+        sender = global_state.environment.sender
+        models = []
 
-        if solver.check() == unsat:
-            return []
-        model = solver.model()
+        for actor in ACTOR_ADDRESSES:
+            try:
+                models.append(get_model(constraints=global_state.mstate.constraints + [sender == actor]))
+            except UnsatError:
+                models.append(None)
+
         for account in global_state.world_state.accounts.values():
-            global_state.mstate.constraints += account.storage.concretize(model)
+            account.storage.concretize(models)
 
     def _end_message_call(
         self,

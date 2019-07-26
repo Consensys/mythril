@@ -113,6 +113,10 @@ def _comparison_helper(
         Bool(condition) if b.nested_functions else Bool(True),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
+    if a.potential_value:
+        for i, val in enumerate(a.potential_value):
+            comparision = Or(comparision, val == b)
+
     return comparision
 
 
