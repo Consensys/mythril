@@ -345,6 +345,6 @@ class DependencyPruner(LaserPlugin):
                     state.get_current_instruction()["address"],
                     state.node.function_name,
                     self.sloads_on_path,
-                    annotation.storage_written[self.iteration],
+                    annotation.storage_written.get(self.iteration, []),
                 )
             )

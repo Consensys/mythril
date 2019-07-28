@@ -2,7 +2,7 @@
 
 This includes classes representing accounts and their storage.
 """
-from hashlib import sha3_256
+from sha3 import keccak_256
 from copy import copy, deepcopy
 from typing import Any, Dict, Union, Tuple, cast, List
 from random import randint
@@ -16,6 +16,7 @@ from mythril.laser.smt import (
     BaseArray,
     Concat,
     If,
+    Or
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
@@ -214,20 +215,29 @@ class Storage:
         return str(self._printable_storage)
 
     def concretize(self, models):
+        total_constraints = []
         for key, value in self._ite_region.itelist:
             if simplify(Extract(255, 0, key.input_)).symbolic or not isinstance(
                 key.input_, BitVecFunc
             ):
                 continue
-            key_concrete = self._traverse_concretise(key, models)
+            key_concrete, constraints = self._traverse_concretise(key, models)
             key.potential_value = key_concrete
+            total_constraints += constraints
+        return total_constraints
 
     def calc_sha3(self, val, size):
         try:
-            val = int(sha3_256(str(val.value).encode("utf-8")).hexdigest(), 16)
+            hex_val = hex(val.value)[2:]
+            if len(hex_val) % 2 != 0:
+                hex_val += "0"
+            val = int(keccak_256(bytes.fromhex(hex_val)).hexdigest(), 16)
         except AttributeError:
+            ran = hex(randint(0, 2 ** size - 1))[2:]
+            if len(ran) % 2 != 0:
+                ran += "0"
             val = int(
-                sha3_256(str(randint(0, 2 ** size - 1)).encode("utf-8")).hexdigest(), 16
+                keccak_256(bytes.fromhex(ran)).hexdigest(), 16
             )
         return symbol_factory.BitVecVal(val, 256)
 
@@ -250,6 +260,7 @@ class Storage:
         modify = symbol_factory.BitVecVal(modify, size)
         if index and not index.symbolic:
             modify = Concat(modify, index)
+
         assert modify.size() == symbol.size()
         return modify
 
@@ -260,26 +271,35 @@ class Storage:
         :param model:
         :return:
         """
+        constraints = []
         if not isinstance(key, BitVecFunc):
             concrete_values = [self._find_value(key, model) for model in models]
-            key.potential_values = concrete_values
-            return concrete_values
+            key.potential_value = concrete_values
+            condition = False
+
+            if str(key) != "" and key.potential_value:
+                for val in key.potential_value:
+                    if val:
+                        condition = Or(condition, key == val)
+                constraints = [condition]
+            return concrete_values, constraints
         if key.size() == 512:
             val = simplify(Extract(511, 256, key))
-            concrete_vals = self._traverse_concretise(val, models)
-            vals2 = self._traverse_concretise(Extract(255, 0, key), models)
+            concrete_vals, c1 = self._traverse_concretise(val, models)
+            vals2, c2 = self._traverse_concretise(Extract(255, 0, key), models)
             key.potential_value = []
             for val1, val2 in zip(concrete_vals, vals2):
                 if val2 and val1:
                     key.potential_value.append(Concat(val1, val2))
                 else:
                     key.potential_value.append(None)
-
+            constraints = c1 + c2
         if isinstance(key.input_, BitVec) or (
             isinstance(key.input_, BitVecFunc) and key.input_.func_name == "sha3"
         ):
-            value = self._traverse_concretise(key.input_, models)
+            value, c1 = self._traverse_concretise(key.input_, models)
             key.input_.potential_value = value
+            constraints += c1
 
         if isinstance(key, BitVecFunc):
             if key.size() == 512:
@@ -303,7 +323,7 @@ class Storage:
                         key.potential_value.append(None)
         if key.potential_value[0] is not None:
             assert key.size() == key.potential_value[0].size()
-        return key.potential_value
+        return key.potential_value, constraints
 
 
 class Account:

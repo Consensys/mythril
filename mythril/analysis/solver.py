@@ -152,13 +152,14 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
         address = ""
         input_ = transaction.code.bytecode
     else:
+        print(transaction.call_data._calldata.raw)
         input_ = "".join(
             [
                 hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
                 for b in transaction.call_data.concrete(model)
             ]
         )
-
+    print(transaction.call_data.concrete(model))
     # Create concrete transaction dict
     concrete_transaction = dict()  # type: Dict[str, str]
     concrete_transaction["input"] = "0x" + input_

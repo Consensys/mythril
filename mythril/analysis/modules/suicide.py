@@ -103,6 +103,10 @@ class SuicideModule(DetectionModule):
             )
             return [issue]
         except UnsatError:
+            try:
+                solver.get_model(tuple(state.mstate.constraints[:-1]))
+            except UnsatError:
+                print("Failed")
             log.info("[UNCHECKED_SUICIDE] no model found")
 
         return []

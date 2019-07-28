@@ -1370,7 +1370,6 @@ class Instruction:
         index = state.stack.pop()
 
         state.stack.append(global_state.environment.active_account.storage[index])
-
         return [global_state]
 
     @StateTransition()

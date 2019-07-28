@@ -328,7 +328,9 @@ class LaserEVM:
             transaction, return_global_state = end_signal.global_state.transaction_stack[
                 -1
             ]
-            self.concretize_ite_storage(end_signal.global_state)
+            c = self.concretize_ite_storage(end_signal.global_state)
+            end_signal.global_state.mstate.constraints += c
+            end_signal.global_state.node.constraints += c
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
@@ -355,15 +357,20 @@ class LaserEVM:
     def concretize_ite_storage(self, global_state):
         sender = global_state.environment.sender
         models = []
-
+        sat = False
         for actor in ACTOR_ADDRESSES:
             try:
                 models.append(get_model(constraints=global_state.mstate.constraints + [sender == actor]))
+                sat = True
             except UnsatError:
                 models.append(None)
-
+        if not sat:
+            return [False]
+        constraints = []
         for account in global_state.world_state.accounts.values():
-            account.storage.concretize(models)
+            constraints += account.storage.concretize(models)
+
+        return constraints
 
     def _end_message_call(
         self,
