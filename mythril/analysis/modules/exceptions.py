@@ -74,10 +74,10 @@ class ReachableExceptionsModule(DetectionModule):
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+            print(state.mstate.constraints)
             return [issue]
 
         except UnsatError:
-            print("SHIT NO Model", state.mstate.constraints)
             log.debug("no model found")
 
         return []

@@ -69,10 +69,10 @@ def _comparison_helper(
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
     if not isinstance(b, BitVecFunc) and a.potential_value:
         condition = False
-        for value in a.potential_value:
+        for value, cond in a.potential_value:
             if value is not None:
-                condition = Or(condition, b == value)
-        return condition
+                condition = Or(condition, And(b == value, cond))
+        return And(condition, operation(a.raw, b.raw))
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
@@ -121,7 +121,7 @@ def _comparison_helper(
     )
     if a.potential_value:
         for i, val in enumerate(a.potential_value):
-            comparision = Or(comparision, val == b)
+            comparision = Or(comparision, And(operation(val[0].raw, b.raw), val[1]))
 
     comparision.simplify()
     return comparision

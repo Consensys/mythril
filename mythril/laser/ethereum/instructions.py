@@ -1370,6 +1370,8 @@ class Instruction:
         index = state.stack.pop()
 
         state.stack.append(global_state.environment.active_account.storage[index])
+        if global_state.get_current_instruction()['address'] == 357:
+            print(state.stack[-1])
         return [global_state]
 
     @StateTransition()

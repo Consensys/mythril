@@ -16,7 +16,8 @@ from mythril.laser.smt import (
     BaseArray,
     Concat,
     If,
-    Or
+    Or,
+    And
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
@@ -141,20 +142,20 @@ class IteStorageRegion(StorageRegion):
     def __init__(self) -> None:
         """Constructor for Storage.
         """
-        self.itelist = []  # type: List[Tuple[BitVecFunc, Any]]
+        self.itedict = {}  # type: Dict[Tuple[BitVecFunc, Any]]
 
     def __getitem__(self, item: BitVecFunc):
         storage = symbol_factory.BitVecVal(0, 256)
-        for key, val in self.itelist[::-1]:
+        for key, val in self.itedict.items():
             storage = If(item == key, val, storage)
         return storage
 
     def __setitem__(self, key: BitVecFunc, value):
-        self.itelist.append((key, value))
+        self.itedict[key] = value
 
     def __deepcopy__(self, memodict={}):
         ite_copy = IteStorageRegion()
-        ite_copy.itelist = copy(self.itelist)
+        ite_copy.itedict = copy(self.itedict)
         return ite_copy
 
 
@@ -187,7 +188,6 @@ class Storage:
                 and key.func_name == "keccak256"
                 and len(key.nested_functions) <= 1
             )
-            or key.potential_value is not None
         )
 
     def __getitem__(self, key: BitVec) -> BitVec:
@@ -215,16 +215,9 @@ class Storage:
         return str(self._printable_storage)
 
     def concretize(self, models):
-        total_constraints = []
-        for key, value in self._ite_region.itelist:
-            if simplify(Extract(255, 0, key.input_)).symbolic or not isinstance(
-                key.input_, BitVecFunc
-            ):
-                continue
-            key_concrete, constraints = self._traverse_concretise(key, models)
+        for key, value in self._ite_region.itedict.items():
+            key_concrete = self._traverse_concretise(key, models)
             key.potential_value = key_concrete
-            total_constraints += constraints
-        return total_constraints
 
     def calc_sha3(self, val, size):
         try:
@@ -271,59 +264,60 @@ class Storage:
         :param model:
         :return:
         """
-        constraints = []
         if not isinstance(key, BitVecFunc):
-            concrete_values = [self._find_value(key, model) for model in models]
-            key.potential_value = concrete_values
-            condition = False
+            concrete_values = [self._find_value(key, model[0]) for model in models]
+            potential_values = concrete_values
+            key.potential_value = []
+            for i, val in enumerate(potential_values):
+                key.potential_value.append((val, And(models[i][1], BitVec(key.raw) == val)))
 
-            if str(key) != "" and key.potential_value:
-                for val in key.potential_value:
-                    if val:
-                        condition = Or(condition, key == val)
-                constraints = [condition]
-            return concrete_values, constraints
+            return key.potential_value
         if key.size() == 512:
             val = simplify(Extract(511, 256, key))
-            concrete_vals, c1 = self._traverse_concretise(val, models)
-            vals2, c2 = self._traverse_concretise(Extract(255, 0, key), models)
+            concrete_vals = self._traverse_concretise(val, models)
+            vals2 = self._traverse_concretise(Extract(255, 0, key), models)
             key.potential_value = []
+            i = 0
             for val1, val2 in zip(concrete_vals, vals2):
                 if val2 and val1:
-                    key.potential_value.append(Concat(val1, val2))
+                    c_val = Concat(val1[0], val2[0])
+                    condition = And(models[i][1], BitVec(key.raw) == c_val, val1[1], val2[1])
+                    key.potential_value.append((c_val, condition))
                 else:
-                    key.potential_value.append(None)
-            constraints = c1 + c2
+                    key.potential_value.append((None, None))
+
         if isinstance(key.input_, BitVec) or (
             isinstance(key.input_, BitVecFunc) and key.input_.func_name == "sha3"
         ):
-            value, c1 = self._traverse_concretise(key.input_, models)
-            key.input_.potential_value = value
-            constraints += c1
+            self._traverse_concretise(key.input_, models)
 
         if isinstance(key, BitVecFunc):
             if key.size() == 512:
                 p1 = Extract(511, 256, key)
-                p1 = [self.calc_sha3(val, p1.input_.size()) for val in p1.input_.potential_value]
-                key.potential_value = [Concat(p, Extract(255, 0, key)) for p in p1]
+                p1 = [(self.calc_sha3(val[0], p1.input_.size()), val[1]) for val in p1.input_.potential_value]
                 key.potential_value = []
-                for val in p1:
-                    if val:
-                        key.potential_value.append(Concat(val, Extract(255, 0, key)))
+                for i, val in enumerate(p1):
+                    if val[0]:
+                        c_val = Concat(val[0], Extract(255, 0, key))
+                        condition = And(models[i][1], val[1], BitVec(key.raw) == c_val)
+                        key.potential_value.append((c_val, condition))
                     else:
-                        key.potential_value.append(None)
+                        key.potential_value.append((None, None))
             else:
                 key.potential_value = []
-                for val in key.input_.potential_value:
-                    if val:
-                        key.potential_value.append(self.calc_sha3(
-                            val, key.input_.size()
-                        ))
+                for i, val in enumerate(key.input_.potential_value):
+                    if val[0]:
+                        concrete_val = self.calc_sha3(
+                            val[0], key.input_.size()
+                        )
+                        condition = And(models[i][1], val[1], BitVec(key.raw) == concrete_val)
+                        key.potential_value.append((concrete_val, condition))
                     else:
-                        key.potential_value.append(None)
-        if key.potential_value[0] is not None:
-            assert key.size() == key.potential_value[0].size()
-        return key.potential_value, constraints
+                        key.potential_value.append((None, None))
+        if key.potential_value[0][0] is not None:
+            assert key.size() == key.potential_value[0][0].size()
+
+        return key.potential_value
 
 
 class Account:
