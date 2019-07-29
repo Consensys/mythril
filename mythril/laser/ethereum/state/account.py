@@ -193,13 +193,13 @@ class Storage:
     def __getitem__(self, key: BitVec) -> BitVec:
         ite_get = self._ite_region[cast(BitVecFunc, key)]
         array_get = self._array_region[key]
+        print(If(ite_get, ite_get, array_get))
         return If(ite_get, ite_get, array_get)
 
     def __setitem__(self, key: BitVec, value: Any) -> None:
         self._printable_storage[key] = value
         if self._array_condition(key):
             self._array_region[key] = value
-            return
 
         self._ite_region[cast(BitVecFunc, key)] = value
 

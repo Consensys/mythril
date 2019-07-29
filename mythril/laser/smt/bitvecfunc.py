@@ -67,12 +67,12 @@ def _comparison_helper(
         if operation == z3.ULT:
             operation = operator.lt
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
-    if not isinstance(b, BitVecFunc) and a.potential_value:
-        condition = False
-        for value, cond in a.potential_value:
-            if value is not None:
-                condition = Or(condition, And(b == value, cond))
-        return And(condition, operation(a.raw, b.raw))
+    #if not isinstance(b, BitVecFunc) and a.potential_value:
+    #    condition = False
+    #    for value, cond in a.potential_value:
+    #        if value is not None:
+    #            condition = Or(condition, And(b == value, cond))
+    #    return And(condition, operation(a.raw, b.raw))
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name

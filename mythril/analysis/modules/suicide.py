@@ -101,6 +101,7 @@ class SuicideModule(DetectionModule):
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+            print(state.mstate.constraints)
             return [issue]
         except UnsatError:
             try:
