@@ -93,7 +93,9 @@ class EtherThief(DetectionModule):
             Also constrain the addition from overflowing (otherwise the solver produces solutions with
             ridiculously high call values).
             """
-            constraints += [BVAddNoOverflow(eth_sent_by_attacker, tx.call_value, signed=False)]
+            constraints += [
+                BVAddNoOverflow(eth_sent_by_attacker, tx.call_value, signed=False)
+            ]
             eth_sent_by_attacker = Sum(
                 eth_sent_by_attacker,
                 tx.call_value * If(tx.caller == ATTACKER_ADDRESS, 1, 0),
