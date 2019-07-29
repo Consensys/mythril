@@ -5,6 +5,7 @@ from typing import Dict
 from z3 import ExprRef
 
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.state.calldata import BaseCalldata
 from mythril.laser.smt import symbol_factory
 
@@ -22,6 +23,7 @@ class Environment:
         callvalue: ExprRef,
         origin: ExprRef,
         code=None,
+        constraints=None,
     ) -> None:
         """
 

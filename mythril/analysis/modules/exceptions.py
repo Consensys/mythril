@@ -43,7 +43,6 @@ class ReachableExceptionsModule(DetectionModule):
         :param state:
         :return:
         """
-        print("SHIT ASSERT")
         log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
 
         try:
@@ -74,7 +73,6 @@ class ReachableExceptionsModule(DetectionModule):
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
-            print(state.mstate.constraints)
             return [issue]
 
         except UnsatError:

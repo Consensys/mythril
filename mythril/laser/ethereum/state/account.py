@@ -122,7 +122,6 @@ class ArrayStorageRegion(StorageRegion):
         storage, is_keccak_storage = self._get_corresponding_storage(key)
         if is_keccak_storage:
             key = self._sanitize(key.input_)
-
         storage[key] = value
 
     def __deepcopy__(self, memodict=dict()):
@@ -180,7 +179,6 @@ class Storage:
 
     @staticmethod
     def _array_condition(key: BitVec):
-
         return (
             not isinstance(key, BitVecFunc)
             or (
@@ -193,7 +191,6 @@ class Storage:
     def __getitem__(self, key: BitVec) -> BitVec:
         ite_get = self._ite_region[cast(BitVecFunc, key)]
         array_get = self._array_region[key]
-        print(If(ite_get, ite_get, array_get))
         return If(ite_get, ite_get, array_get)
 
     def __setitem__(self, key: BitVec, value: Any) -> None:
