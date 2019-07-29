@@ -120,8 +120,6 @@ class EtherThief(DetectionModule):
             state.current_transaction.caller == ATTACKER_ADDRESS,
         ]
 
-        log.debug("Constraints: %s", constraints)
-
         try:
 
             transaction_sequence = solver.get_transaction_sequence(state, constraints)
@@ -144,10 +142,6 @@ class EtherThief(DetectionModule):
         except UnsatError:
             log.debug("No model found")
             return []
-
-        log.debug("Found ether thief issue: %s", issue.as_dict)
-
-        log.debug("Model: %s", solver.pretty_print_model(solver.get_model(constraints)))
 
         return [issue]
 

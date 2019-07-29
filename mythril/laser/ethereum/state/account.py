@@ -99,7 +99,6 @@ class Storage:
                 return storage[item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
-                pass
 
         return simplify(storage[item])
 
