@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
-from typing import Callable, Dict, DefaultDict, List, Tuple, Union
+from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -75,6 +75,7 @@ class LaserEVM:
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
+        # TODO: What about using a deque here?
         self.work_list = []  # type: List[GlobalState]
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
@@ -209,7 +210,7 @@ class LaserEVM:
             for hook in self._stop_sym_trans_hooks:
                 hook()
 
-    def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
+    def exec(self, create=False, track_gas=False) -> Optional[List[GlobalState]]:
         """
 
         :param create:
@@ -223,6 +224,7 @@ class LaserEVM:
                 and create
                 and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
             ):
+                log.debug("Hit create timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
             if (
@@ -231,6 +233,7 @@ class LaserEVM:
                 <= datetime.now()
                 and not create
             ):
+                log.debug("Hit execution timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
             try:
@@ -243,8 +246,7 @@ class LaserEVM:
                 state for state in new_states if state.mstate.constraints.is_possible
             ]
 
-            self.manage_cfg(op_code, new_states)
-
+            self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
             elif track_gas:
@@ -265,11 +267,11 @@ class LaserEVM:
 
     def execute_state(
         self, global_state: GlobalState
-    ) -> Tuple[List[GlobalState], Union[str, None]]:
-        """
+    ) -> Tuple[List[GlobalState], Optional[str]]:
+        """Execute a single instruction in global_state.
 
         :param global_state:
-        :return:
+        :return: A list of successor states.
         """
         # Execute hooks
         for hook in self._execute_state_hooks:
@@ -405,6 +407,7 @@ class LaserEVM:
             for state in new_states:
                 self._new_node_state(state)
         elif opcode == "JUMPI":
+            assert len(new_states) <= 2
             for state in new_states:
                 self._new_node_state(
                     state, JumpType.CONDITIONAL, state.mstate.constraints[-1]

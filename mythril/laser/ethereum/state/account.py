@@ -93,7 +93,8 @@ class Storage:
                 )
                 self.printable_storage[item] = storage[item]
                 return storage[item]
-            except ValueError:
+            except ValueError as e:
+                log.debug("Couldn't read storage at %s: %s", item, e)
                 pass
 
         return simplify(storage[item])
