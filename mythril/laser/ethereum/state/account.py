@@ -76,8 +76,9 @@ class Storage:
         if is_keccak_storage:
             item = self._sanitize(cast(BitVecFunc, item).input_)
         value = storage[item]
+
         if (
-            value.value == 0
+            (value.value == 0 or value.value is None)  # 0 for Array, None for K
             and self.address
             and item.symbolic is False
             and self.address.value != 0
