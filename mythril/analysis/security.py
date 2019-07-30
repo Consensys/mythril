@@ -65,14 +65,14 @@ def get_detection_modules(entrypoint, include_modules=(), custom_modules_directo
 
     _modules = []
 
-    custom_modules_directory = os.path.abspath(custom_modules_directory)
+    custom_modules_path = os.path.abspath(custom_modules_directory)
 
-    if custom_modules_directory and custom_modules_directory not in sys.path:
-        sys.path.append(custom_modules_directory)
+    if custom_modules_directory and custom_modules_path not in sys.path:
+        sys.path.append(custom_modules_path)
 
     custom_packages = (
-        list(pkgutil.walk_packages([custom_modules_directory]))
-        if custom_modules_directory
+        list(pkgutil.walk_packages([custom_modules_path]))
+        if custom_modules_path
         else []
     )
     packages = list(pkgutil.walk_packages(modules.__path__)) + custom_packages
@@ -88,7 +88,7 @@ def get_detection_modules(entrypoint, include_modules=(), custom_modules_directo
                 )
             except ModuleNotFoundError:
                 try:
-                    module = importlib.import_module(module_name)
+                    module = importlib.import_module(module_name, custom_modules_path)
                 except ModuleNotFoundError:
                     raise ModuleNotFoundError
             module.log.setLevel(log.level)
