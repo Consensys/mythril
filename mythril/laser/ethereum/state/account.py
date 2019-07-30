@@ -2,6 +2,7 @@
 
 This includes classes representing accounts and their storage.
 """
+import logging
 from copy import copy, deepcopy
 from typing import Any, Dict, Union, Tuple, cast, List
 
@@ -18,6 +19,8 @@ from mythril.laser.smt import (
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
+
+log = logging.getLogger(__name__)
 
 
 class StorageRegion:
@@ -60,7 +63,7 @@ class ArrayStorageRegion(StorageRegion):
             item = self._sanitize(cast(BitVecFunc, item).input_)
         value = storage[item]
         if (
-            value.value == 0
+            (value.value == 0 or value.value is None)  # 0 for Array, None for K
             and self.address
             and item.symbolic is False
             and self.address.value != 0
@@ -78,8 +81,8 @@ class ArrayStorageRegion(StorageRegion):
                     256,
                 )
                 return storage[item]
-            except ValueError:
-                pass
+            except ValueError as e:
+                log.debug("Couldn't read storage at %s: %s", item, e)
 
         return simplify(storage[item])
 

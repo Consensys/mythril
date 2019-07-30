@@ -4,7 +4,7 @@ parameters for the new global state."""
 
 import logging
 import re
-from typing import Union, List, cast, Callable
+from typing import Union, List, cast, Callable, Optional
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
@@ -84,6 +84,7 @@ def get_callee_address(
     except TypeError:
         log.debug("Symbolic call encountered")
 
+        # TODO: This is broken. Now it should be Storage[(\d+)].
         match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
         log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
@@ -99,7 +100,7 @@ def get_callee_address(
                 "0x{:040X}".format(environment.active_account.address.value), index
             )
         # TODO: verify whether this happens or not
-        except:
+        except Exception:
             log.debug("Error accessing contract storage.")
             raise ValueError
 
@@ -120,28 +121,27 @@ def get_callee_account(
     :param dynamic_loader: dynamic loader to use
     :return: Account belonging to callee
     """
-    environment = global_state.environment
     accounts = global_state.accounts
 
     try:
         return global_state.accounts[int(callee_address, 16)]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
-        log.debug("Module with address " + callee_address + " not loaded.")
+        log.debug("Module with address %s not loaded.", callee_address)
 
     if dynamic_loader is None:
-        raise ValueError()
+        raise ValueError("dynamic_loader is None")
 
     log.debug("Attempting to load dependency")
 
     try:
         code = dynamic_loader.dynld(callee_address)
     except ValueError as error:
-        log.debug("Unable to execute dynamic loader because: {}".format(str(error)))
+        log.debug("Unable to execute dynamic loader because: %s", error)
         raise error
     if code is None:
         log.debug("No code returned, not a contract account?")
-        raise ValueError()
+        raise ValueError("No code returned")
     log.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(
@@ -213,7 +213,7 @@ def native_call(
     call_data: BaseCalldata,
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
-) -> Union[List[GlobalState], None]:
+) -> Optional[List[GlobalState]]:
     if not 0 < int(callee_address, 16) < 5:
         return None
 
