@@ -19,6 +19,12 @@ In file: {{ issue.filename }}:{{ issue.lineno }}
 --------------------
 {% endif %}
 {% if issue.tx_sequence %}
+Initial State:
+
+{% for key, value in issue.tx_sequence.initialState.accounts.items() %}
+Account: {% if key == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif key == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, balance: {{value.balance}}, nonce:{{value.nonce}}, storage:{{value.storage}}
+{% endfor %}
+
 Transaction Sequence:
 
 {% for step in issue.tx_sequence.steps %}

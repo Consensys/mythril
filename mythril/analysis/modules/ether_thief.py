@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Search for cases where Ether can be withdrawn to a user-specified address. 
+Search for cases where Ether can be withdrawn to a user-specified address.
 
 An issue is reported if:
 
@@ -121,7 +121,7 @@ class EtherThief(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
         except UnsatError:
-            log.debug("[ETHER_THIEF] no model found")
+            log.debug("No model found")
             return []
 
         return [issue]

@@ -4,7 +4,7 @@ parameters for the new global state."""
 
 import logging
 import re
-from typing import Union, List, cast, Callable
+from typing import Union, List, cast, Callable, Optional
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
@@ -125,7 +125,6 @@ def get_callee_account(
     :param dynamic_loader: dynamic loader to use
     :return: Account belonging to callee
     """
-    environment = global_state.environment
     accounts = global_state.accounts
 
     if isinstance(callee_address, BitVec):
@@ -138,21 +137,21 @@ def get_callee_account(
         return global_state.accounts[int(callee_address, 16)]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
-        log.debug("Module with address " + callee_address + " not loaded.")
+        log.debug("Module with address %s not loaded.", callee_address)
 
     if dynamic_loader is None:
-        raise ValueError()
+        raise ValueError("dynamic_loader is None")
 
     log.debug("Attempting to load dependency")
 
     try:
         code = dynamic_loader.dynld(callee_address)
     except ValueError as error:
-        log.debug("Unable to execute dynamic loader because: {}".format(str(error)))
+        log.debug("Unable to execute dynamic loader because: %s", error)
         raise error
     if code is None:
         log.debug("No code returned, not a contract account?")
-        raise ValueError()
+        raise ValueError("No code returned")
     log.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(
