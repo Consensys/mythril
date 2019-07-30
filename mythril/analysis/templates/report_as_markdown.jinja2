@@ -32,13 +32,19 @@ In file: {{ issue.filename }}
 {% endif %}
 {% if issue.tx_sequence %}
 
+### Initial State:
+
+{% for key, value in issue.tx_sequence.initialState.accounts.items() %}
+Account: {% if key == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif key == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, balance: {{value.balance}}, nonce:{{value.nonce}}, storage:{{value.storage}}
+{% endfor %}
+
 ### Transaction Sequence
 
 {% for step in issue.tx_sequence.steps %}
 {% if step == issue.tx_sequence.steps[0] and step.input != "0x" and step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}
 Caller: [CREATOR], data: [CONTRACT CREATION], value: {{ step.value }}
 {% else %}
-Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, data: {{ step.input }}, value: {{ step.value }}
+Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, function: {{ step.name }}, txdata: {{ step.input }}, value: {{ step.value }}
 {% endif %}
 {% endfor %}
 {% endif %}

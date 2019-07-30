@@ -1308,17 +1308,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0 = state.stack.pop()
-
-        try:
-            offset = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("Can't MLOAD from symbolic index")
-            data = global_state.new_bitvec(
-                "mem[invhash(" + str(hash(simplify(op0))) + ")]", 256
-            )
-            state.stack.append(data)
-            return [global_state]
+        offset = state.stack.pop()
 
         state.mem_extend(offset, 32)
         data = state.memory.get_word_at(offset)
@@ -1334,13 +1324,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0, value = state.stack.pop(), state.stack.pop()
-
-        try:
-            mstart = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("MSTORE to symbolic index. Not supported")
-            return [global_state]
+        mstart, value = state.stack.pop(), state.stack.pop()
 
         try:
             state.mem_extend(mstart, 32)
@@ -1359,13 +1343,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0, value = state.stack.pop(), state.stack.pop()
-
-        try:
-            offset = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("MSTORE to symbolic index. Not supported")
-            return [global_state]
+        offset, value = state.stack.pop(), state.stack.pop()
 
         state.mem_extend(offset, 1)
 
@@ -1618,17 +1596,13 @@ class Instruction:
         """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [global_state.new_bitvec("return_data", 8)]
-        try:
-            concrete_offset = util.get_concrete_int(offset)
-            concrete_length = util.get_concrete_int(length)
-            state.mem_extend(concrete_offset, concrete_length)
-            StateTransition.check_gas_usage_limit(global_state)
-            return_data = state.memory[
-                concrete_offset : concrete_offset + concrete_length
-            ]
-        except TypeError:
+        if length.symbolic:
+            return_data = [global_state.new_bitvec("return_data", 8)]
             log.debug("Return with symbolic length or offset. Not supported")
+        else:
+            state.mem_extend(offset, length)
+            StateTransition.check_gas_usage_limit(global_state)
+            return_data = state.memory[offset : offset + length]
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition()

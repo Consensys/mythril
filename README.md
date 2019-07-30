@@ -36,6 +36,45 @@ See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup)
 
 ## Usage
 
+Run:
+
+```
+$ myth analyze <solidity-file>
+```
+
+Or:
+
+```
+$ myth analyze -a <contract-address>
+```
+
+Specify the maximum number of transaction to explore with `-t <number>`. You can also set a timeout with `--execution-timeout <seconds>`. Example ([source code](https://gist.github.com/b-mueller/2b251297ce88aa7628680f50f177a81a#file-killbilly-sol)):
+
+```
+==== Unprotected Selfdestruct ====
+SWC ID: 106
+Severity: High
+Contract: KillBilly
+Function name: commencekilling()
+PC address: 354
+Estimated Gas Usage: 574 - 999
+The contract can be killed by anyone.
+Anyone can kill this contract and withdraw its balance to an arbitrary address.
+--------------------
+In file: killbilly.sol:22
+
+selfdestruct(msg.sender)
+
+--------------------
+Transaction Sequence:
+
+Caller: [CREATOR], data: [CONTRACT CREATION], value: 0x0
+Caller: [ATTACKER], function: killerize(address), txdata: 0x9fa299ccbebebebebebebebebebebebedeadbeefdeadbeefdeadbeefdeadbeefdeadbeef, value: 0x0
+Caller: [ATTACKER], function: activatekillability(), txdata: 0x84057065, value: 0x0
+Caller: [ATTACKER], function: commencekilling(), txdata: 0x7c11da20, value: 0x0
+```
+
+
 Instructions for using Mythril are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).

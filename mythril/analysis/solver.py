@@ -4,6 +4,7 @@ from typing import Dict, Tuple, Union
 from z3 import sat, unknown, FuncInterp
 import z3
 
+from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction import BaseTransaction
@@ -29,7 +30,7 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     :return:
     """
     s = Optimize()
-    timeout = 100000
+    timeout = analysis_args.solver_timeout
     if enforce_execution_time:
         timeout = min(timeout, time_handler.time_remaining() - 500)
         if timeout <= 0:
@@ -132,10 +133,10 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
         data["code"] = account.code.bytecode
-        data["storage"] = str(account.storage)
-        data["balance"] = min_price_dict.get(address, 0)
+        data["storage"] = account.storage.printable_storage
+        data["balance"] = hex(min_price_dict.get(address, 0))
         accounts[hex(address)] = data
-    return accounts
+    return {"accounts": accounts}
 
 
 def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):

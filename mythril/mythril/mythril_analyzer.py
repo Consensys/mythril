@@ -10,6 +10,7 @@ from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.analysis_args import analysis_args
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report, Issue
@@ -39,6 +40,8 @@ class MythrilAnalyzer:
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
         disable_dependency_pruning: bool = False,
+        solver_timeout: Optional[int] = None,
+        enable_coverage_strategy: bool = False,
     ):
         """
 
@@ -59,6 +62,10 @@ class MythrilAnalyzer:
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
         self.disable_dependency_pruning = disable_dependency_pruning
+        self.enable_coverage_strategy = enable_coverage_strategy
+
+        analysis_args.set_loop_bound(loop_bound)
+        analysis_args.set_solver_timeout(solver_timeout)
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -81,6 +88,7 @@ class MythrilAnalyzer:
             enable_iprof=self.enable_iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
+            enable_coverage_strategy=self.enable_coverage_strategy,
         )
 
         return get_serializable_statespace(sym)
@@ -116,6 +124,7 @@ class MythrilAnalyzer:
             enable_iprof=self.enable_iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
+            enable_coverage_strategy=self.enable_coverage_strategy,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
@@ -153,6 +162,7 @@ class MythrilAnalyzer:
                     compulsory_statespace=False,
                     enable_iprof=self.enable_iprof,
                     disable_dependency_pruning=self.disable_dependency_pruning,
+                    enable_coverage_strategy=self.enable_coverage_strategy,
                 )
 
                 issues = fire_lasers(sym, modules)

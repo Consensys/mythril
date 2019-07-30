@@ -7,6 +7,7 @@ from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
+from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
@@ -80,15 +81,17 @@ class DosModule(DetectionModule):
 
             if annotation.loop_start is not None:
                 return []
-
-            target = util.get_concrete_int(state.mstate.stack[-1])
-
+            try:
+                target = util.get_concrete_int(state.mstate.stack[-1])
+            except TypeError:
+                log.debug("Symbolic target encountered in dos module")
+                return []
             if target in annotation.jump_targets:
                 annotation.jump_targets[target] += 1
             else:
                 annotation.jump_targets[target] = 1
 
-            if annotation.jump_targets[target] > 2:
+            if annotation.jump_targets[target] > min(2, analysis_args.loop_bound - 1):
                 annotation.loop_start = address
 
         elif annotation.loop_start is not None:

@@ -20,6 +20,26 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 
+class StorageRegion:
+    def __getitem__(self, item):
+        raise NotImplementedError
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError
+
+
+class ArrayStorageRegion(StorageRegion):
+    """ An ArrayStorageRegion is a storage region that leverages smt array theory to resolve expressions"""
+
+    pass
+
+
+class IteStorageRegion(StorageRegion):
+    """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
+
+    pass
+
+
 class Storage:
     """Storage class represents the storage of an Account."""
 
@@ -54,7 +74,7 @@ class Storage:
             item = self._sanitize(cast(BitVecFunc, item).input_)
         value = storage[item]
         if (
-            value.value == 0
+            (value.value == 0 or value.value is None)  # 0 for Array, None for K
             and self.address
             and item.symbolic is False
             and self.address.value != 0
@@ -114,7 +134,7 @@ class Storage:
             key = self._sanitize(key.input_)
         storage[key] = value
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict=dict()):
         concrete = isinstance(self._standard_storage, K)
         storage = Storage(
             concrete=concrete, address=self.address, dynamic_loader=self.dynld

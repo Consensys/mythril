@@ -47,7 +47,7 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
-        loop_bound=2,
+        loop_bound=3,
         create_timeout=None,
         transaction_count=2,
         modules=(),
@@ -55,6 +55,7 @@ class SymExecWrapper:
         enable_iprof=False,
         disable_dependency_pruning=False,
         run_analysis_modules=True,
+        enable_coverage_strategy=False,
     ):
         """
 
@@ -102,6 +103,8 @@ class SymExecWrapper:
                 hex(ATTACKER_ADDRESS): attacker_account,
             }
 
+        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
+
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
             max_depth=max_depth,
@@ -111,6 +114,8 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
+            enable_coverage_strategy=enable_coverage_strategy,
+            instruction_laser_plugin=instruction_laser_plugin,
         )
 
         if loop_bound is not None:
@@ -118,7 +123,7 @@ class SymExecWrapper:
 
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+        plugin_loader.load(instruction_laser_plugin)
 
         if not disable_dependency_pruning:
             plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
@@ -215,7 +220,7 @@ class SymExecWrapper:
                                     gas,
                                     value,
                                     state.mstate.memory[
-                                        meminstart.val : meminsz.val * 4
+                                        meminstart.val : meminsz.val + meminstart.val
                                     ],
                                 )
                             )
