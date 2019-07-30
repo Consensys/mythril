@@ -527,7 +527,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
-            solc__settings_json=args.solc_json,
+            solc_settings_json=args.solc_json,
             enable_online_lookup=args.query_signature,
         )
         if args.truffle:
