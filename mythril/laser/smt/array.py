@@ -9,6 +9,8 @@ from typing import cast
 import z3
 
 from mythril.laser.smt.bitvec import BitVec
+from mythril.laser.smt.bitvec_helper import If
+from mythril.laser.smt.bool import Bool
 
 
 class BaseArray:
@@ -24,6 +26,9 @@ class BaseArray:
 
     def __setitem__(self, key: BitVec, value: BitVec) -> None:
         """Sets an item in the array, key can be symbolic."""
+        if isinstance(value, Bool):
+            value = If(value, 1, 0)
+
         self.raw = z3.Store(self.raw, key.raw, value.raw)  # type: ignore
 
 

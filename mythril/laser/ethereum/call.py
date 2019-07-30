@@ -96,7 +96,7 @@ def get_callee_address(
         # attempt to read the contract address from instance storage
         try:
             callee_address = dynamic_loader.read_storage(
-                str(hex(environment.active_account.address.value)), index
+                "0x{:040X}".format(environment.active_account.address.value), index
             )
         # TODO: verify whether this happens or not
         except:

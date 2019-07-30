@@ -1,7 +1,7 @@
 Security Analysis
 =================
 
-Run :code:`myth -x` with one of the input options described below will run the analysis modules in the `/analysis/modules <https://github.com/ConsenSys/mythril-classic/tree/master/mythril/analysis/modules>`_ directory.
+Run :code:`myth -x` with one of the input options described below will run the analysis modules in the `/analysis/modules <https://github.com/ConsenSys/mythril/tree/master/mythril/analysis/modules>`_ directory.
 
 ***********************
 Analyzing Solidity Code
@@ -11,7 +11,7 @@ In order to work with Solidity source code files, the `solc command line compile
 
 .. code-block:: bash
 
-   $ myth -x ether_send.sol
+   $ myth analyze ether_send.sol
    ==== Unprotected Ether Withdrawal ====
    SWC ID: 105
    Severity: High
@@ -32,7 +32,7 @@ If an input file contains multiple contract definitions, Mythril analyzes the *l
 
 .. code-block:: bash
 
-   myth -x OmiseGo.sol:OMGToken
+   myth analyze OmiseGo.sol:OMGToken
 
 Specifying Solc Versions
 ########################
@@ -47,7 +47,7 @@ By default, analysis results are printed to the terminal in text format. You can
 
 .. code-block:: bash
 
-   myth -xo jsonv2 underflow.sol
+   myth analyze underflow.sol -o jsonv2
 
 Available formats are :code:`text`, :code:`markdown`, :code:`json`, and :code:`jsonv2`. For integration with other tools, :code:`jsonv2` is generally preferred over :code:`json` because it is consistent with other `MythX <https://mythx.io>`_ tools.
 
@@ -73,13 +73,13 @@ Analyze mainnet contract via INFURA:
 
 .. code-block:: bash
 
-   myth -x -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+   myth analyze -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
 
 Adding the :code:`-l` flag will cause mythril to automatically retrieve dependencies, such as dynamically linked library contracts:
 
 .. code-block:: bash
 
-   myth -xla 0xEbFD99838cb0c132016B9E117563CB41f2B02264 -v4
+   myth -v4 analyze -l -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264
 
 ******************
 Speed vs. Coverage

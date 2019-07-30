@@ -2,6 +2,7 @@
 execution."""
 
 import array
+from copy import deepcopy
 from z3 import ExprRef
 from typing import Union, Optional, cast
 
@@ -165,12 +166,37 @@ class MessageCallTransaction(BaseTransaction):
 class ContractCreationTransaction(BaseTransaction):
     """Transaction object models an transaction."""
 
-    def __init__(self, *args, **kwargs) -> None:
-        # Remove ignore after https://github.com/python/mypy/issues/4335 is fixed
-        super().__init__(*args, **kwargs, init_call_data=False)  # type: ignore
+    def __init__(
+        self,
+        world_state: WorldState,
+        caller: ExprRef = None,
+        call_data=None,
+        identifier: Optional[str] = None,
+        gas_price=None,
+        gas_limit=None,
+        origin=None,
+        code=None,
+        call_value=None,
+        contract_name=None,
+    ) -> None:
+        self.prev_world_state = deepcopy(world_state)
+        callee_account = world_state.create_account(
+            0, concrete_storage=True, creator=caller.value
+        )
+        callee_account.contract_name = contract_name
         # TODO: set correct balance for new account
-        self.callee_account = self.callee_account or self.world_state.create_account(
-            0, concrete_storage=True
+        super().__init__(
+            world_state=world_state,
+            callee_account=callee_account,
+            caller=caller,
+            call_data=call_data,
+            identifier=identifier,
+            gas_price=gas_price,
+            gas_limit=gas_limit,
+            origin=origin,
+            code=code,
+            call_value=call_value,
+            init_call_data=False,
         )
 
     def initial_global_state(self) -> GlobalState:

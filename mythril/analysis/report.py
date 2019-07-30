@@ -11,6 +11,7 @@ from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
 from mythril.support.start_time import StartTime
 from mythril.support.support_utils import get_code_hash
+from mythril.support.signatures import SignatureDB
 from time import time
 
 log = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class Issue:
         severity=None,
         description_head="",
         description_tail="",
-        debug="",
+        transaction_sequence=None,
     ):
         """
 
@@ -55,7 +56,6 @@ class Issue:
         self.description_tail = description_tail
         self.description = "%s\n%s" % (description_head, description_tail)
         self.severity = severity
-        self.debug = debug
         self.swc_id = swc_id
         self.min_gas_used, self.max_gas_used = gas_used
         self.filename = None
@@ -64,6 +64,34 @@ class Issue:
         self.source_mapping = None
         self.discovery_time = time() - StartTime().global_start_time
         self.bytecode_hash = get_code_hash(bytecode)
+        self.transaction_sequence = transaction_sequence
+
+    @property
+    def transaction_sequence_users(self):
+        """ Returns the transaction sequence without pre-generated block data"""
+        return self.transaction_sequence
+
+    @property
+    def transaction_sequence_jsonv2(self):
+        """ Returns the transaction sequence as a json string with pre-generated block data"""
+        return (
+            self.add_block_data(self.transaction_sequence)
+            if self.transaction_sequence
+            else None
+        )
+
+    @staticmethod
+    def add_block_data(transaction_sequence: Dict):
+        """ Adds sane block data to a transaction_sequence """
+        for step in transaction_sequence["steps"]:
+            step["gasLimit"] = "0x7d000"
+            step["gasPrice"] = "0x773594000"
+            step["blockCoinbase"] = "0xcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcb"
+            step["blockDifficulty"] = "0xa7d7343662e26"
+            step["blockGasLimit"] = "0x7d0000"
+            step["blockNumber"] = "0x66e393"
+            step["blockTime"] = "0x5bfa4639"
+        return transaction_sequence
 
     @property
     def as_dict(self):
@@ -71,6 +99,7 @@ class Issue:
 
         :return:
         """
+
         issue = {
             "title": self.title,
             "swc-id": self.swc_id,
@@ -79,7 +108,7 @@ class Issue:
             "function": self.function,
             "severity": self.severity,
             "address": self.address,
-            "debug": self.debug,
+            "tx_sequence": self.transaction_sequence,
             "min_gas_used": self.min_gas_used,
             "max_gas_used": self.max_gas_used,
             "sourceMap": self.source_mapping,
@@ -123,6 +152,30 @@ class Issue:
         else:
             self.source_mapping = self.address
 
+    def resolve_function_names(self):
+        """ Resolves function names for each step """
+
+        if (
+            self.transaction_sequence is None
+            or "steps" not in self.transaction_sequence
+        ):
+            return
+
+        signatures = SignatureDB()
+
+        for step in self.transaction_sequence["steps"]:
+            _hash = step["input"][:10]
+
+            try:
+                sig = signatures.get(_hash)
+
+                if len(sig) > 0:
+                    step["name"] = sig[0]
+                else:
+                    step["name"] = "unknown"
+            except ValueError:
+                step["name"] = "unknown"
+
 
 class Report:
     """A report containing the content of multiple issues."""
@@ -131,13 +184,13 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, verbose=False, contracts=None, exceptions=None):
+    def __init__(self, contracts=None, exceptions=None):
         """
 
-        :param verbose:
+        :param contracts:
+        :param exceptions:
         """
         self.issues = {}
-        self.verbose = verbose
         self.solc_version = ""
         self.meta = {}
         self.source = Source()
@@ -159,6 +212,7 @@ class Report:
         """
         m = hashlib.md5()
         m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
+        issue.resolve_function_names()
         self.issues[m.digest()] = issue
 
     def as_text(self):
@@ -168,9 +222,8 @@ class Report:
         """
         name = self._file_name()
         template = Report.environment.get_template("report_as_text.jinja2")
-        return template.render(
-            filename=name, issues=self.sorted_issues(), verbose=self.verbose
-        )
+
+        return template.render(filename=name, issues=self.sorted_issues())
 
     def as_json(self):
         """
@@ -194,7 +247,6 @@ class Report:
         :return:
         """
         _issues = []
-        source_list = []
 
         for key, issue in self.issues.items():
 
@@ -203,6 +255,9 @@ class Report:
                 title = SWC_TO_TITLE[issue.swc_id]
             except KeyError:
                 title = "Unspecified Security Issue"
+            extra = {"discoveryTime": int(issue.discovery_time * 10 ** 9)}
+            if issue.transaction_sequence_jsonv2:
+                extra["testCases"] = [issue.transaction_sequence_jsonv2]
 
             _issues.append(
                 {
@@ -214,7 +269,7 @@ class Report:
                     },
                     "severity": issue.severity,
                     "locations": [{"sourceMap": "%d:1:%d" % (issue.address, idx)}],
-                    "extra": {"discoveryTime": int(issue.discovery_time * 10 ** 9)},
+                    "extra": extra,
                 }
             )
         meta_data = self._get_exception_data()
@@ -237,9 +292,7 @@ class Report:
         """
         filename = self._file_name()
         template = Report.environment.get_template("report_as_markdown.jinja2")
-        return template.render(
-            filename=filename, issues=self.sorted_issues(), verbose=self.verbose
-        )
+        return template.render(filename=filename, issues=self.sorted_issues())
 
     def _file_name(self):
         """
