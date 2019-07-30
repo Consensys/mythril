@@ -2,6 +2,7 @@
 
 This includes classes representing accounts and their storage.
 """
+import logging
 from copy import copy, deepcopy
 from typing import Any, Dict, Union, Tuple, cast
 
@@ -18,6 +19,8 @@ from mythril.laser.smt import (
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
+
+log = logging.getLogger(__name__)
 
 
 class StorageRegion:
@@ -93,8 +96,8 @@ class Storage:
                 )
                 self.printable_storage[item] = storage[item]
                 return storage[item]
-            except ValueError:
-                pass
+            except ValueError as e:
+                log.debug("Couldn't read storage at %s: %s", item, e)
 
         return simplify(storage[item])
 

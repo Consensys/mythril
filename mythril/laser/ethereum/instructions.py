@@ -184,7 +184,7 @@ class Instruction:
         :return:
         """
         # Generalize some ops
-        log.debug("Evaluating {}".format(self.op_code))
+        log.debug("Evaluating %s at %i", self.op_code, global_state.mstate.pc)
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
