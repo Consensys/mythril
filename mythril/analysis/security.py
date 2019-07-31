@@ -75,28 +75,20 @@ def get_detection_modules(entrypoint, include_modules=(), custom_modules_directo
             if module.detector.entrypoint == entrypoint:
                 _modules.append(module)
     if custom_modules_directory:
-        custom_modules = [os.path.abspath(custom_modules_directory)]
-        sys.path.append(custom_modules_directory)
+        custom_modules_path = os.path.abspath(custom_modules_directory)
+        if custom_modules_path not in sys.path:
+            sys.path.append(custom_modules_path)
 
-        for loader, module_name, _ in pkgutil.walk_packages(custom_modules):
+        for loader, module_name, _ in pkgutil.walk_packages([custom_modules_path]):
             if include_modules and module_name not in include_modules:
                 continue
 
             if module_name != "base":
-                module = importlib.import_module(module_name, custom_modules[0])
+                module = importlib.import_module(module_name, custom_modules_path)
                 module.log.setLevel(log.level)
                 if module.detector.entrypoint == entrypoint:
                     _modules.append(module)
 
-    """
-    for loader, module_name, _ in pkgutil.walk_packages([custom_modules_path]):
-
-    custom_modules_path = os.path.abspath("custom/")
-    sys.path.append(custom_modules_path);
-    module = importlib.import_module(
-        module_name, custom_modules_path
-    )
-    """
     log.info("Found %s detection modules", len(_modules))
     return _modules
 
