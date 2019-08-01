@@ -21,17 +21,20 @@ def _padded_operation(a: z3.BitVec, b: z3.BitVec, operator):
     b = z3.Concat(z3.BitVecVal(0, a.size() - b.size()), b)
     return operator(a, b)
 
+from random import randint
 
 class BitVec(Expression[z3.BitVecRef]):
     """A bit vector symbol."""
 
-    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations] = None):
+    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations] = None, has_pseudo_input=True):
         """
 
         :param raw:
         :param annotations:
         """
         self.potential_value = None
+        if has_pseudo_input:
+            self.pseudo_input = BitVec(z3.BitVec("{}_pseudoinput".format(randint(0, 2**100)), 256), annotations=annotations, has_pseudo_input=False)
         super().__init__(raw, annotations)
 
     def size(self) -> int:

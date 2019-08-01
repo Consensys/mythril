@@ -7,7 +7,7 @@ from mythril.laser.smt.bitvec import BitVec
 from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.bitvecfunc import _arithmetic_helper as _func_arithmetic_helper
 from mythril.laser.smt.bitvecfunc import _comparison_helper as _func_comparison_helper
-from mythril.laser.smt.bitvecfuncextract import BitVecFuncExtract
+from mythril.laser.smt.bitvecfunc import BitVecFuncExtract
 
 Annotations = Set[Any]
 

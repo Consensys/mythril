@@ -7,6 +7,139 @@ from mythril.laser.smt.bitvec import BitVec, Annotations
 from mythril.laser.smt.bool import Or, Bool, And
 
 
+def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
+    """Create a concatenation expression.
+
+    :param args:
+    :return:
+    """
+    # The following statement is used if a list is provided as an argument to concat
+    if len(args) == 1 and isinstance(args[0], list):
+        bvs = args[0]  # type: List[BitVec]
+    else:
+        bvs = cast(List[BitVec], args)
+
+    concat_list = bvs
+    nraw = z3.Concat([a.raw for a in bvs])
+    annotations = set()  # type: Annotations
+
+    nested_functions = []  # type: List[BitVecFunc]
+    bfne_cnt = 0
+    parent = None
+    for bv in bvs:
+        annotations = annotations.union(bv.annotations)
+        if isinstance(bv, BitVecFunc):
+            nested_functions += bv.nested_functions
+            nested_functions += [bv]
+            if isinstance(bv, BitVecFuncExtract):
+                if parent is None:
+                    parent = bv.parent
+                if hash(parent.raw) != hash(bv.parent.raw):
+                    continue
+                bfne_cnt += 1
+
+    if bfne_cnt == len(bvs):
+        # check for continuity
+        fail = True
+        if bvs[-1].low == 0:
+            fail = False
+            for index, bv in enumerate(bvs):
+                if index == 0:
+                    continue
+                if bv.high + 1 != bvs[index - 1].low:
+                    fail = True
+                    break
+
+        if fail is False:
+            if bvs[0].high == bvs[0].parent.size() - 1:
+                return bvs[0].parent
+            else:
+                return BitVecFuncExtract(
+                    raw=nraw,
+                    func_name=bvs[0].func_name,
+                    input_=bvs[0].input_,
+                    nested_functions=nested_functions,
+                    concat_args=concat_list,
+                    low=bvs[-1].low,
+                    high=bvs[0].high,
+                    parent=bvs[0].parent,
+                )
+
+    if nested_functions:
+        for bv in bvs:
+            bv.simplify()
+
+        return BitVecFunc(
+            raw=nraw,
+            func_name="Hybrid",
+            input_=BitVec(z3.BitVec("", 256), annotations=annotations),
+            nested_functions=nested_functions,
+            concat_args=concat_list,
+        )
+
+    return BitVec(nraw, annotations)
+
+
+def Extract(high: int, low: int, bv: BitVec) -> BitVec:
+    """Create an extract expression.
+
+    :param high:
+    :param low:
+    :param bv:
+    :return:
+    """
+
+    raw = z3.Extract(high, low, bv.raw)
+    if isinstance(bv, BitVecFunc):
+        count = 0
+        val = None
+        for small_bv in bv.concat_args[::-1]:
+            if low == count:
+                if low + small_bv.size() <= high:
+                    val = small_bv
+                else:
+                    val = Extract(
+                        small_bv.size() - 1,
+                        small_bv.size() - (high - low + 1),
+                        small_bv,
+                    )
+            elif high < count:
+                break
+            elif low < count:
+                if low + small_bv.size() <= high:
+                    val = Concat(small_bv, val)
+                else:
+                    val = Concat(
+                        Extract(
+                            small_bv.size() - 1,
+                            small_bv.size() - (high - low + 1),
+                            small_bv,
+                        ),
+                        val,
+                    )
+            count += small_bv.size()
+        if val is not None:
+            if isinstance(val, BitVecFuncExtract) and z3.simplify(
+                val.raw == val.parent.raw
+            ):
+                val = val.parent
+            val.simplify()
+            return val
+        input_string = ""
+        # Is there a better value to set func_name and input to in this case?
+        return BitVecFuncExtract(
+            raw=raw,
+            func_name="Hybrid",
+            input_=BitVec(z3.BitVec(input_string, 256), annotations=bv.annotations),
+            nested_functions=bv.nested_functions + [bv],
+            low=low,
+            high=high,
+            parent=bv,
+        )
+
+    return BitVec(raw, annotations=bv.annotations)
+
+
 def _arithmetic_helper(
     a: "BitVecFunc", b: Union[BitVec, int], operation: Callable
 ) -> "BitVecFunc":
@@ -68,12 +201,34 @@ def _comparison_helper(
             operation = operator.lt
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
 
-    if not isinstance(b, BitVecFunc) and a.potential_value:
-        condition = False
-        for value, cond in a.potential_value:
-            if value is not None:
-                condition = Or(condition, And(b == value, cond))
-        return And(condition, operation(a.raw, b.raw))
+    if (
+        a.size() == 512
+        and b.size() == 512
+        and z3.is_true(
+            z3.simplify(z3.Extract(255, 0, a.raw) == z3.Extract(255, 0, b.raw))
+        )
+    ):
+        a = Extract(511, 256, a)
+        b = Extract(511, 256, b)
+
+    if not isinstance(b, BitVecFunc):
+        if a.potential_value:
+            condition = False
+            for value, cond in a.potential_value:
+                if value is not None:
+                    condition = Or(condition, And(operation(b, value), cond))
+            return And(condition, operation(a.raw, b.raw))
+
+        if b.pseudo_input and b.pseudo_input.size() >= a.input_.size():
+            if b.pseudo_input.size() > a.input_.size():
+                padded_a = z3.Concat(
+                    z3.BitVecVal(0, b.pseudo_input.size() - a.input_.size()),
+                    a.input_.raw,
+                )
+            else:
+                padded_a = a.input_.raw
+            print(b.pseudo_input.raw)
+            return And(operation(a.raw, b.raw), operation(padded_a, b.pseudo_input.raw))
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
@@ -307,3 +462,38 @@ class BitVecFunc(BitVec):
 
     def __hash__(self) -> int:
         return self.raw.__hash__()
+
+
+class BitVecFuncExtract(BitVecFunc):
+    """A bit vector function wrapper, useful for preserving Extract() and Concat() operations"""
+
+    def __init__(
+        self,
+        raw: z3.BitVecRef,
+        func_name: Optional[str],
+        input_: "BitVec" = None,
+        annotations: Optional[Annotations] = None,
+        nested_functions: Optional[List["BitVecFunc"]] = None,
+        concat_args: List = None,
+        low=None,
+        high=None,
+        parent=None,
+    ):
+        """
+
+        :param raw: The raw bit vector symbol
+        :param func_name: The function name. e.g. sha3
+        :param input: The input to the functions
+        :param annotations: The annotations the BitVecFunc should start with
+        """
+        super().__init__(
+            raw=raw,
+            func_name=func_name,
+            input_=input_,
+            annotations=annotations,
+            nested_functions=nested_functions,
+            concat_args=concat_args,
+        )
+        self.low = low
+        self.high = high
+        self.parent = parent

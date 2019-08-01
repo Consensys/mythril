@@ -17,7 +17,7 @@ from mythril.laser.smt import (
     Concat,
     If,
     Or,
-    And
+    And,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
@@ -179,19 +179,19 @@ class Storage:
 
     @staticmethod
     def _array_condition(key: BitVec):
-        return (
-            not isinstance(key, BitVecFunc)
-            or (
-                isinstance(key, BitVecFunc)
-                and key.func_name == "keccak256"
-                and len(key.nested_functions) <= 1
-            )
+        return not isinstance(key, BitVecFunc) or (
+            isinstance(key, BitVecFunc)
+            and key.func_name == "keccak256"
+            and len(key.nested_functions) <= 1
         )
 
     def __getitem__(self, key: BitVec) -> BitVec:
         ite_get = self._ite_region[cast(BitVecFunc, key)]
         array_get = self._array_region[key]
-        return If(ite_get, ite_get, array_get)
+        if self._array_condition(key):
+            return If(ite_get, ite_get, array_get)
+        else:
+            return ite_get
 
     def __setitem__(self, key: BitVec, value: Any) -> None:
         self._printable_storage[key] = value
@@ -226,9 +226,7 @@ class Storage:
             ran = hex(randint(0, 2 ** size - 1))[2:]
             if len(ran) % 2 != 0:
                 ran += "0"
-            val = int(
-                keccak_256(bytes.fromhex(ran)).hexdigest(), 16
-            )
+            val = int(keccak_256(bytes.fromhex(ran)).hexdigest(), 16)
         return symbol_factory.BitVecVal(val, 256)
 
     def _find_value(self, symbol, model):
@@ -263,10 +261,22 @@ class Storage:
         """
         if not isinstance(key, BitVecFunc):
             concrete_values = [self._find_value(key, model[0]) for model in models]
+            ex_key = Extract(511, 256, key)
+            if ex_key.pseudo_input:
+                lis = [
+                    self._find_value(ex_key.pseudo_input, model[0])
+                    for model in models[4:]
+                ]
+                for val in lis:
+                    if val is not None:
+                        ex_key.pseudo_input = val
+                        break
             potential_values = concrete_values
             key.potential_value = []
             for i, val in enumerate(potential_values):
-                key.potential_value.append((val, And(models[i][1], BitVec(key.raw) == val)))
+                key.potential_value.append(
+                    (val, And(models[i][1], BitVec(key.raw) == val))
+                )
 
             return key.potential_value
         if key.size() == 512:
@@ -278,7 +288,9 @@ class Storage:
             for val1, val2 in zip(concrete_vals, vals2):
                 if val2 and val1:
                     c_val = Concat(val1[0], val2[0])
-                    condition = And(models[i][1], BitVec(key.raw) == c_val, val1[1], val2[1])
+                    condition = And(
+                        models[i][1], BitVec(key.raw) == c_val, val1[1], val2[1]
+                    )
                     key.potential_value.append((c_val, condition))
                 else:
                     key.potential_value.append((None, None))
@@ -291,7 +303,10 @@ class Storage:
         if isinstance(key, BitVecFunc):
             if key.size() == 512:
                 p1 = Extract(511, 256, key)
-                p1 = [(self.calc_sha3(val[0], p1.input_.size()), val[1]) for val in p1.input_.potential_value]
+                p1 = [
+                    (self.calc_sha3(val[0], p1.input_.size()), val[1])
+                    for val in p1.input_.potential_value
+                ]
                 key.potential_value = []
                 for i, val in enumerate(p1):
                     if val[0]:
@@ -304,10 +319,10 @@ class Storage:
                 key.potential_value = []
                 for i, val in enumerate(key.input_.potential_value):
                     if val[0]:
-                        concrete_val = self.calc_sha3(
-                            val[0], key.input_.size()
+                        concrete_val = self.calc_sha3(val[0], key.input_.size())
+                        condition = And(
+                            models[i][1], val[1], BitVec(key.raw) == concrete_val
                         )
-                        condition = And(models[i][1], val[1], BitVec(key.raw) == concrete_val)
                         key.potential_value.append((concrete_val, condition))
                     else:
                         key.potential_value.append((None, None))

@@ -25,7 +25,7 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import symbol_factory, And, BitVecFunc, BitVec, Extract
 
 ACTOR_ADDRESSES = [
     symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
@@ -358,10 +358,59 @@ class LaserEVM:
         sat = False
         for actor in ACTOR_ADDRESSES:
             try:
-                models_tuple.append((get_model(constraints=global_state.mstate.constraints + [sender == actor]), sender == actor))
+                models_tuple.append(
+                    (
+                        get_model(
+                            constraints=global_state.mstate.constraints
+                            + [sender == actor]
+                        ),
+                        sender == actor,
+                    )
+                )
                 sat = True
             except UnsatError:
                 models_tuple.append((None, sender == actor))
+        import random, sha3
+
+        calldata_cond = True
+        for account in global_state.world_state.accounts.values():
+            for key in account.storage._ite_region.itedict:
+                if (
+                    isinstance(key, BitVecFunc)
+                    and not isinstance(key.input_, BitVecFunc)
+                    and isinstance(key.input_, BitVec)
+                    and key.input_.symbolic
+                    and key.input_.size() == 512
+                ):
+                    pseudo_input = random.randint(0, 2 ** 256 - 1)
+                    hex_v = hex(pseudo_input)[2:]
+                    if len(hex_v) % 2 == 1:
+                        hex_v += "0"
+                    hash_val = symbol_factory.BitVecVal(
+                        int(sha3.keccak_256(bytes.fromhex(hex_v)).hexdigest()[2:], 16),
+                        256,
+                    )
+                    pseudo_input = symbol_factory.BitVecVal(pseudo_input, 256)
+                    calldata_cond = And(
+                        calldata_cond,
+                        key.input_ == hash_val,
+                        Extract(511, 256, key.input_).pseudo_input == pseudo_input,
+                    )
+        for actor in ACTOR_ADDRESSES:
+            try:
+                models_tuple.append(
+                    (
+                        get_model(
+                            constraints=global_state.mstate.constraints
+                            + [sender == actor, calldata_cond]
+                        ),
+                        And(calldata_cond, sender == actor),
+                    )
+                )
+                sat = True
+            except UnsatError:
+                models_tuple.append((None, And(calldata_cond, sender == actor)))
+
         if not sat:
             return [False]
 
