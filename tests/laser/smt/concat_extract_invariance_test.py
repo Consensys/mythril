@@ -49,3 +49,14 @@ def test_bitvecfunc_arithmetic4():
 
     construct = Concat(output2_, symbol_factory.BitVecVal(0, 256))
     assert Extract(511, 256, Extract(511, 256, construct).input_).input_ == input_
+
+
+def test_bitvecfunc_arithmetic5():
+    input_ = symbol_factory.BitVecSym("input", 256)
+    i1 = symbol_factory.BitVecSym("i", 256)
+    i1.pseudo_input = input_
+    output_ = symbol_factory.BitVecFuncSym(
+        "Keccak[input]", size=256, func_name="keccak256", input_=i1
+    )
+    construct = Concat(output_, symbol_factory.BitVecVal(0, 256))
+    assert Extract(511, 256, construct).input_.pseudo_input == i1.pseudo_input
