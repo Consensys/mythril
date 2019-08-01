@@ -34,7 +34,7 @@ def _arithmetic_helper(
 
     return BitVecFunc(
         raw=raw,
-        func_name=a.func_name,
+        func_name=a.func_name + "_hybrid",
         input_=a.input_,
         annotations=union,
         nested_functions=a.nested_functions + [a],
@@ -68,7 +68,7 @@ def _comparison_helper(
             operation = operator.lt
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
     if (
-        not isinstance(b, BitVecFunc)
+        (not isinstance(b, BitVecFunc) and "KECCAK" not in str(a))
         or not a.func_name
         or not a.input_
         or not a.func_name == b.func_name
