@@ -32,7 +32,6 @@ REQUIRED = [
     "py-solc",
     "plyvel",
     "eth_abi==1.3.0",
-    "eth-utils>=1.0.1",
     "eth-account>=0.1.0a2,<=0.3.0",
     "eth-hash>=0.1.0",
     "eth-keyfile>=0.5.1",
