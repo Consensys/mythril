@@ -42,6 +42,7 @@ class MythrilAnalyzer:
         disable_dependency_pruning: bool = False,
         solver_timeout: Optional[int] = None,
         enable_coverage_strategy: bool = False,
+        custom_modules_directory: str = "",
     ):
         """
 
@@ -63,6 +64,7 @@ class MythrilAnalyzer:
         self.enable_iprof = enable_iprof
         self.disable_dependency_pruning = disable_dependency_pruning
         self.enable_coverage_strategy = enable_coverage_strategy
+        self.custom_modules_directory = custom_modules_directory
 
         analysis_args.set_loop_bound(loop_bound)
         analysis_args.set_solver_timeout(solver_timeout)
@@ -89,6 +91,7 @@ class MythrilAnalyzer:
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
             enable_coverage_strategy=self.enable_coverage_strategy,
+            custom_modules_directory=self.custom_modules_directory,
         )
 
         return get_serializable_statespace(sym)
@@ -125,6 +128,7 @@ class MythrilAnalyzer:
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
             enable_coverage_strategy=self.enable_coverage_strategy,
+            custom_modules_directory=self.custom_modules_directory,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
@@ -163,18 +167,22 @@ class MythrilAnalyzer:
                     enable_iprof=self.enable_iprof,
                     disable_dependency_pruning=self.disable_dependency_pruning,
                     enable_coverage_strategy=self.enable_coverage_strategy,
+                    custom_modules_directory=self.custom_modules_directory,
                 )
-
-                issues = fire_lasers(sym, modules)
+                issues = fire_lasers(sym, modules, self.custom_modules_directory)
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
-                issues = retrieve_callback_issues(modules)
+                issues = retrieve_callback_issues(
+                    modules, self.custom_modules_directory
+                )
             except Exception:
                 log.critical(
                     "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n"
                     + traceback.format_exc()
                 )
-                issues = retrieve_callback_issues(modules)
+                issues = retrieve_callback_issues(
+                    modules, self.custom_modules_directory
+                )
                 exceptions.append(traceback.format_exc())
             for issue in issues:
                 issue.add_code_info(contract)
