@@ -83,7 +83,8 @@ def test_staticness_call_concrete(f1, input, success):
     state = get_global_state()
     state.environment.static = True
     state.mstate.stack = []
-    f1.return_value = ("0", Account(code="0x0", address="0x19"), 0, input, 0, 0, 0)
+    code = Disassembly(code="616263")
+    f1.return_value = ("0", Account(code=code, address="0x19"), 0, input, 0, 0, 0)
     instruction = Instruction("call", dynamic_loader=None)
 
     # Act and Assert
@@ -103,7 +104,8 @@ def test_staticness_call_symbolic(f1):
     state.environment.static = True
     state.mstate.stack = []
     call_value = symbol_factory.BitVecSym("x", 256)
-    f1.return_value = ("0", Account(code="0x0", address="0x19"), 0, call_value, 0, 0, 0)
+    code = Disassembly(code="616263")
+    f1.return_value = ("0", Account(code=code, address="0x19"), 0, call_value, 0, 0, 0)
     instruction = Instruction("call", dynamic_loader=None)
 
     # Act and Assert

@@ -1384,7 +1384,7 @@ class Instruction:
         state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(is_state_mutation_instruction=True)
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
