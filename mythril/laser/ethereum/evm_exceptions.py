@@ -39,5 +39,9 @@ class OutOfGasException(VmException):
 
 class WriteProtection(VmException):
     """A VM exception denoting that a write operation is executed on a write protected environment"""
+    pass
 
+
+class ProgramCounterException(VmException):
+    """A VM exception denoting an invalid PC value (No stop instruction is reached)."""
     pass
