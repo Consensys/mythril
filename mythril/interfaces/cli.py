@@ -398,8 +398,8 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     )
     options.add_argument(
         "--custom-modules-directory",
-        help="designates a separate directory to search for security modules from",
-        metavar="PATH_TO_CUSTOM_MODULES_DIRECTORY",
+        help="designates a separate directory to search for custom analysis modules",
+        metavar="CUSTOM_MODULES_DIRECTORY",
     )
 
 
