@@ -1,8 +1,10 @@
-from typing import Callable
+from typing import Callable, Any
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 
-def get_annotation(state, annotation_type: Callable) -> StateAnnotation:
+def get_or_create_annotation(
+    state, annotation_type: Callable[..., StateAnnotation]
+) -> Any:
     """
     Annotation is searched, if not found then a new annotation is created
     :param state: Get's annotation from state
@@ -15,4 +17,3 @@ def get_annotation(state, annotation_type: Callable) -> StateAnnotation:
         annotations = list(state.get_annotations(annotation_type))
     assert len(annotations) == 1
     return annotations[0]
-

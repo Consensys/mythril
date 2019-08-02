@@ -4,7 +4,7 @@ import logging
 from copy import copy
 from typing import List, Tuple
 from mythril.analysis import solver
-from mythril.analysis.analysis_module_helpers import get_annotation
+from mythril.analysis.analysis_module_helpers import get_or_create_annotation
 from mythril.analysis.modules.base import DetectionModule
 
 from mythril.analysis.report import Issue
@@ -81,7 +81,7 @@ class ArbitraryStorage(DetectionModule):
         :param state:
         :return:
         """
-        annotation = get_annotation(
+        annotation = get_or_create_annotation(
             state, AribtraryWriteAnnotation
         )  # type: AribtraryWriteAnnotation
         instruction = state.get_current_instruction()
@@ -94,17 +94,20 @@ class ArbitraryStorage(DetectionModule):
         issues = []
         for write_slot, address in annotation.storage_write_slots:
             constraints = []
+
+            # For maps
             if (
                 isinstance(write_slot, BitVecFunc)
                 and write_slot.func_name == "keccak256"
                 and not isinstance(write_slot.input_, BitVecFunc)
             ):
                 constraints.append(
-                    write_slot.input_ == symbol_factory.BitVecVal(134, 256)
+                    write_slot.input_ == symbol_factory.BitVecVal(1324577524, 256)
                 )
             else:
+                # Non maps
                 constraints.append(
-                    write_slot == symbol_factory.BitVecVal(3243425435, 256)
+                    write_slot == symbol_factory.BitVecVal(324345425435, 256)
                 )
 
             constraints = state.mstate.constraints + constraints

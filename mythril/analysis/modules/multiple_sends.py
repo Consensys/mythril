@@ -6,6 +6,7 @@ from typing import cast, List
 from mythril.analysis.report import Issue
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.analysis.swc_data import MULTIPLE_SENDS
+from mythril.analysis.analysis_module_helpers import get_or_create_annotation
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -60,18 +61,8 @@ class MultipleSendsModule(DetectionModule):
         """
         instruction = state.get_current_instruction()
 
-        annotations = cast(
-            List[MultipleSendsAnnotation],
-            list(state.get_annotations(MultipleSendsAnnotation)),
-        )
-        if len(annotations) == 0:
-            state.annotate(MultipleSendsAnnotation())
-            annotations = cast(
-                List[MultipleSendsAnnotation],
-                list(state.get_annotations(MultipleSendsAnnotation)),
-            )
-
-        call_offsets = annotations[0].call_offsets
+        annotation = get_or_create_annotation(state, MultipleSendsAnnotation)
+        call_offsets = annotation.call_offsets
 
         if instruction["opcode"] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
             call_offsets.append(state.get_current_instruction()["address"])
