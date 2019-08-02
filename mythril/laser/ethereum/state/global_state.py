@@ -9,6 +9,7 @@ from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.laser.ethereum.evm_exceptions import ProgramCounterException
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.world_state import WorldState
@@ -61,6 +62,7 @@ class GlobalState:
         environment = copy(self.environment)
         mstate = deepcopy(self.mstate)
         transaction_stack = copy(self.transaction_stack)
+        environment.active_account = world_state[environment.active_account.address]
         return GlobalState(
             world_state,
             environment,
@@ -87,6 +89,10 @@ class GlobalState:
         """
 
         instructions = self.environment.code.instruction_list
+        if self.mstate.pc >= len(instructions):
+            raise ProgramCounterException(
+                "PC: {} can not be reached.".format(self.mstate.pc)
+            )
         return instructions[self.mstate.pc]
 
     @property

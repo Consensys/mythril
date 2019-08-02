@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union, Tuple
+from typing import cast, Callable, List, Set, Union, Tuple, Any
 from datetime import datetime
 from math import ceil
 from ethereum import utils
@@ -18,13 +18,11 @@ from mythril.laser.smt import (
     ULT,
     UGT,
     BitVec,
-    is_true,
     is_false,
     URem,
     SRem,
     If,
     Bool,
-    Or,
     Not,
     LShR,
 )
@@ -41,7 +39,6 @@ from mythril.laser.ethereum.evm_exceptions import (
     OutOfGasException,
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
-from mythril.laser.ethereum.keccak import KeccakFunctionManager
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -55,8 +52,6 @@ log = logging.getLogger(__name__)
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
-
-keccak_function_manager = KeccakFunctionManager()
 
 
 class StateTransition(object):
@@ -177,7 +172,7 @@ class Instruction:
         :return:
         """
         # Generalize some ops
-        log.debug("Evaluating {}".format(self.op_code))
+        log.debug("Evaluating %s at %i", self.op_code, global_state.mstate.pc)
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -193,7 +188,6 @@ class Instruction:
             if not post
             else getattr(self, op + "_" + "post", None)
         )
-
         if instruction_mutator is None:
             raise NotImplementedError
 
@@ -417,6 +411,7 @@ class Instruction:
                 * helper.pop_bitvec(global_state.mstate)
             )
         )
+
         return [global_state]
 
     @StateTransition()
@@ -552,18 +547,22 @@ class Instruction:
 
             state.stack.append(
                 global_state.new_bitvec(
-                    "(" + str(simplify(base)) + ")**(" + str(simplify(exponent)) + ")",
+                    "invhash("
+                    + str(hash(simplify(base)))
+                    + ")**invhash("
+                    + str(hash(simplify(exponent)))
+                    + ")",
                     256,
-                    base.annotations + exponent.annotations,
+                    base.annotations.union(exponent.annotations),
                 )
-            )
+            )  # Hash is used because str(symbol) takes a long time to be converted to a string
         else:
 
             state.stack.append(
                 symbol_factory.BitVecVal(
                     pow(base.value, exponent.value, 2 ** 256),
                     256,
-                    annotations=base.annotations + exponent.annotations,
+                    annotations=base.annotations.union(exponent.annotations),
                 )
             )
 
@@ -768,29 +767,14 @@ class Instruction:
             size_sym = True
 
         if size_sym:
-            state.mem_extend(mstart, 1)
-            state.memory[mstart] = global_state.new_bitvec(
-                "calldata_"
-                + str(environment.active_account.contract_name)
-                + "["
-                + str(dstart)
-                + ": + "
-                + str(size)
-                + "]",
-                8,
-            )
-            return [global_state]
+            size = 320  # The excess size will get overwritten
+
         size = cast(int, size)
         if size > 0:
             try:
                 state.mem_extend(mstart, size)
-            except TypeError:
-                log.debug(
-                    "Memory allocation error: mstart = "
-                    + str(mstart)
-                    + ", size = "
-                    + str(size)
-                )
+            except TypeError as e:
+                log.debug("Memory allocation error: {}".format(e))
                 state.mem_extend(mstart, 1)
                 state.memory[mstart] = global_state.new_bitvec(
                     "calldata_"
@@ -903,7 +887,6 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
 
         state = global_state.mstate
         op0, op1 = state.stack.pop(), state.stack.pop()
@@ -942,15 +925,15 @@ class Instruction:
 
         if data.symbolic:
 
-            annotations = []
+            annotations = set()  # type: Set[Any]
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
-                    annotations.append(b.annotations)
+                    annotations = annotations.union(b.annotations)
 
-            argument_str = str(state.memory[index]).replace(" ", "_")
+            argument_hash = hash(state.memory[index])
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str),
+                "KECCAC[invhash({})]".format(hash(argument_hash)),
                 "keccak256",
                 256,
                 input_=data,
@@ -958,7 +941,6 @@ class Instruction:
             )
             log.debug("Created BitVecFunc hash.")
 
-            keccak_function_manager.add_keccak(result, state.memory[index])
         else:
             keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
             result = symbol_factory.BitVecFuncVal(
@@ -1019,16 +1001,61 @@ class Instruction:
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
         )
+        return self._code_copy_helper(
+            code=global_state.environment.code.bytecode,
+            memory_offset=memory_offset,
+            code_offset=code_offset,
+            size=size,
+            op="CODECOPY",
+            global_state=global_state,
+        )
 
+    @StateTransition()
+    def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        state = global_state.mstate
+        addr = state.stack.pop()
+        try:
+            addr = hex(helper.get_concrete_int(addr))
+        except TypeError:
+            log.debug("unsupported symbolic address for EXTCODESIZE")
+            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
+            return [global_state]
+        try:
+            code = global_state.world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            )
+        except (ValueError, AttributeError) as e:
+            log.debug("error accessing contract storage due to: " + str(e))
+            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
+            return [global_state]
+
+        state.stack.append(len(code) // 2)
+
+        return [global_state]
+
+    @staticmethod
+    def _code_copy_helper(
+        code: str,
+        memory_offset: BitVec,
+        code_offset: BitVec,
+        size: BitVec,
+        op: str,
+        global_state: GlobalState,
+    ) -> List[GlobalState]:
         try:
             concrete_memory_offset = helper.get_concrete_int(memory_offset)
         except TypeError:
-            log.debug("Unsupported symbolic memory offset in CODECOPY")
+            log.debug("Unsupported symbolic memory offset in {}".format(op))
             return [global_state]
 
         try:
-            size = helper.get_concrete_int(size)
-            global_state.mstate.mem_extend(concrete_memory_offset, size)
+            concrete_size = helper.get_concrete_int(size)
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
 
         except TypeError:
             # except both attribute error and Exception
@@ -1046,9 +1073,9 @@ class Instruction:
         try:
             concrete_code_offset = helper.get_concrete_int(code_offset)
         except TypeError:
-            log.debug("Unsupported symbolic code offset in CODECOPY")
-            global_state.mstate.mem_extend(concrete_memory_offset, size)
-            for i in range(size):
+            log.debug("Unsupported symbolic code offset in {}".format(op))
+            global_state.mstate.mem_extend(concrete_memory_offset, concrete_size)
+            for i in range(concrete_size):
                 global_state.mstate.memory[
                     concrete_memory_offset + i
                 ] = global_state.new_bitvec(
@@ -1059,21 +1086,20 @@ class Instruction:
                 )
             return [global_state]
 
-        bytecode = global_state.environment.code.bytecode
-        if bytecode[0:2] == "0x":
-            bytecode = bytecode[2:]
+        if code[0:2] == "0x":
+            code = code[2:]
 
-        if size == 0 and isinstance(
+        if concrete_size == 0 and isinstance(
             global_state.current_transaction, ContractCreationTransaction
         ):
-            if concrete_code_offset >= len(bytecode) // 2:
-                self._handle_symbolic_args(global_state, concrete_memory_offset)
+            if concrete_code_offset >= len(code) // 2:
+                Instruction._handle_symbolic_args(global_state, concrete_memory_offset)
                 return [global_state]
 
-        for i in range(size):
-            if 2 * (concrete_code_offset + i + 1) <= len(bytecode):
+        for i in range(concrete_size):
+            if 2 * (concrete_code_offset + i + 1) <= len(code):
                 global_state.mstate.memory[concrete_memory_offset + i] = int(
-                    bytecode[
+                    code[
                         2
                         * (concrete_code_offset + i) : 2
                         * (concrete_code_offset + i + 1)
@@ -1093,35 +1119,41 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
-    def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
+    def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
         :return:
         """
         state = global_state.mstate
-        addr = state.stack.pop()
-        environment = global_state.environment
+        addr, memory_offset, code_offset, size = (
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+            state.stack.pop(),
+        )
         try:
             addr = hex(helper.get_concrete_int(addr))
         except TypeError:
-            log.debug("unsupported symbolic address for EXTCODESIZE")
-            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
+            log.debug("unsupported symbolic address for EXTCODECOPY")
             return [global_state]
 
         try:
-            code = self.dynamic_loader.dynld(addr)
+            code = global_state.world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            )
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
-            state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
             return [global_state]
 
-        if code is None:
-            state.stack.append(0)
-        else:
-            state.stack.append(len(code.bytecode) // 2)
-
-        return [global_state]
+        return self._code_copy_helper(
+            code=code,
+            memory_offset=memory_offset,
+            code_offset=code_offset,
+            size=size,
+            op="EXTCODECOPY",
+            global_state=global_state,
+        )
 
     @StateTransition
     def extcodehash_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1135,20 +1167,6 @@ class Instruction:
         global_state.mstate.stack.append(
             global_state.new_bitvec("extcodehash_{}".format(str(address)), 256)
         )
-        return [global_state]
-
-    @StateTransition()
-    def extcodecopy_(self, global_state: GlobalState) -> List[GlobalState]:
-        """
-
-        :param global_state:
-        :return:
-        """
-        # FIXME: not implemented
-        state = global_state.mstate
-        addr = state.stack.pop()
-        start, s2, size = state.stack.pop(), state.stack.pop(), state.stack.pop()
-
         return [global_state]
 
     @StateTransition()
@@ -1290,22 +1308,10 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0 = state.stack.pop()
-
-        log.debug("MLOAD[" + str(op0) + "]")
-
-        try:
-            offset = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("Can't MLOAD from symbolic index")
-            data = global_state.new_bitvec("mem[" + str(simplify(op0)) + "]", 256)
-            state.stack.append(data)
-            return [global_state]
+        offset = state.stack.pop()
 
         state.mem_extend(offset, 32)
         data = state.memory.get_word_at(offset)
-
-        log.debug("Load from memory[" + str(offset) + "]: " + str(data))
 
         state.stack.append(data)
         return [global_state]
@@ -1318,20 +1324,12 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0, value = state.stack.pop(), state.stack.pop()
-
-        try:
-            mstart = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("MSTORE to symbolic index. Not supported")
-            return [global_state]
+        mstart, value = state.stack.pop(), state.stack.pop()
 
         try:
             state.mem_extend(mstart, 32)
         except Exception:
-            log.debug("Error extending memory, mstart = " + str(mstart) + ", size = 32")
-
-        log.debug("MSTORE to mem[" + str(mstart) + "]: " + str(value))
+            log.debug("Error extending memory")
 
         state.memory.write_word_at(mstart, value)
 
@@ -1345,13 +1343,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0, value = state.stack.pop(), state.stack.pop()
-
-        try:
-            offset = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("MSTORE to symbolic index. Not supported")
-            return [global_state]
+        offset, value = state.stack.pop(), state.stack.pop()
 
         state.mem_extend(offset, 1)
 
@@ -1361,7 +1353,6 @@ class Instruction:
             )  # type: Union[int, BitVec]
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
-        log.debug("MSTORE8 to mem[" + str(offset) + "]: " + str(value_to_write))
 
         state.memory[offset] = value_to_write
 
@@ -1374,85 +1365,12 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
 
         state = global_state.mstate
         index = state.stack.pop()
-        log.debug("Storage access at index " + str(index))
 
-        try:
-            index = util.get_concrete_int(index)
-            return self._sload_helper(global_state, index)
-
-        except TypeError:
-            if not keccak_function_manager.is_keccak(index):
-                return self._sload_helper(global_state, str(index))
-
-            storage_keys = global_state.environment.active_account.storage.keys()
-            keccak_keys = list(filter(keccak_function_manager.is_keccak, storage_keys))
-
-            results = []  # type: List[GlobalState]
-            constraints = []
-
-            for keccak_key in keccak_keys:
-                key_argument = keccak_function_manager.get_argument(keccak_key)
-                index_argument = keccak_function_manager.get_argument(index)
-                constraints.append((keccak_key, key_argument == index_argument))
-
-            for (keccak_key, constraint) in constraints:
-                if constraint in state.constraints:
-                    results += self._sload_helper(
-                        global_state, keccak_key, [constraint]
-                    )
-            if len(results) > 0:
-                return results
-
-            for (keccak_key, constraint) in constraints:
-                results += self._sload_helper(
-                    copy(global_state), keccak_key, [constraint]
-                )
-            if len(results) > 0:
-                return results
-
-            return self._sload_helper(global_state, str(index))
-
-    @staticmethod
-    def _sload_helper(
-        global_state: GlobalState, index: Union[str, int], constraints=None
-    ):
-        """
-
-        :param global_state:
-        :param index:
-        :param constraints:
-        :return:
-        """
-        try:
-            data = global_state.environment.active_account.storage[index]
-        except KeyError:
-            data = global_state.new_bitvec("storage_" + str(index), 256)
-            global_state.environment.active_account.storage[index] = data
-
-        if constraints is not None:
-            global_state.mstate.constraints += constraints
-
-        global_state.mstate.stack.append(data)
+        state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
-
-    @staticmethod
-    def _get_constraints(keccak_keys, this_key, argument):
-        """
-
-        :param keccak_keys:
-        :param this_key:
-        :param argument:
-        """
-        global keccak_function_manager
-        for keccak_key in keccak_keys:
-            if keccak_key == this_key:
-                continue
-            keccak_argument = keccak_function_manager.get_argument(keccak_key)
-            yield keccak_argument != argument
 
     @StateTransition()
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1461,90 +1379,10 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global keccak_function_manager
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-        log.debug("Write to storage[" + str(index) + "]")
 
-        try:
-            index = util.get_concrete_int(index)
-            return self._sstore_helper(global_state, index, value)
-        except TypeError:
-            is_keccak = keccak_function_manager.is_keccak(index)
-            if not is_keccak:
-                return self._sstore_helper(global_state, str(index), value)
-
-            storage_keys = global_state.environment.active_account.storage.keys()
-            keccak_keys = filter(keccak_function_manager.is_keccak, storage_keys)
-
-            results = []  # type: List[GlobalState]
-            new = symbol_factory.Bool(False)
-
-            for keccak_key in keccak_keys:
-                key_argument = keccak_function_manager.get_argument(
-                    keccak_key
-                )  # type: Expression
-                index_argument = keccak_function_manager.get_argument(
-                    index
-                )  # type: Expression
-                condition = key_argument == index_argument
-                condition = (
-                    condition
-                    if type(condition) == bool
-                    else is_true(simplify(cast(Bool, condition)))
-                )
-                if condition:
-                    return self._sstore_helper(
-                        copy(global_state),
-                        keccak_key,
-                        value,
-                        key_argument == index_argument,
-                    )
-
-                results += self._sstore_helper(
-                    copy(global_state),
-                    keccak_key,
-                    value,
-                    key_argument == index_argument,
-                )
-
-                new = Or(new, cast(Bool, key_argument != index_argument))
-
-            if len(results) > 0:
-                results += self._sstore_helper(
-                    copy(global_state), str(index), value, new
-                )
-                return results
-
-            return self._sstore_helper(global_state, str(index), value)
-
-    @staticmethod
-    def _sstore_helper(global_state, index, value, constraint=None):
-        """
-
-        :param global_state:
-        :param index:
-        :param value:
-        :param constraint:
-        :return:
-        """
-        try:
-            global_state.environment.active_account = deepcopy(
-                global_state.environment.active_account
-            )
-            global_state.accounts[
-                global_state.environment.active_account.address.value
-            ] = global_state.environment.active_account
-
-            global_state.environment.active_account.storage[index] = (
-                value if not isinstance(value, Expression) else simplify(value)
-            )
-        except KeyError:
-            log.debug("Error writing to storage: Invalid index")
-
-        if constraint is not None:
-            global_state.mstate.constraints.append(constraint)
-
+        global_state.environment.active_account.storage[index] = value
         return [global_state]
 
     @StateTransition(increment_pc=False, enable_gas=False)
@@ -1758,17 +1596,13 @@ class Instruction:
         """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [global_state.new_bitvec("return_data", 8)]
-        try:
-            concrete_offset = util.get_concrete_int(offset)
-            concrete_length = util.get_concrete_int(length)
-            state.mem_extend(concrete_offset, concrete_length)
-            StateTransition.check_gas_usage_limit(global_state)
-            return_data = state.memory[
-                concrete_offset : concrete_offset + concrete_length
-            ]
-        except TypeError:
+        if length.symbolic:
+            return_data = [global_state.new_bitvec("return_data", 8)]
             log.debug("Return with symbolic length or offset. Not supported")
+        else:
+            state.mem_extend(offset, length)
+            StateTransition.check_gas_usage_limit(global_state)
+            return_data = state.memory[offset : offset + length]
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition()
@@ -1852,6 +1686,14 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -1869,7 +1711,6 @@ class Instruction:
         )
         if native_result:
             return native_result
-
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,

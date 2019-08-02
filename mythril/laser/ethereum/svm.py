@@ -3,17 +3,18 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
-from typing import Callable, Dict, DefaultDict, List, Tuple, Union
+from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
-from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
+from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
@@ -54,6 +55,8 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         enable_iprof=False,
+        enable_coverage_strategy=False,
+        instruction_laser_plugin=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -68,9 +71,11 @@ class LaserEVM:
         :param enable_iprof: Variable indicating whether instruction profiling should be turned on
         """
         self.open_states = []  # type: List[WorldState]
+
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
+        # TODO: What about using a deque here?
         self.work_list = []  # type: List[GlobalState]
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
@@ -100,7 +105,17 @@ class LaserEVM:
 
         self.iprof = InstructionProfiler() if enable_iprof else None
 
+        if enable_coverage_strategy:
+            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
+                CoverageStrategy,
+            )
+
+            self.strategy = CoverageStrategy(self.strategy, instruction_laser_plugin)
+
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
+
+    def extend_strategy(self, extension: ABCMeta, *args) -> None:
+        self.strategy = extension(self.strategy, args)
 
     def sym_exec(
         self,
@@ -121,7 +136,7 @@ class LaserEVM:
         :param creation_code The creation code to create the target contract in the symbolic environment
         :param contract_name The name that the created account should be associated with
         """
-        pre_configuration_mode = world_state is not None and target_address is not None
+        pre_configuration_mode = target_address is not None
         scratch_mode = creation_code is not None and contract_name is not None
         if pre_configuration_mode == scratch_mode:
             raise ValueError("Symbolic execution started with invalid parameters")
@@ -140,14 +155,16 @@ class LaserEVM:
 
         elif scratch_mode:
             log.info("Starting contract creation transaction")
+
             created_account = execute_contract_creation(
-                self, creation_code, contract_name
+                self, creation_code, contract_name, world_state=world_state
             )
             log.info(
                 "Finished contract creation, found {} open states".format(
                     len(self.open_states)
                 )
             )
+
             if len(self.open_states) == 0:
                 log.warning(
                     "No contract was created during the execution of contract creation "
@@ -193,7 +210,7 @@ class LaserEVM:
             for hook in self._stop_sym_trans_hooks:
                 hook()
 
-    def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
+    def exec(self, create=False, track_gas=False) -> Optional[List[GlobalState]]:
         """
 
         :param create:
@@ -207,6 +224,7 @@ class LaserEVM:
                 and create
                 and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
             ):
+                log.debug("Hit create timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
             if (
@@ -215,6 +233,7 @@ class LaserEVM:
                 <= datetime.now()
                 and not create
             ):
+                log.debug("Hit execution timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
             try:
@@ -227,8 +246,7 @@ class LaserEVM:
                 state for state in new_states if state.mstate.constraints.is_possible
             ]
 
-            self.manage_cfg(op_code, new_states)
-
+            self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
             elif track_gas:
@@ -249,11 +267,11 @@ class LaserEVM:
 
     def execute_state(
         self, global_state: GlobalState
-    ) -> Tuple[List[GlobalState], Union[str, None]]:
-        """
+    ) -> Tuple[List[GlobalState], Optional[str]]:
+        """Execute a single instruction in global_state.
 
         :param global_state:
-        :return:
+        :return: A list of successor states.
         """
         # Execute hooks
         for hook in self._execute_state_hooks:
@@ -267,7 +285,12 @@ class LaserEVM:
             self._add_world_state(global_state)
             return [], None
 
-        self._execute_pre_hook(op_code, global_state)
+        try:
+            self._execute_pre_hook(op_code, global_state)
+        except PluginSkipState:
+            self._add_world_state(global_state)
+            return [], None
+
         try:
             new_global_states = Instruction(
                 op_code, self.dynamic_loader, self.iprof
@@ -384,6 +407,7 @@ class LaserEVM:
             for state in new_states:
                 self._new_node_state(state)
         elif opcode == "JUMPI":
+            assert len(new_states) <= 2
             for state in new_states:
                 self._new_node_state(
                     state, JumpType.CONDITIONAL, state.mstate.constraints[-1]
@@ -436,7 +460,11 @@ class LaserEVM:
 
         environment = state.environment
         disassembly = environment.code
-        if address in disassembly.address_to_function_name:
+        if isinstance(
+            state.world_state.transaction_sequence[-1], ContractCreationTransaction
+        ):
+            environment.active_function_name = "constructor"
+        elif address in disassembly.address_to_function_name:
             # Enter a new function
             environment.active_function_name = disassembly.address_to_function_name[
                 address
@@ -534,7 +562,10 @@ class LaserEVM:
 
         for hook in self.post_hooks[op_code]:
             for global_state in global_states:
-                hook(global_state)
+                try:
+                    hook(global_state)
+                except PluginSkipState:
+                    global_states.remove(global_state)
 
     def pre_hook(self, op_code: str) -> Callable:
         """

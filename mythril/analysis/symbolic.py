@@ -1,7 +1,6 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-import copy
 
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
@@ -15,13 +14,23 @@ from mythril.laser.ethereum.strategy.basic import (
     BasicSearchStrategy,
 )
 
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
+from mythril.laser.ethereum.transaction.symbolic import (
+    ATTACKER_ADDRESS,
+    CREATOR_ADDRESS,
+)
+
+
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
 from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
+
+from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
+    BoundedLoopsStrategy,
+)
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Dict, Type
+from typing import Union, List, Type
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
-from .ops import Call, SStore, VarType, get_variable
+from .ops import Call, VarType, get_variable
 
 
 class SymExecWrapper:
@@ -39,11 +48,16 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
+        loop_bound=3,
         create_timeout=None,
         transaction_count=2,
         modules=(),
         compulsory_statespace=True,
         enable_iprof=False,
+        disable_dependency_pruning=False,
+        run_analysis_modules=True,
+        enable_coverage_strategy=False,
+        custom_modules_directory="",
     ):
         """
 
@@ -73,9 +87,26 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
-        requires_statespace = (
-            compulsory_statespace or len(get_detection_modules("post", modules)) > 0
+        creator_account = Account(
+            hex(CREATOR_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
         )
+        attacker_account = Account(
+            hex(ATTACKER_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+        )
+
+        requires_statespace = (
+            compulsory_statespace
+            or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
+        )
+        if not contract.creation_code:
+            self.accounts = {hex(ATTACKER_ADDRESS): attacker_account}
+        else:
+            self.accounts = {
+                hex(CREATOR_ADDRESS): creator_account,
+                hex(ATTACKER_ADDRESS): attacker_account,
+            }
+
+        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
 
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
@@ -86,28 +117,53 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
+            enable_coverage_strategy=enable_coverage_strategy,
+            instruction_laser_plugin=instruction_laser_plugin,
         )
+
+        if loop_bound is not None:
+            self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
 
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+        plugin_loader.load(instruction_laser_plugin)
 
-        self.laser.register_hooks(
-            hook_type="pre",
-            hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
-        )
-        self.laser.register_hooks(
-            hook_type="post",
-            hook_dict=get_detection_module_hooks(modules, hook_type="post"),
-        )
+        if not disable_dependency_pruning:
+            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+
+        world_state = WorldState()
+        for account in self.accounts.values():
+            world_state.put_account(account)
+
+        if run_analysis_modules:
+            self.laser.register_hooks(
+                hook_type="pre",
+                hook_dict=get_detection_module_hooks(
+                    modules,
+                    hook_type="pre",
+                    custom_modules_directory=custom_modules_directory,
+                ),
+            )
+            self.laser.register_hooks(
+                hook_type="post",
+                hook_dict=get_detection_module_hooks(
+                    modules,
+                    hook_type="post",
+                    custom_modules_directory=custom_modules_directory,
+                ),
+            )
 
         if isinstance(contract, SolidityContract):
             self.laser.sym_exec(
-                creation_code=contract.creation_code, contract_name=contract.name
+                creation_code=contract.creation_code,
+                contract_name=contract.name,
+                world_state=world_state,
             )
         elif isinstance(contract, EVMContract) and contract.creation_code:
             self.laser.sym_exec(
-                creation_code=contract.creation_code, contract_name=contract.name
+                creation_code=contract.creation_code,
+                contract_name=contract.name,
+                world_state=world_state,
             )
         else:
             account = Account(
@@ -115,9 +171,10 @@ class SymExecWrapper:
                 contract.disassembly,
                 dynamic_loader=dynloader,
                 contract_name=contract.name,
-                concrete_storage=False,
+                concrete_storage=True
+                if (dynloader is not None and dynloader.storage_loading)
+                else False,
             )
-            world_state = WorldState()
             world_state.put_account(account)
             self.laser.sym_exec(world_state=world_state, target_address=address.value)
 
@@ -127,10 +184,9 @@ class SymExecWrapper:
         self.nodes = self.laser.nodes
         self.edges = self.laser.edges
 
-        # Generate lists of interesting operations
+        # Parse calls to make them easily accessible
 
         self.calls = []  # type: List[Call]
-        self.sstors = {}  # type: Dict[int, Dict[str, List[SStore]]]
 
         for key in self.nodes:
 
@@ -178,7 +234,7 @@ class SymExecWrapper:
                                     gas,
                                     value,
                                     state.mstate.memory[
-                                        meminstart.val : meminsz.val * 4
+                                        meminstart.val : meminsz.val + meminstart.val
                                     ],
                                 )
                             )
@@ -208,50 +264,4 @@ class SymExecWrapper:
                             Call(self.nodes[key], state, state_index, op, to, gas)
                         )
 
-                elif op == "SSTORE":
-                    stack = copy.copy(state.mstate.stack)
-                    address = state.environment.active_account.address.value
-
-                    index, value = stack.pop(), stack.pop()
-
-                    try:
-                        self.sstors[address]
-                    except KeyError:
-                        self.sstors[address] = {}
-
-                    try:
-                        self.sstors[address][str(index)].append(
-                            SStore(self.nodes[key], state, state_index, value)
-                        )
-                    except KeyError:
-                        self.sstors[address][str(index)] = [
-                            SStore(self.nodes[key], state, state_index, value)
-                        ]
-
                 state_index += 1
-
-    def find_storage_write(self, address, index):
-        """
-
-        :param address:
-        :param index:
-        :return:
-        """
-        # Find an SSTOR not constrained by caller that writes to storage index "index"
-
-        try:
-            for s in self.sstors[address][index]:
-
-                taint = True
-
-                for constraint in s.node.constraints:
-                    if "caller" in str(constraint):
-                        taint = False
-                        break
-
-                if taint:
-                    return s.node.function_name
-
-            return None
-        except KeyError:
-            return None

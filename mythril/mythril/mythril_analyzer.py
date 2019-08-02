@@ -10,6 +10,7 @@ from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
+from mythril.analysis.analysis_args import analysis_args
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report, Issue
@@ -35,8 +36,13 @@ class MythrilAnalyzer:
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
         execution_timeout: Optional[int] = None,
+        loop_bound: Optional[int] = None,
         create_timeout: Optional[int] = None,
         enable_iprof: bool = False,
+        disable_dependency_pruning: bool = False,
+        solver_timeout: Optional[int] = None,
+        enable_coverage_strategy: bool = False,
+        custom_modules_directory: str = "",
     ):
         """
 
@@ -53,8 +59,15 @@ class MythrilAnalyzer:
         self.address = address
         self.max_depth = max_depth
         self.execution_timeout = execution_timeout
+        self.loop_bound = loop_bound
         self.create_timeout = create_timeout
         self.enable_iprof = enable_iprof
+        self.disable_dependency_pruning = disable_dependency_pruning
+        self.enable_coverage_strategy = enable_coverage_strategy
+        self.custom_modules_directory = custom_modules_directory
+
+        analysis_args.set_loop_bound(loop_bound)
+        analysis_args.set_solver_timeout(solver_timeout)
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -75,6 +88,10 @@ class MythrilAnalyzer:
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            disable_dependency_pruning=self.disable_dependency_pruning,
+            run_analysis_modules=False,
+            enable_coverage_strategy=self.enable_coverage_strategy,
+            custom_modules_directory=self.custom_modules_directory,
         )
 
         return get_serializable_statespace(sym)
@@ -108,18 +125,20 @@ class MythrilAnalyzer:
             transaction_count=transaction_count,
             create_timeout=self.create_timeout,
             enable_iprof=self.enable_iprof,
+            disable_dependency_pruning=self.disable_dependency_pruning,
+            run_analysis_modules=False,
+            enable_coverage_strategy=self.enable_coverage_strategy,
+            custom_modules_directory=self.custom_modules_directory,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
     def fire_lasers(
         self,
         modules: Optional[List[str]] = None,
-        verbose_report: bool = False,
         transaction_count: Optional[int] = None,
     ) -> Report:
         """
         :param modules: The analysis modules which should be executed
-        :param verbose_report: Gives out the transaction sequence of the vulnerability
         :param transaction_count: The amount of transactions to be executed
         :return: The Report class which contains the all the issues/vulnerabilities
         """
@@ -140,22 +159,30 @@ class MythrilAnalyzer:
                     ),
                     max_depth=self.max_depth,
                     execution_timeout=self.execution_timeout,
+                    loop_bound=self.loop_bound,
                     create_timeout=self.create_timeout,
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
                     enable_iprof=self.enable_iprof,
+                    disable_dependency_pruning=self.disable_dependency_pruning,
+                    enable_coverage_strategy=self.enable_coverage_strategy,
+                    custom_modules_directory=self.custom_modules_directory,
                 )
-                issues = fire_lasers(sym, modules)
+                issues = fire_lasers(sym, modules, self.custom_modules_directory)
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
-                issues = retrieve_callback_issues(modules)
+                issues = retrieve_callback_issues(
+                    modules, self.custom_modules_directory
+                )
             except Exception:
                 log.critical(
                     "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n"
                     + traceback.format_exc()
                 )
-                issues = retrieve_callback_issues(modules)
+                issues = retrieve_callback_issues(
+                    modules, self.custom_modules_directory
+                )
                 exceptions.append(traceback.format_exc())
             for issue in issues:
                 issue.add_code_info(contract)
@@ -166,7 +193,7 @@ class MythrilAnalyzer:
         source_data = Source()
         source_data.get_source_from_contracts_list(self.contracts)
         # Finally, output the results
-        report = Report(verbose_report, contracts=self.contracts, exceptions=exceptions)
+        report = Report(contracts=self.contracts, exceptions=exceptions)
         for issue in all_issues:
             report.append_issue(issue)
 

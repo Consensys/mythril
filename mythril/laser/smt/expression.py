@@ -1,9 +1,9 @@
 """This module contains the SMT abstraction for a basic symbol expression."""
-from typing import Optional, List, Any, TypeVar, Generic, cast
+from typing import Optional, Set, Any, TypeVar, Generic, cast
 import z3
 
 
-Annotations = List[Any]
+Annotations = Set[Any]
 T = TypeVar("T", bound=z3.ExprRef)
 
 
@@ -18,7 +18,11 @@ class Expression(Generic[T]):
         :param annotations: 
         """
         self.raw = raw
-        self._annotations = annotations or []
+
+        if annotations:
+            assert isinstance(annotations, set)
+
+        self._annotations = annotations or set()
 
     @property
     def annotations(self) -> Annotations:
@@ -26,6 +30,7 @@ class Expression(Generic[T]):
 
         :return:
         """
+
         return self._annotations
 
     def annotate(self, annotation: Any) -> None:
@@ -33,10 +38,8 @@ class Expression(Generic[T]):
 
         :param annotation:
         """
-        if isinstance(annotation, list):
-            self._annotations += annotation
-        else:
-            self._annotations.append(annotation)
+
+        self._annotations.add(annotation)
 
     def simplify(self) -> None:
         """Simplify this expression."""
@@ -44,6 +47,12 @@ class Expression(Generic[T]):
 
     def __repr__(self) -> str:
         return repr(self.raw)
+
+    def size(self):
+        return self.raw.size()
+
+    def __hash__(self) -> int:
+        return self.raw.__hash__()
 
 
 G = TypeVar("G", bound=Expression)

@@ -4,6 +4,10 @@ from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.transaction_models import (
+    ContractCreationTransaction,
+)
 import logging
 import json
 
@@ -35,7 +39,6 @@ class SuicideModule(DetectionModule):
         :return:
         """
         super().reset_module()
-        self._cache_address = {}
 
     def _execute(self, state: GlobalState) -> None:
         """
@@ -43,13 +46,18 @@ class SuicideModule(DetectionModule):
         :param state:
         :return:
         """
-        self._issues.extend(self._analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-    def _analyze_state(self, state):
+    @staticmethod
+    def _analyze_state(state):
         log.info("Suicide module: Analyzing suicide instruction")
         instruction = state.get_current_instruction()
-        if self._cache_address.get(instruction["address"], False):
-            return []
+
         to = state.mstate.stack[-1]
 
         log.debug(
@@ -58,12 +66,17 @@ class SuicideModule(DetectionModule):
 
         description_head = "The contract can be killed by anyone."
 
+        constraints = []
+
+        for tx in state.world_state.transaction_sequence:
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints.append(tx.caller == ATTACKER_ADDRESS)
+
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
                     state,
-                    state.mstate.constraints
-                    + [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF],
+                    state.mstate.constraints + constraints + [to == ATTACKER_ADDRESS],
                 )
                 description_tail = (
                     "Anyone can kill this contract and withdraw its balance to an arbitrary "
@@ -71,12 +84,9 @@ class SuicideModule(DetectionModule):
                 )
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.mstate.constraints
+                    state, state.mstate.constraints + constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
-
-            debug = json.dumps(transaction_sequence, indent=4)
-            self._cache_address[instruction["address"]] = True
 
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
@@ -88,7 +98,7 @@ class SuicideModule(DetectionModule):
                 severity="High",
                 description_head=description_head,
                 description_tail=description_tail,
-                debug=debug,
+                transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
             return [issue]

@@ -91,11 +91,3 @@ class Call(Op):
         self.type = _type
         self.value = value
         self.data = data
-
-
-class SStore(Op):
-    """The respresentation of an SSTORE operation."""
-
-    def __init__(self, node, state, state_index, value):
-        super().__init__(node, state, state_index)
-        self.value = value
