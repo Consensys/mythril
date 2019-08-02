@@ -2,21 +2,17 @@
 withdrawal."""
 import logging
 from copy import copy
-from typing import List, cast, Tuple
+from typing import List, Tuple
 from mythril.analysis import solver
+from mythril.analysis.analysis_module_helpers import get_annotation
 from mythril.analysis.modules.base import DetectionModule
 
 from mythril.analysis.report import Issue
-from mythril.laser.ethereum.transaction.symbolic import (
-    ATTACKER_ADDRESS,
-    CREATOR_ADDRESS,
-)
 from mythril.analysis.swc_data import WRITE_TO_ARBITRARY_STORAGE
 from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import UGT, Sum, symbol_factory, BVAddNoOverflow, If, BitVecFunc
+from mythril.laser.smt import symbol_factory, BitVecFunc
 
 log = logging.getLogger(__name__)
 
@@ -42,24 +38,6 @@ class AribtraryWriteAnnotation(StateAnnotation):
         result = AribtraryWriteAnnotation()
         result.storage_write_slots = copy(self.storage_write_slots)
         return result
-
-
-def get_annotation(state, AnnotationType) -> StateAnnotation:
-    """
-    Annotation is searched
-    :param state:
-    :return:
-    """
-    annotations = cast(
-        List[AnnotationType], list(state.get_annotations(AnnotationType))
-    )
-    if len(annotations) == 0:
-        state.annotate(AnnotationType())
-        annotations = cast(
-            List[AnnotationType], list(state.get_annotations(AnnotationType))
-        )
-    assert len(annotations) == 1
-    return annotations[0]
 
 
 class ArbitraryStorage(DetectionModule):
