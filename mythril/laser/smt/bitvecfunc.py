@@ -67,8 +67,10 @@ def _comparison_helper(
         if operation == z3.ULT:
             operation = operator.lt
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
+    if not isinstance(b, BitVecFunc) and "KECCAK" not in str(a):
+        return Bool(operation(a.raw, b.raw))
     if (
-        (not isinstance(b, BitVecFunc) and "KECCAK" not in str(a))
+        not isinstance(b, BitVecFunc)
         or not a.func_name
         or not a.input_
         or not a.func_name == b.func_name

@@ -129,7 +129,6 @@ class ArbitraryStorage(DetectionModule):
                     write_slot == symbol_factory.BitVecVal(3243425435, 256)
                 )
 
-            print(constraints)
             constraints = state.mstate.constraints + constraints
             try:
 
@@ -140,7 +139,7 @@ class ArbitraryStorage(DetectionModule):
                 issue = Issue(
                     contract=state.environment.active_account.contract_name,
                     function_name=state.environment.active_function_name,
-                    address=instruction["address"],
+                    address=address,
                     swc_id=WRITE_TO_ARBITRARY_STORAGE,
                     title="Write to an arbitrary storage slot",
                     severity="Medium",
