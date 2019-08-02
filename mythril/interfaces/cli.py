@@ -396,6 +396,11 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         action="store_true",
         help="enable coverage based search strategy",
     )
+    options.add_argument(
+        "--custom-modules-directory",
+        help="designates a separate directory to search for custom analysis modules",
+        metavar="CUSTOM_MODULES_DIRECTORY",
+    )
 
 
 def validate_args(args: Namespace):
@@ -567,6 +572,9 @@ def execute_command(
             solver_timeout=args.solver_timeout,
             requires_dynld=not args.no_onchain_storage_access,
             enable_coverage_strategy=args.enable_coverage_strategy,
+            custom_modules_directory=args.custom_modules_directory
+            if args.custom_modules_directory
+            else "",
         )
 
         if not disassembler.contracts:
