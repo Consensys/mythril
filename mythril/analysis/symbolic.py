@@ -56,6 +56,7 @@ class SymExecWrapper:
         disable_dependency_pruning=False,
         run_analysis_modules=True,
         enable_coverage_strategy=False,
+        custom_modules_directory="",
     ):
         """
 
@@ -93,7 +94,8 @@ class SymExecWrapper:
         )
 
         requires_statespace = (
-            compulsory_statespace or len(get_detection_modules("post", modules)) > 0
+            compulsory_statespace
+            or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
         )
         if not contract.creation_code:
             self.accounts = {hex(ATTACKER_ADDRESS): attacker_account}
@@ -135,11 +137,19 @@ class SymExecWrapper:
         if run_analysis_modules:
             self.laser.register_hooks(
                 hook_type="pre",
-                hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
+                hook_dict=get_detection_module_hooks(
+                    modules,
+                    hook_type="pre",
+                    custom_modules_directory=custom_modules_directory,
+                ),
             )
             self.laser.register_hooks(
                 hook_type="post",
-                hook_dict=get_detection_module_hooks(modules, hook_type="post"),
+                hook_dict=get_detection_module_hooks(
+                    modules,
+                    hook_type="post",
+                    custom_modules_directory=custom_modules_directory,
+                ),
             )
 
         if isinstance(contract, SolidityContract):
