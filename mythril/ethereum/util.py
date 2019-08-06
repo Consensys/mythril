@@ -61,14 +61,7 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     try:
         p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate(bytes(input_json, "utf8"))
-        ret = p.returncode
 
-        # TODO: check json.loads(out)['errors'] for fatal errors.
-        if ret != 0:
-            raise CompilerError(
-                "Solc experienced a fatal error (code %d).\n\n%s"
-                % (ret, stderr.decode("UTF-8"))
-            )
     except FileNotFoundError:
         raise CompilerError(
             "Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable."
@@ -76,10 +69,15 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
 
     out = stdout.decode("UTF-8")
 
-    if not len(out):
-        raise CompilerError("Compilation failed.")
+    result = json.loads(out)
 
-    return json.loads(out)
+    for error in result["errors"]:
+        if error["severity"] == "error":
+            raise CompilerError(
+                "Solc experienced a fatal error.\n\n%s" % error["formattedMessage"]
+            )
+
+    return result
 
 
 def encode_calldata(func_name, arg_types, args):
