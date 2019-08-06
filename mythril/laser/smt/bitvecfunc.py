@@ -34,7 +34,7 @@ def _arithmetic_helper(
 
     return BitVecFunc(
         raw=raw,
-        func_name=a.func_name + "_hybrid",
+        func_name=a.func_name,
         input_=a.input_,
         annotations=union,
         nested_functions=a.nested_functions + [a],

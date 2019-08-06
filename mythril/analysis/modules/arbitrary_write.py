@@ -33,7 +33,7 @@ class AribtraryWriteAnnotation(StateAnnotation):
 
 
 class ArbitraryStorage(DetectionModule):
-    """This module searches for a feasable write to an arbitrary storage slot."""
+    """This module searches for a feasible write to an arbitrary storage slot."""
 
     def __init__(self):
         """"""
@@ -82,6 +82,10 @@ class ArbitraryStorage(DetectionModule):
             if (
                 not isinstance(write_slot, BitVecFunc)
                 or write_slot.func_name != "keccak256"
+                or "KECCAK"
+                not in str(
+                    write_slot
+                )  # TODO: This KECCAK should be used in variable everywhere, Which can't be done now without inducing a backward dependence in bvfs
             ):
                 # Non maps
                 annotation.storage_write_slots.append(
