@@ -18,15 +18,7 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Search for cases where Ether can be withdrawn to a user-specified address.
-
-An issue is reported if:
-
-- The transaction sender does not match contract creator;
-- The sender address can be chosen arbitrarily;
-- The receiver address is identical to the sender address;
-- The sender can withdraw *more* than the total amount they sent over all transactions.
-
+Search for any writes to an arbitrary storage slot
 """
 
 
@@ -41,8 +33,7 @@ class AribtraryWriteAnnotation(StateAnnotation):
 
 
 class ArbitraryStorage(DetectionModule):
-    """This module search for cases where Ether can be withdrawn to a user-
-    specified address."""
+    """This module searches for a feasable write to an arbitrary storage slot."""
 
     def __init__(self):
         """"""
@@ -88,31 +79,22 @@ class ArbitraryStorage(DetectionModule):
 
         if instruction["opcode"] == "SSTORE":
             write_slot = state.mstate.stack[-1]
-            annotation.storage_write_slots.append((write_slot, instruction["address"]))
+            if (
+                not isinstance(write_slot, BitVecFunc)
+                or write_slot.func_name != "keccak256"
+            ):
+                # Non maps
+                annotation.storage_write_slots.append(
+                    (write_slot, instruction["address"])
+                )
             return []
 
         issues = []
         for write_slot, address in annotation.storage_write_slots:
-            constraints = []
-
-            # For maps
-            if (
-                isinstance(write_slot, BitVecFunc)
-                and write_slot.func_name == "keccak256"
-                and not isinstance(write_slot.input_, BitVecFunc)
-            ):
-                constraints.append(
-                    write_slot.input_ == symbol_factory.BitVecVal(1324577524, 256)
-                )
-            else:
-                # Non maps
-                constraints.append(
-                    write_slot == symbol_factory.BitVecVal(324345425435, 256)
-                )
-
-            constraints = state.mstate.constraints + constraints
+            constraints = state.mstate.constraints + [
+                write_slot == symbol_factory.BitVecVal(324345425435, 256)
+            ]
             try:
-
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )
@@ -134,7 +116,6 @@ class ArbitraryStorage(DetectionModule):
                 issues.append(issue)
             except UnsatError:
                 log.debug("No model found")
-                continue
 
         return issues
 
