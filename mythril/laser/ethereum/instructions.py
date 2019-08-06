@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union, Tuple
+from typing import cast, Callable, List, Set, Union, Tuple, Any
 from datetime import datetime
 from math import ceil
 from ethereum import utils
@@ -172,7 +172,7 @@ class Instruction:
         :return:
         """
         # Generalize some ops
-        log.debug("Evaluating {}".format(self.op_code))
+        log.debug("Evaluating %s at %i", self.op_code, global_state.mstate.pc)
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -553,7 +553,7 @@ class Instruction:
                     + str(hash(simplify(exponent)))
                     + ")",
                     256,
-                    base.annotations + exponent.annotations,
+                    base.annotations.union(exponent.annotations),
                 )
             )  # Hash is used because str(symbol) takes a long time to be converted to a string
         else:
@@ -562,7 +562,7 @@ class Instruction:
                 symbol_factory.BitVecVal(
                     pow(base.value, exponent.value, 2 ** 256),
                     256,
-                    annotations=base.annotations + exponent.annotations,
+                    annotations=base.annotations.union(exponent.annotations),
                 )
             )
 
@@ -925,15 +925,15 @@ class Instruction:
 
         if data.symbolic:
 
-            annotations = []
+            annotations = set()  # type: Set[Any]
 
             for b in state.memory[index : index + length]:
                 if isinstance(b, BitVec):
-                    annotations += b.annotations
+                    annotations = annotations.union(b.annotations)
 
-            argument_str = str(state.memory[index]).replace(" ", "_")
+            argument_hash = hash(state.memory[index])
             result = symbol_factory.BitVecFuncSym(
-                "KECCAC[{}]".format(argument_str),
+                "KECCAC[invhash({})]".format(hash(argument_hash)),
                 "keccak256",
                 256,
                 input_=data,
@@ -1308,17 +1308,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0 = state.stack.pop()
-
-        try:
-            offset = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("Can't MLOAD from symbolic index")
-            data = global_state.new_bitvec(
-                "mem[invhash(" + str(hash(simplify(op0))) + ")]", 256
-            )
-            state.stack.append(data)
-            return [global_state]
+        offset = state.stack.pop()
 
         state.mem_extend(offset, 32)
         data = state.memory.get_word_at(offset)
@@ -1334,13 +1324,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0, value = state.stack.pop(), state.stack.pop()
-
-        try:
-            mstart = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("MSTORE to symbolic index. Not supported")
-            return [global_state]
+        mstart, value = state.stack.pop(), state.stack.pop()
 
         try:
             state.mem_extend(mstart, 32)
@@ -1359,13 +1343,7 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-        op0, value = state.stack.pop(), state.stack.pop()
-
-        try:
-            offset = util.get_concrete_int(op0)
-        except TypeError:
-            log.debug("MSTORE to symbolic index. Not supported")
-            return [global_state]
+        offset, value = state.stack.pop(), state.stack.pop()
 
         state.mem_extend(offset, 1)
 
@@ -1618,17 +1596,13 @@ class Instruction:
         """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [global_state.new_bitvec("return_data", 8)]
-        try:
-            concrete_offset = util.get_concrete_int(offset)
-            concrete_length = util.get_concrete_int(length)
-            state.mem_extend(concrete_offset, concrete_length)
-            StateTransition.check_gas_usage_limit(global_state)
-            return_data = state.memory[
-                concrete_offset : concrete_offset + concrete_length
-            ]
-        except TypeError:
+        if length.symbolic:
+            return_data = [global_state.new_bitvec("return_data", 8)]
             log.debug("Return with symbolic length or offset. Not supported")
+        else:
+            state.mem_extend(offset, length)
+            StateTransition.check_gas_usage_limit(global_state)
+            return_data = state.memory[offset : offset + length]
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition()

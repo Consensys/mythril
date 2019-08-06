@@ -7,7 +7,6 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 from mythril.exceptions import UnsatError
-from z3.z3types import Z3Exception
 from mythril.analysis import solver
 from typing import cast, List, Dict, Set
 from copy import copy
@@ -26,15 +25,15 @@ class DependencyAnnotation(StateAnnotation):
     def __init__(self):
         self.storage_loaded = []  # type: List
         self.storage_written = {}  # type: Dict[int, List]
-        self.has_call = False
         self.path = [0]  # type: List
+        self.blocks_seen = set()  # type: Set[int]
 
     def __copy__(self):
         result = DependencyAnnotation()
         result.storage_loaded = copy(self.storage_loaded)
         result.storage_written = copy(self.storage_written)
         result.path = copy(self.path)
-        result.has_call = self.has_call
+        result.blocks_seen = copy(self.blocks_seen)
         return result
 
     def get_storage_write_cache(self, iteration: int):
@@ -46,9 +45,8 @@ class DependencyAnnotation(StateAnnotation):
     def extend_storage_write_cache(self, iteration: int, value: object):
         if iteration not in self.storage_written:
             self.storage_written[iteration] = [value]
-        else:
-            if value not in self.storage_written[iteration]:
-                self.storage_written[iteration].append(value)
+        elif value not in self.storage_written[iteration]:
+            self.storage_written[iteration].append(value)
 
 
 class WSDependencyAnnotation(StateAnnotation):
@@ -136,55 +134,84 @@ class DependencyPruner(LaserPlugin):
 
     def _reset(self):
         self.iteration = 0
-        self.dependency_map = {}  # type: Dict[int, List[object]]
-        self.protected_addresses = set()  # type: Set[int]
+        self.sloads_on_path = {}  # type: Dict[int, List[object]]
+        self.sstores_on_path = {}  # type: Dict[int, List[object]]
+        self.storage_accessed_global = set()  # type: Set
 
-    def update_dependency_map(self, path: List[int], target_location: object) -> None:
+    def update_sloads(self, path: List[int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.
 
         :param path
         :param target_location
         """
 
-        try:
-            for address in path:
-                if address in self.dependency_map:
-                    if target_location not in self.dependency_map[address]:
-                        self.dependency_map[address].append(target_location)
-                else:
-                    self.dependency_map[address] = [target_location]
-        except Z3Exception as e:
-            # This should not happen unless there's a bug in laser, such as an invalid type being generated.
-            log.debug("Error updating dependency map: {}".format(e))
+        for address in path:
+            if address in self.sloads_on_path:
+                if target_location not in self.sloads_on_path[address]:
+                    self.sloads_on_path[address].append(target_location)
+            else:
+                self.sloads_on_path[address] = [target_location]
 
-    def protect_path(self, path: List[int]) -> None:
-        """Prevent an execution path of being pruned.
+    def update_sstores(self, path: List[int], target_location: object) -> None:
+        """Update the dependency map for the block offsets on the given path.
 
         :param path
+        :param target_location
         """
 
         for address in path:
-            self.protected_addresses.add(address)
+            if address in self.sstores_on_path:
+                if target_location not in self.sstores_on_path[address]:
+                    self.sstores_on_path[address].append(target_location)
+            else:
+                self.sstores_on_path[address] = [target_location]
 
-    def wanna_execute(self, address: int, storage_write_cache) -> bool:
+    def wanna_execute(self, address: int, annotation: DependencyAnnotation) -> bool:
         """Decide whether the basic block starting at 'address' should be executed.
 
         :param address
         :param storage_write_cache
         """
 
-        if address in self.protected_addresses or address not in self.dependency_map:
-            return True
+        storage_write_cache = annotation.get_storage_write_cache(self.iteration - 1)
 
-        dependencies = self.dependency_map[address]
+        # Skip "pure" paths that don't have any dependencies.
 
-        # Return if *any* dependency is found
+        if address not in self.sloads_on_path:
+            return False
+
+        # Execute the path if there are state modifications along it that *could* be relevant
+
+        if address in self.storage_accessed_global:
+            for location in self.sstores_on_path:
+                try:
+                    solver.get_model((location == address,))
+                    return True
+
+                except UnsatError:
+                    continue
+
+        dependencies = self.sloads_on_path[address]
+
+        # Execute the path if there's any dependency on state modified in the previous transaction
 
         for location in storage_write_cache:
             for dependency in dependencies:
 
+                # Is there a known read operation along this path that matches a write in the previous transaction?
+
                 try:
-                    solver.get_model([location == dependency])
+                    solver.get_model((location == dependency,))
+                    return True
+
+                except UnsatError:
+                    continue
+
+            # Has the *currently executed* path been influenced by a write operation in the previous transaction?
+
+            for dependency in annotation.storage_loaded:
+                try:
+                    solver.get_model((location == dependency,))
                     return True
                 except UnsatError:
                     continue
@@ -202,40 +229,32 @@ class DependencyPruner(LaserPlugin):
         def start_sym_trans_hook():
             self.iteration += 1
 
-        @symbolic_vm.post_hook("CALL")
-        def call_hook(state: GlobalState):
-            annotation = get_dependency_annotation(state)
-
-            annotation.has_call = True
-            self.protect_path(annotation.path)
-
         @symbolic_vm.post_hook("JUMP")
         def jump_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
-            annotation = get_dependency_annotation(state)
 
-            _check_basic_block(address, annotation)
-
-        @symbolic_vm.pre_hook("JUMPDEST")
-        def jumpdest_hook(state: GlobalState):
-            address = state.get_current_instruction()["address"]
             annotation = get_dependency_annotation(state)
+            annotation.path.append(address)
 
             _check_basic_block(address, annotation)
 
         @symbolic_vm.post_hook("JUMPI")
         def jumpi_hook(state: GlobalState):
             address = state.get_current_instruction()["address"]
+
             annotation = get_dependency_annotation(state)
+            annotation.path.append(address)
 
             _check_basic_block(address, annotation)
 
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
-            annotation.extend_storage_write_cache(
-                self.iteration, state.mstate.stack[-1]
-            )
+
+            location = state.mstate.stack[-1]
+
+            self.update_sstores(annotation.path, location)
+            annotation.extend_storage_write_cache(self.iteration, location)
 
         @symbolic_vm.pre_hook("SLOAD")
         def sload_hook(state: GlobalState):
@@ -248,7 +267,8 @@ class DependencyPruner(LaserPlugin):
             # We backwards-annotate the path here as sometimes execution never reaches a stop or return
             # (and this may change in a future transaction).
 
-            self.update_dependency_map(annotation.path, location)
+            self.update_sloads(annotation.path, location)
+            self.storage_accessed_global.add(location)
 
         @symbolic_vm.pre_hook("STOP")
         def stop_hook(state: GlobalState):
@@ -267,11 +287,11 @@ class DependencyPruner(LaserPlugin):
 
             annotation = get_dependency_annotation(state)
 
-            if annotation.has_call:
-                self.protect_path(annotation.path)
-
             for index in annotation.storage_loaded:
-                self.update_dependency_map(annotation.path, index)
+                self.update_sloads(annotation.path, index)
+
+            for index in annotation.storage_written:
+                self.update_sstores(annotation.path, index)
 
         def _check_basic_block(address: int, annotation: DependencyAnnotation):
             """This method is where the actual pruning happens.
@@ -284,15 +304,16 @@ class DependencyPruner(LaserPlugin):
             if self.iteration < 2:
                 return
 
-            annotation.path.append(address)
+            # Don't skip newly discovered blocks
+            if address not in annotation.blocks_seen:
+                annotation.blocks_seen.add(address)
+                return
 
-            if self.wanna_execute(
-                address, annotation.get_storage_write_cache(self.iteration - 1)
-            ):
+            if self.wanna_execute(address, annotation):
                 return
             else:
                 log.debug(
-                    "Skipping state: Storage slots {} not read in block at address {}".format(
+                    "Skipping state: Storage slots {} not read in block at address {}, function".format(
                         annotation.get_storage_write_cache(self.iteration - 1), address
                     )
                 )
@@ -315,7 +336,6 @@ class DependencyPruner(LaserPlugin):
 
             annotation.path = [0]
             annotation.storage_loaded = []
-            annotation.has_call = False
 
             world_state_annotation.annotations_stack.append(annotation)
 
@@ -324,7 +344,7 @@ class DependencyPruner(LaserPlugin):
                     self.iteration,
                     state.get_current_instruction()["address"],
                     state.node.function_name,
-                    self.dependency_map,
+                    self.sloads_on_path,
                     annotation.storage_written[self.iteration],
                 )
             )

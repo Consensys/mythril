@@ -6,6 +6,8 @@ from typing import Dict, cast, List
 from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.solver import get_transaction_sequence, UnsatError
+from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
@@ -18,8 +20,8 @@ class VisitsAnnotation(StateAnnotation):
     """State annotation that stores the addresses of state-modifying operations"""
 
     def __init__(self) -> None:
-        self.loop_start = None
-        self.jump_targets = []  # type: List[int]
+        self.loop_start = None  # type: int
+        self.jump_targets = {}  # type: Dict[int, int]
 
     def __copy__(self):
         result = VisitsAnnotation()
@@ -29,7 +31,7 @@ class VisitsAnnotation(StateAnnotation):
         return result
 
 
-class DOS(DetectionModule):
+class DosModule(DetectionModule):
     """This module consists of a makeshift loop detector that annotates the state with
     a list of byte ranges likely to be loops. If a CALL or SSTORE detection is found in
     one of the ranges it creates a low-severity issue. This is not super precise but
@@ -53,10 +55,10 @@ class DOS(DetectionModule):
         :param state:
         :return:
         """
+        issues = self._analyze_state(state)
+        self._issues.extend(issues)
 
-        self._issues.extend(self._analyze_states(state))
-
-    def _analyze_states(self, state: GlobalState) -> List[Issue]:
+    def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
         :param state: the current state
         :return: returns the issues for that corresponding state
@@ -76,13 +78,21 @@ class DOS(DetectionModule):
             annotation = annotations[0]
 
         if opcode in ["JUMP", "JUMPI"]:
-            target = util.get_concrete_int(state.mstate.stack[-1])
 
-            if annotation.loop_start is None:
-                if target in annotation.jump_targets:
-                    annotation.loop_start = address
-                else:
-                    annotation.jump_targets.append(target)
+            if annotation.loop_start is not None:
+                return []
+            try:
+                target = util.get_concrete_int(state.mstate.stack[-1])
+            except TypeError:
+                log.debug("Symbolic target encountered in dos module")
+                return []
+            if target in annotation.jump_targets:
+                annotation.jump_targets[target] += 1
+            else:
+                annotation.jump_targets[target] = 1
+
+            if annotation.jump_targets[target] > min(2, analysis_args.loop_bound - 1):
+                annotation.loop_start = address
 
         elif annotation.loop_start is not None:
 
@@ -98,6 +108,13 @@ class DOS(DetectionModule):
                 operation
             )
 
+            try:
+                transaction_sequence = get_transaction_sequence(
+                    state, state.mstate.constraints
+                )
+            except UnsatError:
+                return []
+
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
@@ -109,6 +126,7 @@ class DOS(DetectionModule):
                 description_head=description_head,
                 description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                transaction_sequence=transaction_sequence,
             )
 
             return [issue]
@@ -116,4 +134,4 @@ class DOS(DetectionModule):
         return []
 
 
-detector = DOS()
+detector = DosModule()

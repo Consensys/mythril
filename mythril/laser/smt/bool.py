@@ -1,7 +1,7 @@
 """This module provides classes for an SMT abstraction of boolean
 expressions."""
 
-from typing import Union, cast, List
+from typing import Union, cast, List, Set
 
 import z3
 
@@ -55,7 +55,7 @@ class Bool(Expression[z3.BoolRef]):
         """
         if isinstance(other, Expression):
             return Bool(cast(z3.BoolRef, self.raw == other.raw),
-                        self.annotations + other.annotations)
+                        self.annotations.union(other.annotations))
         return Bool(cast(z3.BoolRef, self.raw == other), self.annotations)
 
     # MYPY: complains about overloading __ne__ # noqa
@@ -67,7 +67,7 @@ class Bool(Expression[z3.BoolRef]):
         """
         if isinstance(other, Expression):
             return Bool(cast(z3.BoolRef, self.raw != other.raw),
-                        self.annotations + other.annotations)
+                        self.annotations.union(other.annotations))
         return Bool(cast(z3.BoolRef, self.raw != other), self.annotations)
 
     def __bool__(self) -> bool:
@@ -86,17 +86,17 @@ class Bool(Expression[z3.BoolRef]):
 
 def And(*args: Union[Bool, bool]) -> Bool:
     """Create an And expression."""
-    union = []    # type: List
+    annotations = set()   # type: Set
     args_list = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
     for arg in args_list:
-        union += arg.annotations
-    return Bool(z3.And([a.raw for a in args_list]), union)
+        annotations = annotations.union(arg.annotations)
+    return Bool(z3.And([a.raw for a in args_list]), annotations)
 
 
 def Xor(a: Bool, b: Bool) -> Bool:
     """Create an And expression."""
 
-    union = a.annotations + b.annotations
+    union = a.annotations.union(b.annotations)
     return Bool(z3.Xor(a.raw, b.raw), union)
 
 
@@ -108,10 +108,10 @@ def Or(*args: Union[Bool, bool]) -> Bool:
     :return:
     """
     args_list = [arg if isinstance(arg, Bool) else Bool(arg) for arg in args]
-    union = []  # type: List
+    annotations = set()  # type: Set
     for arg in args_list:
-        union += arg.annotations
-    return Bool(z3.Or([a.raw for a in args_list]), annotations=union)
+        annotations = annotations.union(arg.annotations)
+    return Bool(z3.Or([a.raw for a in args_list]), annotations=annotations)
 
 
 def Not(a: Bool) -> Bool:

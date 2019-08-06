@@ -19,7 +19,7 @@ def test_config_path_dynloading():
 
 rpc_types_tests = [
     ("infura", "mainnet.infura.io", 443, True),
-    ("ganache", "localhost", 8545, True),
+    ("ganache", "localhost", 7545, True),
     ("infura-rinkeby", "rinkeby.infura.io", 443, True),
     ("infura-ropsten", "ropsten.infura.io", 443, True),
     ("infura-kovan", "kovan.infura.io", 443, True),

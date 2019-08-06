@@ -55,70 +55,77 @@ class UncheckedRetvalModule(DetectionModule):
         :param state:
         :return:
         """
-        self._issues.extend(_analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
+    def _analyze_state(self, state: GlobalState) -> list:
+        instruction = state.get_current_instruction()
 
-def _analyze_state(state: GlobalState) -> list:
-    instruction = state.get_current_instruction()
-
-    annotations = cast(
-        List[UncheckedRetvalAnnotation],
-        [a for a in state.get_annotations(UncheckedRetvalAnnotation)],
-    )
-    if len(annotations) == 0:
-        state.annotate(UncheckedRetvalAnnotation())
         annotations = cast(
             List[UncheckedRetvalAnnotation],
             [a for a in state.get_annotations(UncheckedRetvalAnnotation)],
         )
-
-    retvals = annotations[0].retvals
-
-    if instruction["opcode"] in ("STOP", "RETURN"):
-        issues = []
-        for retval in retvals:
-            try:
-                solver.get_model(state.mstate.constraints + [retval["retval"] == 0])
-            except UnsatError:
-                continue
-
-            description_tail = (
-                "External calls return a boolean value. If the callee contract halts with an exception, 'false' is "
-                "returned and execution continues in the caller. It is usually recommended to wrap external calls "
-                "into a require statement to prevent unexpected states."
+        if len(annotations) == 0:
+            state.annotate(UncheckedRetvalAnnotation())
+            annotations = cast(
+                List[UncheckedRetvalAnnotation],
+                [a for a in state.get_annotations(UncheckedRetvalAnnotation)],
             )
 
-            issue = Issue(
-                contract=state.environment.active_account.contract_name,
-                function_name=state.environment.active_function_name,
-                address=retval["address"],
-                bytecode=state.environment.code.bytecode,
-                title="Unchecked Call Return Value",
-                swc_id=UNCHECKED_RET_VAL,
-                severity="Low",
-                description_head="The return value of a message call is not checked.",
-                description_tail=description_tail,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+        retvals = annotations[0].retvals
+
+        if instruction["opcode"] in ("STOP", "RETURN"):
+            issues = []
+            for retval in retvals:
+                try:
+                    transaction_sequence = solver.get_transaction_sequence(
+                        state, state.mstate.constraints + [retval["retval"] == 0]
+                    )
+                except UnsatError:
+                    continue
+
+                description_tail = (
+                    "External calls return a boolean value. If the callee contract halts with an exception, 'false' is "
+                    "returned and execution continues in the caller. It is usually recommended to wrap external calls "
+                    "into a require statement to prevent unexpected states."
+                )
+
+                issue = Issue(
+                    contract=state.environment.active_account.contract_name,
+                    function_name=state.environment.active_function_name,
+                    address=retval["address"],
+                    bytecode=state.environment.code.bytecode,
+                    title="Unchecked Call Return Value",
+                    swc_id=UNCHECKED_RET_VAL,
+                    severity="Low",
+                    description_head="The return value of a message call is not checked.",
+                    description_tail=description_tail,
+                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                    transaction_sequence=transaction_sequence,
+                )
+
+                issues.append(issue)
+
+            return issues
+        else:
+            log.debug("End of call, extracting retval")
+            assert state.environment.code.instruction_list[state.mstate.pc - 1][
+                "opcode"
+            ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
+            retval = state.mstate.stack[-1]
+            # Use Typed Dict after release of mypy 0.670 and remove type ignore
+            retvals.append(
+                {  # type: ignore
+                    "address": state.instruction["address"] - 1,
+                    "retval": retval,
+                }
             )
 
-            issues.append(issue)
-
-        return issues
-    else:
-        log.debug("End of call, extracting retval")
-        assert state.environment.code.instruction_list[state.mstate.pc - 1][
-            "opcode"
-        ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
-        retval = state.mstate.stack[-1]
-        # Use Typed Dict after release of mypy 0.670 and remove type ignore
-        retvals.append(
-            {  # type: ignore
-                "address": state.instruction["address"] - 1,
-                "retval": retval,
-            }
-        )
-
-    return []
+        return []
 
 
 detector = UncheckedRetvalModule()

@@ -15,14 +15,13 @@ from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import UGT, Sum, symbol_factory, BVAddNoOverflow
-from mythril.laser.smt.bitvec import If
+from mythril.laser.smt import UGT, Sum, symbol_factory, BVAddNoOverflow, If
 
 log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Search for cases where Ether can be withdrawn to a user-specified address. 
+Search for cases where Ether can be withdrawn to a user-specified address.
 
 An issue is reported if:
 
@@ -47,7 +46,6 @@ class EtherThief(DetectionModule):
             entrypoint="callback",
             pre_hooks=["CALL"],
         )
-        self._cache_addresses = {}
 
     def reset_module(self):
         """
@@ -55,7 +53,6 @@ class EtherThief(DetectionModule):
         :return:
         """
         super().reset_module()
-        self._cache_addresses = {}
 
     def _execute(self, state: GlobalState) -> None:
         """
@@ -63,9 +60,15 @@ class EtherThief(DetectionModule):
         :param state:
         :return:
         """
-        self._issues.extend(self._analyze_state(state))
+        if state.get_current_instruction()["address"] in self._cache:
+            return
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self._cache.add(issue.address)
+        self._issues.extend(issues)
 
-    def _analyze_state(self, state):
+    @staticmethod
+    def _analyze_state(state):
         """
 
         :param state:
@@ -76,9 +79,6 @@ class EtherThief(DetectionModule):
         if instruction["opcode"] != "CALL":
             return []
 
-        address = instruction["address"]
-        if self._cache_addresses.get(address, False):
-            return []
         value = state.mstate.stack[-3]
         target = state.mstate.stack[-2]
 
@@ -90,10 +90,12 @@ class EtherThief(DetectionModule):
             """
             Constraint: The call value must be greater than the sum of Ether sent by the attacker over all
             transactions. This prevents false positives caused by legitimate refund functions.
-            Also constrain the addition from overflowing (otherwise the solver produces solutions with 
+            Also constrain the addition from overflowing (otherwise the solver produces solutions with
             ridiculously high call values).
             """
-            constraints += [BVAddNoOverflow(eth_sent_by_attacker, tx.call_value, False)]
+            constraints += [
+                BVAddNoOverflow(eth_sent_by_attacker, tx.call_value, signed=False)
+            ]
             eth_sent_by_attacker = Sum(
                 eth_sent_by_attacker,
                 tx.call_value * If(tx.caller == ATTACKER_ADDRESS, 1, 0),
@@ -138,10 +140,8 @@ class EtherThief(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
         except UnsatError:
-            log.debug("[ETHER_THIEF] no model found")
+            log.debug("No model found")
             return []
-
-        # self._cache_addresses[address] = True
 
         return [issue]
 

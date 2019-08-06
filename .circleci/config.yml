@@ -103,13 +103,16 @@ jobs:
           name: Run Edelweiss
           command: |
               docker run \
+                -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
+                -e CIRCLE_SHA1=$CIRCLE_SHA1 \
                 -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
                 -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
                 -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
                 --rm edelweiss-mythril:latest \
-                --timeout 30 \
+                --timeout 90 \
                 --output-dir /opt/edelweiss \
                 --s3 \
+                --dynamodb \
                 --circle-ci CircleCI/mythril.csv \
                 --ignore-false-positives $IGNORE_FALSE_POSITIVES \
                 --ignore-regressions $IGNORE_REGRESSIONS

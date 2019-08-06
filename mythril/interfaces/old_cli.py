@@ -214,6 +214,12 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         help="Maximum number of transactions issued by laser",
     )
     options.add_argument(
+        "--solver-timeout",
+        type=int,
+        default=10000,
+        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
+    )
+    options.add_argument(
         "--execution-timeout",
         type=int,
         default=86400,
@@ -422,6 +428,7 @@ def execute_command(
         enable_iprof=args.enable_iprof,
         disable_dependency_pruning=args.disable_dependency_pruning,
         onchain_storage_access=not args.no_onchain_storage_access,
+        solver_timeout=args.solver_timeout,
     )
 
     if args.disassemble:
@@ -520,7 +527,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
-            solc_json=args.solc_json,
+            solc_settings_json=args.solc_json,
             enable_online_lookup=args.query_signature,
         )
         if args.truffle:
