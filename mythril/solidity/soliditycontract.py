@@ -113,8 +113,11 @@ class SolidityContract(EVMContract):
         # If no contract name is specified, get the last bytecode entry for the input file
 
         else:
-            for filename, contract in sorted(data["contracts"][input_file].items()):
+            for contract_name, contract in sorted(
+                data["contracts"][input_file].items()
+            ):
                 if len(contract["evm"]["deployedBytecode"]["object"]):
+                    name = contract_name
                     code = contract["evm"]["deployedBytecode"]["object"]
                     creation_code = contract["evm"]["bytecode"]["object"]
                     srcmap = contract["evm"]["deployedBytecode"]["sourceMap"].split(";")
