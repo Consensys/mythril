@@ -71,7 +71,7 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
 
     result = json.loads(out)
 
-    for error in result["errors"]:
+    for error in result.get("errors", []):
         if error["severity"] == "error":
             raise CompilerError(
                 "Solc experienced a fatal error.\n\n%s" % error["formattedMessage"]
