@@ -1176,7 +1176,9 @@ class Instruction:
         if address.value not in world_state.accounts:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
-            code = world_state.accounts_exist_or_load(hex(address.value), self.dynamic_loader)
+            code = world_state.accounts_exist_or_load(
+                hex(address.value), self.dynamic_loader
+            )
             code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
         return [global_state]
