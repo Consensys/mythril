@@ -197,15 +197,21 @@ def _set_minimisation_constraints(
         # Minimize
         minimize.append(transaction.call_data.calldatasize)
 
+        constraints.append(
+            UGE(
+                symbol_factory.BitVecVal(1000000000000000000000, 256),
+                world_state.starting_balances[transaction.caller],
+            )
+        )
+
     for account in world_state.accounts.values():
         # Lazy way to prevent overflows and to ensure "reasonable" balances
         # Each account starts with less than 100 ETH
-        if account.address.symbolic:
-            constraints.append(
-                UGE(
-                    symbol_factory.BitVecVal(100000000000000000000, 256),
-                    world_state.starting_balances[account.address],
-                )
+        constraints.append(
+            UGE(
+                symbol_factory.BitVecVal(100000000000000000000, 256),
+                world_state.starting_balances[account.address],
             )
+        )
 
     return constraints, tuple(minimize)
