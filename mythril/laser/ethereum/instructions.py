@@ -46,6 +46,8 @@ from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
 )
 
+from mythril.support.support_utils import get_code_hash
+
 from mythril.support.loader import DynLoader
 
 log = logging.getLogger(__name__)
@@ -1155,18 +1157,30 @@ class Instruction:
             global_state=global_state,
         )
 
-    @StateTransition
+    @StateTransition()
     def extcodehash_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
         :return: List of global states possible, list of size 1 in this case
         """
-        # TODO: To be implemented
-        address = global_state.mstate.stack.pop()
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("extcodehash_{}".format(str(address)), 256)
-        )
+        world_state = global_state.world_state
+        stack = global_state.mstate.stack
+        address = stack.pop()
+        if address.symbolic:
+            log.debug("unsupported symbolic address for EXTCODEHASH")
+            stack.append(global_state.new_bitvec("extcodehash_" + str(address), 256))
+            return [global_state]
+        address = address.value
+            
+        mask = int((symbol_factory.BitVecVal(TT256M1, 256) >> 96).value)
+        address = address & mask
+        if address not in world_state.accounts:
+            code_hash = symbol_factory.BitVecVal(0, 256)
+        else:
+            code = world_state.accounts_exist_or_load(hex(address), self.dynamic_loader)
+            code_hash = get_code_hash(code)
+        stack.append(code_hash)
         return [global_state]
 
     @StateTransition()
