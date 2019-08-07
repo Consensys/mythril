@@ -36,10 +36,7 @@ def test_extcodehash_concrete():
     # If account code does not exist, return hash of empty set.
     og_state.mstate.stack = [symbol_factory.BitVecVal(1000, 256)]
     new_state = instruction.evaluate(og_state)[0]
-    assert (
-        hex(new_state.mstate.stack[-1].value)
-        == get_code_hash("")
-    )
+    assert hex(new_state.mstate.stack[-1].value) == get_code_hash("")
 
     # If account code exists, return hash of the code.
     og_state.mstate.stack = [symbol_factory.BitVecVal(101, 256)]
