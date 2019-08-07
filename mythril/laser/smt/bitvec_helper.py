@@ -1,8 +1,8 @@
-from typing import Union, overload, List, Set, cast, Any, Optional, Callable
+from typing import Union, overload, List, Set, cast, Any, Callable
 import z3
 
-from mythril.laser.smt.bool import Bool, And, Or
-from mythril.laser.smt.bitvec import BitVec
+from mythril.laser.smt.bool import Bool, Or
+from mythril.laser.smt.bitvec import BitVec, BitVecExtract
 from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.bitvecfunc import BitVecFuncExtract
 from mythril.laser.smt.bitvecfunc import _arithmetic_helper as _func_arithmetic_helper
@@ -109,6 +109,10 @@ def ULE(a: BitVec, b: BitVec) -> Bool:
     return Or(ULT(a, b), a == b)
 
 
+def check_extracted_var(bv: BitVec):
+    return isinstance(bv, BitVecFuncExtract) or isinstance(bv, BitVecExtract)
+
+
 @overload
 def Concat(*args: List[BitVec]) -> BitVec:
     ...
@@ -131,65 +135,43 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     else:
         bvs = cast(List[BitVec], args)
 
-    concat_list = bvs
     nraw = z3.Concat([a.raw for a in bvs])
     annotations = set()  # type: Annotations
 
     nested_functions = []  # type: List[BitVecFunc]
-    bfne_cnt = 0
-    parent = None
     for bv in bvs:
         annotations = annotations.union(bv.annotations)
         if isinstance(bv, BitVecFunc):
             nested_functions += bv.nested_functions
             nested_functions += [bv]
-            if isinstance(bv, BitVecFuncExtract):
-                if parent is None:
-                    parent = bv.parent
-                if hash(parent.raw) != hash(bv.parent.raw):
-                    continue
-                bfne_cnt += 1
-
-    if bfne_cnt == len(bvs):
-        # check for continuity
-        fail = True
-        if bvs[-1].low == 0:
-            fail = False
-            for index, bv in enumerate(bvs):
-                if index == 0:
-                    continue
-                if bv.high + 1 != bvs[index - 1].low:
-                    fail = True
-                    break
-
-        if fail is False:
-            if bvs[0].high == bvs[0].parent.size() - 1:
-                return bvs[0].parent
+    new_bvs = []
+    prev_bv = bvs[0]
+    # casting everywhere in if's looks quite messy, so I am type ignoring
+    for bv in bvs[1:]:
+        if (
+            not check_extracted_var(bv)
+            or bv.high + 1 != prev_bv.low  # type: ignore
+            or bv.parent != prev_bv.parent  # type: ignore
+        ):
+            if check_extracted_var(prev_bv) and hash(prev_bv) == hash(
+                prev_bv.parent
+            ):  # type: ignore
+                new_bvs.append(prev_bv.parent)  # type: ignore
             else:
-                return BitVecFuncExtract(
-                    raw=nraw,
-                    func_name=bvs[0].func_name,
-                    input_=bvs[0].input_,
-                    nested_functions=nested_functions,
-                    concat_args=concat_list,
-                    low=bvs[-1].low,
-                    high=bvs[0].high,
-                    parent=bvs[0].parent,
-                )
-
+                new_bvs.append(prev_bv)
+            prev_bv = bv
+            continue
+        prev_bv = Concat(prev_bv, bv)
+    new_bvs.append(prev_bv)
     if nested_functions:
-        for bv in bvs:
-            bv.simplify()
-
         return BitVecFunc(
             raw=nraw,
             func_name="Hybrid",
             input_=BitVec(z3.BitVec("", 256), annotations=annotations),
             nested_functions=nested_functions,
-            concat_args=concat_list,
+            concat_args=new_bvs,
         )
-
-    return BitVec(nraw, annotations)
+    return BitVec(raw=nraw, annotations=annotations, concat_args=new_bvs)
 
 
 def Extract(high: int, low: int, bv: BitVec) -> BitVec:
@@ -202,43 +184,40 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     """
 
     raw = z3.Extract(high, low, bv.raw)
-    if isinstance(bv, BitVecFunc):
-        count = 0
-        val = None
-        for small_bv in bv.concat_args[::-1]:
-            if low == count:
-                if low + small_bv.size() <= high:
-                    val = small_bv
-                else:
-                    val = Extract(
+    count = 0
+    val = None
+    for small_bv in bv.concat_args[::-1]:
+        if low == count:
+            if low + small_bv.size() <= high:
+                val = small_bv
+            else:
+                val = Extract(
+                    small_bv.size() - 1, small_bv.size() - (high - low + 1), small_bv
+                )
+        elif high < count:
+            break
+        elif low < count:
+            if low + small_bv.size() <= high:
+                val = Concat(small_bv, val)
+            else:
+                val = Concat(
+                    Extract(
                         small_bv.size() - 1,
                         small_bv.size() - (high - low + 1),
                         small_bv,
-                    )
-            elif high < count:
-                break
-            elif low < count:
-                if low + small_bv.size() <= high:
-                    val = Concat(small_bv, val)
-                else:
-                    val = Concat(
-                        Extract(
-                            small_bv.size() - 1,
-                            small_bv.size() - (high - low + 1),
-                            small_bv,
-                        ),
-                        val,
-                    )
-            count += small_bv.size()
-        if val is not None:
-            if isinstance(val, BitVecFuncExtract) and z3.simplify(
-                val.raw == val.parent.raw
-            ):
-                val = val.parent
-            val.simplify()
-            return val
-        input_string = ""
-        # Is there a better value to set func_name and input to in this case?
+                    ),
+                    val,
+                )
+        count += small_bv.size()
+    if val is not None:
+        val.simplify()
+        bv.simplify()
+        if check_extracted_var(val) and hash(val.raw) == hash(val.parent.raw):
+            val = val.parent
+        return val
+    input_string = ""
+    bv.simplify()
+    if isinstance(bv, BitVecFunc):
         return BitVecFuncExtract(
             raw=raw,
             func_name="Hybrid",
@@ -248,8 +227,8 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
             high=high,
             parent=bv,
         )
-
-    return BitVec(raw, annotations=bv.annotations)
+    else:
+        return BitVecExtract(raw=raw, low=low, high=high, parent=bv)
 
 
 def URem(a: BitVec, b: BitVec) -> BitVec:

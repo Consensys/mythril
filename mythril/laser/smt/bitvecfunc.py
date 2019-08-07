@@ -3,7 +3,7 @@ from itertools import product
 from typing import Optional, Union, cast, Callable, List
 import z3
 
-from mythril.laser.smt.bitvec import BitVec, Annotations
+from mythril.laser.smt.bitvec import BitVec, Annotations, BitVecExtract
 from mythril.laser.smt.bool import Or, Bool, And
 
 
@@ -139,10 +139,9 @@ class BitVecFunc(BitVec):
         self.input_ = input_
         self.nested_functions = nested_functions or []
         self.nested_functions = list(dict.fromkeys(self.nested_functions))
-        self.concat_args = concat_args or []
         if isinstance(input_, BitVecFunc):
             self.nested_functions.extend(input_.nested_functions)
-        super().__init__(raw, annotations)
+        super().__init__(raw, annotations, concat_args=concat_args)
 
     def __add__(self, other: Union[int, "BitVec"]) -> "BitVecFunc":
         """Create an addition expression.

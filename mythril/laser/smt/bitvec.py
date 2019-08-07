@@ -1,7 +1,7 @@
 """This module provides classes for an SMT abstraction of bit vectors."""
 
 from operator import lshift, rshift, ne, eq
-from typing import Union, Set, cast, Any, Optional, Callable
+from typing import Union, Set, cast, Any, Optional, Callable, List
 
 import z3
 
@@ -25,12 +25,14 @@ def _padded_operation(a: z3.BitVec, b: z3.BitVec, operator):
 class BitVec(Expression[z3.BitVecRef]):
     """A bit vector symbol."""
 
-    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations] = None):
+    def __init__(self, raw: z3.BitVecRef, annotations: Optional[Annotations] = None, concat_args=None):
         """
 
         :param raw:
         :param annotations:
         """
+        self.potential_inputs = []           # type: List["BitVec"]
+        self.concat_args = concat_args or []
         super().__init__(raw, annotations)
 
     def size(self) -> int:
@@ -275,6 +277,35 @@ class BitVec(Expression[z3.BitVecRef]):
         :return:
         """
         return self.raw.__hash__()
+
+
+class BitVecExtract(BitVec):
+    """A bit vector function wrapper, useful for preserving Extract() and Concat() operations"""
+
+    def __init__(
+        self,
+        raw: z3.BitVecRef,
+        annotations: Optional[Annotations] = None,
+        concat_args: List = None,
+        low=None,
+        high=None,
+        parent=None,
+    ):
+        """
+
+        :param raw: The raw bit vector symbol
+        :param func_name: The function name. e.g. sha3
+        :param input: The input to the functions
+        :param annotations: The annotations the BitVecFunc should start with
+        """
+        super().__init__(
+            raw=raw,
+            annotations=annotations,
+            concat_args=concat_args,
+        )
+        self.low = low
+        self.high = high
+        self.parent = parent
 
 
 # TODO: Fix circular import issues
