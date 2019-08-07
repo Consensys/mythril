@@ -1172,13 +1172,12 @@ class Instruction:
             log.debug("unsupported symbolic address for EXTCODEHASH")
             stack.append(global_state.new_bitvec("extcodehash_" + str(address), 256))
             return [global_state]
-        address = address.value
 
-        if address not in world_state.accounts:
+        if address.value not in world_state.accounts:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
-            code = world_state.accounts_exist_or_load(hex(address), self.dynamic_loader)
-            code_hash = get_code_hash(code)
+            code = world_state.accounts_exist_or_load(hex(address.value), self.dynamic_loader)
+            code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
         return [global_state]
 
