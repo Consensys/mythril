@@ -49,7 +49,11 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-    if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
+    if (
+        isinstance(callee_address, BitVec)
+        or int(callee_address, 16) >= 5
+        or int(callee_address, 16) == 0
+    ):
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
@@ -84,12 +88,11 @@ def get_callee_address(
     except TypeError:
         log.debug("Symbolic call encountered")
 
-        # TODO: This is broken. Now it should be Storage[(\d+)].
-        match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
+        match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
         log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
-            raise ValueError()
+            return symbolic_to_address
 
         index = int(match.group(1))
         log.debug("Dynamic contract address at storage index {}".format(index))
@@ -100,9 +103,8 @@ def get_callee_address(
                 "0x{:040X}".format(environment.active_account.address.value), index
             )
         # TODO: verify whether this happens or not
-        except Exception:
-            log.debug("Error accessing contract storage.")
-            raise ValueError
+        except:
+            return symbolic_to_address
 
         # testrpc simply returns the address, geth response is more elaborate.
         if not re.match(r"^0x[0-9a-f]{40}$", callee_address):
@@ -112,7 +114,9 @@ def get_callee_address(
 
 
 def get_callee_account(
-    global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
+    global_state: GlobalState,
+    callee_address: Union[str, BitVec],
+    dynamic_loader: DynLoader,
 ):
     """Gets the callees account from the global_state.
 
@@ -122,6 +126,12 @@ def get_callee_account(
     :return: Account belonging to callee
     """
     accounts = global_state.accounts
+
+    if isinstance(callee_address, BitVec):
+        if callee_address.symbolic:
+            return Account(callee_address, balances=global_state.world_state.balances)
+        else:
+            callee_address = hex(callee_address.value)[2:]
 
     try:
         return global_state.accounts[int(callee_address, 16)]
@@ -209,12 +219,12 @@ def get_call_data(
 
 def native_call(
     global_state: GlobalState,
-    callee_address: str,
+    callee_address: Union[str, BitVec],
     call_data: BaseCalldata,
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
-) -> Optional[List[GlobalState]]:
-    if not 0 < int(callee_address, 16) < 5:
+) -> Union[List[GlobalState], None]:
+    if isinstance(callee_address, BitVec) or not 0 < int(callee_address, 16) < 5:
         return None
 
     log.debug("Native contract called: " + callee_address)

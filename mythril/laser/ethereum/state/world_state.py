@@ -27,6 +27,7 @@ class WorldState:
         """
         self._accounts = {}  # type: Dict[int, Account]
         self.balances = Array("balance", 256, 256)
+        self.starting_balances = copy(self.balances)
 
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
@@ -60,6 +61,7 @@ class WorldState:
             annotations=new_annotations,
         )
         new_world_state.balances = copy(self.balances)
+        new_world_state.starting_balances = copy(self.starting_balances)
         for account in self._accounts.values():
             new_world_state.put_account(copy(account))
         new_world_state.node = self.node
@@ -115,7 +117,7 @@ class WorldState:
             concrete_storage=concrete_storage,
         )
         if balance:
-            new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
+            new_account.add_balance(symbol_factory.BitVecVal(balance, 256))
 
         self.put_account(new_account)
         return new_account
