@@ -37,11 +37,11 @@ def test_extcodehash_concrete():
     og_state.mstate.stack = [symbol_factory.BitVecVal(1000, 256)]
     new_state = instruction.evaluate(og_state)[0]
     assert (
-        new_state.mstate.stack[-1]
-        == "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        hex(new_state.mstate.stack[-1].value)
+        == get_code_hash("")
     )
 
     # If account code exists, return hash of the code.
     og_state.mstate.stack = [symbol_factory.BitVecVal(101, 256)]
     new_state = instruction.evaluate(og_state)[0]
-    assert new_state.mstate.stack[-1] == get_code_hash("60606040")
+    assert hex(new_state.mstate.stack[-1].value) == get_code_hash("60606040")
