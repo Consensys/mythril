@@ -1166,15 +1166,14 @@ class Instruction:
         """
         world_state = global_state.world_state
         stack = global_state.mstate.stack
-        address = stack.pop()
+        address = Extract(159, 0, stack.pop())
+
         if address.symbolic:
             log.debug("unsupported symbolic address for EXTCODEHASH")
             stack.append(global_state.new_bitvec("extcodehash_" + str(address), 256))
             return [global_state]
         address = address.value
-            
-        mask = int((symbol_factory.BitVecVal(TT256M1, 256) >> 96).value)
-        address = address & mask
+
         if address not in world_state.accounts:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
