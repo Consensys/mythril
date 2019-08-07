@@ -8,7 +8,7 @@ from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction import BaseTransaction
-from mythril.laser.smt import UGE, Optimize, symbol_factory, simplify
+from mythril.laser.smt import UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
