@@ -144,7 +144,7 @@ class Storage:
         )
         storage._standard_storage = deepcopy(self._standard_storage)
         storage._map_storage = deepcopy(self._map_storage)
-        storage.print_storage = copy(self.printable_storage)
+        storage.printable_storage = copy(self.printable_storage)
         return storage
 
     def __str__(self) -> str:
