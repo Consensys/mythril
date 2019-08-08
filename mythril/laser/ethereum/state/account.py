@@ -60,6 +60,7 @@ class Storage:
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
         self.dynld = dynamic_loader
+        self.storage_keys_loaded = set()
         self.address = address
 
     @staticmethod
@@ -75,12 +76,11 @@ class Storage:
         storage, is_keccak_storage = self._get_corresponding_storage(item)
         if is_keccak_storage:
             item = self._sanitize(cast(BitVecFunc, item).input_)
-        value = storage[item]
         if (
-            (value.value == 0 or value.value is None)  # 0 for Array, None for K
-            and self.address
-            and item.symbolic is False
+            self.address
             and self.address.value != 0
+            and int(item.value) not in self.storage_keys_loaded
+            and item.symbolic is False
             and (self.dynld and self.dynld.storage_loading)
         ):
             try:
@@ -94,8 +94,8 @@ class Storage:
                     ),
                     256,
                 )
+                self.storage_keys_loaded.add(int(item.value))
                 self.printable_storage[item] = storage[item]
-                return storage[item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
 
@@ -136,6 +136,7 @@ class Storage:
         if is_keccak_storage:
             key = self._sanitize(key.input_)
         storage[key] = value
+        self.storage_keys_loaded.add(int(key.value))
 
     def __deepcopy__(self, memodict=dict()):
         concrete = isinstance(self._standard_storage, K)
@@ -145,6 +146,7 @@ class Storage:
         storage._standard_storage = deepcopy(self._standard_storage)
         storage._map_storage = deepcopy(self._map_storage)
         storage.printable_storage = copy(self.printable_storage)
+        storage.storage_keys_loaded = copy(self.storage_keys_loaded)
         return storage
 
     def __str__(self) -> str:
