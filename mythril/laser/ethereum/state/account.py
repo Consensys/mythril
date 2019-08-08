@@ -136,7 +136,8 @@ class Storage:
         if is_keccak_storage:
             key = self._sanitize(key.input_)
         storage[key] = value
-        self.storage_keys_loaded.add(int(key.value))
+        if key.symbolic is False:
+            self.storage_keys_loaded.add(int(key.value))
 
     def __deepcopy__(self, memodict=dict()):
         concrete = isinstance(self._standard_storage, K)
