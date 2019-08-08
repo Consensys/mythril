@@ -83,7 +83,8 @@ def UGE(a: BitVec, b: BitVec) -> Bool:
     """Create an unsigned greater or equals expression.
 
     :param a:
-    :param b:
+    :param b:/home/nikhil/Work/Mythril/mythril2/mythril/laser/smt/bitvec_helper.py", line 154, in Concat
+    or bv.parent
     :return:
     """
     return Or(UGT(a, b), a == b)
@@ -151,7 +152,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
         if (
             not check_extracted_var(bv)
             or bv.high + 1 != prev_bv.low  # type: ignore
-            or bv.parent != prev_bv.parent  # type: ignore
+            or z3.simplify(bv.parent.raw != prev_bv.parent.raw)  # type: ignore
         ):
             if check_extracted_var(prev_bv) and hash(prev_bv) == hash(
                 prev_bv.parent
@@ -161,7 +162,9 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
                 new_bvs.append(prev_bv)
             prev_bv = bv
             continue
-        prev_bv = Concat(prev_bv, bv)
+        prev_bv.raw = z3.Concat(prev_bv.raw, bv.raw)
+        prev_bv.low = bv.low
+
     new_bvs.append(prev_bv)
     if nested_functions:
         return BitVecFunc(
