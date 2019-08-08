@@ -125,8 +125,6 @@ def get_callee_account(
     :param dynamic_loader: dynamic loader to use
     :return: Account belonging to callee
     """
-    accounts = global_state.accounts
-
     if isinstance(callee_address, BitVec):
         if callee_address.symbolic:
             return Account(callee_address, balances=global_state.world_state.balances)
@@ -161,7 +159,7 @@ def get_callee_account(
         dynamic_loader=dynamic_loader,
         balances=global_state.world_state.balances,
     )
-    accounts[callee_address] = callee_account
+    global_state.accounts[int(callee_address, 16)] = callee_account
 
     return callee_account
 
