@@ -79,8 +79,8 @@ class Storage:
         if (
             self.address
             and self.address.value != 0
-            and int(item.value) not in self.storage_keys_loaded
             and item.symbolic is False
+            and int(item.value) not in self.storage_keys_loaded
             and (self.dynld and self.dynld.storage_loading)
         ):
             try:
