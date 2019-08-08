@@ -121,6 +121,8 @@ def get_callee_account(
     :param dynamic_loader: dynamic loader to use
     :return: Account belonging to callee
     """
+    accounts = global_state.accounts
+
     try:
         return global_state.accounts[int(callee_address, 16)]
     except KeyError:
@@ -149,7 +151,7 @@ def get_callee_account(
         dynamic_loader=dynamic_loader,
         balances=global_state.world_state.balances,
     )
-    global_state.accounts[int(callee_address, 16)] = callee_account
+    accounts[callee_address] = callee_account
 
     return callee_account
 
