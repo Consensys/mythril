@@ -195,6 +195,13 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
 
 
 def extract_helper(high: int, low: int, bv: BitVec) -> BitVec:
+    """
+    Extracts from the list of bitvecs which were supposedly concatenated.
+    :param high:
+    :param low:
+    :param bv:
+    :return:
+    """
     count = 0
     val = None
     for small_bv in bv.concat_args[::-1]:
