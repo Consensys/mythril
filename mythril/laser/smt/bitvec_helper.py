@@ -1,6 +1,7 @@
 from typing import Union, overload, List, Set, cast, Any, Callable
+import copy
 import z3
-from copy import copy
+
 from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec, BitVecExtract
 from mythril.laser.smt.bitvecfunc import BitVecFunc
@@ -145,7 +146,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
             nested_functions += bv.nested_functions
             nested_functions += [bv]
     new_bvs = []
-    prev_bv = copy(bvs[0])
+    prev_bv = copy.copy(bvs[0])
 
     # casting everywhere in "if's" will look quite messy, so I am type ignoring them.
     for bv in bvs[1:]:
