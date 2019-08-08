@@ -4,7 +4,7 @@ This includes classes representing accounts and their storage.
 """
 import logging
 from copy import copy, deepcopy
-from typing import Any, Dict, Union, Tuple, cast
+from typing import Any, Dict, Union, Tuple, Set, cast
 
 
 from mythril.laser.smt import (
@@ -60,7 +60,7 @@ class Storage:
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
         self.dynld = dynamic_loader
-        self.storage_keys_loaded = set()
+        self.storage_keys_loaded = set()  # type: Set[int]
         self.address = address
 
     @staticmethod
