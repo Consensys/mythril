@@ -137,7 +137,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
         data["code"] = account.code.bytecode
-        data["storage"] = account.storage.printable_storage
+        data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))
         accounts[hex(address)] = data
     return {"accounts": accounts}
