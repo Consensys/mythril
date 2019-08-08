@@ -109,7 +109,7 @@ def ULE(a: BitVec, b: BitVec) -> Bool:
     return Or(ULT(a, b), a == b)
 
 
-def check_extracted_var(bv: BitVec):
+def check_extracted_var(bv: BitVec) -> bool:
     return isinstance(bv, BitVecFuncExtract) or isinstance(bv, BitVecExtract)
 
 
@@ -150,7 +150,7 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     # casting everywhere in "if's" will look quite messy, so I am type ignoring them.
     for bv in bvs[1:]:
         if (
-            not check_extracted_var(bv)
+            not (check_extracted_var(bv) and check_extracted_var(prev_bv))
             or bv.high + 1 != prev_bv.low  # type: ignore
             or z3.simplify(bv.parent.raw != prev_bv.parent.raw)  # type: ignore
         ):
