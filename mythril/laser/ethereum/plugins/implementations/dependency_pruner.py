@@ -25,6 +25,7 @@ class DependencyAnnotation(StateAnnotation):
     def __init__(self):
         self.storage_loaded = []  # type: List
         self.storage_written = {}  # type: Dict[int, List]
+        self.has_call = False  # type: bool
         self.path = [0]  # type: List
         self.blocks_seen = set()  # type: Set[int]
 
@@ -32,6 +33,7 @@ class DependencyAnnotation(StateAnnotation):
         result = DependencyAnnotation()
         result.storage_loaded = copy(self.storage_loaded)
         result.storage_written = copy(self.storage_written)
+        result.has_call = self.has_call
         result.path = copy(self.path)
         result.blocks_seen = copy(self.blocks_seen)
         return result
@@ -134,6 +136,7 @@ class DependencyPruner(LaserPlugin):
 
     def _reset(self):
         self.iteration = 0
+        self.calls_on_path = {}  # type: Dict[int, bool]
         self.sloads_on_path = {}  # type: Dict[int, List[object]]
         self.sstores_on_path = {}  # type: Dict[int, List[object]]
         self.storage_accessed_global = set()  # type: Set
@@ -166,6 +169,17 @@ class DependencyPruner(LaserPlugin):
             else:
                 self.sstores_on_path[address] = [target_location]
 
+    def update_calls(self, path: List[int]) -> None:
+        """Update the dependency map for the block offsets on the given path.
+
+        :param path
+        :param target_location
+        """
+
+        for address in path:
+            if address in self.sstores_on_path:
+                self.calls_on_path[address] = True
+
     def wanna_execute(self, address: int, annotation: DependencyAnnotation) -> bool:
         """Decide whether the basic block starting at 'address' should be executed.
 
@@ -174,6 +188,9 @@ class DependencyPruner(LaserPlugin):
         """
 
         storage_write_cache = annotation.get_storage_write_cache(self.iteration - 1)
+
+        if address in self.calls_on_path:
+            return True
 
         # Skip "pure" paths that don't have any dependencies.
 
@@ -270,6 +287,13 @@ class DependencyPruner(LaserPlugin):
             self.update_sloads(annotation.path, location)
             self.storage_accessed_global.add(location)
 
+        @symbolic_vm.pre_hook("CALL")
+        def stop_hook(state: GlobalState):
+            annotation = get_dependency_annotation(state)
+
+            self.update_calls(annotation.path)
+            annotation.has_call = True
+
         @symbolic_vm.pre_hook("STOP")
         def stop_hook(state: GlobalState):
             _transaction_end(state)
@@ -293,11 +317,14 @@ class DependencyPruner(LaserPlugin):
             for index in annotation.storage_written:
                 self.update_sstores(annotation.path, index)
 
+            if annotation.has_call:
+                self.update_calls(annotation.path)
+
         def _check_basic_block(address: int, annotation: DependencyAnnotation):
             """This method is where the actual pruning happens.
 
              :param address: Start address (bytecode offset) of the block
-             :param annotation
+             :param annotation:
              """
 
             # Don't skip any blocks in the contract creation transaction
@@ -338,13 +365,3 @@ class DependencyPruner(LaserPlugin):
             annotation.storage_loaded = []
 
             world_state_annotation.annotations_stack.append(annotation)
-
-            log.debug(
-                "Iteration {}: Adding world state at address {}, end of function {}.\nDependency map: {}\nStorage written: {}".format(
-                    self.iteration,
-                    state.get_current_instruction()["address"],
-                    state.node.function_name,
-                    self.sloads_on_path,
-                    annotation.storage_written[self.iteration],
-                )
-            )

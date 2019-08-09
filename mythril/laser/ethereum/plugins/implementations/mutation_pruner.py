@@ -45,6 +45,10 @@ class MutationPruner(LaserPlugin):
         def mutator_hook(global_state: GlobalState):
             global_state.annotate(MutationAnnotation())
 
+        @symbolic_vm.pre_hook("CALL")
+        def mutator_hook(global_state: GlobalState):
+            global_state.annotate(MutationAnnotation())
+
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(global_state: GlobalState):
             if And(
