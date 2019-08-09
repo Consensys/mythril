@@ -196,19 +196,11 @@ def _set_minimisation_constraints(
 
         # Minimize
         minimize.append(transaction.call_data.calldatasize)
-
+        minimize.append(transaction.call_value)
         constraints.append(
             UGE(
                 symbol_factory.BitVecVal(1000000000000000000000, 256),
                 world_state.starting_balances[transaction.caller],
-            )
-        )
-
-        # FIXME: This shouldn't be needed.
-        constraints.append(
-            UGE(
-                symbol_factory.BitVecVal(1000000000000000000000, 256),
-                transaction.call_value,
             )
         )
 
