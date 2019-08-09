@@ -288,7 +288,7 @@ class DependencyPruner(LaserPlugin):
             self.storage_accessed_global.add(location)
 
         @symbolic_vm.pre_hook("CALL")
-        def stop_hook(state: GlobalState):
+        def call_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
 
             self.update_calls(annotation.path)
