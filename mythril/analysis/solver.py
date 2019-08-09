@@ -204,6 +204,14 @@ def _set_minimisation_constraints(
             )
         )
 
+        # FIXME: This shouldn't be needed.
+        constraints.append(
+            UGE(
+                symbol_factory.BitVecVal(1000000000000000000000, 256),
+                transaction.call_value,
+            )
+        )
+
     for account in world_state.accounts.values():
         # Lazy way to prevent overflows and to ensure "reasonable" balances
         # Each account starts with less than 100 ETH
