@@ -16,7 +16,7 @@ from mythril.laser.ethereum.state.calldata import (
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec
+from mythril.laser.smt import BitVec, Bool, is_true
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 
@@ -197,10 +197,11 @@ def get_call_data(
     )
 
     uses_entire_calldata = simplify(
-        memory_size - global_state.environment.calldata.calldatasize == 0
+        memory_size == global_state.environment.calldata.calldatasize
     )
 
-    if uses_entire_calldata is True:
+    if (isinstance(uses_entire_calldata, bool) and uses_entire_calldata) or (
+        isinstance(uses_entire_calldata, Bool) and is_true(uses_entire_calldata)):
         return global_state.environment.calldata
 
     try:
@@ -211,7 +212,7 @@ def get_call_data(
         ]
         return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
-        log.debug("Unsupported symbolic calldata offset")
+        log.debug("Unsupported symbolic calldata offset %s size %s", memory_start, memory_size)
         return SymbolicCalldata(transaction_id)
 
 
