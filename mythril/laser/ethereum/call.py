@@ -201,7 +201,8 @@ def get_call_data(
     )
 
     if (isinstance(uses_entire_calldata, bool) and uses_entire_calldata) or (
-        isinstance(uses_entire_calldata, Bool) and is_true(uses_entire_calldata)):
+        isinstance(uses_entire_calldata, Bool) and is_true(uses_entire_calldata)
+    ):
         return global_state.environment.calldata
 
     try:
@@ -212,7 +213,9 @@ def get_call_data(
         ]
         return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
-        log.debug("Unsupported symbolic calldata offset %s size %s", memory_start, memory_size)
+        log.debug(
+            "Unsupported symbolic calldata offset %s size %s", memory_start, memory_size
+        )
         return SymbolicCalldata(transaction_id)
 
 
