@@ -60,9 +60,7 @@ class SuicideModule(DetectionModule):
 
         to = state.mstate.stack[-1]
 
-        log.debug(
-            "SUICIDE in function %s", state.environment.active_function_name
-        )
+        log.debug("SUICIDE in function %s", state.environment.active_function_name)
 
         description_head = "The contract can be killed by anyone."
 
