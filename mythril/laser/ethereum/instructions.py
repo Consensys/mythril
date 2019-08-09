@@ -1605,12 +1605,42 @@ class Instruction:
         :param global_state:
         :return:
         """
-        # TODO: implement me
-        state = global_state.mstate
-        state.stack.pop(), state.stack.pop(), state.stack.pop()
-        # Not supported
-        state.stack.append(0)
-        return [global_state]
+        mstate = global_state.mstate
+        environment = global_state.environment
+        world_state = global_state.world_state
+
+        call_value, mem_offset, mem_size = (
+            mstate.stack.pop(),
+            mstate.stack.pop(),
+            mstate.stack.pop(),
+        )
+
+        try:
+            call_data = mstate.memory[
+                util.get_concrete_int(mem_offset) : util.get_concrete_int(
+                    mem_offset + mem_size
+                )
+            ]
+        except TypeError:
+            log.debug("Create with symbolic length or offset. Not supported")
+
+        caller = environment.sender
+        gas_price = environment.gasprice
+        origin = environment.origin
+        transaction = ContractCreationTransaction(
+            world_state=world_state,
+            caller=caller,
+            call_data=call_data,
+            gas_price=gas_price,
+            origin=origin,
+            call_value=call_value,
+        )
+
+        contract_address = transaction.callee_account.address
+
+        mstate.stack.append(contract_address)
+
+        raise TransactionStartSignal(transaction, self.op_code)
 
     @StateTransition()
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
