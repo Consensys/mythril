@@ -75,7 +75,9 @@ class Storage:
     def __getitem__(self, item: BitVec) -> BitVec:
         storage, is_keccak_storage = self._get_corresponding_storage(item)
         if is_keccak_storage:
-            item = self._sanitize(cast(BitVecFunc, item).input_)
+            sanitized_item = self._sanitize(cast(BitVecFunc, item).input_)
+        else:
+            sanitized_item = item
         if (
             self.address
             and self.address.value != 0
@@ -84,7 +86,7 @@ class Storage:
             and (self.dynld and self.dynld.storage_loading)
         ):
             try:
-                storage[item] = symbol_factory.BitVecVal(
+                storage[sanitized_item] = symbol_factory.BitVecVal(
                     int(
                         self.dynld.read_storage(
                             contract_address="0x{:040X}".format(self.address.value),
@@ -95,11 +97,11 @@ class Storage:
                     256,
                 )
                 self.storage_keys_loaded.add(int(item.value))
-                self.printable_storage[item] = storage[item]
+                self.printable_storage[item] = storage[sanitized_item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
 
-        return simplify(storage[item])
+        return simplify(storage[sanitized_item])
 
     @staticmethod
     def get_map_index(key: BitVec) -> BitVec:

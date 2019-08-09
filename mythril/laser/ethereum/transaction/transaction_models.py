@@ -134,6 +134,14 @@ class BaseTransaction:
     def initial_global_state(self) -> GlobalState:
         raise NotImplementedError
 
+    def __str__(self) -> str:
+        return "{} {} from {} to {:#42x}".format(
+            self.__class__.__name__,
+            self.id,
+            self.caller,
+            int(str(self.callee_account.address)) if self.callee_account else -1,
+        )
+
 
 class MessageCallTransaction(BaseTransaction):
     """Transaction object models an transaction."""

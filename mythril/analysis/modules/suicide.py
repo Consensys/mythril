@@ -60,9 +60,7 @@ class SuicideModule(DetectionModule):
 
         to = state.mstate.stack[-1]
 
-        log.debug(
-            "[SUICIDE] SUICIDE in function " + state.environment.active_function_name
-        )
+        log.debug("SUICIDE in function %s", state.environment.active_function_name)
 
         description_head = "The contract can be killed by anyone."
 
@@ -103,7 +101,7 @@ class SuicideModule(DetectionModule):
             )
             return [issue]
         except UnsatError:
-            log.info("[UNCHECKED_SUICIDE] no model found")
+            log.debug("No model found")
 
         return []
 
