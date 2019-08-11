@@ -15,8 +15,6 @@ class MutationAnnotation(StateAnnotation):
     This is the annotation used by the MutationPruner plugin to record mutations
     """
 
-    pass
-
 
 class MutationPruner(LaserPlugin):
     """Mutation pruner plugin

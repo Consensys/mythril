@@ -337,9 +337,7 @@ class LaserEVM:
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
-                    end_signal.global_state._annotations += copy(
-                        global_state._annotations
-                    )
+                    end_signal.global_state.copy_annotations_from(global_state)
                     end_signal.global_state.world_state.node = global_state.node
                     self._add_world_state(end_signal.global_state)
                 new_global_states = []
@@ -384,7 +382,7 @@ class LaserEVM:
         return_global_state.last_return_data = return_data
         if not revert_changes:
             return_global_state.world_state = copy(global_state.world_state)
-            return_global_state._annotations += copy(global_state._annotations)
+            return_global_state.copy_annotations_from(global_state)
             return_global_state.environment.active_account = global_state.accounts[
                 return_global_state.environment.active_account.address.value
             ]
