@@ -200,7 +200,9 @@ def get_call_data(
         memory_size == global_state.environment.calldata.calldatasize
     )
 
-    if is_true(uses_entire_calldata):
+    if (isinstance(uses_entire_calldata, bool) and uses_entire_calldata) or (
+        isinstance(uses_entire_calldata, Bool) and is_true(uses_entire_calldata)
+    ):
         return global_state.environment.calldata
 
     try:
