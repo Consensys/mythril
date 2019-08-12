@@ -31,7 +31,7 @@ from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
-from mythril.laser.ethereum.call import get_call_parameters, native_call
+from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
     StackUnderflowException,
@@ -1616,17 +1616,20 @@ class Instruction:
         )
 
         try:
-            call_data = mstate.memory[
-                util.get_concrete_int(mem_offset) : util.get_concrete_int(
-                    mem_offset + mem_size
-                )
-            ]
+            call_data = get_call_data(
+                global_state,
+                util.get_concrete_int(mem_offset),
+                util.get_concrete_int(mem_offset + mem_size),
+            )
         except TypeError:
             log.debug("Create with symbolic length or offset. Not supported")
+            mstate.stack.append(0, 256)
+            return [global_state]
 
         caller = environment.sender
         gas_price = environment.gasprice
         origin = environment.origin
+
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
@@ -1635,10 +1638,6 @@ class Instruction:
             origin=origin,
             call_value=call_value,
         )
-
-        contract_address = transaction.callee_account.address
-
-        mstate.stack.append(contract_address)
 
         raise TransactionStartSignal(transaction, self.op_code)
 
