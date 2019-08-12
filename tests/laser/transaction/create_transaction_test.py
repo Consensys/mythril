@@ -44,7 +44,7 @@ def test_sym_exec():
         contract,
         address=(util.get_indexed_address(0)),
         strategy="dfs",
-        execution_timeout=10,
+        execution_timeout=25,
     )
     issues = fire_lasers(sym)
 
