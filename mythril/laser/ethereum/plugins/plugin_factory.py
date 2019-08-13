@@ -1,3 +1,4 @@
+from typing import List
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 
 
@@ -39,3 +40,14 @@ class PluginFactory:
         )
 
         return DependencyPruner()
+
+    @staticmethod
+    def build_function_selector_plugin(
+        whitelist: List[str], blacklist: List[str]
+    ) -> LaserPlugin:
+        """ Creates an instance of the mutation pruner plugin"""
+        from mythril.laser.ethereum.plugins.implementations.function_selector import (
+            FunctionSelector,
+        )
+
+        return FunctionSelector(whitelist, blacklist)
