@@ -56,6 +56,8 @@ class SymExecWrapper:
         disable_dependency_pruning=False,
         run_analysis_modules=True,
         enable_coverage_strategy=False,
+        func_whitelist=[],
+        func_blacklist=[],
         custom_modules_directory="",
     ):
         """
@@ -129,6 +131,13 @@ class SymExecWrapper:
 
         if not disable_dependency_pruning:
             plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+
+        if len(func_whitelist) or len(func_blacklist):
+            plugin_loader.load(
+                PluginFactory.build_function_selector_plugin(
+                    func_whitelist, func_blacklist
+                )
+            )
 
         world_state = WorldState()
         for account in self.accounts.values():

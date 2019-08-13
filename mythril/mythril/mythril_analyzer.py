@@ -41,6 +41,8 @@ class MythrilAnalyzer:
         enable_iprof: bool = False,
         disable_dependency_pruning: bool = False,
         solver_timeout: Optional[int] = None,
+        func_whitelist: Optional[List] = [],
+        func_blacklist: Optional[List] = [],
         enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
     ):
@@ -65,6 +67,8 @@ class MythrilAnalyzer:
         self.disable_dependency_pruning = disable_dependency_pruning
         self.enable_coverage_strategy = enable_coverage_strategy
         self.custom_modules_directory = custom_modules_directory
+        self.func_whitelist = func_whitelist
+        self.func_blacklist = func_blacklist
 
         analysis_args.set_loop_bound(loop_bound)
         analysis_args.set_solver_timeout(solver_timeout)
@@ -92,6 +96,8 @@ class MythrilAnalyzer:
             run_analysis_modules=False,
             enable_coverage_strategy=self.enable_coverage_strategy,
             custom_modules_directory=self.custom_modules_directory,
+            func_whitelist=self.func_whitelist,
+            func_blacklist=self.func_blacklist,
         )
 
         return get_serializable_statespace(sym)
@@ -129,6 +135,8 @@ class MythrilAnalyzer:
             run_analysis_modules=False,
             enable_coverage_strategy=self.enable_coverage_strategy,
             custom_modules_directory=self.custom_modules_directory,
+            func_whitelist=self.func_whitelist,
+            func_blacklist=self.func_blacklist,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
 
@@ -168,6 +176,8 @@ class MythrilAnalyzer:
                     disable_dependency_pruning=self.disable_dependency_pruning,
                     enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
+                    func_whitelist=self.func_whitelist,
+                    func_blacklist=self.func_blacklist,
                 )
                 issues = fire_lasers(sym, modules, self.custom_modules_directory)
             except KeyboardInterrupt:

@@ -32,13 +32,13 @@ class FunctionSelector(LaserPlugin):
         :return:
         """
 
-        @symbolic_vm.laser_hook("execute_state")
-        def world_state_filter_hook(global_state: GlobalState):
-            if (
-                len(self.whitelist)
-                and global_state.node.function_name not in self.whitelist
-            ):
+        @symbolic_vm.post_hook("JUMPI")
+        def jumpi_hook(state: GlobalState):
+            if state.node.function_name in ["constructor", "fallback"]:
+                return
+
+            if len(self.whitelist) and state.node.function_name not in self.whitelist:
                 raise PluginSkipState
 
-            if global_state.node.function_name in self.blacklist:
+            if state.node.function_name in self.blacklist:
                 raise PluginSkipState

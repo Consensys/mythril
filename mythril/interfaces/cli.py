@@ -368,7 +368,20 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         action="store_true",
         help="turns off getting the data from onchain contracts (both loading storage and contract code)",
     )
-
+    options.add_argument(
+        "-w",
+        "--func-whitelist",
+        type=str,
+        help="Execute only functions with these signatures (comma-separated list)",
+        metavar="FUNCTION_SIGS",
+    )
+    options.add_argument(
+        "-n",
+        "--func-blacklist",
+        type=str,
+        help="Don't execute functions with these signatures (comma-separated list)",
+        metavar="FUNCTION_SIGS",
+    )
     options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
@@ -556,6 +569,17 @@ def execute_command(
             print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
 
     elif args.command in ANALYZE_LIST:
+
+        if args.func_whitelist:
+            _whitelist = args.func_whitelist.split(",")
+        else:
+            _whitelist = []
+
+        if args.func_blacklist:
+            _blacklist = args.func_blacklist.split(",")
+        else:
+            _blacklist = []
+
         analyzer = MythrilAnalyzer(
             strategy=args.strategy,
             disassembler=disassembler,
@@ -573,6 +597,8 @@ def execute_command(
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
+            func_whitelist=_whitelist,
+            func_blacklist=_blacklist,
         )
 
         if not disassembler.contracts:
