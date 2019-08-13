@@ -145,6 +145,8 @@ def concat_helper(bvs: List[BitVec]) -> List[BitVec]:
     ):
         prev_bv = prev_bv.parent  # type: ignore
     new_bvs.append(prev_bv)
+    if len(new_bvs) == 1 and check_extracted_var(new_bvs[0]) and hash(z3.simplify(new_bvs[0].raw)) == hash(z3.simplify(new_bvs[0].parent.raw)):
+        return new_bvs[0].parent
     return new_bvs
 
 
@@ -206,7 +208,7 @@ def extract_helper(high: int, low: int, bv: BitVec) -> BitVec:
     val = None
     for small_bv in bv.concat_args[::-1]:
         if low == count:
-            if low + small_bv.size() <= high:
+            if small_bv.size() <= high - low + 1:
                 val = small_bv
             else:
                 val = Extract(
@@ -238,9 +240,9 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
     :param bv:
     :return:
     """
-
     raw = z3.Extract(high, low, bv.raw)
     val = extract_helper(high, low, bv)
+    dc = copy(bv)
     if val is not None:
         val.simplify()
         bv.simplify()
@@ -249,6 +251,9 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
         ):
             val = val.parent  # type: ignore
         assert val.size() == high - low + 1
+        if val.size() == 256 and isinstance(val, BitVecFunc):
+            pass
+            #print(val, val.input_)
         return val
     input_string = ""
     bv.simplify()

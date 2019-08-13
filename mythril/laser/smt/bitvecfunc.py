@@ -68,6 +68,37 @@ def _comparison_helper(
             operation = operator.lt
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
     if (
+        a.size() == 512
+        and b.size() == 512
+        and z3.is_true(
+            z3.simplify(z3.Extract(255, 0, a.raw) == z3.Extract(255, 0, b.raw))
+        )
+    ):
+        from mythril.laser.smt.bitvec_helper import Extract
+        a = Extract(511, 256, a)
+        b = Extract(511, 256, b)
+
+    if not isinstance(b, BitVecFunc):
+        paddded_cond = True
+        if b.potential_input and b.potential_input.size() >= a.input_.size():
+            if b.potential_input.size() > a.input_.size():
+                padded_a = z3.Concat(
+                    z3.BitVecVal(0, b.potential_input.size() - a.input_.size()),
+                    a.input_.raw,
+                )
+            else:
+                padded_a = a.input_.raw
+            paddded_cond = And(operation(padded_a, b.potential_input.raw), b.potential_input_cond)
+        if a.potential_values:
+            condition = False
+            for value, cond in a.potential_values:
+                if value is not None:
+                    condition = Or(condition, And(operation(b.raw, value.value), cond))
+            ret = And(condition, operation(a.raw, b.raw), paddded_cond)
+            return ret
+
+        return And(operation(a.raw, b.raw), paddded_cond)
+    if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
         or not a.input_
@@ -108,11 +139,17 @@ def _comparison_helper(
                 ),
             )
 
-    return And(
+    comparision = And(
         Bool(cast(z3.BoolRef, operation(a.raw, b.raw)), annotations=union),
         Bool(condition) if b.nested_functions else Bool(True),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
+    if a.potential_values:
+        for i, val in enumerate(a.potential_values):
+            comparision = Or(comparision, And(operation(val[0].raw, b.raw), val[1]))
+
+    comparision.simplify()
+    return comparision
 
 
 class BitVecFunc(BitVec):
@@ -134,6 +171,9 @@ class BitVecFunc(BitVec):
         :param input: The input to the functions
         :param annotations: The annotations the BitVecFunc should start with
         """
+        if str(z3.simplify(input_.raw)) == "" and str(z3.simplify(raw)) == "KECCAC[invhash(1443016052)]":
+            import traceback
+            print(traceback.extract_stack(), z3.simplify(raw), z3.simplify(input_.raw))
 
         self.func_name = func_name
         self.input_ = input_

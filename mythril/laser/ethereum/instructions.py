@@ -25,6 +25,7 @@ from mythril.laser.smt import (
     Bool,
     Not,
     LShR,
+    BitVecFunc
 )
 from mythril.laser.smt import symbol_factory
 
@@ -939,6 +940,8 @@ class Instruction:
                 input_=data,
                 annotations=annotations,
             )
+            if hash(argument_hash) == 1443016052:
+                print(data)
             log.debug("Created BitVecFunc hash.")
 
         else:
