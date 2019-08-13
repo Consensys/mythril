@@ -45,7 +45,7 @@ class PluginFactory:
     def build_function_selector_plugin(
         whitelist: List[str], blacklist: List[str]
     ) -> LaserPlugin:
-        """ Creates an instance of the mutation pruner plugin"""
+        """ Creates an instance of the function selector plugin"""
         from mythril.laser.ethereum.plugins.implementations.function_selector import (
             FunctionSelector,
         )
