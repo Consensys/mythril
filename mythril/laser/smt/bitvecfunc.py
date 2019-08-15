@@ -69,7 +69,7 @@ def _comparison_helper(
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
 
     # This function and bvfs should be changed in the coming future
-    if not isinstance(b, BitVecFunc) and "KECCAK" not in str(a):
+    if not isinstance(b, BitVecFunc) and "keccak" not in str(a).lower():
         return Bool(operation(a.raw, b.raw))
     if (
         not isinstance(b, BitVecFunc)
