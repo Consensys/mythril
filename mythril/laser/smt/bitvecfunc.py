@@ -67,6 +67,7 @@ def _comparison_helper(
         if operation == z3.ULT:
             operation = operator.lt
         return Bool(z3.BoolVal(operation(a.value, b.value)), annotations=union)
+    potential_cond = True
     if (
         a.size() == 512
         and b.size() == 512
@@ -75,29 +76,32 @@ def _comparison_helper(
         )
     ):
         from mythril.laser.smt.bitvec_helper import Extract
+
         a = Extract(511, 256, a)
+        potential_cond = b.get_extracted_input_cond(511, 256)
         b = Extract(511, 256, b)
 
-    if not isinstance(b, BitVecFunc):
-        paddded_cond = True
+    if (
+        not isinstance(b, BitVecFunc)
+        and b.symbolic
+        and a.input_ is not None
+        and a.input_.size() == 160
+    ):
+        padded_cond = True
         if b.potential_input and b.potential_input.size() >= a.input_.size():
             if b.potential_input.size() > a.input_.size():
-                padded_a = z3.Concat(
-                    z3.BitVecVal(0, b.potential_input.size() - a.input_.size()),
-                    a.input_.raw,
-                )
+                extracted_b = z3.Extract(a.input_.size() - 1, 0, b.potential_input.raw)
             else:
-                padded_a = a.input_.raw
-            paddded_cond = And(operation(padded_a, b.potential_input.raw), b.potential_input_cond)
+                extracted_b = b.potential_input.raw
+            padded_cond = And(operation(a.input_.raw, extracted_b), potential_cond)
         if a.potential_values:
             condition = False
             for value, cond in a.potential_values:
                 if value is not None:
                     condition = Or(condition, And(operation(b.raw, value.value), cond))
-            ret = And(condition, operation(a.raw, b.raw), paddded_cond)
-            return ret
-
-        return And(operation(a.raw, b.raw), paddded_cond)
+            ret = And(condition, operation(a.raw, b.raw), padded_cond)
+            return False
+        return And(operation(a.raw, b.raw), padded_cond)
     if (
         not isinstance(b, BitVecFunc)
         or not a.func_name
@@ -146,7 +150,8 @@ def _comparison_helper(
     )
     if a.potential_values:
         for i, val in enumerate(a.potential_values):
-            comparision = Or(comparision, And(operation(val[0].raw, b.raw), val[1]))
+            if val[0]:
+                comparision = Or(comparision, And(operation(val[0].raw, b.raw), val[1]))
 
     comparision.simplify()
     return comparision
@@ -171,9 +176,6 @@ class BitVecFunc(BitVec):
         :param input: The input to the functions
         :param annotations: The annotations the BitVecFunc should start with
         """
-        if str(z3.simplify(input_.raw)) == "" and str(z3.simplify(raw)) == "KECCAC[invhash(1443016052)]":
-            import traceback
-            print(traceback.extract_stack(), z3.simplify(raw), z3.simplify(input_.raw))
 
         self.func_name = func_name
         self.input_ = input_

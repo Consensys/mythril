@@ -13,6 +13,7 @@ def test_concat_extract_assignment():
 
     assert Extract(511, 256, output).potential_input_cond == cond
 
+
 def test_concat_extract_input_assignment():
     inp1 = symbol_factory.BitVecSym("input1", 256)
     inp2 = symbol_factory.BitVecSym("input2", 256)
@@ -24,7 +25,6 @@ def test_concat_extract_input_assignment():
     Extract(511, 256, inp3).potential_input_cond = cond
 
     assert Extract(511, 256, inp3).potential_input_cond == cond
-
 
 
 def test_concat_extract_assignment_nested():
@@ -42,11 +42,14 @@ def test_concat_extract_assignment_nested():
         input_=Concat(o1, symbol_factory.BitVecVal(0, 256)),
     )
     cond = And(output1 == o1, inp1 == inp1)
-    Extract(511, 256, Extract(511, 256, output1.input_).input_).potential_input_cond = cond
-
-    assert Extract(
+    Extract(
         511, 256, Extract(511, 256, output1.input_).input_
-    ).potential_input_cond == cond
+    ).potential_input_cond = cond
+
+    assert (
+        Extract(511, 256, Extract(511, 256, output1.input_).input_).potential_input_cond
+        == cond
+    )
 
 
 def test_concat_extract_same_instance():

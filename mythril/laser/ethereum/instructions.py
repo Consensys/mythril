@@ -25,7 +25,7 @@ from mythril.laser.smt import (
     Bool,
     Not,
     LShR,
-    BitVecFunc
+    BitVecFunc,
 )
 from mythril.laser.smt import symbol_factory
 
@@ -1373,6 +1373,8 @@ class Instruction:
         index = state.stack.pop()
 
         state.stack.append(global_state.environment.active_account.storage[index])
+        if global_state.get_current_instruction()["address"] == 1054:
+            print(index, simplify(state.stack[-1]), simplify(state.stack[-2]))
         return [global_state]
 
     @StateTransition()
@@ -1440,7 +1442,6 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
-
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:

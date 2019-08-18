@@ -35,6 +35,7 @@ class Constraints(list):
         """
         :return: True/False based on the existence of solution of constraints
         """
+        return True
         if self._is_possible is not None:
             return self._is_possible
         solver = Solver()

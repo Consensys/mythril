@@ -138,14 +138,19 @@ def concat_helper(bvs: List[BitVec]) -> List[BitVec]:
                 new_bvs.append(prev_bv)
             prev_bv = copy(bv)
             continue
-        prev_bv.raw = z3.Concat(prev_bv.raw, bv.raw)
+        prev_bv.raw = z3.simplify(z3.Concat(prev_bv.raw, bv.raw))
         prev_bv.low = bv.low  # type: ignore
     if check_extracted_var(prev_bv) and hash(z3.simplify(prev_bv.raw)) == hash(
         prev_bv.parent  # type: ignore
     ):
         prev_bv = prev_bv.parent  # type: ignore
     new_bvs.append(prev_bv)
-    if len(new_bvs) == 1 and check_extracted_var(new_bvs[0]) and hash(z3.simplify(new_bvs[0].raw)) == hash(z3.simplify(new_bvs[0].parent.raw)):
+    if (
+        len(new_bvs) == 1
+        and check_extracted_var(new_bvs[0])
+        and hash(z3.simplify(new_bvs[0].raw))
+        == hash(z3.simplify(new_bvs[0].parent.raw))
+    ):
         return new_bvs[0].parent
     return new_bvs
 
@@ -251,9 +256,6 @@ def Extract(high: int, low: int, bv: BitVec) -> BitVec:
         ):
             val = val.parent  # type: ignore
         assert val.size() == high - low + 1
-        if val.size() == 256 and isinstance(val, BitVecFunc):
-            pass
-            #print(val, val.input_)
         return val
     input_string = ""
     bv.simplify()

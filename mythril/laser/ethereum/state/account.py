@@ -18,7 +18,7 @@ from mythril.laser.smt import (
     BaseArray,
     Concat,
     And,
-    If
+    If,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
@@ -282,7 +282,7 @@ class Storage:
             key.potential_values = []
             i = 0
             for val1, val2 in zip(concrete_vals, vals2):
-                if val2 and val1:
+                if val2[0] and val1[0]:
                     c_val = Concat(val1[0], val2[0])
                     condition = And(
                         models[i][1], BitVec(key.raw) == c_val, val1[1], val2[1]

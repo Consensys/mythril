@@ -33,14 +33,20 @@ class BitVec(Expression[z3.BitVecRef]):
         """
         self.concat_args = concat_args or []
         self.potential_values = []
-        from random import randint
         if pot_input:
-            self.potential_input = BitVec(z3.BitVec("rn{}_input_".format(randint(0, 1000000)), 256), pot_input=False)
+            self.potential_input = BitVec(z3.BitVec(str(hash(raw))+"_input", 160), pot_input=False)
             self.potential_input_cond = True
         else:
             self.potential_input = None
             self.potential_input_cond = False
+        self.potential_input_dict = {}
         super().__init__(raw, annotations)
+
+    def set_extracted_input_cond(self, high, low, cond):
+        self.potential_input_dict[str("{}:{}".format(high, low))] = cond
+
+    def get_extracted_input_cond(self, high, low):
+        return self.potential_input_dict.get(str("{}:{}".format(high, low)), False)
 
     def size(self) -> int:
         """TODO: documentation

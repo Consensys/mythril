@@ -25,7 +25,15 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.smt import symbol_factory, And, BitVecFunc, BitVec, Extract, simplify, is_true
+from mythril.laser.smt import (
+    symbol_factory,
+    And,
+    BitVecFunc,
+    BitVec,
+    Extract,
+    simplify,
+    is_true,
+)
 
 ACTOR_ADDRESSES = [
     symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
@@ -391,14 +399,14 @@ class LaserEVM:
                     and isinstance(key.input_, BitVec)
                     and key.input_.symbolic
                     and key.input_.size() == 512
+                    and key.input_.get_extracted_input_cond(511, 256) is False
                 ):
-                    pseudo_input = random.randint(0, 2 ** 256 - 1)
+                    pseudo_input = random.randint(0, 2 ** 160 - 1)
                     hex_v = hex(pseudo_input)[2:]
                     if len(hex_v) % 2 == 1:
                         hex_v += "0"
                     hash_val = symbol_factory.BitVecVal(
-                        int(sha3.keccak_256(bytes.fromhex(hex_v)).hexdigest()[2:], 16),
-                        256,
+                        int(sha3.keccak_256(bytes.fromhex(hex_v)).hexdigest(), 16), 256
                     )
                     pseudo_input = symbol_factory.BitVecVal(pseudo_input, 256)
                     calldata_cond = And(
@@ -406,11 +414,11 @@ class LaserEVM:
                         Extract(511, 256, key.input_) == hash_val,
                         Extract(511, 256, key.input_).potential_input == pseudo_input,
                     )
-                    Extract(511, 256, key.input_).potential_input_cond = calldata_cond
-                    if not is_true(simplify(Extract(511, 256, key.input_).potential_input_cond != calldata_cond)):
-                        print(key.input_, Extract(511, 256, key.input_).concat_args)
-                    assert Extract(511, 256, key.input_).potential_input_cond == calldata_cond
-                    print(Extract(511, 256, key.input_), calldata_cond, "CONDED")
+                    key.input_.set_extracted_input_cond(511, 256, calldata_cond)
+                    assert (
+                        key.input_.get_extracted_input_cond(511, 256) == calldata_cond
+                    )
+
         for actor in ACTOR_ADDRESSES:
             try:
                 models_tuple.append(
