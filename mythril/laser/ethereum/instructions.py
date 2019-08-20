@@ -902,7 +902,8 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
-        state.stack.append(len(disassembly.bytecode) // 2)
+        no_of_bytes = min(len(disassembly.bytecode) / 2, 320) + (len(disassembly.bytecode) / 2)
+        state.stack.append(no_of_bytes)
         return [global_state]
 
     @StateTransition(enable_gas=False)
