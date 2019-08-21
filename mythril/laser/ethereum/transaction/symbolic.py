@@ -100,7 +100,7 @@ def execute_contract_creation(
             code=Disassembly(contract_initialization_code),
             caller=symbol_factory.BitVecVal(CREATOR_ADDRESS, 256),
             contract_name=contract_name,
-            call_data=None,  # Hrmm
+            call_data=None,
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
