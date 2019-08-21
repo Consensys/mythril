@@ -85,6 +85,8 @@ def execute_contract_creation(
     new_account = None
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
+        # call_data "should" be '[]', but it is easier to model the calldata symbolically
+        # and add logic in codecopy/codesize/calldatacopy/calldatasize than to model code "correctly"
         transaction = ContractCreationTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
@@ -98,7 +100,7 @@ def execute_contract_creation(
             code=Disassembly(contract_initialization_code),
             caller=symbol_factory.BitVecVal(CREATOR_ADDRESS, 256),
             contract_name=contract_name,
-            call_data=[],
+            call_data=None,  # Hrmm
             call_value=symbol_factory.BitVecSym(
                 "call_value{}".format(next_transaction_id), 256
             ),
