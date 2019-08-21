@@ -10,13 +10,14 @@ import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.calldata import (
     BaseCalldata,
     SymbolicCalldata,
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec, Bool, is_true
+from mythril.laser.smt import BitVec, is_true
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 
@@ -51,7 +52,7 @@ def get_call_parameters(
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
     if (
         isinstance(callee_address, BitVec)
-        or int(callee_address, 16) >= 5
+        or int(callee_address, 16) > PRECOMPILE_COUNT
         or int(callee_address, 16) == 0
     ):
         callee_account = get_callee_account(
@@ -223,8 +224,12 @@ def native_call(
     call_data: BaseCalldata,
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
-) -> Union[List[GlobalState], None]:
-    if isinstance(callee_address, BitVec) or not 0 < int(callee_address, 16) < 5:
+) -> Optional[List[GlobalState]]:
+
+    if (
+        isinstance(callee_address, BitVec)
+        or not 0 < int(callee_address, 16) <= PRECOMPILE_COUNT
+    ):
         return None
 
     log.debug("Native contract called: " + callee_address)

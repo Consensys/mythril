@@ -14,6 +14,7 @@ from mythril.laser.ethereum.strategy.basic import (
     BasicSearchStrategy,
 )
 
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import (
     ATTACKER_ADDRESS,
     CREATOR_ADDRESS,
@@ -212,7 +213,10 @@ class SymExecWrapper:
                             get_variable(stack[-7]),
                         )
 
-                        if to.type == VarType.CONCRETE and to.val < 5:
+                        if (
+                            to.type == VarType.CONCRETE
+                            and 0 < to.val <= PRECOMPILE_COUNT
+                        ):
                             # ignore prebuilts
                             continue
 
