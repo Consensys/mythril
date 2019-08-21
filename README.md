@@ -32,7 +32,7 @@ Install from Pypi:
 $ pip3 install mythril
 ```
 
-See the [Wiki](https://github.com/ConsenSys/mythril/wiki/Installation-and-Setup) for more detailed instructions. 
+See the [docs](https://mythril-classic.readthedocs.io/en/master/installation.html) for more detailed instructions. 
 
 ## Usage
 
@@ -75,7 +75,7 @@ Caller: [ATTACKER], function: commencekilling(), txdata: 0x7c11da20, value: 0x0
 ```
 
 
-Instructions for using Mythril are found on the [Wiki](https://github.com/ConsenSys/mythril/wiki). 
+Instructions for using Mythril are found on the [docs](https://mythril-classic.readthedocs.io/en/master/). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
