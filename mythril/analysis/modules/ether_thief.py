@@ -6,10 +6,15 @@ from copy import copy
 from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.report import Issue
-from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.symbolic import (
+    ATTACKER_ADDRESS,
+    CREATOR_ADDRESS,
+)
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.transaction import ContractCreationTransaction
+
 from mythril.laser.smt import UGT, symbol_factory, UGE
 
 log = logging.getLogger(__name__)
@@ -82,6 +87,14 @@ class EtherThief(DetectionModule):
         that the Ether sent to the attacker's address is greater than the
         amount of Ether the attacker sent.
         """
+        for tx in state.world_state.transaction_sequence:
+            """
+            Constraint: All transactions must originate from regular users (not the creator/owner).
+            This prevents false positives where the owner willingly transfers ownership to another address.
+            """
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints += [tx.caller != CREATOR_ADDRESS]
+
         attacker_address_bitvec = symbol_factory.BitVecVal(ATTACKER_ADDRESS, 256)
 
         constraints += [

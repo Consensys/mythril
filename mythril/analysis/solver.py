@@ -137,7 +137,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
         data["code"] = account.code.bytecode
-        data["storage"] = account.storage.printable_storage
+        data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))
         accounts[hex(address)] = data
     return {"accounts": accounts}
@@ -196,7 +196,7 @@ def _set_minimisation_constraints(
 
         # Minimize
         minimize.append(transaction.call_data.calldatasize)
-
+        minimize.append(transaction.call_value)
         constraints.append(
             UGE(
                 symbol_factory.BitVecVal(1000000000000000000000, 256),
