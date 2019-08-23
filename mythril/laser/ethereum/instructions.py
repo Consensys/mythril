@@ -762,34 +762,33 @@ class Instruction:
         """
         state = global_state.mstate
         environment = global_state.environment
-        state.stack.append(environment.calldata.calldatasize)
+
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            log.debug("Attempt to use CALLDATASIZE in creation transaction")
+            state.stack.append(0)
+        else:
+            state.stack.append(environment.calldata.calldatasize)
+
         return [global_state]
 
-    @StateTransition()
-    def calldatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
-        """
-
-        :param global_state:
-        :return:
-        """
-        state = global_state.mstate
+    @staticmethod
+    def _calldata_copy_helper(global_state, state, mstart, dstart, size):
         environment = global_state.environment
-        op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
 
         try:
-            mstart = util.get_concrete_int(op0)
+            mstart = util.get_concrete_int(mstart)
         except TypeError:
             log.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
         try:
-            dstart = util.get_concrete_int(op1)  # type: Union[int, BitVec]
+            dstart = util.get_concrete_int(dstart)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
-            dstart = simplify(op1)
+            dstart = simplify(dstart)
 
         try:
-            size = util.get_concrete_int(op2)  # type: Union[int, BitVec]
+            size = util.get_concrete_int(size)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
             size = 320  # The excess size will get overwritten
@@ -842,6 +841,22 @@ class Instruction:
                     8,
                 )
         return [global_state]
+
+    @StateTransition()
+    def calldatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        state = global_state.mstate
+        op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            log.debug("Attempt to use CALLDATACOPY in creation transaction")
+            return [global_state]
+
+        return self._calldata_copy_helper(global_state, state, op0, op1, op2)
 
     # Environment
     @StateTransition()
@@ -906,7 +921,12 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
-        no_of_bytes = len(disassembly.bytecode) // 2 + 5000
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            # Hacky way to ensure constructor arguments work - Max size is 5000
+            # FIXME: Perhaps add some constraint here to ensure that concretization works correctly
+            no_of_bytes = len(disassembly.bytecode) // 2 + 5000
+        else:
+            no_of_bytes = len(disassembly.bytecode) // 2
         state.stack.append(no_of_bytes)
         return [global_state]
 
@@ -1031,14 +1051,24 @@ class Instruction:
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
         )
-        return self._code_copy_helper(
-            code=global_state.environment.code.bytecode,
-            memory_offset=memory_offset,
-            code_offset=code_offset,
-            size=size,
-            op="CODECOPY",
-            global_state=global_state,
-        )
+
+        if (
+            isinstance(global_state.current_transaction, ContractCreationTransaction)
+            and code_offset >= len(global_state.environment.code.bytecode) // 2
+        ):
+            offset = code_offset - len(global_state.environment.code.bytecode) // 2
+            return self._calldata_copy_helper(
+                global_state, global_state.mstate, memory_offset, offset, size
+            )
+        else:
+            return self._code_copy_helper(
+                code=global_state.environment.code.bytecode,
+                memory_offset=memory_offset,
+                code_offset=code_offset,
+                size=size,
+                op="CODECOPY",
+                global_state=global_state,
+            )
 
     @StateTransition()
     def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
