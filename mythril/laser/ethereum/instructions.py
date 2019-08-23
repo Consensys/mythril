@@ -1632,18 +1632,10 @@ class Instruction:
         environment = global_state.environment
         world_state = global_state.world_state
 
-        call_value, mem_offset, mem_size = (
-            mstate.stack.pop(),
-            mstate.stack.pop(),
-            mstate.stack.pop(),
-        )
+        call_value, mem_offset, mem_size = mstate.pop(3)
 
         try:
-            call_data = get_call_data(
-                global_state,
-                util.get_concrete_int(mem_offset),
-                util.get_concrete_int(mem_offset + mem_size),
-            )
+            call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
 
         except TypeError:
             log.debug("Create with symbolic length or offset. Not supported")
@@ -1651,11 +1643,16 @@ class Instruction:
             return [global_state]
 
         call_data = call_data.concrete(None)
-        code_str = bytes.hex(bytes(call_data))
-        # for i in call_data.size:
-        #     if isinstance(call_data[0], int):
-        #         code_str += "00" if not call_data[0] else bytes.hex([call_data[i]])
-        #
+
+        code_end = 0
+        for i in range(len(call_data)):
+            if not isinstance(call_data[i], int):
+                code_end = i
+                break
+
+        code_str = bytes.hex(bytes(call_data[0:code_end]))
+
+        constructor_arguments = call_data[code_end:]
 
         code = Disassembly(code_str)
 
@@ -1667,6 +1664,7 @@ class Instruction:
             world_state=world_state,
             caller=caller,
             code=code,
+            call_data=constructor_arguments,
             gas_price=gas_price,
             gas_limit=mstate.gas_limit,
             origin=origin,
@@ -1677,8 +1675,6 @@ class Instruction:
 
     @StateTransition()
     def create_post(self, global_state: GlobalState) -> List[GlobalState]:
-
-        global_state.mstate.stack.append(global_state.world_state.accounts[-1].address)
 
         return [global_state]
 

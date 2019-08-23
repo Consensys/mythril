@@ -93,7 +93,7 @@ class BaseTransaction:
             self.call_data = (
                 call_data
                 if isinstance(call_data, BaseCalldata)
-                else ConcreteCalldata(self.id, [])
+                else ConcreteCalldata(self.id, call_data)
             )
 
         self.call_value = (

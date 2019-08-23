@@ -375,6 +375,12 @@ class LaserEVM:
         :param return_data:
         :return:
         """
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            return_global_state.mstate.stack.append(
+                global_state.environment.active_account.address
+            )
+            return_global_state.mstate.min_gas_used += global_state.mstate.min_gas_used
+            return_global_state.mstate.max_gas_used += global_state.mstate.max_gas_used
 
         return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
