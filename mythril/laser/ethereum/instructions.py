@@ -29,6 +29,8 @@ from mythril.laser.smt import (
 )
 from mythril.laser.smt import symbol_factory
 
+from mythril.disassembler.disassembly import Disassembly
+
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
@@ -904,7 +906,8 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
-        state.stack.append(len(disassembly.bytecode) // 2)
+        no_of_bytes = len(disassembly.bytecode) // 2 + 5000
+        state.stack.append(no_of_bytes)
         return [global_state]
 
     @StateTransition(enable_gas=False)
@@ -1194,16 +1197,12 @@ class Instruction:
         address = Extract(159, 0, stack.pop())
 
         if address.symbolic:
-            log.debug("unsupported symbolic address for EXTCODEHASH")
-            stack.append(global_state.new_bitvec("extcodehash_" + str(address), 256))
-            return [global_state]
-
-        if address.value not in world_state.accounts:
+            code_hash = symbol_factory.BitVecVal(int(get_code_hash(""), 16), 256)
+        elif address.value not in world_state.accounts:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
-            code = world_state.accounts_exist_or_load(
-                hex(address.value), self.dynamic_loader
-            )
+            addr = "0" * (40 - len(hex(address.value))) + hex(address.value)
+            code = world_state.accounts_exist_or_load(addr, self.dynamic_loader)
             code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
         return [global_state]
@@ -1615,25 +1614,43 @@ class Instruction:
                 util.get_concrete_int(mem_offset),
                 util.get_concrete_int(mem_offset + mem_size),
             )
+
         except TypeError:
             log.debug("Create with symbolic length or offset. Not supported")
             mstate.stack.append(0, 256)
             return [global_state]
 
-        caller = environment.sender
+        call_data = call_data.concrete(None)
+        code_str = bytes.hex(bytes(call_data))
+        # for i in call_data.size:
+        #     if isinstance(call_data[0], int):
+        #         code_str += "00" if not call_data[0] else bytes.hex([call_data[i]])
+        #
+
+        code = Disassembly(code_str)
+
+        caller = environment.active_account.address
         gas_price = environment.gasprice
         origin = environment.origin
 
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
-            call_data=call_data,
+            code=code,
             gas_price=gas_price,
+            gas_limit=mstate.gas_limit,
             origin=origin,
             call_value=call_value,
         )
 
         raise TransactionStartSignal(transaction, self.op_code)
+
+    @StateTransition()
+    def create_post(self, global_state: GlobalState) -> List[GlobalState]:
+
+        global_state.mstate.stack.append(global_state.world_state.accounts[-1].address)
+
+        return [global_state]
 
     @StateTransition()
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
