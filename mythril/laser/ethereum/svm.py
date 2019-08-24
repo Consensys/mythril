@@ -376,6 +376,7 @@ class LaserEVM:
         :return:
         """
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            # is this the proper place to put CREATE handle?
             return_global_state.mstate.stack.append(
                 global_state.environment.active_account.address
             )

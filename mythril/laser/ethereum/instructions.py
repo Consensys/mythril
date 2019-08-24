@@ -1635,16 +1635,21 @@ class Instruction:
         call_value, mem_offset, mem_size = mstate.pop(3)
 
         try:
-            call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+            call_data = get_call_data(
+                global_state,
+                util.get_concrete_int(mem_offset),
+                util.get_concrete_int(mem_offset + mem_size),
+            )
 
         except TypeError:
+            # can be reached?
             log.debug("Create with symbolic length or offset. Not supported")
             mstate.stack.append(0, 256)
             return [global_state]
 
         call_data = call_data.concrete(None)
 
-        code_end = 0
+        code_end = len(call_data)
         for i in range(len(call_data)):
             if not isinstance(call_data[i], int):
                 code_end = i
