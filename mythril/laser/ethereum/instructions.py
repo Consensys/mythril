@@ -1680,7 +1680,8 @@ class Instruction:
 
     @StateTransition()
     def create_post(self, global_state: GlobalState) -> List[GlobalState]:
-
+        addr, call_value, mem_offset, mem_size = global_state.mstate.pop(4)
+        global_state.mstate.stack.append(addr)
         return [global_state]
 
     @StateTransition()
