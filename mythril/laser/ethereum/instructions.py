@@ -1051,7 +1051,10 @@ class Instruction:
         if (
             isinstance(global_state.current_transaction, ContractCreationTransaction)
             and code_offset >= len(global_state.environment.code.bytecode) // 2
-        ):
+        ):ce 
+            # Treat creation code after the expected disassembly as calldata.
+            # This is a slightly hacky way to ensure that symbolic constructor
+            # arguments work correctly.
             offset = code_offset - len(global_state.environment.code.bytecode) // 2
             return self._calldata_copy_helper(
                 global_state, global_state.mstate, memory_offset, offset, size
