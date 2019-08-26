@@ -1231,7 +1231,7 @@ class Instruction:
         elif address.value not in world_state.accounts:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
-            addr = "0" * (40 - len(hex(address.value))) + hex(address.value)
+            addr = "0" * (40 - len(hex(address.value)[2:])) + hex(address.value)[2:]
             code = world_state.accounts_exist_or_load(addr, self.dynamic_loader)
             code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
@@ -1621,18 +1621,14 @@ class Instruction:
         # Not supported
         return [global_state]
 
-    @StateTransition()
-    def create_(self, global_state: GlobalState) -> List[GlobalState]:
-        """
+    @staticmethod
+    def _create_transaction_helper(
+        global_state, call_value, mem_offset, mem_size, op_code
+    ):
 
-        :param global_state:
-        :return:
-        """
         mstate = global_state.mstate
         environment = global_state.environment
         world_state = global_state.world_state
-
-        call_value, mem_offset, mem_size = mstate.pop(3)
 
         try:
             call_data = get_call_data(
@@ -1665,6 +1661,21 @@ class Instruction:
         gas_price = environment.gasprice
         origin = environment.origin
 
+        contract_address = None
+        if op_code is "CREATE2":
+            salt = hex(mstate.stack.pop().value)[2:]
+            salt = "0" * (64 - len(salt)) + salt
+
+            addr = hex(caller.value)[2:]
+            addr = "0" * (40 - len(addr)) + addr
+
+            contract_address = int(
+                get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
+                16,
+            )
+
+            # TODO: calculate gas cost
+
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
@@ -1674,9 +1685,23 @@ class Instruction:
             gas_limit=mstate.gas_limit,
             origin=origin,
             call_value=call_value,
+            contract_address=contract_address,
         )
+        raise TransactionStartSignal(transaction, op_code)
 
-        raise TransactionStartSignal(transaction, self.op_code)
+    @StateTransition()
+    def create_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+
+        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
+
+        return self._create_transaction_helper(
+            global_state, call_value, mem_offset, mem_size, self.op_code
+        )
 
     @StateTransition()
     def create_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1691,16 +1716,16 @@ class Instruction:
         :param global_state:
         :return:
         """
-        # TODO: implement me
-        state = global_state.mstate
-        endowment, memory_start, memory_length, salt = (
-            state.stack.pop(),
-            state.stack.pop(),
-            state.stack.pop(),
-            state.stack.pop(),
+        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
+
+        return self._create_transaction_helper(
+            global_state, call_value, mem_offset, mem_size, self.op_code
         )
-        # Not supported
-        state.stack.append(0)
+
+    @StateTransition()
+    def create2_post(self, global_state: GlobalState) -> List[GlobalState]:
+        addr, call_value, mem_offset, mem_size = global_state.mstate.pop(4)
+        global_state.mstate.stack.append(addr)
         return [global_state]
 
     @StateTransition()
