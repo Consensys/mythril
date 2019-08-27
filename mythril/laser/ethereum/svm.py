@@ -241,7 +241,6 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-
             new_states = [
                 state for state in new_states if state.mstate.constraints.is_possible
             ]

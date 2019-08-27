@@ -31,6 +31,7 @@ from mythril.laser.smt import symbol_factory
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
+from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.call import get_call_parameters, native_call
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
@@ -947,33 +948,10 @@ class Instruction:
         else:
             # length is 0; this only matters for input of the BitVecFuncVal
             data = symbol_factory.BitVecVal(0, 1)
-
-        if data.symbolic:
-
-            annotations = set()  # type: Set[Any]
-
-            for b in state.memory[index : index + length]:
-                if isinstance(b, BitVec):
-                    annotations = annotations.union(b.annotations)
-
-            argument_hash = hash(state.memory[index])
-            result = symbol_factory.BitVecFuncSym(
-                "KECCAC[invhash({})]".format(hash(argument_hash)),
-                "keccak256",
-                256,
-                input_=data,
-                annotations=annotations,
-            )
-            log.debug("Created BitVecFunc hash.")
-
-        else:
-            keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
-            result = symbol_factory.BitVecFuncVal(
-                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
-            )
-            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
-
+        result, constraints = keccak_function_manager.create_keccak(data, length)
         state.stack.append(result)
+        state.constraints += constraints
+
         return [global_state]
 
     @StateTransition()
