@@ -196,7 +196,7 @@ def _set_minimisation_constraints(
 
         # Minimize
         minimize.append(transaction.call_data.calldatasize)
-
+        minimize.append(transaction.call_value)
         constraints.append(
             UGE(
                 symbol_factory.BitVecVal(1000000000000000000000, 256),

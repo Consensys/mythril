@@ -257,6 +257,7 @@ class LaserEVM:
 
     def _add_world_state(self, global_state: GlobalState):
         """ Stores the world_state of the passed global state in the open states"""
+
         for hook in self._add_world_state_hooks:
             try:
                 hook(global_state)
@@ -325,12 +326,16 @@ class LaserEVM:
             new_global_state.node = global_state.node
             new_global_state.mstate.constraints = global_state.mstate.constraints
 
+            log.debug("Starting new transaction %s", start_signal.transaction)
+
             return [new_global_state], op_code
 
         except TransactionEndSignal as end_signal:
             transaction, return_global_state = end_signal.global_state.transaction_stack[
                 -1
             ]
+
+            log.debug("Ending transaction %s.", transaction)
 
             if return_global_state is None:
                 if (

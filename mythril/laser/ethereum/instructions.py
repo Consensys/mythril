@@ -198,6 +198,7 @@ class Instruction:
         """
         # Generalize some ops
         log.debug("Evaluating %s at %i", self.op_code, global_state.mstate.pc)
+
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -783,15 +784,10 @@ class Instruction:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
 
-        size_sym = False
         try:
             size = util.get_concrete_int(op2)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
-            size = simplify(op2)
-            size_sym = True
-
-        if size_sym:
             size = 320  # The excess size will get overwritten
 
         size = cast(int, size)
@@ -1397,7 +1393,6 @@ class Instruction:
 
         state = global_state.mstate
         index = state.stack.pop()
-
         state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
 
@@ -1410,7 +1405,6 @@ class Instruction:
         """
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-
         global_state.environment.active_account.storage[index] = value
         return [global_state]
 

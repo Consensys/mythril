@@ -15,7 +15,7 @@ import coloredlogs
 import traceback
 
 import mythril.support.signatures as sigs
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -174,6 +174,7 @@ def main() -> None:
         help="Triggers the analysis of the smart contract",
         parents=[rpc_parser, utilities_parser, input_parser, output_parser],
         aliases=ANALYZE_LIST[1:],
+        formatter_class=RawTextHelpFormatter,
     )
     create_analyzer_parser(analyzer_parser)
 
@@ -182,6 +183,7 @@ def main() -> None:
         help="Disassembles the smart contract",
         aliases=DISASSEMBLE_LIST[1:],
         parents=[rpc_parser, utilities_parser, input_parser],
+        formatter_class=RawTextHelpFormatter,
     )
     create_disassemble_parser(disassemble_parser)
 
@@ -223,7 +225,13 @@ def create_disassemble_parser(parser: ArgumentParser):
     :param parser:
     :return:
     """
-    parser.add_argument("solidity_file", nargs="*")
+    # Using nargs=* would the implementation below for getting code for both disassemble and analyze
+    parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. Currently supports a single contract\n"
+        "usage: file1.sol:OptionalContractName",
+    )
 
 
 def create_read_storage_parser(read_storage_parser: ArgumentParser):
@@ -290,7 +298,12 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     :param analyzer_parser:
     :return:
     """
-    analyzer_parser.add_argument("solidity_file", nargs="*")
+    analyzer_parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
     commands = analyzer_parser.add_argument_group("commands")
     commands.add_argument("-g", "--graph", help="generate a control flow graph")
     commands.add_argument(
@@ -425,6 +438,8 @@ def validate_args(args: Namespace):
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
             )
+    if args.command in DISASSEMBLE_LIST and len(args.solidity_files) > 1:
+        exit_with_error("text", "Only a single arg is supported for using disassemble")
 
     if args.command in ANALYZE_LIST:
         if args.query_signature and sigs.ethereum_input_decoder is None:
@@ -509,15 +524,15 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
     elif args.__dict__.get("address", False):
         # Get bytecode from a contract address
         address, _ = disassembler.load_from_address(args.address)
-    elif args.__dict__.get("solidity_file", False):
+    elif args.__dict__.get("solidity_files", False):
         # Compile Solidity source file(s)
-        if args.command in ANALYZE_LIST and args.graph and len(args.solidity_file) > 1:
+        if args.command in ANALYZE_LIST and args.graph and len(args.solidity_files) > 1:
             exit_with_error(
                 args.outform,
                 "Cannot generate call graphs from multiple input files. Please do it one at a time.",
             )
         address, _ = disassembler.load_from_solidity(
-            args.solidity_file
+            args.solidity_files
         )  # list of files
     else:
         exit_with_error(
