@@ -15,7 +15,6 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 from copy import copy
 import logging
-import json
 
 log = logging.getLogger(__name__)
 

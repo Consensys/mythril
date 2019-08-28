@@ -3,6 +3,8 @@ modules."""
 
 import logging
 from typing import List, Set
+
+from mythril.analysis.potential_issues import PotentialIssue
 from mythril.analysis.report import Issue
 
 log = logging.getLogger(__name__)

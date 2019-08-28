@@ -1,6 +1,8 @@
 """This module contains the detection code for deprecated op codes."""
-from mythril.analysis.report import Issue
-from mythril.analysis.solver import get_transaction_sequence, UnsatError
+from mythril.analysis.potential_issues import (
+    PotentialIssue,
+    get_potential_issues_annotation,
+)
 from mythril.analysis.swc_data import DEPRECATED_FUNCTIONS_USAGE
 from mythril.analysis.modules.base import DetectionModule
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -36,12 +38,10 @@ class DeprecatedOperationsModule(DetectionModule):
             return
         issues = self._analyze_state(state)
 
-        for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+        annotation = get_potential_issues_annotation(state)
+        annotation.potential_issues.extend(issues)
 
-    @staticmethod
-    def _analyze_state(state):
+    def _analyze_state(self, state):
         """
 
         :param state:
@@ -76,26 +76,21 @@ class DeprecatedOperationsModule(DetectionModule):
             swc_id = DEPRECATED_FUNCTIONS_USAGE
         else:
             return []
-        try:
-            transaction_sequence = get_transaction_sequence(
-                state, state.mstate.constraints
-            )
-        except UnsatError:
-            return []
-        issue = Issue(
+
+        potential_issue = PotentialIssue(
             contract=state.environment.active_account.contract_name,
             function_name=state.environment.active_function_name,
             address=instruction["address"],
             title=title,
             bytecode=state.environment.code.bytecode,
+            detector=self,
             swc_id=swc_id,
             severity="Medium",
             description_head=description_head,
             description_tail=description_tail,
-            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            transaction_sequence=transaction_sequence,
+            constraints=[],
         )
-        return [issue]
+        return [potential_issue]
 
 
 detector = DeprecatedOperationsModule()
