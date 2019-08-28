@@ -26,15 +26,18 @@ class KeccakFunctionManager:
         constraints = []
         if data.symbolic is False:
             keccak = symbol_factory.BitVecVal(
-                utils.sha3(data.value.to_bytes(length // 8, byteorder="big")), 256
+                int.from_bytes(
+                    utils.sha3(data.value.to_bytes(length // 8, byteorder="big")), "big"
+                ),
+                256,
             )
+            self.size_values[length].append(keccak)
             constraints.append(func(data) == keccak)
 
         constraints.append(inverse(func(data)) == data)
         if data.symbolic is False:
             return func(data), constraints
 
-        constraints.append(URem(func(data), symbol_factory.BitVecVal(63, 256)) == 0)
         try:
             index = self.size_index[length]
         except KeyError:
@@ -48,9 +51,11 @@ class KeccakFunctionManager:
         condition = And(
             ULE(symbol_factory.BitVecVal(lower_bound, 256), func(data)),
             ULT(func(data), symbol_factory.BitVecVal(upper_bound, 256)),
+            URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
         for val in self.size_values[length]:
             condition = Or(condition, func(data) == val)
+
         constraints.append(condition)
         return func(data), constraints
 
