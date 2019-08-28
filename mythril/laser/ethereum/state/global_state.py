@@ -139,9 +139,10 @@ class GlobalState:
         if annotation.persist_to_world_state:
             self.world_state.annotate(annotation)
 
-    def copy_annotations_from(self, other_global_state: "GlobalState") -> None:
+    def propagate_annotations_from(self, other_global_state: "GlobalState") -> None:
         for annotation in other_global_state.annotations:
-            self.annotate(annotation)
+            if annotation.should_propagate:
+                self.annotate(annotation)
 
     @property
     def annotations(self) -> List[StateAnnotation]:

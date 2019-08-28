@@ -31,6 +31,11 @@ class MutationPruner(LaserPlugin):
 
     """
 
+    @property
+    def persist_to_world_state(self):
+        # This should persist among calls.
+        return True
+
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the mutation pruner
 
@@ -57,5 +62,5 @@ class MutationPruner(LaserPlugin):
                 global_state.current_transaction, ContractCreationTransaction
             ):
                 return
-            if len(list(global_state.get_annotations(MutationAnnotation))) == 0:
+            if len(list(global_state.world_state.get_annotations(MutationAnnotation))) == 0:
                 raise PluginSkipWorldState
