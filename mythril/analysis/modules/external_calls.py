@@ -2,13 +2,17 @@
 calls."""
 
 from mythril.analysis import solver
+from mythril.analysis.potential_issues import (
+    PotentialIssue,
+    get_potential_issues_annotation,
+)
 from mythril.analysis.swc_data import REENTRANCY
+from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 from mythril.analysis.modules.base import DetectionModule
-from mythril.analysis.report import Issue
 from mythril.laser.smt import UGT, symbol_factory, Or, BitVec
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -64,13 +68,12 @@ class ExternalCalls(DetectionModule):
         :param state:
         :return:
         """
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+        potential_issues = self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state):
+        annotation = get_potential_issues_annotation(state)
+        annotation.potential_issues.extend(potential_issues)
+
+    def _analyze_state(self, state: GlobalState):
         """
 
         :param state:
@@ -82,10 +85,10 @@ class ExternalCalls(DetectionModule):
         address = state.get_current_instruction()["address"]
 
         try:
-            constraints = copy(state.mstate.constraints)
+            constraints = Constraints([UGT(gas, symbol_factory.BitVecVal(2300, 256))])
 
             transaction_sequence = solver.get_transaction_sequence(
-                state, constraints + [UGT(gas, symbol_factory.BitVecVal(2300, 256))]
+                state, constraints + state.mstate.constraints
             )
 
             # Check whether we can also set the callee address
@@ -98,7 +101,7 @@ class ExternalCalls(DetectionModule):
                         constraints.append(tx.caller == ATTACKER_ADDRESS)
 
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, constraints
+                    state, constraints + state.mstate.constraints
                 )
 
                 description_head = "A call to a user-supplied address is executed."
@@ -109,7 +112,7 @@ class ExternalCalls(DetectionModule):
                     "contract state."
                 )
 
-                issue = Issue(
+                issue = PotentialIssue(
                     contract=state.environment.active_account.contract_name,
                     function_name=state.environment.active_function_name,
                     address=address,
@@ -119,8 +122,8 @@ class ExternalCalls(DetectionModule):
                     severity="Medium",
                     description_head=description_head,
                     description_tail=description_tail,
-                    transaction_sequence=transaction_sequence,
-                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                    constraints=constraints,
+                    detector=self,
                 )
 
             except UnsatError:
@@ -137,7 +140,7 @@ class ExternalCalls(DetectionModule):
                     "that the callee contract has been reviewed carefully."
                 )
 
-                issue = Issue(
+                issue = PotentialIssue(
                     contract=state.environment.active_account.contract_name,
                     function_name=state.environment.active_function_name,
                     address=address,
@@ -147,8 +150,8 @@ class ExternalCalls(DetectionModule):
                     severity="Low",
                     description_head=description_head,
                     description_tail=description_tail,
-                    transaction_sequence=transaction_sequence,
-                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                    constraints=constraints,
+                    detector=self,
                 )
 
         except UnsatError:
