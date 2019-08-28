@@ -15,6 +15,11 @@ class MutationAnnotation(StateAnnotation):
     This is the annotation used by the MutationPruner plugin to record mutations
     """
 
+    @property
+    def persist_to_world_state(self):
+        # This should persist among calls, and be but as a world state annotation.
+        return True
+
 
 class MutationPruner(LaserPlugin):
     """Mutation pruner plugin
@@ -31,11 +36,6 @@ class MutationPruner(LaserPlugin):
 
     """
 
-    @property
-    def persist_to_world_state(self):
-        # This should persist among calls.
-        return True
-
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the mutation pruner
 
@@ -47,10 +47,16 @@ class MutationPruner(LaserPlugin):
         @symbolic_vm.pre_hook("SSTORE")
         def sstore_mutator_hook(global_state: GlobalState):
             global_state.annotate(MutationAnnotation())
+            assert len(
+                list(global_state.world_state.get_annotations(MutationAnnotation))
+            )
 
         @symbolic_vm.pre_hook("CALL")
         def call_mutator_hook(global_state: GlobalState):
             global_state.annotate(MutationAnnotation())
+            assert len(
+                list(global_state.world_state.get_annotations(MutationAnnotation))
+            )
 
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(global_state: GlobalState):
@@ -66,5 +72,8 @@ class MutationPruner(LaserPlugin):
                 global_state.current_transaction, ContractCreationTransaction
             ):
                 return
-            if len(list(global_state.world_state.get_annotations(MutationAnnotation))) == 0:
+            if (
+                len(list(global_state.world_state.get_annotations(MutationAnnotation)))
+                == 0
+            ):
                 raise PluginSkipWorldState
