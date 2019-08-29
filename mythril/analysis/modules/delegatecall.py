@@ -106,7 +106,6 @@ class DelegateCallModule(DetectionModule):
         :param state: the current state
         :return: returns the issues for that corresponding state
         """
-        issues = []
         op_code = state.get_current_instruction()["opcode"]
 
         gas = state.mstate.stack[-1]
