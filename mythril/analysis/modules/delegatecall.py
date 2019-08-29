@@ -84,7 +84,7 @@ class DelegateCallModule(DetectionModule):
             swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
             description="Check for invocations of delegatecall(msg.data) in the fallback function.",
             entrypoint="callback",
-            pre_hooks=["DELEGATECALL", "RETURN", "STOP"],
+            pre_hooks=["DELEGATECALL"],
         )
 
     def _execute(self, state: GlobalState) -> None:
@@ -108,48 +108,30 @@ class DelegateCallModule(DetectionModule):
         """
         issues = []
         op_code = state.get_current_instruction()["opcode"]
-        annotations = cast(
-            List[DelegateCallAnnotation],
-            list(state.get_annotations(DelegateCallAnnotation)),
-        )
 
-        if len(annotations) == 0 and op_code in ("RETURN", "STOP"):
-            return []
+        gas = state.mstate.stack[-1]
+        to = state.mstate.stack[-2]
 
-        if op_code == "DELEGATECALL":
-            gas = state.mstate.stack[-1]
-            to = state.mstate.stack[-2]
+        constraints = [
+            to == ATTACKER_ADDRESS,
+            UGT(gas, symbol_factory.BitVecVal(2300, 256)),
+        ]
 
-            constraints = [
-                to == ATTACKER_ADDRESS,
-                UGT(gas, symbol_factory.BitVecVal(2300, 256)),
+        for tx in state.world_state.transaction_sequence:
+            if not isinstance(tx, ContractCreationTransaction):
+                constraints.append(tx.caller == ATTACKER_ADDRESS)
+
+        try:
+            transaction_sequence = solver.get_transaction_sequence(
+                state, state.mstate.constraints + constraints
+            )
+            return [
+                DelegateCallAnnotation(state, constraints).get_issue(
+                    state, transaction_sequence=transaction_sequence
+                )
             ]
-
-            for tx in state.world_state.transaction_sequence:
-                if not isinstance(tx, ContractCreationTransaction):
-                    constraints.append(tx.caller == ATTACKER_ADDRESS)
-
-            state.annotate(DelegateCallAnnotation(state, constraints))
-
+        except UnsatError:
             return []
-        else:
-            for annotation in annotations:
-                try:
-                    transaction_sequence = solver.get_transaction_sequence(
-                        state,
-                        state.mstate.constraints
-                        + annotation.constraints
-                        + [annotation.return_value == 1],
-                    )
-                    issues.append(
-                        annotation.get_issue(
-                            state, transaction_sequence=transaction_sequence
-                        )
-                    )
-                except UnsatError:
-                    continue
-
-            return issues
 
 
 detector = DelegateCallModule()
