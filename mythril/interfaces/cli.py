@@ -218,8 +218,9 @@ def main() -> None:
     pro_parser = subparsers.add_parser(
         PRO_LIST[0],
         help="Analyzes input with the MythX API (https://mythx.io)",
-        aliases=PRO_LIST[1],
+        aliases=PRO_LIST[1:],
         parents=[utilities_parser, creation_input_parser, output_parser],
+        formatter_class=RawTextHelpFormatter,
     )
     create_pro_parser(pro_parser)
 
@@ -277,11 +278,16 @@ def create_pro_parser(parser: ArgumentParser):
     :return:
     """
     parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
+    parser.add_argument(
         "--full",
         help="Run a full analysis. Default: quick analysis",
         action="store_true",
     )
-    parser.add_argument("solidity_file", nargs="*")
 
 
 def create_read_storage_parser(read_storage_parser: ArgumentParser):

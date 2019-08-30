@@ -8,6 +8,10 @@ from mythril.solidity.soliditycontract import SolidityContract
 
 from pythx import Client
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> Report:
     """
@@ -68,7 +72,7 @@ def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> 
         )
 
         while not c.analysis_ready(resp.uuid):
-            print(c.status(resp.uuid).analysis)
+            log.info(c.status(resp.uuid).analysis)
             time.sleep(5)
 
         for issue in c.report(resp.uuid):
