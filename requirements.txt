@@ -21,7 +21,7 @@ py-solc
 pytest>=3.6.0
 pytest-cov
 pytest_mock
-requests
+requests>=2.22.0
 rlp>=1.0.1
 transaction>=2.2.1
 z3-solver>=4.8.5.0
