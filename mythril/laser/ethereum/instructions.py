@@ -918,9 +918,13 @@ class Instruction:
         environment = global_state.environment
         disassembly = environment.code
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
-            # Hacky way to ensure constructor arguments work - Max size is 5000
-            # FIXME: Perhaps add some constraint here to ensure that concretization works correctly
-            no_of_bytes = len(disassembly.bytecode) // 2 + 5000
+            # Hacky way to ensure constructor arguments work - Pick some reasonably large size.
+            no_of_bytes = (
+                len(disassembly.bytecode) // 2 + 0x200
+            )  # space for 16 32-byte arguments
+            global_state.mstate.constraints.append(
+                global_state.environment.calldata.size == no_of_bytes
+            )
         else:
             no_of_bytes = len(disassembly.bytecode) // 2
         state.stack.append(no_of_bytes)
@@ -1056,6 +1060,7 @@ class Instruction:
             # This is a slightly hacky way to ensure that symbolic constructor
             # arguments work correctly.
             offset = code_offset - len(global_state.environment.code.bytecode) // 2
+            log.warning("Doing hacky thing offset: {} size: {}".format(offset, size))
             return self._calldata_copy_helper(
                 global_state, global_state.mstate, memory_offset, offset, size
             )
