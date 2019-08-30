@@ -25,7 +25,7 @@ REQUIRES_PYTHON = ">=3.5.0"
 # What packages are required for this module to be executed?
 REQUIRED = [
     "coloredlogs>=10.0",
-    "py_ecc==1.4.2",
+    "py_ecc==1.6.0",
     "ethereum>=2.3.2",
     "z3-solver>=4.8.5.0",
     "requests",

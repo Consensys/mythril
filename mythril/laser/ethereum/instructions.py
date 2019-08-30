@@ -25,6 +25,7 @@ from mythril.laser.smt import (
     Bool,
     Not,
     LShR,
+    UGE,
 )
 from mythril.laser.smt import symbol_factory
 
@@ -52,6 +53,30 @@ log = logging.getLogger(__name__)
 
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
+
+
+def transfer_ether(
+    global_state: GlobalState,
+    sender: BitVec,
+    receiver: BitVec,
+    value: Union[int, BitVec],
+):
+    """
+    Perform an Ether transfer between two accounts
+
+    :param global_state: The global state in which the Ether transfer occurs
+    :param sender: The sender of the Ether
+    :param receiver: The recipient of the Ether
+    :param value: The amount of Ether to send
+    :return:
+    """
+    value = value if isinstance(value, BitVec) else symbol_factory.BitVecVal(value, 256)
+
+    global_state.mstate.constraints.append(
+        UGE(global_state.world_state.balances[sender], value)
+    )
+    global_state.world_state.balances[receiver] += value
+    global_state.world_state.balances[sender] -= value
 
 
 class StateTransition(object):
@@ -173,6 +198,7 @@ class Instruction:
         """
         # Generalize some ops
         log.debug("Evaluating %s at %i", self.op_code, global_state.mstate.pc)
+
         op = self.op_code.lower()
         if self.op_code.startswith("PUSH"):
             op = "push"
@@ -758,15 +784,10 @@ class Instruction:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(op1)
 
-        size_sym = False
         try:
             size = util.get_concrete_int(op2)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
-            size = simplify(op2)
-            size_sym = True
-
-        if size_sym:
             size = 320  # The excess size will get overwritten
 
         size = cast(int, size)
@@ -840,7 +861,11 @@ class Instruction:
         """
         state = global_state.mstate
         address = state.stack.pop()
-        state.stack.append(global_state.new_bitvec("balance_at_" + str(address), 256))
+
+        balance = global_state.world_state.balances[
+            global_state.environment.active_account.address
+        ]
+        state.stack.append(balance)
         return [global_state]
 
     @StateTransition()
@@ -1368,7 +1393,6 @@ class Instruction:
 
         state = global_state.mstate
         index = state.stack.pop()
-
         state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
 
@@ -1381,7 +1405,6 @@ class Instruction:
         """
         state = global_state.mstate
         index, value = state.stack.pop(), state.stack.pop()
-
         global_state.environment.active_account.storage[index] = value
         return [global_state]
 
@@ -1615,7 +1638,7 @@ class Instruction:
         transfer_amount = global_state.environment.active_account.balance()
         # Often the target of the suicide instruction will be symbolic
         # If it isn't then we'll transfer the balance to the indicated contract
-        global_state.world_state[target].add_balance(transfer_amount)
+        global_state.world_state.balances[target] += transfer_amount
 
         global_state.environment.active_account = deepcopy(
             global_state.environment.active_account
@@ -1689,6 +1712,10 @@ class Instruction:
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
+                sender = environment.active_account.address
+                receiver = callee_account.address
+                transfer_ether(global_state, sender, receiver, value)
+
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
                 )
@@ -1804,6 +1831,18 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = global_state.environment.active_account.address
+                receiver = callee_account.address
+                transfer_ether(global_state, sender, receiver, value)
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -1907,6 +1946,18 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = environment.active_account.address
+                receiver = callee_account.address
+                transfer_ether(global_state, sender, receiver, value)
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -2008,6 +2059,18 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
             )
+
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = global_state.environment.active_account.address
+                receiver = callee_account.address
+                transfer_ether(global_state, sender, receiver, value)
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
