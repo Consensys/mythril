@@ -201,6 +201,8 @@ class ContractCreationTransaction(BaseTransaction):
             0, concrete_storage=True, creator=caller.value
         )
         callee_account.contract_name = contract_name
+        # init_call_data "should" be false, but it is easier to model the calldata symbolically
+        # and add logic in codecopy/codesize/calldatacopy/calldatasize than to model code "correctly"
         super().__init__(
             world_state=world_state,
             callee_account=callee_account,
@@ -212,7 +214,7 @@ class ContractCreationTransaction(BaseTransaction):
             origin=origin,
             code=code,
             call_value=call_value,
-            init_call_data=False,
+            init_call_data=True,
         )
 
     def initial_global_state(self) -> GlobalState:
