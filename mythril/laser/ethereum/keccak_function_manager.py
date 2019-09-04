@@ -1,5 +1,17 @@
+from random import randint
+
 from ethereum import utils
-from mythril.laser.smt import BitVec, Function, URem, symbol_factory, ULE, And, ULT, Or
+from mythril.laser.smt import (
+    BitVec,
+    Function,
+    URem,
+    symbol_factory,
+    ULE,
+    And,
+    ULT,
+    Or,
+    simplify,
+)
 
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
@@ -11,10 +23,21 @@ class KeccakFunctionManager:
         self.sizes = {}
         self.size_index = {}
         self.index_counter = TOTAL_PARTS - 34534
+        self.concrete_dict = {}
         self.size_values = {}
+
+    def find_keccak(self, data: BitVec) -> BitVec:
+        return symbol_factory.BitVecVal(
+            int.from_bytes(
+                utils.sha3(data.value.to_bytes(data.size() // 8, byteorder="big")),
+                "big",
+            ),
+            256,
+        )
 
     def create_keccak(self, data: BitVec, length: int):
         length = length * 8
+        data = simplify(data)
         assert length == data.size()
         try:
             func, inverse = self.sizes[length]
@@ -25,12 +48,7 @@ class KeccakFunctionManager:
             self.size_values[length] = []
         constraints = []
         if data.symbolic is False:
-            keccak = symbol_factory.BitVecVal(
-                int.from_bytes(
-                    utils.sha3(data.value.to_bytes(length // 8, byteorder="big")), "big"
-                ),
-                256,
-            )
+            keccak = self.find_keccak(data)
             self.size_values[length].append(keccak)
             constraints.append(func(data) == keccak)
 
@@ -53,6 +71,20 @@ class KeccakFunctionManager:
             ULT(func(data), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
+        condition = False
+        try:
+            concrete_input = self.concrete_dict[data]
+            keccak = self.find_keccak(concrete_input)
+        except KeyError:
+            concrete_input = symbol_factory.BitVecVal(
+                randint(0, 2 ** data.size() - 1), data.size()
+            )
+            self.concrete_dict[data] = concrete_input
+            keccak = self.find_keccak(concrete_input)
+        self.concrete_dict[func(data)] = keccak
+
+        condition = Or(condition, And(data == concrete_input, keccak == func(data)))
+
         for val in self.size_values[length]:
             condition = Or(condition, func(data) == val)
 

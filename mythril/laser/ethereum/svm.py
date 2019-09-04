@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
-from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
+from typing import Callable, Dict, DefaultDict, List, Tuple, Union, Optional
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -16,6 +16,8 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
+from mythril.analysis.solver import get_model, UnsatError
+
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -23,7 +25,21 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import (
+    symbol_factory,
+    And,
+    BitVecFunc,
+    BitVec,
+    Extract,
+    simplify,
+    is_true,
+)
+
+ACTOR_ADDRESSES = [
+    symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
+    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF, 256),
+    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEE, 256),
+]
 
 log = logging.getLogger(__name__)
 
@@ -358,6 +374,63 @@ class LaserEVM:
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
+
+    def concretize_ite_storage(self, global_state):
+        sender = global_state.environment.sender
+        models_tuple = []
+        sat = False
+
+        import random, sha3
+
+        calldata_cond = True
+        for account in global_state.world_state.accounts.values():
+            for key in account.storage.storage_keys_loaded:
+                if (
+                    isinstance(key, BitVecFunc)
+                    and not isinstance(key.input_, BitVecFunc)
+                    and isinstance(key.input_, BitVec)
+                    and key.input_.symbolic
+                    and key.input_.size() == 512
+                    and key.input_.get_extracted_input_cond(511, 256) is False
+                ):
+                    pseudo_input = random.randint(0, 2 ** 160 - 1)
+                    hex_v = hex(pseudo_input)[2:]
+                    if len(hex_v) % 2 == 1:
+                        hex_v += "0"
+                    hash_val = symbol_factory.BitVecVal(
+                        int(sha3.keccak_256(bytes.fromhex(hex_v)).hexdigest(), 16), 256
+                    )
+                    pseudo_input = symbol_factory.BitVecVal(pseudo_input, 256)
+                    calldata_cond = And(
+                        calldata_cond,
+                        Extract(511, 256, key.input_) == hash_val,
+                        Extract(511, 256, key.input_).potential_input == pseudo_input,
+                    )
+                    key.input_.set_extracted_input_cond(511, 256, calldata_cond)
+                    assert (
+                        key.input_.get_extracted_input_cond(511, 256) == calldata_cond
+                    )
+
+        for actor in ACTOR_ADDRESSES:
+            try:
+                models_tuple.append(
+                    (
+                        get_model(
+                            constraints=global_state.mstate.constraints
+                            + [sender == actor, calldata_cond]
+                        ),
+                        And(calldata_cond, sender == actor),
+                    )
+                )
+                sat = True
+            except UnsatError:
+                models_tuple.append((None, And(calldata_cond, sender == actor)))
+
+        if not sat:
+            return [False]
+
+        for account in global_state.world_state.accounts.values():
+            account.storage.concretize(models_tuple)
 
     def _end_message_call(
         self,
