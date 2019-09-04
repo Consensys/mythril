@@ -32,7 +32,15 @@ def get_global_state():
 
 @patch(
     "mythril.laser.ethereum.instructions.get_call_parameters",
-    return_value=("0", Account(code="0x0", address="0x19"), 0, 0, 0, 0, 0),
+    return_value=(
+        "0",
+        Account(code=Disassembly(code="0x00"), address="0x19"),
+        0,
+        0,
+        0,
+        0,
+        0,
+    ),
 )
 def test_staticcall(f1):
     # Arrange
