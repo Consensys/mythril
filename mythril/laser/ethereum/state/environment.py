@@ -22,6 +22,7 @@ class Environment:
         callvalue: ExprRef,
         origin: ExprRef,
         code=None,
+        static=False,
     ) -> None:
         """
 
@@ -32,7 +33,7 @@ class Environment:
         :param callvalue:
         :param origin:
         :param code:
-        :param calldata_type:
+        :param static: Makes the environment static.
         """
         # Metadata
 
@@ -50,6 +51,7 @@ class Environment:
         self.gasprice = gasprice
         self.origin = origin
         self.callvalue = callvalue
+        self.static = static
 
     def __str__(self) -> str:
         """
