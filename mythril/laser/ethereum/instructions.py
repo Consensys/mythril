@@ -1803,6 +1803,17 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
+            if callee_account is not None and callee_account.code.bytecode == "":
+                log.debug("The call is related to ether transfer between accounts")
+                sender = global_state.environment.active_account.address
+                receiver = callee_account.address
+                transfer_ether(global_state, sender, receiver, value)
+
+                global_state.mstate.stack.append(
+                    global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+                )
+                return [global_state]
+
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
