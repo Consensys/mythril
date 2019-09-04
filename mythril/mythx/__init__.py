@@ -79,8 +79,10 @@ def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> 
             issue = Issue(
                 contract=contract.name,
                 function_name=None,
-                address=issue.locations[0].source_map.components[0].offset,
-                swc_id=issue.swc_id[4:],  # remove 'SWC-' prefix
+                address=issue.locations[0].source_map.components[0].offset
+                if issue.locations
+                else -1,
+                swc_id=issue.swc_id[4:] or "None",  # remove 'SWC-' prefix
                 title=issue.swc_title,
                 bytecode=contract.creation_code,
                 severity=issue.severity.capitalize(),

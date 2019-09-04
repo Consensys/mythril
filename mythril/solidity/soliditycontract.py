@@ -56,15 +56,15 @@ def get_contracts_from_file(input_file, solc_settings_json=None, solc_binary="so
     )
 
     try:
-        for contractName in data["contracts"][input_file].keys():
+        for contract_name in data["contracts"][input_file].keys():
             if len(
-                data["contracts"][input_file][contractName]["evm"]["deployedBytecode"][
+                data["contracts"][input_file][contract_name]["evm"]["deployedBytecode"][
                     "object"
                 ]
             ):
                 yield SolidityContract(
                     input_file=input_file,
-                    name=contractName,
+                    name=contract_name,
                     solc_settings_json=solc_settings_json,
                     solc_binary=solc_binary,
                 )
