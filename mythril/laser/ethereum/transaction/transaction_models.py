@@ -45,9 +45,11 @@ class TransactionStartSignal(Exception):
         self,
         transaction: Union["MessageCallTransaction", "ContractCreationTransaction"],
         op_code: str,
+        global_state: GlobalState,
     ) -> None:
         self.transaction = transaction
         self.op_code = op_code
+        self.global_state = global_state
 
 
 class BaseTransaction:
@@ -66,6 +68,7 @@ class BaseTransaction:
         code=None,
         call_value=None,
         init_call_data=True,
+        static=False,
     ) -> None:
         assert isinstance(world_state, WorldState)
         self.world_state = world_state
@@ -101,7 +104,7 @@ class BaseTransaction:
             if call_value is not None
             else symbol_factory.BitVecSym("callvalue{}".format(identifier), 256)
         )
-
+        self.static = static
         self.return_data = None  # type: str
 
     def initial_global_state_from_environment(self, environment, active_function):
@@ -159,6 +162,7 @@ class MessageCallTransaction(BaseTransaction):
             self.call_value,
             self.origin,
             code=self.code or self.callee_account.code,
+            static=self.static,
         )
         return super().initial_global_state_from_environment(
             environment, active_function="fallback"
