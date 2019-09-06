@@ -930,6 +930,14 @@ class Instruction:
         state.stack.append(no_of_bytes)
         return [global_state]
 
+    @staticmethod
+    def _sha3_gas_helper(global_state, length):
+        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
+        global_state.mstate.min_gas_used += min_gas
+        global_state.mstate.max_gas_used += max_gas
+        StateTransition.check_gas_usage_limit(global_state)
+        return global_state
+
     @StateTransition(enable_gas=False)
     def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
         """
@@ -955,10 +963,7 @@ class Instruction:
             state.max_gas_used += gas_tuple[1]
             return [global_state]
 
-        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
-        state.min_gas_used += min_gas
-        state.max_gas_used += max_gas
-        StateTransition.check_gas_usage_limit(global_state)
+        _sha3_gas_helper(global_state, length)
 
         state.mem_extend(index, length)
         data_list = [
@@ -1623,7 +1628,7 @@ class Instruction:
 
     @staticmethod
     def _create_transaction_helper(
-        global_state, call_value, mem_offset, mem_size, op_code
+        global_state, call_value, mem_offset, mem_size, op_code, create2_salt=None
     ):
 
         mstate = global_state.mstate
@@ -1662,19 +1667,19 @@ class Instruction:
         origin = environment.origin
 
         contract_address = None
-        if op_code is "CREATE2":
-            salt = hex(mstate.stack.pop().value)[2:]
+        if create2_salt:
+            salt = hex(create2_salt)[2:]
             salt = "0" * (64 - len(salt)) + salt
 
             addr = hex(caller.value)[2:]
             addr = "0" * (40 - len(addr)) + addr
 
+            _sha3_gas_helper(global_state, len(code_str[:2] // 2))
+
             contract_address = int(
                 get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
                 16,
             )
-
-            # TODO: calculate gas cost
 
         transaction = ContractCreationTransaction(
             world_state=world_state,
@@ -1716,10 +1721,10 @@ class Instruction:
         :param global_state:
         :return:
         """
-        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
+        call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
 
         return self._create_transaction_helper(
-            global_state, call_value, mem_offset, mem_size, self.op_code
+            global_state, call_value, mem_offset, mem_size, self.op_code, salt
         )
 
     @StateTransition()
