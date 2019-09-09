@@ -1,6 +1,9 @@
+import sys
+
 import os
 import time
 
+from mythx_models.exceptions import MythXAPIError
 from typing import List, Dict, Any
 
 from mythril.analysis.report import Issue, Report
@@ -29,6 +32,11 @@ def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> 
         ),
         password=os.environ.get("MYTHX_PASSWORD", "trial"),
     )
+
+    if c.eth_address == "0x0000000000000000000000000000000000000000":
+        print(
+            "You are currently running MythX in Trial mode. This mode reports only a partial analysis of your smart contracts, limited to three vulnerabilities. To get a more complete analysis, sign up for a free account at https://mythx.io."
+        )
 
     issues = []  # type: List[Issue]
 
@@ -61,15 +69,18 @@ def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> 
             pass
 
         assert contract.creation_code, "Creation bytecode must exist."
-        resp = c.analyze(
-            contract_name=contract.name,
-            analysis_mode=analysis_mode,
-            bytecode=contract.creation_code or None,
-            deployed_bytecode=contract.code or None,
-            sources=sources or None,
-            main_source=main_source,
-            source_list=source_list or None,
-        )
+        try:
+            resp = c.analyze(
+                contract_name=contract.name,
+                analysis_mode=analysis_mode,
+                bytecode=contract.creation_code or None,
+                deployed_bytecode=contract.code or None,
+                sources=sources or None,
+                main_source=main_source,
+                source_list=source_list or None,
+            )
+        except MythXAPIError as e:
+            log.critical(e)
 
         while not c.analysis_ready(resp.uuid):
             log.info(c.status(resp.uuid).analysis)
