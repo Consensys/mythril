@@ -15,6 +15,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+TRIAL_ETH_ADDRESS = "0x0000000000000000000000000000000000000000"
+TRIAL_PASSWORD = "trial"
+
 
 def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> Report:
     """
@@ -27,13 +30,11 @@ def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> 
     assert analysis_mode in ("quick", "full"), "analysis_mode must be 'quick' or 'full'"
 
     c = Client(
-        eth_address=os.environ.get(
-            "MYTHX_ETH_ADDRESS", "0x0000000000000000000000000000000000000000"
-        ),
-        password=os.environ.get("MYTHX_PASSWORD", "trial"),
+        eth_address=os.environ.get("MYTHX_ETH_ADDRESS", TRIAL_ETH_ADDRESS),
+        password=os.environ.get("MYTHX_PASSWORD", TRIAL_PASSWORD),
     )
 
-    if c.eth_address == "0x0000000000000000000000000000000000000000":
+    if c.eth_address == TRIAL_ETH_ADDRESS:
         print(
             "You are currently running MythX in Trial mode. This mode reports only a partial analysis of your smart contracts, limited to three vulnerabilities. To get a more complete analysis, sign up for a free account at https://mythx.io."
         )
