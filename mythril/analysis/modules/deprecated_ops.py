@@ -34,7 +34,7 @@ class DeprecatedOperationsModule(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self._cache:
+        if state.get_current_instruction()["address"] in self.cache:
             return
         issues = self._analyze_state(state)
 

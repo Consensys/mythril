@@ -81,7 +81,7 @@ def check_potential_issues(state: GlobalState) -> None:
     :return:
     """
     annotation = get_potential_issues_annotation(state)
-    for potential_issue in annotation.potential_issues[:]:
+    for potential_issue in annotation.potential_issues:
         try:
             transaction_sequence = get_transaction_sequence(
                 state, state.mstate.constraints + potential_issue.constraints
