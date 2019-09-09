@@ -1655,24 +1655,20 @@ class Instruction:
         environment = global_state.environment
         world_state = global_state.world_state
 
-        call_data = get_call_data(
-            global_state,
-            mem_offset,
-            mem_offset + mem_size,
-        )
+        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
 
-        call_data = call_data.concrete(None)
-
-        code_end = len(call_data)
-        for i in range(len(call_data)):
-            if not isinstance(call_data[i], int):
+        code_raw = []
+        code_end = call_data.size
+        for i in range(call_data.size):
+            # Proper way to delimit init_bytecode? Seems to work.
+            if call_data[i].symbolic:
                 code_end = i
                 break
+            code_raw.append(call_data[i].value)
 
-        code_str = bytes.hex(bytes(call_data[0:code_end]))
+        code_str = bytes.hex(bytes(code_raw))
 
         constructor_arguments = call_data[code_end:]
-
         code = Disassembly(code_str)
 
         caller = environment.active_account.address
@@ -1705,7 +1701,7 @@ class Instruction:
             call_value=call_value,
             contract_address=contract_address,
         )
-        raise TransactionStartSignal(transaction, op_code)
+        raise TransactionStartSignal(transaction, op_code, global_state)
 
     @StateTransition(is_state_mutation_instruction=True)
     def create_(self, global_state: GlobalState) -> List[GlobalState]:
