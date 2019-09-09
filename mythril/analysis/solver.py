@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 # LRU cache works great when used in powers of 2
 @lru_cache(maxsize=2 ** 23)
-def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
+def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True, weighted=()):
     """
 
     :param constraints:
@@ -48,7 +48,8 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
         s.minimize(e)
     for e in maximize:
         s.maximize(e)
-
+    for e in weighted:
+        s.add_soft(e)
     result = s.check()
     if result == sat:
         return s.model()
@@ -97,9 +98,9 @@ def get_transaction_sequence(
     tx_constraints, minimize = _set_minimisation_constraints(
         transaction_sequence, constraints.copy(), [], 5000, global_state.world_state
     )
-
+    weighted = tx_constraints.weighted
     try:
-        model = get_model(tx_constraints, minimize=minimize)
+        model = get_model(tx_constraints, minimize=minimize, weighted=tuple(weighted))
     except UnsatError:
         raise UnsatError
 

@@ -4,12 +4,14 @@ from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Union, Optional
+import z3
 
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
+from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -28,11 +30,13 @@ from mythril.laser.ethereum.transaction import (
 from mythril.laser.smt import (
     symbol_factory,
     And,
+    Or,
     BitVecFunc,
     BitVec,
     Extract,
     simplify,
     is_true,
+    Concat,
 )
 
 ACTOR_ADDRESSES = [
@@ -357,7 +361,10 @@ class LaserEVM:
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
+                    constraints = self.concretize_keccak(end_signal.global_state)
                     end_signal.global_state.world_state.node = global_state.node
+                    end_signal.global_state.world_state.node.constraints.append(constraints)
+                    end_signal.global_state.world_state.node.constraints.weighted.append(constraints)
                     self._add_world_state(end_signal.global_state)
                 new_global_states = []
             else:
@@ -375,62 +382,76 @@ class LaserEVM:
 
         return new_global_states, op_code
 
-    def concretize_ite_storage(self, global_state):
+    def concretize_keccak(self, global_state):
         sender = global_state.environment.sender
-        models_tuple = []
-        sat = False
-
-        import random, sha3
-
-        calldata_cond = True
-        for account in global_state.world_state.accounts.values():
-            for key in account.storage.storage_keys_loaded:
-                if (
-                    isinstance(key, BitVecFunc)
-                    and not isinstance(key.input_, BitVecFunc)
-                    and isinstance(key.input_, BitVec)
-                    and key.input_.symbolic
-                    and key.input_.size() == 512
-                    and key.input_.get_extracted_input_cond(511, 256) is False
-                ):
-                    pseudo_input = random.randint(0, 2 ** 160 - 1)
-                    hex_v = hex(pseudo_input)[2:]
-                    if len(hex_v) % 2 == 1:
-                        hex_v += "0"
-                    hash_val = symbol_factory.BitVecVal(
-                        int(sha3.keccak_256(bytes.fromhex(hex_v)).hexdigest(), 16), 256
-                    )
-                    pseudo_input = symbol_factory.BitVecVal(pseudo_input, 256)
-                    calldata_cond = And(
-                        calldata_cond,
-                        Extract(511, 256, key.input_) == hash_val,
-                        Extract(511, 256, key.input_).potential_input == pseudo_input,
-                    )
-                    key.input_.set_extracted_input_cond(511, 256, calldata_cond)
-                    assert (
-                        key.input_.get_extracted_input_cond(511, 256) == calldata_cond
-                    )
-
+        model_tuples = []
         for actor in ACTOR_ADDRESSES:
             try:
-                models_tuple.append(
-                    (
+                model_tuples.append(
+                    [
                         get_model(
                             constraints=global_state.mstate.constraints
-                            + [sender == actor, calldata_cond]
+                            + [sender == actor]
                         ),
-                        And(calldata_cond, sender == actor),
-                    )
+                        And(sender == actor),
+                        actor,
+                    ]
                 )
-                sat = True
             except UnsatError:
-                models_tuple.append((None, And(calldata_cond, sender == actor)))
+                model_tuples.append((None, False, actor))
+        from random import randint
 
-        if not sat:
-            return [False]
+        stored_vals = {}
+        for key in keccak_function_manager.topo_keys:
+            if keccak_function_manager.keccak_parent[key] is None:
+                for model_tuple in model_tuples:
+                    if model_tuple[0] is None:
+                        continue
 
-        for account in global_state.world_state.accounts.values():
-            account.storage.concretize(models_tuple)
+                    concrete_val_i = model_tuple[0].eval(key.raw, model_completion=True)
+                    try:
+                        concrete_val_i = BitVec(concrete_val_i)
+                    except AttributeError:
+                        val = randint(0, 2 ** key.size() - 1)
+                        concrete_val_i = symbol_factory.BitVecVal(val, key.size())
+
+                    model_tuple[1] = And(model_tuple[1], key == concrete_val_i)
+                    if key not in stored_vals:
+                        stored_vals[key] = {}
+                    stored_vals[key][model_tuple[2]] = concrete_val_i
+            else:
+                parent = keccak_function_manager.keccak_parent[key]
+                if parent.size() == 512:
+                    parent1 = simplify(Extract(511, 256, parent))
+                    parent2 = simplify(Extract(255, 0, parent))
+                for model_tuple in model_tuples:
+                    if model_tuple[0] is None:
+                        continue
+                    if parent.size() == 512:
+                        concrete_parent1 = model_tuple[0].eval(parent1.raw, model_completion=True)
+                        if concrete_parent1 is None:
+                            concrete_parent1 = stored_vals[parent1][model_tuple[2]]
+                        if not isinstance(concrete_parent1, BitVec):
+                            concrete_parent1 = BitVec(concrete_parent1)
+                        concrete_parent = Concat(concrete_parent1, parent2)
+                    else:
+                        concrete_parent = model_tuple[0].eval(parent.raw, model_completion=True)
+                        if concrete_parent is None:
+                            concrete_parent = stored_vals[parent][model_tuple[2]]
+                        concrete_parent = BitVec(concrete_parent)
+                    keccak_val = keccak_function_manager.find_keccak(concrete_parent)
+                    model_tuple[1] = And(model_tuple[1], key == keccak_val)
+        new_condition = False
+        z3.set_option(max_args=10000000, max_lines=100000000, max_depth=10000000, max_visited=1000000)
+        for model_tuple in model_tuples:
+            new_condition = Or(model_tuple[1], new_condition)
+        new_condition = simplify(new_condition)
+        try:
+            get_model(constraints=global_state.mstate.constraints + [new_condition])
+        except UnsatError:
+            print("SHIT", new_condition, "SHIT_ENDS")
+        keccak_function_manager.topo_keys = []
+        return new_condition
 
     def _end_message_call(
         self,
