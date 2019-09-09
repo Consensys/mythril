@@ -29,7 +29,7 @@ Transaction Sequence:
 
 {% for step in issue.tx_sequence.steps %}
 {% if step == issue.tx_sequence.steps[0] and step.input != "0x" and step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}
-Caller: [CREATOR], data: [CONTRACT CREATION], value: {{ step.value }}
+Caller: [CREATOR], data: {{ step.input }}, value: {{ step.value }}
 {% else %}
 Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, function: {{ step.name }}, txdata: {{ step.input }}, value: {{ step.value }}
 {% endif %}

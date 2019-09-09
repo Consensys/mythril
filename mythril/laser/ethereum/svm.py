@@ -325,7 +325,9 @@ class LaserEVM:
                 global_state.transaction_stack
             ) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
-            new_global_state.mstate.constraints = global_state.mstate.constraints
+            new_global_state.mstate.constraints = (
+                start_signal.global_state.mstate.constraints
+            )
 
             log.debug("Starting new transaction %s", start_signal.transaction)
 
