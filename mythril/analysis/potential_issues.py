@@ -90,8 +90,8 @@ def check_potential_issues(state: GlobalState) -> None:
             continue
 
         annotation.potential_issues.remove(potential_issue)
-        potential_issue.detector._cache.add(potential_issue.address)
-        potential_issue.detector._issues.append(
+        potential_issue.detector.cache.add(potential_issue.address)
+        potential_issue.detector.issues.append(
             Issue(
                 contract=potential_issue.contract,
                 function_name=potential_issue.function_name,
