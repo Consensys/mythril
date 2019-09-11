@@ -5,6 +5,7 @@ from copy import copy
 from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
+from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
@@ -344,6 +345,8 @@ class LaserEVM:
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
+                    check_potential_issues(global_state)
+
                     end_signal.global_state.world_state.node = global_state.node
                     self._add_world_state(end_signal.global_state)
                 new_global_states = []
@@ -377,7 +380,6 @@ class LaserEVM:
         :param return_data:
         :return:
         """
-
         return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[

@@ -55,12 +55,12 @@ class UncheckedRetvalModule(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self._cache:
+        if state.get_current_instruction()["address"] in self.cache:
             return
         issues = self._analyze_state(state)
         for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+            self.cache.add(issue.address)
+        self.issues.extend(issues)
 
     def _analyze_state(self, state: GlobalState) -> list:
         instruction = state.get_current_instruction()

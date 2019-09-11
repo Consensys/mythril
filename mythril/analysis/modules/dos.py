@@ -56,7 +56,7 @@ class DosModule(DetectionModule):
         :return:
         """
         issues = self._analyze_state(state)
-        self._issues.extend(issues)
+        self.issues.extend(issues)
 
     def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
