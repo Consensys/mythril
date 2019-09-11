@@ -45,7 +45,7 @@ def get_instruction_index(
     """
     index = 0
     for instr in instruction_list:
-        if instr["address"] == address:
+        if instr["address"] >= address:
             return index
         index += 1
     return None

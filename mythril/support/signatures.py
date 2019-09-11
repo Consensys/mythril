@@ -1,5 +1,6 @@
 """The Mythril function signature database."""
 import functools
+import json
 import logging
 import multiprocessing
 import os
@@ -9,6 +10,7 @@ from collections import defaultdict
 from subprocess import PIPE, Popen
 from typing import List, Set, DefaultDict, Dict
 
+from mythril.ethereum.util import get_solc_json
 from mythril.exceptions import CompilerError
 
 log = logging.getLogger(__name__)
@@ -231,53 +233,20 @@ class SignatureDB(object, metaclass=Singleton):
             return []
 
     def import_solidity_file(
-        self, file_path: str, solc_binary: str = "solc", solc_args: str = None
+        self, file_path: str, solc_binary: str = "solc", solc_settings_json: str = None
     ):
         """Import Function Signatures from solidity source files.
 
         :param solc_binary:
-        :param solc_args:
+        :param solc_settings_json:
         :param file_path: solidity source code file path
         :return:
         """
-        cmd = [solc_binary, "--hashes", file_path]
-        if solc_args:
-            cmd.extend(solc_args.split())
+        solc_json = get_solc_json(file_path, solc_binary, solc_settings_json)
 
-        try:
-            p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-            stdout, stderr = p.communicate()
-            ret = p.returncode
-
-            if ret != 0:
-                raise CompilerError(
-                    "Solc has experienced a fatal error (code {}).\n\n{}".format(
-                        ret, stderr.decode("utf-8")
-                    )
-                )
-        except FileNotFoundError:
-            raise CompilerError(
-                (
-                    "Compiler not found. Make sure that solc is installed and in PATH, "
-                    "or the SOLC environment variable is set."
-                )
-            )
-
-        stdout = stdout.decode("unicode_escape").split("\n")
-        for line in stdout:
-            # the ':' need not be checked but just to be sure
-            if all(map(lambda x: x in line, ["(", ")", ":"])):
-                solc_bytes = "0x" + line.split(":")[0]
-                solc_text = line.split(":")[1].strip()
-                self.solidity_sigs[solc_bytes].append(solc_text)
-        log.debug(
-            "Signatures: found %d signatures after parsing" % len(self.solidity_sigs)
-        )
-
-        # update DB with what we've found
-        for byte_sig, text_sigs in self.solidity_sigs.items():
-            for text_sig in text_sigs:
-                self.add(byte_sig, text_sig)
+        for contract in solc_json["contracts"][file_path].values():
+            for name, hash in contract["evm"]["methodIdentifiers"].items():
+                self.add("0x" + hash, name)
 
     @staticmethod
     def lookup_online(byte_sig: str, timeout: int, proxies=None) -> List[str]:
