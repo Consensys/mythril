@@ -31,6 +31,8 @@ from mythril.laser.smt import symbol_factory
 
 from mythril.disassembler.disassembly import Disassembly
 
+from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCalldata
+
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
@@ -933,14 +935,18 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
+        calldata = global_state.environment.calldata
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
             # Hacky way to ensure constructor arguments work - Pick some reasonably large size.
-            no_of_bytes = (
-                len(disassembly.bytecode) // 2 + 0x200
-            )  # space for 16 32-byte arguments
-            global_state.mstate.constraints.append(
-                global_state.environment.calldata.size == no_of_bytes
-            )
+            no_of_bytes = len(disassembly.bytecode) // 2
+            if isinstance(calldata, ConcreteCalldata):
+                no_of_bytes += calldata.size
+            else:
+                no_of_bytes += 0x200  # space for 16 32-byte arguments
+                global_state.mstate.constraints.append(
+                    global_state.environment.calldata.size == no_of_bytes
+                )
+
         else:
             no_of_bytes = len(disassembly.bytecode) // 2
         state.stack.append(no_of_bytes)
@@ -1072,28 +1078,115 @@ class Instruction:
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
         )
+        code = global_state.environment.code.bytecode
+        if code[0:2] == "0x":
+            code = code[2:]
+        code_size = len(code) // 2
 
-        if (
-            isinstance(global_state.current_transaction, ContractCreationTransaction)
-            and code_offset >= len(global_state.environment.code.bytecode) // 2
-        ):
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
             # Treat creation code after the expected disassembly as calldata.
             # This is a slightly hacky way to ensure that symbolic constructor
             # arguments work correctly.
-            offset = code_offset - len(global_state.environment.code.bytecode) // 2
+            offset = code_offset - code_size
             log.warning("Doing hacky thing offset: {} size: {}".format(offset, size))
-            return self._calldata_copy_helper(
-                global_state, global_state.mstate, memory_offset, offset, size
-            )
-        else:
-            return self._code_copy_helper(
-                code=global_state.environment.code.bytecode,
-                memory_offset=memory_offset,
-                code_offset=code_offset,
-                size=size,
-                op="CODECOPY",
-                global_state=global_state,
-            )
+
+            if isinstance(global_state.environment.calldata, SymbolicCalldata):
+                if code_offset >= code_size:
+                    return self._calldata_copy_helper(
+                        global_state, global_state.mstate, memory_offset, offset, size
+                    )
+            else:
+                # creation code and arguments may be in same object.
+                # Copy from both code and calldata appropriately.
+                state = global_state.mstate
+                environment = global_state.environment
+                concrete_memory_offset = helper.get_concrete_int(memory_offset)
+                concrete_code_offset = helper.get_concrete_int(code_offset)
+                concrete_size = helper.get_concrete_int(size)
+
+                calldata = global_state.environment.calldata
+                calldata_size = helper.get_concrete_int(calldata.size)
+
+                total_size = code_size + calldata_size
+
+                if concrete_size > 0:
+                    # borrow some logic from codecopyhelper and calldatacopyhelper
+                    try:
+                        state.mem_extend(concrete_memory_offset, concrete_size)
+                    except TypeError as e:
+                        log.debug("Memory allocation error: {}".format(e))
+                        state.mem_extend(concrete_memory_offset, 1)
+                        state.memory[mstart] = global_state.new_bitvec(
+                            "calldata_"
+                            + str(environment.active_account.contract_name)
+                            + "["
+                            + str(offset)
+                            + ": + "
+                            + str(concrete_size)
+                            + "]",
+                            8,
+                        )
+                        return [global_state]
+
+                    try:
+                        i_data = code_size
+                        new_memory = []
+                        for i in range(concrete_size):
+                            if concrete_code_offset + i < code_size:
+                                # copy from code
+                                state.memory[concrete_memory_offset + i] = int(
+                                    code[
+                                        2
+                                        * (concrete_code_offset + i) : 2
+                                        * (concrete_code_offset + i + 1)
+                                    ],
+                                    16,
+                                )
+                            elif concrete_code_offset + i < total_size:
+                                # copy from calldata
+                                value = environment.calldata[i_data]
+                                new_memory.append(value)
+
+                                i_data = (
+                                    i_data + 1
+                                    if isinstance(i_data, int)
+                                    else simplify(cast(BitVec, i_data) + 1)
+                                )
+                            else:
+                                raise IndexError
+                        if new_memory:
+                            for i in range(len(new_memory)):
+                                state.memory[i + mstart] = new_memory[i]
+                    except IndexError:
+                        log.debug("Exception copying code to memory")
+
+                        state.memory[mstart] = global_state.new_bitvec(
+                            "code_"
+                            + str(environment.active_account.contract_name)
+                            + "["
+                            + str(code_offset)
+                            + ": + "
+                            + str(concrete_size)
+                            + "]",
+                            8,
+                        )
+                elif concrete_size == 0 and isinstance(
+                    global_state.current_transaction, ContractCreationTransaction
+                ):
+                    if concrete_code_offset >= total_size:
+                        Instruction._handle_symbolic_args(
+                            global_state, concrete_memory_offset
+                        )
+
+                return [global_state]
+        return self._code_copy_helper(
+            code=global_state.environment.code.bytecode,
+            memory_offset=memory_offset,
+            code_offset=code_offset,
+            size=size,
+            op="CODECOPY",
+            global_state=global_state,
+        )
 
     @StateTransition()
     def extcodesize_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1657,16 +1750,24 @@ class Instruction:
 
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
 
-        code_raw = []
-        code_end = call_data.size
-        for i in range(call_data.size):
-            # Proper way to delimit init_bytecode? Seems to work.
-            if call_data[i].symbolic:
+        # code_raw = []
+        # code_end = call_data.size
+        # for i in range(call_data.size):
+        #     # Proper way to delimit init_bytecode? Seems to work.
+        #     if call_data[i].symbolic:
+        #         code_end = i
+        #         break
+        #     code_raw.append(call_data[i].value)
+        call_data = call_data.concrete(None)
+
+        code_end = len(call_data)
+        for i in range(len(call_data)):
+            if not isinstance(call_data[i], int):
                 code_end = i
                 break
-            code_raw.append(call_data[i].value)
 
-        code_str = bytes.hex(bytes(code_raw))
+        # code_str = bytes.hex(bytes(code_raw))
+        code_str = bytes.hex(bytes(call_data[0:code_end]))
 
         constructor_arguments = call_data[code_end:]
         code = Disassembly(code_str)
@@ -1689,7 +1790,6 @@ class Instruction:
                 get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
                 16,
             )
-
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
