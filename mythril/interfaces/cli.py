@@ -16,6 +16,7 @@ import traceback
 
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
+from mythril import mythx
 from mythril.exceptions import AddressNotFoundError, CriticalError
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -27,12 +28,14 @@ from mythril.__version__ import __version__ as VERSION
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
+PRO_LIST = ("pro", "p")
 
 log = logging.getLogger(__name__)
 
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
+    + PRO_LIST
     + (
         "read-storage",
         "leveldb-search",
@@ -41,6 +44,7 @@ COMMAND_LIST = (
         "version",
         "truffle",
         "help",
+        "pro",
     )
 )
 
@@ -70,7 +74,27 @@ def exit_with_error(format_, message):
     sys.exit()
 
 
-def get_input_parser() -> ArgumentParser:
+def get_runtime_input_parser() -> ArgumentParser:
+    """
+    Returns Parser which handles input
+    :return: Parser which handles input
+    """
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument(
+        "-a",
+        "--address",
+        help="pull contract from the blockchain",
+        metavar="CONTRACT_ADDRESS",
+    )
+    parser.add_argument(
+        "--bin-runtime",
+        action="store_true",
+        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
+    )
+    return parser
+
+
+def get_creation_input_parser() -> ArgumentParser:
     """
     Returns Parser which handles input
     :return: Parser which handles input
@@ -88,17 +112,6 @@ def get_input_parser() -> ArgumentParser:
         help="file containing hex-encoded bytecode string",
         metavar="BYTECODEFILE",
         type=argparse.FileType("r"),
-    )
-    parser.add_argument(
-        "-a",
-        "--address",
-        help="pull contract from the blockchain",
-        metavar="CONTRACT_ADDRESS",
-    )
-    parser.add_argument(
-        "--bin-runtime",
-        action="store_true",
-        help="Only when -c or -f is used. Consider the input bytecode as binary runtime code, default being the contract creation bytecode.",
     )
     return parser
 
@@ -144,7 +157,10 @@ def get_utilities_parser() -> ArgumentParser:
     :return: Parser which handles utility flags
     """
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--solc-args", help="Extra arguments for solc")
+    parser.add_argument(
+        "--solc-json",
+        help="Json for the optional 'settings' parameter of solc's standard-json input",
+    )
     parser.add_argument(
         "--solv",
         help="specify solidity compiler version. If not present, will try to install it (Experimental)",
@@ -158,7 +174,8 @@ def main() -> None:
 
     rpc_parser = get_rpc_parser()
     utilities_parser = get_utilities_parser()
-    input_parser = get_input_parser()
+    runtime_input_parser = get_runtime_input_parser()
+    creation_input_parser = get_creation_input_parser()
     output_parser = get_output_parser()
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
@@ -172,7 +189,13 @@ def main() -> None:
     analyzer_parser = subparsers.add_parser(
         ANALYZE_LIST[0],
         help="Triggers the analysis of the smart contract",
-        parents=[rpc_parser, utilities_parser, input_parser, output_parser],
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            creation_input_parser,
+            runtime_input_parser,
+            output_parser,
+        ],
         aliases=ANALYZE_LIST[1:],
         formatter_class=RawTextHelpFormatter,
     )
@@ -182,10 +205,24 @@ def main() -> None:
         DISASSEMBLE_LIST[0],
         help="Disassembles the smart contract",
         aliases=DISASSEMBLE_LIST[1:],
-        parents=[rpc_parser, utilities_parser, input_parser],
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            creation_input_parser,
+            runtime_input_parser,
+        ],
         formatter_class=RawTextHelpFormatter,
     )
     create_disassemble_parser(disassemble_parser)
+
+    pro_parser = subparsers.add_parser(
+        PRO_LIST[0],
+        help="Analyzes input with the MythX API (https://mythx.io)",
+        aliases=PRO_LIST[1:],
+        parents=[utilities_parser, creation_input_parser, output_parser],
+        formatter_class=RawTextHelpFormatter,
+    )
+    create_pro_parser(pro_parser)
 
     read_storage_parser = subparsers.add_parser(
         "read-storage",
@@ -231,6 +268,25 @@ def create_disassemble_parser(parser: ArgumentParser):
         nargs="*",
         help="Inputs file name and contract name. Currently supports a single contract\n"
         "usage: file1.sol:OptionalContractName",
+    )
+
+
+def create_pro_parser(parser: ArgumentParser):
+    """
+    Modify parser to handle mythx analysis
+    :param parser:
+    :return:
+    """
+    parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
+    parser.add_argument(
+        "--full",
+        help="Run a full analysis. Default: quick analysis",
+        action="store_true",
     )
 
 
@@ -564,6 +620,17 @@ def execute_command(
         )
         print(storage)
 
+    elif args.command in PRO_LIST:
+        mode = "full" if args.full else "quick"
+        report = mythx.analyze(disassembler.contracts, mode)
+        outputs = {
+            "json": report.as_json(),
+            "jsonv2": report.as_swc_standard_format(),
+            "text": report.as_text(),
+            "markdown": report.as_markdown(),
+        }
+        print(outputs[args.outform])
+
     elif args.command in DISASSEMBLE_LIST:
         if disassembler.contracts[0].code:
             print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
@@ -694,12 +761,12 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         config = set_config(args)
         leveldb_search(config, args)
         query_signature = args.__dict__.get("query_signature", None)
-        solc_args = args.__dict__.get("solc_args", None)
+        solc_json = args.__dict__.get("solc_json", None)
         solv = args.__dict__.get("solv", None)
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=solv,
-            solc_args=solc_args,
+            solc_settings_json=solc_json,
             enable_online_lookup=query_signature,
         )
         if args.command == "truffle":
