@@ -63,12 +63,6 @@ class KeccakFunctionManager:
             func = Function("keccak256_{}".format(length), length, 256)
             inverse = Function("keccak256_{}-1".format(length), 256, length)
             self.sizes[length] = (func, inverse)
-
-            keccak_0 = self.find_keccak(symbol_factory.BitVecVal(0, data.size()))
-            constraints.append(
-                func(symbol_factory.BitVecVal(0, data.size())) == keccak_0
-            )
-
             self.size_values[length] = []
 
         if data.symbolic is False:
@@ -102,7 +96,8 @@ class KeccakFunctionManager:
         for val in self.size_values[length]:
             condition = Or(condition, func(data) == val)
         self.delete_constraints.append(condition)
-        constraints.append(condition)
+        # constraints.append(condition)
+        self.size_values[length].append(func(data))
         return func(data), constraints
 
 

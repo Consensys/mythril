@@ -3,6 +3,7 @@ the call graph."""
 
 from mythril.laser.smt import Solver, Bool, symbol_factory, simplify
 
+from copy import copy
 from typing import Iterable, List, Optional, Union
 from z3 import unsat
 
@@ -36,6 +37,7 @@ class Constraints(list):
         """
         :return: True/False based on the existence of solution of constraints
         """
+        return True
         if self._is_possible is not None:
             return self._is_possible
         solver = Solver()
@@ -81,7 +83,9 @@ class Constraints(list):
         :return: The copied constraint List
         """
         constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, is_possible=self._is_possible)
+        constraints = Constraints(constraint_list, is_possible=self._is_possible)
+        constraints.weighted = self.weighted
+        return constraints
 
     def copy(self) -> "Constraints":
         return self.__copy__()
@@ -92,7 +96,10 @@ class Constraints(list):
         :param memodict:
         :return: The copied constraint List
         """
-        return self.__copy__()
+        constraint_list = super(Constraints, self).copy()
+        constraints = Constraints(constraint_list, is_possible=self._is_possible)
+        constraints.weighted = copy(self.weighted)
+        return constraints
 
     def __add__(self, constraints: List[Union[bool, Bool]]) -> "Constraints":
         """

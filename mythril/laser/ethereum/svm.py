@@ -222,6 +222,7 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
+
             for hook in self._start_sym_trans_hooks:
                 hook()
 
@@ -355,14 +356,22 @@ class LaserEVM:
             ]
 
             log.debug("Ending transaction %s.", transaction)
-
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
-                    constraints = self.concretize_keccak(end_signal.global_state)
+                    constraints, deleted_constraints = self.concretize_keccak(global_state)
                     end_signal.global_state.world_state.node = global_state.node
+                    end_signal.global_state.world_state.node.constraints = global_state.mstate.constraints
+                    for constraint in keccak_function_manager.delete_constraints:
+                        try:
+                            end_signal.global_state.world_state.node.constraints.remove(constraint)
+                            deleted_constraints = And(constraint, deleted_constraints)
+                        except ValueError:
+                            # Constraint not related to this state
+                            continue
+
                     end_signal.global_state.world_state.node.constraints.append(constraints)
                     end_signal.global_state.world_state.node.constraints.weighted.append(constraints)
                     self._add_world_state(end_signal.global_state)
@@ -370,6 +379,15 @@ class LaserEVM:
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
+                constraints, deleted_constraints = self.concretize_keccak(global_state)
+                global_state.mstate.constraints.weighted.append(constraints)
+                for constraint in keccak_function_manager.delete_constraints:
+                    try:
+                        return_global_state.mstate.constraints.remove(constraint)
+                        deleted_constraints = And(constraint, deleted_constraints)
+                    except ValueError:
+                        # Constraint not related to this state
+                        continue
 
                 new_global_states = self._end_message_call(
                     copy(return_global_state),
@@ -402,19 +420,17 @@ class LaserEVM:
         from random import randint
 
         stored_vals = {}
-        for key in keccak_function_manager.topo_keys:
+        for index, key in enumerate(keccak_function_manager.topo_keys):
             if keccak_function_manager.keccak_parent[key] is None:
                 for model_tuple in model_tuples:
                     if model_tuple[0] is None:
                         continue
+                    
+                    concrete_val_i = model_tuple[0].eval(key.raw, model_completion=True).as_long()
+                    if concrete_val_i == 0:
+                        concrete_val_i = randint(0, 2 ** key.size() - 1)
 
-                    concrete_val_i = model_tuple[0].eval(key.raw, model_completion=True)
-                    try:
-                        concrete_val_i = BitVec(concrete_val_i)
-                    except AttributeError:
-                        val = randint(0, 2 ** key.size() - 1)
-                        concrete_val_i = symbol_factory.BitVecVal(val, key.size())
-
+                    concrete_val_i = symbol_factory.BitVecVal(concrete_val_i, key.size())
                     model_tuple[1] = And(model_tuple[1], key == concrete_val_i)
                     if key not in stored_vals:
                         stored_vals[key] = {}
@@ -428,30 +444,36 @@ class LaserEVM:
                     if model_tuple[0] is None:
                         continue
                     if parent.size() == 512:
-                        concrete_parent1 = model_tuple[0].eval(parent1.raw, model_completion=True)
-                        if concrete_parent1 is None:
-                            concrete_parent1 = stored_vals[parent1][model_tuple[2]]
-                        if not isinstance(concrete_parent1, BitVec):
-                            concrete_parent1 = BitVec(concrete_parent1)
-                        concrete_parent = Concat(concrete_parent1, parent2)
+                        if parent1.symbolic:
+                            parent1 = stored_vals[parent1][model_tuple[2]]
+                        if not isinstance(parent1, BitVec):
+                            parent1 = BitVec(parent1)
+                        concrete_parent = Concat(parent1, parent2)
                     else:
-                        concrete_parent = model_tuple[0].eval(parent.raw, model_completion=True)
-                        if concrete_parent is None:
-                            concrete_parent = stored_vals[parent][model_tuple[2]]
-                        concrete_parent = BitVec(concrete_parent)
+                        concrete_parent = stored_vals[parent][model_tuple[2]]
+
                     keccak_val = keccak_function_manager.find_keccak(concrete_parent)
+                    if key not in stored_vals:
+                        stored_vals[key] = {}
+                    stored_vals[key][model_tuple[2]] = keccak_val
                     model_tuple[1] = And(model_tuple[1], key == keccak_val)
         new_condition = False
         z3.set_option(max_args=10000000, max_lines=100000000, max_depth=10000000, max_visited=1000000)
         for model_tuple in model_tuples:
             new_condition = Or(model_tuple[1], new_condition)
-        new_condition = simplify(new_condition)
-        try:
-            get_model(constraints=global_state.mstate.constraints + [new_condition])
-        except UnsatError:
-            print("SHIT", new_condition, "SHIT_ENDS")
-        keccak_function_manager.topo_keys = []
-        return new_condition
+        constraints = copy(global_state.mstate.constraints)
+        deleted_constraints = True
+        for constraint in keccak_function_manager.delete_constraints:
+            try:
+                constraints.remove(constraint)
+                deleted_constraints = And(constraint, deleted_constraints)
+            except ValueError:
+                # Constraint not related to this state
+                continue
+        if deleted_constraints is True:
+            deleted_constraints = False
+
+        return new_condition, deleted_constraints
 
     def _end_message_call(
         self,
