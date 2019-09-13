@@ -12,6 +12,9 @@ from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
+from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
+    MutationAnnotation,
+)
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -337,6 +340,15 @@ class LaserEVM:
             transaction, return_global_state = end_signal.global_state.transaction_stack[
                 -1
             ]
+
+            if return_global_state and return_global_state.get_current_instruction()[
+                "opcode"
+            ] in ("DELEGATECALL", "CALLCODE"):
+                new_annotations = [
+                    annotation
+                    for annotation in global_state.get_annotations(MutationAnnotation)
+                ]
+                return_global_state.add_annotations(new_annotations)
 
             log.debug("Ending transaction %s.", transaction)
 
