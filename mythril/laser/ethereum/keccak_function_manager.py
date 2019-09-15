@@ -24,7 +24,6 @@ class KeccakFunctionManager:
         self.sizes = {}
         self.size_index = {}
         self.index_counter = TOTAL_PARTS - 34534
-        self.topo_keys = []
         self.keccak_parent = {}
         self.size_values = {}
         self.keccak_vals = {}
@@ -42,17 +41,17 @@ class KeccakFunctionManager:
         self.keccak_vals[func(data)] = keccak
         return keccak
 
-    def create_keccak(self, data: BitVec, length: int):
+    def create_keccak(self, data: BitVec, length: int, global_state):
         length = length * 8
         data = simplify(data)
-        if data.symbolic and data not in self.topo_keys:
+        if data.symbolic and simplify(data) not in global_state.topo_keys:
             if data.size() != 512:
                 self.keccak_parent[data] = None
-                self.topo_keys.append(data)
+                global_state.topo_keys.append(simplify(data))
             else:
                 p1 = simplify(Extract(511, 256, data))
-                if p1.symbolic and p1 not in self.topo_keys:
-                    self.topo_keys.append(p1)
+                if p1.symbolic and p1 not in global_state.topo_keys:
+                    global_state.topo_keys.append(p1)
                     self.keccak_parent[p1] = None
 
         assert length == data.size()
@@ -65,17 +64,17 @@ class KeccakFunctionManager:
             self.sizes[length] = (func, inverse)
             self.size_values[length] = []
 
+        constraints.append(inverse(func(data)) == data)
+
         if data.symbolic is False:
             keccak = self.find_keccak(data)
             self.size_values[length].append(keccak)
             constraints.append(func(data) == keccak)
-
-        if data.symbolic and simplify(func(data)) not in self.topo_keys:
-            self.keccak_parent[simplify(func(data))] = data
-            self.topo_keys.append(func(data))
-        constraints.append(inverse(func(data)) == data)
-        if data.symbolic is False:
             return func(data), constraints
+
+        if simplify(func(data)) not in global_state.topo_keys:
+            self.keccak_parent[simplify(func(data))] = data
+            global_state.topo_keys.append(simplify(func(data)))
 
         try:
             index = self.size_index[length]
@@ -94,10 +93,13 @@ class KeccakFunctionManager:
         )
 
         for val in self.size_values[length]:
-            condition = Or(condition, func(data) == val)
+            if hash(simplify(func(data))) != hash(simplify(val)):
+                condition = Or(condition, func(data) == val)
         self.delete_constraints.append(condition)
-        # constraints.append(condition)
-        self.size_values[length].append(func(data))
+
+        constraints.append(condition)
+        if func(data) not in self.size_values[length]:
+            self.size_values[length].append(func(data))
         return func(data), constraints
 
 

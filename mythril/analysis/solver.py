@@ -20,7 +20,9 @@ log = logging.getLogger(__name__)
 
 # LRU cache works great when used in powers of 2
 @lru_cache(maxsize=2 ** 23)
-def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True, weighted=()):
+def get_model(
+    constraints, minimize=(), maximize=(), enforce_execution_time=True, weighted=()
+):
     """
 
     :param constraints:

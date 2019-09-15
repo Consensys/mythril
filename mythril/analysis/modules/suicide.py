@@ -9,7 +9,6 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 import logging
-import json
 
 log = logging.getLogger(__name__)
 

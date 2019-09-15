@@ -31,6 +31,7 @@ class GlobalState:
         transaction_stack=None,
         last_return_data=None,
         annotations=None,
+        keccak_topo_list=None,
     ) -> None:
         """Constructor for GlobalState.
 
@@ -52,6 +53,7 @@ class GlobalState:
         self.op_code = ""
         self.last_return_data = last_return_data
         self._annotations = annotations or []
+        self.topo_keys = keccak_topo_list or []
 
     def __copy__(self) -> "GlobalState":
         """
@@ -71,6 +73,7 @@ class GlobalState:
             transaction_stack=transaction_stack,
             last_return_data=self.last_return_data,
             annotations=[copy(a) for a in self._annotations],
+            keccak_topo_list=copy(self.topo_keys),
         )
 
     @property

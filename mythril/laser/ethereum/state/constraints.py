@@ -37,7 +37,6 @@ class Constraints(list):
         """
         :return: True/False based on the existence of solution of constraints
         """
-        return True
         if self._is_possible is not None:
             return self._is_possible
         solver = Solver()
@@ -84,7 +83,7 @@ class Constraints(list):
         """
         constraint_list = super(Constraints, self).copy()
         constraints = Constraints(constraint_list, is_possible=self._is_possible)
-        constraints.weighted = self.weighted
+        constraints.weighted = copy(self.weighted)
         return constraints
 
     def copy(self) -> "Constraints":
@@ -109,7 +108,13 @@ class Constraints(list):
         """
         constraints_list = self._get_smt_bool_list(constraints)
         constraints_list = super(Constraints, self).__add__(constraints_list)
-        return Constraints(constraint_list=constraints_list, is_possible=None)
+        new_constraints = Constraints(
+            constraint_list=constraints_list, is_possible=None
+        )
+        new_constraints.weighted = copy(self.weighted)
+        if isinstance(constraints, Constraints):
+            new_constraints.weighted += constraints.weighted
+        return new_constraints
 
     def __iadd__(self, constraints: Iterable[Union[bool, Bool]]) -> "Constraints":
         """
@@ -117,8 +122,10 @@ class Constraints(list):
         :param constraints:
         :return:
         """
-        constraints = self._get_smt_bool_list(constraints)
-        super(Constraints, self).__iadd__(constraints)
+        list_constraints = self._get_smt_bool_list(constraints)
+        super(Constraints, self).__iadd__(list_constraints)
+        if isinstance(constraints, Constraints):
+            self.weighted += constraints.weighted
         self._is_possible = None
         return self
 
