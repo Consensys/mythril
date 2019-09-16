@@ -50,6 +50,7 @@ from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
     TransactionStartSignal,
     ContractCreationTransaction,
+    get_next_transaction_id,
 )
 
 from mythril.support.support_utils import get_code_hash
@@ -939,13 +940,13 @@ class Instruction:
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
             # Hacky way to ensure constructor arguments work - Pick some reasonably large size.
             no_of_bytes = len(disassembly.bytecode) // 2
-            if isinstance(calldata, ConcreteCalldata):
-                no_of_bytes += calldata.size
-            else:
-                no_of_bytes += 0x200  # space for 16 32-byte arguments
-                global_state.mstate.constraints.append(
-                    global_state.environment.calldata.size == no_of_bytes
-                )
+            # if isinstance(calldata, ConcreteCalldata):
+            #     no_of_bytes += calldata.size + 5000
+            # else:
+            no_of_bytes += 0x200  # space for 16 32-byte arguments
+            # global_state.mstate.constraints.append(
+            #     global_state.environment.calldata.size == no_of_bytes
+            # )
 
         else:
             no_of_bytes = len(disassembly.bytecode) // 2
@@ -1096,7 +1097,6 @@ class Instruction:
                         global_state, global_state.mstate, memory_offset, offset, size
                     )
             else:
-                # creation code and arguments may be in same object.
                 # Copy from both code and calldata appropriately.
                 state = global_state.mstate
                 environment = global_state.environment
@@ -1105,80 +1105,67 @@ class Instruction:
                 concrete_size = helper.get_concrete_int(size)
 
                 calldata = global_state.environment.calldata
-                calldata_size = helper.get_concrete_int(calldata.size)
 
-                total_size = code_size + calldata_size
+                code_copy_offset = concrete_code_offset
+                code_copy_size = (
+                    concrete_size
+                    if concrete_code_offset + concrete_size <= code_size
+                    else code_size - concrete_code_offset
+                )
+                code_copy_size = code_copy_size if code_copy_size >= 0 else 0
 
-                if concrete_size > 0:
-                    # borrow some logic from codecopyhelper and calldatacopyhelper
-                    try:
-                        state.mem_extend(concrete_memory_offset, concrete_size)
-                    except TypeError as e:
-                        log.debug("Memory allocation error: {}".format(e))
-                        state.mem_extend(concrete_memory_offset, 1)
-                        state.memory[mstart] = global_state.new_bitvec(
-                            "calldata_"
-                            + str(environment.active_account.contract_name)
-                            + "["
-                            + str(offset)
-                            + ": + "
-                            + str(concrete_size)
-                            + "]",
+                calldata_copy_offset = (
+                    concrete_code_offset - code_size
+                    if concrete_code_offset - code_size > 0
+                    else 0
+                )
+                calldata_copy_size = concrete_code_offset + concrete_size - code_size
+                calldata_copy_size = (
+                    calldata_copy_size if calldata_copy_size >= 0 else 0
+                )
+
+                try:
+                    global_state.mstate.mem_extend(
+                        concrete_memory_offset, concrete_size + calldata_copy_size
+                    )
+                except TypeError:
+                    global_state.mstate.mem_extend(concrete_memory_offset, 1)
+                    global_state.mstate.memory[
+                        concrete_memory_offset
+                    ] = global_state.new_bitvec(
+                        "code({})".format(
+                            global_state.environment.active_account.contract_name
+                        ),
+                        8,
+                    )
+                    return [global_state]
+
+                for i in range(code_copy_size + calldata_copy_size):
+                    if i < code_copy_size:
+                        global_state.mstate.memory[concrete_memory_offset + i] = int(
+                            code[
+                                2
+                                * (code_copy_offset + i) : 2
+                                * (code_copy_offset + i + 1)
+                            ],
+                            16,
+                        )
+                    elif i < code_copy_size + calldata_copy_size:
+                        # copy from calldata
+                        global_state.mstate.memory[
+                            concrete_memory_offset + i
+                        ] = calldata[calldata_copy_offset + i]
+                    else:
+                        global_state.mstate.memory[
+                            concrete_memory_offset + i
+                        ] = global_state.new_bitvec(
+                            "code({})".format(
+                                global_state.environment.active_account.contract_name
+                            ),
                             8,
                         )
-                        return [global_state]
-
-                    try:
-                        i_data = code_size
-                        new_memory = []
-                        for i in range(concrete_size):
-                            if concrete_code_offset + i < code_size:
-                                # copy from code
-                                state.memory[concrete_memory_offset + i] = int(
-                                    code[
-                                        2
-                                        * (concrete_code_offset + i) : 2
-                                        * (concrete_code_offset + i + 1)
-                                    ],
-                                    16,
-                                )
-                            elif concrete_code_offset + i < total_size:
-                                # copy from calldata
-                                value = environment.calldata[i_data]
-                                new_memory.append(value)
-
-                                i_data = (
-                                    i_data + 1
-                                    if isinstance(i_data, int)
-                                    else simplify(cast(BitVec, i_data) + 1)
-                                )
-                            else:
-                                raise IndexError
-                        if new_memory:
-                            for i in range(len(new_memory)):
-                                state.memory[i + mstart] = new_memory[i]
-                    except IndexError:
-                        log.debug("Exception copying code to memory")
-
-                        state.memory[mstart] = global_state.new_bitvec(
-                            "code_"
-                            + str(environment.active_account.contract_name)
-                            + "["
-                            + str(code_offset)
-                            + ": + "
-                            + str(concrete_size)
-                            + "]",
-                            8,
-                        )
-                elif concrete_size == 0 and isinstance(
-                    global_state.current_transaction, ContractCreationTransaction
-                ):
-                    if concrete_code_offset >= total_size:
-                        Instruction._handle_symbolic_args(
-                            global_state, concrete_memory_offset
-                        )
-
                 return [global_state]
+
         return self._code_copy_helper(
             code=global_state.environment.code.bytecode,
             memory_offset=memory_offset,
@@ -1750,26 +1737,20 @@ class Instruction:
 
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
 
-        # code_raw = []
-        # code_end = call_data.size
-        # for i in range(call_data.size):
-        #     # Proper way to delimit init_bytecode? Seems to work.
-        #     if call_data[i].symbolic:
-        #         code_end = i
-        #         break
-        #     code_raw.append(call_data[i].value)
-        call_data = call_data.concrete(None)
-
-        code_end = len(call_data)
-        for i in range(len(call_data)):
-            if not isinstance(call_data[i], int):
+        code_raw = []
+        code_end = call_data.size
+        for i in range(call_data.size):
+            if call_data[i].symbolic:
                 code_end = i
                 break
+            code_raw.append(call_data[i].value)
 
-        # code_str = bytes.hex(bytes(code_raw))
-        code_str = bytes.hex(bytes(call_data[0:code_end]))
+        code_str = bytes.hex(bytes(code_raw))
 
-        constructor_arguments = call_data[code_end:]
+        next_transaction_id = get_next_transaction_id()
+        constructor_arguments = ConcreteCalldata(
+            next_transaction_id, call_data[code_end:]
+        )
         code = Disassembly(code_str)
 
         caller = environment.active_account.address
@@ -1838,7 +1819,7 @@ class Instruction:
 
     @StateTransition()
     def create2_post(self, global_state: GlobalState) -> List[GlobalState]:
-        addr, call_value, mem_offset, mem_size = global_state.mstate.pop(4)
+        addr, call_value, mem_offset, mem_size, salt = global_state.mstate.pop(5)
         global_state.mstate.stack.append(addr)
         return [global_state]
 

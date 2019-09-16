@@ -180,7 +180,7 @@ OPCODE_GAS = {
     "LOG3": (4 * 375, 4 * 375 + 8 * 32),
     "LOG4": (5 * 375, 5 * 375 + 8 * 32),
     "CREATE": (32000, 32000),
-    "CREATE2": (32000, 32000),  # TODO: Make the gas value is dynamic
+    "CREATE2": (32000, 32000),  # TODO: Make the gas values dynamic
     "CALL": (700, 700 + 9000 + 25000),
     "NATIVE_COST": calculate_native_gas,
     "CALLCODE": (700, 700 + 9000 + 25000),
