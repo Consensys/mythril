@@ -1624,7 +1624,7 @@ class Instruction:
         # TODO: implement me
         state = global_state.mstate
         dpth = int(self.op_code[3:])
-        state.stack.pop(), state.stack.pop()
+        mem_start, size = state.stack.pop(), state.stack.pop()
         log_data = [state.stack.pop() for _ in range(dpth)]
         # Not supported
         return [global_state]
