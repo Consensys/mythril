@@ -380,13 +380,6 @@ class LaserEVM:
         :param return_data:
         :return:
         """
-        if isinstance(global_state.current_transaction, ContractCreationTransaction):
-            # is this the proper place to put CREATE handle?
-            return_global_state.mstate.stack.append(
-                global_state.environment.active_account.address
-            )
-            return_global_state.mstate.min_gas_used += global_state.mstate.min_gas_used
-            return_global_state.mstate.max_gas_used += global_state.mstate.max_gas_used
 
         return_global_state.mstate.constraints += global_state.mstate.constraints
         # Resume execution of the transaction initializing instruction
@@ -401,6 +394,15 @@ class LaserEVM:
             return_global_state.environment.active_account = global_state.accounts[
                 return_global_state.environment.active_account.address.value
             ]
+            if isinstance(
+                global_state.current_transaction, ContractCreationTransaction
+            ):
+                return_global_state.mstate.min_gas_used += (
+                    global_state.mstate.min_gas_used
+                )
+                return_global_state.mstate.max_gas_used += (
+                    global_state.mstate.max_gas_used
+                )
 
         # Execute the post instruction handler
         new_global_states = Instruction(

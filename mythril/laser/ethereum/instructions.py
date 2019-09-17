@@ -940,13 +940,13 @@ class Instruction:
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
             # Hacky way to ensure constructor arguments work - Pick some reasonably large size.
             no_of_bytes = len(disassembly.bytecode) // 2
-            # if isinstance(calldata, ConcreteCalldata):
-            #     no_of_bytes += calldata.size + 5000
-            # else:
-            no_of_bytes += 0x200  # space for 16 32-byte arguments
-            # global_state.mstate.constraints.append(
-            #     global_state.environment.calldata.size == no_of_bytes
-            # )
+            if isinstance(calldata, ConcreteCalldata):
+                no_of_bytes += calldata.size
+            else:
+                no_of_bytes += 0x200  # space for 16 32-byte arguments
+                global_state.mstate.constraints.append(
+                    global_state.environment.calldata.size == no_of_bytes
+                )
 
         else:
             no_of_bytes = len(disassembly.bytecode) // 2
@@ -1139,9 +1139,9 @@ class Instruction:
                         8,
                     )
                     return [global_state]
-
-                for i in range(code_copy_size + calldata_copy_size):
+                for i in range(concrete_size):
                     if i < code_copy_size:
+                        # copy from code
                         global_state.mstate.memory[concrete_memory_offset + i] = int(
                             code[
                                 2
@@ -1154,7 +1154,7 @@ class Instruction:
                         # copy from calldata
                         global_state.mstate.memory[
                             concrete_memory_offset + i
-                        ] = calldata[calldata_copy_offset + i]
+                        ] = calldata[calldata_copy_offset + i - code_copy_size]
                     else:
                         global_state.mstate.memory[
                             concrete_memory_offset + i
@@ -1726,11 +1726,9 @@ class Instruction:
         # Not supported
         return [global_state]
 
-    @staticmethod
     def _create_transaction_helper(
-        global_state, call_value, mem_offset, mem_size, op_code, create2_salt=None
+        self, global_state, call_value, mem_offset, mem_size, create2_salt=None
     ):
-
         mstate = global_state.mstate
         environment = global_state.environment
         world_state = global_state.world_state
@@ -1782,7 +1780,7 @@ class Instruction:
             call_value=call_value,
             contract_address=contract_address,
         )
-        raise TransactionStartSignal(transaction, op_code, global_state)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition(is_state_mutation_instruction=True)
     def create_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1795,13 +1793,20 @@ class Instruction:
         call_value, mem_offset, mem_size = global_state.mstate.pop(3)
 
         return self._create_transaction_helper(
-            global_state, call_value, mem_offset, mem_size, self.op_code
+            global_state, call_value, mem_offset, mem_size
         )
 
     @StateTransition()
     def create_post(self, global_state: GlobalState) -> List[GlobalState]:
-        addr, call_value, mem_offset, mem_size = global_state.mstate.pop(4)
-        global_state.mstate.stack.append(addr)
+        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
+        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+        if global_state.last_return_data:
+            global_state.mstate.stack.append(
+                symbol_factory.BitVecVal(int(global_state.last_return_data, 16), 256)
+            )
+        else:
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
+
         return [global_state]
 
     @StateTransition(is_state_mutation_instruction=True)
@@ -1814,13 +1819,19 @@ class Instruction:
         call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
 
         return self._create_transaction_helper(
-            global_state, call_value, mem_offset, mem_size, self.op_code, salt
+            global_state, call_value, mem_offset, mem_size, salt
         )
 
     @StateTransition()
     def create2_post(self, global_state: GlobalState) -> List[GlobalState]:
-        addr, call_value, mem_offset, mem_size, salt = global_state.mstate.pop(5)
-        global_state.mstate.stack.append(addr)
+        call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
+        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+        if global_state.last_return_data:
+            global_state.mstate.stack.append(
+                symbol_factory.BitVecVal(int(global_state.last_return_data), 256)
+            )
+        else:
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
         return [global_state]
 
     @StateTransition()
