@@ -53,6 +53,14 @@ class GlobalState:
         self.last_return_data = last_return_data
         self._annotations = annotations or []
 
+    def add_annotations(self, annotations: List[StateAnnotation]):
+        """
+        Function used to add annotations to global state
+        :param annotations:
+        :return:
+        """
+        self._annotations += annotations
+
     def __copy__(self) -> "GlobalState":
         """
 
