@@ -1789,7 +1789,6 @@ class Instruction:
         :param global_state:
         :return:
         """
-
         call_value, mem_offset, mem_size = global_state.mstate.pop(3)
 
         return self._create_transaction_helper(
@@ -1801,12 +1800,10 @@ class Instruction:
         call_value, mem_offset, mem_size = global_state.mstate.pop(3)
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
         if global_state.last_return_data:
-            global_state.mstate.stack.append(
-                symbol_factory.BitVecVal(int(global_state.last_return_data, 16), 256)
-            )
+            return_val = symbol_factory.BitVecVal(int(global_state.last_return_data, 16), 256)
         else:
-            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
-
+            return_val = symbol_factory.BitVecVal(0, 256)
+        global_state.mstate.stack.append(return_val)
         return [global_state]
 
     @StateTransition(is_state_mutation_instruction=True)
@@ -1827,11 +1824,10 @@ class Instruction:
         call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
         if global_state.last_return_data:
-            global_state.mstate.stack.append(
-                symbol_factory.BitVecVal(int(global_state.last_return_data), 256)
-            )
+            return_val = symbol_factory.BitVecVal(int(global_state.last_return_data), 256)
         else:
-            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
+            return_val = symbol_factory.BitVecVal(0, 256)
+        global_state.mstate.stack.append(return_val)
         return [global_state]
 
     @StateTransition()
@@ -2287,6 +2283,7 @@ class Instruction:
         )
         raise TransactionStartSignal(transaction, self.op_code, global_state)
 
+    @StateTransition()
     def staticcall_post(self, global_state: GlobalState) -> List[GlobalState]:
         return self.post_handler(global_state, function_name="staticcall")
 
@@ -2294,8 +2291,9 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
+            with_value = function_name is not "staticcall"
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
+                global_state, self.dynamic_loader, with_value
             )
         except ValueError as e:
             log.debug(
