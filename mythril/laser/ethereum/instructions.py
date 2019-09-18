@@ -2280,7 +2280,7 @@ class Instruction:
             origin=environment.origin,
             code=callee_account.code,
             caller=environment.address,
-            callee_account=environment.active_account,
+            callee_account=callee_account,
             call_data=call_data,
             call_value=value,
             static=True,
