@@ -198,6 +198,9 @@ class ContractCreationTransaction(BaseTransaction):
         contract_address=None,
     ) -> None:
         self.prev_world_state = deepcopy(world_state)
+        contract_address = (
+            contract_address if isinstance(contract_address, int) else None
+        )
         callee_account = world_state.create_account(
             0, concrete_storage=True, creator=caller.value, address=contract_address
         )
