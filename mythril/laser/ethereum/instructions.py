@@ -1800,7 +1800,9 @@ class Instruction:
         call_value, mem_offset, mem_size = global_state.mstate.pop(3)
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
         if global_state.last_return_data:
-            return_val = symbol_factory.BitVecVal(int(global_state.last_return_data, 16), 256)
+            return_val = symbol_factory.BitVecVal(
+                int(global_state.last_return_data, 16), 256
+            )
         else:
             return_val = symbol_factory.BitVecVal(0, 256)
         global_state.mstate.stack.append(return_val)
@@ -1824,7 +1826,9 @@ class Instruction:
         call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
         if global_state.last_return_data:
-            return_val = symbol_factory.BitVecVal(int(global_state.last_return_data), 256)
+            return_val = symbol_factory.BitVecVal(
+                int(global_state.last_return_data), 256
+            )
         else:
             return_val = symbol_factory.BitVecVal(0, 256)
         global_state.mstate.stack.append(return_val)
