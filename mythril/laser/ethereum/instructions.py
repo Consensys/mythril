@@ -1152,9 +1152,9 @@ class Instruction:
     @staticmethod
     def _code_copy_helper(
         code: str,
-        memory_offset: BitVec,
-        code_offset: BitVec,
-        size: BitVec,
+        memory_offset: Union[int, BitVec],
+        code_offset: Union[int, BitVec],
+        size: Union[int, BitVec],
         op: str,
         global_state: GlobalState,
     ) -> List[GlobalState]:
