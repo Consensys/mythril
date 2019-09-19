@@ -26,8 +26,7 @@ assertion_failed_hash = (
 
 
 class UserAssertions(DetectionModule):
-    """This module searches for low level calls (e.g. call.value()) that
-    forward all gas to the callee."""
+    """This module searches for user supplied exceptions: emit AssertionFailed("Error")."""
 
     def __init__(self):
         """"""
@@ -77,7 +76,7 @@ class UserAssertions(DetectionModule):
                 ),
             ).decode("utf8")
 
-        description_head = "A user-provided assertion failed. Make sure the user-provided assertion is correct."
+        description_head = "A user-provided assertion failed."
         if message:
             description_tail = "A user-provided assertion failed with message '{}'. Make sure the user-provided assertion is correct.".format(
                 message
