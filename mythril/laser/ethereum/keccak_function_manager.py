@@ -1,5 +1,6 @@
 from random import randint
 
+from copy import copy
 from ethereum import utils
 from mythril.laser.smt import (
     BitVec,
@@ -12,6 +13,8 @@ from mythril.laser.smt import (
     Or,
     simplify,
     Extract,
+    Implies,
+    Not,
 )
 
 TOTAL_PARTS = 10 ** 40
@@ -28,6 +31,8 @@ class KeccakFunctionManager:
         self.size_values = {}
         self.keccak_vals = {}
         self.delete_constraints = []
+        self.keys = []
+        self.flag_conditions = {}
 
     def find_keccak(self, data: BitVec) -> BitVec:
         keccak = symbol_factory.BitVecVal(
@@ -53,7 +58,6 @@ class KeccakFunctionManager:
                 if p1.symbolic and p1 not in global_state.topo_keys:
                     global_state.topo_keys.append(p1)
                     self.keccak_parent[p1] = None
-
         assert length == data.size()
         constraints = []
         try:
@@ -63,6 +67,7 @@ class KeccakFunctionManager:
             inverse = Function("keccak256_{}-1".format(length), 256, length)
             self.sizes[length] = (func, inverse)
             self.size_values[length] = []
+        flag_var = symbol_factory.BoolSym("{}_flag".format(str(simplify(func(data)))))
 
         constraints.append(inverse(func(data)) == data)
 
@@ -70,6 +75,7 @@ class KeccakFunctionManager:
             keccak = self.find_keccak(data)
             self.size_values[length].append(keccak)
             constraints.append(func(data) == keccak)
+            constraints.append(flag_var)
             return func(data), constraints
 
         if simplify(func(data)) not in global_state.topo_keys:
@@ -91,15 +97,34 @@ class KeccakFunctionManager:
             ULT(func(data), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
-
+        f_cond = copy(condition)
+        flag_condition = False
         for val in self.size_values[length]:
-            if hash(simplify(func(data))) != hash(simplify(val)):
-                condition = Or(condition, func(data) == val)
+            if (
+                hash(simplify(func(data))) != hash(simplify(val))
+                and val in global_state.total_topo_keys
+            ):
+                prev_flag_var = symbol_factory.BoolSym(
+                    "{}_flag".format(str(simplify(val)))
+                )
+                condition = Or(
+                    condition, And(func(data) == val, prev_flag_var, flag_var)
+                )
+                flag_condition = Or(
+                    flag_condition, And(func(data) == val, prev_flag_var, flag_var)
+                )
+
+        self.flag_conditions[func(data)] = (f_cond, flag_condition, None)
         self.delete_constraints.append(condition)
 
         constraints.append(condition)
         if func(data) not in self.size_values[length]:
             self.size_values[length].append(func(data))
+        if data not in self.keys:
+            self.keys.append(data)
+        if func(data) not in self.keys:
+            self.keys.append(func(data))
+
         return func(data), constraints
 
 

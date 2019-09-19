@@ -69,6 +69,16 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
 
+def Implies(a: Union[Bool, bool], b: Union[Bool, bool]) -> Union[Bool, bool]:
+    if not isinstance(a, Bool):
+        a = Bool(z3.BoolVal(a))
+    if not isinstance(b, Bool):
+        b = Bool(z3.BoolVal(b))
+    union = a.annotations.union(b.annotations)
+
+    return Bool(z3.Implies(a.raw, b.raw), annotations=union)
+
+
 def UGT(a: BitVec, b: BitVec) -> Bool:
     """Create an unsigned greater than expression.
 

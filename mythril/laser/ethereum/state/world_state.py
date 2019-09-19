@@ -32,10 +32,16 @@ class WorldState:
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
+        self.topo_keys = []
+        self.old_topo_keys = []
 
     @property
     def accounts(self):
         return self._accounts
+
+    def reset_topo_keys(self):
+        self.old_topo_keys += self.topo_keys
+        self.topo_keys = []
 
     def __getitem__(self, item: BitVec) -> Account:
         """Gets an account from the worldstate using item as key.
@@ -60,6 +66,8 @@ class WorldState:
             transaction_sequence=self.transaction_sequence[:],
             annotations=new_annotations,
         )
+        new_world_state.topo_keys = copy(self.topo_keys)
+        new_world_state.old_topo_keys = copy(self.old_topo_keys)
         new_world_state.balances = copy(self.balances)
         new_world_state.starting_balances = copy(self.starting_balances)
         for account in self._accounts.values():

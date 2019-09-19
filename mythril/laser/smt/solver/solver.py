@@ -45,14 +45,14 @@ class BaseSolver(Generic[T]):
         self.add(*constraints)
 
     @stat_smt_query
-    def check(self) -> z3.CheckSatResult:
+    def check(self, *args) -> z3.CheckSatResult:
         """Returns z3 smt check result.
         Also suppresses the stdout when running z3 library's check() to avoid unnecessary output
         :return: The evaluated result which is either of sat, unsat or unknown
         """
         old_stdout = sys.stdout
         sys.stdout = open(os.devnull, "w")
-        evaluate = self.raw.check()
+        evaluate = self.raw.check(args)
         sys.stdout = old_stdout
         return evaluate
 
