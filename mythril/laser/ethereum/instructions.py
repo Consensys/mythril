@@ -6,7 +6,6 @@ import logging
 from copy import copy, deepcopy
 from typing import cast, Callable, List, Set, Union, Tuple, Any
 from datetime import datetime
-from math import ceil
 from ethereum import utils
 
 from mythril.laser.smt import (
