@@ -1071,12 +1071,8 @@ class Instruction:
                     )
             else:
                 # Copy from both code and calldata appropriately.
-                environment = global_state.environment
-                concrete_memory_offset = helper.get_concrete_int(memory_offset)
                 concrete_code_offset = helper.get_concrete_int(code_offset)
                 concrete_size = helper.get_concrete_int(size)
-
-                calldata = global_state.environment.calldata
 
                 code_copy_offset = concrete_code_offset
                 code_copy_size = (
