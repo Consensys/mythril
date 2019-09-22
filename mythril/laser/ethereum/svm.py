@@ -466,7 +466,6 @@ class LaserEVM:
                         concrete_val_i = keccak_function_manager.find_keccak(
                             concrete_input
                         )
-                        keccak_function_manager.size_values[160].append(concrete_val_i)
                         hash_cond = And(
                             hash_cond, func(concrete_input) == concrete_val_i
                         )
@@ -475,7 +474,6 @@ class LaserEVM:
                             And(
                                 key == concrete_val_i,
                                 hash_cond,
-                                key == func(concrete_input),
                             ),
                         )
                     else:
@@ -515,14 +513,16 @@ class LaserEVM:
             try:
                 f1, f2, _ = keccak_function_manager.flag_conditions[simplify(key)]
                 var_cond = And(Or(var_cond, f2) == flag_var, f1 == Not(flag_var))
-                keccak_function_manager.flag_conditions[simplify(key)] = (
-                    f1,
-                    f2,
-                    var_cond,
-                )
+                if simplify(key) in keccak_function_manager.flag_conditions:
+                    keccak_function_manager.flag_conditions[simplify(key)] = (
+                        f1,
+                        f2,
+                        var_cond,
+                    )
                 flag_weights.append(flag_var)
-            except KeyError:
-                var_cond = True
+            except KeyError as e:
+                print("FAIL", e)
+                var_cond = Or(And(flag_var, var_cond), Not(And(flag_var, var_cond)))
             var_conds = And(var_conds, var_cond)
         new_condition = False
         z3.set_option(

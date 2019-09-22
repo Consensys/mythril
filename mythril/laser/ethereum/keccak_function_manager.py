@@ -108,10 +108,10 @@ class KeccakFunctionManager:
                     "{}_flag".format(str(simplify(val)))
                 )
                 condition = Or(
-                    condition, And(func(data) == val, prev_flag_var, flag_var)
+                    condition, And(func(data) == val, prev_flag_var)
                 )
                 flag_condition = Or(
-                    flag_condition, And(func(data) == val, prev_flag_var, flag_var)
+                    flag_condition, And(func(data) == val, prev_flag_var)
                 )
 
         self.flag_conditions[func(data)] = (f_cond, flag_condition, None)
