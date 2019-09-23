@@ -1,19 +1,18 @@
 """This module contains the detection code for insecure delegate call usage."""
-import json
 import logging
-from copy import copy
-from typing import List, cast, Dict
+from typing import List
 
-from mythril.analysis import solver
+from mythril.analysis.potential_issues import (
+    get_potential_issues_annotation,
+    PotentialIssue,
+)
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
 from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import symbol_factory, UGT
 
@@ -41,19 +40,16 @@ class DelegateCallModule(DetectionModule):
         """
         if state.get_current_instruction()["address"] in self.cache:
             return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        potential_issues = self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state: GlobalState) -> List[Issue]:
+        annotation = get_potential_issues_annotation(state)
+        annotation.potential_issues.extend(potential_issues)
+
+    def _analyze_state(self, state: GlobalState) -> List[PotentialIssue]:
         """
         :param state: the current state
         :return: returns the issues for that corresponding state
         """
-        op_code = state.get_current_instruction()["opcode"]
-
         gas = state.mstate.stack[-1]
         to = state.mstate.stack[-2]
 
@@ -67,16 +63,14 @@ class DelegateCallModule(DetectionModule):
                 constraints.append(tx.caller == ATTACKER_ADDRESS)
 
         try:
-            transaction_sequence = solver.get_transaction_sequence(
-                state, state.mstate.constraints + constraints
-            )
-
             address = state.get_current_instruction()["address"]
+
             logging.debug(
-                "[DELEGATECALL] Detected delegatecall to a user-supplied address : {}".format(
+                "[DELEGATECALL] Detected potential delegatecall to a user-supplied address : {}".format(
                     address
                 )
             )
+
             description_head = "The contract delegates execution to another contract with a user-supplied address."
             description_tail = (
                 "The smart contract delegates execution to a user-supplied address. Note that callers "
@@ -85,7 +79,7 @@ class DelegateCallModule(DetectionModule):
             )
 
             return [
-                Issue(
+                PotentialIssue(
                     contract=state.environment.active_account.contract_name,
                     function_name=state.environment.active_function_name,
                     address=address,
@@ -95,8 +89,8 @@ class DelegateCallModule(DetectionModule):
                     severity="Medium",
                     description_head=description_head,
                     description_tail=description_tail,
-                    transaction_sequence=transaction_sequence,
-                    gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+                    constraints=constraints,
+                    detector=self,
                 )
             ]
 
