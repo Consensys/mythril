@@ -68,20 +68,11 @@ class SuicideModule(DetectionModule):
         for tx in state.world_state.transaction_sequence:
             if not isinstance(tx, ContractCreationTransaction):
                 constraints.append(tx.caller == ATTACKER_ADDRESS)
-        #print(state.mstate.constraints)
-        #for i in range(len(state.mstate.constraints)):
-        #    try:
-        #        solver.get_model(tuple(state.mstate.constraints[:i] + constraints))
-        #        print(i, "PASS")
-        #    except UnsatError:
-        #        print(i, "FAIL")
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
                     state,
-                    state.mstate.constraints
-                    + constraints
-                    + [to == ATTACKER_ADDRESS]
+                    state.mstate.constraints + constraints + [to == ATTACKER_ADDRESS],
                 )
                 description_tail = (
                     "Anyone can kill this contract and withdraw its balance to an arbitrary "
@@ -89,9 +80,7 @@ class SuicideModule(DetectionModule):
                 )
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state,
-                    state.mstate.constraints
-                    + constraints
+                    state, state.mstate.constraints + constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
             issue = Issue(

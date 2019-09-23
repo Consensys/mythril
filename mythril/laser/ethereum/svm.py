@@ -369,7 +369,7 @@ class LaserEVM:
                     or transaction.return_data
                 ) and not end_signal.revert:
                     constraints, deleted_constraints, v, w = self.concretize_keccak(
-                        global_state
+                        global_state, end_signal.global_state
                     )
                     end_signal.global_state.world_state.node = global_state.node
                     end_signal.global_state.world_state.node.constraints = (
@@ -398,7 +398,7 @@ class LaserEVM:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
                 constraints, deleted_constraints, v, w = self.concretize_keccak(
-                    global_state
+                    global_state, end_signal.global_state
                 )
                 global_state.mstate.constraints.append(
                     And(Or(constraints, deleted_constraints), v)
@@ -422,7 +422,7 @@ class LaserEVM:
 
         return new_global_states, op_code
 
-    def concretize_keccak(self, global_state):
+    def concretize_keccak(self, global_state, gs):
         sender = global_state.environment.sender
         model_tuples = []
 
@@ -447,8 +447,11 @@ class LaserEVM:
         flag_weights = []
 
         for index, key in enumerate(global_state.topo_keys):
-            flag_var = symbol_factory.BoolSym("{}_flag".format(str(simplify(key))))
+            if key.value:
+                continue
+            flag_var = symbol_factory.BoolSym("{}_flag".format(hash(simplify(key))))
             var_cond = False
+            hash_cond = True
             if keccak_function_manager.keccak_parent[key] is None:
                 for model_tuple in model_tuples:
                     if model_tuple[0] is None:
@@ -466,16 +469,13 @@ class LaserEVM:
                         concrete_val_i = keccak_function_manager.find_keccak(
                             concrete_input
                         )
+                        keccak_function_manager.value_inverse[concrete_val_i] = key
+                        keccak_function_manager.size_values[160].append(concrete_val_i)
+                        gs.topo_keys.append(concrete_val_i)
                         hash_cond = And(
                             hash_cond, func(concrete_input) == concrete_val_i
                         )
-                        var_cond = Or(
-                            var_cond,
-                            And(
-                                key == concrete_val_i,
-                                hash_cond,
-                            ),
-                        )
+                        var_cond = Or(var_cond, And(key == concrete_val_i, hash_cond))
                     else:
                         concrete_val_i = randint(0, 2 ** key.size() - 1)
 
@@ -513,16 +513,17 @@ class LaserEVM:
             try:
                 f1, f2, _ = keccak_function_manager.flag_conditions[simplify(key)]
                 var_cond = And(Or(var_cond, f2) == flag_var, f1 == Not(flag_var))
-                if simplify(key) in keccak_function_manager.flag_conditions:
-                    keccak_function_manager.flag_conditions[simplify(key)] = (
-                        f1,
-                        f2,
-                        var_cond,
-                    )
+                keccak_function_manager.flag_conditions[simplify(key)] = (
+                    f1,
+                    f2,
+                    var_cond,
+                )
                 flag_weights.append(flag_var)
             except KeyError as e:
-                print("FAIL", e)
-                var_cond = Or(And(flag_var, var_cond), Not(And(flag_var, var_cond)))
+                var_cond = And(
+                    Or(And(flag_var, var_cond), Not(And(flag_var, var_cond))), hash_cond
+                )
+                flag_weights.append(flag_var)
             var_conds = And(var_conds, var_cond)
         new_condition = False
         z3.set_option(

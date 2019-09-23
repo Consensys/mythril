@@ -33,6 +33,7 @@ class KeccakFunctionManager:
         self.delete_constraints = []
         self.keys = []
         self.flag_conditions = {}
+        self.value_inverse = {}
 
     def find_keccak(self, data: BitVec) -> BitVec:
         keccak = symbol_factory.BitVecVal(
@@ -67,7 +68,7 @@ class KeccakFunctionManager:
             inverse = Function("keccak256_{}-1".format(length), 256, length)
             self.sizes[length] = (func, inverse)
             self.size_values[length] = []
-        flag_var = symbol_factory.BoolSym("{}_flag".format(str(simplify(func(data)))))
+        flag_var = symbol_factory.BoolSym("{}_flag".format(hash(simplify(func(data)))))
 
         constraints.append(inverse(func(data)) == data)
 
@@ -105,14 +106,21 @@ class KeccakFunctionManager:
                 and val in global_state.total_topo_keys
             ):
                 prev_flag_var = symbol_factory.BoolSym(
-                    "{}_flag".format(str(simplify(val)))
+                    "{}_flag".format(hash(simplify(val)))
                 )
-                condition = Or(
-                    condition, And(func(data) == val, prev_flag_var)
-                )
-                flag_condition = Or(
-                    flag_condition, And(func(data) == val, prev_flag_var)
-                )
+                pre_cond = And(func(data) == val, inverse(func(data)) == inverse(val))
+                if val.value:
+                    k2 = self.value_inverse[val]
+                    flag_var2 = symbol_factory.BoolSym(
+                        "{}_flag".format(hash(simplify(k2)))
+                    )
+
+                    pre_cond = And(pre_cond, flag_var, flag_var2)
+                else:
+                    pre_cond = And(pre_cond, prev_flag_var, flag_var)
+
+                condition = Or(condition, pre_cond)
+                flag_condition = Or(flag_condition, pre_cond)
 
         self.flag_conditions[func(data)] = (f_cond, flag_condition, None)
         self.delete_constraints.append(condition)
