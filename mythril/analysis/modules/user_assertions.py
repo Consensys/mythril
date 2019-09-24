@@ -55,14 +55,9 @@ class UserAssertions(DetectionModule):
         :param state:
         :return:
         """
-        mem_start = state.mstate.stack[-1]
-        size = state.mstate.stack[-2]
-        topic = state.mstate.stack[-3]
+        topic, size, mem_start = state.mstate.stack[-3:]
 
-        if topic.symbolic:
-            return []
-
-        if topic.value != assertion_failed_hash:
+        if topic.symbolic or topic.value != assertion_failed_hash:
             return []
 
         message = None
