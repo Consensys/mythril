@@ -453,13 +453,12 @@ class LaserEVM:
         stored_vals = {}
         var_conds = True
         flag_weights = []
-
+        hash_cond = True
         for index, key in enumerate(global_state.topo_keys):
             if key.value:
                 continue
             flag_var = symbol_factory.BoolSym("{}_flag".format(hash(simplify(key))))
             var_cond = False
-            hash_cond = True
             if keccak_function_manager.keccak_parent[key] is None:
                 for model_tuple in model_tuples:
                     if model_tuple[0] is None:
@@ -470,7 +469,6 @@ class LaserEVM:
                         )
                         func = Function("keccak256_{}".format(160), 160, 256)
                         inverse = Function("keccak256_{}-1".format(160), 256, 160)
-                        hash_cond = inverse(func(concrete_input)) == concrete_input
                         keccak_function_manager.sizes[160] = (func, inverse)
                         if 160 not in keccak_function_manager.size_values:
                             keccak_function_manager.size_values[160] = []
@@ -481,9 +479,11 @@ class LaserEVM:
                         keccak_function_manager.size_values[160].append(concrete_val_i)
                         gs.topo_keys.append(concrete_val_i)
                         hash_cond = And(
-                            hash_cond, func(concrete_input) == concrete_val_i
+                            hash_cond,
+                            func(concrete_input) == concrete_val_i,
+                            inverse(concrete_val_i) == concrete_input,
                         )
-                        var_cond = Or(var_cond, And(key == concrete_val_i, hash_cond))
+                        var_cond = Or(var_cond, key == concrete_val_i)
                     else:
                         concrete_val_i = randint(0, 2 ** key.size() - 1)
 
@@ -554,7 +554,7 @@ class LaserEVM:
 
         if deleted_constraints is True:
             deleted_constraints = False
-
+        var_conds = And(var_conds, hash_cond)
         new_condition = simplify(new_condition)
         return new_condition, deleted_constraints, var_conds, flag_weights
 
