@@ -56,6 +56,10 @@ class DelegateCallModule(DetectionModule):
         constraints = [
             to == ATTACKER_ADDRESS,
             UGT(gas, symbol_factory.BitVecVal(2300, 256)),
+            state.new_bitvec(
+                "retval_{}".format(state.get_current_instruction()["address"]), 256
+            )
+            == 1,
         ]
 
         for tx in state.world_state.transaction_sequence:
