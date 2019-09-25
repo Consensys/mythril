@@ -70,15 +70,6 @@ class CommandLineToolTestCase(BaseTestCase):
         self.assertIn("0x1a270efc", output_of(command))
 
 
-class TruffleTestCase(BaseTestCase):
-    def test_analysis_truffle_project(self):
-        truffle_project_root = str(TESTS_DIR / "truffle_project")
-        command = "cd {}; truffle compile; python3 {} truffle -t 2".format(
-            truffle_project_root, MYTH
-        )
-        self.assertIn("=== Unprotected Ether Withdrawal ====", output_of(command))
-
-
 class InfuraTestCase(BaseTestCase):
     def test_infura_mainnet(self):
         command = "python3 {} disassemble --rpc infura-mainnet  -a 0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208".format(

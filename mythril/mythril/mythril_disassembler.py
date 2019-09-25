@@ -10,7 +10,6 @@ from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
-from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
@@ -216,15 +215,6 @@ class MythrilDisassembler:
 
         return address, contracts
 
-    def analyze_truffle_project(self, *args, **kwargs) -> None:
-        """
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        analyze_truffle_project(
-            self.sigs, *args, **kwargs
-        )  # just passthru by passing signatures for now
 
     @staticmethod
     def hash_for_function_signature(func: str) -> str:
