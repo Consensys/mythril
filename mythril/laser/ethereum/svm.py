@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Union, Optional
 import z3
 
+from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
@@ -16,6 +17,9 @@ from mythril.laser.ethereum.keccak_function_manager import (
     Function,
 )
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
+from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
+    MutationAnnotation,
+)
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -352,7 +356,9 @@ class LaserEVM:
                 global_state.transaction_stack
             ) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
-            new_global_state.mstate.constraints = global_state.mstate.constraints
+            new_global_state.mstate.constraints = (
+                start_signal.global_state.mstate.constraints
+            )
 
             log.debug("Starting new transaction %s", start_signal.transaction)
 
@@ -372,6 +378,8 @@ class LaserEVM:
                     constraints, deleted_constraints, v, w = self.concretize_keccak(
                         global_state, end_signal.global_state
                     )
+                    check_potential_issues(global_state)
+
                     end_signal.global_state.world_state.node = global_state.node
                     end_signal.global_state.world_state.node.constraints = (
                         global_state.mstate.constraints
@@ -411,6 +419,19 @@ class LaserEVM:
                     except ValueError:
                         # Constraint not related to this state
                         continue
+
+                # Propogate codecall based annotations
+                if return_global_state.get_current_instruction()["opcode"] in (
+                    "DELEGATECALL",
+                    "CALLCODE",
+                ):
+                    new_annotations = [
+                        annotation
+                        for annotation in global_state.get_annotations(
+                            MutationAnnotation
+                        )
+                    ]
+                    return_global_state.add_annotations(new_annotations)
 
                 new_global_states = self._end_message_call(
                     copy(return_global_state),
@@ -566,6 +587,15 @@ class LaserEVM:
             return_global_state.environment.active_account = global_state.accounts[
                 return_global_state.environment.active_account.address.value
             ]
+            if isinstance(
+                global_state.current_transaction, ContractCreationTransaction
+            ):
+                return_global_state.mstate.min_gas_used += (
+                    global_state.mstate.min_gas_used
+                )
+                return_global_state.mstate.max_gas_used += (
+                    global_state.mstate.max_gas_used
+                )
 
         # Execute the post instruction handler
         new_global_states = Instruction(

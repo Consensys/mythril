@@ -6,15 +6,21 @@
 - SWC ID: {{ issue['swc-id'] }}
 - Severity: {{ issue.severity }}
 - Contract: {{ issue.contract | default("Unknown") }}
+{% if issue.function %}
 - Function name: `{{ issue.function }}`
+{% endif %}
 - PC address: {{ issue.address }}
+{% if issue.min_gas_used or issue.max_gas_used %}
 - Estimated Gas Usage: {{ issue.min_gas_used }} - {{ issue.max_gas_used }}
+{% endif %}
 
 ### Description
 
 {{ issue.description.rstrip() }}
 {% if issue.filename and issue.lineno %}
 In file: {{ issue.filename }}:{{ issue.lineno }}
+{% elif issue.filename %}
+In file: {{ issue.filename }}
 {% endif %}
 {% if issue.code %}
 
@@ -36,7 +42,7 @@ Account: {% if key == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{%
 
 {% for step in issue.tx_sequence.steps %}
 {% if step == issue.tx_sequence.steps[0] and step.input != "0x" and step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}
-Caller: [CREATOR], data: [CONTRACT CREATION], value: {{ step.value }}
+Caller: [CREATOR], data: {{ step.input }}, value: {{ step.value }}
 {% else %}
 Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, function: {{ step.name }}, txdata: {{ step.input }}, value: {{ step.value }}
 {% endif %}

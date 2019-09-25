@@ -6,7 +6,6 @@ import logging
 from copy import copy, deepcopy
 from typing import cast, Callable, List, Set, Union, Tuple, Any
 from datetime import datetime
-from math import ceil
 from ethereum import utils
 
 from mythril.laser.smt import (
@@ -29,16 +28,21 @@ from mythril.laser.smt import (
 )
 from mythril.laser.smt import symbol_factory
 
+from mythril.disassembler.disassembly import Disassembly
+
+from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCalldata
+
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
-from mythril.laser.ethereum.call import get_call_parameters, native_call
+from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
     StackUnderflowException,
     InvalidJumpDestination,
     InvalidInstruction,
     OutOfGasException,
+    WriteProtection,
 )
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -46,7 +50,10 @@ from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
     TransactionStartSignal,
     ContractCreationTransaction,
+    get_next_transaction_id,
 )
+
+from mythril.support.support_utils import get_code_hash
 
 from mythril.support.loader import DynLoader
 
@@ -89,14 +96,18 @@ class StateTransition(object):
     if `increment_pc=True`.
     """
 
-    def __init__(self, increment_pc=True, enable_gas=True):
+    def __init__(
+        self, increment_pc=True, enable_gas=True, is_state_mutation_instruction=False
+    ):
         """
 
         :param increment_pc:
         :param enable_gas:
+        :param is_state_mutation_instruction: The function mutates state
         """
         self.increment_pc = increment_pc
         self.enable_gas = enable_gas
+        self.is_state_mutation_instruction = is_state_mutation_instruction
 
     @staticmethod
     def call_on_state_copy(func: Callable, func_obj: "Instruction", state: GlobalState):
@@ -166,6 +177,13 @@ class StateTransition(object):
             :param global_state:
             :return:
             """
+            if self.is_state_mutation_instruction and global_state.environment.static:
+                raise WriteProtection(
+                    "The function {} cannot be executed in a static call".format(
+                        func.__name__[:-1]
+                    )
+                )
+
             new_global_states = self.call_on_state_copy(func, func_obj, global_state)
             new_global_states = [
                 self.accumulate_gas(state) for state in new_global_states
@@ -759,34 +777,33 @@ class Instruction:
         """
         state = global_state.mstate
         environment = global_state.environment
-        state.stack.append(environment.calldata.calldatasize)
+
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            log.debug("Attempt to use CALLDATASIZE in creation transaction")
+            state.stack.append(0)
+        else:
+            state.stack.append(environment.calldata.calldatasize)
+
         return [global_state]
 
-    @StateTransition()
-    def calldatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
-        """
-
-        :param global_state:
-        :return:
-        """
-        state = global_state.mstate
+    @staticmethod
+    def _calldata_copy_helper(global_state, mstate, mstart, dstart, size):
         environment = global_state.environment
-        op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
 
         try:
-            mstart = util.get_concrete_int(op0)
+            mstart = util.get_concrete_int(mstart)
         except TypeError:
             log.debug("Unsupported symbolic memory offset in CALLDATACOPY")
             return [global_state]
 
         try:
-            dstart = util.get_concrete_int(op1)  # type: Union[int, BitVec]
+            dstart = util.get_concrete_int(dstart)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
-            dstart = simplify(op1)
+            dstart = simplify(dstart)
 
         try:
-            size = util.get_concrete_int(op2)  # type: Union[int, BitVec]
+            size = util.get_concrete_int(size)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
             size = 320  # The excess size will get overwritten
@@ -794,11 +811,11 @@ class Instruction:
         size = cast(int, size)
         if size > 0:
             try:
-                state.mem_extend(mstart, size)
+                mstate.mem_extend(mstart, size)
             except TypeError as e:
                 log.debug("Memory allocation error: {}".format(e))
-                state.mem_extend(mstart, 1)
-                state.memory[mstart] = global_state.new_bitvec(
+                mstate.mem_extend(mstart, 1)
+                mstate.memory[mstart] = global_state.new_bitvec(
                     "calldata_"
                     + str(environment.active_account.contract_name)
                     + "["
@@ -823,12 +840,12 @@ class Instruction:
                         else simplify(cast(BitVec, i_data) + 1)
                     )
                 for i in range(len(new_memory)):
-                    state.memory[i + mstart] = new_memory[i]
+                    mstate.memory[i + mstart] = new_memory[i]
 
             except IndexError:
                 log.debug("Exception copying calldata to memory")
 
-                state.memory[mstart] = global_state.new_bitvec(
+                mstate.memory[mstart] = global_state.new_bitvec(
                     "calldata_"
                     + str(environment.active_account.contract_name)
                     + "["
@@ -839,6 +856,22 @@ class Instruction:
                     8,
                 )
         return [global_state]
+
+    @StateTransition()
+    def calldatacopy_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        state = global_state.mstate
+        op0, op1, op2 = state.stack.pop(), state.stack.pop(), state.stack.pop()
+
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            log.debug("Attempt to use CALLDATACOPY in creation transaction")
+            return [global_state]
+
+        return self._calldata_copy_helper(global_state, state, op0, op1, op2)
 
     # Environment
     @StateTransition()
@@ -903,8 +936,30 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         disassembly = environment.code
-        state.stack.append(len(disassembly.bytecode) // 2)
+        calldata = global_state.environment.calldata
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            # Hacky way to ensure constructor arguments work - Pick some reasonably large size.
+            no_of_bytes = len(disassembly.bytecode) // 2
+            if isinstance(calldata, ConcreteCalldata):
+                no_of_bytes += calldata.size
+            else:
+                no_of_bytes += 0x200  # space for 16 32-byte arguments
+                global_state.mstate.constraints.append(
+                    global_state.environment.calldata.size == no_of_bytes
+                )
+
+        else:
+            no_of_bytes = len(disassembly.bytecode) // 2
+        state.stack.append(no_of_bytes)
         return [global_state]
+
+    @staticmethod
+    def _sha3_gas_helper(global_state, length):
+        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
+        global_state.mstate.min_gas_used += min_gas
+        global_state.mstate.max_gas_used += max_gas
+        StateTransition.check_gas_usage_limit(global_state)
+        return global_state
 
     @StateTransition(enable_gas=False)
     def sha3_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -931,10 +986,7 @@ class Instruction:
             state.max_gas_used += gas_tuple[1]
             return [global_state]
 
-        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
-        state.min_gas_used += min_gas
-        state.max_gas_used += max_gas
-        StateTransition.check_gas_usage_limit(global_state)
+        Instruction._sha3_gas_helper(global_state, length)
 
         state.mem_extend(index, length)
         data_list = [
@@ -967,34 +1019,6 @@ class Instruction:
         global_state.mstate.stack.append(global_state.environment.gasprice)
         return [global_state]
 
-    @staticmethod
-    def _handle_symbolic_args(
-        global_state: GlobalState, concrete_memory_offset: int
-    ) -> None:
-        """
-        In contract creation transaction with dynamic arguments(like arrays, maps) solidity will try to
-        execute CODECOPY with code size as len(with_args) - len(without_args) which in our case
-        would be 0, hence we are writing 10 symbol words onto the memory on the assumption that
-        no one would use 10 array/map arguments for constructor.
-        :param global_state: The global state
-        :param concrete_memory_offset: The memory offset on which symbols should be written
-        """
-        no_of_words = ceil(
-            min(len(global_state.environment.code.bytecode) / 2, 320) / 32
-        )
-        global_state.mstate.mem_extend(concrete_memory_offset, 32 * no_of_words)
-        for i in range(no_of_words):
-            global_state.mstate.memory.write_word_at(
-                concrete_memory_offset + i * 32,
-                global_state.new_bitvec(
-                    "code_{}({})".format(
-                        concrete_memory_offset + i * 32,
-                        global_state.environment.active_account.contract_name,
-                    ),
-                    256,
-                ),
-            )
-
     @StateTransition()
     def codecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         """
@@ -1007,6 +1031,63 @@ class Instruction:
             global_state.mstate.stack.pop(),
             global_state.mstate.stack.pop(),
         )
+        code = global_state.environment.code.bytecode
+        if code[0:2] == "0x":
+            code = code[2:]
+        code_size = len(code) // 2
+
+        if isinstance(global_state.current_transaction, ContractCreationTransaction):
+            # Treat creation code after the expected disassembly as calldata.
+            # This is a slightly hacky way to ensure that symbolic constructor
+            # arguments work correctly.
+            mstate = global_state.mstate
+            offset = code_offset - code_size
+            log.debug("Copying from code offset: {} with size: {}".format(offset, size))
+
+            if isinstance(global_state.environment.calldata, SymbolicCalldata):
+                if code_offset >= code_size:
+                    return self._calldata_copy_helper(
+                        global_state, mstate, memory_offset, offset, size
+                    )
+            else:
+                # Copy from both code and calldata appropriately.
+                concrete_code_offset = helper.get_concrete_int(code_offset)
+                concrete_size = helper.get_concrete_int(size)
+
+                code_copy_offset = concrete_code_offset
+                code_copy_size = (
+                    concrete_size
+                    if concrete_code_offset + concrete_size <= code_size
+                    else code_size - concrete_code_offset
+                )
+                code_copy_size = code_copy_size if code_copy_size >= 0 else 0
+
+                calldata_copy_offset = (
+                    concrete_code_offset - code_size
+                    if concrete_code_offset - code_size > 0
+                    else 0
+                )
+                calldata_copy_size = concrete_code_offset + concrete_size - code_size
+                calldata_copy_size = (
+                    calldata_copy_size if calldata_copy_size >= 0 else 0
+                )
+
+                [global_state] = self._code_copy_helper(
+                    code=global_state.environment.code.bytecode,
+                    memory_offset=memory_offset,
+                    code_offset=code_copy_offset,
+                    size=code_copy_size,
+                    op="CODECOPY",
+                    global_state=global_state,
+                )
+                return self._calldata_copy_helper(
+                    global_state=global_state,
+                    mstate=mstate,
+                    mstart=memory_offset + code_copy_size,
+                    dstart=calldata_copy_offset,
+                    size=calldata_copy_size,
+                )
+
         return self._code_copy_helper(
             code=global_state.environment.code.bytecode,
             memory_offset=memory_offset,
@@ -1047,9 +1128,9 @@ class Instruction:
     @staticmethod
     def _code_copy_helper(
         code: str,
-        memory_offset: BitVec,
-        code_offset: BitVec,
-        size: BitVec,
+        memory_offset: Union[int, BitVec],
+        code_offset: Union[int, BitVec],
+        size: Union[int, BitVec],
         op: str,
         global_state: GlobalState,
     ) -> List[GlobalState]:
@@ -1094,13 +1175,6 @@ class Instruction:
 
         if code[0:2] == "0x":
             code = code[2:]
-
-        if concrete_size == 0 and isinstance(
-            global_state.current_transaction, ContractCreationTransaction
-        ):
-            if concrete_code_offset >= len(code) // 2:
-                Instruction._handle_symbolic_args(global_state, concrete_memory_offset)
-                return [global_state]
 
         for i in range(concrete_size):
             if 2 * (concrete_code_offset + i + 1) <= len(code):
@@ -1161,18 +1235,26 @@ class Instruction:
             global_state=global_state,
         )
 
-    @StateTransition
+    @StateTransition()
     def extcodehash_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
         :return: List of global states possible, list of size 1 in this case
         """
-        # TODO: To be implemented
-        address = global_state.mstate.stack.pop()
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("extcodehash_{}".format(str(address)), 256)
-        )
+        world_state = global_state.world_state
+        stack = global_state.mstate.stack
+        address = Extract(159, 0, stack.pop())
+
+        if address.symbolic:
+            code_hash = symbol_factory.BitVecVal(int(get_code_hash(""), 16), 256)
+        elif address.value not in world_state.accounts:
+            code_hash = symbol_factory.BitVecVal(0, 256)
+        else:
+            addr = "0" * (40 - len(hex(address.value)[2:])) + hex(address.value)[2:]
+            code = world_state.accounts_exist_or_load(addr, self.dynamic_loader)
+            code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
+        stack.append(code_hash)
         return [global_state]
 
     @StateTransition()
@@ -1377,7 +1459,7 @@ class Instruction:
         state.stack.append(global_state.environment.active_account.storage[index])
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(is_state_mutation_instruction=True)
     def sstore_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1544,7 +1626,7 @@ class Instruction:
         global_state.mstate.stack.append(global_state.new_bitvec("gas", 256))
         return [global_state]
 
-    @StateTransition()
+    @StateTransition(is_state_mutation_instruction=True)
     def log_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1559,37 +1641,112 @@ class Instruction:
         # Not supported
         return [global_state]
 
-    @StateTransition()
+    def _create_transaction_helper(
+        self, global_state, call_value, mem_offset, mem_size, create2_salt=None
+    ):
+        mstate = global_state.mstate
+        environment = global_state.environment
+        world_state = global_state.world_state
+
+        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+
+        code_raw = []
+        code_end = call_data.size
+        for i in range(call_data.size):
+            if call_data[i].symbolic:
+                code_end = i
+                break
+            code_raw.append(call_data[i].value)
+
+        code_str = bytes.hex(bytes(code_raw))
+
+        next_transaction_id = get_next_transaction_id()
+        constructor_arguments = ConcreteCalldata(
+            next_transaction_id, call_data[code_end:]
+        )
+        code = Disassembly(code_str)
+
+        caller = environment.active_account.address
+        gas_price = environment.gasprice
+        origin = environment.origin
+
+        contract_address = None
+        if create2_salt:
+            salt = hex(create2_salt)[2:]
+            salt = "0" * (64 - len(salt)) + salt
+
+            addr = hex(caller.value)[2:]
+            addr = "0" * (40 - len(addr)) + addr
+
+            Instruction._sha3_gas_helper(global_state, len(code_str[2:] // 2))
+
+            contract_address = int(
+                get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
+                16,
+            )
+        transaction = ContractCreationTransaction(
+            world_state=world_state,
+            caller=caller,
+            code=code,
+            call_data=constructor_arguments,
+            gas_price=gas_price,
+            gas_limit=mstate.gas_limit,
+            origin=origin,
+            call_value=call_value,
+            contract_address=contract_address,
+        )
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
+
+    @StateTransition(is_state_mutation_instruction=True)
     def create_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
         :return:
         """
-        # TODO: implement me
-        state = global_state.mstate
-        state.stack.pop(), state.stack.pop(), state.stack.pop()
-        # Not supported
-        state.stack.append(0)
-        return [global_state]
+        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
+
+        return self._create_transaction_helper(
+            global_state, call_value, mem_offset, mem_size
+        )
 
     @StateTransition()
+    def create_post(self, global_state: GlobalState) -> List[GlobalState]:
+        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
+        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+        if global_state.last_return_data:
+            return_val = symbol_factory.BitVecVal(
+                int(global_state.last_return_data, 16), 256
+            )
+        else:
+            return_val = symbol_factory.BitVecVal(0, 256)
+        global_state.mstate.stack.append(return_val)
+        return [global_state]
+
+    @StateTransition(is_state_mutation_instruction=True)
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
         :param global_state:
         :return:
         """
-        # TODO: implement me
-        state = global_state.mstate
-        endowment, memory_start, memory_length, salt = (
-            state.stack.pop(),
-            state.stack.pop(),
-            state.stack.pop(),
-            state.stack.pop(),
+        call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
+
+        return self._create_transaction_helper(
+            global_state, call_value, mem_offset, mem_size, salt
         )
-        # Not supported
-        state.stack.append(0)
+
+    @StateTransition()
+    def create2_post(self, global_state: GlobalState) -> List[GlobalState]:
+        call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
+        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+        if global_state.last_return_data:
+            return_val = symbol_factory.BitVecVal(
+                int(global_state.last_return_data), 256
+            )
+        else:
+            return_val = symbol_factory.BitVecVal(0, 256)
+        global_state.mstate.stack.append(return_val)
         return [global_state]
 
     @StateTransition()
@@ -1609,7 +1766,7 @@ class Instruction:
             return_data = state.memory[offset : offset + length]
         global_state.current_transaction.end(global_state, return_data)
 
-    @StateTransition()
+    @StateTransition(is_state_mutation_instruction=True)
     def suicide_(self, global_state: GlobalState):
         """
 
@@ -1714,6 +1871,21 @@ class Instruction:
             )
             return [global_state]
 
+        if environment.static:
+            if isinstance(value, int) and value > 0:
+                raise WriteProtection(
+                    "Cannot call with non zero value in a static call"
+                )
+            if isinstance(value, BitVec):
+                if value.symbolic:
+                    global_state.mstate.constraints.append(
+                        value == symbol_factory.BitVecVal(0, 256)
+                    )
+                elif value.value > 0:
+                    raise WriteProtection(
+                        "Cannot call with non zero value in a static call"
+                    )
+
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
@@ -1728,8 +1900,9 @@ class Instruction:
             callee_account=callee_account,
             call_data=call_data,
             call_value=value,
+            static=environment.static,
         )
-        raise TransactionStartSignal(transaction, self.op_code)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition()
     def call_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1738,65 +1911,8 @@ class Instruction:
         :param global_state:
         :return:
         """
-        instr = global_state.get_current_instruction()
 
-        try:
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
-        except ValueError as e:
-            log.debug(
-                "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
-                    e
-                )
-            )
-            global_state.mstate.stack.append(
-                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-            )
-            return [global_state]
-
-        if global_state.last_return_data is None:
-            # Put return value on stack
-            return_value = global_state.new_bitvec(
-                "retval_" + str(instr["address"]), 256
-            )
-            global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
-
-            return [global_state]
-
-        try:
-            memory_out_offset = (
-                util.get_concrete_int(memory_out_offset)
-                if isinstance(memory_out_offset, Expression)
-                else memory_out_offset
-            )
-            memory_out_size = (
-                util.get_concrete_int(memory_out_size)
-                if isinstance(memory_out_size, Expression)
-                else memory_out_size
-            )
-        except TypeError:
-            global_state.mstate.stack.append(
-                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-            )
-            return [global_state]
-
-        # Copy memory
-        global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
-        )
-        for i in range(min(memory_out_size, len(global_state.last_return_data))):
-            global_state.mstate.memory[
-                i + memory_out_offset
-            ] = global_state.last_return_data[i]
-
-        # Put return value on stack
-        return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
-        global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
-
-        return [global_state]
+        return self.post_handler(global_state, function_name="call")
 
     @StateTransition()
     def callcode_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1812,7 +1928,6 @@ class Instruction:
             callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
                 global_state, self.dynamic_loader, True
             )
-
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
@@ -1845,8 +1960,9 @@ class Instruction:
             callee_account=environment.active_account,
             call_data=call_data,
             call_value=value,
+            static=environment.static,
         )
-        raise TransactionStartSignal(transaction, self.op_code)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition()
     def callcode_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1930,7 +2046,7 @@ class Instruction:
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
-                sender = environment.active_account.address
+                sender = global_state.environment.active_account.address
                 receiver = callee_account.address
                 transfer_ether(global_state, sender, receiver, value)
 
@@ -1960,8 +2076,9 @@ class Instruction:
             callee_account=environment.active_account,
             call_data=call_data,
             call_value=environment.callvalue,
+            static=environment.static,
         )
-        raise TransactionStartSignal(transaction, self.op_code)
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition()
     def delegatecall_post(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1993,6 +2110,7 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
+            global_state.mstate.constraints.append(return_value == 0)
             return [global_state]
 
         try:
@@ -2034,8 +2152,8 @@ class Instruction:
         :param global_state:
         :return:
         """
-        # TODO: implement me
         instr = global_state.get_current_instruction()
+        environment = global_state.environment
         try:
             callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
                 global_state, self.dynamic_loader
@@ -2043,7 +2161,7 @@ class Instruction:
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
-                sender = global_state.environment.active_account.address
+                sender = environment.active_account.address
                 receiver = callee_account.address
                 transfer_ether(global_state, sender, receiver, value)
 
@@ -2066,10 +2184,84 @@ class Instruction:
         native_result = native_call(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
+
         if native_result:
             return native_result
 
-        global_state.mstate.stack.append(
-            global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+        transaction = MessageCallTransaction(
+            world_state=global_state.world_state,
+            gas_price=environment.gasprice,
+            gas_limit=gas,
+            origin=environment.origin,
+            code=callee_account.code,
+            caller=environment.address,
+            callee_account=callee_account,
+            call_data=call_data,
+            call_value=value,
+            static=True,
         )
+        raise TransactionStartSignal(transaction, self.op_code, global_state)
+
+    @StateTransition()
+    def staticcall_post(self, global_state: GlobalState) -> List[GlobalState]:
+        return self.post_handler(global_state, function_name="staticcall")
+
+    def post_handler(self, global_state, function_name: str):
+        instr = global_state.get_current_instruction()
+
+        try:
+            with_value = function_name is not "staticcall"
+            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
+                global_state, self.dynamic_loader, with_value
+            )
+        except ValueError as e:
+            log.debug(
+                "Could not determine required parameters for {}, putting fresh symbol on the stack. \n{}".format(
+                    function_name, e
+                )
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+            return [global_state]
+
+        if global_state.last_return_data is None:
+            # Put return value on stack
+            return_value = global_state.new_bitvec(
+                "retval_" + str(instr["address"]), 256
+            )
+            global_state.mstate.stack.append(return_value)
+            return [global_state]
+
+        try:
+            memory_out_offset = (
+                util.get_concrete_int(memory_out_offset)
+                if isinstance(memory_out_offset, Expression)
+                else memory_out_offset
+            )
+            memory_out_size = (
+                util.get_concrete_int(memory_out_size)
+                if isinstance(memory_out_size, Expression)
+                else memory_out_size
+            )
+        except TypeError:
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+            return [global_state]
+
+        # Copy memory
+        global_state.mstate.mem_extend(
+            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
+        )
+        for i in range(min(memory_out_size, len(global_state.last_return_data))):
+            global_state.mstate.memory[
+                i + memory_out_offset
+            ] = global_state.last_return_data[i]
+
+        # Put return value on stack
+        return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+        global_state.mstate.stack.append(return_value)
+        global_state.mstate.constraints.append(return_value == 1)
+
         return [global_state]

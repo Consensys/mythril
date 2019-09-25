@@ -178,16 +178,17 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
         "%x" % model.eval(transaction.caller.raw, model_completion=True).as_long()
     ).zfill(40)
 
+    input_ = ""
     if isinstance(transaction, ContractCreationTransaction):
         address = ""
-        input_ = transaction.code.bytecode
-    else:
-        input_ = "".join(
-            [
-                hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
-                for b in transaction.call_data.concrete(model)
-            ]
-        )
+        input_ += transaction.code.bytecode
+
+    input_ += "".join(
+        [
+            hex(b)[2:] if len(hex(b)) % 2 == 0 else "0" + hex(b)[2:]
+            for b in transaction.call_data.concrete(model)
+        ]
+    )
 
     # Create concrete transaction dict
     concrete_transaction = dict()  # type: Dict[str, str]

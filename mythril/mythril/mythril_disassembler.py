@@ -30,11 +30,11 @@ class MythrilDisassembler:
         self,
         eth: Optional[EthJsonRpc] = None,
         solc_version: str = None,
-        solc_args: str = None,
+        solc_settings_json: str = None,
         enable_online_lookup: bool = False,
     ) -> None:
         self.solc_binary = self._init_solc_binary(solc_version)
-        self.solc_args = solc_args
+        self.solc_settings_json = solc_settings_json
         self.eth = eth
         self.enable_online_lookup = enable_online_lookup
         self.sigs = signatures.SignatureDB(enable_online_lookup=enable_online_lookup)
@@ -163,13 +163,15 @@ class MythrilDisassembler:
             try:
                 # import signatures from solidity source
                 self.sigs.import_solidity_file(
-                    file, solc_binary=self.solc_binary, solc_args=self.solc_args
+                    file,
+                    solc_binary=self.solc_binary,
+                    solc_settings_json=self.solc_settings_json,
                 )
                 if contract_name is not None:
                     contract = SolidityContract(
                         input_file=file,
                         name=contract_name,
-                        solc_args=self.solc_args,
+                        solc_settings_json=self.solc_settings_json,
                         solc_binary=self.solc_binary,
                     )
                     self.contracts.append(contract)
@@ -177,7 +179,7 @@ class MythrilDisassembler:
                 else:
                     for contract in get_contracts_from_file(
                         input_file=file,
-                        solc_args=self.solc_args,
+                        solc_settings_json=self.solc_settings_json,
                         solc_binary=self.solc_binary,
                     ):
                         self.contracts.append(contract)

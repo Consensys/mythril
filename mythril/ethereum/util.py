@@ -24,39 +24,44 @@ def safe_decode(hex_encoded_string):
         return bytes.fromhex(hex_encoded_string)
 
 
-def get_solc_json(file, solc_binary="solc", solc_args=None):
+def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     """
 
     :param file:
     :param solc_binary:
-    :param solc_args:
+    :param solc_settings_json:
     :return:
     """
+    cmd = [solc_binary, "--standard-json", "--allow-paths", "."]
 
-    cmd = [solc_binary, "--combined-json", "bin,bin-runtime,srcmap,srcmap-runtime,ast"]
-
-    if solc_args:
-        cmd.extend(solc_args.split())
-    if not "--allow-paths" in cmd:
-        cmd.extend(["--allow-paths", "."])
-    else:
-        for i, arg in enumerate(cmd):
-            if arg == "--allow-paths":
-                cmd[i + 1] += ",."
-
-    cmd.append(file)
+    settings = json.loads(solc_settings_json) if solc_settings_json else {}
+    settings.update(
+        {
+            "outputSelection": {
+                "*": {
+                    "": ["ast"],
+                    "*": [
+                        "metadata",
+                        "evm.bytecode",
+                        "evm.deployedBytecode",
+                        "evm.methodIdentifiers",
+                    ],
+                }
+            }
+        }
+    )
+    input_json = json.dumps(
+        {
+            "language": "Solidity",
+            "sources": {file: {"urls": [file]}},
+            "settings": settings,
+        }
+    )
 
     try:
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate(bytes(input_json, "utf8"))
 
-        stdout, stderr = p.communicate()
-        ret = p.returncode
-
-        if ret != 0:
-            raise CompilerError(
-                "Solc experienced a fatal error (code %d).\n\n%s"
-                % (ret, stderr.decode("UTF-8"))
-            )
     except FileNotFoundError:
         raise CompilerError(
             "Compiler not found. Make sure that solc is installed and in PATH, or set the SOLC environment variable."
@@ -64,10 +69,15 @@ def get_solc_json(file, solc_binary="solc", solc_args=None):
 
     out = stdout.decode("UTF-8")
 
-    if not len(out):
-        raise CompilerError("Compilation failed.")
+    result = json.loads(out)
 
-    return json.loads(out)
+    for error in result.get("errors", []):
+        if error["severity"] == "error":
+            raise CompilerError(
+                "Solc experienced a fatal error.\n\n%s" % error["formattedMessage"]
+            )
+
+    return result
 
 
 def encode_calldata(func_name, arg_types, args):

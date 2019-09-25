@@ -3,15 +3,16 @@ withdrawal."""
 import logging
 from copy import copy
 
-from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
-from mythril.analysis.report import Issue
+from mythril.analysis.potential_issues import (
+    get_potential_issues_annotation,
+    PotentialIssue,
+)
 from mythril.laser.ethereum.transaction.symbolic import (
     ATTACKER_ADDRESS,
     CREATOR_ADDRESS,
 )
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
-from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 
@@ -60,15 +61,14 @@ class EtherThief(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self._cache:
+        if state.get_current_instruction()["address"] in self.cache:
             return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+        potential_issues = self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state):
+        annotation = get_potential_issues_annotation(state)
+        annotation.potential_issues.extend(potential_issues)
+
+    def _analyze_state(self, state):
         """
 
         :param state:
@@ -115,29 +115,23 @@ class EtherThief(DetectionModule):
             state.current_transaction.caller == ATTACKER_ADDRESS,
         ]
 
-        try:
-            transaction_sequence = solver.get_transaction_sequence(state, constraints)
+        potential_issue = PotentialIssue(
+            contract=state.environment.active_account.contract_name,
+            function_name=state.environment.active_function_name,
+            address=instruction["address"],
+            swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
+            title="Unprotected Ether Withdrawal",
+            severity="High",
+            bytecode=state.environment.code.bytecode,
+            description_head="Anyone can withdraw ETH from the contract account.",
+            description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
+            + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
+            + " a vulnerability.",
+            detector=self,
+            constraints=constraints,
+        )
 
-            issue = Issue(
-                contract=state.environment.active_account.contract_name,
-                function_name=state.environment.active_function_name,
-                address=instruction["address"],
-                swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-                title="Unprotected Ether Withdrawal",
-                severity="High",
-                bytecode=state.environment.code.bytecode,
-                description_head="Anyone can withdraw ETH from the contract account.",
-                description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
-                + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
-                + " a vulnerability.",
-                transaction_sequence=transaction_sequence,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-            )
-        except UnsatError:
-            log.debug("No model found")
-            return []
-
-        return [issue]
+        return [potential_issue]
 
 
 detector = EtherThief()

@@ -33,8 +33,8 @@ class ReachableExceptionsModule(DetectionModule):
         """
         issues = self._analyze_state(state)
         for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+            self.cache.add(issue.address)
+        self.issues.extend(issues)
 
     @staticmethod
     def _analyze_state(state) -> list:
