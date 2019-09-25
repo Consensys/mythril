@@ -215,7 +215,6 @@ class MythrilDisassembler:
 
         return address, contracts
 
-
     @staticmethod
     def hash_for_function_signature(func: str) -> str:
         """
