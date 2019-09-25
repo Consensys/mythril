@@ -47,9 +47,9 @@ class KeccakFunctionManager:
         self.keccak_vals[func(data)] = keccak
         return keccak
 
-    def create_keccak(self, data: BitVec, length: int, global_state):
+    def create_keccak(self, data: BitVec, global_state):
 
-        length = length * 8
+        length = data.size()
         data = simplify(data)
         if data.symbolic and simplify(data) not in global_state.topo_keys:
             if data.size() != 512:
@@ -60,7 +60,7 @@ class KeccakFunctionManager:
                 if p1.symbolic and p1 not in global_state.topo_keys:
                     global_state.topo_keys.append(p1)
                     self.keccak_parent[p1] = None
-        assert length == data.size()
+
         constraints = []
         try:
             func, inverse = self.sizes[length]
@@ -78,7 +78,7 @@ class KeccakFunctionManager:
             self.size_values[length].append(keccak)
             constraints.append(func(data) == keccak)
             constraints.append(flag_var)
-            return func(data), constraints
+            return keccak, constraints
 
         if simplify(func(data)) not in global_state.topo_keys:
             self.keccak_parent[simplify(func(data))] = data

@@ -1001,9 +1001,7 @@ class Instruction:
             # length is 0; this only matters for input of the BitVecFuncVal
             data = symbol_factory.BitVecVal(0, 1)
 
-        result, constraints = keccak_function_manager.create_keccak(
-            data, length, global_state
-        )
+        result, constraints = keccak_function_manager.create_keccak(data, global_state)
         state.stack.append(result)
         state.constraints += constraints
 

@@ -30,7 +30,7 @@ class Constraints(list):
         super(Constraints, self).__init__(constraint_list)
         self._default_timeout = 100
         self._is_possible = is_possible
-        self.weighted = []    # type: List[Bool]
+        self.weighted = []  # type: List[Bool]
 
     @property
     def is_possible(self) -> bool:
