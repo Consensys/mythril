@@ -138,7 +138,7 @@ class _SmtSymbolFactory(SymbolFactory[SMTBool, BitVec]):
         return SMTBool(raw, annotations)
 
     @staticmethod
-    def BoolSym(name: str, annotations: Annotations = None) -> T:
+    def BoolSym(name: str, annotations: Annotations = None) -> SMTBool:
         """
         Creates a Bool with concrete value
         :param name: The name of the Bool variable

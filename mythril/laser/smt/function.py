@@ -22,4 +22,4 @@ class Function:
         """Function accessor, item can be symbolic."""
         return BitVec(
             cast(z3.BitVecRef, self.raw(item.raw)), annotations=item.annotations
-        )  # type: ignore
+        )

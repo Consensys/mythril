@@ -100,7 +100,7 @@ class KeccakFunctionManager:
             URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
         f_cond = copy(condition)
-        flag_condition = False
+        flag_condition = symbol_factory.Bool(False)
         total_keys = global_state.total_topo_keys
         for val in self.size_values[length]:
             if hash(simplify(func(data))) != hash(simplify(val)) and val in total_keys:
