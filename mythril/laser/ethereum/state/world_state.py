@@ -1,7 +1,7 @@
 """This module contains a representation of the EVM's world state."""
 from copy import copy
 from random import randint
-from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
+from typing import Dict, List, Iterator, Optional, Set, TYPE_CHECKING
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
@@ -32,15 +32,16 @@ class WorldState:
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
-        self.topo_keys = []
-        self.old_topo_keys = []
+        self.topo_keys = []  # type: List[BitVec]
+        self.old_topo_keys = set()  # type: Set[BitVec]
 
     @property
     def accounts(self):
         return self._accounts
 
     def reset_topo_keys(self):
-        self.old_topo_keys += self.topo_keys
+        for t in self.topo_keys:
+            self.old_topo_keys.add(t)
         self.topo_keys = []
 
     def __getitem__(self, item: BitVec) -> Account:

@@ -80,7 +80,10 @@ class GlobalState:
 
     @property
     def total_topo_keys(self):
-        return self.world_state.topo_keys + self.world_state.old_topo_keys
+        ns = copy(self.world_state.old_topo_keys)
+        for t in self.world_state.topo_keys:
+            ns.add(t)
+        return ns
 
     @property
     def accounts(self) -> Dict:

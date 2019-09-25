@@ -43,6 +43,7 @@ from mythril.laser.smt import (
     Implies,
     Not,
 )
+from random import randint
 
 ACTOR_ADDRESSES = [
     symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
@@ -425,22 +426,8 @@ class LaserEVM:
     def concretize_keccak(self, global_state, gs):
         sender = global_state.environment.sender
         model_tuples = []
-
         for actor in ACTOR_ADDRESSES:
-            try:
-                model_tuples.append(
-                    [
-                        get_model(
-                            constraints=global_state.mstate.constraints
-                            + [sender == actor]
-                        ),
-                        And(sender == actor),
-                        actor,
-                    ]
-                )
-            except UnsatError:
-                model_tuples.append((None, False, actor))
-        from random import randint
+            model_tuples.append([True, sender == actor, actor])
 
         stored_vals = {}
         var_conds = True
@@ -548,7 +535,6 @@ class LaserEVM:
             deleted_constraints = False
 
         new_condition = simplify(new_condition)
-
         return new_condition, deleted_constraints, var_conds, flag_weights
 
     def _end_message_call(

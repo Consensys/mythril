@@ -48,6 +48,7 @@ class KeccakFunctionManager:
         return keccak
 
     def create_keccak(self, data: BitVec, length: int, global_state):
+
         length = length * 8
         data = simplify(data)
         if data.symbolic and simplify(data) not in global_state.topo_keys:
@@ -100,11 +101,9 @@ class KeccakFunctionManager:
         )
         f_cond = copy(condition)
         flag_condition = False
+        total_keys = global_state.total_topo_keys
         for val in self.size_values[length]:
-            if (
-                hash(simplify(func(data))) != hash(simplify(val))
-                and val in global_state.total_topo_keys
-            ):
+            if hash(simplify(func(data))) != hash(simplify(val)) and val in total_keys:
                 prev_flag_var = symbol_factory.BoolSym(
                     "{}_flag".format(hash(simplify(val)))
                 )

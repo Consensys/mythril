@@ -924,7 +924,7 @@ class Instruction:
             if isinstance(op0, Expression):
                 op0 = simplify(op0)
             state.stack.append(
-                symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
+                symbol_factory.BitVecSym("KECCAC_mem[" + str(hash(op0)) + "]", 256)
             )
             gas_tuple = cast(Tuple, OPCODE_GAS["SHA3"])
             state.min_gas_used += gas_tuple[0]
@@ -948,6 +948,7 @@ class Instruction:
         else:
             # length is 0; this only matters for input of the BitVecFuncVal
             data = symbol_factory.BitVecVal(0, 1)
+
         result, constraints = keccak_function_manager.create_keccak(
             data, length, global_state
         )
