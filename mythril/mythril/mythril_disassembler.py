@@ -63,7 +63,9 @@ class MythrilDisassembler:
             solc_binary = os.environ.get("SOLC") or "solc"
         else:
             solc_binary = util.solc_exists(version)
-            if solc_binary and solc_binary != util.solc_exists("default_ubuntu_version"):
+            if solc_binary and solc_binary != util.solc_exists(
+                "default_ubuntu_version"
+            ):
                 log.info("Given version is already installed")
             else:
                 try:

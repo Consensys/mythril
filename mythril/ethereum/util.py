@@ -130,13 +130,7 @@ def solc_exists(version):
         ]
     else:
         # we are using solc-x for the the 0.5 and higher
-        solc_binaries = [
-            os.path.join(
-                solcx.__path__[0],
-                "bin",
-                "solc-v" + version
-            )
-        ]
+        solc_binaries = [os.path.join(solcx.__path__[0], "bin", "solc-v" + version)]
 
     for solc_path in solc_binaries:
         if os.path.exists(solc_path):
