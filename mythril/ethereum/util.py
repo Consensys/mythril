@@ -3,6 +3,7 @@ solc integration."""
 import binascii
 import json
 import os
+import solcx
 from pathlib import Path
 from subprocess import PIPE, Popen
 
@@ -117,16 +118,31 @@ def solc_exists(version):
     :param version:
     :return:
     """
-    solc_binaries = [
-        os.path.join(
-            os.environ.get("HOME", str(Path.home())),
-            ".py-solc/solc-v" + version,
-            "bin/solc",
-        )  # py-solc setup
-    ]
-    if version.startswith("0.5"):
-        # Temporary fix to support v0.5.x with Ubuntu PPA setup
-        solc_binaries.append("/usr/bin/solc")
+
+    solc_binaries = []
+    if version.startswith("0.4"):
+        solc_binaries = [
+            os.path.join(
+                os.environ.get("HOME", str(Path.home())),
+                ".py-solc/solc-v" + version,
+                "bin/solc",
+            )  # py-solc setup
+        ]
+    else:
+        # we are using solc-x for the the 0.5 and higher
+        solc_binaries = [
+            os.path.join(
+                solcx.__path__[0],
+                "bin",
+                "solc-v" + version
+            )
+        ]
+
     for solc_path in solc_binaries:
         if os.path.exists(solc_path):
             return solc_path
+
+    # Last resort is to use the system installation
+    default_binary = "/usr/bin/solc"
+    if os.path.exists(default_binary):
+        return default_binary

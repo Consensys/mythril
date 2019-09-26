@@ -1,10 +1,10 @@
 import logging
 import re
 import solc
+import solcx
 import os
 
 from ethereum import utils
-from solc.exceptions import SolcError
 from typing import List, Tuple, Optional
 from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
@@ -63,15 +63,22 @@ class MythrilDisassembler:
             solc_binary = os.environ.get("SOLC") or "solc"
         else:
             solc_binary = util.solc_exists(version)
-            if solc_binary:
+            if solc_binary and solc_binary != util.solc_exists("default_ubuntu_version"):
                 log.info("Given version is already installed")
             else:
                 try:
-                    solc.install_solc("v" + version)
+                    if version.startswith("0.4"):
+                        solc.install_solc("v" + version)
+                    else:
+                        solcx.install_solc("v" + version)
                     solc_binary = util.solc_exists(version)
                     if not solc_binary:
-                        raise SolcError()
-                except SolcError:
+                        raise solc.exceptions.SolcError()
+                except solc.exceptions.SolcError:
+                    raise CriticalError(
+                        "There was an error when trying to install the specified solc version"
+                    )
+                except solcx.exceptions.SolcError:
                     raise CriticalError(
                         "There was an error when trying to install the specified solc version"
                     )

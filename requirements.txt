@@ -17,6 +17,7 @@ mock
 persistent>=4.2.0
 plyvel
 py-flags
+py-solc-x
 py-solc
 pytest>=3.6.0
 pytest-cov
