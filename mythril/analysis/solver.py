@@ -107,28 +107,6 @@ def get_transaction_sequence(
     except UnsatError:
         raise UnsatError
 
-    for keccak in keccak_function_manager.keys:
-        if isinstance(keccak, BitVec):
-            try:
-                f1, f2, vc = keccak_function_manager.flag_conditions[simplify(keccak)]
-                try:
-                    f1 = model.eval(f1.raw)
-                except:
-                    pass
-                try:
-                    f2 = model.eval(f2.raw)
-                except:
-                    pass
-                try:
-                    vc = model.eval(vc.raw)
-                except:
-                    pass
-
-            except:
-                f1, f2, vc = None, None, None
-            # print("KECCAK : {} \n\n VALUE: {}\n\n FLAG: {}\n\n F1: {}\n\n F2: {} \n\n VC: {}\n\n\n\n".format(keccak, model.eval(keccak.raw),
-            #      model.eval(symbol_factory.BoolSym("{}_flag".format(str(simplify(keccak)))).raw), f1, f2, vc)
-            #      )
     # Include creation account in initial state
     # Note: This contains the code, which should not exist until after the first tx
     initial_world_state = transaction_sequence[0].world_state

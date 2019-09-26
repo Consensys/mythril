@@ -380,15 +380,7 @@ class LaserEVM:
                     end_signal.global_state.world_state.node.constraints = (
                         global_state.mstate.constraints
                     )
-                    for constraint in keccak_function_manager.delete_constraints:
-                        try:
-                            end_signal.global_state.world_state.node.constraints.remove(
-                                constraint
-                            )
-                            deleted_constraints = And(constraint, deleted_constraints)
-                        except ValueError:
-                            # Constraint not related to this state
-                            continue
+                    self.delete_constraints(end_signal.global_state)
 
                     end_signal.global_state.world_state.node.constraints.append(
                         And(Or(constraints, deleted_constraints), v)
@@ -409,12 +401,7 @@ class LaserEVM:
                     And(Or(constraints, deleted_constraints), v)
                 )
                 global_state.mstate.constraints.weighted += w
-                for constraint in keccak_function_manager.delete_constraints:
-                    try:
-                        return_global_state.mstate.constraints.remove(constraint)
-                    except ValueError:
-                        # Constraint not related to this state
-                        continue
+                self.delete_constraints(return_global_state)
 
                 # Propogate codecall based annotations
                 if return_global_state.get_current_instruction()["opcode"] in (
@@ -440,11 +427,19 @@ class LaserEVM:
 
         return new_global_states, op_code
 
+    def delete_constraints(self, global_state):
+        for constraint in keccak_function_manager.delete_constraints:
+            try:
+                global_state.world_state.node.constraints.remove(constraint)
+            except ValueError:
+                # Constraint not related to this state
+                continue
+
     def concretize_keccak(self, global_state, gs):
         sender = global_state.environment.sender
         model_tuples = []
         for actor in ACTOR_ADDRESSES:
-            model_tuples.append([True, sender == actor, actor])
+            model_tuples.append([sender == actor, actor])
 
         stored_vals = {}
         var_conds = True
@@ -457,22 +452,24 @@ class LaserEVM:
             var_cond = False
             if keccak_function_manager.keccak_parent[key] is None:
                 for model_tuple in model_tuples:
-                    if model_tuple[0] is None:
-                        continue
                     if key.size() == 256:
                         concrete_input = symbol_factory.BitVecVal(
                             randint(0, 2 ** 160 - 1), 160
                         )
-                        func = Function("keccak256_{}".format(160), 160, 256)
-                        inverse = Function("keccak256_{}-1".format(160), 256, 160)
-                        keccak_function_manager.sizes[160] = (func, inverse)
-                        if 160 not in keccak_function_manager.size_values:
-                            keccak_function_manager.size_values[160] = []
+                        try:
+                            func, inverse = keccak_function_manager.get_function[160]
+                        except KeyError:
+                            func = Function("keccak256_{}".format(160), 160, 256)
+                            inverse = Function("keccak256_{}-1".format(160), 256, 160)
+                            keccak_function_manager.get_function[160] = (func, inverse)
+                            keccak_function_manager.values_for_size[160] = []
                         concrete_val_i = keccak_function_manager.find_keccak(
                             concrete_input
                         )
                         keccak_function_manager.value_inverse[concrete_val_i] = key
-                        keccak_function_manager.size_values[160].append(concrete_val_i)
+                        keccak_function_manager.values_for_size[160].append(
+                            concrete_val_i
+                        )
                         gs.topo_keys.append(concrete_val_i)
                         hash_cond = And(
                             hash_cond,
@@ -487,32 +484,30 @@ class LaserEVM:
                             concrete_val_i, key.size()
                         )
                         var_cond = Or(var_cond, key == concrete_val_i)
-                    model_tuple[1] = And(model_tuple[1], key == concrete_val_i)
+                    model_tuple[0] = And(model_tuple[0], key == concrete_val_i)
                     if key not in stored_vals:
                         stored_vals[key] = {}
-                    stored_vals[key][model_tuple[2]] = concrete_val_i
+                    stored_vals[key][model_tuple[1]] = concrete_val_i
             else:
                 parent = keccak_function_manager.keccak_parent[key]
                 if parent.size() == 512:
                     parent1 = Extract(511, 256, parent)
                     parent2 = Extract(255, 0, parent)
                 for model_tuple in model_tuples:
-                    if model_tuple[0] is None:
-                        continue
                     if parent.size() == 512:
                         if parent1.symbolic:
-                            parent1 = stored_vals[parent1][model_tuple[2]]
+                            parent1 = stored_vals[parent1][model_tuple[1]]
                         if not isinstance(parent1, BitVec):
                             parent1 = BitVec(parent1)
                         concrete_parent = Concat(parent1, parent2)
                     else:
-                        concrete_parent = stored_vals[parent][model_tuple[2]]
+                        concrete_parent = stored_vals[parent][model_tuple[1]]
 
                     keccak_val = keccak_function_manager.find_keccak(concrete_parent)
                     if key not in stored_vals:
                         stored_vals[key] = {}
-                    stored_vals[key][model_tuple[2]] = keccak_val
-                    model_tuple[1] = And(model_tuple[1], key == keccak_val)
+                    stored_vals[key][model_tuple[1]] = keccak_val
+                    model_tuple[0] = And(model_tuple[0], key == keccak_val)
                     var_cond = Or(var_cond, key == keccak_val)
             try:
                 f1, f2, _ = keccak_function_manager.flag_conditions[simplify(key)]
@@ -523,21 +518,16 @@ class LaserEVM:
                     var_cond,
                 )
                 flag_weights.append(flag_var)
-            except KeyError as e:
+            except KeyError:
                 var_cond = And(
                     Or(And(flag_var, var_cond), Not(And(flag_var, var_cond))), hash_cond
                 )
                 flag_weights.append(flag_var)
             var_conds = And(var_conds, var_cond)
         new_condition = False
-        z3.set_option(
-            max_args=10000000,
-            max_lines=100000000,
-            max_depth=10000000,
-            max_visited=1000000,
-        )
+
         for model_tuple in model_tuples:
-            new_condition = Or(model_tuple[1], new_condition)
+            new_condition = Or(model_tuple[0], new_condition)
         constraints = global_state.mstate.constraints
         deleted_constraints = True
         for constraint in keccak_function_manager.delete_constraints:
