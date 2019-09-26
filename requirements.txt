@@ -24,6 +24,7 @@ pytest-cov
 pytest_mock
 requests>=2.22.0
 rlp>=1.0.1
+semantic_version==2.8.1
 transaction>=2.2.1
 z3-solver>=4.8.5.0
 pysha3
