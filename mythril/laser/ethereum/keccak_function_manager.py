@@ -1,5 +1,3 @@
-from random import randint
-
 from copy import copy
 from ethereum import utils
 from mythril.laser.smt import (
@@ -13,8 +11,6 @@ from mythril.laser.smt import (
     Or,
     simplify,
     Extract,
-    Implies,
-    Not,
 )
 
 TOTAL_PARTS = 10 ** 40

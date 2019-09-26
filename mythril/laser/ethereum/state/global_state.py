@@ -31,7 +31,6 @@ class GlobalState:
         transaction_stack=None,
         last_return_data=None,
         annotations=None,
-        keccak_topo_list=None,
     ) -> None:
         """Constructor for GlobalState.
 

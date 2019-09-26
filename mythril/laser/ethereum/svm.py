@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
-from typing import Callable, Dict, DefaultDict, List, Tuple, Union, Optional
+from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 import z3
 
 from mythril.analysis.potential_issues import check_potential_issues
@@ -25,7 +25,6 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
-from mythril.analysis.solver import get_model, UnsatError
 
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
@@ -38,13 +37,10 @@ from mythril.laser.smt import (
     symbol_factory,
     And,
     Or,
-    BitVecFunc,
     BitVec,
     Extract,
     simplify,
-    is_true,
     Concat,
-    Implies,
     Not,
 )
 from random import randint
