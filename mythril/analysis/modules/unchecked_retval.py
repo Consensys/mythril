@@ -116,13 +116,9 @@ class UncheckedRetvalModule(DetectionModule):
             assert state.environment.code.instruction_list[state.mstate.pc - 1][
                 "opcode"
             ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
-            retval = state.mstate.stack[-1]
-            # Use Typed Dict after release of mypy 0.670 and remove type ignore
+            return_value = state.mstate.stack[-1]
             retvals.append(
-                {  # type: ignore
-                    "address": state.instruction["address"] - 1,
-                    "retval": retval,
-                }
+                {"address": state.instruction["address"] - 1, "retval": return_value}
             )
 
         return []
