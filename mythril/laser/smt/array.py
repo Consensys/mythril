@@ -8,7 +8,8 @@ default values over a certain range.
 from typing import cast
 import z3
 
-from mythril.laser.smt.bitvec import BitVec, If
+from mythril.laser.smt.bitvec import BitVec
+from mythril.laser.smt.bitvec_helper import If
 from mythril.laser.smt.bool import Bool
 
 

@@ -84,10 +84,8 @@ def get_function_info(
     # Append with missing 0s at the beginning
     function_hash = "0x" + instruction_list[index]["argument"][2:].rjust(8, "0")
     function_names = signature_database.get(function_hash)
-    if len(function_names) > 1:
-        # In this case there was an ambiguous result
-        function_name = "[{}] (ambiguous)".format(", ".join(function_names))
-    elif len(function_names) == 1:
+
+    if len(function_names) > 0:
         function_name = function_names[0]
     else:
         function_name = "_function_" + function_hash

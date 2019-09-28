@@ -4,19 +4,20 @@ parameters for the new global state."""
 
 import logging
 import re
-from typing import Union, List, cast, Callable
+from typing import Union, List, cast, Callable, Optional
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.gas import OPCODE_GAS
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.calldata import (
     BaseCalldata,
     SymbolicCalldata,
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec
+from mythril.laser.smt import BitVec, is_true
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 
@@ -49,7 +50,11 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-    if int(callee_address, 16) >= 5 or int(callee_address, 16) == 0:
+    if (
+        isinstance(callee_address, BitVec)
+        or int(callee_address, 16) > PRECOMPILE_COUNT
+        or int(callee_address, 16) == 0
+    ):
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
@@ -84,11 +89,11 @@ def get_callee_address(
     except TypeError:
         log.debug("Symbolic call encountered")
 
-        match = re.search(r"storage_(\d+)", str(simplify(symbolic_to_address)))
+        match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
         log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
-            raise ValueError()
+            return symbolic_to_address
 
         index = int(match.group(1))
         log.debug("Dynamic contract address at storage index {}".format(index))
@@ -100,8 +105,7 @@ def get_callee_address(
             )
         # TODO: verify whether this happens or not
         except:
-            log.debug("Error accessing contract storage.")
-            raise ValueError
+            return symbolic_to_address
 
         # testrpc simply returns the address, geth response is more elaborate.
         if not re.match(r"^0x[0-9a-f]{40}$", callee_address):
@@ -111,7 +115,9 @@ def get_callee_address(
 
 
 def get_callee_account(
-    global_state: GlobalState, callee_address: str, dynamic_loader: DynLoader
+    global_state: GlobalState,
+    callee_address: Union[str, BitVec],
+    dynamic_loader: DynLoader,
 ):
     """Gets the callees account from the global_state.
 
@@ -120,28 +126,31 @@ def get_callee_account(
     :param dynamic_loader: dynamic loader to use
     :return: Account belonging to callee
     """
-    environment = global_state.environment
-    accounts = global_state.accounts
+    if isinstance(callee_address, BitVec):
+        if callee_address.symbolic:
+            return Account(callee_address, balances=global_state.world_state.balances)
+        else:
+            callee_address = hex(callee_address.value)[2:]
 
     try:
         return global_state.accounts[int(callee_address, 16)]
     except KeyError:
         # We have a valid call address, but contract is not in the modules list
-        log.debug("Module with address " + callee_address + " not loaded.")
+        log.debug("Module with address %s not loaded.", callee_address)
 
     if dynamic_loader is None:
-        raise ValueError()
+        raise ValueError("dynamic_loader is None")
 
     log.debug("Attempting to load dependency")
 
     try:
         code = dynamic_loader.dynld(callee_address)
     except ValueError as error:
-        log.debug("Unable to execute dynamic loader because: {}".format(str(error)))
+        log.debug("Unable to execute dynamic loader because: %s", error)
         raise error
     if code is None:
         log.debug("No code returned, not a contract account?")
-        raise ValueError()
+        raise ValueError("No code returned")
     log.debug("Dependency loaded: " + callee_address)
 
     callee_account = Account(
@@ -151,7 +160,7 @@ def get_callee_account(
         dynamic_loader=dynamic_loader,
         balances=global_state.world_state.balances,
     )
-    accounts[callee_address] = callee_account
+    global_state.accounts[int(callee_address, 16)] = callee_account
 
     return callee_account
 
@@ -189,10 +198,10 @@ def get_call_data(
     )
 
     uses_entire_calldata = simplify(
-        memory_size - global_state.environment.calldata.calldatasize == 0
+        memory_size == global_state.environment.calldata.calldatasize
     )
 
-    if uses_entire_calldata is True:
+    if is_true(uses_entire_calldata):
         return global_state.environment.calldata
 
     try:
@@ -203,18 +212,24 @@ def get_call_data(
         ]
         return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
-        log.debug("Unsupported symbolic calldata offset")
+        log.debug(
+            "Unsupported symbolic calldata offset %s size %s", memory_start, memory_size
+        )
         return SymbolicCalldata(transaction_id)
 
 
 def native_call(
     global_state: GlobalState,
-    callee_address: str,
+    callee_address: Union[str, BitVec],
     call_data: BaseCalldata,
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
-) -> Union[List[GlobalState], None]:
-    if not 0 < int(callee_address, 16) < 5:
+) -> Optional[List[GlobalState]]:
+
+    if (
+        isinstance(callee_address, BitVec)
+        or not 0 < int(callee_address, 16) <= PRECOMPILE_COUNT
+    ):
         return None
 
     log.debug("Native contract called: " + callee_address)

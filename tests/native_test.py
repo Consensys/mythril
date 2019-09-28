@@ -76,6 +76,8 @@ class NativeTests(BaseTestCase):
     @staticmethod
     def runTest():
         """"""
+        # The solidity version (0.5.3 at the moment) should be kept in sync with
+        # pragma in ./tests/native_tests.sol
         disassembly = SolidityContract(
             "./tests/native_tests.sol",
             solc_binary=MythrilDisassembler._init_solc_binary("0.5.3"),

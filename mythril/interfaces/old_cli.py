@@ -44,9 +44,7 @@ def exit_with_error(format_, message):
                 "sourceType": "",
                 "sourceFormat": "",
                 "sourceList": [],
-                "meta": {
-                    "logs": [{"level": "error", "hidden": "true", "msg": message}]
-                },
+                "meta": {"logs": [{"level": "error", "hidden": True, "msg": message}]},
             }
         ]
         print(json.dumps(result))
@@ -214,6 +212,12 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         help="Maximum number of transactions issued by laser",
     )
     options.add_argument(
+        "--solver-timeout",
+        type=int,
+        default=10000,
+        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
+    )
+    options.add_argument(
         "--execution-timeout",
         type=int,
         default=86400,
@@ -225,7 +229,10 @@ def create_parser(parser: argparse.ArgumentParser) -> None:
         default=10,
         help="The amount of seconds to spend on " "the initial contract creation",
     )
-    options.add_argument("--solc-args", help="Extra arguments for solc")
+    options.add_argument(
+        "--solc-json",
+        help="Json for the optional 'settings' parameter of solc's standard-json input",
+    )
     options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
@@ -419,6 +426,7 @@ def execute_command(
         enable_iprof=args.enable_iprof,
         disable_dependency_pruning=args.disable_dependency_pruning,
         onchain_storage_access=not args.no_onchain_storage_access,
+        solver_timeout=args.solver_timeout,
     )
 
     if args.disassemble:
@@ -517,7 +525,7 @@ def parse_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> Non
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=args.solv,
-            solc_args=args.solc_args,
+            solc_settings_json=args.solc_json,
             enable_online_lookup=args.query_signature,
         )
         if args.truffle:

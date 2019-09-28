@@ -2,8 +2,9 @@
 
 This includes classes representing accounts and their storage.
 """
+import logging
 from copy import copy, deepcopy
-from typing import Any, Dict, Union, Tuple, cast
+from typing import Any, Dict, Union, Tuple, Set, cast
 
 
 from mythril.laser.smt import (
@@ -18,6 +19,28 @@ from mythril.laser.smt import (
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
+
+log = logging.getLogger(__name__)
+
+
+class StorageRegion:
+    def __getitem__(self, item):
+        raise NotImplementedError
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError
+
+
+class ArrayStorageRegion(StorageRegion):
+    """ An ArrayStorageRegion is a storage region that leverages smt array theory to resolve expressions"""
+
+    pass
+
+
+class IteStorageRegion(StorageRegion):
+    """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
+
+    pass
 
 
 class Storage:
@@ -37,6 +60,7 @@ class Storage:
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
         self.dynld = dynamic_loader
+        self.storage_keys_loaded = set()  # type: Set[int]
         self.address = address
 
     @staticmethod
@@ -51,17 +75,18 @@ class Storage:
     def __getitem__(self, item: BitVec) -> BitVec:
         storage, is_keccak_storage = self._get_corresponding_storage(item)
         if is_keccak_storage:
-            item = self._sanitize(cast(BitVecFunc, item).input_)
-        value = storage[item]
+            sanitized_item = self._sanitize(cast(BitVecFunc, item).input_)
+        else:
+            sanitized_item = item
         if (
-            value.value == 0
-            and self.address
-            and item.symbolic is False
+            self.address
             and self.address.value != 0
+            and item.symbolic is False
+            and int(item.value) not in self.storage_keys_loaded
             and (self.dynld and self.dynld.storage_loading)
         ):
             try:
-                storage[item] = symbol_factory.BitVecVal(
+                storage[sanitized_item] = symbol_factory.BitVecVal(
                     int(
                         self.dynld.read_storage(
                             contract_address="0x{:040X}".format(self.address.value),
@@ -71,12 +96,12 @@ class Storage:
                     ),
                     256,
                 )
-                self.printable_storage[item] = storage[item]
-                return storage[item]
-            except ValueError:
-                pass
+                self.storage_keys_loaded.add(int(item.value))
+                self.printable_storage[item] = storage[sanitized_item]
+            except ValueError as e:
+                log.debug("Couldn't read storage at %s: %s", item, e)
 
-        return simplify(storage[item])
+        return simplify(storage[sanitized_item])
 
     @staticmethod
     def get_map_index(key: BitVec) -> BitVec:
@@ -113,15 +138,18 @@ class Storage:
         if is_keccak_storage:
             key = self._sanitize(key.input_)
         storage[key] = value
+        if key.symbolic is False:
+            self.storage_keys_loaded.add(int(key.value))
 
-    def __deepcopy__(self, memodict={}):
+    def __deepcopy__(self, memodict=dict()):
         concrete = isinstance(self._standard_storage, K)
         storage = Storage(
             concrete=concrete, address=self.address, dynamic_loader=self.dynld
         )
         storage._standard_storage = deepcopy(self._standard_storage)
         storage._map_storage = deepcopy(self._map_storage)
-        storage.print_storage = copy(self.printable_storage)
+        storage.printable_storage = copy(self.printable_storage)
+        storage.storage_keys_loaded = copy(self.storage_keys_loaded)
         return storage
 
     def __str__(self) -> str:

@@ -1,10 +1,10 @@
 import logging
 import re
 import solc
+import solcx
 import os
 
 from ethereum import utils
-from solc.exceptions import SolcError
 from typing import List, Tuple, Optional
 from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
@@ -30,11 +30,11 @@ class MythrilDisassembler:
         self,
         eth: Optional[EthJsonRpc] = None,
         solc_version: str = None,
-        solc_args: str = None,
+        solc_settings_json: str = None,
         enable_online_lookup: bool = False,
     ) -> None:
         self.solc_binary = self._init_solc_binary(solc_version)
-        self.solc_args = solc_args
+        self.solc_settings_json = solc_settings_json
         self.eth = eth
         self.enable_online_lookup = enable_online_lookup
         self.sigs = signatures.SignatureDB(enable_online_lookup=enable_online_lookup)
@@ -63,15 +63,24 @@ class MythrilDisassembler:
             solc_binary = os.environ.get("SOLC") or "solc"
         else:
             solc_binary = util.solc_exists(version)
-            if solc_binary:
+            if solc_binary and solc_binary != util.solc_exists(
+                "default_ubuntu_version"
+            ):
                 log.info("Given version is already installed")
             else:
                 try:
-                    solc.install_solc("v" + version)
+                    if version.startswith("0.4"):
+                        solc.install_solc("v" + version)
+                    else:
+                        solcx.install_solc("v" + version)
                     solc_binary = util.solc_exists(version)
                     if not solc_binary:
-                        raise SolcError()
-                except SolcError:
+                        raise solc.exceptions.SolcError()
+                except solc.exceptions.SolcError:
+                    raise CriticalError(
+                        "There was an error when trying to install the specified solc version"
+                    )
+                except solcx.exceptions.SolcError:
                     raise CriticalError(
                         "There was an error when trying to install the specified solc version"
                     )
@@ -163,13 +172,15 @@ class MythrilDisassembler:
             try:
                 # import signatures from solidity source
                 self.sigs.import_solidity_file(
-                    file, solc_binary=self.solc_binary, solc_args=self.solc_args
+                    file,
+                    solc_binary=self.solc_binary,
+                    solc_settings_json=self.solc_settings_json,
                 )
                 if contract_name is not None:
                     contract = SolidityContract(
                         input_file=file,
                         name=contract_name,
-                        solc_args=self.solc_args,
+                        solc_settings_json=self.solc_settings_json,
                         solc_binary=self.solc_binary,
                     )
                     self.contracts.append(contract)
@@ -177,7 +188,7 @@ class MythrilDisassembler:
                 else:
                     for contract in get_contracts_from_file(
                         input_file=file,
-                        solc_args=self.solc_args,
+                        solc_settings_json=self.solc_settings_json,
                         solc_binary=self.solc_binary,
                     ):
                         self.contracts.append(contract)
@@ -186,7 +197,27 @@ class MythrilDisassembler:
             except FileNotFoundError:
                 raise CriticalError("Input file not found: " + file)
             except CompilerError as e:
-                raise CriticalError(e)
+                error_msg = str(e)
+                # Check if error is related to solidity version mismatch
+                if (
+                    "Error: Source file requires different compiler version"
+                    in error_msg
+                ):
+                    # Grab relevant line "pragma solidity <solv>...", excluding any comments
+                    solv_pragma_line = error_msg.split("\n")[-3].split("//")[0]
+                    # Grab solidity version from relevant line
+                    solv_match = re.findall(r"[0-9]+\.[0-9]+\.[0-9]+", solv_pragma_line)
+                    error_suggestion = (
+                        "<version_number>" if len(solv_match) != 1 else solv_match[0]
+                    )
+                    error_msg = (
+                        error_msg
+                        + '\nSolidityVersionMismatch: Try adding the option "--solv '
+                        + error_suggestion
+                        + '"\n'
+                    )
+
+                raise CriticalError(error_msg)
             except NoContractFoundError:
                 log.error(
                     "The file " + file + " does not contain a compilable contract."

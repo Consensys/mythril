@@ -3,6 +3,7 @@ modules."""
 
 import logging
 from typing import List, Set
+
 from mythril.analysis.report import Issue
 
 log = logging.getLogger(__name__)
@@ -34,21 +35,14 @@ class DetectionModule:
                 self.name,
             )
         self.entrypoint = entrypoint
-        self._issues = []  # type: List[Issue]
-        self._cache = set()  # type: Set[int]
-
-    @property
-    def issues(self):
-        """
-        Returns the issues
-        """
-        return self._issues
+        self.issues = []  # type: List[Issue]
+        self.cache = set()  # type: Set[int]
 
     def reset_module(self):
         """
         Resets issues
         """
-        self._issues = []
+        self.issues = []
 
     def execute(self, statespace) -> None:
         """The entry point for execution, which is being called by Mythril.

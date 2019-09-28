@@ -7,6 +7,7 @@ from mythril.analysis.swc_data import DOS_WITH_BLOCK_GAS_LIMIT
 from mythril.analysis.report import Issue
 from mythril.analysis.modules.base import DetectionModule
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
+from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
@@ -55,7 +56,7 @@ class DosModule(DetectionModule):
         :return:
         """
         issues = self._analyze_state(state)
-        self._issues.extend(issues)
+        self.issues.extend(issues)
 
     def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
@@ -90,7 +91,7 @@ class DosModule(DetectionModule):
             else:
                 annotation.jump_targets[target] = 1
 
-            if annotation.jump_targets[target] > 2:
+            if annotation.jump_targets[target] > min(2, analysis_args.loop_bound - 1):
                 annotation.loop_start = address
 
         elif annotation.loop_start is not None:

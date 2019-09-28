@@ -44,23 +44,28 @@ class SourceCodeInfo:
         self.solc_mapping = mapping
 
 
-def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
+def get_contracts_from_file(input_file, solc_settings_json=None, solc_binary="solc"):
     """
 
     :param input_file:
-    :param solc_args:
+    :param solc_settings_json:
     :param solc_binary:
     """
-    data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
+    data = get_solc_json(
+        input_file, solc_settings_json=solc_settings_json, solc_binary=solc_binary
+    )
 
     try:
-        for key, contract in data["contracts"].items():
-            filename, name = key.split(":")
-            if filename == input_file and len(contract["bin-runtime"]):
+        for contract_name in data["contracts"][input_file].keys():
+            if len(
+                data["contracts"][input_file][contract_name]["evm"]["deployedBytecode"][
+                    "object"
+                ]
+            ):
                 yield SolidityContract(
                     input_file=input_file,
-                    name=name,
-                    solc_args=solc_args,
+                    name=contract_name,
+                    solc_settings_json=solc_settings_json,
                     solc_binary=solc_binary,
                 )
     except KeyError:
@@ -70,16 +75,22 @@ def get_contracts_from_file(input_file, solc_args=None, solc_binary="solc"):
 class SolidityContract(EVMContract):
     """Representation of a Solidity contract."""
 
-    def __init__(self, input_file, name=None, solc_args=None, solc_binary="solc"):
-        data = get_solc_json(input_file, solc_args=solc_args, solc_binary=solc_binary)
+    def __init__(
+        self, input_file, name=None, solc_settings_json=None, solc_binary="solc"
+    ):
+        data = get_solc_json(
+            input_file, solc_settings_json=solc_settings_json, solc_binary=solc_binary
+        )
 
         self.solidity_files = []
+        self.solc_json = data
+        self.input_file = input_file
 
-        for filename in data["sourceList"]:
+        for filename, contract in data["sources"].items():
             with open(filename, "r", encoding="utf-8") as file:
                 code = file.read()
                 full_contract_src_maps = self.get_full_contract_src_maps(
-                    data["sources"][filename]["AST"]
+                    contract["ast"]
                 )
                 self.solidity_files.append(
                     SolidityFile(filename, code, full_contract_src_maps)
@@ -91,32 +102,28 @@ class SolidityContract(EVMContract):
         srcmap_constructor = []
         srcmap = []
         if name:
-            for key, contract in sorted(data["contracts"].items()):
-                filename, _name = key.split(":")
-
-                if (
-                    filename == input_file
-                    and name == _name
-                    and len(contract["bin-runtime"])
-                ):
-                    code = contract["bin-runtime"]
-                    creation_code = contract["bin"]
-                    srcmap = contract["srcmap-runtime"].split(";")
-                    srcmap_constructor = contract["srcmap"].split(";")
-                    has_contract = True
-                    break
+            contract = data["contracts"][input_file][name]
+            if len(contract["evm"]["deployedBytecode"]["object"]):
+                code = contract["evm"]["deployedBytecode"]["object"]
+                creation_code = contract["evm"]["bytecode"]["object"]
+                srcmap = contract["evm"]["deployedBytecode"]["sourceMap"].split(";")
+                srcmap_constructor = contract["evm"]["bytecode"]["sourceMap"].split(";")
+                has_contract = True
 
         # If no contract name is specified, get the last bytecode entry for the input file
 
         else:
-            for key, contract in sorted(data["contracts"].items()):
-                filename, name = key.split(":")
-
-                if filename == input_file and len(contract["bin-runtime"]):
-                    code = contract["bin-runtime"]
-                    creation_code = contract["bin"]
-                    srcmap = contract["srcmap-runtime"].split(";")
-                    srcmap_constructor = contract["srcmap"].split(";")
+            for contract_name, contract in sorted(
+                data["contracts"][input_file].items()
+            ):
+                if len(contract["evm"]["deployedBytecode"]["object"]):
+                    name = contract_name
+                    code = contract["evm"]["deployedBytecode"]["object"]
+                    creation_code = contract["evm"]["bytecode"]["object"]
+                    srcmap = contract["evm"]["deployedBytecode"]["sourceMap"].split(";")
+                    srcmap_constructor = contract["evm"]["bytecode"]["sourceMap"].split(
+                        ";"
+                    )
                     has_contract = True
 
         if not has_contract:
@@ -139,8 +146,8 @@ class SolidityContract(EVMContract):
         :return: The source maps
         """
         source_maps = set()
-        for child in ast["children"]:
-            if "contractKind" in child["attributes"]:
+        for child in ast["nodes"]:
+            if child.get("contractKind"):
                 source_maps.add(child["src"])
         return source_maps
 

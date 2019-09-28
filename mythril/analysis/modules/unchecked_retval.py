@@ -55,12 +55,12 @@ class UncheckedRetvalModule(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self._cache:
+        if state.get_current_instruction()["address"] in self.cache:
             return
         issues = self._analyze_state(state)
         for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+            self.cache.add(issue.address)
+        self.issues.extend(issues)
 
     def _analyze_state(self, state: GlobalState) -> list:
         instruction = state.get_current_instruction()
@@ -116,13 +116,9 @@ class UncheckedRetvalModule(DetectionModule):
             assert state.environment.code.instruction_list[state.mstate.pc - 1][
                 "opcode"
             ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
-            retval = state.mstate.stack[-1]
-            # Use Typed Dict after release of mypy 0.670 and remove type ignore
+            return_value = state.mstate.stack[-1]
             retvals.append(
-                {  # type: ignore
-                    "address": state.instruction["address"] - 1,
-                    "retval": retval,
-                }
+                {"address": state.instruction["address"] - 1, "retval": return_value}
             )
 
         return []
