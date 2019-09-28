@@ -380,7 +380,7 @@ class LaserEVM:
                     end_signal.global_state.world_state.node.constraints = (
                         global_state.mstate.constraints
                     )
-                    self.delete_constraints(end_signal.global_state)
+                    self.delete_constraints(end_signal.global_state.node.constraints)
 
                     end_signal.global_state.world_state.node.constraints.append(
                         And(Or(constraints, deleted_constraints), v)
@@ -401,7 +401,7 @@ class LaserEVM:
                     And(Or(constraints, deleted_constraints), v)
                 )
                 global_state.mstate.constraints.weighted += w
-                self.delete_constraints(return_global_state)
+                self.delete_constraints(return_global_state.mstate.constraints)
 
                 # Propogate codecall based annotations
                 if return_global_state.get_current_instruction()["opcode"] in (
@@ -427,10 +427,10 @@ class LaserEVM:
 
         return new_global_states, op_code
 
-    def delete_constraints(self, global_state):
+    def delete_constraints(self, constraints):
         for constraint in keccak_function_manager.delete_constraints:
             try:
-                global_state.world_state.node.constraints.remove(constraint)
+                constraints.remove(constraint)
             except ValueError:
                 # Constraint not related to this state
                 continue
@@ -497,8 +497,9 @@ class LaserEVM:
                     if parent.size() == 512:
                         if parent1.symbolic:
                             parent1 = stored_vals[parent1][model_tuple[1]]
-                        if not isinstance(parent1, BitVec):
-                            parent1 = BitVec(parent1)
+                        if parent2.symbolic:
+                            parent2 = stored_vals[parent2][model_tuple[1]]
+
                         concrete_parent = Concat(parent1, parent2)
                     else:
                         concrete_parent = stored_vals[parent][model_tuple[1]]
