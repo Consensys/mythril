@@ -26,26 +26,35 @@ class StateMerge(LaserPlugin):
             if len(open_states) == 0:
                 return
 
-            merged_state = open_states[0]
             n_states = len(open_states) - 1
-
-            for i in range(0, n_states):
-
-                other_state = open_states.pop(-1)
-                self.merge_states(merged_state, 0, other_state, i)
+            new_states = []
+            i = 0
+            while i < n_states:
+                if self.check_merge_condition(open_states[i], open_states[i + 1]):
+                    new_states.append(
+                        self.merge_states(open_states[i], open_states[i + 1])
+                    )
+                    i += 2
+                    continue
+                else:
+                    new_states.append(open_states[i])
+                if i == n_states - 1:
+                    new_states.append(open_states[i - 1])
+                i += 1
+            logging.info(
+                "States reduced from {} to {}".format(n_states + 1, len(new_states))
+            )
+            svm.open_states = new_states
 
     @staticmethod
-    def merge_states(state1: WorldState, i1, state2: WorldState, i2):
+    def check_merge_condition(state1: WorldState, state2: WorldState):
+        # TODO: Use a better condition in the PR
+        return state1.transaction_sequence == state2.transaction_sequence
 
-        ws_id = symbol_factory.BitVecSym("ws_id", 256)
-
-        state1.node.constraints = [
-            simplify(
-                (state1.node.constraints and ws_id == i1)
-                or (state2.node.constraints and ws_id == i2)
-            )
-        ]
-
+    @staticmethod
+    def merge_states(state1: WorldState, state2: WorldState) -> WorldState:
+        state1.merge_states(state2)
+        return state1
         # TODO Merge world state annotations
 
         # TODO Merge accounts

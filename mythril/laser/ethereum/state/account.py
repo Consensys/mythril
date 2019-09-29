@@ -11,11 +11,13 @@ from mythril.laser.smt import (
     Array,
     K,
     BitVec,
+    Bool,
     simplify,
     BitVecFunc,
     Extract,
     BaseArray,
     Concat,
+    If,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
@@ -224,6 +226,11 @@ class Account:
             else balance
         )
         self._balances[self.address] += balance
+
+    def merge_accounts(self, account: "Account", path_condition: Bool):
+        self.nonce = If(path_condition, self.nonce, account.nonce)
+        # self.storage.merge_storage(account.storage)
+        ## Merge Storage
 
     @property
     def as_dict(self) -> Dict:

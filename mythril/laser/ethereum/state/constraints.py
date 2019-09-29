@@ -1,7 +1,7 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 
-from mythril.laser.smt import Solver, Bool, symbol_factory, simplify
+from mythril.laser.smt import Solver, Bool, symbol_factory, simplify, And
 
 from typing import Iterable, List, Optional, Union
 from z3 import unsat
@@ -29,6 +29,12 @@ class Constraints(list):
         super(Constraints, self).__init__(constraint_list)
         self._default_timeout = 100
         self._is_possible = is_possible
+
+    def compress(self):
+        constraint = True
+        for c in self[:]:
+            constraint = And(constraint, c)
+        return constraint
 
     @property
     def is_possible(self) -> bool:

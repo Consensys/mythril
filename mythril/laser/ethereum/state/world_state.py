@@ -4,13 +4,29 @@ from random import randint
 from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
 
 from mythril.support.loader import DynLoader
-from mythril.laser.smt import symbol_factory, Array, BitVec
+from mythril.laser.smt import symbol_factory, Array, BitVec, If, Or
 from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.cfg import Node
+
+
+class Balances:
+    def __init__(self, name: str):
+        self.name = name
+        self.balance = Array(name, 256, 256)
+        self.balance_merge_list = []
+
+    def merge_balances(self, balances, path_condition):
+        self.balance_merge_list.append([balances, path_condition])
+
+    def __getitem__(self, item):
+        balance = self.balance[item]
+        for bs, pc in self.balance_merge_list:
+            balance = If(pc, bs[item], balance)
 
 
 class WorldState:
@@ -32,6 +48,20 @@ class WorldState:
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
+
+    def merge_states(self, state: "WorldState"):
+        self._annotations += state._annotations
+        c1 = self.node.constraints.compress()
+        c2 = state.node.constraints.compress()
+        self.node.constraints = Constraints([Or(c1, c2)])
+
+        for address, account in state.accounts.items():
+            if address not in self._accounts:
+                self.put_account(account)
+            else:
+                self._accounts[address].merge_accounts(account, c2)
+
+        ## Merge balances
 
     @property
     def accounts(self):
