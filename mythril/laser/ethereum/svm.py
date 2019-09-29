@@ -441,15 +441,15 @@ class LaserEVM:
         for actor in ACTOR_ADDRESSES:
             model_tuples.append([sender == actor, actor])
 
-        stored_vals = {}
-        var_conds = True
+        stored_vals: Dict[BitVec, Dict[BitVec, BitVec]] = {}
+        var_conds = symbol_factory.Bool(True)
         flag_weights = []
-        hash_cond = True
+        hash_cond = symbol_factory.Bool(True)
         for index, key in enumerate(global_state.topo_keys):
             if key.value:
                 continue
             flag_var = symbol_factory.BoolSym("{}_flag".format(hash(simplify(key))))
-            var_cond = False
+            var_cond = symbol_factory.Bool(False)
             if keccak_function_manager.keccak_parent[key] is None:
                 for model_tuple in model_tuples:
                     if key.size() == 256:
@@ -479,10 +479,10 @@ class LaserEVM:
                         )
                         var_cond = Or(var_cond, key == concrete_val_i)
                     else:
-                        concrete_val_i = randint(0, 2 ** key.size() - 1)
+                        concrete_val = randint(0, 2 ** key.size() - 1)
 
                         concrete_val_i = symbol_factory.BitVecVal(
-                            concrete_val_i, key.size()
+                            concrete_val, key.size()
                         )
                         var_cond = Or(var_cond, key == concrete_val_i)
                     model_tuple[0] = And(model_tuple[0], key == concrete_val_i)
@@ -517,19 +517,18 @@ class LaserEVM:
             try:
                 f1, f2 = keccak_function_manager.flag_conditions[simplify(key)]
                 var_cond = And(Or(var_cond, f2) == flag_var, f1 == Not(flag_var))
-                flag_weights.append(flag_var)
             except KeyError:
                 var_cond = And(
                     Or(And(flag_var, var_cond), Not(And(flag_var, var_cond))), hash_cond
                 )
-                flag_weights.append(flag_var)
+            flag_weights.append(flag_var)
             var_conds = And(var_conds, var_cond)
-        new_condition = False
+        new_condition = symbol_factory.Bool(False)
 
         for model_tuple in model_tuples:
             new_condition = Or(model_tuple[0], new_condition)
         constraints = global_state.mstate.constraints
-        deleted_constraints = True
+        deleted_constraints = symbol_factory.Bool(True)
         for constraint in keccak_function_manager.delete_constraints:
             try:
                 constraints.remove(constraint)
@@ -538,8 +537,8 @@ class LaserEVM:
                 # Constraint not related to this state
                 continue
 
-        if deleted_constraints is True:
-            deleted_constraints = False
+        if deleted_constraints.is_true:
+            deleted_constraints = symbol_factory.Bool(False)
         var_conds = And(var_conds, hash_cond)
         new_condition = simplify(new_condition)
         return new_condition, deleted_constraints, var_conds, flag_weights
