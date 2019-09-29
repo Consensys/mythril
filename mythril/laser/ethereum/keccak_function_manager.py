@@ -1,5 +1,6 @@
 from copy import copy
 from ethereum import utils
+from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import (
     BitVec,
     Bool,
@@ -14,6 +15,7 @@ from mythril.laser.smt import (
     simplify,
     Extract,
 )
+from typing import Dict, Tuple, Optional, List
 
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
@@ -22,14 +24,14 @@ INTERVAL_DIFFERENCE = 10 ** 30
 
 class KeccakFunctionManager:
     def __init__(self):
-        self.get_function = {}
-        self.interval_hook_for_size = {}
-        self.keccak_parent = {}
-        self.values_for_size = {}
-        self.delete_constraints = []
-        self.flag_conditions = {}
-        self.value_inverse = {}
-        self._index_counter = TOTAL_PARTS - 34534
+        self.get_function: Dict[int, Tuple[Function, Function]] = {}
+        self.interval_hook_for_size: Dict[int, int] = {}
+        self.keccak_parent: Dict[BitVec, Optional[BitVec]] = {}
+        self.values_for_size: Dict[int, List[BitVec]] = {}
+        self.delete_constraints: List[Bool] = []
+        self.flag_conditions: Dict[BitVec, Tuple[Bool, Bool]] = {}
+        self.value_inverse: Dict[BitVec, BitVec] = {}
+        self._index_counter: int = TOTAL_PARTS - 34534
 
     def find_keccak(self, data: BitVec) -> BitVec:
         keccak = symbol_factory.BitVecVal(
@@ -42,7 +44,7 @@ class KeccakFunctionManager:
         func, _ = self.get_function[data.size()]
         return keccak
 
-    def create_keccak(self, data: BitVec, global_state):
+    def create_keccak(self, data: BitVec, global_state: GlobalState):
 
         length = data.size()
         simplify(data)
@@ -124,7 +126,7 @@ class KeccakFunctionManager:
             condition = Or(condition, other_keccak_condion)
             flag_condition = Or(flag_condition, other_keccak_condion)
 
-        self.flag_conditions[func(data)] = (f_cond, flag_condition, None)
+        self.flag_conditions[func(data)] = (f_cond, flag_condition)
         self.delete_constraints.append(condition)
 
         constraints.append(condition)

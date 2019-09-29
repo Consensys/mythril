@@ -435,7 +435,7 @@ class LaserEVM:
                 # Constraint not related to this state
                 continue
 
-    def concretize_keccak(self, global_state, gs):
+    def concretize_keccak(self, global_state: GlobalState, gs: GlobalState):
         sender = global_state.environment.sender
         model_tuples = []
         for actor in ACTOR_ADDRESSES:
@@ -453,6 +453,7 @@ class LaserEVM:
             if keccak_function_manager.keccak_parent[key] is None:
                 for model_tuple in model_tuples:
                     if key.size() == 256:
+                        # TODO: Support other hash lengths
                         concrete_input = symbol_factory.BitVecVal(
                             randint(0, 2 ** 160 - 1), 160
                         )
@@ -490,6 +491,7 @@ class LaserEVM:
                     stored_vals[key][model_tuple[1]] = concrete_val_i
             else:
                 parent = keccak_function_manager.keccak_parent[key]
+                # TODO: Generalise this than for just solc
                 if parent.size() == 512:
                     parent1 = Extract(511, 256, parent)
                     parent2 = Extract(255, 0, parent)
@@ -502,8 +504,10 @@ class LaserEVM:
 
                         concrete_parent = Concat(parent1, parent2)
                     else:
-                        concrete_parent = stored_vals[parent][model_tuple[1]]
-
+                        try:
+                            concrete_parent = stored_vals[parent][model_tuple[1]]
+                        except KeyError:
+                            continue
                     keccak_val = keccak_function_manager.find_keccak(concrete_parent)
                     if key not in stored_vals:
                         stored_vals[key] = {}
@@ -511,13 +515,8 @@ class LaserEVM:
                     model_tuple[0] = And(model_tuple[0], key == keccak_val)
                     var_cond = Or(var_cond, key == keccak_val)
             try:
-                f1, f2, _ = keccak_function_manager.flag_conditions[simplify(key)]
+                f1, f2 = keccak_function_manager.flag_conditions[simplify(key)]
                 var_cond = And(Or(var_cond, f2) == flag_var, f1 == Not(flag_var))
-                keccak_function_manager.flag_conditions[simplify(key)] = (
-                    f1,
-                    f2,
-                    var_cond,
-                )
                 flag_weights.append(flag_var)
             except KeyError:
                 var_cond = And(

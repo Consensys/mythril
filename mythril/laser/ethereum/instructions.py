@@ -979,7 +979,7 @@ class Instruction:
             if isinstance(op0, Expression):
                 op0 = simplify(op0)
             state.stack.append(
-                symbol_factory.BitVecSym("KECCAC_mem[" + str(hash(op0)) + "]", 256)
+                symbol_factory.BitVecSym("KECCAC_mem[{}]".format(hash(op0)), 256)
             )
             gas_tuple = cast(Tuple, OPCODE_GAS["SHA3"])
             state.min_gas_used += gas_tuple[0]
