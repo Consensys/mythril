@@ -52,6 +52,14 @@ class GlobalState:
         self.last_return_data = last_return_data
         self._annotations = annotations or []
 
+    def add_annotations(self, annotations: List[StateAnnotation]):
+        """
+        Function used to add annotations to global state
+        :param annotations:
+        :return:
+        """
+        self._annotations += annotations
+
     def __copy__(self) -> "GlobalState":
         """
 
@@ -86,9 +94,12 @@ class GlobalState:
 
         :return:
         """
-
         instructions = self.environment.code.instruction_list
-        return instructions[self.mstate.pc]
+        try:
+            return instructions[self.mstate.pc]
+        except KeyError:
+            new_instruction = {"address": self.mstate.pc, "opcode": "STOP"}
+            return new_instruction
 
     @property
     def current_transaction(

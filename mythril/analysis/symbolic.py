@@ -14,6 +14,7 @@ from mythril.laser.ethereum.strategy.basic import (
     BasicSearchStrategy,
 )
 
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import (
     ATTACKER_ADDRESS,
     CREATOR_ADDRESS,
@@ -47,7 +48,7 @@ class SymExecWrapper:
         dynloader=None,
         max_depth=22,
         execution_timeout=None,
-        loop_bound=2,
+        loop_bound=3,
         create_timeout=None,
         transaction_count=2,
         modules=(),
@@ -55,6 +56,8 @@ class SymExecWrapper:
         enable_iprof=False,
         disable_dependency_pruning=False,
         run_analysis_modules=True,
+        enable_coverage_strategy=False,
+        custom_modules_directory="",
     ):
         """
 
@@ -92,7 +95,8 @@ class SymExecWrapper:
         )
 
         requires_statespace = (
-            compulsory_statespace or len(get_detection_modules("post", modules)) > 0
+            compulsory_statespace
+            or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
         )
         if not contract.creation_code:
             self.accounts = {hex(ATTACKER_ADDRESS): attacker_account}
@@ -101,6 +105,8 @@ class SymExecWrapper:
                 hex(CREATOR_ADDRESS): creator_account,
                 hex(ATTACKER_ADDRESS): attacker_account,
             }
+
+        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
 
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
@@ -111,6 +117,8 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             enable_iprof=enable_iprof,
+            enable_coverage_strategy=enable_coverage_strategy,
+            instruction_laser_plugin=instruction_laser_plugin,
         )
 
         if loop_bound is not None:
@@ -118,7 +126,7 @@ class SymExecWrapper:
 
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(PluginFactory.build_instruction_coverage_plugin())
+        plugin_loader.load(instruction_laser_plugin)
 
         if not disable_dependency_pruning:
             plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
@@ -130,11 +138,19 @@ class SymExecWrapper:
         if run_analysis_modules:
             self.laser.register_hooks(
                 hook_type="pre",
-                hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
+                hook_dict=get_detection_module_hooks(
+                    modules,
+                    hook_type="pre",
+                    custom_modules_directory=custom_modules_directory,
+                ),
             )
             self.laser.register_hooks(
                 hook_type="post",
-                hook_dict=get_detection_module_hooks(modules, hook_type="post"),
+                hook_dict=get_detection_module_hooks(
+                    modules,
+                    hook_type="post",
+                    custom_modules_directory=custom_modules_directory,
+                ),
             )
 
         if isinstance(contract, SolidityContract):
@@ -197,7 +213,10 @@ class SymExecWrapper:
                             get_variable(stack[-7]),
                         )
 
-                        if to.type == VarType.CONCRETE and to.val < 5:
+                        if (
+                            to.type == VarType.CONCRETE
+                            and 0 < to.val <= PRECOMPILE_COUNT
+                        ):
                             # ignore prebuilts
                             continue
 

@@ -3,14 +3,18 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
-from typing import Callable, Dict, DefaultDict, List, Tuple, Union
+from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
+from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
+from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
+    MutationAnnotation,
+)
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -55,6 +59,8 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         enable_iprof=False,
+        enable_coverage_strategy=False,
+        instruction_laser_plugin=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -73,6 +79,7 @@ class LaserEVM:
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 
+        # TODO: What about using a deque here?
         self.work_list = []  # type: List[GlobalState]
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
@@ -101,6 +108,13 @@ class LaserEVM:
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
         self.iprof = InstructionProfiler() if enable_iprof else None
+
+        if enable_coverage_strategy:
+            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
+                CoverageStrategy,
+            )
+
+            self.strategy = CoverageStrategy(self.strategy, instruction_laser_plugin)
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -200,7 +214,7 @@ class LaserEVM:
             for hook in self._stop_sym_trans_hooks:
                 hook()
 
-    def exec(self, create=False, track_gas=False) -> Union[List[GlobalState], None]:
+    def exec(self, create=False, track_gas=False) -> Optional[List[GlobalState]]:
         """
 
         :param create:
@@ -214,6 +228,7 @@ class LaserEVM:
                 and create
                 and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
             ):
+                log.debug("Hit create timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
             if (
@@ -222,6 +237,7 @@ class LaserEVM:
                 <= datetime.now()
                 and not create
             ):
+                log.debug("Hit execution timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
             try:
@@ -234,8 +250,7 @@ class LaserEVM:
                 state for state in new_states if state.mstate.constraints.is_possible
             ]
 
-            self.manage_cfg(op_code, new_states)
-
+            self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
             elif track_gas:
@@ -246,6 +261,7 @@ class LaserEVM:
 
     def _add_world_state(self, global_state: GlobalState):
         """ Stores the world_state of the passed global state in the open states"""
+
         for hook in self._add_world_state_hooks:
             try:
                 hook(global_state)
@@ -256,11 +272,11 @@ class LaserEVM:
 
     def execute_state(
         self, global_state: GlobalState
-    ) -> Tuple[List[GlobalState], Union[str, None]]:
-        """
+    ) -> Tuple[List[GlobalState], Optional[str]]:
+        """Execute a single instruction in global_state.
 
         :param global_state:
-        :return:
+        :return: A list of successor states.
         """
         # Execute hooks
         for hook in self._execute_state_hooks:
@@ -312,7 +328,11 @@ class LaserEVM:
                 global_state.transaction_stack
             ) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
-            new_global_state.mstate.constraints = global_state.mstate.constraints
+            new_global_state.mstate.constraints = (
+                start_signal.global_state.mstate.constraints
+            )
+
+            log.debug("Starting new transaction %s", start_signal.transaction)
 
             return [new_global_state], op_code
 
@@ -321,17 +341,34 @@ class LaserEVM:
                 -1
             ]
 
+            log.debug("Ending transaction %s.", transaction)
+
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
+                    check_potential_issues(global_state)
+
                     end_signal.global_state.world_state.node = global_state.node
                     self._add_world_state(end_signal.global_state)
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
+
+                # Propogate codecall based annotations
+                if return_global_state.get_current_instruction()["opcode"] in (
+                    "DELEGATECALL",
+                    "CALLCODE",
+                ):
+                    new_annotations = [
+                        annotation
+                        for annotation in global_state.get_annotations(
+                            MutationAnnotation
+                        )
+                    ]
+                    return_global_state.add_annotations(new_annotations)
 
                 new_global_states = self._end_message_call(
                     copy(return_global_state),
@@ -373,6 +410,15 @@ class LaserEVM:
             return_global_state.environment.active_account = global_state.accounts[
                 return_global_state.environment.active_account.address.value
             ]
+            if isinstance(
+                global_state.current_transaction, ContractCreationTransaction
+            ):
+                return_global_state.mstate.min_gas_used += (
+                    global_state.mstate.min_gas_used
+                )
+                return_global_state.mstate.max_gas_used += (
+                    global_state.mstate.max_gas_used
+                )
 
         # Execute the post instruction handler
         new_global_states = Instruction(
@@ -396,6 +442,7 @@ class LaserEVM:
             for state in new_states:
                 self._new_node_state(state)
         elif opcode == "JUMPI":
+            assert len(new_states) <= 2
             for state in new_states:
                 self._new_node_state(
                     state, JumpType.CONDITIONAL, state.mstate.constraints[-1]

@@ -70,7 +70,7 @@ class BaseCalldata:
             try:
                 current_index = (
                     start
-                    if isinstance(start, Expression)
+                    if isinstance(start, BitVec)
                     else symbol_factory.BitVecVal(start, 256)
                 )
                 parts = []

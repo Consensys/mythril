@@ -1,21 +1,14 @@
-from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
+from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
+    MutationAnnotation,
+)
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 from mythril.laser.smt import And, symbol_factory
-
-
-class MutationAnnotation(StateAnnotation):
-    """Mutation Annotation
-
-    This is the annotation used by the MutationPruner plugin to record mutations
-    """
-
-    pass
 
 
 class MutationPruner(LaserPlugin):
@@ -42,7 +35,11 @@ class MutationPruner(LaserPlugin):
         """
 
         @symbolic_vm.pre_hook("SSTORE")
-        def mutator_hook(global_state: GlobalState):
+        def sstore_mutator_hook(global_state: GlobalState):
+            global_state.annotate(MutationAnnotation())
+
+        @symbolic_vm.pre_hook("CALL")
+        def call_mutator_hook(global_state: GlobalState):
             global_state.annotate(MutationAnnotation())
 
         @symbolic_vm.laser_hook("add_world_state")
