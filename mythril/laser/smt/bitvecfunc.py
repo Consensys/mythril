@@ -3,7 +3,7 @@ from itertools import product
 from typing import Optional, Union, cast, Callable, List
 import z3
 
-from mythril.laser.smt.bitvec import BitVec, Annotations
+from mythril.laser.smt.bitvec import BitVec, Annotations, _padded_operation
 from mythril.laser.smt.bool import Or, Bool, And
 
 
@@ -109,7 +109,7 @@ def _comparison_helper(
             )
 
     return And(
-        Bool(cast(z3.BoolRef, operation(a.raw, b.raw)), annotations=union),
+        Bool(cast(z3.BoolRef, _padded_operation(a.raw, b.raw)), annotations=union),
         Bool(condition) if b.nested_functions else Bool(True),
         a.input_ == b.input_ if inputs_equal else a.input_ != b.input_,
     )
