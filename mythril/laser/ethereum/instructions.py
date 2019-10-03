@@ -626,7 +626,7 @@ class Instruction:
             s0 = util.get_concrete_int(s0)
             s1 = util.get_concrete_int(s1)
         except TypeError:
-            mstate.stack.append(s1)
+            mstate.stack.append(s1)  # TODO: push appropriate value to stack
             return [global_state]
 
         if s0 <= 31:
