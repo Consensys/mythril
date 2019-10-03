@@ -626,7 +626,10 @@ class Instruction:
             s0 = util.get_concrete_int(s0)
             s1 = util.get_concrete_int(s1)
         except TypeError:
-            mstate.stack.append(s1)  # TODO: push appropriate value to stack
+            log.debug("Unsupported symbolic argument for SIGNEXTEND")
+            mstate.stack.append(
+                global_state.new_bitvec("SIGNEXTEND({},{})".format(s0, hash(s1)), 256)
+            )
             return [global_state]
 
         if s0 <= 31:
