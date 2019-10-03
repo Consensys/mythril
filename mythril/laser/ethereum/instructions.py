@@ -628,7 +628,9 @@ class Instruction:
         except TypeError:
             log.debug("Unsupported symbolic argument for SIGNEXTEND")
             mstate.stack.append(
-                global_state.new_bitvec("SIGNEXTEND({},{})".format(s0, hash(s1)), 256)
+                global_state.new_bitvec(
+                    "SIGNEXTEND({},{})".format(hash(s0), hash(s1)), 256
+                )
             )
             return [global_state]
 
