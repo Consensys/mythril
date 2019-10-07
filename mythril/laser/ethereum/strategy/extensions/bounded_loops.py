@@ -70,7 +70,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
                 return state
 
             # create unique instruction identifier
-            key = "{}{}{}".format(
+            key = "{};{};{}".format(
                 cur_instr["opcode"], cur_instr["address"], state.mstate.prev_pc
             )
 
