@@ -9,7 +9,7 @@ from mythril.laser.smt.bitvecfunc import _arithmetic_helper as _func_arithmetic_
 from mythril.laser.smt.bitvecfunc import _comparison_helper as _func_comparison_helper
 
 Annotations = Set[Any]
-
+z3.set_option(max_args=10000000, max_lines=100000000, max_depth=10000000, max_visited=1000000)
 
 def _comparison_helper(
     a: BitVec, b: BitVec, operation: Callable, default_value: bool, inputs_equal: bool

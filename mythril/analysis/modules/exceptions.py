@@ -43,7 +43,7 @@ class ReachableExceptionsModule(DetectionModule):
         :param state:
         :return:
         """
-        log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
+        log.info("ASSERT_FAIL in function " + state.environment.active_function_name)
 
         try:
             address = state.get_current_instruction()["address"]
@@ -55,11 +55,10 @@ class ReachableExceptionsModule(DetectionModule):
                 "Note that explicit `assert()` should only be used to check invariants. "
                 "Use `require()` for regular input checking."
             )
-
+            print(state.mstate.constraints)
             transaction_sequence = solver.get_transaction_sequence(
                 state, state.mstate.constraints
             )
-
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
