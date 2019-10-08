@@ -14,7 +14,7 @@ class JumpdestCountAnnotation(StateAnnotation):
     """State annotation that counts the number of jumps per destination."""
 
     def __init__(self) -> None:
-        self._reached_count = {}  # type: Dict[int, int]
+        self._reached_count = {}  # type: Dict[str, int]
 
     def __copy__(self):
         result = JumpdestCountAnnotation()
@@ -64,22 +64,30 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             else:
                 annotation = annotations[0]
 
-            address = state.get_current_instruction()["address"]
+            cur_instr = state.get_current_instruction()
 
-            if address in annotation._reached_count:
-                annotation._reached_count[address] += 1
+            if cur_instr["opcode"].upper() != "JUMPDEST":
+                return state
+
+            # create unique instruction identifier
+            key = "{};{};{}".format(
+                cur_instr["opcode"], cur_instr["address"], state.mstate.prev_pc
+            )
+
+            if key in annotation._reached_count:
+                annotation._reached_count[key] += 1
             else:
-                annotation._reached_count[address] = 1
+                annotation._reached_count[key] = 1
 
             # The creation transaction gets a higher loop bound to give it a better chance of success.
             # TODO: There's probably a nicer way to do this
 
             if isinstance(
                 state.current_transaction, ContractCreationTransaction
-            ) and annotation._reached_count[address] < max(8, self.bound):
+            ) and annotation._reached_count[key] < max(8, self.bound):
                 return state
 
-            elif annotation._reached_count[address] > self.bound:
+            elif annotation._reached_count[key] > self.bound:
                 log.debug("Loop bound reached, skipping state")
                 continue
 
