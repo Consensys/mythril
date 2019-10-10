@@ -58,7 +58,7 @@ OPCODES = {
         GAS: (2, 2 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556
         STACK: (3, 0),
     },
-    "CODESIZE": {STACK: (2, 2), GAS: Z_OPERATOR_TUPLE},
+    "CODESIZE": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "CODECOPY": {
         GAS: (2, 2 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556,
         STACK: (3, 0),
