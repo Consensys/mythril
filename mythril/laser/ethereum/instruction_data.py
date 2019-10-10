@@ -216,3 +216,7 @@ def calculate_native_gas(size: int, contract: str):
 
 def get_opcode_gas(opcode: str) -> Tuple[int, int]:
     return OPCODES[opcode][GAS]
+
+
+def get_required_stack_elements(opcode: str) -> int:
+    return OPCODES[opcode][STACK][0]
