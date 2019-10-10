@@ -281,7 +281,7 @@ class LaserEVM:
             #  exceptional halt all changes should be discarded, and this world state would not provide us with a
             #  previously unseen world state
             log.debug("Encountered a VmException, ending path: `{}`".format(error_msg))
-            new_global_states = []
+            new_global_states = []    # type: List[GlobalState]
         else:
             # First execute the post hook for the transaction ending instruction
             self._execute_post_hook(op_code, [global_state])
