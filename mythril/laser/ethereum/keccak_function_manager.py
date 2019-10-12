@@ -1,23 +1,17 @@
-from copy import copy
 from ethereum import utils
 from random import randint
-from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import (
     BitVec,
-    Bool,
-    Expression,
     Function,
     URem,
     symbol_factory,
     ULE,
     And,
     ULT,
-    Or,
     simplify,
-    Extract,
 )
-from typing import Dict, Tuple, Optional, List
+from typing import Dict, Tuple
 
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
