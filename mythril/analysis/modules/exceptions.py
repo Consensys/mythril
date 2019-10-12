@@ -55,7 +55,6 @@ class ReachableExceptionsModule(DetectionModule):
                 "Note that explicit `assert()` should only be used to check invariants. "
                 "Use `require()` for regular input checking."
             )
-            print(state.mstate.constraints)
             transaction_sequence = solver.get_transaction_sequence(
                 state, state.mstate.constraints
             )

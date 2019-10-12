@@ -1,6 +1,8 @@
 from copy import copy
 from ethereum import utils
+from random import randint
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import (
     BitVec,
     Bool,
@@ -24,13 +26,9 @@ INTERVAL_DIFFERENCE = 10 ** 30
 
 class KeccakFunctionManager:
     def __init__(self):
-        self.get_function: Dict[int, Tuple[Function, Function]] = {}
+        self.store_function: Dict[int, Tuple[Function, Function]] = {}
         self.interval_hook_for_size: Dict[int, int] = {}
-        self.keccak_parent: Dict[BitVec, Optional[BitVec]] = {}
         self.values_for_size: Dict[int, List[BitVec]] = {}
-        self.delete_constraints: List[Bool] = []
-        self.flag_conditions: Dict[BitVec, Tuple[Bool, Bool]] = {}
-        self.value_inverse: Dict[BitVec, BitVec] = {}
         self._index_counter: int = TOTAL_PARTS - 34534
 
     def find_keccak(self, data: BitVec) -> BitVec:
@@ -41,49 +39,32 @@ class KeccakFunctionManager:
             ),
             256,
         )
-        func, _ = self.get_function[data.size()]
         return keccak
 
-    def create_keccak(self, data: BitVec, global_state: GlobalState):
-
-        length = data.size()
-        simplify(data)
-        if data.symbolic and data not in global_state.topo_keys:
-            # New keccak
-            if data.size() != 512:
-                self.keccak_parent[data] = None
-                global_state.topo_keys.append(data)
-            else:
-                # size of 512 usually means Concat(key, storage_slot_for_that_var)
-                # This is solidity specific stuff :(
-                p1 = simplify(Extract(511, 256, data))
-                if p1.symbolic and p1 not in global_state.topo_keys:
-                    global_state.topo_keys.append(p1)
-                    self.keccak_parent[p1] = None
-
-        constraints = []
+    def get_function(self, length: int) -> Tuple[Function, Function]:
         try:
-            func, inverse = self.get_function[length]
+            func, inverse = self.store_function[length]
         except KeyError:
             func = Function("keccak256_{}".format(length), length, 256)
             inverse = Function("keccak256_{}-1".format(length), 256, length)
-            self.get_function[length] = (func, inverse)
+            self.store_function[length] = (func, inverse)
             self.values_for_size[length] = []
-        flag_var = symbol_factory.BoolSym("{}_flag".format(hash(simplify(func(data)))))
+        return func, inverse
 
+    def create_keccak(self, data: BitVec):
+
+        length = data.size()
+        simplify(data)
+        constraints = Constraints()
+        func, inverse = self.get_function(length)
         constraints.append(inverse(func(data)) == data)
-
+        """
         if data.symbolic is False:
             keccak = self.find_keccak(data)
             self.values_for_size[length].append(keccak)
             constraints.append(func(data) == keccak)
-            constraints.append(flag_var)
             return keccak, constraints
-
-        if simplify(func(data)) not in global_state.topo_keys:
-            self.keccak_parent[simplify(func(data))] = data
-            global_state.topo_keys.append(simplify(func(data)))
-
+        """
         try:
             index = self.interval_hook_for_size[length]
         except KeyError:
@@ -99,44 +80,42 @@ class KeccakFunctionManager:
             ULT(func(data), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
-        f_cond = copy(condition)
-        flag_condition = symbol_factory.Bool(False)
-        total_keys = global_state.total_topo_keys
         for val in self.values_for_size[length]:
-            if (
-                hash(simplify(func(data))) == hash(simplify(val))
-                or val not in total_keys
-            ):
+            if hash(simplify(func(data))) == hash(simplify(val)):
                 continue
-
-            other_keccak_condion = And(
-                func(data) == val, inverse(func(data)) == inverse(val)
-            )
-            if val.value:
-                val_inverse = self.value_inverse[val]
-                flag_var2 = self.get_flag(val_inverse)
-
-                other_keccak_condion = And(other_keccak_condion, flag_var, flag_var2)
-            else:
-                iter_val_flag_var = self.get_flag(simplify(val))
-                other_keccak_condion = And(
-                    other_keccak_condion, iter_val_flag_var, flag_var
-                )
-
-            condition = Or(condition, other_keccak_condion)
-            flag_condition = Or(flag_condition, other_keccak_condion)
-
-        self.flag_conditions[func(data)] = (f_cond, flag_condition)
-        self.delete_constraints.append(condition)
+            condition = Or(condition, func(data) == val)
 
         constraints.append(condition)
-        if func(data) not in self.values_for_size[length]:
-            self.values_for_size[length].append(func(data))
-
+        # if func(data) not in self.values_for_size[length]:
+        #    self.values_for_size[length].append(func(data))
         return func(data), constraints
 
-    def get_flag(self, val: Expression) -> Bool:
-        return symbol_factory.BoolSym("{}_flag".format(hash(simplify(val))))
+    def get_new_cond(self, val, length: int):
+        new_func, new_inv = self.get_function(length)
+        random_number = symbol_factory.BitVecSym(
+            "randval_{}".format(randint(0, 10000)), length
+        )
+        cond = And(
+            new_func(random_number) == val,
+            new_inv(new_func(random_number)) == random_number,
+        )
+        try:
+            index = self.interval_hook_for_size[length]
+        except KeyError:
+            self.interval_hook_for_size[length] = self._index_counter
+            index = self._index_counter
+            self._index_counter -= INTERVAL_DIFFERENCE
+
+        lower_bound = index * PART
+        upper_bound = lower_bound + PART
+
+        cond = And(
+            cond,
+            ULE(symbol_factory.BitVecVal(lower_bound, 256), new_func(random_number)),
+            ULT(new_func(random_number), symbol_factory.BitVecVal(upper_bound, 256)),
+            URem(new_func(random_number), symbol_factory.BitVecVal(64, 256)) == 0,
+        )
+        return cond
 
 
 keccak_function_manager = KeccakFunctionManager()

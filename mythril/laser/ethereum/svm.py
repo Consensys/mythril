@@ -371,12 +371,17 @@ class LaserEVM:
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
+                    check_potential_issues(global_state)
+                    first_arg1 = transaction.call_data.get_word_at(4)
+                    global_state.node.constraints.weighted.append(
+                        keccak_function_manager.get_new_cond(first_arg1, 160)
+                    )
+
+                    end_signal.global_state.world_state.node = global_state.node
+                    """
                     constraints, deleted_constraints, v, w = self.concretize_keccak(
                         global_state, end_signal.global_state
                     )
-                    check_potential_issues(global_state)
-
-                    end_signal.global_state.world_state.node = global_state.node
                     end_signal.global_state.world_state.node.constraints = (
                         global_state.mstate.constraints
                     )
@@ -385,23 +390,25 @@ class LaserEVM:
                     end_signal.global_state.world_state.node.constraints.append(
                         And(Or(constraints, deleted_constraints), v)
                     )
-
+        
                     end_signal.global_state.world_state.node.constraints.weighted += w
-
+                    """
                     self._add_world_state(end_signal.global_state)
 
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
+                """
                 constraints, deleted_constraints, v, w = self.concretize_keccak(
                     global_state, end_signal.global_state
                 )
                 global_state.mstate.constraints.append(
                     And(Or(constraints, deleted_constraints), v)
                 )
-                global_state.mstate.constraints.weighted += w
-                self.delete_constraints(return_global_state.mstate.constraints)
+                """
+                # global_state.mstate.constraints.weighted += w
+                # self.delete_constraints(return_global_state.mstate.constraints)
 
                 # Propogate codecall based annotations
                 if return_global_state.get_current_instruction()["opcode"] in (
@@ -426,14 +433,6 @@ class LaserEVM:
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
-
-    def delete_constraints(self, constraints):
-        for constraint in keccak_function_manager.delete_constraints:
-            try:
-                constraints.remove(constraint)
-            except ValueError:
-                # Constraint not related to this state
-                continue
 
     def concretize_keccak(self, global_state: GlobalState, gs: GlobalState):
         sender = global_state.environment.sender

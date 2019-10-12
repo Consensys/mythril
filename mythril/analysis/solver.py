@@ -126,10 +126,24 @@ def get_transaction_sequence(
         ).as_long()
 
     concrete_initial_state = _get_concrete_state(initial_accounts, min_price_dict)
-
+    _replace_with_actual_sha(concrete_transactions, model)
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
 
     return steps
+
+
+def _replace_with_actual_sha(concrete_transactions, model):
+    for tx in concrete_transactions:
+        if "fffffff" not in tx["input"]:
+            continue
+        find_input = symbol_factory.BitVecVal(int(tx["input"][10:74], 16), 256)
+        _, inverse = keccak_function_manager.get_function(160)
+        input_ = symbol_factory.BitVecVal(
+            model.eval(inverse(find_input).raw).as_long(), 160
+        )
+        keccak = keccak_function_manager.find_keccak(input_)
+        tx["input"] = tx["input"].replace(tx["input"][10:74], hex(keccak.value)[2:])
+        print(find_input, input_, hex(keccak.value))
 
 
 def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
