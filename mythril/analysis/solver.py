@@ -143,7 +143,6 @@ def _replace_with_actual_sha(concrete_transactions, model):
         )
         keccak = keccak_function_manager.find_keccak(input_)
         tx["input"] = tx["input"].replace(tx["input"][10:74], hex(keccak.value)[2:])
-        print(find_input, input_, hex(keccak.value))
 
 
 def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
