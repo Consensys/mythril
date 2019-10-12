@@ -378,37 +378,12 @@ class LaserEVM:
                     )
 
                     end_signal.global_state.world_state.node = global_state.node
-                    """
-                    constraints, deleted_constraints, v, w = self.concretize_keccak(
-                        global_state, end_signal.global_state
-                    )
-                    end_signal.global_state.world_state.node.constraints = (
-                        global_state.mstate.constraints
-                    )
-                    self.delete_constraints(end_signal.global_state.node.constraints)
-
-                    end_signal.global_state.world_state.node.constraints.append(
-                        And(Or(constraints, deleted_constraints), v)
-                    )
-        
-                    end_signal.global_state.world_state.node.constraints.weighted += w
-                    """
                     self._add_world_state(end_signal.global_state)
 
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
-                """
-                constraints, deleted_constraints, v, w = self.concretize_keccak(
-                    global_state, end_signal.global_state
-                )
-                global_state.mstate.constraints.append(
-                    And(Or(constraints, deleted_constraints), v)
-                )
-                """
-                # global_state.mstate.constraints.weighted += w
-                # self.delete_constraints(return_global_state.mstate.constraints)
 
                 # Propogate codecall based annotations
                 if return_global_state.get_current_instruction()["opcode"] in (
@@ -433,114 +408,6 @@ class LaserEVM:
         self._execute_post_hook(op_code, new_global_states)
 
         return new_global_states, op_code
-
-    def concretize_keccak(self, global_state: GlobalState, gs: GlobalState):
-        sender = global_state.environment.sender
-        model_tuples = []
-        for actor in ACTOR_ADDRESSES:
-            model_tuples.append([sender == actor, actor])
-
-        stored_vals: Dict[BitVec, Dict[BitVec, BitVec]] = {}
-        var_conds = symbol_factory.Bool(True)
-        flag_weights = []
-        hash_cond = symbol_factory.Bool(True)
-        for index, key in enumerate(global_state.topo_keys):
-            if key.value:
-                continue
-            flag_var = symbol_factory.BoolSym("{}_flag".format(hash(simplify(key))))
-            var_cond = symbol_factory.Bool(False)
-            if keccak_function_manager.keccak_parent[key] is None:
-                for model_tuple in model_tuples:
-                    if key.size() == 256:
-                        # TODO: Support other hash lengths
-                        concrete_input = symbol_factory.BitVecVal(
-                            randint(0, 2 ** 160 - 1), 160
-                        )
-                        try:
-                            func, inverse = keccak_function_manager.get_function[160]
-                        except KeyError:
-                            func = Function("keccak256_{}".format(160), 160, 256)
-                            inverse = Function("keccak256_{}-1".format(160), 256, 160)
-                            keccak_function_manager.get_function[160] = (func, inverse)
-                            keccak_function_manager.values_for_size[160] = []
-                        concrete_val_i = keccak_function_manager.find_keccak(
-                            concrete_input
-                        )
-                        keccak_function_manager.value_inverse[concrete_val_i] = key
-                        keccak_function_manager.values_for_size[160].append(
-                            concrete_val_i
-                        )
-                        gs.topo_keys.append(concrete_val_i)
-                        hash_cond = And(
-                            hash_cond,
-                            func(concrete_input) == concrete_val_i,
-                            inverse(concrete_val_i) == concrete_input,
-                        )
-                        var_cond = Or(var_cond, key == concrete_val_i)
-                    else:
-                        concrete_val = randint(0, 2 ** key.size() - 1)
-
-                        concrete_val_i = symbol_factory.BitVecVal(
-                            concrete_val, key.size()
-                        )
-                        var_cond = Or(var_cond, key == concrete_val_i)
-                    model_tuple[0] = And(model_tuple[0], key == concrete_val_i)
-                    if key not in stored_vals:
-                        stored_vals[key] = {}
-                    stored_vals[key][model_tuple[1]] = concrete_val_i
-            else:
-                parent = keccak_function_manager.keccak_parent[key]
-                # TODO: Generalise this than for just solc
-                if parent.size() == 512:
-                    parent1 = Extract(511, 256, parent)
-                    parent2 = Extract(255, 0, parent)
-                for model_tuple in model_tuples:
-                    if parent.size() == 512:
-                        if parent1.symbolic:
-                            parent1 = stored_vals[parent1][model_tuple[1]]
-                        if parent2.symbolic:
-                            parent2 = stored_vals[parent2][model_tuple[1]]
-
-                        concrete_parent = Concat(parent1, parent2)
-                    else:
-                        try:
-                            concrete_parent = stored_vals[parent][model_tuple[1]]
-                        except KeyError:
-                            continue
-                    keccak_val = keccak_function_manager.find_keccak(concrete_parent)
-                    if key not in stored_vals:
-                        stored_vals[key] = {}
-                    stored_vals[key][model_tuple[1]] = keccak_val
-                    model_tuple[0] = And(model_tuple[0], key == keccak_val)
-                    var_cond = Or(var_cond, key == keccak_val)
-            try:
-                f1, f2 = keccak_function_manager.flag_conditions[simplify(key)]
-                var_cond = And(Or(var_cond, f2) == flag_var, f1 == Not(flag_var))
-            except KeyError:
-                var_cond = And(
-                    Or(And(flag_var, var_cond), Not(And(flag_var, var_cond))), hash_cond
-                )
-            flag_weights.append(flag_var)
-            var_conds = And(var_conds, var_cond)
-        new_condition = symbol_factory.Bool(False)
-
-        for model_tuple in model_tuples:
-            new_condition = Or(model_tuple[0], new_condition)
-        constraints = global_state.mstate.constraints
-        deleted_constraints = symbol_factory.Bool(True)
-        for constraint in keccak_function_manager.delete_constraints:
-            try:
-                constraints.remove(constraint)
-                deleted_constraints = And(constraint, deleted_constraints)
-            except ValueError:
-                # Constraint not related to this state
-                continue
-
-        if deleted_constraints.is_true:
-            deleted_constraints = symbol_factory.Bool(False)
-        var_conds = And(var_conds, hash_cond)
-        new_condition = simplify(new_condition)
-        return new_condition, deleted_constraints, var_conds, flag_weights
 
     def _end_message_call(
         self,

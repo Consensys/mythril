@@ -28,7 +28,6 @@ class KeccakFunctionManager:
     def __init__(self):
         self.store_function: Dict[int, Tuple[Function, Function]] = {}
         self.interval_hook_for_size: Dict[int, int] = {}
-        self.values_for_size: Dict[int, List[BitVec]] = {}
         self._index_counter: int = TOTAL_PARTS - 34534
 
     def find_keccak(self, data: BitVec) -> BitVec:
@@ -48,7 +47,6 @@ class KeccakFunctionManager:
             func = Function("keccak256_{}".format(length), length, 256)
             inverse = Function("keccak256_{}-1".format(length), 256, length)
             self.store_function[length] = (func, inverse)
-            self.values_for_size[length] = []
         return func, inverse
 
     def create_keccak(self, data: BitVec):
@@ -58,13 +56,7 @@ class KeccakFunctionManager:
         constraints = Constraints()
         func, inverse = self.get_function(length)
         constraints.append(inverse(func(data)) == data)
-        """
-        if data.symbolic is False:
-            keccak = self.find_keccak(data)
-            self.values_for_size[length].append(keccak)
-            constraints.append(func(data) == keccak)
-            return keccak, constraints
-        """
+
         try:
             index = self.interval_hook_for_size[length]
         except KeyError:
@@ -80,14 +72,8 @@ class KeccakFunctionManager:
             ULT(func(data), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
-        for val in self.values_for_size[length]:
-            if hash(simplify(func(data))) == hash(simplify(val)):
-                continue
-            condition = Or(condition, func(data) == val)
-
         constraints.append(condition)
-        # if func(data) not in self.values_for_size[length]:
-        #    self.values_for_size[length].append(func(data))
+
         return func(data), constraints
 
     def get_new_cond(self, val, length: int):
