@@ -43,7 +43,7 @@ class ReachableExceptionsModule(DetectionModule):
         :param state:
         :return:
         """
-        log.info("ASSERT_FAIL in function " + state.environment.active_function_name)
+        log.debug("ASSERT_FAIL in function " + state.environment.active_function_name)
 
         try:
             address = state.get_current_instruction()["address"]
