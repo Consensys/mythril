@@ -20,9 +20,10 @@ INTERVAL_DIFFERENCE = 10 ** 30
 
 class KeccakFunctionManager:
     def __init__(self):
-        self.store_function: Dict[int, Tuple[Function, Function]] = {}
-        self.interval_hook_for_size: Dict[int, int] = {}
-        self._index_counter: int = TOTAL_PARTS - 34534
+        self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
+        self.interval_hook_for_size = {}  # type: Dict[int, int]
+        self._index_counter = TOTAL_PARTS - 34534
+        self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
 
     def find_keccak(self, data: BitVec) -> BitVec:
         keccak = symbol_factory.BitVecVal(
@@ -67,7 +68,7 @@ class KeccakFunctionManager:
             URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
         )
         constraints.append(condition)
-
+        self.quick_inverse[func(data)] = data
         return func(data), constraints
 
     def get_new_cond(self, val, length: int):

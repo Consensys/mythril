@@ -1,5 +1,6 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
@@ -117,7 +118,6 @@ def test_vmtest(
     # Arrange
     if test_name in ignored_test_names:
         return
-
     world_state = WorldState()
 
     for address, details in pre_condition.items():
@@ -178,7 +178,15 @@ def test_vmtest(
                 expected = int(value, 16)
                 actual = account.storage[symbol_factory.BitVecVal(int(index, 16), 256)]
                 if isinstance(actual, Expression):
-                    actual = actual.value
+                    if (
+                        actual.symbolic
+                        and actual in keccak_function_manager.quick_inverse
+                    ):
+                        actual = keccak_function_manager.find_keccak(
+                            keccak_function_manager.quick_inverse[actual]
+                        )
+                    else:
+                        actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual
                 else:
                     if type(actual) == bytes:
