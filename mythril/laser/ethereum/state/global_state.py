@@ -98,8 +98,7 @@ class GlobalState:
         try:
             return instructions[self.mstate.pc]
         except KeyError:
-            new_instruction = {"address": self.mstate.pc, "opcode": "STOP"}
-            return new_instruction
+            return {"address": self.mstate.pc, "opcode": "STOP"}
 
     @property
     def current_transaction(
