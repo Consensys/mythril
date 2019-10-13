@@ -1,17 +1,13 @@
-from typing import Union, overload, List, Set, cast, Any, Optional, Callable
-from operator import lshift, rshift, ne, eq
+from typing import Union, overload, List, Set, cast, Any, Callable
 import z3
 
-from mythril.laser.smt.bool import Bool, And, Or
+from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec
 from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.bitvecfunc import _arithmetic_helper as _func_arithmetic_helper
 from mythril.laser.smt.bitvecfunc import _comparison_helper as _func_comparison_helper
 
 Annotations = Set[Any]
-z3.set_option(
-    max_args=10000000, max_lines=100000000, max_depth=10000000, max_visited=1000000
-)
 
 
 def _comparison_helper(
@@ -70,16 +66,6 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
         return BitVecFunc(raw, func_name="Hybrid", nested_functions=nested_functions)
 
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
-
-
-def Implies(a: Union[Bool, bool], b: Union[Bool, bool]) -> Union[Bool, bool]:
-    if not isinstance(a, Bool):
-        a = Bool(z3.BoolVal(a))
-    if not isinstance(b, Bool):
-        b = Bool(z3.BoolVal(b))
-    union = a.annotations.union(b.annotations)
-
-    return Bool(z3.Implies(a.raw, b.raw), annotations=union)
 
 
 def UGT(a: BitVec, b: BitVec) -> Bool:

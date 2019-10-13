@@ -4,7 +4,6 @@ from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
-import z3
 
 from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
@@ -12,10 +11,7 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
-from mythril.laser.ethereum.keccak_function_manager import (
-    keccak_function_manager,
-    Function,
-)
+from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
     MutationAnnotation,
@@ -33,23 +29,8 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.smt import (
-    symbol_factory,
-    And,
-    Or,
-    BitVec,
-    Extract,
-    simplify,
-    Concat,
-    Not,
-)
-from random import randint
+from mythril.laser.smt import symbol_factory
 
-ACTOR_ADDRESSES = [
-    symbol_factory.BitVecVal(0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256),
-    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF, 256),
-    symbol_factory.BitVecVal(0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEE, 256),
-]
 
 log = logging.getLogger(__name__)
 
@@ -233,8 +214,6 @@ class LaserEVM:
                 hook()
 
             execute_message_call(self, address)
-            for os in self.open_states:
-                os.reset_topo_keys()
 
             for hook in self._stop_sym_trans_hooks:
                 hook()

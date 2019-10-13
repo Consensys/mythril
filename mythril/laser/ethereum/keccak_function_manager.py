@@ -1,6 +1,5 @@
 from ethereum import utils
 from random import randint
-from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import (
     BitVec,
     Function,
@@ -9,7 +8,7 @@ from mythril.laser.smt import (
     ULE,
     And,
     ULT,
-    simplify,
+    Bool,
 )
 from typing import Dict, Tuple
 
@@ -44,42 +43,23 @@ class KeccakFunctionManager:
             self.store_function[length] = (func, inverse)
         return func, inverse
 
-    def create_keccak(self, data: BitVec):
-
+    def create_keccak(self, data: BitVec) -> Tuple[BitVec, Bool]:
         length = data.size()
-        simplify(data)
-        constraints = Constraints()
-        func, inverse = self.get_function(length)
-        constraints.append(inverse(func(data)) == data)
-
-        try:
-            index = self.interval_hook_for_size[length]
-        except KeyError:
-            self.interval_hook_for_size[length] = self._index_counter
-            index = self._index_counter
-            self._index_counter -= INTERVAL_DIFFERENCE
-
-        lower_bound = index * PART
-        upper_bound = lower_bound + PART
-
-        condition = And(
-            ULE(symbol_factory.BitVecVal(lower_bound, 256), func(data)),
-            ULT(func(data), symbol_factory.BitVecVal(upper_bound, 256)),
-            URem(func(data), symbol_factory.BitVecVal(64, 256)) == 0,
-        )
-        constraints.append(condition)
+        func, _ = self.get_function(length)
+        condition = self._create_condition(func_input=data, func_output=func(data))
         self.quick_inverse[func(data)] = data
-        return func(data), constraints
+        return func(data), condition
 
-    def get_new_cond(self, val, length: int):
-        new_func, new_inv = self.get_function(length)
+    def get_new_cond(self, val, length: int) -> Bool:
         random_number = symbol_factory.BitVecSym(
             "randval_{}".format(randint(0, 10000)), length
         )
-        cond = And(
-            new_func(random_number) == val,
-            new_inv(new_func(random_number)) == random_number,
-        )
+        return self._create_condition(func_input=random_number, func_output=val)
+
+    def _create_condition(self, func_input: BitVec, func_output: BitVec) -> Bool:
+        length = func_input.size()
+        func, inv = self.get_function(length)
+        cond = And(func(func_input) == func_output, inv(func(func_input)) == func_input)
         try:
             index = self.interval_hook_for_size[length]
         except KeyError:
@@ -92,9 +72,9 @@ class KeccakFunctionManager:
 
         cond = And(
             cond,
-            ULE(symbol_factory.BitVecVal(lower_bound, 256), new_func(random_number)),
-            ULT(new_func(random_number), symbol_factory.BitVecVal(upper_bound, 256)),
-            URem(new_func(random_number), symbol_factory.BitVecVal(64, 256)) == 0,
+            ULE(symbol_factory.BitVecVal(lower_bound, 256), func(func_input)),
+            ULT(func(func_input), symbol_factory.BitVecVal(upper_bound, 256)),
+            URem(func(func_input), symbol_factory.BitVecVal(64, 256)) == 0,
         )
         return cond
 

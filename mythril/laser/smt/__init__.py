@@ -16,7 +16,6 @@ from mythril.laser.smt.bitvec_helper import (
     BVMulNoOverflow,
     BVSubNoUnderflow,
     LShR,
-    Implies,
 )
 
 from mythril.laser.smt.bitvecfunc import BitVecFunc
