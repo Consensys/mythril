@@ -10,6 +10,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 import logging
 
+
 log = logging.getLogger(__name__)
 
 DESCRIPTION = """

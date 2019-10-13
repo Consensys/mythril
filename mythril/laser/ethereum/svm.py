@@ -351,11 +351,6 @@ class LaserEVM:
                     or transaction.return_data
                 ) and not end_signal.revert:
                     check_potential_issues(global_state)
-                    first_arg1 = transaction.call_data.get_word_at(4)
-                    global_state.node.constraints.weighted.append(
-                        keccak_function_manager.get_new_cond(first_arg1, 160)
-                    )
-
                     end_signal.global_state.world_state.node = global_state.node
                     self._add_world_state(end_signal.global_state)
 

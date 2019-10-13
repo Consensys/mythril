@@ -103,6 +103,3 @@ class Optimize(BaseSolver[z3.Optimize]):
         :param element:
         """
         self.raw.maximize(element.raw)
-
-    def add_soft(self, element):
-        self.raw.add_soft(element.raw)

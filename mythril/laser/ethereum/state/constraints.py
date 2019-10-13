@@ -28,9 +28,8 @@ class Constraints(list):
         constraint_list = constraint_list or []
         constraint_list = self._get_smt_bool_list(constraint_list)
         super(Constraints, self).__init__(constraint_list)
-        self._default_timeout = 300
+        self._default_timeout = 100
         self._is_possible = is_possible
-        self.weighted = []  # type: List[Bool]
 
     @property
     def is_possible(self) -> bool:
@@ -84,7 +83,6 @@ class Constraints(list):
         """
         constraint_list = super(Constraints, self).copy()
         constraints = Constraints(constraint_list, is_possible=self._is_possible)
-        constraints.weighted = copy(self.weighted)
         return constraints
 
     def copy(self) -> "Constraints":
@@ -98,7 +96,6 @@ class Constraints(list):
         """
         constraint_list = super(Constraints, self).copy()
         constraints = Constraints(constraint_list, is_possible=self._is_possible)
-        constraints.weighted = copy(self.weighted)
         return constraints
 
     def __add__(self, constraints: List[Union[bool, Bool]]) -> "Constraints":
@@ -112,9 +109,6 @@ class Constraints(list):
         new_constraints = Constraints(
             constraint_list=constraints_list, is_possible=None
         )
-        new_constraints.weighted = copy(self.weighted)
-        if isinstance(constraints, Constraints):
-            new_constraints.weighted += constraints.weighted
         return new_constraints
 
     def __iadd__(self, constraints: Iterable[Union[bool, Bool]]) -> "Constraints":
@@ -125,8 +119,6 @@ class Constraints(list):
         """
         list_constraints = self._get_smt_bool_list(constraints)
         super(Constraints, self).__iadd__(list_constraints)
-        if isinstance(constraints, Constraints):
-            self.weighted += constraints.weighted
         self._is_possible = None
         return self
 

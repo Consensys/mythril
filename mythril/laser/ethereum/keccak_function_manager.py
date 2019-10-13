@@ -1,5 +1,4 @@
 from ethereum import utils
-from random import randint
 from mythril.laser.smt import (
     BitVec,
     Function,
@@ -15,6 +14,7 @@ from typing import Dict, Tuple
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
 INTERVAL_DIFFERENCE = 10 ** 30
+hash_matcher = "fffffff"  # This is usually the prefix for the hash in the output
 
 
 class KeccakFunctionManager:
@@ -25,6 +25,11 @@ class KeccakFunctionManager:
         self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
 
     def find_keccak(self, data: BitVec) -> BitVec:
+        """
+        Calculates concrete keccak
+        :param data: input bitvecval
+        :return: concrete keccak output
+        """
         keccak = symbol_factory.BitVecVal(
             int.from_bytes(
                 utils.sha3(data.value.to_bytes(data.size() // 8, byteorder="big")),
@@ -35,6 +40,11 @@ class KeccakFunctionManager:
         return keccak
 
     def get_function(self, length: int) -> Tuple[Function, Function]:
+        """
+        Returns the keccak functions for the corresponding length
+        :param length: input size
+        :return: tuple of keccak and it's inverse
+        """
         try:
             func, inverse = self.store_function[length]
         except KeyError:
@@ -44,22 +54,25 @@ class KeccakFunctionManager:
         return func, inverse
 
     def create_keccak(self, data: BitVec) -> Tuple[BitVec, Bool]:
+        """
+        Creates Keccak of the data
+        :param data: input
+        :return: Tuple of keccak and the condition it should satisfy
+        """
         length = data.size()
+        condition = self._create_condition(func_input=data)
         func, _ = self.get_function(length)
-        condition = self._create_condition(func_input=data, func_output=func(data))
         self.quick_inverse[func(data)] = data
         return func(data), condition
 
-    def get_new_cond(self, val, length: int) -> Bool:
-        random_number = symbol_factory.BitVecSym(
-            "randval_{}".format(randint(0, 10000)), length
-        )
-        return self._create_condition(func_input=random_number, func_output=val)
-
-    def _create_condition(self, func_input: BitVec, func_output: BitVec) -> Bool:
+    def _create_condition(self, func_input: BitVec) -> Bool:
+        """
+        Creates the constraints for hash
+        :param func_input: input of the hash
+        :return: condition
+        """
         length = func_input.size()
         func, inv = self.get_function(length)
-        cond = And(func(func_input) == func_output, inv(func(func_input)) == func_input)
         try:
             index = self.interval_hook_for_size[length]
         except KeyError:
@@ -71,7 +84,7 @@ class KeccakFunctionManager:
         upper_bound = lower_bound + PART
 
         cond = And(
-            cond,
+            inv(func(func_input)) == func_input,
             ULE(symbol_factory.BitVecVal(lower_bound, 256), func(func_input)),
             ULT(func(func_input), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(func_input), symbol_factory.BitVecVal(64, 256)) == 0,

@@ -1,15 +1,18 @@
 """This module contains analysis module helpers to solve path constraints."""
 from functools import lru_cache
-from typing import Dict, Tuple, Union
+from typing import Dict, List, Tuple, Union
 from z3 import sat, unknown, FuncInterp
 import z3
 
 from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.constraints import Constraints
-from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
+from mythril.laser.ethereum.keccak_function_manager import (
+    keccak_function_manager,
+    hash_matcher,
+)
 from mythril.laser.ethereum.transaction import BaseTransaction
-from mythril.laser.smt import UGE, Optimize, symbol_factory, BitVec, simplify
+from mythril.laser.smt import UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
@@ -40,10 +43,7 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
             raise UnsatError
-    if isinstance(constraints, Constraints):
-        weighted = constraints.weighted
-    else:
-        weighted = []
+
     constraints = [constraint for constraint in constraints if type(constraint) != bool]
 
     for constraint in constraints:
@@ -52,8 +52,6 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
         s.minimize(e)
     for e in maximize:
         s.maximize(e)
-    for e in weighted:
-        s.add_soft(e)
     result = s.check()
     if result == sat:
         return s.model()
@@ -126,23 +124,35 @@ def get_transaction_sequence(
         ).as_long()
 
     concrete_initial_state = _get_concrete_state(initial_accounts, min_price_dict)
-    _replace_with_actual_sha(concrete_transactions, model)
+    if isinstance(transaction_sequence[0], ContractCreationTransaction):
+        _replace_with_actual_sha(concrete_transactions[1:], model)
+    else:
+        _replace_with_actual_sha(concrete_transactions, model)
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
 
     return steps
 
 
-def _replace_with_actual_sha(concrete_transactions, model):
+def _replace_with_actual_sha(
+    concrete_transactions: List[Dict[str, str]], model: z3.Model
+):
     for tx in concrete_transactions:
-        if "fffffff" not in tx["input"]:
+        if hash_matcher not in tx["input"]:
             continue
-        find_input = symbol_factory.BitVecVal(int(tx["input"][10:74], 16), 256)
-        _, inverse = keccak_function_manager.get_function(160)
-        input_ = symbol_factory.BitVecVal(
-            model.eval(inverse(find_input).raw).as_long(), 160
-        )
-        keccak = keccak_function_manager.find_keccak(input_)
-        tx["input"] = tx["input"].replace(tx["input"][10:74], hex(keccak.value)[2:])
+        for i in range(0, len(tx["input"]) - 73, 64):
+            if hash_matcher not in tx["input"][i + 10 : i + 74]:
+                continue
+            find_input = symbol_factory.BitVecVal(
+                int(tx["input"][10 + i : 74 + i], 16), 256
+            )
+            _, inverse = keccak_function_manager.get_function(160)
+            input_ = symbol_factory.BitVecVal(
+                model.eval(inverse(find_input).raw).as_long(), 160
+            )
+            keccak = keccak_function_manager.find_keccak(input_)
+            tx["input"] = tx["input"].replace(
+                tx["input"][10 + i : 74 + i], hex(keccak.value)[2:]
+            )
 
 
 def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
