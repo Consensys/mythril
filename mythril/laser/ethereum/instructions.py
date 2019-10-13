@@ -620,23 +620,29 @@ class Instruction:
         :param global_state:
         :return:
         """
-        state = global_state.mstate
-        s0, s1 = state.stack.pop(), state.stack.pop()
+        mstate = global_state.mstate
+        s0, s1 = mstate.stack.pop(), mstate.stack.pop()
 
         try:
             s0 = util.get_concrete_int(s0)
             s1 = util.get_concrete_int(s1)
         except TypeError:
-            return []
+            log.debug("Unsupported symbolic argument for SIGNEXTEND")
+            mstate.stack.append(
+                global_state.new_bitvec(
+                    "SIGNEXTEND({},{})".format(hash(s0), hash(s1)), 256
+                )
+            )
+            return [global_state]
 
         if s0 <= 31:
             testbit = s0 * 8 + 7
             if s1 & (1 << testbit):
-                state.stack.append(s1 | (TT256 - (1 << testbit)))
+                mstate.stack.append(s1 | (TT256 - (1 << testbit)))
             else:
-                state.stack.append(s1 & ((1 << testbit) - 1))
+                mstate.stack.append(s1 & ((1 << testbit) - 1))
         else:
-            state.stack.append(s1)
+            mstate.stack.append(s1)
 
         return [global_state]
 
