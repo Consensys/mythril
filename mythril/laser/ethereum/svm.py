@@ -11,7 +11,6 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.iprof import InstructionProfiler
-from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
     MutationAnnotation,
