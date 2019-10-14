@@ -8,8 +8,9 @@ from mythril.laser.smt import (
     And,
     ULT,
     Bool,
+    Or,
 )
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
@@ -22,7 +23,7 @@ class KeccakFunctionManager:
         self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
         self.interval_hook_for_size = {}  # type: Dict[int, int]
         self._index_counter = TOTAL_PARTS - 34534
-        self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
+        self.concrete_hash_vals = {}  # type: Dict[int, List[BitVec]]
 
     def find_keccak(self, data: BitVec) -> BitVec:
         """
@@ -50,6 +51,7 @@ class KeccakFunctionManager:
         except KeyError:
             func = Function("keccak256_{}".format(length), length, 256)
             inverse = Function("keccak256_{}-1".format(length), 256, length)
+            self.concrete_hash_vals[length] = []
             self.store_function[length] = (func, inverse)
         return func, inverse
 
@@ -60,10 +62,17 @@ class KeccakFunctionManager:
         :return: Tuple of keccak and the condition it should satisfy
         """
         length = data.size()
-        condition = self._create_condition(func_input=data)
-        func, _ = self.get_function(length)
-        self.quick_inverse[func(data)] = data
-        return func(data), condition
+        func, inverse = self.get_function(length)
+
+        if data.symbolic:
+            condition = self._create_condition(func_input=data)
+            output = func(data)
+        else:
+            concrete_val = self.find_keccak(data)
+            condition = And(func(data) == concrete_val, inverse(func(data)) == data)
+            self.concrete_hash_vals[length].append(concrete_val)
+            output = concrete_val
+        return output, condition
 
     def _create_condition(self, func_input: BitVec) -> Bool:
         """
@@ -89,6 +98,8 @@ class KeccakFunctionManager:
             ULT(func(func_input), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(func_input), symbol_factory.BitVecVal(64, 256)) == 0,
         )
+        for val in self.concrete_hash_vals[length]:
+            cond = Or(cond, func(func_input) == val)
         return cond
 
 

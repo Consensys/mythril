@@ -145,10 +145,25 @@ def _replace_with_actual_sha(
             find_input = symbol_factory.BitVecVal(
                 int(tx["input"][10 + i : 74 + i], 16), 256
             )
-            _, inverse = keccak_function_manager.get_function(160)
-            input_ = symbol_factory.BitVecVal(
-                model.eval(inverse(find_input).raw).as_long(), 160
-            )
+            input_ = None
+            for size in (160, 256, 512):
+                _, inverse = keccak_function_manager.get_function(size)
+                try:
+                    input_ = symbol_factory.BitVecVal(
+                        model.eval(inverse(find_input).raw).as_long(), size
+                    )
+                except AttributeError:
+                    continue
+                hex_input = hex(input_.value)[2:]
+                found = False
+                for new_tx in concrete_transactions:
+                    if hex_input in new_tx["input"]:
+                        found = True
+                        break
+                if found:
+                    break
+            if input_ is None:
+                continue
             keccak = keccak_function_manager.find_keccak(input_)
             tx["input"] = tx["input"].replace(
                 tx["input"][10 + i : 74 + i], hex(keccak.value)[2:]
