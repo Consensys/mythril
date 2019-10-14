@@ -53,7 +53,7 @@ class SymExecWrapper:
         transaction_count=2,
         modules=(),
         compulsory_statespace=True,
-        enable_iprof=False,
+        iprof=None,
         disable_dependency_pruning=False,
         run_analysis_modules=True,
         enable_coverage_strategy=False,
@@ -116,7 +116,7 @@ class SymExecWrapper:
             create_timeout=create_timeout,
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
-            enable_iprof=enable_iprof,
+            iprof=iprof,
             enable_coverage_strategy=enable_coverage_strategy,
             instruction_laser_plugin=instruction_laser_plugin,
         )
