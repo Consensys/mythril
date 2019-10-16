@@ -769,15 +769,6 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             solc_settings_json=solc_json,
             enable_online_lookup=query_signature,
         )
-        if args.command == "truffle":
-            try:
-                disassembler.analyze_truffle_project(args)
-            except FileNotFoundError:
-                print(
-                    "Build directory not found. Make sure that you start the analysis from the project root, "
-                    "and that 'truffle compile' has executed successfully."
-                )
-            sys.exit()
 
         address = load_code(disassembler, args)
         execute_command(
