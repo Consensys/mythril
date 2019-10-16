@@ -11,7 +11,6 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
-from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
     MutationAnnotation,
@@ -59,7 +58,7 @@ class LaserEVM:
         strategy=DepthFirstSearchStrategy,
         transaction_count=2,
         requires_statespace=True,
-        enable_iprof=False,
+        iprof=None,
         enable_coverage_strategy=False,
         instruction_laser_plugin=None,
     ) -> None:
@@ -73,7 +72,7 @@ class LaserEVM:
         :param strategy: Execution search strategy
         :param transaction_count: The amount of transactions to execute
         :param requires_statespace: Variable indicating whether the statespace should be recorded
-        :param enable_iprof: Variable indicating whether instruction profiling should be turned on
+        :param iprof: Instruction Profiler
         """
         self.open_states = []  # type: List[WorldState]
 
@@ -108,7 +107,7 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
-        self.iprof = InstructionProfiler() if enable_iprof else None
+        self.iprof = iprof
 
         if enable_coverage_strategy:
             from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
