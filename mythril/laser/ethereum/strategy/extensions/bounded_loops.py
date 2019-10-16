@@ -71,7 +71,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
                 cur_instr["opcode"], cur_instr["address"], state.mstate.prev_pc
             )
 
-            if key in annotation._reached_count.keys():
+            if key in annotation._reached_count:
                 annotation._reached_count[key] += 1
             else:
                 annotation._reached_count[key] = 1
