@@ -5,6 +5,7 @@ import logging
 import traceback
 from typing import Optional, List
 
+from mythril.laser.ethereum.iprof import InstructionProfiler
 from . import MythrilDisassembler
 from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
@@ -61,7 +62,7 @@ class MythrilAnalyzer:
         self.execution_timeout = execution_timeout
         self.loop_bound = loop_bound
         self.create_timeout = create_timeout
-        self.enable_iprof = enable_iprof
+        self.iprof = InstructionProfiler() if enable_iprof else None
         self.disable_dependency_pruning = disable_dependency_pruning
         self.enable_coverage_strategy = enable_coverage_strategy
         self.custom_modules_directory = custom_modules_directory
@@ -87,7 +88,7 @@ class MythrilAnalyzer:
             max_depth=self.max_depth,
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
-            enable_iprof=self.enable_iprof,
+            iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
             enable_coverage_strategy=self.enable_coverage_strategy,
@@ -111,6 +112,7 @@ class MythrilAnalyzer:
         :param transaction_count: The amount of transactions to be executed
         :return: The generated graph in html format
         """
+
         sym = SymExecWrapper(
             contract or self.contracts[0],
             self.address,
@@ -124,7 +126,7 @@ class MythrilAnalyzer:
             execution_timeout=self.execution_timeout,
             transaction_count=transaction_count,
             create_timeout=self.create_timeout,
-            enable_iprof=self.enable_iprof,
+            iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
             enable_coverage_strategy=self.enable_coverage_strategy,
@@ -164,7 +166,7 @@ class MythrilAnalyzer:
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
-                    enable_iprof=self.enable_iprof,
+                    iprof=self.iprof,
                     disable_dependency_pruning=self.disable_dependency_pruning,
                     enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
@@ -172,6 +174,8 @@ class MythrilAnalyzer:
                 issues = fire_lasers(sym, modules, self.custom_modules_directory)
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
+                if self.iprof is not None:
+                    log.info("Instruction Statistics:\n{}".format(self.iprof))
                 issues = retrieve_callback_issues(
                     modules, self.custom_modules_directory
                 )
@@ -184,6 +188,8 @@ class MythrilAnalyzer:
                     modules, self.custom_modules_directory
                 )
                 exceptions.append(traceback.format_exc())
+                if self.iprof is not None:
+                    log.info("Instruction Statistics:\n{}".format(self.iprof))
             for issue in issues:
                 issue.add_code_info(contract)
 
