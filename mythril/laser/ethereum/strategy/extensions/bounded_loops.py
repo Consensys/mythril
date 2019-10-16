@@ -3,7 +3,6 @@ from mythril.laser.ethereum.strategy.basic import BasicSearchStrategy
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from typing import Dict, cast, List
-from copy import copy
 import logging
 
 
@@ -17,9 +16,7 @@ class JumpdestCountAnnotation(StateAnnotation):
         self._reached_count = {}  # type: Dict[str, int]
 
     def __copy__(self):
-        result = JumpdestCountAnnotation()
-        result._reached_count = copy(self._reached_count)
-        return result
+        return self
 
 
 class BoundedLoopsStrategy(BasicSearchStrategy):
@@ -48,7 +45,6 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
         :return: Global state
         """
-
         while True:
 
             state = self.super_strategy.get_strategic_global_state()
@@ -60,6 +56,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             if len(annotations) == 0:
                 annotation = JumpdestCountAnnotation()
+                log.debug("Adding JumpdestCountAnnotation to GlobalState")
                 state.annotate(annotation)
             else:
                 annotation = annotations[0]
