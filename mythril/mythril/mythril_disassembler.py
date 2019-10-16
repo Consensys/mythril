@@ -1,7 +1,7 @@
 import logging
 import re
 import solc
-import solcx
+import sys
 import os
 
 from ethereum import utils
@@ -10,10 +10,12 @@ from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
-from mythril.support.truffle import analyze_truffle_project
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
+
+if sys.version_info[1] >= 6:
+    import solcx
 
 log = logging.getLogger(__name__)
 
@@ -68,22 +70,29 @@ class MythrilDisassembler:
             ):
                 log.info("Given version is already installed")
             else:
-                try:
-                    if version.startswith("0.4"):
+                if version.startswith("0.4"):
+                    try:
                         solc.install_solc("v" + version)
-                    else:
+                    except solc.exceptions.SolcError:
+                        raise CriticalError(
+                            "There was an error when trying to install the specified solc version"
+                        )
+                elif sys.version_info[1] >= 6:
+                    # solcx supports python 3.6+
+                    try:
                         solcx.install_solc("v" + version)
-                    solc_binary = util.solc_exists(version)
-                    if not solc_binary:
-                        raise solc.exceptions.SolcError()
-                except solc.exceptions.SolcError:
+                    except solcx.exceptions.SolcError:
+                        raise CriticalError(
+                            "There was an error when trying to install the specified solc version"
+                        )
+                else:
                     raise CriticalError(
-                        "There was an error when trying to install the specified solc version"
+                        "Py-Solc doesn't support 0.5.*. You can switch to python 3.6 which uses solcx."
                     )
-                except solcx.exceptions.SolcError:
-                    raise CriticalError(
-                        "There was an error when trying to install the specified solc version"
-                    )
+
+                solc_binary = util.solc_exists(version)
+                if not solc_binary:
+                    raise solc.exceptions.SolcError()
 
             log.info("Setting the compiler to %s", solc_binary)
 
@@ -224,16 +233,6 @@ class MythrilDisassembler:
                 )
 
         return address, contracts
-
-    def analyze_truffle_project(self, *args, **kwargs) -> None:
-        """
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        analyze_truffle_project(
-            self.sigs, *args, **kwargs
-        )  # just passthru by passing signatures for now
 
     @staticmethod
     def hash_for_function_signature(func: str) -> str:
