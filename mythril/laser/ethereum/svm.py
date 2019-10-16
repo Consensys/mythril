@@ -71,7 +71,7 @@ class LaserEVM:
         :param strategy: Execution search strategy
         :param transaction_count: The amount of transactions to execute
         :param requires_statespace: Variable indicating whether the statespace should be recorded
-        :param iprof: Instruction Profiler indicating whether instruction profiling should be turned on
+        :param iprof: Instruction Profiler
         """
         self.open_states = []  # type: List[WorldState]
 
