@@ -11,10 +11,7 @@ from mythril.analysis.symbolic import SymExecWrapper
 
 
 def test_create():
-    contract = SolidityContract(
-        str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"),
-        solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
-    )
+    contract = SolidityContract(str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"))
 
     laser_evm = svm.LaserEVM({})
 
@@ -35,10 +32,7 @@ def test_create():
 
 
 def test_sym_exec():
-    contract = SolidityContract(
-        str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"),
-        solc_binary=MythrilDisassembler._init_solc_binary("0.5.0"),
-    )
+    contract = SolidityContract(str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"))
 
     sym = SymExecWrapper(
         contract,
