@@ -95,6 +95,7 @@ class MachineState:
         depth=0,
         max_gas_used=0,
         min_gas_used=0,
+        prev_pc=-1,
     ) -> None:
         """Constructor for machineState.
 
@@ -106,8 +107,9 @@ class MachineState:
         :param depth:
         :param max_gas_used:
         :param min_gas_used:
+        :param prev_pc:
         """
-        self.pc = pc
+        self._pc = pc
         self.stack = MachineStack(stack)
         self.memory = memory or Memory()
         self.gas_limit = gas_limit
@@ -115,6 +117,7 @@ class MachineState:
         self.max_gas_used = max_gas_used  # upper gas usage bound
         self.constraints = constraints or Constraints()
         self.depth = depth
+        self.prev_pc = prev_pc  # holds context of current pc
 
     def calculate_extension_size(self, start: int, size: int) -> int:
         """
@@ -210,11 +213,12 @@ class MachineState:
             gas_limit=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
-            pc=self.pc,
+            pc=self._pc,
             stack=copy(self.stack),
             memory=copy(self.memory),
             constraints=copy(self.constraints),
             depth=self.depth,
+            prev_pc=self.prev_pc,
         )
 
     def __str__(self):
@@ -223,6 +227,19 @@ class MachineState:
         :return:
         """
         return str(self.as_dict)
+
+    @property
+    def pc(self) -> int:
+        """
+
+        :return:
+        """
+        return self._pc
+
+    @pc.setter
+    def pc(self, value):
+        self.prev_pc = self._pc
+        self._pc = value
 
     @property
     def memory_size(self) -> int:
@@ -239,11 +256,12 @@ class MachineState:
         :return:
         """
         return dict(
-            pc=self.pc,
+            pc=self._pc,
             stack=self.stack,
             memory=self.memory,
             memsize=self.memory_size,
             gas=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
+            prev_pc=self.prev_pc,
         )

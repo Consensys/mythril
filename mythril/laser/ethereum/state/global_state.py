@@ -9,7 +9,6 @@ from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.laser.ethereum.evm_exceptions import ProgramCounterException
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.world_state import WorldState
@@ -53,6 +52,14 @@ class GlobalState:
         self.last_return_data = last_return_data
         self._annotations = annotations or []
 
+    def add_annotations(self, annotations: List[StateAnnotation]):
+        """
+        Function used to add annotations to global state
+        :param annotations:
+        :return:
+        """
+        self._annotations += annotations
+
     def __copy__(self) -> "GlobalState":
         """
 
@@ -87,13 +94,11 @@ class GlobalState:
 
         :return:
         """
-
         instructions = self.environment.code.instruction_list
-        if self.mstate.pc >= len(instructions):
-            raise ProgramCounterException(
-                "PC: {} can not be reached.".format(self.mstate.pc)
-            )
-        return instructions[self.mstate.pc]
+        try:
+            return instructions[self.mstate.pc]
+        except KeyError:
+            return {"address": self.mstate.pc, "opcode": "STOP"}
 
     @property
     def current_transaction(

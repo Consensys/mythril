@@ -9,6 +9,7 @@ Welcome to Mythril's documentation!
    installation
    security-analysis
    analysis-modules
+   mythx-analysis
    mythril
 
 

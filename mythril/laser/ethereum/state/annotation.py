@@ -12,6 +12,8 @@ class StateAnnotation:
     traverse the state space themselves.
     """
 
+    # TODO: Remove this? It seems to be used only in the MutationPruner, and
+    # we could simply use world state annotations if we want them to be persisted.
     @property
     def persist_to_world_state(self) -> bool:
         """If this function returns true then laser will also annotate the

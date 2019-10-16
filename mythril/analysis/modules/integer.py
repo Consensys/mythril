@@ -113,7 +113,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
         address = _get_address_from_state(state)
 
-        if address in self._cache:
+        if address in self.cache:
             return
 
         opcode = state.get_current_instruction()["opcode"]
@@ -331,8 +331,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             )
 
             address = _get_address_from_state(ostate)
-            self._cache.add(address)
-            self._issues.append(issue)
+            self.cache.add(address)
+            self.issues.append(issue)
 
 
 detector = IntegerOverflowUnderflowModule()

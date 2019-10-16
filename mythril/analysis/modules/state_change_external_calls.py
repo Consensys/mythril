@@ -1,6 +1,10 @@
+from mythril.analysis.potential_issues import (
+    PotentialIssue,
+    get_potential_issues_annotation,
+)
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.analysis.modules.base import DetectionModule
-from mythril.analysis.report import Issue
+from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import symbol_factory, UGT, BitVec, Or
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
@@ -32,10 +36,12 @@ class StateChangeCallsAnnotation(StateAnnotation):
         new_annotation.state_change_states = self.state_change_states[:]
         return new_annotation
 
-    def get_issue(self, global_state: GlobalState) -> Optional[Issue]:
+    def get_issue(
+        self, global_state: GlobalState, detector: DetectionModule
+    ) -> Optional[PotentialIssue]:
         if not self.state_change_states:
             return None
-        constraints = copy(global_state.mstate.constraints)
+        constraints = Constraints()
         gas = self.call_state.mstate.stack[-1]
         to = self.call_state.mstate.stack[-2]
         constraints += [
@@ -50,10 +56,11 @@ class StateChangeCallsAnnotation(StateAnnotation):
 
         try:
             transaction_sequence = solver.get_transaction_sequence(
-                global_state, constraints
+                global_state, constraints + global_state.mstate.constraints
             )
         except UnsatError:
             return None
+
         severity = "Medium" if self.user_defined_address else "Low"
         address = global_state.get_current_instruction()["address"]
         logging.debug(
@@ -67,7 +74,7 @@ class StateChangeCallsAnnotation(StateAnnotation):
             "state change takes place. This can lead to business logic vulnerabilities."
         )
 
-        return Issue(
+        return PotentialIssue(
             contract=global_state.environment.active_account.contract_name,
             function_name=global_state.environment.active_function_name,
             address=address,
@@ -77,7 +84,8 @@ class StateChangeCallsAnnotation(StateAnnotation):
             description_tail=description_tail,
             swc_id=REENTRANCY,
             bytecode=global_state.environment.code.bytecode,
-            transaction_sequence=transaction_sequence,
+            constraints=constraints,
+            detector=detector,
         )
 
 
@@ -104,12 +112,12 @@ class StateChange(DetectionModule):
         )
 
     def _execute(self, state: GlobalState) -> None:
-        if state.get_current_instruction()["address"] in self._cache:
+        if state.get_current_instruction()["address"] in self.cache:
             return
         issues = self._analyze_state(state)
-        for issue in issues:
-            self._cache.add(issue.address)
-        self._issues.extend(issues)
+
+        annotation = get_potential_issues_annotation(state)
+        annotation.potential_issues.extend(issues)
 
     @staticmethod
     def _add_external_call(global_state: GlobalState) -> None:
@@ -139,8 +147,7 @@ class StateChange(DetectionModule):
         except UnsatError:
             pass
 
-    @staticmethod
-    def _analyze_state(global_state: GlobalState) -> List[Issue]:
+    def _analyze_state(self, global_state: GlobalState) -> List[PotentialIssue]:
 
         annotations = cast(
             List[StateChangeCallsAnnotation],
@@ -171,7 +178,7 @@ class StateChange(DetectionModule):
         for annotation in annotations:
             if not annotation.state_change_states:
                 continue
-            issue = annotation.get_issue(global_state)
+            issue = annotation.get_issue(global_state, self)
             if issue:
                 vulnerabilities.append(issue)
         return vulnerabilities

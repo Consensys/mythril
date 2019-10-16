@@ -25,11 +25,13 @@ REQUIRES_PYTHON = ">=3.5.0"
 # What packages are required for this module to be executed?
 REQUIRED = [
     "coloredlogs>=10.0",
-    "py_ecc==1.4.2",
+    "py_ecc==1.6.0",
     "ethereum>=2.3.2",
     "z3-solver>=4.8.5.0",
-    "requests",
+    "requests>=2.22.0",
     "py-solc",
+    "py-solc-x==0.6.0",
+    "semantic_version==2.8.1",
     "plyvel",
     "eth_abi==1.3.0",
     "eth-account>=0.1.0a2,<=0.3.0",
@@ -49,6 +51,7 @@ REQUIRED = [
     "persistent>=4.2.0",
     "ethereum-input-decoder>=0.2.2",
     "matplotlib",
+    "pythx",
 ]
 
 TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
