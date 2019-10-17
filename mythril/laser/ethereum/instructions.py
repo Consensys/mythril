@@ -1678,9 +1678,12 @@ class Instruction:
         code_raw = []
         code_end = call_data.size
         size = call_data.size
-        if size.symbolic:
+        if isinstance(size, BitVec):
             # This should be fine because of the below check
-            size = 10 ** 5
+            if size.symbolic:
+                size = 10 ** 5
+            else:
+                size = size.value
         for i in range(size):
             if call_data[i].symbolic:
                 code_end = i
