@@ -81,8 +81,12 @@ def get_serializable_statespace(statespace):
             if (len(code_split) < 7)
             else "\\n".join(code_split[:6]) + "\\n(click to expand +)"
         )
-
-        color = color_map[node.get_cfg_dict()["contract_name"]]
+        try:
+            color = color_map[node.get_cfg_dict()["contract_name"]]
+        except KeyError:
+            color = colors[i]
+            i += 1
+            color_map[node.get_cfg_dict()["contract_name"]] = color
 
         def get_state_accounts(node_state):
             """
@@ -97,7 +101,7 @@ def get_serializable_statespace(statespace):
                 account["balance"] = str(account["balance"])
 
                 storage = {}
-                for storage_key in account["storage"].keys():
+                for storage_key in account["storage"].printable_storage:
                     storage[str(storage_key)] = str(account["storage"][storage_key])
 
                 state_accounts.append({"address": key, "storage": storage})
