@@ -43,7 +43,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     OutOfGasException,
     WriteProtection,
 )
-from mythril.laser.ethereum.gas import OPCODE_GAS
+from mythril.laser.ethereum.instruction_data import get_opcode_gas, calculate_sha3_gas
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -159,7 +159,7 @@ class StateTransition(object):
         if not self.enable_gas:
             return global_state
         opcode = global_state.instruction["opcode"]
-        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
+        min_gas, max_gas = get_opcode_gas(opcode)
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
         self.check_gas_usage_limit(global_state)
@@ -960,7 +960,7 @@ class Instruction:
 
     @staticmethod
     def _sha3_gas_helper(global_state, length):
-        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
+        min_gas, max_gas = calculate_sha3_gas(length)
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
         StateTransition.check_gas_usage_limit(global_state)
@@ -986,7 +986,7 @@ class Instruction:
             state.stack.append(
                 symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
             )
-            gas_tuple = cast(Tuple, OPCODE_GAS["SHA3"])
+            gas_tuple = get_opcode_gas("SHA3")
             state.min_gas_used += gas_tuple[0]
             state.max_gas_used += gas_tuple[1]
             return [global_state]
@@ -1525,7 +1525,7 @@ class Instruction:
 
         new_state = copy(global_state)
         # add JUMP gas cost
-        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS["JUMP"])
+        min_gas, max_gas = get_opcode_gas("JUMP")
         new_state.mstate.min_gas_used += min_gas
         new_state.mstate.max_gas_used += max_gas
 
@@ -1544,7 +1544,7 @@ class Instruction:
         """
         state = global_state.mstate
         disassembly = global_state.environment.code
-        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS["JUMPI"])
+        min_gas, max_gas = get_opcode_gas("JUMPI")
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
