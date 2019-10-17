@@ -4,7 +4,7 @@ from mythril.solidity.soliditycontract import EVMContract
 from tests import TESTDATA_INPUTS
 
 
-def test_generate_graph(Z):
+def test_generate_graph():
     for input_file in TESTDATA_INPUTS.iterdir():
         if input_file.name != "origin.sol.o":
             continue
