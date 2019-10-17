@@ -1,9 +1,7 @@
 from mythril.mythril import MythrilAnalyzer, MythrilDisassembler
 from mythril.ethereum import util
 from mythril.solidity.soliditycontract import EVMContract
-from tests import (
-    TESTDATA_INPUTS,
-)
+from tests import TESTDATA_INPUTS
 
 
 def test_generate_graph(Z):
@@ -22,4 +20,3 @@ def test_generate_graph(Z):
         )
 
         analyzer.graph_html(transaction_count=1)
-
