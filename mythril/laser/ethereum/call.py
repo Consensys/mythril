@@ -8,7 +8,7 @@ from typing import Union, List, cast, Callable, Optional
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
-from mythril.laser.ethereum.gas import OPCODE_GAS
+from mythril.laser.ethereum.instruction_data import calculate_native_gas
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.calldata import (
@@ -242,7 +242,7 @@ def native_call(
 
     contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
     call_address_int = int(callee_address, 16)
-    native_gas_min, native_gas_max = cast(Callable, OPCODE_GAS["NATIVE_COST"])(
+    native_gas_min, native_gas_max = calculate_native_gas(
         global_state.mstate.calculate_extension_size(mem_out_start, mem_out_sz),
         contract_list[call_address_int - 1],
     )
