@@ -58,9 +58,7 @@ class DeprecatedOperationsModule(DetectionModule):
                 "The smart contract retrieves the transaction origin (tx.origin) using msg.origin. "
                 "Use of msg.origin is deprecated and the instruction may be removed in the  future. "
                 "Use msg.sender instead.\nSee also: "
-                "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin".format(
-                    state.environment.active_function_name
-                )
+                "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin"
             )
             swc_id = DEPRECATED_FUNCTIONS_USAGE
 
