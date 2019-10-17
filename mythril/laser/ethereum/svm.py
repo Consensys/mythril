@@ -10,6 +10,7 @@ from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction
+from mythril.laser.ethereum.instruction_data import get_required_stack_elements
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
     MutationAnnotation,
@@ -269,6 +270,25 @@ class LaserEVM:
 
         self.open_states.append(global_state.world_state)
 
+    def handle_vm_exception(
+        self, global_state: GlobalState, op_code: str, error_msg: str
+    ) -> List[GlobalState]:
+        transaction, return_global_state = global_state.transaction_stack.pop()
+
+        if return_global_state is None:
+            # In this case we don't put an unmodified world state in the open_states list Since in the case of an
+            #  exceptional halt all changes should be discarded, and this world state would not provide us with a
+            #  previously unseen world state
+            log.debug("Encountered a VmException, ending path: `{}`".format(error_msg))
+            new_global_states = []  # type: List[GlobalState]
+        else:
+            # First execute the post hook for the transaction ending instruction
+            self._execute_post_hook(op_code, [global_state])
+            new_global_states = self._end_message_call(
+                return_global_state, global_state, revert_changes=True, return_data=None
+            )
+        return new_global_states
+
     def execute_state(
         self, global_state: GlobalState
     ) -> Tuple[List[GlobalState], Optional[str]]:
@@ -288,6 +308,18 @@ class LaserEVM:
         except IndexError:
             self._add_world_state(global_state)
             return [], None
+        if len(global_state.mstate.stack) < get_required_stack_elements(op_code):
+            error_msg = (
+                "Stack Underflow Exception due to insufficient "
+                "stack elements for the address {}".format(
+                    instructions[global_state.mstate.pc]["address"]
+                )
+            )
+            new_global_states = self.handle_vm_exception(
+                global_state, op_code, error_msg
+            )
+            self._execute_post_hook(op_code, new_global_states)
+            return new_global_states, op_code
 
         try:
             self._execute_pre_hook(op_code, global_state)
@@ -301,23 +333,7 @@ class LaserEVM:
             ).evaluate(global_state)
 
         except VmException as e:
-            transaction, return_global_state = global_state.transaction_stack.pop()
-
-            if return_global_state is None:
-                # In this case we don't put an unmodified world state in the open_states list Since in the case of an
-                #  exceptional halt all changes should be discarded, and this world state would not provide us with a
-                #  previously unseen world state
-                log.debug("Encountered a VmException, ending path: `{}`".format(str(e)))
-                new_global_states = []
-            else:
-                # First execute the post hook for the transaction ending instruction
-                self._execute_post_hook(op_code, [global_state])
-                new_global_states = self._end_message_call(
-                    return_global_state,
-                    global_state,
-                    revert_changes=True,
-                    return_data=None,
-                )
+            new_global_states = self.handle_vm_exception(global_state, op_code, str(e))
 
         except TransactionStartSignal as start_signal:
             # Setup new global state
