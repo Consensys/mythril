@@ -901,9 +901,7 @@ class Instruction:
         state = global_state.mstate
         address = state.stack.pop()
 
-        balance = global_state.world_state.balances[
-            global_state.environment.active_account.address
-        ]
+        balance = global_state.world_state.balances[address]
         state.stack.append(balance)
         return [global_state]
 
@@ -1749,16 +1747,7 @@ class Instruction:
 
     @StateTransition()
     def create_post(self, global_state: GlobalState) -> List[GlobalState]:
-        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
-        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
-        if global_state.last_return_data:
-            return_val = symbol_factory.BitVecVal(
-                int(global_state.last_return_data, 16), 256
-            )
-        else:
-            return_val = symbol_factory.BitVecVal(0, 256)
-        global_state.mstate.stack.append(return_val)
-        return [global_state]
+        return self._handle_create_type_post(global_state)
 
     @StateTransition(is_state_mutation_instruction=True)
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1775,11 +1764,17 @@ class Instruction:
 
     @StateTransition()
     def create2_post(self, global_state: GlobalState) -> List[GlobalState]:
-        call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
-        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+        return self._handle_create_type_post(global_state, opcode="create2")
+
+    @staticmethod
+    def _handle_create_type_post(global_state, opcode="cre  ate"):
+        if opcode == "create2":
+            global_state.mstate.pop(4)
+        else:
+            global_state.mstate.pop(3)
         if global_state.last_return_data:
             return_val = symbol_factory.BitVecVal(
-                int(global_state.last_return_data), 256
+                int(global_state.last_return_data, 16), 256
             )
         else:
             return_val = symbol_factory.BitVecVal(0, 256)
