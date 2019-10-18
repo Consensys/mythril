@@ -1675,11 +1675,23 @@ class Instruction:
 
         code_raw = []
         code_end = call_data.size
-        for i in range(call_data.size):
+        size = call_data.size
+        if isinstance(size, BitVec):
+            # This should be fine because of the below check
+            if size.symbolic:
+                size = 10 ** 5
+            else:
+                size = size.value
+        for i in range(size):
             if call_data[i].symbolic:
                 code_end = i
                 break
             code_raw.append(call_data[i].value)
+
+        if len(code_raw) < 1:
+            global_state.mstate.stack.append(1)
+            log.debug("No code found for trying to execute a create type instruction.")
+            return global_state
 
         code_str = bytes.hex(bytes(code_raw))
 
