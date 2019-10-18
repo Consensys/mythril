@@ -87,7 +87,7 @@ class ExternalCalls(DetectionModule):
         try:
             constraints = Constraints([UGT(gas, symbol_factory.BitVecVal(2300, 256))])
 
-            transaction_sequence = solver.get_transaction_sequence(
+            solver.get_transaction_sequence(
                 state, constraints + state.mstate.constraints
             )
 
@@ -100,7 +100,7 @@ class ExternalCalls(DetectionModule):
                     if not isinstance(tx, ContractCreationTransaction):
                         constraints.append(tx.caller == ATTACKER_ADDRESS)
 
-                transaction_sequence = solver.get_transaction_sequence(
+                solver.get_transaction_sequence(
                     state, constraints + state.mstate.constraints
                 )
 
