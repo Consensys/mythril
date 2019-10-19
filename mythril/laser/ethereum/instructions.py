@@ -43,7 +43,7 @@ from mythril.laser.ethereum.evm_exceptions import (
     OutOfGasException,
     WriteProtection,
 )
-from mythril.laser.ethereum.gas import OPCODE_GAS
+from mythril.laser.ethereum.instruction_data import get_opcode_gas, calculate_sha3_gas
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
@@ -159,7 +159,7 @@ class StateTransition(object):
         if not self.enable_gas:
             return global_state
         opcode = global_state.instruction["opcode"]
-        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS[opcode])
+        min_gas, max_gas = get_opcode_gas(opcode)
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
         self.check_gas_usage_limit(global_state)
@@ -901,9 +901,7 @@ class Instruction:
         state = global_state.mstate
         address = state.stack.pop()
 
-        balance = global_state.world_state.balances[
-            global_state.environment.active_account.address
-        ]
+        balance = global_state.world_state.balances[address]
         state.stack.append(balance)
         return [global_state]
 
@@ -960,7 +958,7 @@ class Instruction:
 
     @staticmethod
     def _sha3_gas_helper(global_state, length):
-        min_gas, max_gas = cast(Callable, OPCODE_GAS["SHA3_FUNC"])(length)
+        min_gas, max_gas = calculate_sha3_gas(length)
         global_state.mstate.min_gas_used += min_gas
         global_state.mstate.max_gas_used += max_gas
         StateTransition.check_gas_usage_limit(global_state)
@@ -986,7 +984,7 @@ class Instruction:
             state.stack.append(
                 symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
             )
-            gas_tuple = cast(Tuple, OPCODE_GAS["SHA3"])
+            gas_tuple = get_opcode_gas("SHA3")
             state.min_gas_used += gas_tuple[0]
             state.max_gas_used += gas_tuple[1]
             return [global_state]
@@ -1525,7 +1523,7 @@ class Instruction:
 
         new_state = copy(global_state)
         # add JUMP gas cost
-        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS["JUMP"])
+        min_gas, max_gas = get_opcode_gas("JUMP")
         new_state.mstate.min_gas_used += min_gas
         new_state.mstate.max_gas_used += max_gas
 
@@ -1544,7 +1542,7 @@ class Instruction:
         """
         state = global_state.mstate
         disassembly = global_state.environment.code
-        min_gas, max_gas = cast(Tuple[int, int], OPCODE_GAS["JUMPI"])
+        min_gas, max_gas = get_opcode_gas("JUMPI")
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
@@ -1677,11 +1675,23 @@ class Instruction:
 
         code_raw = []
         code_end = call_data.size
-        for i in range(call_data.size):
+        size = call_data.size
+        if isinstance(size, BitVec):
+            # This should be fine because of the below check
+            if size.symbolic:
+                size = 10 ** 5
+            else:
+                size = size.value
+        for i in range(size):
             if call_data[i].symbolic:
                 code_end = i
                 break
             code_raw.append(call_data[i].value)
+
+        if len(code_raw) < 1:
+            global_state.mstate.stack.append(1)
+            log.debug("No code found for trying to execute a create type instruction.")
+            return global_state
 
         code_str = bytes.hex(bytes(code_raw))
 
@@ -1737,16 +1747,7 @@ class Instruction:
 
     @StateTransition()
     def create_post(self, global_state: GlobalState) -> List[GlobalState]:
-        call_value, mem_offset, mem_size = global_state.mstate.pop(3)
-        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
-        if global_state.last_return_data:
-            return_val = symbol_factory.BitVecVal(
-                int(global_state.last_return_data, 16), 256
-            )
-        else:
-            return_val = symbol_factory.BitVecVal(0, 256)
-        global_state.mstate.stack.append(return_val)
-        return [global_state]
+        return self._handle_create_type_post(global_state)
 
     @StateTransition(is_state_mutation_instruction=True)
     def create2_(self, global_state: GlobalState) -> List[GlobalState]:
@@ -1763,11 +1764,17 @@ class Instruction:
 
     @StateTransition()
     def create2_post(self, global_state: GlobalState) -> List[GlobalState]:
-        call_value, mem_offset, mem_size, salt = global_state.mstate.pop(4)
-        call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
+        return self._handle_create_type_post(global_state, opcode="create2")
+
+    @staticmethod
+    def _handle_create_type_post(global_state, opcode="cre  ate"):
+        if opcode == "create2":
+            global_state.mstate.pop(4)
+        else:
+            global_state.mstate.pop(3)
         if global_state.last_return_data:
             return_val = symbol_factory.BitVecVal(
-                int(global_state.last_return_data), 256
+                int(global_state.last_return_data, 16), 256
             )
         else:
             return_val = symbol_factory.BitVecVal(0, 256)
