@@ -126,7 +126,8 @@ def get_transaction_sequence(
 
     concrete_initial_state = _get_concrete_state(initial_accounts, min_price_dict)
     if isinstance(transaction_sequence[0], ContractCreationTransaction):
-        _replace_with_actual_sha(concrete_transactions[1:], model)
+        code = transaction_sequence[0].code
+        _replace_with_actual_sha(concrete_transactions, model, code)
     else:
         _replace_with_actual_sha(concrete_transactions, model)
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
@@ -135,13 +136,17 @@ def get_transaction_sequence(
 
 
 def _replace_with_actual_sha(
-    concrete_transactions: List[Dict[str, str]], model: z3.Model
+    concrete_transactions: List[Dict[str, str]], model: z3.Model, code=None
 ):
     for tx in concrete_transactions:
         if hash_matcher not in tx["input"]:
             continue
-        for i in range(0, len(tx["input"]) - 73, 64):
-            data_slice = tx["input"][i + 10 : i + 74]
+        if code is not None and code.bytecode in tx["input"]:
+            s_index = len(code.bytecode) + 10
+        else:
+            s_index = 10
+        for i in range(s_index, len(tx["input"]), 64):
+            data_slice = tx["input"][i : i + 64]
             if hash_matcher not in data_slice or len(data_slice) != 64:
                 continue
             find_input = symbol_factory.BitVecVal(int(data_slice, 16), 256)
@@ -165,8 +170,11 @@ def _replace_with_actual_sha(
             if input_ is None:
                 continue
             keccak = keccak_function_manager.find_keccak(input_)
-            tx["input"] = tx["input"].replace(
-                tx["input"][10 + i : 74 + i], hex(keccak.value)[2:]
+            hex_keccak = hex(keccak.value)
+            if len(hex_keccak) != 66:
+                hex_keccak = "0x" + "0" * (66 - len(hex_keccak)) + hex_keccak[2:]
+            tx["input"] = tx["input"][:s_index] + tx["input"][s_index:].replace(
+                tx["input"][i : 64 + i], hex_keccak[2:]
             )
 
 
