@@ -55,7 +55,7 @@ class StateChangeCallsAnnotation(StateAnnotation):
             constraints += [to == 0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF]
 
         try:
-            transaction_sequence = solver.get_transaction_sequence(
+            solver.get_transaction_sequence(
                 global_state, constraints + global_state.mstate.constraints
             )
         except UnsatError:
