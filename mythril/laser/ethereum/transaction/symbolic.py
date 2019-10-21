@@ -31,19 +31,19 @@ ACTOR_ADDRESSES = {
 }
 
 
-def set_actor(actor: str, address: Optional[int]):
+def set_actor(actor: str, address: Optional[str]):
     """
     Sets an actor to a desired address
 
     :param actor: Name of the actor to set
     :param address: Address to set the actor to. None to delete the actor
     """
-    if address[0:2] != "0x":
-        raise ValueError("Actor address not in valid format")
-
     if address is None:
         del ACTOR_ADDRESSES[actor]
     else:
+        if address[0:2] != "0x":
+            raise ValueError("Actor address not in valid format")
+
         ACTOR_ADDRESSES[actor] = symbol_factory.BitVecVal(int(address[2:], 16), 256)
 
 
