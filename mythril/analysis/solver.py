@@ -22,6 +22,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 # LRU cache works great when used in powers of 2
 @lru_cache(maxsize=2 ** 23)
 def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
@@ -140,13 +141,12 @@ def _replace_with_actual_sha(
         if hash_matcher not in tx["input"]:
             continue
         for i in range(0, len(tx["input"]) - 73, 64):
-            if hash_matcher not in tx["input"][i + 10 : i + 74]:
+            data_slice = tx["input"][i + 10 : i + 74]
+            if hash_matcher not in data_slice or len(data_slice) != 64:
                 continue
-            find_input = symbol_factory.BitVecVal(
-                int(tx["input"][10 + i : 74 + i], 16), 256
-            )
+            find_input = symbol_factory.BitVecVal(int(data_slice, 16), 256)
             input_ = None
-            for size in (160, 256, 512):
+            for size in keccak_function_manager.store_function:
                 _, inverse = keccak_function_manager.get_function(size)
                 try:
                     input_ = symbol_factory.BitVecVal(
