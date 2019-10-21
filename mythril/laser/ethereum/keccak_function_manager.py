@@ -23,6 +23,7 @@ class KeccakFunctionManager:
         self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
         self.interval_hook_for_size = {}  # type: Dict[int, int]
         self._index_counter = TOTAL_PARTS - 34534
+        self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
 
     def find_keccak(self, data: BitVec) -> BitVec:
         """
@@ -72,8 +73,8 @@ class KeccakFunctionManager:
         func, inverse = self.get_function(length)
 
         condition = self._create_condition(func_input=data)
-        output = func(data)
-        return output, condition
+        self.quick_inverse[func(data)] = data
+        return func(data), condition
 
     def _create_condition(self, func_input: BitVec) -> Bool:
         """
