@@ -18,6 +18,7 @@ import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril import mythx
 from mythril.exceptions import AddressNotFoundError, CriticalError
+from mythril.laser.ethereum.transaction.symbolic import ACTOR_ADDRESSES, set_actor
 from mythril.mythril import (
     MythrilAnalyzer,
     MythrilDisassembler,
@@ -468,6 +469,16 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",
     )
+    options.add_argument(
+        "--attacker-address",
+        help="Designates a specific attacker address to use during analysis",
+        metavar="ATTACKER_ADDRESS",
+    )
+    options.add_argument(
+        "--creator-address",
+        help="Designates a specific creator address to use during analysis",
+        metavar="CREATOR_ADDRESS",
+    )
 
 
 def validate_args(args: Namespace):
@@ -661,6 +672,18 @@ def execute_command(
             exit_with_error(
                 args.outform, "input files do not contain any valid contracts"
             )
+
+        if args.attacker_address:
+            try:
+                set_actor("ATTACKER", args.attacker_address)
+            except ValueError:
+                exit_with_error(args.outform, "Attacker address is invalid")
+
+        if args.creator_address:
+            try:
+                set_actor("CREATOR", args.creator_address)
+            except ValueError:
+                exit_with_error(args.outform, "Creator address is invalid")
 
         if args.graph:
             html = analyzer.graph_html(

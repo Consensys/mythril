@@ -7,7 +7,7 @@ from mythril.analysis.potential_issues import (
     PotentialIssue,
 )
 from mythril.analysis.swc_data import DELEGATECALL_TO_UNTRUSTED_CONTRACT
-from mythril.laser.ethereum.transaction.symbolic import ATTACKER_ADDRESS
+from mythril.laser.ethereum.transaction.symbolic import ACTOR_ADDRESSES
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
@@ -54,7 +54,7 @@ class DelegateCallModule(DetectionModule):
         to = state.mstate.stack[-2]
 
         constraints = [
-            to == ATTACKER_ADDRESS,
+            to == ACTOR_ADDRESSES["ATTACKER"],
             UGT(gas, symbol_factory.BitVecVal(2300, 256)),
             state.new_bitvec(
                 "retval_{}".format(state.get_current_instruction()["address"]), 256
@@ -64,7 +64,7 @@ class DelegateCallModule(DetectionModule):
 
         for tx in state.world_state.transaction_sequence:
             if not isinstance(tx, ContractCreationTransaction):
-                constraints.append(tx.caller == ATTACKER_ADDRESS)
+                constraints.append(tx.caller == ACTOR_ADDRESSES["ATTACKER"])
 
         try:
             address = state.get_current_instruction()["address"]
