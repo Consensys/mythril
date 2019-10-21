@@ -1,7 +1,7 @@
 """This module contains a representation of the EVM's world state."""
 from copy import copy
 from random import randint
-from typing import Dict, List, Iterator, Optional, Set, TYPE_CHECKING
+from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
