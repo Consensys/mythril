@@ -62,8 +62,7 @@ class KeccakFunctionManager:
         :return:
         """
         val = 89477152217924674838424037953991966239322087453347756267410168184682657981552
-        val = symbol_factory.BitVecVal(val, 256)
-        return val
+        return symbol_factory.BitVecVal(val, 256)
 
     def create_keccak(self, data: BitVec) -> Tuple[BitVec, Bool]:
         """
