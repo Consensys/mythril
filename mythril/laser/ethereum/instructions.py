@@ -999,13 +999,16 @@ class Instruction:
             b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
             for b in state.memory[index : index + length]
         ]
+
         if len(data_list) > 1:
             data = simplify(Concat(data_list))
         elif len(data_list) == 1:
             data = data_list[0]
         else:
-            # length is 0; this only matters for input of the BitVecFuncVal
-            data = symbol_factory.BitVecVal(0, 1)
+            # TODO: handle finding x where func(x)==func("")
+            result = keccak_function_manager.get_empty_keccak_hash()
+            state.stack.append(result)
+            return [global_state]
 
         result, condition = keccak_function_manager.create_keccak(data)
         state.stack.append(result)

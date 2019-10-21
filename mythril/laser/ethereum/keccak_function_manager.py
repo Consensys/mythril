@@ -55,6 +55,16 @@ class KeccakFunctionManager:
             self.store_function[length] = (func, inverse)
         return func, inverse
 
+    @staticmethod
+    def get_empty_keccak_hash() -> BitVec:
+        """
+        returns sha3("")
+        :return:
+        """
+        val = 89477152217924674838424037953991966239322087453347756267410168184682657981552
+        val = symbol_factory.BitVecVal(val, 256)
+        return val
+
     def create_keccak(self, data: BitVec) -> Tuple[BitVec, Bool]:
         """
         Creates Keccak of the data
