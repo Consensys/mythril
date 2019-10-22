@@ -82,8 +82,7 @@ class Constraints(list):
         :return: The copied constraint List
         """
         constraint_list = super(Constraints, self).copy()
-        constraints = Constraints(constraint_list, is_possible=self._is_possible)
-        return constraints
+        return Constraints(constraint_list, is_possible=self._is_possible)
 
     def copy(self) -> "Constraints":
         return self.__copy__()
