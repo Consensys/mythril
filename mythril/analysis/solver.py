@@ -142,7 +142,7 @@ def _replace_with_actual_sha(
         if hash_matcher not in tx["input"]:
             continue
         if code is not None and code.bytecode in tx["input"]:
-            s_index = len(code.bytecode) + 10
+            s_index = len(code.bytecode) + 2
         else:
             s_index = 10
         for i in range(s_index, len(tx["input"]), 64):
