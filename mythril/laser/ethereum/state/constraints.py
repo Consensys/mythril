@@ -95,8 +95,7 @@ class Constraints(list):
         :return: The copied constraint List
         """
         constraint_list = super(Constraints, self).copy()
-        constraints = Constraints(constraint_list, is_possible=self._is_possible)
-        return constraints
+        return Constraints(constraint_list, is_possible=self._is_possible)
 
     def __add__(self, constraints: List[Union[bool, Bool]]) -> "Constraints":
         """
@@ -106,10 +105,7 @@ class Constraints(list):
         """
         constraints_list = self._get_smt_bool_list(constraints)
         constraints_list = super(Constraints, self).__add__(constraints_list)
-        new_constraints = Constraints(
-            constraint_list=constraints_list, is_possible=None
-        )
-        return new_constraints
+        return Constraints(constraint_list=constraints_list, is_possible=None)
 
     def __iadd__(self, constraints: Iterable[Union[bool, Bool]]) -> "Constraints":
         """

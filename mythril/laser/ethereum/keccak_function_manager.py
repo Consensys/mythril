@@ -19,13 +19,24 @@ hash_matcher = "fffffff"  # This is usually the prefix for the hash in the outpu
 
 
 class KeccakFunctionManager:
+    """
+    A bunch of uninterpreted functions are considered like keccak256_160 ,...
+    where keccak256_160 means the input of keccak256() is 160 bit number.
+    the range of these functions are constrained to some mutually disjoint intervals
+    All the hashes modulo 64 are 0 as we need a spread among hashes for array type data structures
+    All the functions are kind of one to one due to constraint of the existence of inverse
+    for each encountered input.
+    For more info https://files.sri.inf.ethz.ch/website/papers/sp20-verx.pdf
+    """
+
     def __init__(self):
         self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
         self.interval_hook_for_size = {}  # type: Dict[int, int]
         self._index_counter = TOTAL_PARTS - 34534
         self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
 
-    def find_keccak(self, data: BitVec) -> BitVec:
+    @staticmethod
+    def find_concrete_keccak(data: BitVec) -> BitVec:
         """
         Calculates concrete keccak
         :param data: input bitvecval

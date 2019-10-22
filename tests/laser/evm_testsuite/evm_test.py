@@ -181,7 +181,7 @@ def test_vmtest(
                         actual.symbolic
                         and actual in keccak_function_manager.quick_inverse
                     ):
-                        actual = keccak_function_manager.find_keccak(
+                        actual = keccak_function_manager.find_concrete_keccak(
                             keccak_function_manager.quick_inverse[actual]
                         )
                     else:
