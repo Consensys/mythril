@@ -117,19 +117,6 @@ class SymbolicSummaryPlugin(LaserPlugin):
     @staticmethod
     def _get_and_remove_summary_tracking_annotation(global_state: GlobalState) -> Optional[SummaryTrackingAnnotation]:
         """ Retrieves symbolic summary from the global state"""
-        pass
-
-    def _record_symbolic_summary(self, global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
-        """Records a summary between tracking_annotation.entry and global_state"""
-        pass
-    @staticmethod
-    def _restore_previous_state(global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
-        """Restores the previous persistent variables to the global state"""
-        pass
-
-    @staticmethod
-    def _get_and_remove_summary_tracking_annotation(global_state: GlobalState) -> Optional[SummaryTrackingAnnotation]:
-        """ Retrieves symbolic summary from the global state"""
         summary_annotation: List[SummaryTrackingAnnotation] = list(
             global_state.get_annotations(SummaryTrackingAnnotation))
         if len(summary_annotation) != 1:
