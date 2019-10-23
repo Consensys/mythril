@@ -18,8 +18,16 @@ class SummaryTrackingAnnotation(StateAnnotation):
     This annotation is used by the symbolic summary plugin to keep track of data related to a summary that
     will be computed during the future exploration of the annotated world state.
     """
-    def __init__():
-        pass
+
+    def __init__(
+        self,
+        entry: GlobalState,
+        storage_pairs: List[Tuple[BaseArray, BaseArray]],
+        storage_constraints: List[Bool]
+    ):
+        self.entry = entry
+        self.storage_pairs = storage_pairs
+        self.storage_constraints = storage_constraints
 
 
 class SymbolicSummary:
