@@ -106,3 +106,48 @@ class SymbolicSummaryPlugin(LaserPlugin):
     def _restore_previous_state(global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
         """Restores the previous persistent variables to the global state"""
         pass
+
+    @staticmethod
+    def _get_and_remove_summary_tracking_annotation(global_state: GlobalState) -> Optional[SummaryTrackingAnnotation]:
+        """ Retrieves symbolic summary from the global state"""
+        summary_annotation: List[SummaryTrackingAnnotation] = list(
+            global_state.get_annotations(SummaryTrackingAnnotation))
+        if len(summary_annotation) != 1:
+            logging.warning(
+                f"Unexpected number of summary tracking annotations found: {len(summary_annotation)}\nSkipping..."
+            )
+
+        summary_annotation: SummaryTrackingAnnotation = summary_annotation[0]
+        global_state.annotations.remove(summary_annotation)
+        return summary_annotation
+
+    def _record_symbolic_summary(self, global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
+        """Records a summary between tracking_annotation.entry and global_state"""
+        storage_mutations = []
+        # TODO: record return value
+        return_value = None
+
+        for index, account in global_state.world_state.accounts.items():
+            storage_mutations.append((index, account.storage._standard_storage))
+
+        condition = global_state.mstate.constraints[:]
+        for constraint in tracking_annotation.entry.mstate.constraints:
+            condition.remove(constraint)
+
+        summary = SymbolicSummary(
+            storage_effect=storage_mutations,
+            condition=condition,
+            return_value=return_value,
+            entry=tracking_annotation.entry.mstate.pc,
+            exit=global_state.mstate.pc
+        )
+        self.summaries.append(summary)
+
+    @staticmethod
+    def _restore_previous_state(global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
+        """Restores the previous persistent variables to the global state"""
+        for account in global_state.world_state.accounts:
+            for og_storage, sym_storage in tracking_annotation.storage_pairs:
+                account.storage.replace(sym_storage, og_storage)
+        for constraint in tracking_annotation.storage_constraints:
+            global_state.mstate.constraints.remove(constraint)
