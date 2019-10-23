@@ -61,7 +61,24 @@ class SymbolicSummaryPlugin(LaserPlugin):
 
         :param global_state: The state at the entry of the symbolic summary
         """
-        pass
+        storage_pairs = []
+        storage_constraints = []
+
+        for index, account in global_state.world_state.accounts.items():
+            actual_storage = account.storage._standard_storage
+            symbolic_storage = Array(f"{index}_symbolic_storage", 256, 256)
+            account.storage._standard_storage = symbolic_storage
+            storage_pairs.append((actual_storage, symbolic_storage))
+            storage_constraints.append(actual_storage == symbolic_storage)
+
+        summary_annotation = SummaryTrackingAnnotation(
+            global_state,
+            storage_pairs,
+            storage_constraints
+        )
+        for constraint in storage_constraints:
+            global_state.mstate.constraints.append(constraint)
+        global_state.annotate(summary_annotation)
 
     def summary_exit(self, global_state: GlobalState):
         """ Handles logic for when the analysis reaches the summary exit
