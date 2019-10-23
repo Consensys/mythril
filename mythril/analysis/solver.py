@@ -172,11 +172,11 @@ def _replace_with_actual_sha(
             if input_ is None:
                 continue
             keccak = keccak_function_manager.find_concrete_keccak(input_)
-            hex_keccak = hex(keccak.value)
-            if len(hex_keccak) != 66:
-                hex_keccak = "0x" + "0" * (66 - len(hex_keccak)) + hex_keccak[2:]
+            hex_keccak = hex(keccak.value)[2:]
+            if len(hex_keccak) != 64:
+                hex_keccak = "0" * (64 - len(hex_keccak)) + hex_keccak
             tx["input"] = tx["input"][:s_index] + tx["input"][s_index:].replace(
-                tx["input"][i : 64 + i], hex_keccak[2:]
+                tx["input"][i : 64 + i], hex_keccak
             )
 
 
