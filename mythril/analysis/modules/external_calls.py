@@ -8,7 +8,7 @@ from mythril.analysis.potential_issues import (
 )
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.laser.ethereum.state.constraints import Constraints
-from mythril.laser.ethereum.transaction.symbolic import ACTOR_ADDRESSES
+from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
@@ -94,11 +94,11 @@ class ExternalCalls(DetectionModule):
             # Check whether we can also set the callee address
 
             try:
-                constraints += [to == ACTOR_ADDRESSES["ATTACKER"]]
+                constraints += [to == ACTORS.attacker]
 
                 for tx in state.world_state.transaction_sequence:
                     if not isinstance(tx, ContractCreationTransaction):
-                        constraints.append(tx.caller == ACTOR_ADDRESSES["ATTACKER"])
+                        constraints.append(tx.caller == ACTORS.attacker)
 
                 solver.get_transaction_sequence(
                     state, constraints + state.mstate.constraints

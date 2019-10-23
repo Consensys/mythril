@@ -16,7 +16,7 @@ from mythril.laser.ethereum.strategy.basic import (
 )
 
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
-from mythril.laser.ethereum.transaction.symbolic import ACTOR_ADDRESSES
+from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
 
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
@@ -92,16 +92,10 @@ class SymExecWrapper:
             raise ValueError("Invalid strategy argument supplied")
 
         creator_account = Account(
-            hex(ACTOR_ADDRESSES["CREATOR"].value),
-            "",
-            dynamic_loader=dynloader,
-            contract_name=None,
+            hex(ACTORS.creator.value), "", dynamic_loader=dynloader, contract_name=None
         )
         attacker_account = Account(
-            hex(ACTOR_ADDRESSES["ATTACKER"].value),
-            "",
-            dynamic_loader=dynloader,
-            contract_name=None,
+            hex(ACTORS.attacker.value), "", dynamic_loader=dynloader, contract_name=None
         )
 
         requires_statespace = (
@@ -109,11 +103,11 @@ class SymExecWrapper:
             or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
         )
         if not contract.creation_code:
-            self.accounts = {hex(ACTOR_ADDRESSES["ATTACKER"].value): attacker_account}
+            self.accounts = {hex(ACTORS.attacker.value): attacker_account}
         else:
             self.accounts = {
-                hex(ACTOR_ADDRESSES["CREATOR"].value): creator_account,
-                hex(ACTOR_ADDRESSES["ATTACKER"].value): attacker_account,
+                hex(ACTORS.creator.value): creator_account,
+                hex(ACTORS.attacker.value): attacker_account,
             }
 
         instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()

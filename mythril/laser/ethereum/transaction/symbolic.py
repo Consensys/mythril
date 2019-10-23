@@ -18,33 +18,53 @@ from mythril.laser.smt import symbol_factory, Or, BitVec
 
 log = logging.getLogger(__name__)
 
-ACTOR_ADDRESSES = {
-    "CREATOR": symbol_factory.BitVecVal(
-        0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE, 256
-    ),
-    "ATTACKER": symbol_factory.BitVecVal(
-        0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF, 256
-    ),
-    "SOMEGUY": symbol_factory.BitVecVal(
-        0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, 256
-    ),
-}
+
+class Actors:
+    def __init__(
+        self,
+        creator=0xAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFEAFFE,
+        attacker=0xDEADBEEFDEADBEEFDEADBEEFDEADBEEFDEADBEEF,
+        someguy=0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,
+    ):
+        self.addresses = {
+            "CREATOR": symbol_factory.BitVecVal(creator, 256),
+            "ATTACKER": symbol_factory.BitVecVal(attacker, 256),
+            "SOMEGUY": symbol_factory.BitVecVal(someguy, 256),
+        }
+
+    def __setitem__(self, actor: str, address: Optional[str]):
+        """
+        Sets an actor to a desired address
+
+        :param actor: Name of the actor to set
+        :param address: Address to set the actor to. None to delete the actor
+        """
+        if address is None:
+            if actor in ("CREATOR", "ATTACKER"):
+                raise ValueError("Can't delete creator or attacker address")
+            del self.addresses[actor]
+        else:
+            if address[0:2] != "0x":
+                raise ValueError("Actor address not in valid format")
+
+            self.addresses[actor] = symbol_factory.BitVecVal(int(address[2:], 16), 256)
+
+    def __getitem__(self, actor: str):
+        return self.addresses[actor]
+
+    @property
+    def creator(self):
+        return self.addresses["CREATOR"]
+
+    @property
+    def attacker(self):
+        return self.addresses["ATTACKER"]
+
+    def __len__(self):
+        return len(self.addresses)
 
 
-def set_actor(actor: str, address: Optional[str]):
-    """
-    Sets an actor to a desired address
-
-    :param actor: Name of the actor to set
-    :param address: Address to set the actor to. None to delete the actor
-    """
-    if address is None:
-        del ACTOR_ADDRESSES[actor]
-    else:
-        if address[0:2] != "0x":
-            raise ValueError("Actor address not in valid format")
-
-        ACTOR_ADDRESSES[actor] = symbol_factory.BitVecVal(int(address[2:], 16), 256)
+ACTORS = Actors()
 
 
 def execute_message_call(laser_evm, callee_address: BitVec) -> None:
@@ -118,7 +138,7 @@ def execute_contract_creation(
                 "origin{}".format(next_transaction_id), 256
             ),
             code=Disassembly(contract_initialization_code),
-            caller=ACTOR_ADDRESSES["CREATOR"],
+            caller=ACTORS["CREATOR"],
             contract_name=contract_name,
             call_data=None,
             call_value=symbol_factory.BitVecSym(
@@ -143,7 +163,7 @@ def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -
     global_state.transaction_stack.append((transaction, None))
 
     global_state.mstate.constraints.append(
-        Or(*[transaction.caller == actor for actor in ACTOR_ADDRESSES.values()])
+        Or(*[transaction.caller == actor for actor in ACTORS.addresses.values()])
     )
 
     new_node = Node(

@@ -18,7 +18,7 @@ import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril import mythx
 from mythril.exceptions import AddressNotFoundError, CriticalError
-from mythril.laser.ethereum.transaction.symbolic import ACTOR_ADDRESSES, set_actor
+from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.mythril import (
     MythrilAnalyzer,
     MythrilDisassembler,
@@ -675,13 +675,13 @@ def execute_command(
 
         if args.attacker_address:
             try:
-                set_actor("ATTACKER", args.attacker_address)
+                ACTORS["ATTACKER"] = args.attacker_address
             except ValueError:
                 exit_with_error(args.outform, "Attacker address is invalid")
 
         if args.creator_address:
             try:
-                set_actor("CREATOR", args.creator_address)
+                ACTORS["CREATOR"] = args.creator_address
             except ValueError:
                 exit_with_error(args.outform, "Creator address is invalid")
 

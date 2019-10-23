@@ -8,12 +8,12 @@ from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
     PotentialIssue,
 )
-from mythril.laser.ethereum.transaction.symbolic import ACTOR_ADDRESSES
+from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 
-from mythril.laser.smt import UGT, symbol_factory, UGE
+from mythril.laser.smt import UGT, UGE
 
 log = logging.getLogger(__name__)
 
@@ -90,9 +90,9 @@ class EtherThief(DetectionModule):
             This prevents false positives where the owner willingly transfers ownership to another address.
             """
             if not isinstance(tx, ContractCreationTransaction):
-                constraints += [tx.caller != ACTOR_ADDRESSES["CREATOR"]]
+                constraints += [tx.caller != ACTORS.creator]
 
-        attacker_address_bitvec = ACTOR_ADDRESSES["ATTACKER"]
+        attacker_address_bitvec = ACTORS.attacker
 
         constraints += [
             UGE(
@@ -108,8 +108,8 @@ class EtherThief(DetectionModule):
                 state.world_state.balances[attacker_address_bitvec],
                 state.world_state.starting_balances[attacker_address_bitvec],
             ),
-            target == ACTOR_ADDRESSES["ATTACKER"],
-            state.current_transaction.caller == ACTOR_ADDRESSES["ATTACKER"],
+            target == ACTORS.attacker,
+            state.current_transaction.caller == ACTORS.attacker,
         ]
 
         potential_issue = PotentialIssue(
