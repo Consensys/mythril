@@ -67,7 +67,7 @@ class SymbolicSummaryPlugin(LaserPlugin):
         @symbolic_vm.laser_hook("stop_sym_exec")
         def stop_sym_exec_hook():
             # Print results
-            log.info("Generated 0 summaries")
+            log.info(f"Generated {len(self.summaries)} summaries")
 
         @symbolic_vm.laser_hook("execute_state")
         def execute_start_sym_trans_hook(global_state: GlobalState):
