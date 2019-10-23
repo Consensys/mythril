@@ -35,8 +35,20 @@ class SymbolicSummary:
 
     A symbolic summary is an awesome construct that allows mythril to record and re-use partial analysis results
     """
-    def __init__():
-        pass
+
+    def __init__(
+        self,
+        storage_effect,
+        condition,
+        return_value,
+        entry,
+        exit,
+    ):
+        self.storage_effect = storage_effect
+        self.condition = condition
+        self.return_value = return_value
+        self.entry = entry
+        self.exit = exit
 
 
 class SymbolicSummaryPlugin(LaserPlugin):
