@@ -31,6 +31,9 @@ class BaseArray:
 
         self.raw = z3.Store(self.raw, key.raw, value.raw)  # type: ignore
 
+    def __eq__(self, other: "BaseArray"):
+        return Bool(self.raw == other.raw)
+
 
 class Array(BaseArray):
     """A basic symbolic array."""
