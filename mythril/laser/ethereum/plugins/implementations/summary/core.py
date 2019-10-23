@@ -155,6 +155,6 @@ class SymbolicSummaryPlugin(LaserPlugin):
         """Restores the previous persistent variables to the global state"""
         for account in global_state.world_state.accounts:
             for og_storage, sym_storage in tracking_annotation.storage_pairs:
-                account.storage.replace(sym_storage, og_storage)
+                account.storage._standard_storage.substitute(sym_storage, og_storage)
         for constraint in tracking_annotation.storage_constraints:
             global_state.mstate.constraints.remove(constraint)
