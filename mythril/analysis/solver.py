@@ -145,9 +145,7 @@ def _replace_with_actual_sha(
             s_index = len(code.bytecode) + 2
         else:
             s_index = 10
-        for i in range(s_index, len(tx["input"]), 64):
-            # We can do this because the data is aligned as blocks of 32 bytes
-            # For more info https://solidity.readthedocs.io/en/v0.5.12/abi-spec.html,
+        for i in range(s_index, len(tx["input"])):
             data_slice = tx["input"][i : i + 64]
             if hash_matcher not in data_slice or len(data_slice) != 64:
                 continue
