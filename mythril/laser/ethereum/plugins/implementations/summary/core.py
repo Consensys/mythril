@@ -1,5 +1,6 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
+from mythril.laser.ethereum.transaction.transaction_models import ContractCreationTransaction, BaseTransaction
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.account import Account
@@ -68,13 +69,26 @@ class SymbolicSummaryPlugin(LaserPlugin):
             # Print results
             log.info("Generated 0 summaries")
 
-        @symbolic_vm.laser_hook("start_sym_trans")
-        def execute_start_sym_trans_hook():
-            pass
+        @symbolic_vm.laser_hook("execute_state")
+        def execute_start_sym_trans_hook(global_state: GlobalState):
+            if global_state.mstate.pc == 0:
+                self.summary_entry(global_state)
 
-        @symbolic_vm.laser_hook("stop_sym_trans")
-        def execute_stop_sym_trans_hook():
-            pass
+        @symbolic_vm.laser_hook("transaction_end")
+        def execute_transaction_end_hook(
+            global_state: GlobalState,
+            transaction: BaseTransaction,
+            return_global_state:Optional[GlobalState],
+            revert: bool,
+        ):
+            if return_global_state is not None:
+                return
+
+            if (
+                not isinstance(transaction, ContractCreationTransaction)
+                or transaction.return_data
+            ) and not revert:
+                self.summary_exit(global_state)
 
     def summary_entry(self, global_state: GlobalState):
         """ Handles logic for when the analysis reaches an entry point of a to-be recorded symbolic summary
