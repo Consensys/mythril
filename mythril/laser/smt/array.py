@@ -34,6 +34,13 @@ class BaseArray:
     def __eq__(self, other: "BaseArray"):
         return Bool(self.raw == other.raw)
 
+    def substitute(self, original_expression: "BaseArray", new_expression: "BaseArray"):
+        if self.raw is None:
+            return
+        original_z3 = original_expression.raw
+        new_z3 = new_expression.raw
+        self.raw = z3.substitute(self.raw, (original_z3, new_z3))
+
 
 class Array(BaseArray):
     """A basic symbolic array."""
