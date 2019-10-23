@@ -107,6 +107,8 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
+        self._transaction_end_hooks = []  # type: List[Callable]
+
         self.iprof = iprof
 
         if enable_coverage_strategy:
@@ -356,6 +358,9 @@ class LaserEVM:
                 -1
             ]
 
+            for hook in self._transaction_end_hooks:
+                hook(global_state, transaction, return_global_state, end_signal.revert)
+
             log.debug("Ending transaction %s.", transaction)
 
             if return_global_state is None:
@@ -564,6 +569,8 @@ class LaserEVM:
             self._start_sym_trans_hooks.append(hook)
         elif hook_type == "stop_sym_trans":
             self._stop_sym_trans_hooks.append(hook)
+        elif hook_type == "transaction_end":
+            self._transaction_end_hooks.append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type
