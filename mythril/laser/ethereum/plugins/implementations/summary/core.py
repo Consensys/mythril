@@ -86,4 +86,23 @@ class SymbolicSummaryPlugin(LaserPlugin):
         This function populates self.summaries with the discovered symbolic summaries
         :param global_state: The state at the exit of the discovered symbolic summary
         """
+        summary_annotation = self._get_and_remove_summary_tracking_annotation(global_state)
+        if not summary_annotation:
+            return
+
+        self._record_symbolic_summary(global_state, summary_annotation)
+
+        self._restore_previous_state(global_state, summary_annotation)
+
+    @staticmethod
+    def _get_and_remove_summary_tracking_annotation(global_state: GlobalState) -> Optional[SummaryTrackingAnnotation]:
+        """ Retrieves symbolic summary from the global state"""
+        pass
+
+    def _record_symbolic_summary(self, global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
+        """Records a summary between tracking_annotation.entry and global_state"""
+        pass
+    @staticmethod
+    def _restore_previous_state(global_state: GlobalState, tracking_annotation: SummaryTrackingAnnotation):
+        """Restores the previous persistent variables to the global state"""
         pass
