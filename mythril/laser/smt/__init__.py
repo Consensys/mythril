@@ -51,7 +51,7 @@ class SymbolFactory(Generic[T, U]):
     @staticmethod
     def BoolSym(name: str, annotations: Annotations = None) -> T:
         """
-        Creates a Bool with concrete value
+        Creates a boolean symbol
         :param name: The name of the Bool variable
         :param annotations: The annotations to initialize the bool with
         :return: The freshly created Bool()

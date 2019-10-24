@@ -15,6 +15,16 @@ import pytest
             symbol_factory.BitVecSym("N2", 256),
             z3.sat,
         ),
+        (
+            symbol_factory.BitVecVal(100, 256),
+            symbol_factory.BitVecSym("N1", 256),
+            z3.sat,
+        ),
+        (
+            symbol_factory.BitVecVal(100, 8),
+            symbol_factory.BitVecSym("N1", 256),
+            z3.unsat,
+        ),
     ],
 )
 def test_keccak_basic(input1, input2, expected):
