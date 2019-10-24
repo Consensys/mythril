@@ -32,11 +32,26 @@ def test_keccak_basic(input1, input2, expected):
 
     o1, c1 = keccak_function_manager.create_keccak(input1)
     o2, c2 = keccak_function_manager.create_keccak(input2)
-    s.add(c1)
-    s.add(c2)
+    s.add(And(c1, c2))
 
     s.add(o1 == o2)
     assert s.check() == expected
+
+
+def test_keccak_symbol_and_val():
+    """
+    check keccak(100) == keccak(n) && n == 10
+    :return:
+    """
+    s = Solver()
+    hundred = symbol_factory.BitVecVal(100, 256)
+    n = symbol_factory.BitVecSym("n", 256)
+    o1, c1 = keccak_function_manager.create_keccak(hundred)
+    o2, c2 = keccak_function_manager.create_keccak(n)
+    s.add(And(c1, c2))
+    s.add(o1 == o2)
+    s.add(n == symbol_factory.BitVecVal(10, 256))
+    assert s.check() == z3.unsat
 
 
 def test_keccak_complex_eq():
