@@ -3,7 +3,6 @@ the call graph."""
 
 from mythril.laser.smt import Solver, Bool, symbol_factory, simplify
 
-from copy import copy
 from typing import Iterable, List, Optional, Union
 from z3 import unsat
 
@@ -93,8 +92,7 @@ class Constraints(list):
         :param memodict:
         :return: The copied constraint List
         """
-        constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, is_possible=self._is_possible)
+        return self.__copy__()
 
     def __add__(self, constraints: List[Union[bool, Bool]]) -> "Constraints":
         """
