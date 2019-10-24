@@ -1,6 +1,6 @@
 from mythril.disassembler.disassembly import Disassembly
+from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.environment import Environment
-from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -30,11 +30,12 @@ def execute_create():
         calldata = ConcreteCalldata(0, code_raw)
 
         world_state = WorldState()
+        world_state.node = Node("Contract")
         account = world_state.create_account(balance=1000000, address=101)
         account.code = Disassembly("60a760006000f000")
         environment = Environment(account, None, calldata, None, None, None)
         og_state = GlobalState(
-            world_state, environment, None, MachineState(gas_limit=8000000)
+            world_state, environment, world_state.node, MachineState(gas_limit=8000000)
         )
         og_state.transaction_stack.append(
             (MessageCallTransaction(world_state=WorldState(), gas_limit=8000000), None)

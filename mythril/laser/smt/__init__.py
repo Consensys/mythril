@@ -22,6 +22,7 @@ from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not, And
 from mythril.laser.smt.array import K, Array, BaseArray
+from mythril.laser.smt.function import Function
 from mythril.laser.smt.solver import Solver, Optimize, SolverStatistics
 from mythril.laser.smt.model import Model
 from mythril.laser.smt.bool import Bool as SMTBool
@@ -42,6 +43,16 @@ class SymbolFactory(Generic[T, U]):
         """
         Creates a Bool with concrete value
         :param value: The boolean value
+        :param annotations: The annotations to initialize the bool with
+        :return: The freshly created Bool()
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def BoolSym(name: str, annotations: Annotations = None) -> T:
+        """
+        Creates a boolean symbol
+        :param name: The name of the Bool variable
         :param annotations: The annotations to initialize the bool with
         :return: The freshly created Bool()
         """
@@ -123,6 +134,17 @@ class _SmtSymbolFactory(SymbolFactory[SMTBool, BitVec]):
         :return: The freshly created Bool()
         """
         raw = z3.BoolVal(value)
+        return SMTBool(raw, annotations)
+
+    @staticmethod
+    def BoolSym(name: str, annotations: Annotations = None) -> SMTBool:
+        """
+        Creates a boolean symbol
+        :param name: The name of the Bool variable
+        :param annotations: The annotations to initialize the bool with
+        :return: The freshly created Bool()
+        """
+        raw = z3.Bool(name)
         return SMTBool(raw, annotations)
 
     @staticmethod

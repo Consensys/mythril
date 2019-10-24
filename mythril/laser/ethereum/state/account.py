@@ -55,7 +55,6 @@ class Storage:
             self._standard_storage = K(256, 256, 0)  # type: BaseArray
         else:
             self._standard_storage = Array("Storage", 256, 256)
-        self._map_storage = {}  # type: Dict[BitVec, BaseArray]
 
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
@@ -73,11 +72,8 @@ class Storage:
             return Concat(symbol_factory.BitVecVal(0, 512 - input_.size()), input_)
 
     def __getitem__(self, item: BitVec) -> BitVec:
-        storage, is_keccak_storage = self._get_corresponding_storage(item)
-        if is_keccak_storage:
-            sanitized_item = self._sanitize(cast(BitVecFunc, item).input_)
-        else:
-            sanitized_item = item
+        storage = self._standard_storage
+        sanitized_item = item
         if (
             self.address
             and self.address.value != 0
@@ -100,7 +96,6 @@ class Storage:
                 self.printable_storage[item] = storage[sanitized_item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
-
         return simplify(storage[sanitized_item])
 
     @staticmethod
@@ -114,29 +109,12 @@ class Storage:
         index = Extract(255, 0, key.input_)
         return simplify(index)
 
-    def _get_corresponding_storage(self, key: BitVec) -> Tuple[BaseArray, bool]:
-        index = self.get_map_index(key)
-        if index is None:
-            storage = self._standard_storage
-            is_keccak_storage = False
-        else:
-            storage_map = self._map_storage
-            try:
-                storage = storage_map[index]
-            except KeyError:
-                if isinstance(self._standard_storage, Array):
-                    storage_map[index] = Array("Storage", 512, 256)
-                else:
-                    storage_map[index] = K(512, 256, 0)
-                storage = storage_map[index]
-            is_keccak_storage = True
-        return storage, is_keccak_storage
+    def _get_corresponding_storage(self, key: BitVec) -> BaseArray:
+        return self._standard_storage
 
     def __setitem__(self, key, value: Any) -> None:
-        storage, is_keccak_storage = self._get_corresponding_storage(key)
+        storage = self._get_corresponding_storage(key)
         self.printable_storage[key] = value
-        if is_keccak_storage:
-            key = self._sanitize(key.input_)
         storage[key] = value
         if key.symbolic is False:
             self.storage_keys_loaded.add(int(key.value))
@@ -147,7 +125,6 @@ class Storage:
             concrete=concrete, address=self.address, dynamic_loader=self.dynld
         )
         storage._standard_storage = deepcopy(self._standard_storage)
-        storage._map_storage = deepcopy(self._map_storage)
         storage.printable_storage = copy(self.printable_storage)
         storage.storage_keys_loaded = copy(self.storage_keys_loaded)
         return storage

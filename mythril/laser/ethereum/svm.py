@@ -20,6 +20,7 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
+
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -28,6 +29,7 @@ from mythril.laser.ethereum.transaction import (
     execute_message_call,
 )
 from mythril.laser.smt import symbol_factory
+
 
 log = logging.getLogger(__name__)
 
@@ -206,6 +208,7 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
+
             for hook in self._start_sym_trans_hooks:
                 hook()
 
@@ -245,7 +248,6 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-
             new_states = [
                 state for state in new_states if state.mstate.constraints.is_possible
             ]
@@ -357,16 +359,15 @@ class LaserEVM:
             ]
 
             log.debug("Ending transaction %s.", transaction)
-
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
                     check_potential_issues(global_state)
-
                     end_signal.global_state.world_state.node = global_state.node
                     self._add_world_state(end_signal.global_state)
+
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction

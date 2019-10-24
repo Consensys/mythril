@@ -1,8 +1,7 @@
-from typing import Union, overload, List, Set, cast, Any, Optional, Callable
-from operator import lshift, rshift, ne, eq
+from typing import Union, overload, List, Set, cast, Any, Callable
 import z3
 
-from mythril.laser.smt.bool import Bool, And, Or
+from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec
 from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.bitvecfunc import _arithmetic_helper as _func_arithmetic_helper
