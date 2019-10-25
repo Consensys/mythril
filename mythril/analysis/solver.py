@@ -146,7 +146,7 @@ def _replace_with_actual_sha(
             s_index = len(code.bytecode) + 2
         else:
             s_index = 10
-        for i in range(s_index, len(tx["input"]), 64):
+        for i in range(s_index, len(tx["input"])):
             data_slice = tx["input"][i : i + 64]
             if hash_matcher not in data_slice or len(data_slice) != 64:
                 continue
