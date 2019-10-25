@@ -94,7 +94,7 @@ class KeccakFunctionManager:
         """
         returns concrete values of hashes in the self.store_hashes
         :param model: The z3 model to query for concrete values
-        :return:
+        :return: A dictionary with concrete hashes { <hash_input_size> : [<concrete_hash>, <concrete_hash>]}
         """
         concrete_hashes = {}  # type: Dict[int, List[Optional[int]]]
         for size in self.store_hashes:
