@@ -103,9 +103,9 @@ class KeccakFunctionManager:
                 eval_ = model.eval(val.raw)
                 try:
                     concrete_val = eval_.as_long()
+                    concrete_hashes[size].append(concrete_val)
                 except AttributeError:
                     continue
-                concrete_hashes[size].append(concrete_val)
         return concrete_hashes
 
     def _create_condition(self, func_input: BitVec) -> Bool:
