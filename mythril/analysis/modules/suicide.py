@@ -9,7 +9,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 import logging
-import json
+
 
 log = logging.getLogger(__name__)
 
@@ -69,7 +69,6 @@ class SuicideModule(DetectionModule):
         for tx in state.world_state.transaction_sequence:
             if not isinstance(tx, ContractCreationTransaction):
                 constraints.append(tx.caller == ACTORS.attacker)
-
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
@@ -85,7 +84,6 @@ class SuicideModule(DetectionModule):
                     state, state.mstate.constraints + constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
-
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,

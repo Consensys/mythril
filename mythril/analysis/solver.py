@@ -1,12 +1,16 @@
 """This module contains analysis module helpers to solve path constraints."""
 from functools import lru_cache
-from typing import Dict, Tuple, Union
+from typing import Dict, List, Tuple, Union
 from z3 import sat, unknown, FuncInterp
 import z3
 
 from mythril.analysis.analysis_args import analysis_args
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.constraints import Constraints
+from mythril.laser.ethereum.keccak_function_manager import (
+    keccak_function_manager,
+    hash_matcher,
+)
 from mythril.laser.ethereum.transaction import BaseTransaction
 from mythril.laser.smt import UGE, Optimize, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
@@ -17,6 +21,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 import logging
 
 log = logging.getLogger(__name__)
+
 
 # LRU cache works great when used in powers of 2
 @lru_cache(maxsize=2 ** 23)
@@ -48,7 +53,6 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
         s.minimize(e)
     for e in maximize:
         s.maximize(e)
-
     result = s.check()
     if result == sat:
         return s.model()
@@ -97,7 +101,6 @@ def get_transaction_sequence(
     tx_constraints, minimize = _set_minimisation_constraints(
         transaction_sequence, constraints.copy(), [], 5000, global_state.world_state
     )
-
     try:
         model = get_model(tx_constraints, minimize=minimize)
     except UnsatError:
@@ -122,10 +125,57 @@ def get_transaction_sequence(
         ).as_long()
 
     concrete_initial_state = _get_concrete_state(initial_accounts, min_price_dict)
-
+    if isinstance(transaction_sequence[0], ContractCreationTransaction):
+        code = transaction_sequence[0].code
+        _replace_with_actual_sha(concrete_transactions, model, code)
+    else:
+        _replace_with_actual_sha(concrete_transactions, model)
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
 
     return steps
+
+
+def _replace_with_actual_sha(
+    concrete_transactions: List[Dict[str, str]], model: z3.Model, code=None
+):
+    for tx in concrete_transactions:
+        if hash_matcher not in tx["input"]:
+            continue
+        if code is not None and code.bytecode in tx["input"]:
+            s_index = len(code.bytecode) + 2
+        else:
+            s_index = 10
+        for i in range(s_index, len(tx["input"])):
+            data_slice = tx["input"][i : i + 64]
+            if hash_matcher not in data_slice or len(data_slice) != 64:
+                continue
+            find_input = symbol_factory.BitVecVal(int(data_slice, 16), 256)
+            input_ = None
+            for size in keccak_function_manager.store_function:
+                _, inverse = keccak_function_manager.get_function(size)
+                try:
+                    input_ = symbol_factory.BitVecVal(
+                        model.eval(inverse(find_input).raw).as_long(), size
+                    )
+                except AttributeError:
+                    continue
+                hex_input = hex(input_.value)[2:]
+                found = False
+                for new_tx in concrete_transactions:
+                    if hex_input in new_tx["input"]:
+                        found = True
+                        break
+                if found:
+                    break
+            if input_ is None:
+                continue
+            keccak = keccak_function_manager.find_concrete_keccak(input_)
+            hex_keccak = hex(keccak.value)[2:]
+            if len(hex_keccak) != 64:
+                hex_keccak = "0" * (64 - len(hex_keccak)) + hex_keccak
+            tx["input"] = tx["input"][:s_index] + tx["input"][s_index:].replace(
+                tx["input"][i : 64 + i], hex_keccak
+            )
 
 
 def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):

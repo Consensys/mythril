@@ -34,6 +34,7 @@ from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCall
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
+from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
@@ -982,7 +983,7 @@ class Instruction:
             if isinstance(op0, Expression):
                 op0 = simplify(op0)
             state.stack.append(
-                symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
+                symbol_factory.BitVecSym("KECCAC_mem[{}]".format(hash(op0)), 256)
             )
             gas_tuple = get_opcode_gas("SHA3")
             state.min_gas_used += gas_tuple[0]
@@ -996,40 +997,21 @@ class Instruction:
             b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
             for b in state.memory[index : index + length]
         ]
+
         if len(data_list) > 1:
             data = simplify(Concat(data_list))
         elif len(data_list) == 1:
             data = data_list[0]
         else:
-            # length is 0; this only matters for input of the BitVecFuncVal
-            data = symbol_factory.BitVecVal(0, 1)
+            # TODO: handle finding x where func(x)==func("")
+            result = keccak_function_manager.get_empty_keccak_hash()
+            state.stack.append(result)
+            return [global_state]
 
-        if data.symbolic:
-
-            annotations = set()  # type: Set[Any]
-
-            for b in state.memory[index : index + length]:
-                if isinstance(b, BitVec):
-                    annotations = annotations.union(b.annotations)
-
-            argument_hash = hash(state.memory[index])
-            result = symbol_factory.BitVecFuncSym(
-                "KECCAC[invhash({})]".format(hash(argument_hash)),
-                "keccak256",
-                256,
-                input_=data,
-                annotations=annotations,
-            )
-            log.debug("Created BitVecFunc hash.")
-
-        else:
-            keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
-            result = symbol_factory.BitVecFuncVal(
-                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
-            )
-            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
-
+        result, condition = keccak_function_manager.create_keccak(data)
         state.stack.append(result)
+        state.constraints.append(condition)
+
         return [global_state]
 
     @StateTransition()
