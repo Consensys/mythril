@@ -100,11 +100,11 @@ class KeccakFunctionManager:
         for size in self.store_hashes:
             concrete_hashes[size] = []
             for val in self.store_hashes[size]:
-                eval = model.eval(val.raw)
+                eval_ = model.eval(val.raw)
                 try:
-                    concrete_val = eval.as_long()
+                    concrete_val = eval_.as_long()
                 except AttributeError:
-                    concrete_val = None
+                    continue
                 concrete_hashes[size].append(concrete_val)
         return concrete_hashes
 
