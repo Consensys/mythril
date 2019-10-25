@@ -93,7 +93,7 @@ class KeccakFunctionManager:
     def get_concrete_hash_data(self, model) -> Dict[int, List[Optional[int]]]:
         """
         returns concrete values of hashes in the self.store_hashes
-        :param model:
+        :param model: The z3 model to query for concrete values
         :return:
         """
         concrete_hashes = {}  # type: Dict[int, List[Optional[int]]]
