@@ -31,6 +31,8 @@ class ReachableExceptionsModule(DetectionModule):
         :param state:
         :return:
         """
+        if state.get_current_instruction()["address"] in self.cache:
+            return
         issues = self._analyze_state(state)
         for issue in issues:
             self.cache.add(issue.address)

@@ -138,6 +138,7 @@ def get_transaction_sequence(
 def _replace_with_actual_sha(
     concrete_transactions: List[Dict[str, str]], model: z3.Model, code=None
 ):
+    concrete_hashes = keccak_function_manager.get_concrete_hash_data(model)
     for tx in concrete_transactions:
         if hash_matcher not in tx["input"]:
             continue
@@ -151,22 +152,14 @@ def _replace_with_actual_sha(
                 continue
             find_input = symbol_factory.BitVecVal(int(data_slice, 16), 256)
             input_ = None
-            for size in keccak_function_manager.store_function:
-                _, inverse = keccak_function_manager.get_function(size)
-                try:
-                    input_ = symbol_factory.BitVecVal(
-                        model.eval(inverse(find_input).raw).as_long(), size
-                    )
-                except AttributeError:
+            for size in concrete_hashes:
+                _, inverse = keccak_function_manager.store_function[size]
+                if find_input.value not in concrete_hashes[size]:
                     continue
-                hex_input = hex(input_.value)[2:]
-                found = False
-                for new_tx in concrete_transactions:
-                    if hex_input in new_tx["input"]:
-                        found = True
-                        break
-                if found:
-                    break
+                input_ = symbol_factory.BitVecVal(
+                    model.eval(inverse(find_input).raw).as_long(), size
+                )
+
             if input_ is None:
                 continue
             keccak = keccak_function_manager.find_concrete_keccak(input_)

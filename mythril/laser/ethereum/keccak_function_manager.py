@@ -10,7 +10,7 @@ from mythril.laser.smt import (
     Bool,
     Or,
 )
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Optional
 
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
@@ -33,6 +33,7 @@ class KeccakFunctionManager:
         self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
         self.interval_hook_for_size = {}  # type: Dict[int, int]
         self._index_counter = TOTAL_PARTS - 34534
+        self.hash_result_store = {}  # type: Dict[int, List[BitVec]]
         self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
 
     @staticmethod
@@ -63,6 +64,7 @@ class KeccakFunctionManager:
             func = Function("keccak256_{}".format(length), length, 256)
             inverse = Function("keccak256_{}-1".format(length), 256, length)
             self.store_function[length] = (func, inverse)
+            self.hash_result_store[length] = []
         return func, inverse
 
     @staticmethod
@@ -85,7 +87,26 @@ class KeccakFunctionManager:
 
         condition = self._create_condition(func_input=data)
         self.quick_inverse[func(data)] = data
+        self.hash_result_store[length].append(func(data))
         return func(data), condition
+
+    def get_concrete_hash_data(self, model) -> Dict[int, List[Optional[int]]]:
+        """
+        returns concrete values of hashes in the self.hash_result_store
+        :param model: The z3 model to query for concrete values
+        :return: A dictionary with concrete hashes { <hash_input_size> : [<concrete_hash>, <concrete_hash>]}
+        """
+        concrete_hashes = {}  # type: Dict[int, List[Optional[int]]]
+        for size in self.hash_result_store:
+            concrete_hashes[size] = []
+            for val in self.hash_result_store[size]:
+                eval_ = model.eval(val.raw)
+                try:
+                    concrete_val = eval_.as_long()
+                    concrete_hashes[size].append(concrete_val)
+                except AttributeError:
+                    continue
+        return concrete_hashes
 
     def _create_condition(self, func_input: BitVec) -> Bool:
         """
