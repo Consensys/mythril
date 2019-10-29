@@ -1858,9 +1858,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader, True)
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
@@ -1939,9 +1945,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                _,
+                _,
+            ) = get_call_parameters(global_state, self.dynamic_loader, True)
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
@@ -1988,9 +2000,15 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
+            (
+                callee_address,
+                _,
+                _,
+                value,
+                _,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader, True)
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -2054,9 +2072,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
-                global_state, self.dynamic_loader
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                _,
+                _,
+            ) = get_call_parameters(global_state, self.dynamic_loader)
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
@@ -2104,9 +2128,15 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader
-            )
+            (
+                callee_address,
+                _,
+                _,
+                value,
+                _,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader)
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -2169,9 +2199,15 @@ class Instruction:
         instr = global_state.get_current_instruction()
         environment = global_state.environment
         try:
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader)
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
@@ -2225,9 +2261,15 @@ class Instruction:
 
         try:
             with_value = function_name is not "staticcall"
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, with_value
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader, with_value)
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for {}, putting fresh symbol on the stack. \n{}".format(

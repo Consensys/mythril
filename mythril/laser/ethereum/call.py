@@ -42,9 +42,12 @@ def get_call_parameters(
     """
     gas, to = global_state.mstate.pop(2)
     value = global_state.mstate.pop() if with_value else 0
-    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(
-        4
-    )
+    (
+        memory_input_offset,
+        memory_input_size,
+        memory_out_offset,
+        memory_out_size,
+    ) = global_state.mstate.pop(4)
 
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 

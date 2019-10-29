@@ -23,8 +23,8 @@ body_prefix = b"b"  # body_prefix + num (uint64 big endian) + hash -> block body
 num_suffix = b"n"  # header_prefix + num (uint64 big endian) + num_suffix -> hash
 block_hash_prefix = b"H"  # block_hash_prefix + hash -> num (uint64 big endian)
 block_receipts_prefix = (
-    b"r"
-)  # block_receipts_prefix + num (uint64 big endian) + hash -> block receipts
+    b"r"  # block_receipts_prefix + num (uint64 big endian) + hash -> block receipts
+)
 # known geth keys
 head_header_key = b"LastBlock"  # head (latest) header hash
 # custom prefixes
