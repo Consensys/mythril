@@ -366,6 +366,9 @@ class LaserEVM:
                 ) and not end_signal.revert:
                     check_potential_issues(global_state)
                     end_signal.global_state.world_state.node = global_state.node
+                    end_signal.global_state.world_state.node.constraints += (
+                        end_signal.global_state.mstate.constraints
+                    )
                     self._add_world_state(end_signal.global_state)
 
                 new_global_states = []
