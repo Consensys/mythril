@@ -7,9 +7,7 @@ from mythril.laser.smt.bitvec import BitVec
 Annotations = Set[Any]
 
 
-def _comparison_helper(
-    a: BitVec, b: BitVec, operation: Callable, default_value: bool, inputs_equal: bool
-) -> Bool:
+def _comparison_helper(a: BitVec, b: BitVec, operation: Callable) -> Bool:
     annotations = a.annotations.union(b.annotations)
     return Bool(operation(a.raw, b.raw), annotations)
 
@@ -49,7 +47,7 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
     :param b:
     :return:
     """
-    return _comparison_helper(a, b, z3.UGT, default_value=False, inputs_equal=False)
+    return _comparison_helper(a, b, z3.UGT)
 
 
 def UGE(a: BitVec, b: BitVec) -> Bool:
@@ -69,7 +67,7 @@ def ULT(a: BitVec, b: BitVec) -> Bool:
     :param b:
     :return:
     """
-    return _comparison_helper(a, b, z3.ULT, default_value=False, inputs_equal=False)
+    return _comparison_helper(a, b, z3.ULT)
 
 
 def ULE(a: BitVec, b: BitVec) -> Bool:
