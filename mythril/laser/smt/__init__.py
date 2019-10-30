@@ -18,7 +18,6 @@ from mythril.laser.smt.bitvec_helper import (
     LShR,
 )
 
-from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not, And
 from mythril.laser.smt.array import K, Array, BaseArray
