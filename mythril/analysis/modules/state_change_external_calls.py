@@ -66,8 +66,9 @@ class StateChangeCallsAnnotation(StateAnnotation):
         logging.debug(
             "[EXTERNAL_CALLS] Detected state changes at addresses: {}".format(address)
         )
-        description_head = (
-            "The contract account state is changed after an external call. "
+        address_type = "user defined" if self.user_defined_address else "fixed"
+        description_head = "The contract account state is changed after an external call to a {} address.".format(
+            address_type
         )
         description_tail = (
             "Consider that the called contract could re-enter the function before this "
