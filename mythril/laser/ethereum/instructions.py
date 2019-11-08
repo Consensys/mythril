@@ -1010,7 +1010,7 @@ class Instruction:
 
         result, condition = keccak_function_manager.create_keccak(data)
         state.stack.append(result)
-        state.constraints.append(condition)
+        global_state.world_state.constraints.append(condition)
 
         return [global_state]
 
