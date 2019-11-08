@@ -1695,7 +1695,7 @@ class Instruction:
             addr = hex(caller.value)[2:]
             addr = "0" * (40 - len(addr)) + addr
 
-            Instruction._sha3_gas_helper(global_state, len(code_str[2:] // 2))
+            Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
             contract_address = int(
                 get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
