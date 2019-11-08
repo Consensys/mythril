@@ -162,7 +162,7 @@ def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -
     global_state = transaction.initial_global_state()
     global_state.transaction_stack.append((transaction, None))
 
-    global_state.mstate.constraints.append(
+    global_state.world_state.constraints.append(
         Or(*[transaction.caller == actor for actor in ACTORS.addresses.values()])
     )
 
@@ -184,8 +184,8 @@ def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -
                 )
             )
 
-        global_state.mstate.constraints += transaction.world_state.node.constraints
-        new_node.constraints = global_state.mstate.constraints
+        global_state.world_state.constraints += transaction.world_state.node.constraints
+        new_node.constraints = global_state.world_state.constraints
 
     global_state.world_state.transaction_sequence.append(transaction)
     global_state.node = new_node

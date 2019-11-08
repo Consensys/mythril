@@ -33,7 +33,7 @@ an informational issue.
 
 def _is_precompile_call(global_state: GlobalState):
     to = global_state.mstate.stack[-2]  # type: BitVec
-    constraints = copy(global_state.mstate.constraints)
+    constraints = copy(global_state.world_state.constraints)
     constraints += [
         Or(
             to < symbol_factory.BitVecVal(1, 256),
@@ -88,7 +88,7 @@ class ExternalCalls(DetectionModule):
             constraints = Constraints([UGT(gas, symbol_factory.BitVecVal(2300, 256))])
 
             solver.get_transaction_sequence(
-                state, constraints + state.mstate.constraints
+                state, constraints + state.world_state.constraints
             )
 
             # Check whether we can also set the callee address
@@ -101,7 +101,7 @@ class ExternalCalls(DetectionModule):
                         constraints.append(tx.caller == ACTORS.attacker)
 
                 solver.get_transaction_sequence(
-                    state, constraints + state.mstate.constraints
+                    state, constraints + state.world_state.constraints
                 )
 
                 description_head = "A call to a user-supplied address is executed."

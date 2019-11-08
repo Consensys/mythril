@@ -126,7 +126,7 @@ class BaseTransaction:
             else symbol_factory.BitVecVal(environment.callvalue, 256)
         )
 
-        global_state.mstate.constraints.append(
+        global_state.world_state.constraints.append(
             UGE(global_state.world_state.balances[sender], value)
         )
         global_state.world_state.balances[receiver] += value

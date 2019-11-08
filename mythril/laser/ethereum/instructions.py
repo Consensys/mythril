@@ -80,7 +80,7 @@ def transfer_ether(
     """
     value = value if isinstance(value, BitVec) else symbol_factory.BitVecVal(value, 256)
 
-    global_state.mstate.constraints.append(
+    global_state.world_state.constraints.append(
         UGE(global_state.world_state.balances[sender], value)
     )
     global_state.world_state.balances[receiver] += value
@@ -948,7 +948,7 @@ class Instruction:
                 no_of_bytes += calldata.size
             else:
                 no_of_bytes += 0x200  # space for 16 32-byte arguments
-                global_state.mstate.constraints.append(
+                global_state.world_state.constraints.append(
                     global_state.environment.calldata.size == no_of_bytes
                 )
 
@@ -1563,7 +1563,7 @@ class Instruction:
             # manually increment PC
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.world_state.constraints.append(negated)
             states.append(new_state)
         else:
             log.debug("Pruned unreachable states.")
@@ -1589,7 +1589,7 @@ class Instruction:
                 # manually set PC to destination
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
+                new_state.world_state.constraints.append(condi)
                 states.append(new_state)
             else:
                 log.debug("Pruned unreachable states.")
@@ -1898,7 +1898,7 @@ class Instruction:
                 )
             if isinstance(value, BitVec):
                 if value.symbolic:
-                    global_state.mstate.constraints.append(
+                    global_state.world_state.constraints.append(
                         value == symbol_factory.BitVecVal(0, 256)
                     )
                 elif value.value > 0:
@@ -2026,7 +2026,7 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.world_state.constraints.append(return_value == 0)
             return [global_state]
 
         try:
@@ -2058,7 +2058,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.world_state.constraints.append(return_value == 1)
         return [global_state]
 
     @StateTransition()
@@ -2154,7 +2154,7 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.world_state.constraints.append(return_value == 0)
             return [global_state]
 
         try:
@@ -2186,7 +2186,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.world_state.constraints.append(return_value == 1)
         return [global_state]
 
     @StateTransition()
@@ -2318,6 +2318,6 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.world_state.constraints.append(return_value == 1)
 
         return [global_state]

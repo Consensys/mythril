@@ -110,7 +110,7 @@ class DosModule(DetectionModule):
 
             try:
                 transaction_sequence = get_transaction_sequence(
-                    state, state.mstate.constraints
+                    state, state.world_state.constraints
                 )
             except UnsatError:
                 return []
