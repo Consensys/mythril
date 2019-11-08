@@ -108,6 +108,7 @@ jobs:
                 -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
                 -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
                 -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
+                -e MONGO_URL=$MONGO_URL \
                 --rm edelweiss-mythril:latest \
                 --timeout 90 \
                 --output-dir /opt/edelweiss \

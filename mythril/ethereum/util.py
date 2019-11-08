@@ -2,8 +2,8 @@
 solc integration."""
 import binascii
 import json
+import sys
 import os
-import solcx
 from pathlib import Path
 from subprocess import PIPE, Popen
 
@@ -11,6 +11,9 @@ from ethereum.abi import encode_abi, encode_int, method_id
 from ethereum.utils import zpad
 
 from mythril.exceptions import CompilerError
+
+if sys.version_info[1] >= 6:
+    import solcx
 
 
 def safe_decode(hex_encoded_string):
@@ -33,7 +36,7 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     :param solc_settings_json:
     :return:
     """
-    cmd = [solc_binary, "--standard-json", "--allow-paths", "."]
+    cmd = [solc_binary, "--optimize", "--standard-json", "--allow-paths", "."]
 
     settings = json.loads(solc_settings_json) if solc_settings_json else {}
     settings.update(
@@ -128,10 +131,9 @@ def solc_exists(version):
                 "bin/solc",
             )  # py-solc setup
         ]
-    else:
+    elif sys.version_info[1] >= 6:
         # we are using solc-x for the the 0.5 and higher
         solc_binaries = [os.path.join(solcx.__path__[0], "bin", "solc-v" + version)]
-
     for solc_path in solc_binaries:
         if os.path.exists(solc_path):
             return solc_path

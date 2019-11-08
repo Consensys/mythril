@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Dict, List, TYPE_CHECKING
 
 from mythril.laser.ethereum.state.constraints import Constraints
-
 from flags import Flags
 
 if TYPE_CHECKING:

@@ -116,9 +116,7 @@ def mod_exp(data: List[int]) -> List[int]:
         return []
 
     first_exp_bytes = extract32(bytes_data, 96 + baselen) >> (8 * max(32 - explen, 0))
-    bitlength = -1
     while first_exp_bytes:
-        bitlength += 1
         first_exp_bytes >>= 1
 
     base = bytearray(baselen)

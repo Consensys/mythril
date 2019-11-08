@@ -343,7 +343,7 @@ def _get_address_from_state(state):
 
 
 def _get_overflowunderflow_state_annotation(
-    state: GlobalState
+    state: GlobalState,
 ) -> OverUnderflowStateAnnotation:
     state_annotations = cast(
         List[OverUnderflowStateAnnotation],

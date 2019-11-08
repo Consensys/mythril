@@ -4,6 +4,7 @@ purposes."""
 
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
+from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import (
@@ -15,10 +16,7 @@ from mythril.laser.ethereum.strategy.basic import (
 )
 
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
-from mythril.laser.ethereum.transaction.symbolic import (
-    ATTACKER_ADDRESS,
-    CREATOR_ADDRESS,
-)
+from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
 
 from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
@@ -28,7 +26,7 @@ from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Type
+from typing import Union, List, Type, Optional
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, VarType, get_variable
 
@@ -44,32 +42,38 @@ class SymExecWrapper:
         self,
         contract,
         address: Union[int, str, BitVec],
-        strategy,
+        strategy: str,
         dynloader=None,
-        max_depth=22,
-        execution_timeout=None,
-        loop_bound=3,
-        create_timeout=None,
-        transaction_count=2,
+        max_depth: int = 22,
+        execution_timeout: Optional[int] = None,
+        loop_bound: int = 3,
+        create_timeout: Optional[int] = None,
+        transaction_count: int = 2,
         modules=(),
-        compulsory_statespace=True,
-        enable_iprof=False,
-        disable_dependency_pruning=False,
-        run_analysis_modules=True,
-        enable_coverage_strategy=False,
-        custom_modules_directory="",
+        compulsory_statespace: bool = True,
+        iprof: Optional[InstructionProfiler] = None,
+        disable_dependency_pruning: bool = False,
+        run_analysis_modules: bool = True,
+        enable_coverage_strategy: bool = False,
+        custom_modules_directory: str = "",
     ):
         """
 
-        :param contract:
-        :param address:
-        :param strategy:
-        :param dynloader:
-        :param max_depth:
-        :param execution_timeout:
-        :param create_timeout:
-        :param transaction_count:
-        :param modules:
+        :param contract: Contract to symbolically execute
+        :param address: Address of the contract to symbolically execute
+        :param strategy: Execution strategy to use (bfs, dfs, etc)
+        :param dynloader: Dynamic Loader
+        :param max_depth: Max analysis depth
+        :param execution_timeout: Timeout for the entire analysis
+        :param create_timeout: Timeout for the creation transaction
+        :param transaction_count: Number of transactions to symbolically execute
+        :param modules: Analysis modules to run during analysis
+        :param compulsory_statespace: Boolean indicating whether or not the statespace should be saved
+        :param iprof: Instruction Profiler
+        :param disable_dependency_pruning: Boolean indicating whether dependency pruning should be disabled
+        :param run_analysis_modules: Boolean indicating whether analysis modules should be executed
+        :param enable_coverage_strategy: Boolean indicating whether the coverage strategy should be enabled
+        :param custom_modules_directory: The directory to read custom analysis modules from
         """
         if isinstance(address, str):
             address = symbol_factory.BitVecVal(int(address, 16), 256)
@@ -88,10 +92,10 @@ class SymExecWrapper:
             raise ValueError("Invalid strategy argument supplied")
 
         creator_account = Account(
-            hex(CREATOR_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+            hex(ACTORS.creator.value), "", dynamic_loader=dynloader, contract_name=None
         )
         attacker_account = Account(
-            hex(ATTACKER_ADDRESS), "", dynamic_loader=dynloader, contract_name=None
+            hex(ACTORS.attacker.value), "", dynamic_loader=dynloader, contract_name=None
         )
 
         requires_statespace = (
@@ -99,11 +103,11 @@ class SymExecWrapper:
             or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
         )
         if not contract.creation_code:
-            self.accounts = {hex(ATTACKER_ADDRESS): attacker_account}
+            self.accounts = {hex(ACTORS.attacker.value): attacker_account}
         else:
             self.accounts = {
-                hex(CREATOR_ADDRESS): creator_account,
-                hex(ATTACKER_ADDRESS): attacker_account,
+                hex(ACTORS.creator.value): creator_account,
+                hex(ACTORS.attacker.value): attacker_account,
             }
 
         instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
@@ -116,7 +120,7 @@ class SymExecWrapper:
             create_timeout=create_timeout,
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
-            enable_iprof=enable_iprof,
+            iprof=iprof,
             enable_coverage_strategy=enable_coverage_strategy,
             instruction_laser_plugin=instruction_laser_plugin,
         )

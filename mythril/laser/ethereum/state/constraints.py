@@ -41,6 +41,7 @@ class Constraints(list):
         """
         :return: True/False based on the existence of solution of constraints
         """
+
         if self._is_possible is not None:
             return self._is_possible
         solver = Solver()
@@ -115,8 +116,8 @@ class Constraints(list):
         :param constraints:
         :return:
         """
-        constraints = self._get_smt_bool_list(constraints)
-        super(Constraints, self).__iadd__(constraints)
+        list_constraints = self._get_smt_bool_list(constraints)
+        super(Constraints, self).__iadd__(list_constraints)
         self._is_possible = None
         return self
 
