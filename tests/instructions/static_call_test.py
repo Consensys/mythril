@@ -121,4 +121,4 @@ def test_staticness_call_symbolic(f1):
         instruction.evaluate(state)
 
     assert ts.value.transaction.static
-    assert ts.value.global_state.mstate.constraints[-1] == (call_value == 0)
+    assert ts.value.global_state.world_state.constraints[-1] == (call_value == 0)

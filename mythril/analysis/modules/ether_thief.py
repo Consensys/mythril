@@ -77,7 +77,7 @@ class EtherThief(DetectionModule):
         value = state.mstate.stack[-3]
         target = state.mstate.stack[-2]
 
-        constraints = copy(state.mstate.constraints)
+        constraints = copy(state.world_state.constraints)
 
         """
         Require that the current transaction is sent by the attacker and
