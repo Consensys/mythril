@@ -1648,7 +1648,7 @@ class Instruction:
 
     def _create_transaction_helper(
         self, global_state, call_value, mem_offset, mem_size, create2_salt=None
-    ):
+    ) -> List[GlobalState]:
         mstate = global_state.mstate
         environment = global_state.environment
         world_state = global_state.world_state
@@ -1673,7 +1673,7 @@ class Instruction:
         if len(code_raw) < 1:
             global_state.mstate.stack.append(1)
             log.debug("No code found for trying to execute a create type instruction.")
-            return global_state
+            return [global_state]
 
         code_str = bytes.hex(bytes(code_raw))
 
@@ -1695,7 +1695,7 @@ class Instruction:
             addr = hex(caller.value)[2:]
             addr = "0" * (40 - len(addr)) + addr
 
-            Instruction._sha3_gas_helper(global_state, len(code_str[2:] // 2))
+            Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
             contract_address = int(
                 get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
