@@ -84,7 +84,7 @@ def check_potential_issues(state: GlobalState) -> None:
     for potential_issue in annotation.potential_issues:
         try:
             transaction_sequence = get_transaction_sequence(
-                state, state.mstate.constraints + potential_issue.constraints
+                state, state.world_state.constraints + potential_issue.constraints
             )
         except UnsatError:
             continue

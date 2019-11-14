@@ -45,7 +45,7 @@ class MutationPruner(LaserPlugin):
         @symbolic_vm.laser_hook("add_world_state")
         def world_state_filter_hook(global_state: GlobalState):
             if And(
-                *global_state.mstate.constraints[:]
+                *global_state.world_state.constraints[:]
                 + [
                     global_state.environment.callvalue
                     > symbol_factory.BitVecVal(0, 256)

@@ -270,5 +270,5 @@ def native_call(
         "retval_" + str(global_state.get_current_instruction()["address"]), 256
     )
     global_state.mstate.stack.append(retval)
-    global_state.node.constraints.append(retval == 1)
+    global_state.world_state.constraints.append(retval == 1)
     return [global_state]

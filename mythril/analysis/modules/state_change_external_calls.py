@@ -59,7 +59,7 @@ class StateChangeCallsAnnotation(StateAnnotation):
 
         try:
             solver.get_transaction_sequence(
-                global_state, constraints + global_state.mstate.constraints
+                global_state, constraints + global_state.world_state.constraints
             )
         except UnsatError:
             return None
@@ -122,7 +122,7 @@ class StateChange(DetectionModule):
         gas = global_state.mstate.stack[-1]
         to = global_state.mstate.stack[-2]
         try:
-            constraints = copy(global_state.mstate.constraints)
+            constraints = copy(global_state.world_state.constraints)
             solver.get_model(
                 constraints
                 + [
@@ -188,7 +188,7 @@ class StateChange(DetectionModule):
             return value.value > 0
 
         else:
-            constraints = copy(global_state.mstate.constraints)
+            constraints = copy(global_state.world_state.constraints)
 
             try:
                 solver.get_model(
