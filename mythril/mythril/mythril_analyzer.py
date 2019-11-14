@@ -44,6 +44,7 @@ class MythrilAnalyzer:
         solver_timeout: Optional[int] = None,
         enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
+        enable_state_merging: bool = False,
     ):
         """
 
@@ -66,7 +67,7 @@ class MythrilAnalyzer:
         self.disable_dependency_pruning = disable_dependency_pruning
         self.enable_coverage_strategy = enable_coverage_strategy
         self.custom_modules_directory = custom_modules_directory
-
+        self.enable_state_merging = enable_state_merging
         analysis_args.set_loop_bound(loop_bound)
         analysis_args.set_solver_timeout(solver_timeout)
 
@@ -170,6 +171,7 @@ class MythrilAnalyzer:
                     disable_dependency_pruning=self.disable_dependency_pruning,
                     enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
+                    enable_state_merging=self.enable_state_merging
                 )
                 issues = fire_lasers(sym, modules, self.custom_modules_directory)
             except KeyboardInterrupt:

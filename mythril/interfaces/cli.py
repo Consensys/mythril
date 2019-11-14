@@ -465,6 +465,11 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="enable coverage based search strategy",
     )
     options.add_argument(
+        "--enable-state-merging",
+        action="store_true",
+        help="enables state merging",
+    )
+    options.add_argument(
         "--custom-modules-directory",
         help="designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",
@@ -666,6 +671,7 @@ def execute_command(
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
+            enable_state_merging=args.enable_state_merging,
         )
 
         if not disassembler.contracts:

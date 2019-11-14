@@ -56,6 +56,7 @@ class SymExecWrapper:
         run_analysis_modules: bool = True,
         enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
+        enable_state_merging: bool = False
     ):
         """
 
@@ -74,6 +75,7 @@ class SymExecWrapper:
         :param run_analysis_modules: Boolean indicating whether analysis modules should be executed
         :param enable_coverage_strategy: Boolean indicating whether the coverage strategy should be enabled
         :param custom_modules_directory: The directory to read custom analysis modules from
+        :param enable_state_merging: Enables state merging
         """
         if isinstance(address, str):
             address = symbol_factory.BitVecVal(int(address, 16), 256)
@@ -130,8 +132,9 @@ class SymExecWrapper:
 
         plugin_loader = LaserPluginLoader(self.laser)
         plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(PluginFactory.build_state_merge_plugin())
         plugin_loader.load(instruction_laser_plugin)
+        if enable_state_merging:
+            plugin_loader.load(PluginFactory.build_state_merge_plugin())
 
         if not disable_dependency_pruning:
             plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
