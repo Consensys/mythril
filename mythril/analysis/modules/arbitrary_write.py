@@ -59,7 +59,7 @@ class ArbitraryStorage(DetectionModule):
         """
 
         write_slot = state.mstate.stack[-1]
-        constraints = state.mstate.constraints + [
+        constraints = state.world_state.constraints + [
             write_slot == symbol_factory.BitVecVal(324345425435, 256)
         ]
 
