@@ -83,7 +83,7 @@ class UncheckedRetvalModule(DetectionModule):
             for retval in retvals:
                 try:
                     transaction_sequence = solver.get_transaction_sequence(
-                        state, state.mstate.constraints + [retval["retval"] == 0]
+                        state, state.world_state.constraints + [retval["retval"] == 0]
                     )
                 except UnsatError:
                     continue

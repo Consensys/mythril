@@ -133,8 +133,8 @@ class SymExecWrapper:
         plugin_loader.load(PluginFactory.build_state_merge_plugin())
         plugin_loader.load(instruction_laser_plugin)
 
-        # if not disable_dependency_pruning:
-        #    plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+        if not disable_dependency_pruning:
+            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
 
         world_state = WorldState()
         for account in self.accounts.values():

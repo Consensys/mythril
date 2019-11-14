@@ -249,7 +249,9 @@ class LaserEVM:
                 log.debug("Encountered unimplemented instruction")
                 continue
             new_states = [
-                state for state in new_states if state.mstate.constraints.is_possible
+                state
+                for state in new_states
+                if state.world_state.constraints.is_possible
             ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
@@ -345,8 +347,8 @@ class LaserEVM:
                 global_state.transaction_stack
             ) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
-            new_global_state.mstate.constraints = (
-                start_signal.global_state.mstate.constraints
+            new_global_state.world_state.constraints = (
+                start_signal.global_state.world_state.constraints
             )
 
             log.debug("Starting new transaction %s", start_signal.transaction)
@@ -367,9 +369,6 @@ class LaserEVM:
                 ) and not end_signal.revert:
                     check_potential_issues(global_state)
                     end_signal.global_state.world_state.node = global_state.node
-                    end_signal.global_state.world_state.node.constraints += (
-                        end_signal.global_state.mstate.constraints
-                    )
                     self._add_world_state(end_signal.global_state)
 
                 new_global_states = []
@@ -417,7 +416,9 @@ class LaserEVM:
         :return:
         """
 
-        return_global_state.mstate.constraints += global_state.mstate.constraints
+        return_global_state.world_state.constraints += (
+            global_state.world_state.constraints
+        )
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[
             return_global_state.mstate.pc
@@ -465,12 +466,12 @@ class LaserEVM:
             assert len(new_states) <= 2
             for state in new_states:
                 self._new_node_state(
-                    state, JumpType.CONDITIONAL, state.mstate.constraints[-1]
+                    state, JumpType.CONDITIONAL, state.world_state.constraints[-1]
                 )
         elif opcode in ("SLOAD", "SSTORE") and len(new_states) > 1:
             for state in new_states:
                 self._new_node_state(
-                    state, JumpType.CONDITIONAL, state.mstate.constraints[-1]
+                    state, JumpType.CONDITIONAL, state.world_state.constraints[-1]
                 )
         elif opcode == "RETURN":
             for state in new_states:
@@ -491,7 +492,7 @@ class LaserEVM:
         new_node = Node(state.environment.active_account.contract_name)
         old_node = state.node
         state.node = new_node
-        new_node.constraints = state.mstate.constraints
+        new_node.constraints = state.world_state.constraints
         if self.requires_statespace:
             self.nodes[new_node.uid] = new_node
             self.edges.append(

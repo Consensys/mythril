@@ -4,7 +4,7 @@ This includes classes representing accounts and their storage.
 """
 import logging
 from copy import copy, deepcopy
-from typing import Any, Dict, Union, Tuple, Set, cast
+from typing import Any, Dict, Union, Set
 
 
 from mythril.laser.smt import (
@@ -13,8 +13,6 @@ from mythril.laser.smt import (
     BitVec,
     Bool,
     simplify,
-    BitVecFunc,
-    Extract,
     BaseArray,
     Concat,
     If,
@@ -23,26 +21,6 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 log = logging.getLogger(__name__)
-
-
-class StorageRegion:
-    def __getitem__(self, item):
-        raise NotImplementedError
-
-    def __setitem__(self, key, value):
-        raise NotImplementedError
-
-
-class ArrayStorageRegion(StorageRegion):
-    """ An ArrayStorageRegion is a storage region that leverages smt array theory to resolve expressions"""
-
-    pass
-
-
-class IteStorageRegion(StorageRegion):
-    """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
-
-    pass
 
 
 class Storage:
@@ -64,18 +42,8 @@ class Storage:
         self.storage_keys_loaded = set()  # type: Set[int]
         self.address = address
 
-    @staticmethod
-    def _sanitize(input_: BitVec) -> BitVec:
-        if input_.size() == 512:
-            return input_
-        if input_.size() > 512:
-            return Extract(511, 0, input_)
-        else:
-            return Concat(symbol_factory.BitVecVal(0, 512 - input_.size()), input_)
-
     def __getitem__(self, item: BitVec) -> BitVec:
         storage = self._standard_storage
-        sanitized_item = item
         if (
             self.address
             and self.address.value != 0
@@ -84,7 +52,7 @@ class Storage:
             and (self.dynld and self.dynld.storage_loading)
         ):
             try:
-                storage[sanitized_item] = symbol_factory.BitVecVal(
+                storage[item] = symbol_factory.BitVecVal(
                     int(
                         self.dynld.read_storage(
                             contract_address="0x{:040X}".format(self.address.value),
@@ -95,29 +63,14 @@ class Storage:
                     256,
                 )
                 self.storage_keys_loaded.add(int(item.value))
-                self.printable_storage[item] = storage[sanitized_item]
+                self.printable_storage[item] = storage[item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
-        return simplify(storage[sanitized_item])
-
-    @staticmethod
-    def get_map_index(key: BitVec) -> BitVec:
-        if (
-            not isinstance(key, BitVecFunc)
-            or key.func_name != "keccak256"
-            or key.input_ is None
-        ):
-            return None
-        index = Extract(255, 0, key.input_)
-        return simplify(index)
-
-    def _get_corresponding_storage(self, key: BitVec) -> BaseArray:
-        return self._standard_storage
+        return simplify(storage[item])
 
     def __setitem__(self, key, value: Any) -> None:
-        storage = self._get_corresponding_storage(key)
         self.printable_storage[key] = value
-        storage[key] = value
+        self._standard_storage[key] = value
         if key.symbolic is False:
             self.storage_keys_loaded.add(int(key.value))
 
@@ -134,6 +87,13 @@ class Storage:
     def __str__(self) -> str:
         # TODO: Do something better here
         return str(self.printable_storage)
+
+    def merge_storage(self, storage: "Storage", path_condition: Bool):
+        Lambda([x], If(And(lo <= x, x <= hi), y, Select(m, x)))
+
+        self._standard_storage = If(path_condition, self._standard_storage, storage._standard_storage)
+
+
 
 
 class Account:
@@ -205,9 +165,8 @@ class Account:
         self._balances[self.address] += balance
 
     def merge_accounts(self, account: "Account", path_condition: Bool):
-        self.nonce = If(path_condition, self.nonce, account.nonce)
-        # self.storage.merge_storage(account.storage)
-        ## Merge Storage
+        assert self.nonce == account.nonce
+        self.storage.merge_storage(account.storage, path_condition)
 
     @property
     def as_dict(self) -> Dict:
