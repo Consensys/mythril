@@ -1,3 +1,4 @@
+from copy import copy
 from typing import List
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
@@ -26,15 +27,15 @@ class StateMerge(LaserPlugin):
 
             if len(open_states) <= 1:
                 return
-
-            n_states = len(open_states) - 1
+            num_old_states = len(open_states)
             new_states = []  # type: List[WorldState]
             old_size = len(open_states)
-            old_states = open_states
+            old_states = copy(open_states)
             while old_size != len(new_states):
                 old_size = len(new_states)
                 i = 0
-                while i < n_states - 1:
+                new_states = []
+                while i < len(old_states) - 1:
                     if self.check_merge_condition(old_states[i], old_states[i + 1]):
                         new_states.append(
                             self.merge_states(old_states[i], old_states[i + 1])
@@ -43,13 +44,13 @@ class StateMerge(LaserPlugin):
                         continue
                     else:
                         new_states.append(old_states[i])
-                    if i == n_states - 1:
-                        new_states.append(old_states[i - 1])
                     i += 1
-                old_states = new_states
+                if i == len(old_states) - 1:
+                    new_states.append(old_states[i])
+                old_states = copy(new_states)
 
             logging.info(
-                "States reduced from {} to {}".format(n_states + 1, len(new_states))
+                "States reduced from {} to {}".format(num_old_states, len(new_states))
             )
             svm.open_states = new_states
 

@@ -64,7 +64,7 @@ class WorldState:
         self.node.merge_nodes(state.node, self.constraints)
 
     def check_merge_condition(self, state):
-        if not self.node.check_merge_condition(state.node):
+        if self.node and not self.node.check_merge_condition(state.node):
             return False
         for address, account in state.accounts.items():
             if (

@@ -92,6 +92,14 @@ class Node:
         self.flags |= node.flags
         self.constraints = constraints
 
+    def check_merge_condition(self, node: "Node"):
+        if (
+            self.function_name != node.function_name
+            or self.contract_name != node.contract_name
+            or self.start_addr != node.start_addr
+        ):
+            return False
+
 
 class Edge:
     """The respresentation of a call graph edge."""
