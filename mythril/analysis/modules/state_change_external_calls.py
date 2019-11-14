@@ -68,9 +68,11 @@ class StateChangeCallsAnnotation(StateAnnotation):
         )
         address_type = "user defined" if self.user_defined_address else "fixed"
         description_head = "Persistent state {read/write} after call"
-        description_tail = "The contract account state is changed after an external call to a {} address. " \
-                           "Consider that the called contract could re-enter the function before this " \
-                           "state change takes place".format(address_type)
+        description_tail = (
+            "The contract account state is changed after an external call to a {} address. "
+            "Consider that the called contract could re-enter the function before this "
+            "state change takes place".format(address_type)
+        )
 
         return PotentialIssue(
             contract=global_state.environment.active_account.contract_name,
