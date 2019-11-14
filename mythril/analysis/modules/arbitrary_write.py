@@ -69,10 +69,10 @@ class ArbitraryStorage(DetectionModule):
             address=state.get_current_instruction()["address"],
             swc_id=WRITE_TO_ARBITRARY_STORAGE,
             title="Write to an arbitrary storage slot",
-            severity="Medium",
+            severity="High",
             bytecode=state.environment.code.bytecode,
             description_head="Any storage slot can be written by the caller.",
-            description_tail="The caller can write a value into an arbitrary storage slot."
+            description_tail="The attacker can modify any value in the storage."
             + " This can lead to unintended consequences.",
             detector=self,
             constraints=constraints,
