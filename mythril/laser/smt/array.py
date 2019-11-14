@@ -5,7 +5,7 @@ operations, as well as as a K-array, which can be initialized with
 default values over a certain range.
 """
 
-from typing import cast
+from typing import cast, Union
 import z3
 
 from mythril.laser.smt.bitvec import BitVec
@@ -61,3 +61,14 @@ class K(BaseArray):
         self.domain = z3.BitVecSort(domain)
         self.value = z3.BitVecVal(value, value_range)
         self.raw = z3.K(self.domain, self.value)
+
+
+def z3_array_converter(array: Union[z3.Array, z3.K]):
+    if array.num_args() == 1:
+        # That means it has the arg of default value
+        new_array = K(array.domain().size(), array.range().size(), array.arg(0))
+        new_array.raw = array
+    else:
+        new_array = Array("LoL", array.domain().size(), array.range().size())
+        new_array.raw = array
+    return new_array

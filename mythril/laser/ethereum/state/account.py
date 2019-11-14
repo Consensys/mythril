@@ -14,7 +14,6 @@ from mythril.laser.smt import (
     Bool,
     simplify,
     BaseArray,
-    Concat,
     If,
 )
 from mythril.disassembler.disassembly import Disassembly
@@ -89,11 +88,19 @@ class Storage:
         return str(self.printable_storage)
 
     def merge_storage(self, storage: "Storage", path_condition: Bool):
-        Lambda([x], If(And(lo <= x, x <= hi), y, Select(m, x)))
-
-        self._standard_storage = If(path_condition, self._standard_storage, storage._standard_storage)
-
-
+        self._standard_storage = If(
+            path_condition, self._standard_storage, storage._standard_storage
+        )
+        self.storage_keys_loaded = self.storage_keys_loaded.union(
+            storage.storage_keys_loaded
+        )
+        for key, value in storage.printable_storage.items():
+            if key in self.printable_storage:
+                self.printable_storage[key] = If(
+                    path_condition, self.printable_storage[key], value
+                )
+            else:
+                self.printable_storage[key] = value
 
 
 class Account:
@@ -164,8 +171,17 @@ class Account:
         )
         self._balances[self.address] += balance
 
-    def merge_accounts(self, account: "Account", path_condition: Bool):
-        assert self.nonce == account.nonce
+    def merge_accounts(
+        self, account: "Account", path_condition: Bool, merged_balance: Array
+    ):
+        assert (
+            self.nonce == account.nonce
+            and self.deleted == account.deleted
+            and self.code.bytecode == account.code.bytecode
+        )
+
+        self._balances = merged_balance
+        self.balance = lambda: self._balances[self.address]
         self.storage.merge_storage(account.storage, path_condition)
 
     @property

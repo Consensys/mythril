@@ -7,30 +7,12 @@ from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec, If, Or
 from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.cfg import Node
 
-
-class Balances:
-    def __init__(self, name: str):
-        self.name = name
-        self.balance = Array(name, 256, 256)
-        self.balance_merge_list = []
-
-    def merge_balances(self, balances, path_condition):
-        self.balance_merge_list.append([balances, path_condition])
-
-    def __getitem__(self, item):
-        balance = self.balance[item]
-        for bs, pc in self.balance_merge_list:
-            balance = If(pc, bs[item], balance)
-        return balance
-    def __setitem__(self, key, value):
-        pass
 
 class WorldState:
     """The WorldState class represents the world state as described in the
@@ -48,7 +30,7 @@ class WorldState:
         :param annotations:
         """
         self._accounts = {}  # type: Dict[int, Account]
-        self.balances = Array("balance", 256, 256)
+        self.balances = Array("balance", 256, 256)  # type: Array
         self.starting_balances = copy(self.balances)
         self.constraints = constraints or Constraints()
 
@@ -65,16 +47,19 @@ class WorldState:
         c2 = state.constraints.compress()
         self.constraints = Constraints([Or(c1, c2)])
 
+        # Merge balances
+        self.balances = If(c1, self.balances, state.balances)
+        self.starting_balances = If(c1, self.starting_balances, state.starting_balances)
+
         # Merge accounts
         for address, account in state.accounts.items():
             if address not in self._accounts:
                 self.put_account(account)
             else:
-                self._accounts[address].merge_accounts(account, c2)
+                self._accounts[address].merge_accounts(account, c2, self.balances)
 
-        ## Merge balances
-
-
+        # Merge Node
+        self.node.merge_nodes(state.node, self.constraints)
 
     @property
     def accounts(self):

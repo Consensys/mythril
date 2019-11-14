@@ -11,6 +11,13 @@ if TYPE_CHECKING:
 gbl_next_uid = 0  # node counter
 
 
+def get_new_gbl_id():
+    global gbl_next_uid
+    return_id = gbl_next_uid
+    gbl_next_uid += 1
+    return return_id
+
+
 class JumpType(Enum):
     """An enum to represent the types of possible JUMP scenarios."""
 
@@ -55,11 +62,7 @@ class Node:
         self.function_name = function_name
         self.flags = NodeFlags()
 
-        # Self-assign a unique ID
-        global gbl_next_uid
-
-        self.uid = gbl_next_uid
-        gbl_next_uid += 1
+        self.uid = get_new_gbl_id()
 
     def get_cfg_dict(self) -> Dict:
         """
@@ -82,6 +85,12 @@ class Node:
             function_name=self.function_name,
             code=code,
         )
+
+    def merge_nodes(self, node: "Node", constraints: Constraints):
+        self.states += node.states
+        self.uid = get_new_gbl_id()
+        self.flags |= node.flags
+        self.constraints = constraints
 
 
 class Edge:

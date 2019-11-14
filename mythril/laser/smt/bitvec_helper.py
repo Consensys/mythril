@@ -3,6 +3,7 @@ import z3
 
 from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec
+from mythril.laser.smt.array import K, Array, z3_array_converter
 
 Annotations = Set[Any]
 
@@ -32,6 +33,12 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
     """
     if not isinstance(a, Bool):
         a = Bool(z3.BoolVal(a))
+    if (isinstance(b, K) or isinstance(b, Array)) and (
+        isinstance(c, Array) or isinstance(c, K)
+    ):
+        array = z3.If(a.raw, b.raw, c.raw)
+        return z3_array_converter(array)
+
     if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))
     if not isinstance(c, BitVec):
@@ -212,5 +219,3 @@ def BVSubNoUnderflow(
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
-
-def Lambda(var: BitVec, )
