@@ -465,9 +465,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="enable coverage based search strategy",
     )
     options.add_argument(
-        "--enable-state-merging",
-        action="store_true",
-        help="enables state merging",
+        "--enable-state-merging", action="store_true", help="enables state merging",
     )
     options.add_argument(
         "--custom-modules-directory",

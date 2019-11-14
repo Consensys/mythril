@@ -171,7 +171,7 @@ class MythrilAnalyzer:
                     disable_dependency_pruning=self.disable_dependency_pruning,
                     enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
-                    enable_state_merging=self.enable_state_merging
+                    enable_state_merging=self.enable_state_merging,
                 )
                 issues = fire_lasers(sym, modules, self.custom_modules_directory)
             except KeyboardInterrupt:

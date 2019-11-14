@@ -56,7 +56,7 @@ class SymExecWrapper:
         run_analysis_modules: bool = True,
         enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
-        enable_state_merging: bool = False
+        enable_state_merging: bool = False,
     ):
         """
 
