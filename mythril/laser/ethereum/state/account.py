@@ -68,6 +68,8 @@ class Storage:
         return simplify(storage[item])
 
     def __setitem__(self, key, value: Any) -> None:
+        if isinstance(value, Bool):
+            value = If(value, 1, 0)
         self.printable_storage[key] = value
         self._standard_storage[key] = value
         if key.symbolic is False:
@@ -183,6 +185,13 @@ class Account:
         self._balances = merged_balance
         self.balance = lambda: self._balances[self.address]
         self.storage.merge_storage(account.storage, path_condition)
+
+    def check_merge_condition(self, account: "Account"):
+        return (
+            self.nonce == account.nonce
+            and self.deleted == account.deleted
+            and self.code.bytecode == account.code.bytecode
+        )
 
     @property
     def as_dict(self) -> Dict:

@@ -9,8 +9,6 @@ from typing import cast, Union
 import z3
 
 from mythril.laser.smt.bitvec import BitVec
-from mythril.laser.smt.bitvec_helper import If
-from mythril.laser.smt.bool import Bool
 
 
 class BaseArray:
@@ -26,9 +24,6 @@ class BaseArray:
 
     def __setitem__(self, key: BitVec, value: BitVec) -> None:
         """Sets an item in the array, key can be symbolic."""
-        if isinstance(value, Bool):
-            value = If(value, 1, 0)
-
         self.raw = z3.Store(self.raw, key.raw, value.raw)  # type: ignore
 
 
@@ -66,7 +61,9 @@ class K(BaseArray):
 def z3_array_converter(array: Union[z3.Array, z3.K]):
     if array.num_args() == 1:
         # That means it has the arg of default value
-        new_array = K(array.domain().size(), array.range().size(), array.arg(0))
+        new_array = K(
+            array.domain().size(), array.range().size(), array.arg(0)
+        )  # type: BaseArray
         new_array.raw = array
     else:
         new_array = Array("LoL", array.domain().size(), array.range().size())

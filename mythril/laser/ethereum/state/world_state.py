@@ -1,7 +1,7 @@
 """This module contains a representation of the EVM's world state."""
 from copy import copy
 from random import randint
-from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
+from typing import Dict, List, Iterator, Optional, TYPE_CHECKING, cast
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec, If, Or
@@ -48,8 +48,10 @@ class WorldState:
         self.constraints = Constraints([Or(c1, c2)])
 
         # Merge balances
-        self.balances = If(c1, self.balances, state.balances)
-        self.starting_balances = If(c1, self.starting_balances, state.starting_balances)
+        self.balances = cast(Array, If(c1, self.balances, state.balances))
+        self.starting_balances = cast(
+            Array, If(c1, self.starting_balances, state.starting_balances)
+        )
 
         # Merge accounts
         for address, account in state.accounts.items():
@@ -60,6 +62,17 @@ class WorldState:
 
         # Merge Node
         self.node.merge_nodes(state.node, self.constraints)
+
+    def check_merge_condition(self, state):
+        if not self.node.check_merge_condition(state.node):
+            return False
+        for address, account in state.accounts.items():
+            if (
+                address in self._accounts
+                and self._accounts[address].check_merge_condition(account) is False
+            ):
+                return False
+        return True
 
     @property
     def accounts(self):

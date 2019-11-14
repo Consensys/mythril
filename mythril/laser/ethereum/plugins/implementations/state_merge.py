@@ -1,3 +1,4 @@
+from typing import List
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.smt import symbol_factory, simplify, Or
@@ -23,24 +24,30 @@ class StateMerge(LaserPlugin):
 
             open_states = svm.open_states
 
-            if len(open_states) == 0:
+            if len(open_states) <= 1:
                 return
 
             n_states = len(open_states) - 1
-            new_states = []
-            i = 0
-            while i < n_states:
-                if self.check_merge_condition(open_states[i], open_states[i + 1]):
-                    new_states.append(
-                        self.merge_states(open_states[i], open_states[i + 1])
-                    )
-                    i += 2
-                    continue
-                else:
-                    new_states.append(open_states[i])
-                if i == n_states - 1:
-                    new_states.append(open_states[i - 1])
-                i += 1
+            new_states = []  # type: List[WorldState]
+            old_size = len(open_states)
+            old_states = open_states
+            while old_size != len(new_states):
+                old_size = len(new_states)
+                i = 0
+                while i < n_states - 1:
+                    if self.check_merge_condition(old_states[i], old_states[i + 1]):
+                        new_states.append(
+                            self.merge_states(old_states[i], old_states[i + 1])
+                        )
+                        i += 2
+                        continue
+                    else:
+                        new_states.append(old_states[i])
+                    if i == n_states - 1:
+                        new_states.append(old_states[i - 1])
+                    i += 1
+                old_states = new_states
+
             logging.info(
                 "States reduced from {} to {}".format(n_states + 1, len(new_states))
             )
@@ -48,13 +55,10 @@ class StateMerge(LaserPlugin):
 
     @staticmethod
     def check_merge_condition(state1: WorldState, state2: WorldState):
-        # TODO: Use a better condition in the PR
-        return state1.transaction_sequence == state2.transaction_sequence
+        basic_condition = state1.check_merge_condition(state2)
+        return basic_condition
 
     @staticmethod
     def merge_states(state1: WorldState, state2: WorldState) -> WorldState:
         state1.merge_states(state2)
         return state1
-        # TODO Merge world state annotations
-
-        # TODO Merge accounts

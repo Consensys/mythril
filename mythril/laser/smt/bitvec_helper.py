@@ -3,7 +3,7 @@ import z3
 
 from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec
-from mythril.laser.smt.array import K, Array, z3_array_converter
+from mythril.laser.smt.array import K, Array, z3_array_converter, BaseArray
 
 Annotations = Set[Any]
 
@@ -23,7 +23,21 @@ def LShR(a: BitVec, b: BitVec):
     return _arithmetic_helper(a, b, z3.LShR)
 
 
+@overload
 def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> BitVec:
+    ...
+
+
+@overload
+def If(a: Union[Bool, bool], b: BaseArray, c: BaseArray) -> BaseArray:
+    ...
+
+
+def If(
+    a: Union[Bool, bool],
+    b: Union[BaseArray, BitVec, int],
+    c: Union[BaseArray, BitVec, int],
+) -> Union[BitVec, BaseArray]:
     """Create an if-then-else expression.
 
     :param a:
@@ -219,3 +233,7 @@ def BVSubNoUnderflow(
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
+
+
+def convert_bool_to_bv(bool_val: Bool) -> BitVec:
+    return If(bool_val, 1, 0)
