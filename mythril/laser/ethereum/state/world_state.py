@@ -8,6 +8,7 @@ from mythril.laser.smt import symbol_factory, Array, BitVec
 from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.laser.ethereum.state.constraints import Constraints
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.cfg import Node
@@ -18,7 +19,10 @@ class WorldState:
     yellow paper."""
 
     def __init__(
-        self, transaction_sequence=None, annotations: List[StateAnnotation] = None
+        self,
+        transaction_sequence=None,
+        annotations: List[StateAnnotation] = None,
+        constraints: Constraints = None,
     ) -> None:
         """Constructor for the world state. Initializes the accounts record.
 
@@ -28,6 +32,7 @@ class WorldState:
         self._accounts = {}  # type: Dict[int, Account]
         self.balances = Array("balance", 256, 256)
         self.starting_balances = copy(self.balances)
+        self.constraints = constraints or Constraints()
 
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
@@ -65,6 +70,7 @@ class WorldState:
         for account in self._accounts.values():
             new_world_state.put_account(copy(account))
         new_world_state.node = self.node
+        new_world_state.constraints = copy(self.constraints)
         return new_world_state
 
     def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> str:

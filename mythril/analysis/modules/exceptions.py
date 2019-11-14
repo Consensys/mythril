@@ -58,7 +58,7 @@ class ReachableExceptionsModule(DetectionModule):
                 "Use `require()` for regular input checking."
             )
             transaction_sequence = solver.get_transaction_sequence(
-                state, state.mstate.constraints
+                state, state.world_state.constraints
             )
             issue = Issue(
                 contract=state.environment.active_account.contract_name,

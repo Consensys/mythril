@@ -291,7 +291,9 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             if ostate not in self._ostates_satisfiable:
                 try:
-                    constraints = ostate.mstate.constraints + [annotation.constraint]
+                    constraints = ostate.world_state.constraints + [
+                        annotation.constraint
+                    ]
                     solver.get_model(constraints)
                     self._ostates_satisfiable.add(ostate)
                 except:
@@ -308,7 +310,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
 
             try:
 
-                constraints = state.mstate.constraints + [annotation.constraint]
+                constraints = state.world_state.constraints + [annotation.constraint]
                 transaction_sequence = solver.get_transaction_sequence(
                     state, constraints
                 )

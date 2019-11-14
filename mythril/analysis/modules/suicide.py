@@ -73,7 +73,9 @@ class SuicideModule(DetectionModule):
             try:
                 transaction_sequence = solver.get_transaction_sequence(
                     state,
-                    state.mstate.constraints + constraints + [to == ACTORS.attacker],
+                    state.world_state.constraints
+                    + constraints
+                    + [to == ACTORS.attacker],
                 )
                 description_tail = (
                     "Anyone can kill this contract and withdraw its balance to an arbitrary "
@@ -81,7 +83,7 @@ class SuicideModule(DetectionModule):
                 )
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.mstate.constraints + constraints
+                    state, state.world_state.constraints + constraints
                 )
                 description_tail = "Arbitrary senders can kill this contract."
             issue = Issue(

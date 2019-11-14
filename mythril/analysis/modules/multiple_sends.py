@@ -81,7 +81,7 @@ class MultipleSendsModule(DetectionModule):
             for offset in call_offsets[1:]:
                 try:
                     transaction_sequence = get_transaction_sequence(
-                        state, state.mstate.constraints
+                        state, state.world_state.constraints
                     )
                 except UnsatError:
                     continue

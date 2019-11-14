@@ -66,8 +66,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other + self
         if isinstance(other, int):
             return BitVec(self.raw + other, annotations=self.annotations)
 
@@ -80,8 +78,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other - self
         if isinstance(other, int):
             return BitVec(self.raw - other, annotations=self.annotations)
 
@@ -94,8 +90,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other * self
         union = self.annotations.union(other.annotations)
         return BitVec(self.raw * other.raw, annotations=union)
 
@@ -105,8 +99,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other / self
         union = self.annotations.union(other.annotations)
         return BitVec(self.raw / other.raw, annotations=union)
 
@@ -116,8 +108,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other & self
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
@@ -129,8 +119,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other | self
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
@@ -142,8 +130,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other ^ self
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
@@ -155,8 +141,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other > self
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
@@ -168,8 +152,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other < self
         if not isinstance(other, BitVec):
             other = BitVec(z3.BitVecVal(other, self.size()))
         union = self.annotations.union(other.annotations)
@@ -204,8 +186,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other == self
         if not isinstance(other, BitVec):
             return Bool(
                 cast(z3.BoolRef, self.raw == other), annotations=self.annotations
@@ -224,8 +204,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param other:
         :return:
         """
-        if isinstance(other, BitVecFunc):
-            return other != self
         if not isinstance(other, BitVec):
             return Bool(
                 cast(z3.BoolRef, self.raw != other), annotations=self.annotations
@@ -244,8 +222,6 @@ class BitVec(Expression[z3.BitVecRef]):
         :param operator: The shift operator
         :return: the resulting output
         """
-        if isinstance(other, BitVecFunc):
-            return operator(other, self)
         if not isinstance(other, BitVec):
             return BitVec(
                 operator(self.raw, other), annotations=self.annotations
@@ -275,7 +251,3 @@ class BitVec(Expression[z3.BitVecRef]):
         :return:
         """
         return self.raw.__hash__()
-
-
-# TODO: Fix circular import issues
-from mythril.laser.smt.bitvecfunc import BitVecFunc

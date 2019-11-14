@@ -18,7 +18,6 @@ from mythril.laser.smt.bitvec_helper import (
     LShR,
 )
 
-from mythril.laser.smt.bitvecfunc import BitVecFunc
 from mythril.laser.smt.expression import Expression, simplify
 from mythril.laser.smt.bool import Bool, is_true, is_false, Or, Not, And
 from mythril.laser.smt.array import K, Array, BaseArray
@@ -80,44 +79,6 @@ class SymbolFactory(Generic[T, U]):
         """
         raise NotImplementedError()
 
-    @staticmethod
-    def BitVecFuncVal(
-        value: int,
-        func_name: str,
-        size: int,
-        annotations: Annotations = None,
-        input_: "BitVec" = None,
-    ) -> BitVecFunc:
-        """Creates a new bit vector function with a symbolic value.
-
-        :param value: The concrete value to set the bit vector to
-        :param func_name: The name of the bit vector function
-        :param size: The size of the bit vector
-        :param annotations: The annotations to initialize the bit vector with
-        :param input_: The input to the bit vector function
-        :return: The freshly created bit vector function
-        """
-        raise NotImplementedError()
-
-    @staticmethod
-    def BitVecFuncSym(
-        name: str,
-        func_name: str,
-        size: int,
-        annotations: Annotations = None,
-        input_: "BitVec" = None,
-    ) -> BitVecFunc:
-        """Creates a new bit vector function with a symbolic value.
-
-        :param name: The name of the symbolic bit vector
-        :param func_name: The name of the bit vector function
-        :param size: The size of the bit vector
-        :param annotations: The annotations to initialize the bit vector with
-        :param input_: The input to the bit vector function
-        :return: The freshly created bit vector function
-        """
-        raise NotImplementedError()
-
 
 class _SmtSymbolFactory(SymbolFactory[SMTBool, BitVec]):
     """
@@ -158,30 +119,6 @@ class _SmtSymbolFactory(SymbolFactory[SMTBool, BitVec]):
         """Creates a new bit vector with a symbolic value."""
         raw = z3.BitVec(name, size)
         return BitVec(raw, annotations)
-
-    @staticmethod
-    def BitVecFuncVal(
-        value: int,
-        func_name: str,
-        size: int,
-        annotations: Annotations = None,
-        input_: "BitVec" = None,
-    ) -> BitVecFunc:
-        """Creates a new bit vector function with a concrete value."""
-        raw = z3.BitVecVal(value, size)
-        return BitVecFunc(raw, func_name, input_, annotations)
-
-    @staticmethod
-    def BitVecFuncSym(
-        name: str,
-        func_name: str,
-        size: int,
-        annotations: Annotations = None,
-        input_: "BitVec" = None,
-    ) -> BitVecFunc:
-        """Creates a new bit vector function with a symbolic value."""
-        raw = z3.BitVec(name, size)
-        return BitVecFunc(raw, func_name, input_, annotations)
 
 
 class _Z3SymbolFactory(SymbolFactory[z3.BoolRef, z3.BitVecRef]):
