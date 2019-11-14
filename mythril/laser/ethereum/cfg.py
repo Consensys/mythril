@@ -87,18 +87,28 @@ class Node:
         )
 
     def merge_nodes(self, node: "Node", constraints: Constraints):
+        """
+        Merges two nodes
+        :param node: The node to be merged
+        :param constraints: The merged constraints
+        :return:
+        """
         self.states += node.states
         self.uid = get_new_gbl_id()
         self.flags |= node.flags
         self.constraints = constraints
 
     def check_merge_condition(self, node: "Node"):
-        if (
-            self.function_name != node.function_name
-            or self.contract_name != node.contract_name
-            or self.start_addr != node.start_addr
-        ):
-            return False
+        """
+        Checks whether two nodes are merge-able or not
+        :param node: The other node to be merged
+        :return:
+        """
+        return (
+            self.function_name == node.function_name
+            and self.contract_name == node.contract_name
+            and self.start_addr == node.start_addr
+        )
 
 
 class Edge:

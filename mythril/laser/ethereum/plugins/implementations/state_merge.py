@@ -56,6 +56,12 @@ class StateMerge(LaserPlugin):
 
     @staticmethod
     def check_merge_condition(state1: WorldState, state2: WorldState):
+        """
+        Check whether two world states can be merged
+        :param state1:
+        :param state2:
+        :return: whether the states can be merged or not
+        """
         basic_condition = state1.check_merge_condition(state2)
         return basic_condition
 

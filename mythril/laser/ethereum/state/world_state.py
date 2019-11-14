@@ -39,6 +39,11 @@ class WorldState:
         self._annotations = annotations or []
 
     def merge_states(self, state: "WorldState"):
+        """
+        Merge this state with "state"
+        :param state: The state to be merged with
+        :return:
+        """
         # combine annotations
         self._annotations += state._annotations
 
@@ -58,12 +63,17 @@ class WorldState:
             if address not in self._accounts:
                 self.put_account(account)
             else:
-                self._accounts[address].merge_accounts(account, c2, self.balances)
+                self._accounts[address].merge_accounts(account, c1, self.balances)
 
         # Merge Node
         self.node.merge_nodes(state.node, self.constraints)
 
     def check_merge_condition(self, state):
+        """
+        Checks whether we can merge this state with "state" or not
+        :param state: The state to check the merge-ability with
+        :return: True if we can merge them
+        """
         if self.node and not self.node.check_merge_condition(state.node):
             return False
         for address, account in state.accounts.items():

@@ -90,6 +90,12 @@ class Storage:
         return str(self.printable_storage)
 
     def merge_storage(self, storage: "Storage", path_condition: Bool):
+        """
+        Merge storage
+        :param storage: To storage to merge with
+        :param path_condition: The constraint for this storage to be executed
+        :return:
+        """
         self._standard_storage = If(
             path_condition, self._standard_storage, storage._standard_storage
         )
@@ -122,7 +128,7 @@ class Account:
         :param address: Address of the account
         :param code: The contract code of the account
         :param contract_name: The name associated with the account
-        :param balance: The balance for the account
+        :param balances: The balances for the accounts
         :param concrete_storage: Interpret storage as concrete
         """
         self.nonce = 0
@@ -176,6 +182,13 @@ class Account:
     def merge_accounts(
         self, account: "Account", path_condition: Bool, merged_balance: Array
     ):
+        """
+        Checks the merge-ability
+        :param account: The account to merge with
+        :param path_condition: The constraint for this account
+        :param merged_balance: The merged balance
+        :return:
+        """
         assert (
             self.nonce == account.nonce
             and self.deleted == account.deleted
@@ -187,6 +200,11 @@ class Account:
         self.storage.merge_storage(account.storage, path_condition)
 
     def check_merge_condition(self, account: "Account"):
+        """
+        Checks whether we can merge or not
+        :param account: The account to check merge-ability with
+        :return: True if we can merge them
+        """
         return (
             self.nonce == account.nonce
             and self.deleted == account.deleted
