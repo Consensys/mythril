@@ -1182,24 +1182,14 @@ class Instruction:
             code = code[2:]
 
         for i in range(concrete_size):
-            if 2 * (concrete_code_offset + i + 1) <= len(code):
-                global_state.mstate.memory[concrete_memory_offset + i] = int(
-                    code[
-                        2
-                        * (concrete_code_offset + i) : 2
-                        * (concrete_code_offset + i + 1)
-                    ],
-                    16,
-                )
-            else:
-                global_state.mstate.memory[
-                    concrete_memory_offset + i
-                ] = global_state.new_bitvec(
-                    "code({})".format(
-                        global_state.environment.active_account.contract_name
-                    ),
-                    8,
-                )
+            if 2 * (concrete_code_offset + i + 1) > len(code):
+                break
+            global_state.mstate.memory[concrete_memory_offset + i] = int(
+                code[
+                    2 * (concrete_code_offset + i) : 2 * (concrete_code_offset + i + 1)
+                ],
+                16,
+            )
 
         return [global_state]
 
