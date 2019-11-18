@@ -119,12 +119,14 @@ class Account:
         )
 
         # Metadata
-        if contract_name:
-            self.contract_name = contract_name
-        else:
+        if contract_name is None:
             self.contract_name = (
-                hex(self.address.value) if not self.address.symbolic else "unknown"
+                "{0:#0{1}x}".format(self.address.value, 40)
+                if not self.address.symbolic
+                else "unknown"
             )
+        else:
+            self.contract_name = contract_name
 
         self.deleted = False
 
