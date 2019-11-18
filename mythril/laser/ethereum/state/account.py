@@ -93,7 +93,7 @@ class Account:
         self,
         address: Union[BitVec, str],
         code=None,
-        contract_name="unknown",
+        contract_name=None,
         balances: Array = None,
         concrete_storage=False,
         dynamic_loader=None,
@@ -119,7 +119,12 @@ class Account:
         )
 
         # Metadata
-        self.contract_name = contract_name
+        if contract_name:
+            self.contract_name = contract_name
+        else:
+            self.contract_name = (
+                hex(self.address.value) if not self.address.symbolic else "unknown"
+            )
 
         self.deleted = False
 
