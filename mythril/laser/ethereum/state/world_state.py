@@ -78,7 +78,7 @@ class WorldState:
         if len(state.annotations) != len(self._annotations):
             return False
         for v1, v2 in zip(state.annotations, self._annotations):
-            if v1.check_merge_annotation(v2) is False:     # type: ignore
+            if v1.check_merge_annotation(v2) is False:  # type: ignore
                 return False
         return True
 
@@ -89,7 +89,7 @@ class WorldState:
         :return:
         """
         for v1, v2 in zip(state.annotations, self._annotations):
-            v1.merge_annotations(v2)         # type: ignore
+            v1.merge_annotations(v2)  # type: ignore
 
     def check_merge_condition(self, state: "WorldState"):
         """
