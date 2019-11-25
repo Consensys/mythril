@@ -57,7 +57,7 @@ class ArbitraryJump(DetectionModule):
         # Most probably the jump destination can have multiple locations in these circumstances
         try:
             transaction_sequence = get_transaction_sequence(
-                state, state.mstate.constraints
+                state, state.world_state.constraints
             )
         except UnsatError:
             return []
