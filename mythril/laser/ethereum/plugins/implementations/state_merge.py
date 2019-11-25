@@ -1,5 +1,5 @@
 from copy import copy
-from typing import List
+from typing import Dict, List
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.smt import symbol_factory, simplify, Or
@@ -33,22 +33,29 @@ class StateMerge(LaserPlugin):
             old_states = copy(open_states)
             while old_size != len(new_states):
                 old_size = len(new_states)
-                i = 0
                 new_states = []
-                while i < len(old_states) - 1:
-                    if self.check_merge_condition(old_states[i], old_states[i + 1]):
-                        new_states.append(
-                            self.merge_states(old_states[i], old_states[i + 1])
-                        )
-                        i += 2
+                merged_dict = {}  # type: Dict[int, bool]
+                for i in range(len(old_states)):
+                    if merged_dict.get(i, False):
                         continue
-                    else:
-                        new_states.append(old_states[i])
-                    i += 1
-                if i == len(old_states) - 1:
-                    new_states.append(old_states[i])
-                old_states = copy(new_states)
+                    i_is_merged = False
+                    for j in range(i + 1, len(old_states)):
+                        if merged_dict.get(j, False) or not self.check_merge_condition(
+                            old_states[i], old_states[j]
+                        ):
+                            j += 1
+                            continue
+                        state = old_states[i]
+                        self.merge_states(state, old_states[j])
+                        merged_dict[j] = True
+                        new_states.append(state)
+                        i_is_merged = True
+                        break
 
+                    if i_is_merged is False:
+                        new_states.append(old_states[i])
+
+                old_states = copy(new_states)
             logging.info(
                 "States reduced from {} to {}".format(num_old_states, len(new_states))
             )
@@ -67,5 +74,11 @@ class StateMerge(LaserPlugin):
 
     @staticmethod
     def merge_states(state1: WorldState, state2: WorldState) -> WorldState:
+        """
+        Merge state2 into state1
+        :param state1: The state to be merged into
+        :param state2: The state which is merged into state1
+        :return:
+        """
         state1.merge_states(state2)
         return state1

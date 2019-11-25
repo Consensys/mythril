@@ -1,4 +1,5 @@
 from mythril.laser.ethereum.state.annotation import StateAnnotation
+from mythril.laser.smt import If
 
 from copy import copy
 from typing import Dict, List, Set
@@ -48,6 +49,20 @@ class DependencyAnnotation(StateAnnotation):
         elif value not in self.storage_written[iteration]:
             self.storage_written[iteration].append(value)
 
+    def check_merge_annotation(self, other):
+        return self.has_call == other.has_call and self.path == other.path
+
+    def merge_annotation(self, other: "DependencyAnnotation"):
+        self.blocks_seen = self.blocks_seen.union(other.blocks_seen)
+        for v in other.storage_loaded:
+            if v not in self.storage_loaded:
+                self.storage_loaded.append(v)
+        for key, val in other.storage_written.items():
+            if key not in self.storage_written:
+                self.storage_written[key] = val
+            elif self.storage_written[key] != val:
+                self.storage_written[key] += val
+
 
 class WSDependencyAnnotation(StateAnnotation):
     """Dependency Annotation for World state
@@ -63,3 +78,15 @@ class WSDependencyAnnotation(StateAnnotation):
         result = WSDependencyAnnotation()
         result.annotations_stack = copy(self.annotations_stack)
         return result
+
+    def check_merge_annotation(self, other):
+        if len(self.annotations_stack) != len(other.annotations_stack):
+            return False
+        for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
+            if a1.check_merge_annotation(a2) is False:
+                return False
+        return True
+
+    def merge_annotations(self, other):
+        for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
+            a1.merge_annotation(a2)

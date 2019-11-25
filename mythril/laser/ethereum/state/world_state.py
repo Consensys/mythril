@@ -44,8 +44,6 @@ class WorldState:
         :param state: The state to be merged with
         :return:
         """
-        # combine annotations
-        self._annotations += state._annotations
 
         # Merge constraints
         c1 = self.constraints.compress()
@@ -65,10 +63,35 @@ class WorldState:
             else:
                 self._accounts[address].merge_accounts(account, c1, self.balances)
 
+        # Merge annotations
+        self._merge_annotations(state)
+
         # Merge Node
         self.node.merge_nodes(state.node, self.constraints)
 
-    def check_merge_condition(self, state):
+    def _check_merge_annotations(self, state: "WorldState"):
+        """
+
+        :param state:
+        :return:
+        """
+        if len(state.annotations) != len(self._annotations):
+            return False
+        for v1, v2 in zip(state.annotations, self._annotations):
+            if v1.check_merge_annotation(v2) is False:     # type: ignore
+                return False
+        return True
+
+    def _merge_annotations(self, state: "WorldState"):
+        """
+
+        :param state:
+        :return:
+        """
+        for v1, v2 in zip(state.annotations, self._annotations):
+            v1.merge_annotations(v2)         # type: ignore
+
+    def check_merge_condition(self, state: "WorldState"):
         """
         Checks whether we can merge this state with "state" or not
         :param state: The state to check the merge-ability with
@@ -76,12 +99,16 @@ class WorldState:
         """
         if self.node and not self.node.check_merge_condition(state.node):
             return False
+
         for address, account in state.accounts.items():
             if (
                 address in self._accounts
                 and self._accounts[address].check_merge_condition(account) is False
             ):
                 return False
+        if not self._check_merge_annotations(state):
+            return False
+
         return True
 
     @property
