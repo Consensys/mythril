@@ -80,7 +80,10 @@ class WorldState:
         for constraint in constraints:
             dict2[constraint] = True
         c1, c2 = symbol_factory.Bool(True), symbol_factory.Bool(True)
-        new_constraint1, new_constraint2 = symbol_factory.Bool(True), symbol_factory.Bool(True)
+        new_constraint1, new_constraint2 = (
+            symbol_factory.Bool(True),
+            symbol_factory.Bool(True),
+        )
         same_constraints = Constraints()
         for key in dict1:
             if key not in dict2:
