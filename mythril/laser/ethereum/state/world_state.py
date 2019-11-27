@@ -9,6 +9,9 @@ from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints
+from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
+    WSDependencyAnnotation,
+)
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.cfg import Node
@@ -38,7 +41,7 @@ class WorldState:
 
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
-        self._annotations = annotations or []
+        self._annotations = annotations or []  # type: List[WSDependencyAnnotation]
 
     def merge_states(self, state: "WorldState"):
         """
@@ -269,7 +272,7 @@ class WorldState:
         new_account.storage = storage
         self.put_account(new_account)
 
-    def annotate(self, annotation: StateAnnotation) -> None:
+    def annotate(self, annotation: WSDependencyAnnotation) -> None:
         """
 
         :param annotation:
@@ -277,7 +280,7 @@ class WorldState:
         self._annotations.append(annotation)
 
     @property
-    def annotations(self) -> List[StateAnnotation]:
+    def annotations(self) -> List[WSDependencyAnnotation]:
         """
 
         :return:
