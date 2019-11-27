@@ -141,9 +141,6 @@ class GlobalState:
         """
         self._annotations.append(annotation)
 
-        if annotation.persist_to_world_state:
-            self.world_state.annotate(annotation)
-
     @property
     def annotations(self) -> List[StateAnnotation]:
         """

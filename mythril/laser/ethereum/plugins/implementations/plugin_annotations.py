@@ -78,7 +78,7 @@ class WSDependencyAnnotation(StateAnnotation):
         result.annotations_stack = copy(self.annotations_stack)
         return result
 
-    def check_merge_annotation(self, other):
+    def check_merge_annotation(self, other: "WSDependencyAnnotation"):
         if len(self.annotations_stack) != len(other.annotations_stack):
             return False
         for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
@@ -86,6 +86,6 @@ class WSDependencyAnnotation(StateAnnotation):
                 return False
         return True
 
-    def merge_annotations(self, other):
+    def merge_annotations(self, other: "WSDependencyAnnotation"):
         for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
             a1.merge_annotation(a2)

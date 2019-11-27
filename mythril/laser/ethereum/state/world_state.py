@@ -26,7 +26,7 @@ class WorldState:
     def __init__(
         self,
         transaction_sequence=None,
-        annotations: List[StateAnnotation] = None,
+        annotations: List[WSDependencyAnnotation] = None,
         constraints: Constraints = None,
     ) -> None:
         """Constructor for the world state. Initializes the accounts record.
@@ -133,7 +133,7 @@ class WorldState:
         if self._check_constraint_merge(state.constraints) is False:
             return False
         for v1, v2 in zip(state.annotations, self._annotations):
-            if v1.check_merge_annotation(v2) is False:  # type: ignore
+            if v1.check_merge_annotation(v2) is False:
                 return False
         return True
 
@@ -144,7 +144,7 @@ class WorldState:
         :return:
         """
         for v1, v2 in zip(state.annotations, self._annotations):
-            v1.merge_annotations(v2)  # type: ignore
+            v1.merge_annotations(v2)
 
     def check_merge_condition(self, state: "WorldState"):
         """
