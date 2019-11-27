@@ -1,5 +1,4 @@
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.laser.smt import If
 
 from copy import copy
 from typing import Dict, List, Set

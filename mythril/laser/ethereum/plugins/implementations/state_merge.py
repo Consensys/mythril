@@ -2,10 +2,8 @@ from copy import copy
 from typing import Dict, List
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
-from mythril.laser.smt import symbol_factory, simplify, Or
 from mythril.laser.ethereum.state.world_state import WorldState
 import logging
-import z3
 
 log = logging.getLogger(__name__)
 
