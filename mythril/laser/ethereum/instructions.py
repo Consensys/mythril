@@ -1841,9 +1841,8 @@ class Instruction:
             return
         for i in range(memory_out_size.value):
             global_state.mstate.memory[memory_out_offset + i] = global_state.new_bitvec(
-                "memory_var({})_{}".format(
-                    global_state.environment.active_account.contract_name,
-                    simplify(memory_out_offset + i),
+                "call_output_var({})_{}".format(
+                    simplify(memory_out_offset + i), global_state.mstate.pc,
                 ),
                 8,
             )
