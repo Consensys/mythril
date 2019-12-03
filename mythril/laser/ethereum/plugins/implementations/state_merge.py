@@ -175,7 +175,7 @@ class StateMerge(LaserPlugin):
         ):
             return False
         for v1, v2 in zip(state2.annotations, state1._annotations):
-            if v1.check_merge_annotation(v2) is False:   # type: ignore
+            if v1.check_merge_annotation(v2) is False:  # type: ignore
                 return False
         return True
 
@@ -187,7 +187,7 @@ class StateMerge(LaserPlugin):
         :return:
         """
         for v1, v2 in zip(state1.annotations, state2.annotations):
-            v1.merge_annotations(v2)                     # type: ignore
+            v1.merge_annotations(v2)  # type: ignore
 
     def check_ws_merge_condition(self, state1: WorldState, state2: WorldState):
         """
