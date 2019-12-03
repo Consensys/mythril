@@ -9,14 +9,9 @@ from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints
-from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
-    WSDependencyAnnotation,
-)
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.cfg import Node
-
-CONSTRAINT_DIFFERENCE_LIMIT = 15
 
 
 class WorldState:
@@ -26,7 +21,7 @@ class WorldState:
     def __init__(
         self,
         transaction_sequence=None,
-        annotations: List[WSDependencyAnnotation] = None,
+        annotations: List[StateAnnotation] = None,
         constraints: Constraints = None,
     ) -> None:
         """Constructor for the world state. Initializes the accounts record.
@@ -41,130 +36,7 @@ class WorldState:
 
         self.node = None  # type: Optional['Node']
         self.transaction_sequence = transaction_sequence or []
-        self._annotations = annotations or []  # type: List[WSDependencyAnnotation]
-
-    def merge_states(self, state: "WorldState"):
-        """
-        Merge this state with "state"
-        :param state: The state to be merged with
-        :return:
-        """
-
-        # Merge constraints
-        self.constraints, condition1, _ = self._merge_constraints(state.constraints)
-
-        # Merge balances
-        self.balances = cast(Array, If(condition1, self.balances, state.balances))
-        self.starting_balances = cast(
-            Array, If(condition1, self.starting_balances, state.starting_balances)
-        )
-
-        # Merge accounts
-        for address, account in state.accounts.items():
-            if address not in self._accounts:
-                self.put_account(account)
-            else:
-                self._accounts[address].merge_accounts(
-                    account, condition1, self.balances
-                )
-
-        # Merge annotations
-        self._merge_annotations(state)
-
-        # Merge Node
-        self.node.merge_nodes(state.node, self.constraints)
-
-    def _merge_constraints(
-        self, constraints: Constraints
-    ) -> Tuple[Constraints, Bool, Bool]:
-        dict1, dict2 = {}, {}
-        for constraint in self.constraints:
-            dict1[constraint] = True
-        for constraint in constraints:
-            dict2[constraint] = True
-        c1, c2 = symbol_factory.Bool(True), symbol_factory.Bool(True)
-        new_constraint1, new_constraint2 = (
-            symbol_factory.Bool(True),
-            symbol_factory.Bool(True),
-        )
-        same_constraints = Constraints()
-        for key in dict1:
-            if key not in dict2:
-                c1 = And(c1, key)
-                if Not(key) not in dict2:
-                    new_constraint1 = And(new_constraint1, key)
-            else:
-                same_constraints.append(key)
-        for key in dict2:
-            if key not in dict1:
-                c2 = And(c2, key)
-                if Not(key) not in dict1:
-                    new_constraint2 = And(new_constraint2, key)
-            else:
-                same_constraints.append(key)
-        merge_constraints = same_constraints + [Or(new_constraint1, new_constraint2)]
-        return merge_constraints, c1, c2
-
-    def _check_constraint_merge(self, constraints: Constraints) -> bool:
-        dict1, dict2 = {}, {}
-        for constraint in self.constraints:
-            dict1[constraint] = True
-        for constraint in constraints:
-            dict2[constraint] = True
-        c1, c2 = 0, 0
-        for key in dict1:
-            if key not in dict2 and Not(key) not in dict2:
-                c1 += 1
-        for key in dict2:
-            if key not in dict1 and Not(key) not in dict1:
-                c2 += 1
-        if c1 + c2 > CONSTRAINT_DIFFERENCE_LIMIT:
-            return False
-        return True
-
-    def _check_merge_annotations(self, state: "WorldState"):
-        """
-
-        :param state:
-        :return:
-        """
-        if len(state.annotations) != len(self._annotations):
-            return False
-        if self._check_constraint_merge(state.constraints) is False:
-            return False
-        for v1, v2 in zip(state.annotations, self._annotations):
-            if v1.check_merge_annotation(v2) is False:
-                return False
-        return True
-
-    def _merge_annotations(self, state: "WorldState"):
-        """
-
-        :param state:
-        :return:
-        """
-        for v1, v2 in zip(state.annotations, self._annotations):
-            v1.merge_annotations(v2)
-
-    def check_merge_condition(self, state: "WorldState"):
-        """
-        Checks whether we can merge this state with "state" or not
-        :param state: The state to check the merge-ability with
-        :return: True if we can merge them
-        """
-        if self.node and not self.node.check_merge_condition(state.node):
-            return False
-
-        for address, account in state.accounts.items():
-            if (
-                address in self._accounts
-                and self._accounts[address].check_merge_condition(account) is False
-            ):
-                return False
-        if not self._check_merge_annotations(state):
-            return False
-
-        return True
+        self._annotations = annotations or []  # type: List[StateAnnotation]
 
     @property
     def accounts(self):
@@ -272,7 +144,7 @@ class WorldState:
         new_account.storage = storage
         self.put_account(new_account)
 
-    def annotate(self, annotation: WSDependencyAnnotation) -> None:
+    def annotate(self, annotation: StateAnnotation) -> None:
         """
 
         :param annotation:
@@ -280,7 +152,7 @@ class WorldState:
         self._annotations.append(annotation)
 
     @property
-    def annotations(self) -> List[WSDependencyAnnotation]:
+    def annotations(self) -> List[StateAnnotation]:
         """
 
         :return:

@@ -30,12 +30,6 @@ class Constraints(list):
         self._default_timeout = 100
         self._is_possible = is_possible
 
-    def compress(self):
-        constraint = True
-        for c in self[:]:
-            constraint = And(constraint, c)
-        return constraint
-
     @property
     def is_possible(self) -> bool:
         """

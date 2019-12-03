@@ -66,7 +66,7 @@ class DependencyAnnotation(StateAnnotation):
 class WSDependencyAnnotation(StateAnnotation):
     """Dependency Annotation for World state
 
-    This  world state annotation maintains a stack of state annotations.
+    This world state annotation maintains a stack of state annotations.
     It is used to transfer individual state annotations from one transaction to the next.
     """
 
@@ -89,3 +89,6 @@ class WSDependencyAnnotation(StateAnnotation):
     def merge_annotations(self, other: "WSDependencyAnnotation"):
         for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
             a1.merge_annotation(a2)
+
+    def persist_to_world_state(self) -> bool:
+        return True

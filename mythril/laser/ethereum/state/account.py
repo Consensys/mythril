@@ -186,38 +186,6 @@ class Account:
         )
         self._balances[self.address] += balance
 
-    def merge_accounts(
-        self, account: "Account", path_condition: Bool, merged_balance: Array
-    ):
-        """
-        Checks the merge-ability
-        :param account: The account to merge with
-        :param path_condition: The constraint for this account
-        :param merged_balance: The merged balance
-        :return:
-        """
-        assert (
-            self.nonce == account.nonce
-            and self.deleted == account.deleted
-            and self.code.bytecode == account.code.bytecode
-        )
-
-        self._balances = merged_balance
-        self.balance = lambda: self._balances[self.address]
-        self.storage.merge_storage(account.storage, path_condition)
-
-    def check_merge_condition(self, account: "Account"):
-        """
-        Checks whether we can merge or not
-        :param account: The account to check merge-ability with
-        :return: True if we can merge them
-        """
-        return (
-            self.nonce == account.nonce
-            and self.deleted == account.deleted
-            and self.code.bytecode == account.code.bytecode
-        )
-
     @property
     def as_dict(self) -> Dict:
         """
