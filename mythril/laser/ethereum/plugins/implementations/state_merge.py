@@ -3,10 +3,10 @@ from typing import Dict, List, Tuple, cast
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.state.world_state import WorldState
-from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.state.account import Account, Storage
 from mythril.laser.ethereum.cfg import Node, get_new_gbl_id
 from mythril.laser.ethereum.state.constraints import Constraints
-from mythril.laser.smt import symbol_factory, Array, BitVec, If, Or, And, Not, Bool
+from mythril.laser.smt import symbol_factory, Array, If, Or, And, Not, Bool
 import logging
 
 log = logging.getLogger(__name__)
@@ -212,8 +212,8 @@ class StateMerge(LaserPlugin):
 
         return True
 
-    @staticmethod
     def merge_accounts(
+        self,
         account1: Account,
         account2: Account,
         path_condition: Bool,
@@ -235,7 +235,30 @@ class StateMerge(LaserPlugin):
 
         account1._balances = merged_balance
         account1.balance = lambda: account1._balances[account1.address]
-        account1.storage.merge_storage(account2.storage, path_condition)
+        self.merge_storage(account1.storage, account2.storage, path_condition)
+
+    @staticmethod
+    def merge_storage(storage1: Storage, storage2: Storage, path_condition: Bool):
+        """
+        Merge storage
+        :param storage1: To storage to merge into
+        :param storage2: To storage to merge with
+        :param path_condition: The constraint for this storage to be executed
+        :return:
+        """
+        storage1._standard_storage = If(
+            path_condition, storage1._standard_storage, storage2._standard_storage
+        )
+        storage1.storage_keys_loaded = storage1.storage_keys_loaded.union(
+            storage2.storage_keys_loaded
+        )
+        for key, value in storage2.printable_storage.items():
+            if key in storage1.printable_storage:
+                storage1.printable_storage[key] = If(
+                    path_condition, storage1.printable_storage[key], value
+                )
+            else:
+                storage1.printable_storage[key] = value
 
     @staticmethod
     def check_account_merge_condition(account1: Account, account2: Account):

@@ -89,27 +89,6 @@ class Storage:
         # TODO: Do something better here
         return str(self.printable_storage)
 
-    def merge_storage(self, storage: "Storage", path_condition: Bool):
-        """
-        Merge storage
-        :param storage: To storage to merge with
-        :param path_condition: The constraint for this storage to be executed
-        :return:
-        """
-        self._standard_storage = If(
-            path_condition, self._standard_storage, storage._standard_storage
-        )
-        self.storage_keys_loaded = self.storage_keys_loaded.union(
-            storage.storage_keys_loaded
-        )
-        for key, value in storage.printable_storage.items():
-            if key in self.printable_storage:
-                self.printable_storage[key] = If(
-                    path_condition, self.printable_storage[key], value
-                )
-            else:
-                self.printable_storage[key] = value
-
 
 class Account:
     """Account class representing ethereum accounts."""
