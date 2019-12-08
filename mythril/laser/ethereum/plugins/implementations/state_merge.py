@@ -25,7 +25,6 @@ class StateMerge(LaserPlugin):
 
         @symbolic_vm.laser_hook("stop_sym_trans")
         def execute_stop_sym_trans_hook(svm: LaserEVM):
-            log.info(svm.open_states)
 
             open_states = svm.open_states
 
