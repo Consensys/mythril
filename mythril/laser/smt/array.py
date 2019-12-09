@@ -59,13 +59,6 @@ class K(BaseArray):
 
 
 def z3_array_converter(array: Union[z3.Array, z3.K]):
-    if array.num_args() == 1:
-        # That means it has the arg of default value
-        new_array = K(
-            array.domain().size(), array.range().size(), array.arg(0)
-        )  # type: BaseArray
-        new_array.raw = array
-    else:
-        new_array = Array("LoL", array.domain().size(), array.range().size())
-        new_array.raw = array
+    new_array = Array("LoL", array.domain().size(), array.range().size())
+    new_array.raw = array
     return new_array
