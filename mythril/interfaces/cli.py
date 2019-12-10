@@ -384,7 +384,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     options.add_argument(
         "--max-depth",
         type=int,
-        default=128 ,
+        default=128,
         help="Maximum recursion depth for symbolic execution",
     )
     options.add_argument(
