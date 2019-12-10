@@ -102,10 +102,11 @@ class PredictableDependenceModule(DetectionModule):
                     if isinstance(annotation, PredictablePathAnnotation):
                         if annotation.add_constraints:
                             constraints = (
-                                state.mstate.constraints + annotation.add_constraints
+                                state.world_state.constraints
+                                + annotation.add_constraints
                             )
                         else:
-                            constraints = copy(state.mstate.constraints)
+                            constraints = copy(state.world_state.constraints)
                         try:
                             transaction_sequence = solver.get_transaction_sequence(
                                 state, constraints
@@ -192,7 +193,7 @@ class PredictableDependenceModule(DetectionModule):
 
                     # Why the second constraint? Because without it Z3 returns a solution where param overflows.
 
-                    solver.get_model(state.mstate.constraints + constraint)
+                    solver.get_model(state.world_state.constraints + constraint)  # type: ignore
                     state.annotate(OldBlockNumberUsedAnnotation(constraint))
 
                 except UnsatError:

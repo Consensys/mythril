@@ -42,9 +42,12 @@ def get_call_parameters(
     """
     gas, to = global_state.mstate.pop(2)
     value = global_state.mstate.pop() if with_value else 0
-    memory_input_offset, memory_input_size, memory_out_offset, memory_out_size = global_state.mstate.pop(
-        4
-    )
+    (
+        memory_input_offset,
+        memory_input_size,
+        memory_out_offset,
+        memory_out_size,
+    ) = global_state.mstate.pop(4)
 
     callee_address = get_callee_address(global_state, dynamic_loader, to)
 
@@ -267,5 +270,5 @@ def native_call(
         "retval_" + str(global_state.get_current_instruction()["address"]), 256
     )
     global_state.mstate.stack.append(retval)
-    global_state.node.constraints.append(retval == 1)
+    global_state.world_state.constraints.append(retval == 1)
     return [global_state]

@@ -20,6 +20,7 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
+
 from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     TransactionEndSignal,
@@ -28,6 +29,7 @@ from mythril.laser.ethereum.transaction import (
     execute_message_call,
 )
 from mythril.laser.smt import symbol_factory
+
 
 log = logging.getLogger(__name__)
 
@@ -206,6 +208,7 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
+
             for hook in self._start_sym_trans_hooks:
                 hook()
 
@@ -245,9 +248,10 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-
             new_states = [
-                state for state in new_states if state.mstate.constraints.is_possible
+                state
+                for state in new_states
+                if state.world_state.constraints.is_possible
             ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
@@ -343,8 +347,8 @@ class LaserEVM:
                 global_state.transaction_stack
             ) + [(start_signal.transaction, global_state)]
             new_global_state.node = global_state.node
-            new_global_state.mstate.constraints = (
-                start_signal.global_state.mstate.constraints
+            new_global_state.world_state.constraints = (
+                start_signal.global_state.world_state.constraints
             )
 
             log.debug("Starting new transaction %s", start_signal.transaction)
@@ -352,21 +356,21 @@ class LaserEVM:
             return [new_global_state], op_code
 
         except TransactionEndSignal as end_signal:
-            transaction, return_global_state = end_signal.global_state.transaction_stack[
-                -1
-            ]
+            (
+                transaction,
+                return_global_state,
+            ) = end_signal.global_state.transaction_stack[-1]
 
             log.debug("Ending transaction %s.", transaction)
-
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
                     or transaction.return_data
                 ) and not end_signal.revert:
                     check_potential_issues(global_state)
-
                     end_signal.global_state.world_state.node = global_state.node
                     self._add_world_state(end_signal.global_state)
+
                 new_global_states = []
             else:
                 # First execute the post hook for the transaction ending instruction
@@ -412,7 +416,9 @@ class LaserEVM:
         :return:
         """
 
-        return_global_state.mstate.constraints += global_state.mstate.constraints
+        return_global_state.world_state.constraints += (
+            global_state.world_state.constraints
+        )
         # Resume execution of the transaction initializing instruction
         op_code = return_global_state.environment.code.instruction_list[
             return_global_state.mstate.pc
@@ -460,12 +466,12 @@ class LaserEVM:
             assert len(new_states) <= 2
             for state in new_states:
                 self._new_node_state(
-                    state, JumpType.CONDITIONAL, state.mstate.constraints[-1]
+                    state, JumpType.CONDITIONAL, state.world_state.constraints[-1]
                 )
         elif opcode in ("SLOAD", "SSTORE") and len(new_states) > 1:
             for state in new_states:
                 self._new_node_state(
-                    state, JumpType.CONDITIONAL, state.mstate.constraints[-1]
+                    state, JumpType.CONDITIONAL, state.world_state.constraints[-1]
                 )
         elif opcode == "RETURN":
             for state in new_states:
@@ -486,7 +492,7 @@ class LaserEVM:
         new_node = Node(state.environment.active_account.contract_name)
         old_node = state.node
         state.node = new_node
-        new_node.constraints = state.mstate.constraints
+        new_node.constraints = state.world_state.constraints
         if self.requires_statespace:
             self.nodes[new_node.uid] = new_node
             self.edges.append(
