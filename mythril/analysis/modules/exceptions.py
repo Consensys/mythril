@@ -31,6 +31,8 @@ class ReachableExceptionsModule(DetectionModule):
         :param state:
         :return:
         """
+        if state.get_current_instruction()["address"] in self.cache:
+            return
         issues = self._analyze_state(state)
         for issue in issues:
             self.cache.add(issue.address)
@@ -55,11 +57,9 @@ class ReachableExceptionsModule(DetectionModule):
                 "Note that explicit `assert()` should only be used to check invariants. "
                 "Use `require()` for regular input checking."
             )
-
             transaction_sequence = solver.get_transaction_sequence(
-                state, state.mstate.constraints
+                state, state.world_state.constraints
             )
-
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,

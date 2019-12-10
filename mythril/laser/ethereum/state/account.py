@@ -4,7 +4,7 @@ This includes classes representing accounts and their storage.
 """
 import logging
 from copy import copy, deepcopy
-from typing import Any, Dict, Union, Tuple, Set, cast
+from typing import Any, Dict, Union, Set
 
 
 from mythril.laser.smt import (
@@ -12,35 +12,12 @@ from mythril.laser.smt import (
     K,
     BitVec,
     simplify,
-    BitVecFunc,
-    Extract,
     BaseArray,
-    Concat,
 )
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
 log = logging.getLogger(__name__)
-
-
-class StorageRegion:
-    def __getitem__(self, item):
-        raise NotImplementedError
-
-    def __setitem__(self, key, value):
-        raise NotImplementedError
-
-
-class ArrayStorageRegion(StorageRegion):
-    """ An ArrayStorageRegion is a storage region that leverages smt array theory to resolve expressions"""
-
-    pass
-
-
-class IteStorageRegion(StorageRegion):
-    """ An IteStorageRegion is a storage region that uses Ite statements to implement a storage"""
-
-    pass
 
 
 class Storage:
@@ -55,7 +32,6 @@ class Storage:
             self._standard_storage = K(256, 256, 0)  # type: BaseArray
         else:
             self._standard_storage = Array("Storage", 256, 256)
-        self._map_storage = {}  # type: Dict[BitVec, BaseArray]
 
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
@@ -63,21 +39,8 @@ class Storage:
         self.storage_keys_loaded = set()  # type: Set[int]
         self.address = address
 
-    @staticmethod
-    def _sanitize(input_: BitVec) -> BitVec:
-        if input_.size() == 512:
-            return input_
-        if input_.size() > 512:
-            return Extract(511, 0, input_)
-        else:
-            return Concat(symbol_factory.BitVecVal(0, 512 - input_.size()), input_)
-
     def __getitem__(self, item: BitVec) -> BitVec:
-        storage, is_keccak_storage = self._get_corresponding_storage(item)
-        if is_keccak_storage:
-            sanitized_item = self._sanitize(cast(BitVecFunc, item).input_)
-        else:
-            sanitized_item = item
+        storage = self._standard_storage
         if (
             self.address
             and self.address.value != 0
@@ -86,7 +49,7 @@ class Storage:
             and (self.dynld and self.dynld.storage_loading)
         ):
             try:
-                storage[sanitized_item] = symbol_factory.BitVecVal(
+                storage[item] = symbol_factory.BitVecVal(
                     int(
                         self.dynld.read_storage(
                             contract_address="0x{:040X}".format(self.address.value),
@@ -97,47 +60,14 @@ class Storage:
                     256,
                 )
                 self.storage_keys_loaded.add(int(item.value))
-                self.printable_storage[item] = storage[sanitized_item]
+                self.printable_storage[item] = storage[item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
-
-        return simplify(storage[sanitized_item])
-
-    @staticmethod
-    def get_map_index(key: BitVec) -> BitVec:
-        if (
-            not isinstance(key, BitVecFunc)
-            or key.func_name != "keccak256"
-            or key.input_ is None
-        ):
-            return None
-        index = Extract(255, 0, key.input_)
-        return simplify(index)
-
-    def _get_corresponding_storage(self, key: BitVec) -> Tuple[BaseArray, bool]:
-        index = self.get_map_index(key)
-        if index is None:
-            storage = self._standard_storage
-            is_keccak_storage = False
-        else:
-            storage_map = self._map_storage
-            try:
-                storage = storage_map[index]
-            except KeyError:
-                if isinstance(self._standard_storage, Array):
-                    storage_map[index] = Array("Storage", 512, 256)
-                else:
-                    storage_map[index] = K(512, 256, 0)
-                storage = storage_map[index]
-            is_keccak_storage = True
-        return storage, is_keccak_storage
+        return simplify(storage[item])
 
     def __setitem__(self, key, value: Any) -> None:
-        storage, is_keccak_storage = self._get_corresponding_storage(key)
         self.printable_storage[key] = value
-        if is_keccak_storage:
-            key = self._sanitize(key.input_)
-        storage[key] = value
+        self._standard_storage[key] = value
         if key.symbolic is False:
             self.storage_keys_loaded.add(int(key.value))
 
@@ -147,7 +77,6 @@ class Storage:
             concrete=concrete, address=self.address, dynamic_loader=self.dynld
         )
         storage._standard_storage = deepcopy(self._standard_storage)
-        storage._map_storage = deepcopy(self._map_storage)
         storage.printable_storage = copy(self.printable_storage)
         storage.storage_keys_loaded = copy(self.storage_keys_loaded)
         return storage
@@ -164,7 +93,7 @@ class Account:
         self,
         address: Union[BitVec, str],
         code=None,
-        contract_name="unknown",
+        contract_name=None,
         balances: Array = None,
         concrete_storage=False,
         dynamic_loader=None,
@@ -190,7 +119,14 @@ class Account:
         )
 
         # Metadata
-        self.contract_name = contract_name
+        if contract_name is None:
+            self.contract_name = (
+                "{0:#0{1}x}".format(self.address.value, 40)
+                if not self.address.symbolic
+                else "unknown"
+            )
+        else:
+            self.contract_name = contract_name
 
         self.deleted = False
 

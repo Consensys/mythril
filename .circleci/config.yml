@@ -4,7 +4,7 @@ defaults: &defaults
     # used for new integration testing, and it is build on top of the previous
     # `mythril/dev_test_environment:0.0.43`, though a bit newer versions, thus
     # there is a chance that it breaks some small things.
-    - image: mythril/dev_test_environment:0.0.43
+    - image: mythril/dev_test_environment:0.0.45
 
 version: 2
 jobs:

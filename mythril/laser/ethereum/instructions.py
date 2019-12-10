@@ -34,6 +34,7 @@ from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCall
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
+from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
@@ -79,7 +80,7 @@ def transfer_ether(
     """
     value = value if isinstance(value, BitVec) else symbol_factory.BitVecVal(value, 256)
 
-    global_state.mstate.constraints.append(
+    global_state.world_state.constraints.append(
         UGE(global_state.world_state.balances[sender], value)
     )
     global_state.world_state.balances[receiver] += value
@@ -947,7 +948,7 @@ class Instruction:
                 no_of_bytes += calldata.size
             else:
                 no_of_bytes += 0x200  # space for 16 32-byte arguments
-                global_state.mstate.constraints.append(
+                global_state.world_state.constraints.append(
                     global_state.environment.calldata.size == no_of_bytes
                 )
 
@@ -982,7 +983,7 @@ class Instruction:
             if isinstance(op0, Expression):
                 op0 = simplify(op0)
             state.stack.append(
-                symbol_factory.BitVecSym("KECCAC_mem[" + str(op0) + "]", 256)
+                symbol_factory.BitVecSym("KECCAC_mem[{}]".format(hash(op0)), 256)
             )
             gas_tuple = get_opcode_gas("SHA3")
             state.min_gas_used += gas_tuple[0]
@@ -996,40 +997,21 @@ class Instruction:
             b if isinstance(b, BitVec) else symbol_factory.BitVecVal(b, 8)
             for b in state.memory[index : index + length]
         ]
+
         if len(data_list) > 1:
             data = simplify(Concat(data_list))
         elif len(data_list) == 1:
             data = data_list[0]
         else:
-            # length is 0; this only matters for input of the BitVecFuncVal
-            data = symbol_factory.BitVecVal(0, 1)
+            # TODO: handle finding x where func(x)==func("")
+            result = keccak_function_manager.get_empty_keccak_hash()
+            state.stack.append(result)
+            return [global_state]
 
-        if data.symbolic:
-
-            annotations = set()  # type: Set[Any]
-
-            for b in state.memory[index : index + length]:
-                if isinstance(b, BitVec):
-                    annotations = annotations.union(b.annotations)
-
-            argument_hash = hash(state.memory[index])
-            result = symbol_factory.BitVecFuncSym(
-                "KECCAC[invhash({})]".format(hash(argument_hash)),
-                "keccak256",
-                256,
-                input_=data,
-                annotations=annotations,
-            )
-            log.debug("Created BitVecFunc hash.")
-
-        else:
-            keccak = utils.sha3(data.value.to_bytes(length, byteorder="big"))
-            result = symbol_factory.BitVecFuncVal(
-                util.concrete_int_from_bytes(keccak, 0), "keccak256", 256, input_=data
-            )
-            log.debug("Computed SHA3 Hash: " + str(binascii.hexlify(keccak)))
-
+        result, condition = keccak_function_manager.create_keccak(data)
         state.stack.append(result)
+        global_state.world_state.constraints.append(condition)
+
         return [global_state]
 
     @StateTransition()
@@ -1200,24 +1182,14 @@ class Instruction:
             code = code[2:]
 
         for i in range(concrete_size):
-            if 2 * (concrete_code_offset + i + 1) <= len(code):
-                global_state.mstate.memory[concrete_memory_offset + i] = int(
-                    code[
-                        2
-                        * (concrete_code_offset + i) : 2
-                        * (concrete_code_offset + i + 1)
-                    ],
-                    16,
-                )
-            else:
-                global_state.mstate.memory[
-                    concrete_memory_offset + i
-                ] = global_state.new_bitvec(
-                    "code({})".format(
-                        global_state.environment.active_account.contract_name
-                    ),
-                    8,
-                )
+            if 2 * (concrete_code_offset + i + 1) > len(code):
+                break
+            global_state.mstate.memory[concrete_memory_offset + i] = int(
+                code[
+                    2 * (concrete_code_offset + i) : 2 * (concrete_code_offset + i + 1)
+                ],
+                16,
+            )
 
         return [global_state]
 
@@ -1581,7 +1553,7 @@ class Instruction:
             # manually increment PC
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
-            new_state.mstate.constraints.append(negated)
+            new_state.world_state.constraints.append(negated)
             states.append(new_state)
         else:
             log.debug("Pruned unreachable states.")
@@ -1607,7 +1579,7 @@ class Instruction:
                 # manually set PC to destination
                 new_state.mstate.pc = index
                 new_state.mstate.depth += 1
-                new_state.mstate.constraints.append(condi)
+                new_state.world_state.constraints.append(condi)
                 states.append(new_state)
             else:
                 log.debug("Pruned unreachable states.")
@@ -1666,7 +1638,7 @@ class Instruction:
 
     def _create_transaction_helper(
         self, global_state, call_value, mem_offset, mem_size, create2_salt=None
-    ):
+    ) -> List[GlobalState]:
         mstate = global_state.mstate
         environment = global_state.environment
         world_state = global_state.world_state
@@ -1691,7 +1663,7 @@ class Instruction:
         if len(code_raw) < 1:
             global_state.mstate.stack.append(1)
             log.debug("No code found for trying to execute a create type instruction.")
-            return global_state
+            return [global_state]
 
         code_str = bytes.hex(bytes(code_raw))
 
@@ -1713,7 +1685,7 @@ class Instruction:
             addr = hex(caller.value)[2:]
             addr = "0" * (40 - len(addr)) + addr
 
-            Instruction._sha3_gas_helper(global_state, len(code_str[2:] // 2))
+            Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
             contract_address = int(
                 get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
@@ -1876,9 +1848,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader, True)
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
@@ -1910,7 +1888,7 @@ class Instruction:
                 )
             if isinstance(value, BitVec):
                 if value.symbolic:
-                    global_state.mstate.constraints.append(
+                    global_state.world_state.constraints.append(
                         value == symbol_factory.BitVecVal(0, 256)
                     )
                 elif value.value > 0:
@@ -1957,9 +1935,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                _,
+                _,
+            ) = get_call_parameters(global_state, self.dynamic_loader, True)
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
@@ -2006,9 +1990,15 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, True
-            )
+            (
+                callee_address,
+                _,
+                _,
+                value,
+                _,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader, True)
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -2026,7 +2016,7 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.world_state.constraints.append(return_value == 0)
             return [global_state]
 
         try:
@@ -2058,7 +2048,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.world_state.constraints.append(return_value == 1)
         return [global_state]
 
     @StateTransition()
@@ -2072,9 +2062,15 @@ class Instruction:
         environment = global_state.environment
 
         try:
-            callee_address, callee_account, call_data, value, gas, _, _ = get_call_parameters(
-                global_state, self.dynamic_loader
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                _,
+                _,
+            ) = get_call_parameters(global_state, self.dynamic_loader)
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
@@ -2122,9 +2118,15 @@ class Instruction:
         instr = global_state.get_current_instruction()
 
         try:
-            callee_address, _, _, value, _, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader
-            )
+            (
+                callee_address,
+                _,
+                _,
+                value,
+                _,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader)
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
@@ -2142,7 +2144,7 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            global_state.mstate.constraints.append(return_value == 0)
+            global_state.world_state.constraints.append(return_value == 0)
             return [global_state]
 
         try:
@@ -2174,7 +2176,7 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.world_state.constraints.append(return_value == 1)
         return [global_state]
 
     @StateTransition()
@@ -2187,9 +2189,15 @@ class Instruction:
         instr = global_state.get_current_instruction()
         environment = global_state.environment
         try:
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader)
 
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
@@ -2243,9 +2251,15 @@ class Instruction:
 
         try:
             with_value = function_name is not "staticcall"
-            callee_address, callee_account, call_data, value, gas, memory_out_offset, memory_out_size = get_call_parameters(
-                global_state, self.dynamic_loader, with_value
-            )
+            (
+                callee_address,
+                callee_account,
+                call_data,
+                value,
+                gas,
+                memory_out_offset,
+                memory_out_size,
+            ) = get_call_parameters(global_state, self.dynamic_loader, with_value)
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for {}, putting fresh symbol on the stack. \n{}".format(
@@ -2294,6 +2308,6 @@ class Instruction:
         # Put return value on stack
         return_value = global_state.new_bitvec("retval_" + str(instr["address"]), 256)
         global_state.mstate.stack.append(return_value)
-        global_state.mstate.constraints.append(return_value == 1)
+        global_state.world_state.constraints.append(return_value == 1)
 
         return [global_state]

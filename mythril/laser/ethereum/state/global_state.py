@@ -102,7 +102,7 @@ class GlobalState:
 
     @property
     def current_transaction(
-        self
+        self,
     ) -> Union["MessageCallTransaction", "ContractCreationTransaction", None]:
         """
 

@@ -22,6 +22,9 @@ DESCRIPTION = """
 Check whether there is a state change of the contract after the execution of an external call
 """
 
+CALL_LIST = ["CALL", "DELEGATECALL", "CALLCODE"]
+STATE_READ_WRITE_LIST = ["SSTORE", "SLOAD", "CREATE", "CREATE2"]
+
 
 class StateChangeCallsAnnotation(StateAnnotation):
     def __init__(self, call_state: GlobalState, user_defined_address: bool) -> None:
@@ -56,7 +59,7 @@ class StateChangeCallsAnnotation(StateAnnotation):
 
         try:
             solver.get_transaction_sequence(
-                global_state, constraints + global_state.mstate.constraints
+                global_state, constraints + global_state.world_state.constraints
             )
         except UnsatError:
             return None
@@ -66,12 +69,15 @@ class StateChangeCallsAnnotation(StateAnnotation):
         logging.debug(
             "[EXTERNAL_CALLS] Detected state changes at addresses: {}".format(address)
         )
-        description_head = (
-            "The contract account state is changed after an external call. "
-        )
+        read_or_write = "write"
+        if global_state.get_current_instruction()["opcode"] == "SLOAD":
+            read_or_write = "read"
+        address_type = "user defined" if self.user_defined_address else "fixed"
+        description_head = "Persistent state {} after call".format(read_or_write)
         description_tail = (
+            "The contract account state is changed after an external call to a {} address. "
             "Consider that the called contract could re-enter the function before this "
-            "state change takes place. This can lead to business logic vulnerabilities."
+            "state change takes place".format(address_type)
         )
 
         return PotentialIssue(
@@ -100,15 +106,7 @@ class StateChange(DetectionModule):
             swc_id=REENTRANCY,
             description=DESCRIPTION,
             entrypoint="callback",
-            pre_hooks=[
-                "CALL",
-                "SSTORE",
-                "DELEGATECALL",
-                "STATICCALL",
-                "CREATE",
-                "CREATE2",
-                "CALLCODE",
-            ],
+            pre_hooks=CALL_LIST + STATE_READ_WRITE_LIST,
         )
 
     def _execute(self, state: GlobalState) -> None:
@@ -124,7 +122,7 @@ class StateChange(DetectionModule):
         gas = global_state.mstate.stack[-1]
         to = global_state.mstate.stack[-2]
         try:
-            constraints = copy(global_state.mstate.constraints)
+            constraints = copy(global_state.world_state.constraints)
             solver.get_model(
                 constraints
                 + [
@@ -156,21 +154,21 @@ class StateChange(DetectionModule):
         op_code = global_state.get_current_instruction()["opcode"]
 
         if len(annotations) == 0:
-            if op_code in ("SSTORE", "CREATE", "CREATE2"):
+            if op_code in STATE_READ_WRITE_LIST:
                 return []
-        if op_code in ("SSTORE", "CREATE", "CREATE2"):
+        if op_code in STATE_READ_WRITE_LIST:
             for annotation in annotations:
                 annotation.state_change_states.append(global_state)
 
         # Record state changes following from a transfer of ether
-        if op_code in ("CALL", "DELEGATECALL", "CALLCODE"):
+        if op_code in CALL_LIST:
             value = global_state.mstate.stack[-3]  # type: BitVec
             if StateChange._balance_change(value, global_state):
                 for annotation in annotations:
                     annotation.state_change_states.append(global_state)
 
         # Record external calls
-        if op_code in ("CALL", "DELEGATECALL", "CALLCODE"):
+        if op_code in CALL_LIST:
             StateChange._add_external_call(global_state)
 
         # Check for vulnerabilities
@@ -190,7 +188,7 @@ class StateChange(DetectionModule):
             return value.value > 0
 
         else:
-            constraints = copy(global_state.mstate.constraints)
+            constraints = copy(global_state.world_state.constraints)
 
             try:
                 solver.get_model(

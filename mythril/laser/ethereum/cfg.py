@@ -2,6 +2,7 @@
 from enum import Enum
 from typing import Dict, List, TYPE_CHECKING
 
+from mythril.laser.ethereum.state.constraints import Constraints
 from flags import Flags
 
 if TYPE_CHECKING:
@@ -46,7 +47,7 @@ class Node:
         :param start_addr:
         :param constraints:
         """
-        constraints = constraints if constraints else []
+        constraints = constraints if constraints else Constraints()
         self.contract_name = contract_name
         self.start_addr = start_addr
         self.states = []  # type: List[GlobalState]

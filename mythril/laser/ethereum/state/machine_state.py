@@ -11,7 +11,6 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackUnderflowException,
     OutOfGasException,
 )
-from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.state.memory import Memory
 
 
@@ -115,7 +114,6 @@ class MachineState:
         self.gas_limit = gas_limit
         self.min_gas_used = min_gas_used  # lower gas usage bound
         self.max_gas_used = max_gas_used  # upper gas usage bound
-        self.constraints = constraints or Constraints()
         self.depth = depth
         self.prev_pc = prev_pc  # holds context of current pc
 
@@ -216,7 +214,6 @@ class MachineState:
             pc=self._pc,
             stack=copy(self.stack),
             memory=copy(self.memory),
-            constraints=copy(self.constraints),
             depth=self.depth,
             prev_pc=self.prev_pc,
         )
