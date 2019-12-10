@@ -1,3 +1,6 @@
+"""
+This test only checks whether dumping is successful, not whether the dumped state space makes sense
+"""
 from mythril.mythril import MythrilAnalyzer, MythrilDisassembler
 from mythril.ethereum import util
 from mythril.solidity.soliditycontract import EVMContract
