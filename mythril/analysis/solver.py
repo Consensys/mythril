@@ -130,9 +130,29 @@ def get_transaction_sequence(
         _replace_with_actual_sha(concrete_transactions, model, code)
     else:
         _replace_with_actual_sha(concrete_transactions, model)
+    _add_calldata_placeholder(concrete_transactions, transaction_sequence)
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
 
     return steps
+
+
+def _add_calldata_placeholder(
+    concrete_transactions: List[Dict[str, str]], transaction_sequence: List[BaseTransaction]
+):
+    """
+    Add's a calldata placeholder into the concrete transactions
+    :param concrete_transactions:
+    :param transaction_sequence:
+    :return:
+    """
+    for tx in concrete_transactions:
+        tx["calldata"] = tx["input"]
+    if not isinstance(transaction_sequence[0], ContractCreationTransaction):
+        return
+    code_len = len(transaction_sequence[0].code.bytecode)
+    concrete_transactions[0]["calldata"] = concrete_transactions[0]["input"][
+        code_len + 2 :
+    ]
 
 
 def _replace_with_actual_sha(
