@@ -137,7 +137,8 @@ def get_transaction_sequence(
 
 
 def _add_calldata_placeholder(
-    concrete_transactions: List[Dict[str, str]], transaction_sequence: List[BaseTransaction]
+    concrete_transactions: List[Dict[str, str]],
+    transaction_sequence: List[BaseTransaction],
 ):
     """
     Add's a calldata placeholder into the concrete transactions
