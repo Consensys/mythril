@@ -1834,11 +1834,11 @@ class Instruction:
         global_state.current_transaction.end(global_state)
 
     @staticmethod
-    def _write_symbolic_calldata(
+    def _write_symbolic_returndata(
         global_state: GlobalState, memory_out_offset: BitVec, memory_out_size: BitVec
     ):
         """
-        Writes symbolic call-data into memory, The memory offset and size should be concrete
+        Writes symbolic return-data into memory, The memory offset and size should be concrete
         :param global_state:
         :param memory_out_offset:
         :param memory_out_size:
@@ -1893,7 +1893,7 @@ class Instruction:
                     e
                 )
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             # TODO: decide what to do in this case
@@ -1983,7 +1983,7 @@ class Instruction:
                     e
                 )
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
@@ -2030,7 +2030,7 @@ class Instruction:
                     e
                 )
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
@@ -2044,7 +2044,7 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             global_state.world_state.constraints.append(return_value == 0)
@@ -2121,7 +2121,7 @@ class Instruction:
                     e
                 )
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
@@ -2172,7 +2172,7 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             return [global_state]
@@ -2256,7 +2256,7 @@ class Instruction:
                     e
                 )
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
@@ -2313,7 +2313,7 @@ class Instruction:
                     function_name, e
                 )
             )
-            self._write_symbolic_calldata(
+            self._write_symbolic_returndata(
                 global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(

@@ -91,9 +91,6 @@ class ExternalCalls(DetectionModule):
                 state, constraints + state.world_state.constraints
             )
 
-            for tx in state.world_state.transaction_sequence:
-                if not isinstance(tx, ContractCreationTransaction):
-                    constraints.append(tx.caller == ACTORS.attacker)
             # Check whether we can also set the callee address
 
             try:
