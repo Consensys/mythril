@@ -52,6 +52,7 @@ REQUIRED = [
     "ethereum-input-decoder>=0.2.2",
     "matplotlib",
     "pythx",
+    "py-evm",
 ]
 
 TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
