@@ -931,6 +931,27 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
+    def chainid_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        global_state.mstate.stack.append(global_state.environment.chainid)
+        return [global_state]
+
+    @StateTransition()
+    def selfbalance_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        balance = global_state.environment.active_account.balance()
+        global_state.mstate.stack.append(balance)
+        return [global_state]
+
+    @StateTransition()
     def codesize_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
