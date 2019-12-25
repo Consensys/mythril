@@ -4,7 +4,7 @@ from mythril.laser.ethereum.natives import blake2b_fcompress
 # Test cases taken from https://eips.ethereum.org/EIPS/eip-152.
 # One of the test case is expected to take a few hrs so I ignored it
 @pytest.mark.parametrize(
-    'input_hex, expected_result',
+    "input_hex, expected_result",
     (
         ("", ""),
         (

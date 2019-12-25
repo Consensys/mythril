@@ -10,9 +10,7 @@ from py_ecc.secp256k1 import N as secp256k1n
 import py_ecc.optimized_bn128 as bn128
 from rlp.utils import ALL_BYTES
 
-from eth_utils import (
-    ValidationError,
-)
+from eth_utils import ValidationError
 from eth._utils.blake2.coders import extract_blake2b_parameters
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
