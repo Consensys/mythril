@@ -10,8 +10,14 @@ from mythril.laser.ethereum.plugins.implementations.state_merge.check_mergeabili
 )
 from mythril.laser.ethereum.state.world_state import WorldState
 import logging
+from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 log = logging.getLogger(__name__)
+
+
+class MergeAnnotation(StateAnnotation):
+    def __init__(self):
+        pass
 
 
 class StateMerge(LaserPlugin):
@@ -27,7 +33,6 @@ class StateMerge(LaserPlugin):
         def execute_stop_sym_trans_hook(svm: LaserEVM):
 
             open_states = svm.open_states
-
             if len(open_states) <= 1:
                 return
             num_old_states = len(open_states)
@@ -41,6 +46,9 @@ class StateMerge(LaserPlugin):
                 for i in range(len(old_states)):
                     if merged_dict.get(i, False):
                         continue
+                    if len(list(old_states[i].get_annotations(MergeAnnotation))) > 0:
+                        new_states.append(old_states[i])
+                        continue
                     i_is_merged = False
                     for j in range(i + 1, len(old_states)):
                         if merged_dict.get(j, False) or not self.check_merge_condition(
@@ -51,6 +59,7 @@ class StateMerge(LaserPlugin):
                         state = old_states[i]
                         merge_states(state, old_states[j])
                         merged_dict[j] = True
+                        state.annotations.append(MergeAnnotation())
                         new_states.append(state)
                         i_is_merged = True
                         break
