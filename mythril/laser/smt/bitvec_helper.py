@@ -233,7 +233,3 @@ def BVSubNoUnderflow(
         b = BitVec(z3.BitVecVal(b, 256))
 
     return Bool(z3.BVSubNoUnderflow(a.raw, b.raw, signed))
-
-
-def convert_bool_to_bv(bool_val: Bool) -> BitVec:
-    return If(bool_val, 1, 0)
