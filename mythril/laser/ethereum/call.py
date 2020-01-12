@@ -73,6 +73,11 @@ def get_call_parameters(
     )
 
 
+def _get_padded_hex_address(address: int) -> str:
+    hex_address = hex(address)[2:]
+    return "0x{}{}".format("0" * (40 - len(hex_address)), hex_address)
+
+
 def get_callee_address(
     global_state: GlobalState,
     dynamic_loader: DynLoader,
@@ -86,9 +91,10 @@ def get_callee_address(
     :return: Address of the callee
     """
     environment = global_state.environment
-
     try:
-        callee_address = hex(util.get_concrete_int(symbolic_to_address))
+        callee_address = _get_padded_hex_address(
+            util.get_concrete_int(symbolic_to_address)
+        )
     except TypeError:
         log.debug("Symbolic call encountered")
 
