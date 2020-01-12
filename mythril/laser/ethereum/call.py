@@ -95,7 +95,7 @@ def get_callee_address(
         callee_address = _get_padded_hex_address(
             util.get_concrete_int(symbolic_to_address)
         )
-    except TypeError as e:
+    except TypeError:
         log.debug("Symbolic call encountered")
 
         match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
