@@ -256,7 +256,11 @@ def native_call(
     except natives.NativeContractException:
         for i in range(mem_out_sz):
             global_state.mstate.memory[mem_out_start + i] = global_state.new_bitvec(
-                PRECOMPILE_FUNCTIONS[call_address_int - 1].__name__ + "(" + str(call_data) + ")", 8
+                PRECOMPILE_FUNCTIONS[call_address_int - 1].__name__
+                + "("
+                + str(call_data)
+                + ")",
+                8,
             )
         return [global_state]
 
