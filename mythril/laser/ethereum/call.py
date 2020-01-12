@@ -74,8 +74,8 @@ def get_call_parameters(
 
 
 def _get_padded_hex_address(address: int) -> str:
-    hex_address = hex(address)
-    return "0x{}{}".format("0"*(40 - len(hex_address)), hex(hex_address)[2:])
+    hex_address = hex(address)[2:]
+    return "0x{}{}".format("0" * (40 - len(hex_address)), hex_address)
 
 
 def get_callee_address(
@@ -91,10 +91,11 @@ def get_callee_address(
     :return: Address of the callee
     """
     environment = global_state.environment
-
     try:
-        callee_address = _get_padded_hex_address(util.get_concrete_int(symbolic_to_address))
-    except TypeError:
+        callee_address = _get_padded_hex_address(
+            util.get_concrete_int(symbolic_to_address)
+        )
+    except TypeError as e:
         log.debug("Symbolic call encountered")
 
         match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
