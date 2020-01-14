@@ -94,14 +94,10 @@ class ExternalCalls(DetectionModule):
             # Check whether we can also set the callee address
 
             try:
-                constraints += [to == ACTORS.attacker]
-
-                for tx in state.world_state.transaction_sequence:
-                    if not isinstance(tx, ContractCreationTransaction):
-                        constraints.append(tx.caller == ACTORS.attacker)
+                new_constraints = constraints + [to == ACTORS.attacker]
 
                 solver.get_transaction_sequence(
-                    state, constraints + state.world_state.constraints
+                    state, new_constraints + state.world_state.constraints
                 )
 
                 description_head = "A call to a user-supplied address is executed."
@@ -122,7 +118,7 @@ class ExternalCalls(DetectionModule):
                     severity="Medium",
                     description_head=description_head,
                     description_tail=description_tail,
-                    constraints=constraints,
+                    constraints=new_constraints,
                     detector=self,
                 )
 
