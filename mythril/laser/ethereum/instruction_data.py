@@ -199,7 +199,7 @@ def calculate_native_gas(size: int, contract: str):
     :param contract:
     :return:
     """
-    gas_value = None
+    gas_value = 0
     word_num = ceil32(size) // 32
     if contract == "ecrecover":
         gas_value = opcodes.GECRECOVER
@@ -210,7 +210,9 @@ def calculate_native_gas(size: int, contract: str):
     elif contract == "identity":
         gas_value = opcodes.GIDENTITYBASE + word_num * opcodes.GIDENTITYWORD
     else:
-        raise ValueError("Unknown contract type {}".format(contract))
+        # TODO: Add gas for other precompiles, computation should be shifted to natives.py
+        #  as some data isn't available here
+        pass
     return gas_value, gas_value
 
 
