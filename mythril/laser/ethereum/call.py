@@ -227,6 +227,14 @@ def get_call_data(
         return SymbolicCalldata(transaction_id)
 
 
+def insert_ret_val(global_state: GlobalState):
+    retval = global_state.new_bitvec(
+        "retval_" + str(global_state.get_current_instruction()["address"]), 256
+    )
+    global_state.mstate.stack.append(retval)
+    global_state.world_state.constraints.append(retval == 1)
+
+
 def native_call(
     global_state: GlobalState,
     callee_address: Union[str, BitVec],
@@ -268,6 +276,7 @@ def native_call(
                 + ")",
                 8,
             )
+        insert_ret_val(global_state)
         return [global_state]
 
     for i in range(
@@ -275,9 +284,5 @@ def native_call(
     ):  # If more data is used then it's chopped off
         global_state.mstate.memory[mem_out_start + i] = data[i]
 
-    retval = global_state.new_bitvec(
-        "retval_" + str(global_state.get_current_instruction()["address"]), 256
-    )
-    global_state.mstate.stack.append(retval)
-    global_state.world_state.constraints.append(retval == 1)
+    insert_ret_val(global_state)
     return [global_state]
