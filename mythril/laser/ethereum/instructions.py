@@ -1739,7 +1739,7 @@ class Instruction:
         return self._handle_create_type_post(global_state, opcode="create2")
 
     @staticmethod
-    def _handle_create_type_post(global_state, opcode="cre  ate"):
+    def _handle_create_type_post(global_state, opcode="create"):
         if opcode == "create2":
             global_state.mstate.pop(4)
         else:
