@@ -204,7 +204,8 @@ def blake2b_fcompress(data: List[int]) -> List[int]:
     """
     try:
         parameters = extract_blake2b_parameters(bytes(data))
-    except ValidationError:
+    except ValidationError as v:
+        logging.debug("Invalid blake2b params: {}".format(v))
         return []
     return list(bytearray(blake2b.compress(*parameters)))
 
