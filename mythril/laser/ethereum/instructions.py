@@ -1676,18 +1676,30 @@ class Instruction:
 
         contract_address = None
         if create2_salt:
-            salt = hex(create2_salt)[2:]
-            salt = "0" * (64 - len(salt)) + salt
+            if create2_salt.symbolic:
+                if create2_salt.size() != 64:
+                    pad = symbol_factory.BitVecVal(0, 64 - create2_salt.size())
+                    create2_salt = Concat(pad, create2_salt)
+                contract_address = Extract(255, 96,
+                    keccak_function_manager.create_keccak(
+                    Concat(symbol_factory.BitVecVal(255, 8), caller, create2_salt,
+                           symbol_factory.BitVecVal(int(get_code_hash(code_str), 16), 256))
+                ))
+                print("JERE")
+                assert contract_address.size() == 160
+            else:
+                salt = hex(create2_salt)[2:]
+                salt = "0" * (64 - len(salt)) + salt
 
-            addr = hex(caller.value)[2:]
-            addr = "0" * (40 - len(addr)) + addr
+                addr = hex(caller.value)[2:]
+                addr = "0" * (40 - len(addr)) + addr
 
-            Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
+                Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
-            contract_address = int(
-                get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
-                16,
-            )
+                contract_address = int(
+                    get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
+                    16,
+                )
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
