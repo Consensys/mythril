@@ -79,7 +79,7 @@ Instructions for using Mythril are found on the [docs](https://mythril-classic.r
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
-## Bulding the Documentation
+## Building the Documentation
 Mythril's documentation is contained in the `docs` folder and is published to [Read the Docs](https://mythril-classic.readthedocs.io/en/master/). It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
 
 ```
