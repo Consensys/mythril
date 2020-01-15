@@ -213,9 +213,10 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     :return:
     """
 
-    if isinstance(data, ConcreteCalldata):
-        concrete_data = data.concrete(None)
-    else:
+    if not isinstance(data, ConcreteCalldata):
         raise NativeContractException()
-
-    return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)
+    concrete_data = data.concrete(None)
+    try:
+        return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)
+    except TypeError:
+        raise NativeContractException

@@ -69,7 +69,20 @@ Unchecked Retval
 The `unchecked retval module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/modules/unchecked_retval.py>`_ detects `SWC-104 (Unchecked Call Return Value) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-104>`_.
 
 ****************
-Unchecked Retval
+User Supplied assertion
 ****************
 
-The `user supplied assertion module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/modules/unchecked_retval.py>`_ detects `SWC-110 (Assert Violation) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-110>`_ for user-supplied assertions. User supplied assertions should be log messages of the form: :code:`emit AssertionFailed(string)`.
+The `user supplied assertion module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/modules/user_assertions.py>`_ detects `SWC-110 (Assert Violation) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-110>`_ for user-supplied assertions. User supplied assertions should be log messages of the form: :code:`emit AssertionFailed(string)`.
+
+****************
+Arbitrary Storage Write
+****************
+
+The `arbitrary storage write module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/modules/arbitrary_write.py>`_ detects `SWC-124 (Write to Arbitrary Storage Location) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-124>`_.
+
+****************
+Arbitrary Jump
+****************
+
+The `arbitrary jump module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/modules/arbitrary_jump.py>`_ detects `SWC-127 (Arbitrary Jump with Function Type Variable) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-127>`_.
+

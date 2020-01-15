@@ -1,15 +1,13 @@
-"""
-This test only checks whether dumping is successful, not whether the dumped state space makes sense
-"""
 from mythril.mythril import MythrilAnalyzer, MythrilDisassembler
 from mythril.ethereum import util
 from mythril.solidity.soliditycontract import EVMContract
 from tests import TESTDATA_INPUTS
 
 
-def test_generate_graph():
+def test_statespace_dump():
     for input_file in TESTDATA_INPUTS.iterdir():
-        if input_file.name != "origin.sol.o":
+        if input_file.name not in ("origin.sol.o", "suicide.sol.o"):
+            # It's too slow, so it's better to skip some tests.
             continue
         contract = EVMContract(input_file.read_text())
         disassembler = MythrilDisassembler()
@@ -22,4 +20,4 @@ def test_generate_graph():
             address=(util.get_indexed_address(0)),
         )
 
-        analyzer.graph_html(transaction_count=1)
+        analyzer.dump_statespace(contract=contract)
