@@ -1674,13 +1674,13 @@ class Instruction:
         gas_price = environment.gasprice
         origin = environment.origin
 
-        contract_address = None
+        contract_address = None  # type: Union[BitVec, int]
         if create2_salt:
             if create2_salt.symbolic:
                 if create2_salt.size() != 256:
                     pad = symbol_factory.BitVecVal(0, 256 - create2_salt.size())
                     create2_salt = Concat(pad, create2_salt)
-                addr, constraint = keccak_function_manager.create_keccak(
+                address, constraint = keccak_function_manager.create_keccak(
                     Concat(
                         symbol_factory.BitVecVal(255, 8),
                         caller,
@@ -1688,7 +1688,7 @@ class Instruction:
                         symbol_factory.BitVecVal(int(get_code_hash(code_str), 16), 256),
                     )
                 )
-                contract_address = Extract(255, 96, addr)
+                contract_address = Extract(255, 96, address)
                 global_state.world_state.constraints.append(constraint)
             else:
                 salt = hex(create2_salt)[2:]
