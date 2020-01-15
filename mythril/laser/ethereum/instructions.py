@@ -1677,16 +1677,19 @@ class Instruction:
         contract_address = None
         if create2_salt:
             if create2_salt.symbolic:
-                if create2_salt.size() != 64:
-                    pad = symbol_factory.BitVecVal(0, 64 - create2_salt.size())
+                if create2_salt.size() != 256:
+                    pad = symbol_factory.BitVecVal(0, 256 - create2_salt.size())
                     create2_salt = Concat(pad, create2_salt)
-                contract_address = Extract(255, 96,
-                    keccak_function_manager.create_keccak(
-                    Concat(symbol_factory.BitVecVal(255, 8), caller, create2_salt,
-                           symbol_factory.BitVecVal(int(get_code_hash(code_str), 16), 256))
-                ))
-                print("JERE")
-                assert contract_address.size() == 160
+                addr, constraint = keccak_function_manager.create_keccak(
+                    Concat(
+                        symbol_factory.BitVecVal(255, 8),
+                        caller,
+                        create2_salt,
+                        symbol_factory.BitVecVal(int(get_code_hash(code_str), 16), 256),
+                    )
+                )
+                contract_address = Extract(255, 96, addr)
+                global_state.world_state.constraints.append(constraint)
             else:
                 salt = hex(create2_salt)[2:]
                 salt = "0" * (64 - len(salt)) + salt
@@ -1697,7 +1700,9 @@ class Instruction:
                 Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
                 contract_address = int(
-                    get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
+                    get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[
+                        26:
+                    ],
                     16,
                 )
         transaction = ContractCreationTransaction(
