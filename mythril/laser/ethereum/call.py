@@ -73,6 +73,11 @@ def get_call_parameters(
     )
 
 
+def _get_padded_hex_address(address: int) -> str:
+    hex_address = hex(address)[2:]
+    return "0x{}{}".format("0" * (40 - len(hex_address)), hex_address)
+
+
 def get_callee_address(
     global_state: GlobalState,
     dynamic_loader: DynLoader,
@@ -86,9 +91,10 @@ def get_callee_address(
     :return: Address of the callee
     """
     environment = global_state.environment
-
     try:
-        callee_address = hex(util.get_concrete_int(symbolic_to_address))
+        callee_address = _get_padded_hex_address(
+            util.get_concrete_int(symbolic_to_address)
+        )
     except TypeError:
         log.debug("Symbolic call encountered")
 
@@ -221,6 +227,14 @@ def get_call_data(
         return SymbolicCalldata(transaction_id)
 
 
+def insert_ret_val(global_state: GlobalState):
+    retval = global_state.new_bitvec(
+        "retval_" + str(global_state.get_current_instruction()["address"]), 256
+    )
+    global_state.mstate.stack.append(retval)
+    global_state.world_state.constraints.append(retval == 1)
+
+
 def native_call(
     global_state: GlobalState,
     callee_address: Union[str, BitVec],
@@ -263,6 +277,7 @@ def native_call(
                 + ")",
                 8,
             )
+        insert_ret_val(global_state)
         return [global_state]
 
     for i in range(
@@ -270,9 +285,5 @@ def native_call(
     ):  # If more data is used then it's chopped off
         global_state.mstate.memory[mem_out_start + i] = data[i]
 
-    retval = global_state.new_bitvec(
-        "retval_" + str(global_state.get_current_instruction()["address"]), 256
-    )
-    global_state.mstate.stack.append(retval)
-    global_state.world_state.constraints.append(retval == 1)
+    insert_ret_val(global_state)
     return [global_state]

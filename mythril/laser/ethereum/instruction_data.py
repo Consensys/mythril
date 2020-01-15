@@ -201,7 +201,7 @@ def calculate_native_gas(size: int, contract: str):
     :param contract:
     :return:
     """
-    gas_value = None
+    gas_value = 0
     word_num = ceil32(size) // 32
     if contract == "ecrecover":
         gas_value = opcodes.GECRECOVER

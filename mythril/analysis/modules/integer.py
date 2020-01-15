@@ -2,13 +2,12 @@
 underflows."""
 
 from math import log2, ceil
-from typing import cast, List, Dict, Set
+from typing import cast, List, Set
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.util import get_concrete_int
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.analysis.modules.base import DetectionModule
 from copy import copy
@@ -18,6 +17,7 @@ from mythril.laser.smt import (
     BVSubNoUnderflow,
     BVMulNoOverflow,
     BitVec,
+    If,
     symbol_factory,
     Not,
     Expression,
@@ -191,6 +191,8 @@ class IntegerOverflowUnderflowModule(DetectionModule):
         value = stack[index]
         if isinstance(value, BitVec):
             return value
+        if isinstance(value, Bool):
+            return If(value, 1, 0)
         stack[index] = symbol_factory.BitVecVal(value, 256)
         return stack[index]
 
