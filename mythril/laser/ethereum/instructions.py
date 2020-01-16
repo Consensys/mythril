@@ -1675,6 +1675,8 @@ class Instruction:
         origin = environment.origin
 
         contract_address = None  # type: Union[BitVec, int]
+        Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
+
         if create2_salt:
             if create2_salt.symbolic:
                 if create2_salt.size() != 256:
@@ -1696,8 +1698,6 @@ class Instruction:
 
                 addr = hex(caller.value)[2:]
                 addr = "0" * (40 - len(addr)) + addr
-
-                Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
                 contract_address = int(
                     get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[
