@@ -1,3 +1,5 @@
+import pytest
+
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
@@ -37,13 +39,12 @@ def test_create():
     instruction = Instruction("create", dynamic_loader=None)
 
     # Act + Assert
-    try:
+    with pytest.raises(TransactionStartSignal) as t:
         _ = instruction.evaluate(og_state)[0]
-        assert False, "Transaction Start Signal should occur"
-    except TransactionStartSignal as t:
-        assert t.transaction.call_value == value
-        assert t.transaction.code.bytecode == code
-        assert (
-            t.transaction.callee_account.address
-            == world_state._generate_new_address(account.address.value)
-        )
+
+    assert t.value.transaction.call_value == value
+    assert t.value.transaction.code.bytecode == code
+    assert (
+        t.value.transaction.callee_account.address
+        == world_state._generate_new_address(account.address.value)
+    )
