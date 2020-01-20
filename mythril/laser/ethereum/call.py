@@ -265,6 +265,7 @@ def native_call(
     global_state.mstate.min_gas_used += native_gas_min
     global_state.mstate.max_gas_used += native_gas_max
     global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+
     try:
         data = natives.native_contracts(call_address_int, call_data)
     except natives.NativeContractException:

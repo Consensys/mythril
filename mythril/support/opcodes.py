@@ -51,6 +51,8 @@ opcodes = {
     0x43: ("NUMBER", 0, 1, 2),
     0x44: ("DIFFICULTY", 0, 1, 2),
     0x45: ("GASLIMIT", 0, 1, 2),
+    0x46: ("CHAINID", 0, 1, 2),
+    0x47: ("SELFBALANCE", 0, 1, 5),
     0x50: ("POP", 1, 0, 2),
     0x51: ("MLOAD", 1, 1, 3),
     0x52: ("MSTORE", 2, 0, 3),
