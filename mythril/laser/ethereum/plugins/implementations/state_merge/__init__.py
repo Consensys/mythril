@@ -70,13 +70,13 @@ class StateMerge(LaserPlugin):
 
     def _look_for_merges(
         self, offset: int, states: List[WorldState], merged_set: Set[int],
-    ):
+    ) -> WorldState:
         """
         Tries to merge states[offset] with any of the states in states[offset+1:]
         :param offset: The offset of state
         :param states: The List of states
         :param merged_set: Set indicating which states are excluded from merging
-        :return:
+        :return: Returns a state
         """
         state = states[offset]
         for j in range(offset+1, len(states)):
