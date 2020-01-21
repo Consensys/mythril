@@ -48,29 +48,36 @@ class StateMerge(LaserPlugin):
                     if len(list(old_states[i].get_annotations(MergeAnnotation))) > 0:
                         new_states.append(old_states[i])
                         continue
-                    i_is_merged = False
-                    for j in range(i + 1, len(old_states)):
-                        if merged_dict.get(j, False) or not self.check_merge_condition(
-                            old_states[i], old_states[j]
-                        ):
-                            j += 1
-                            continue
-                        state = old_states[i]
-                        merge_states(state, old_states[j])
-                        merged_dict[j] = True
-                        state.annotations.append(MergeAnnotation())
-                        new_states.append(state)
-                        i_is_merged = True
-                        break
-
-                    if i_is_merged is False:
-                        new_states.append(old_states[i])
+                    new_states += self._look_for_merges(i, old_states, merged_dict)
 
                 old_states = copy(new_states)
             logging.info(
                 "States reduced from {} to {}".format(num_old_states, len(new_states))
             )
             svm.open_states = new_states
+
+    def _look_for_merges(
+        self, i: int, old_states: List[WorldState], merged_dict: Dict[int, bool]
+    ):
+        i_is_merged = False
+        new_states = []
+        for j in range(i + 1, len(old_states)):
+            if merged_dict.get(j, False) or not self.check_merge_condition(
+                old_states[i], old_states[j]
+            ):
+                j += 1
+                continue
+            state = old_states[i]
+            merge_states(state, old_states[j])
+            merged_dict[j] = True
+            state.annotations.append(MergeAnnotation())
+            new_states.append(state)
+            i_is_merged = True
+            break
+
+        if i_is_merged is False:
+            new_states.append(old_states[i])
+        return new_states
 
     def check_merge_condition(self, state1: WorldState, state2: WorldState):
         """
