@@ -732,7 +732,6 @@ class Instruction:
         :return:
         """
         state = global_state.mstate
-
         val = state.stack.pop()
         exp = Not(val) if isinstance(val, Bool) else val == 0
 
@@ -928,6 +927,27 @@ class Instruction:
         state = global_state.mstate
         environment = global_state.environment
         state.stack.append(environment.sender)
+        return [global_state]
+
+    @StateTransition()
+    def chainid_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        global_state.mstate.stack.append(global_state.environment.chainid)
+        return [global_state]
+
+    @StateTransition()
+    def selfbalance_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        balance = global_state.environment.active_account.balance()
+        global_state.mstate.stack.append(balance)
         return [global_state]
 
     @StateTransition()
@@ -1395,7 +1415,6 @@ class Instruction:
 
         state.mem_extend(offset, 32)
         data = state.memory.get_word_at(offset)
-
         state.stack.append(data)
         return [global_state]
 
@@ -1518,7 +1537,6 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
-
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:
@@ -1712,7 +1730,6 @@ class Instruction:
         :return:
         """
         call_value, mem_offset, mem_size = global_state.mstate.pop(3)
-
         return self._create_transaction_helper(
             global_state, call_value, mem_offset, mem_size
         )
@@ -1739,7 +1756,7 @@ class Instruction:
         return self._handle_create_type_post(global_state, opcode="create2")
 
     @staticmethod
-    def _handle_create_type_post(global_state, opcode="cre  ate"):
+    def _handle_create_type_post(global_state, opcode="create"):
         if opcode == "create2":
             global_state.mstate.pop(4)
         else:
@@ -1837,6 +1854,27 @@ class Instruction:
         """
         global_state.current_transaction.end(global_state)
 
+    @staticmethod
+    def _write_symbolic_returndata(
+        global_state: GlobalState, memory_out_offset: BitVec, memory_out_size: BitVec
+    ):
+        """
+        Writes symbolic return-data into memory, The memory offset and size should be concrete
+        :param global_state:
+        :param memory_out_offset:
+        :param memory_out_size:
+        :return:
+        """
+        if memory_out_offset.symbolic is True or memory_out_size.symbolic is True:
+            return
+        for i in range(memory_out_size.value):
+            global_state.mstate.memory[memory_out_offset + i] = global_state.new_bitvec(
+                "call_output_var({})_{}".format(
+                    simplify(memory_out_offset + i), global_state.mstate.pc,
+                ),
+                8,
+            )
+
     @StateTransition()
     def call_(self, global_state: GlobalState) -> List[GlobalState]:
         """
@@ -1847,6 +1885,7 @@ class Instruction:
         instr = global_state.get_current_instruction()
         environment = global_state.environment
 
+        memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
         try:
             (
                 callee_address,
@@ -1874,6 +1913,9 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
+            )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
             )
             # TODO: decide what to do in this case
             global_state.mstate.stack.append(
@@ -1933,7 +1975,7 @@ class Instruction:
         """
         instr = global_state.get_current_instruction()
         environment = global_state.environment
-
+        memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
         try:
             (
                 callee_address,
@@ -1944,6 +1986,7 @@ class Instruction:
                 _,
                 _,
             ) = get_call_parameters(global_state, self.dynamic_loader, True)
+
             if callee_account is not None and callee_account.code.bytecode == "":
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
@@ -1960,6 +2003,9 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
+            )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -1988,7 +2034,7 @@ class Instruction:
         :return:
         """
         instr = global_state.get_current_instruction()
-
+        memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
         try:
             (
                 callee_address,
@@ -2005,6 +2051,9 @@ class Instruction:
                     e
                 )
             )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
+            )
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
@@ -2016,6 +2065,9 @@ class Instruction:
                 "retval_" + str(instr["address"]), 256
             )
             global_state.mstate.stack.append(return_value)
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
+            )
             global_state.world_state.constraints.append(return_value == 0)
             return [global_state]
 
@@ -2060,6 +2112,7 @@ class Instruction:
         """
         instr = global_state.get_current_instruction()
         environment = global_state.environment
+        memory_out_size, memory_out_offset = global_state.mstate.stack[-6:-4]
 
         try:
             (
@@ -2089,6 +2142,9 @@ class Instruction:
                     e
                 )
             )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
+            )
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
@@ -2116,6 +2172,7 @@ class Instruction:
         :return:
         """
         instr = global_state.get_current_instruction()
+        memory_out_size, memory_out_offset = global_state.mstate.stack[-6:-4]
 
         try:
             (
@@ -2135,6 +2192,9 @@ class Instruction:
             )
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
             )
             return [global_state]
 
@@ -2188,6 +2248,7 @@ class Instruction:
         """
         instr = global_state.get_current_instruction()
         environment = global_state.environment
+        memory_out_size, memory_out_offset = global_state.mstate.stack[-6:-4]
         try:
             (
                 callee_address,
@@ -2215,6 +2276,9 @@ class Instruction:
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
                     e
                 )
+            )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
@@ -2248,6 +2312,10 @@ class Instruction:
 
     def post_handler(self, global_state, function_name: str):
         instr = global_state.get_current_instruction()
+        if function_name in ("staticcall", "delegatecall"):
+            memory_out_size, memory_out_offset = global_state.mstate.stack[-6:-4]
+        else:
+            memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
 
         try:
             with_value = function_name is not "staticcall"
@@ -2265,6 +2333,9 @@ class Instruction:
                 "Could not determine required parameters for {}, putting fresh symbol on the stack. \n{}".format(
                     function_name, e
                 )
+            )
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
             )
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)

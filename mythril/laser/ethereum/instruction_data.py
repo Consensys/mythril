@@ -48,7 +48,7 @@ OPCODES = {
         STACK: BIN_OPERATOR_TUPLE,
     },
     "ADDRESS": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
-    "BALANCE": {GAS: (400, 400), STACK: UN_OPERATOR_TUPLE},
+    "BALANCE": {GAS: (700, 700), STACK: UN_OPERATOR_TUPLE},
     "ORIGIN": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "CALLER": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "CALLVALUE": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
@@ -69,7 +69,7 @@ OPCODES = {
         GAS: (700, 700 + 3 * 768),  # https://ethereum.stackexchange.com/a/47556
         STACK: (4, 0),
     },
-    "EXTCODEHASH": {GAS: (400, 400), STACK: UN_OPERATOR_TUPLE},
+    "EXTCODEHASH": {GAS: (700, 700), STACK: UN_OPERATOR_TUPLE},
     "RETURNDATASIZE": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "RETURNDATACOPY": {GAS: (3, 3), STACK: (3, 0)},
     "BLOCKHASH": {GAS: (20, 20), STACK: UN_OPERATOR_TUPLE},
@@ -78,13 +78,15 @@ OPCODES = {
     "NUMBER": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "DIFFICULTY": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "GASLIMIT": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
+    "CHAINID": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
+    "SELFBALANCE": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "POP": {GAS: (2, 2), STACK: (1, 0)},
     # assume 1KB memory r/w cost as upper bound
     "MLOAD": {GAS: (3, 96), STACK: UN_OPERATOR_TUPLE},
     "MSTORE": {GAS: (3, 98), STACK: (2, 0)},
     "MSTORE8": {GAS: (3, 98), STACK: (2, 0)},
     # assume 64 byte r/w cost as upper bound
-    "SLOAD": {GAS: (400, 400), STACK: UN_OPERATOR_TUPLE},
+    "SLOAD": {GAS: (800, 800), STACK: UN_OPERATOR_TUPLE},
     "SSTORE": {GAS: (5000, 25000), STACK: (1, 0)},
     "JUMP": {GAS: (8, 8), STACK: (1, 0)},
     "JUMPI": {GAS: (10, 10), STACK: (2, 0)},
@@ -199,7 +201,7 @@ def calculate_native_gas(size: int, contract: str):
     :param contract:
     :return:
     """
-    gas_value = None
+    gas_value = 0
     word_num = ceil32(size) // 32
     if contract == "ecrecover":
         gas_value = opcodes.GECRECOVER
@@ -210,7 +212,9 @@ def calculate_native_gas(size: int, contract: str):
     elif contract == "identity":
         gas_value = opcodes.GIDENTITYBASE + word_num * opcodes.GIDENTITYWORD
     else:
-        raise ValueError("Unknown contract type {}".format(contract))
+        # TODO: Add gas for other precompiles, computation should be shifted to natives.py
+        #  as some data isn't available here
+        pass
     return gas_value, gas_value
 
 

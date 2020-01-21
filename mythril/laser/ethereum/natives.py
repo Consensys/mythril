@@ -2,12 +2,16 @@
 
 import hashlib
 import logging
-from typing import List, Union
+import blake2b
+from typing import List
 
 from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
 import py_ecc.optimized_bn128 as bn128
 from rlp.utils import ALL_BYTES
+
+from eth_utils import ValidationError
+from eth._utils.blake2.coders import extract_blake2b_parameters
 
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
 from mythril.laser.ethereum.util import extract_copy, extract32
@@ -192,6 +196,20 @@ def ec_pair(data: List[int]) -> List[int]:
     return [0] * 31 + [1 if result else 0]
 
 
+def blake2b_fcompress(data: List[int]) -> List[int]:
+    """
+    blake2b hashing
+    :param data:
+    :return:
+    """
+    try:
+        parameters = extract_blake2b_parameters(bytes(data))
+    except ValidationError as v:
+        logging.debug("Invalid blake2b params: {}".format(v))
+        return []
+    return list(bytearray(blake2b.compress(*parameters)))
+
+
 PRECOMPILE_FUNCTIONS = (
     ecrecover,
     sha256,
@@ -201,7 +219,9 @@ PRECOMPILE_FUNCTIONS = (
     ec_add,
     ec_mul,
     ec_pair,
+    blake2b_fcompress,
 )
+
 PRECOMPILE_COUNT = len(PRECOMPILE_FUNCTIONS)
 
 
@@ -213,9 +233,10 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     :return:
     """
 
-    if isinstance(data, ConcreteCalldata):
-        concrete_data = data.concrete(None)
-    else:
+    if not isinstance(data, ConcreteCalldata):
         raise NativeContractException()
-
-    return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)
+    concrete_data = data.concrete(None)
+    try:
+        return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)
+    except TypeError:
+        raise NativeContractException

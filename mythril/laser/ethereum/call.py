@@ -10,7 +10,7 @@ import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
 from mythril.laser.ethereum.instruction_data import calculate_native_gas
 from mythril.laser.ethereum.state.account import Account
-from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
+from mythril.laser.ethereum.natives import PRECOMPILE_COUNT, PRECOMPILE_FUNCTIONS
 from mythril.laser.ethereum.state.calldata import (
     BaseCalldata,
     SymbolicCalldata,
@@ -73,6 +73,11 @@ def get_call_parameters(
     )
 
 
+def _get_padded_hex_address(address: int) -> str:
+    hex_address = hex(address)[2:]
+    return "0x{}{}".format("0" * (40 - len(hex_address)), hex_address)
+
+
 def get_callee_address(
     global_state: GlobalState,
     dynamic_loader: DynLoader,
@@ -86,9 +91,10 @@ def get_callee_address(
     :return: Address of the callee
     """
     environment = global_state.environment
-
     try:
-        callee_address = hex(util.get_concrete_int(symbolic_to_address))
+        callee_address = _get_padded_hex_address(
+            util.get_concrete_int(symbolic_to_address)
+        )
     except TypeError:
         log.debug("Symbolic call encountered")
 
@@ -221,6 +227,14 @@ def get_call_data(
         return SymbolicCalldata(transaction_id)
 
 
+def insert_ret_val(global_state: GlobalState):
+    retval = global_state.new_bitvec(
+        "retval_" + str(global_state.get_current_instruction()["address"]), 256
+    )
+    global_state.mstate.stack.append(retval)
+    global_state.world_state.constraints.append(retval == 1)
+
+
 def native_call(
     global_state: GlobalState,
     callee_address: Union[str, BitVec],
@@ -243,22 +257,27 @@ def native_call(
         log.debug("CALL with symbolic start or offset not supported")
         return [global_state]
 
-    contract_list = ["ecrecover", "sha256", "ripemd160", "identity"]
     call_address_int = int(callee_address, 16)
     native_gas_min, native_gas_max = calculate_native_gas(
         global_state.mstate.calculate_extension_size(mem_out_start, mem_out_sz),
-        contract_list[call_address_int - 1],
+        PRECOMPILE_FUNCTIONS[call_address_int - 1].__name__,
     )
     global_state.mstate.min_gas_used += native_gas_min
     global_state.mstate.max_gas_used += native_gas_max
     global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+
     try:
         data = natives.native_contracts(call_address_int, call_data)
     except natives.NativeContractException:
         for i in range(mem_out_sz):
             global_state.mstate.memory[mem_out_start + i] = global_state.new_bitvec(
-                contract_list[call_address_int - 1] + "(" + str(call_data) + ")", 8
+                PRECOMPILE_FUNCTIONS[call_address_int - 1].__name__
+                + "("
+                + str(call_data)
+                + ")",
+                8,
             )
+        insert_ret_val(global_state)
         return [global_state]
 
     for i in range(
@@ -266,9 +285,5 @@ def native_call(
     ):  # If more data is used then it's chopped off
         global_state.mstate.memory[mem_out_start + i] = data[i]
 
-    retval = global_state.new_bitvec(
-        "retval_" + str(global_state.get_current_instruction()["address"]), 256
-    )
-    global_state.mstate.stack.append(retval)
-    global_state.world_state.constraints.append(retval == 1)
+    insert_ret_val(global_state)
     return [global_state]

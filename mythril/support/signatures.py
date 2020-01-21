@@ -245,8 +245,13 @@ class SignatureDB(object, metaclass=Singleton):
         solc_json = get_solc_json(file_path, solc_binary, solc_settings_json)
 
         for contract in solc_json["contracts"][file_path].values():
-            for name, hash in contract["evm"]["methodIdentifiers"].items():
-                self.add("0x" + hash, name)
+            for name, hash_ in contract["evm"]["methodIdentifiers"].items():
+                sig = "0x{}".format(hash_)
+                if sig in self.solidity_sigs:
+                    self.solidity_sigs[sig].append(name)
+                else:
+                    self.solidity_sigs[sig] = [name]
+                self.add(sig, name)
 
     @staticmethod
     def lookup_online(byte_sig: str, timeout: int, proxies=None) -> List[str]:

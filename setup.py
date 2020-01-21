@@ -19,7 +19,7 @@ DESCRIPTION = "Security analysis tool for Ethereum smart contracts"
 URL = "https://github.com/ConsenSys/mythril"
 AUTHOR = "ConsenSys Dilligence"
 AUTHOR_MAIL = None
-REQUIRES_PYTHON = ">=3.5.0"
+REQUIRES_PYTHON = ">=3.6.0"
 
 
 # What packages are required for this module to be executed?
@@ -52,6 +52,7 @@ REQUIRED = [
     "ethereum-input-decoder>=0.2.2",
     "matplotlib",
     "pythx",
+    "py-evm==0.3.0a13",
 ]
 
 TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
@@ -118,7 +119,6 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Software Development :: Disassemblers",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],

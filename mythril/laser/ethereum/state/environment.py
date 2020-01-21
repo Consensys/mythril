@@ -41,7 +41,10 @@ class Environment:
         self.active_function_name = ""
 
         self.address = active_account.address
+
+        # TODO: Add tx_2 > tx_1 then block_no(tx_2) > block_no(tx_1)
         self.block_number = symbol_factory.BitVecSym("block_number", 256)
+        self.chainid = symbol_factory.BitVecSym("chain_id", 256)
 
         # Ib
         self.code = active_account.code if code is None else code
