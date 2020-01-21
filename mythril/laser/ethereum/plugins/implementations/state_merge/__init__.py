@@ -56,11 +56,7 @@ class StateMerge(LaserPlugin):
                     if len(list(state.get_annotations(MergeAnnotation))) > 0:
                         new_states.append(state)
                         continue
-                    new_states.append(
-                        self._look_for_merges(
-                            i, old_states, merged_set
-                        )
-                    )
+                    new_states.append(self._look_for_merges(i, old_states, merged_set))
 
                 old_states = copy(new_states)
             logging.info(
@@ -79,10 +75,8 @@ class StateMerge(LaserPlugin):
         :return: Returns a state
         """
         state = states[offset]
-        for j in range(offset+1, len(states)):
-            if j in merged_set or not self.check_merge_condition(
-                state, states[j]
-            ):
+        for j in range(offset + 1, len(states)):
+            if j in merged_set or not self.check_merge_condition(state, states[j]):
                 j += 1
                 continue
             merge_states(state, states[j])
