@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Dict, List
+from typing import Set, List
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.plugins.implementations.state_merge.merge_states import (
@@ -20,10 +20,18 @@ class MergeAnnotation(StateAnnotation):
 
 
 class StateMerge(LaserPlugin):
+    """
+    Tries to merge states based on their similarity.
+    Currently it only tries to merge if everything is same
+    except constraints and storage. And there is some tolerance level
+    to the constraints.
+    A state can be merged only once --> avoids segfaults + better performance
+    """
+
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the State merging plugin
 
-        Introduces hooks for SSTORE operations
+        Introduces hooks for stop_sym_trans function
         :param symbolic_vm:
         :return:
         """
@@ -41,14 +49,18 @@ class StateMerge(LaserPlugin):
             while old_size != len(new_states):
                 old_size = len(new_states)
                 new_states = []
-                merged_dict = {}  # type: Dict[int, bool]
-                for i in range(len(old_states)):
-                    if merged_dict.get(i, False):
+                merged_set = set()  # type: Set[int]
+                for i, state in enumerate(old_states):
+                    if i in merged_set:
                         continue
-                    if len(list(old_states[i].get_annotations(MergeAnnotation))) > 0:
-                        new_states.append(old_states[i])
+                    if len(list(state.get_annotations(MergeAnnotation))) > 0:
+                        new_states.append(state)
                         continue
-                    new_states += self._look_for_merges(i, old_states, merged_dict)
+                    new_states.append(
+                        self._look_for_merges(
+                            i, old_states, merged_set
+                        )
+                    )
 
                 old_states = copy(new_states)
             logging.info(
@@ -57,27 +69,27 @@ class StateMerge(LaserPlugin):
             svm.open_states = new_states
 
     def _look_for_merges(
-        self, i: int, old_states: List[WorldState], merged_dict: Dict[int, bool]
+        self, offset: int, states: List[WorldState], merged_set: Set[int],
     ):
-        i_is_merged = False
-        new_states = []
-        for j in range(i + 1, len(old_states)):
-            if merged_dict.get(j, False) or not self.check_merge_condition(
-                old_states[i], old_states[j]
+        """
+        Tries to merge states[offset] with any of the states in states[offset+1:]
+        :param offset: The offset of state
+        :param states: The List of states
+        :param merged_set: Set indicating which states are excluded from merging
+        :return:
+        """
+        state = states[offset]
+        for j in range(offset+1, len(states)):
+            if j in merged_set or not self.check_merge_condition(
+                state, states[j]
             ):
                 j += 1
                 continue
-            state = old_states[i]
-            merge_states(state, old_states[j])
-            merged_dict[j] = True
+            merge_states(state, states[j])
+            merged_set.add(j)
             state.annotations.append(MergeAnnotation())
-            new_states.append(state)
-            i_is_merged = True
-            break
-
-        if i_is_merged is False:
-            new_states.append(old_states[i])
-        return new_states
+            return state
+        return state
 
     def check_merge_condition(self, state1: WorldState, state2: WorldState):
         """
