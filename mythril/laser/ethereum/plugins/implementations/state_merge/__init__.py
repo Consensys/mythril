@@ -16,13 +16,12 @@ log = logging.getLogger(__name__)
 
 
 class MergeAnnotation(StateAnnotation):
-    def __init__(self):
-        pass
+    pass
 
 
 class StateMerge(LaserPlugin):
     def initialize(self, symbolic_vm: LaserEVM):
-        """Initializes the mutation pruner
+        """Initializes the State merging plugin
 
         Introduces hooks for SSTORE operations
         :param symbolic_vm:

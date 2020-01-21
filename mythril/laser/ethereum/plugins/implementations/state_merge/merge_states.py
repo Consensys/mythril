@@ -97,7 +97,7 @@ def merge_storage(storage1: Storage, storage2: Storage, path_condition: Bool):
                 path_condition, storage1.printable_storage[key], value
             )
         else:
-            storage1.printable_storage[key] = value
+            storage1.printable_storage[key] = If(path_condition, 0, value)
 
 
 def _merge_annotations(state1: "WorldState", state2: "WorldState"):

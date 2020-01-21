@@ -47,9 +47,7 @@ def If(
     """
     if not isinstance(a, Bool):
         a = Bool(z3.BoolVal(a))
-    if (isinstance(b, K) or isinstance(b, Array)) and (
-        isinstance(c, Array) or isinstance(c, K)
-    ):
+    if isinstance(b, BaseArray) and isinstance(c, BaseArray):
         array = z3.If(a.raw, b.raw, c.raw)
         return z3_array_converter(array)
 
