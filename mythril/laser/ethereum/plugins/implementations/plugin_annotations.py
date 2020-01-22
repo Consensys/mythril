@@ -1,7 +1,11 @@
+import logging
+
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 
 from copy import copy
 from typing import Dict, List, Set
+
+log = logging.getLogger(__name__)
 
 
 class MutationAnnotation(StateAnnotation):
@@ -82,13 +86,33 @@ class WSDependencyAnnotation(StateAnnotation):
         if len(self.annotations_stack) != len(other.annotations_stack):
             return False
         for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
-            if a1.check_merge_annotation(a2) is False:
+            if type(a1) != type(a2):
+                return False
+            try:
+                if a1.check_merge_annotation(a2) is False:
+                    return False
+            except AttributeError:
+                log.error(
+                    "check_merge_annotation() method doesn't exist "
+                    "for the annotation {}. Aborting merge for the state".format(
+                        type(a1)
+                    )
+                )
                 return False
         return True
 
     def merge_annotations(self, other: "WSDependencyAnnotation"):
         for a1, a2 in zip(self.annotations_stack, other.annotations_stack):
-            a1.merge_annotation(a2)
+            try:
+                a1.merge_annotation(a2)
+            except AttributeError:
+                log.error(
+                    "merge_annotation() method doesn't exist "
+                    "for the annotation {}. Aborting merge for the state".format(
+                        type(a1)
+                    )
+                )
+                return False
 
     def persist_to_world_state(self) -> bool:
         return True

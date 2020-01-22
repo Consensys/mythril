@@ -1,9 +1,13 @@
+import logging
+
 from mythril.laser.ethereum.cfg import Node, get_new_gbl_id
 from typing import Tuple, cast
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.account import Account, Storage
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import symbol_factory, Array, If, Or, And, Not, Bool
+
+log = logging.getLogger(__name__)
 
 
 def merge_states(state1: WorldState, state2: WorldState):
@@ -107,7 +111,14 @@ def _merge_annotations(state1: "WorldState", state2: "WorldState"):
     :return:
     """
     for v1, v2 in zip(state1.annotations, state2.annotations):
-        v1.merge_annotations(v2)  # type: ignore
+        try:
+            v1.merge_annotation(v2)  # type: ignore
+        except AttributeError:
+            log.error(
+                "merge_annotation() method doesn't exist "
+                "for the annotation {}. Aborting merge for the state".format(type(v1))
+            )
+            return False
 
 
 def _merge_constraints(

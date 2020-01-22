@@ -1,3 +1,4 @@
+import logging
 from mythril.laser.ethereum.cfg import Node
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.account import Account
@@ -5,6 +6,8 @@ from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import Not
 
 CONSTRAINT_DIFFERENCE_LIMIT = 15
+
+log = logging.getLogger(__name__)
 
 
 def check_node_merge_condition(node1: Node, node2: Node):
@@ -63,8 +66,18 @@ def _check_merge_annotations(state1: WorldState, state2: WorldState):
     if _check_constraint_merge(state1.constraints, state2.constraints) is False:
         return False
     for v1, v2 in zip(state2.annotations, state1._annotations):
-        if v1.check_merge_annotation(v2) is False:  # type: ignore
+        if type(v1) != type(v2):
             return False
+        try:
+            if v1.check_merge_annotation(v2) is False:  # type: ignore
+                return False
+        except AttributeError:
+            log.error(
+                "check_merge_annotation() method doesn't exist "
+                "for the annotation {}. Aborting merge for the state".format(type(v1))
+            )
+            return False
+
     return True
 
 
