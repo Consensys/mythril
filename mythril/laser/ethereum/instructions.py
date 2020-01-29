@@ -1140,7 +1140,7 @@ class Instruction:
         try:
             code = global_state.world_state.accounts_exist_or_load(
                 addr, self.dynamic_loader
-            ).code
+            ).code.bytecode
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
@@ -1236,7 +1236,7 @@ class Instruction:
         try:
             code = global_state.world_state.accounts_exist_or_load(
                 addr, self.dynamic_loader
-            ).code
+            ).code.bytecode
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]
@@ -1267,7 +1267,7 @@ class Instruction:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
             addr = "0" * (40 - len(hex(address.value)[2:])) + hex(address.value)[2:]
-            code = world_state.accounts_exist_or_load(addr, self.dynamic_loader).code
+            code = world_state.accounts_exist_or_load(addr, self.dynamic_loader).code.bytecode
             code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
         return [global_state]
