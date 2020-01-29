@@ -145,37 +145,7 @@ def get_callee_account(
         else:
             callee_address = hex(callee_address.value)[2:]
 
-    try:
-        return global_state.accounts[int(callee_address, 16)]
-    except KeyError:
-        # We have a valid call address, but contract is not in the modules list
-        log.debug("Module with address %s not loaded.", callee_address)
-
-    if dynamic_loader is None:
-        raise ValueError("dynamic_loader is None")
-
-    log.debug("Attempting to load dependency")
-
-    try:
-        code = dynamic_loader.dynld(callee_address)
-    except ValueError as error:
-        log.debug("Unable to execute dynamic loader because: %s", error)
-        raise error
-    if code is None:
-        log.debug("No code returned, not a contract account?")
-        raise ValueError("No code returned")
-    log.debug("Dependency loaded: " + callee_address)
-
-    callee_account = Account(
-        symbol_factory.BitVecVal(int(callee_address, 16), 256),
-        code,
-        callee_address,
-        dynamic_loader=dynamic_loader,
-        balances=global_state.world_state.balances,
-    )
-    global_state.accounts[int(callee_address, 16)] = callee_account
-
-    return callee_account
+    return global_state.world_state.accounts_exist_or_load(callee_address, dynamic_loader)
 
 
 def get_call_data(
