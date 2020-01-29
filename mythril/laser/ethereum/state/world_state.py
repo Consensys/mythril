@@ -86,7 +86,10 @@ class WorldState:
         else:
             code = dynamic_loader.dynld(addr)
             self.create_account(
-                balance=0, address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code
+                balance=0,
+                address=addr_bitvec.value,
+                dynamic_loader=dynamic_loader,
+                code=code,
             )
         if code is None:
             code = ""
@@ -101,7 +104,7 @@ class WorldState:
         concrete_storage=False,
         dynamic_loader=None,
         creator=None,
-        code=None
+        code=None,
     ) -> Account:
         """Create non-contract account.
 
