@@ -73,7 +73,7 @@ class WorldState:
         new_world_state.constraints = copy(self.constraints)
         return new_world_state
 
-    def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> str:
+    def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> Account:
         """
         returns account if it exists, else it loads from the dynamic loader
         :param addr: address
@@ -82,20 +82,14 @@ class WorldState:
         """
         addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
         if addr_bitvec.value in self.accounts:
-            code = self.accounts[addr_bitvec.value].code
-        else:
-            code = dynamic_loader.dynld(addr)
-            self.create_account(
-                balance=0,
-                address=addr_bitvec.value,
-                dynamic_loader=dynamic_loader,
-                code=code,
-            )
-        if code is None:
-            code = ""
-        else:
-            code = code.bytecode
-        return code
+            return self.accounts[addr_bitvec.value]
+
+        return self.create_account(
+            balance=0,
+            address=addr_bitvec.value,
+            dynamic_loader=dynamic_loader,
+            code=dynamic_loader.dynld(addr),
+        )
 
     def create_account(
         self,

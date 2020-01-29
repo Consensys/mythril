@@ -46,5 +46,5 @@ def _get_global_state():
 def test_extraction(addr, eth, code_len):
     global_state = _get_global_state()
     dynamic_loader = DynLoader(eth=eth)
-    code = global_state.world_state.accounts_exist_or_load(addr, dynamic_loader)
+    code = global_state.world_state.accounts_exist_or_load(addr, dynamic_loader).code
     assert len(code) == code_len
