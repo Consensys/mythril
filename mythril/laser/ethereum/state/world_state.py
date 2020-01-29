@@ -81,9 +81,11 @@ class WorldState:
         :return: The code
         """
         addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+
         if addr_bitvec.value in self.accounts:
             return self.accounts[addr_bitvec.value]
-
+        if dynamic_loader is None:
+            raise ValueError("dynamic_loader is None")
         return self.create_account(
             balance=0,
             address=addr_bitvec.value,
