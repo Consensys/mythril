@@ -194,8 +194,8 @@ class PredictableDependenceModule(DetectionModule):
                     # Why the second constraint? Because without it Z3 returns a solution where param overflows.
 
                     solver.get_model(
-                        state.world_state.constraints + constraint
-                    )  # type: ignore
+                        state.world_state.constraints + constraint   # type: ignore
+                    )
                     state.annotate(OldBlockNumberUsedAnnotation(constraint))
 
                 except UnsatError:
