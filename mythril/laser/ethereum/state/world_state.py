@@ -86,7 +86,7 @@ class WorldState:
         else:
             code = dynamic_loader.dynld(addr)
             self.create_account(
-                balance=0, address=addr_bitvec.value, dynamic_loader=dynamic_loader
+                balance=0, address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code
             )
         if code is None:
             code = ""
@@ -101,6 +101,7 @@ class WorldState:
         concrete_storage=False,
         dynamic_loader=None,
         creator=None,
+        code=None
     ) -> Account:
         """Create non-contract account.
 
@@ -108,6 +109,8 @@ class WorldState:
         :param balance: Initial balance for the account
         :param concrete_storage: Interpret account storage as concrete
         :param dynamic_loader: used for dynamically loading storage from the block chain
+        :param creator: The address of the creator of the contract if it's a contract
+        :param code: The code of the contract, if it's a contract
         :return: The new account
         """
         address = (
@@ -122,6 +125,8 @@ class WorldState:
             dynamic_loader=dynamic_loader,
             concrete_storage=concrete_storage,
         )
+        if code:
+            new_account.code = code
         if balance:
             new_account.add_balance(symbol_factory.BitVecVal(balance, 256))
 
