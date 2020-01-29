@@ -54,9 +54,13 @@ def get_call_parameters(
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
     if (
-        isinstance(callee_address, BitVec)
-        or int(callee_address, 16) > PRECOMPILE_COUNT
-        or int(callee_address, 16) == 0
+        isinstance(callee_address, BitVec) or
+        (
+            isinstance(callee_address, str)
+            and (
+                int(callee_address, 16) > PRECOMPILE_COUNT
+                or int(callee_address, 16) == 0)
+        )
     ):
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
