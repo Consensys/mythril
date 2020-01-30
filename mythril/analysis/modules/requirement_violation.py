@@ -1,6 +1,5 @@
 """This module contains the detection code for reachable exceptions."""
 import logging
-import json
 
 from mythril.analysis import solver
 from mythril.analysis.modules.base import DetectionModule
@@ -8,22 +7,19 @@ from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import REQUIREMENT_VIOLATION
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.analysis.analysis_module_helpers import is_prehook
 
 log = logging.getLogger(__name__)
 
-CALL_OPCODES = ["CALL", "DELEGATECALL", "CALLCODE", "STATICCALL"]
 
-
-class ReachableExceptionsModule(DetectionModule):
+class RequirementsViolationModule(DetectionModule):
     """"""
 
     def __init__(self):
         """"""
         super().__init__(
-            name="Reachable Exceptions",
+            name="Requirement Violation",
             swc_id=REQUIREMENT_VIOLATION,
-            description="Checks whether any exception states are reachable.",
+            description="Checks whether any requirements violate in a call.",
             entrypoint="callback",
             pre_hooks=["REVERT"],
         )
@@ -65,8 +61,8 @@ class ReachableExceptionsModule(DetectionModule):
                 address=address,
                 swc_id=REQUIREMENT_VIOLATION,
                 title="Requirement violation",
-                severity="Low",
-                description_head="The requirement for this call can be violated.",
+                severity="Medium",
+                description_head="The requirement when this call is executed can be violated.",
                 description_tail=description_tail,
                 bytecode=state.environment.code.bytecode,
                 transaction_sequence=transaction_sequence,
@@ -80,4 +76,4 @@ class ReachableExceptionsModule(DetectionModule):
         return []
 
 
-detector = ReachableExceptionsModule()
+detector = RequirementsViolationModule()
