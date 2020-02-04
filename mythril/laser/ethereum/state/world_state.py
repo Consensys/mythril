@@ -73,7 +73,7 @@ class WorldState:
         new_world_state.constraints = copy(self.constraints)
         return new_world_state
 
-    def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> str:
+    def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> Account:
         """
         returns account if it exists, else it loads from the dynamic loader
         :param addr: address
@@ -81,18 +81,17 @@ class WorldState:
         :return: The code
         """
         addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+
         if addr_bitvec.value in self.accounts:
-            code = self.accounts[addr_bitvec.value].code
-        else:
-            code = dynamic_loader.dynld(addr)
-            self.create_account(
-                balance=0, address=addr_bitvec.value, dynamic_loader=dynamic_loader
-            )
-        if code is None:
-            code = ""
-        else:
-            code = code.bytecode
-        return code
+            return self.accounts[addr_bitvec.value]
+        if dynamic_loader is None:
+            raise ValueError("dynamic_loader is None")
+        return self.create_account(
+            balance=0,
+            address=addr_bitvec.value,
+            dynamic_loader=dynamic_loader,
+            code=dynamic_loader.dynld(addr),
+        )
 
     def create_account(
         self,
@@ -101,6 +100,7 @@ class WorldState:
         concrete_storage=False,
         dynamic_loader=None,
         creator=None,
+        code=None,
     ) -> Account:
         """Create non-contract account.
 
@@ -108,6 +108,8 @@ class WorldState:
         :param balance: Initial balance for the account
         :param concrete_storage: Interpret account storage as concrete
         :param dynamic_loader: used for dynamically loading storage from the block chain
+        :param creator: The address of the creator of the contract if it's a contract
+        :param code: The code of the contract, if it's a contract
         :return: The new account
         """
         address = (
@@ -122,6 +124,8 @@ class WorldState:
             dynamic_loader=dynamic_loader,
             concrete_storage=concrete_storage,
         )
+        if code:
+            new_account.code = code
         if balance:
             new_account.add_balance(symbol_factory.BitVecVal(balance, 256))
 
