@@ -9,7 +9,7 @@ from mythril.analysis.potential_issues import (
 from mythril.analysis.swc_data import TX_ORDER_DEPENDENCE
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.analysis.modules.base import DetectionModule
-from mythril.laser.smt import Or
+from mythril.laser.smt import Or, Bool
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.exceptions import UnsatError
 import logging
@@ -103,7 +103,7 @@ class TransactionOrderDependence(DetectionModule):
             callers.append(balance_annotations[0].caller)
 
         address = state.get_current_instruction()["address"]
-        call_constraint = False
+        call_constraint = Bool(False)
         for caller in callers:
             call_constraint = Or(call_constraint, ACTORS.attacker == caller)
 
