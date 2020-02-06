@@ -60,7 +60,7 @@ class RequirementsViolationModule(DetectionModule):
                 function_name=state.environment.active_function_name,
                 address=address,
                 swc_id=REQUIREMENT_VIOLATION,
-                title="Requirement violation",
+                title="requirement violation",
                 severity="Medium",
                 description_head=description_head,
                 description_tail=description_tail,
