@@ -50,8 +50,8 @@ class RequirementsViolationModule(DetectionModule):
 
         try:
             address = state.get_current_instruction()["address"]
-
-            description_tail = "The requirement is too strong"
+            description_head = "A requirement was violated in a nested call and the call was reverted as a result."
+            description_tail = "Make sure valid inputs are provided to the nested call (for instance, via passed arguments)."
             transaction_sequence = solver.get_transaction_sequence(
                 state, state.world_state.constraints
             )
@@ -62,7 +62,7 @@ class RequirementsViolationModule(DetectionModule):
                 swc_id=REQUIREMENT_VIOLATION,
                 title="Requirement violation",
                 severity="Medium",
-                description_head="The requirement when this call is executed can be violated.",
+                description_head=description_head,
                 description_tail=description_tail,
                 bytecode=state.environment.code.bytecode,
                 transaction_sequence=transaction_sequence,
