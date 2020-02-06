@@ -1,5 +1,4 @@
-"""This module contains the detection code for transaction order dependence
-calls."""
+"""This module contains the detection code for transaction order dependence."""
 
 from mythril.analysis import solver
 from mythril.analysis.potential_issues import (
@@ -18,9 +17,7 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Search for low level calls (e.g. call.value()) that forward all gas to the callee.
-Report a warning if the callee address can be set by the sender, otherwise create 
-an informational issue.
+Search for calls whose value depends on balance or storage.
 
 """
 
@@ -112,12 +109,12 @@ class TransactionOrderDependence(DetectionModule):
 
             solver.get_transaction_sequence(state, constraints)
 
-            description_head = "Transaction Order dependence."
+            description_head = (
+                "The value of the call is dependent on balance or storage write"
+            )
             description_tail = (
-                "The callee address of an external message call can be set by "
-                "the caller. Note that the callee can contain arbitrary code and may re-enter any function "
-                "in this contract. Review the business logic carefully to prevent averse effects on the "
-                "contract state."
+                "This can lead to race conditions. An attacker may be able to run a transaction after our transaction "
+                "which can change the value of the call"
             )
 
             issue = PotentialIssue(
