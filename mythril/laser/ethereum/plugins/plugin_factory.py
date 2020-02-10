@@ -39,3 +39,12 @@ class PluginFactory:
         )
 
         return DependencyPruner()
+
+    @staticmethod
+    def build_coverage_plugin() -> LaserPlugin:
+        """ Creates an instance of the instruction coverage plugin"""
+        from mythril.laser.ethereum.plugins.implementations.coverage_metrics import (
+            CoveragePlugin,
+        )
+
+        return CoveragePlugin()
