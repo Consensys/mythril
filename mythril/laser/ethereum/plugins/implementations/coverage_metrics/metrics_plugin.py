@@ -14,15 +14,22 @@ BATCH_OF_STATES = 5
 
 
 class CoveragePlugin(LaserPlugin):
-    """InstructionCoveragePlugin
-
-    This plugin measures the instruction coverage of mythril.
-    The instruction coverage is the ratio between the instructions that have been executed
-    and the total amount of instructions.
-
-    Note that with lazy constraint solving enabled that this metric will be "unsound" as
-    reachability will not be considered for the calculation of instruction coverage.
-
+    """CoveragePlugin
+    Checks Instruction and branch coverage and puts it to data.json file
+    which appears in the directory in which mythril is run.
+    The file is a list of Dicts, each dict contains the following information.
+    { code_1: {
+        "instructions_covered": len(code_cov[1]),
+        "total_instructions": code_cov[0],
+        "branches_covered": len(branches_covered),
+        "tx_id": self.tx_id,
+        "batch_of_states": BATCH_OF_STATES,
+        },
+        code_2: {
+            ....
+        }
+    }
+    The data gets appended to the list after processing `BATCH_OF_STATES` states.
     """
 
     def __init__(self):
@@ -72,6 +79,7 @@ class CoveragePlugin(LaserPlugin):
         if code not in self.instruction_coverage_data.keys():
             number_of_instructions = len(global_state.environment.code.instruction_list)
             self.instruction_coverage_data[code] = (number_of_instructions, {})
+
         self.instruction_coverage_data[code][1][
             global_state.get_current_instruction()["address"]
         ] = True
@@ -92,7 +100,7 @@ class CoveragePlugin(LaserPlugin):
         if jump_addr.symbolic:
             log.debug("Encountered a symbolic jump, ignoring it for branch coverage")
             return
-        self.branch_coverage_data[code][addr] = [addr + 1, jump_addr]
+        self.branch_coverage_data[code][addr] = [addr + 1, jump_addr.value]
 
     def _record_coverage(self):
         coverage = {}
@@ -118,6 +126,7 @@ class CoveragePlugin(LaserPlugin):
             for jumps, branches in self.branch_coverage_data[code].items():
                 for branch in branches:
                     total_branches.add(branch)
+
             for coverage in self.coverage:
                 if code in coverage:
                     coverage[code]["total_branches"] = len(total_branches)
