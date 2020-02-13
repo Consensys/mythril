@@ -68,7 +68,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             cur_instr = state.get_current_instruction()
 
-            annotation.trace.append(cur_instr['address'])
+            annotation.trace.append(cur_instr["address"])
 
             if cur_instr["opcode"].upper() != "JUMPDEST":
                 return state
@@ -78,7 +78,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             key = 0
 
             for i in range(1, min(32, len(annotation.trace))):
-                key |= (annotation.trace[-i] << (8 * i))
+                key |= annotation.trace[-i] << (8 * i)
 
             if key in annotation._reached_count:
                 annotation._reached_count[key] += 1
