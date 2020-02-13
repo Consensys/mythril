@@ -21,7 +21,7 @@ class MythrilPlugin:
         pass
 
     def __repr__(self):
-        return ""
+        pass
 
 
 class MythrilCLIPlugin(MythrilPlugin):
