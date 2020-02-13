@@ -7,13 +7,7 @@ from copy import copy, deepcopy
 from typing import Any, Dict, Union, Set
 
 
-from mythril.laser.smt import (
-    Array,
-    K,
-    BitVec,
-    simplify,
-    BaseArray,
-)
+from mythril.laser.smt import Array, K, BitVec, simplify, BaseArray
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 
