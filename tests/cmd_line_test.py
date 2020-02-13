@@ -63,11 +63,13 @@ class CommandLineToolTestCase(BaseTestCase):
         # Just check for crashes
         output_of(command)
 
+    ''''
     def test_storage(self):
         command = """python3 {} read-storage "438767356, 3" 0x76799f77587738bfeef09452df215b63d2cfb08a """.format(
             MYTH
         )
         self.assertIn("0x1a270efc", output_of(command))
+    '''
 
 
 """
