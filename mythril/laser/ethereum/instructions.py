@@ -930,6 +930,27 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
+    def chainid_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        global_state.mstate.stack.append(global_state.environment.chainid)
+        return [global_state]
+
+    @StateTransition()
+    def selfbalance_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        balance = global_state.environment.active_account.balance()
+        global_state.mstate.stack.append(balance)
+        return [global_state]
+
+    @StateTransition()
     def codesize_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
@@ -1119,7 +1140,7 @@ class Instruction:
         try:
             code = global_state.world_state.accounts_exist_or_load(
                 addr, self.dynamic_loader
-            )
+            ).code.bytecode
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
@@ -1215,7 +1236,7 @@ class Instruction:
         try:
             code = global_state.world_state.accounts_exist_or_load(
                 addr, self.dynamic_loader
-            )
+            ).code.bytecode
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]
@@ -1246,7 +1267,9 @@ class Instruction:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
             addr = "0" * (40 - len(hex(address.value)[2:])) + hex(address.value)[2:]
-            code = world_state.accounts_exist_or_load(addr, self.dynamic_loader)
+            code = world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            ).code.bytecode
             code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
         return [global_state]
@@ -1849,7 +1872,7 @@ class Instruction:
         for i in range(memory_out_size.value):
             global_state.mstate.memory[memory_out_offset + i] = global_state.new_bitvec(
                 "call_output_var({})_{}".format(
-                    simplify(memory_out_offset + i), global_state.mstate.pc,
+                    simplify(memory_out_offset + i), global_state.mstate.pc
                 ),
                 8,
             )
