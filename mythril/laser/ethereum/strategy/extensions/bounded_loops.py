@@ -94,7 +94,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
                 return state
 
             elif annotation._reached_count[key] > self.bound:
-                log.info("Loop bound reached, skipping state")
+                log.debug("Loop bound reached, skipping state")
                 continue
 
             return state
