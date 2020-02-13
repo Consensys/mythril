@@ -10,12 +10,12 @@ class MythrilPlugin:
     3. Add an analysis module, in this case the AnalysisModule interface needs to be implemented
     4. Add new commands to the Mythril cli, using the MythrilCLIPlugin Interface
     """
+
     author = "Default Author"
     plugin_license = "All rights reserved."
     plugin_type = "Mythril Plugin"
     plugin_version = "0.0.1 "
-    plugin_description = \
-        "This is an example plugin description"
+    plugin_description = "This is an example plugin description"
 
     def __init__(self):
         pass
@@ -29,4 +29,5 @@ class MythrilCLIPlugin(MythrilPlugin):
 
     This interface should be implemented by mythril plugins that aim to add commands to the mythril cli
     """
+
     pass

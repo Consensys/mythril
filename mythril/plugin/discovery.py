@@ -12,8 +12,7 @@ class PluginDiscovery(object, metaclass=Singleton):
     # Installed plugins structure. Retreives all modules that have an entry point for mythril.plugins
     _installed_plugins = {
         entry_point.name: entry_point.load()
-        for entry_point
-        in pkg_resources.iter_entry_points('mythril.plugins')
+        for entry_point in pkg_resources.iter_entry_points("mythril.plugins")
     }
 
     def is_installed(self, plugin_name: str) -> bool:

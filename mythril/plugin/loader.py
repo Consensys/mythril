@@ -4,6 +4,7 @@ from mythril.plugin.interface import MythrilCLIPlugin, MythrilPlugin
 from mythril.support.support_utils import Singleton
 
 import logging
+
 log = logging.getLogger(__name__)
 
 

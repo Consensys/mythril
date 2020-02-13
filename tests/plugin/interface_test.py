@@ -7,4 +7,3 @@ def test_construct_cli_plugin():
 
 def test_construct_mythril_plugin():
     _ = MythrilPlugin
-
