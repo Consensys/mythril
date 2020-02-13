@@ -15,10 +15,12 @@ class JumpdestCountAnnotation(StateAnnotation):
 
     def __init__(self) -> None:
         self._reached_count = {}  # type: Dict[str, int]
+        self.trace = []  # type: List[int]
 
     def __copy__(self):
         result = JumpdestCountAnnotation()
         result._reached_count = copy(self._reached_count)
+        result.trace = copy(self.trace)
         return result
 
 
@@ -66,13 +68,17 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             cur_instr = state.get_current_instruction()
 
+            annotation.trace.append(cur_instr['address'])
+
             if cur_instr["opcode"].upper() != "JUMPDEST":
                 return state
 
             # create unique instruction identifier
-            key = "{};{};{}".format(
-                cur_instr["opcode"], cur_instr["address"], state.mstate.prev_pc
-            )
+
+            key = 0
+
+            for i in range(1, min(32, len(annotation.trace))):
+                key |= (annotation.trace[-i] << (8 * i))
 
             if key in annotation._reached_count:
                 annotation._reached_count[key] += 1
@@ -88,7 +94,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
                 return state
 
             elif annotation._reached_count[key] > self.bound:
-                log.debug("Loop bound reached, skipping state")
+                log.info("Loop bound reached, skipping state")
                 continue
 
             return state
