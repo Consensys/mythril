@@ -8,6 +8,8 @@ class PluginDiscovery(object, metaclass=Singleton):
 
      This plugin implements the logic to discover and build plugins in installed python packages
     """
+
+    # Installed plugins structure. Retreives all modules that have an entry point for mythril.plugins
     _installed_plugins = {
         entry_point.name: entry_point.load()
         for entry_point
@@ -15,9 +17,11 @@ class PluginDiscovery(object, metaclass=Singleton):
     }
 
     def is_installed(self, plugin_name: str) -> bool:
+        """Returns whether there is python package with a plugin with plugin_name"""
         return plugin_name in self._installed_plugins.keys()
 
     def build_plugin(self, plugin_name: str) -> MythrilPlugin:
+        """Returns the plugin for the given plugin_name  if it is installed"""
         if not self.is_installed(plugin_name):
             raise ValueError(f"Plugin with name: `{plugin_name}` is not installed")
 
