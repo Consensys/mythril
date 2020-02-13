@@ -75,10 +75,10 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             # create unique instruction identifier
 
-            key = 0
+            key = cur_instr["address"]
 
-            for i in range(1, min(32, len(annotation.trace))):
-                key |= annotation.trace[-i] << (8 * i)
+            for i in range(2, min(32, len(annotation.trace))):
+                key |= annotation.trace[-i] << (16 * i)
 
             if key in annotation._reached_count:
                 annotation._reached_count[key] += 1
