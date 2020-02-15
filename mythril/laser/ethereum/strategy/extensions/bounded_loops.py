@@ -77,8 +77,8 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             key = cur_instr["address"]
 
-            for i in range(2, min(32, len(annotation.trace))):
-                key |= annotation.trace[-i] << (16 * i)
+            for i in range(1, min(128, len(annotation.trace))):
+                key |= annotation.trace[-i] << (i * 8)
 
             if key in annotation._reached_count:
                 annotation._reached_count[key] += 1
