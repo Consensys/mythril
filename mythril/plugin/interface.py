@@ -21,7 +21,8 @@ class MythrilPlugin:
         pass
 
     def __repr__(self):
-        pass
+        plugin_name = type(self).__name__
+        return f"{plugin_name} - {self.plugin_version} - {self.author}"
 
 
 class MythrilCLIPlugin(MythrilPlugin):
