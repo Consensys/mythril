@@ -54,6 +54,9 @@ class Expression(Generic[T]):
     def __hash__(self) -> int:
         return self.raw.__hash__()
 
+    def get_annotations(self, annotation: Any):
+        return list(filter(lambda x: isinstance(x, annotation), self.annotations))
+
 
 G = TypeVar("G", bound=Expression)
 
