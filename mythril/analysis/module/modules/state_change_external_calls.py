@@ -3,7 +3,7 @@ from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
 )
 from mythril.analysis.swc_data import REENTRANCY
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import symbol_factory, UGT, BitVec, Or
 from mythril.laser.ethereum.state.global_state import GlobalState

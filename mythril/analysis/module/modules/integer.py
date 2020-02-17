@@ -9,7 +9,7 @@ from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from copy import copy
 
 from mythril.laser.smt import (

@@ -6,7 +6,7 @@ from typing import cast, List, Union, Mapping
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.exceptions import UnsatError
 from mythril.laser.smt.bitvec import BitVec
 

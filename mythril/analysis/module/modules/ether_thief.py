@@ -3,7 +3,7 @@ withdrawal."""
 import logging
 from copy import copy
 
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
     PotentialIssue,

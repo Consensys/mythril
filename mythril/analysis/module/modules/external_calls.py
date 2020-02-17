@@ -9,10 +9,7 @@ from mythril.analysis.potential_issues import (
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
-from mythril.laser.ethereum.transaction.transaction_models import (
-    ContractCreationTransaction,
-)
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.smt import UGT, symbol_factory, Or, BitVec
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.global_state import GlobalState

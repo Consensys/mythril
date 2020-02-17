@@ -3,7 +3,7 @@ dependence."""
 import logging
 from copy import copy
 
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
 from mythril.analysis import solver

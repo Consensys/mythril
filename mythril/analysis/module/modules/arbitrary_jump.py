@@ -1,7 +1,7 @@
 """This module contains the detection code for Arbitrary jumps."""
 import logging
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
-from mythril.analysis.modules.base import DetectionModule, Issue, EntryPoint
+from mythril.analysis.module.base import DetectionModule, Issue, EntryPoint
 from mythril.analysis.swc_data import ARBITRARY_JUMP
 from mythril.laser.ethereum.state.global_state import GlobalState
 

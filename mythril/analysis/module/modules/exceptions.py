@@ -1,9 +1,8 @@
 """This module contains the detection code for reachable exceptions."""
 import logging
-import json
 
 from mythril.analysis import solver
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.exceptions import UnsatError

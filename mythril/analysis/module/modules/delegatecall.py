@@ -11,7 +11,7 @@ from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-from mythril.analysis.modules.base import DetectionModule, EntryPoint
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import symbol_factory, UGT
