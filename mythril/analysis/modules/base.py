@@ -1,40 +1,38 @@
-"""This module contains the base class for all user-defined detection
-modules."""
+""" Base DetectionModule python module
 
+The main interface specified in this module is DetectionModule.
+This is  the interface extended by all mythril detection modules, which permit the detection of vulnerabilities
+and bugs in smart contracts.
+"""
 import logging
 from typing import List, Set
 
 from mythril.analysis.report import Issue
-
+from abc import ABC, abstractmethod
+from enum import Enum
+# Get logger instance
 log = logging.getLogger(__name__)
 
 
-class DetectionModule:
+class EntryPoint(Enum):
+    POST = 1
+    CALLBACK = 2
+
+
+class DetectionModule(ABC):
     """The base detection module.
 
     All custom-built detection modules must inherit from this class.
     """
 
-    def __init__(
-        self,
-        name: str,
-        swc_id: str,
-        description: str,
-        entrypoint: str = "post",
-        pre_hooks: List[str] = None,
-        post_hooks: List[str] = None,
-    ) -> None:
-        self.name = name
-        self.swc_id = swc_id
-        self.pre_hooks = pre_hooks if pre_hooks else []
-        self.post_hooks = post_hooks if post_hooks else []
-        self.description = description
-        if entrypoint not in ("post", "callback"):
-            log.error(
-                "Invalid entrypoint in module %s, must be one of {post, callback}",
-                self.name,
-            )
-        self.entrypoint = entrypoint
+    name = "Detection Module Name"
+    swc_id = "SWC-000"
+    description = "Detection module description"
+    entry_point = EntryPoint.POST  # type: EntryPoint
+    pre_hooks = []  # type: List[str]
+    post_hooks = []  # type: List[str]
+
+    def __init__(self) -> None:
         self.issues = []  # type: List[Issue]
         self.cache = set()  # type: Set[int]
 
