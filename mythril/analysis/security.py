@@ -3,6 +3,8 @@ executing them."""
 from collections import defaultdict
 from mythril.support.opcodes import opcodes
 from mythril.analysis import modules
+from mythril.analysis.modules.base import EntryPoint
+
 import pkgutil
 import importlib.util
 import logging
@@ -16,7 +18,7 @@ OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 
 def reset_callback_modules(module_names=(), custom_modules_directory=""):
     """Clean the issue records of every callback-based module."""
-    modules = get_detection_modules("callback", module_names, custom_modules_directory)
+    modules = get_detection_modules(EntryPoint.CALLBACK, module_names, custom_modules_directory)
     for module in modules:
         module.detector.reset_module()
 
@@ -24,7 +26,7 @@ def reset_callback_modules(module_names=(), custom_modules_directory=""):
 def get_detection_module_hooks(modules, hook_type="pre", custom_modules_directory=""):
     hook_dict = defaultdict(list)
     _modules = get_detection_modules(
-        entrypoint="callback",
+        entry_point=EntryPoint.CALLBACK,
         include_modules=modules,
         custom_modules_directory=custom_modules_directory,
     )
@@ -73,7 +75,7 @@ def get_detection_modules(entry_point: EntryPoint, include_modules=(), custom_mo
         if module_name != "base":
             module = importlib.import_module("mythril.analysis.modules." + module_name)
             module.log.setLevel(log.level)
-            if module.detector.entrypoint == entrypoint:
+            if module.detector.entry_point == entry_point:
                 _modules.append(module)
     if custom_modules_directory:
         custom_modules_path = os.path.abspath(custom_modules_directory)
@@ -87,7 +89,7 @@ def get_detection_modules(entry_point: EntryPoint, include_modules=(), custom_mo
             if module_name != "base":
                 module = importlib.import_module(module_name, custom_modules_path)
                 module.log.setLevel(log.level)
-                if module.detector.entrypoint == entrypoint:
+                if module.detector.entry_point == entry_point:
                     _modules.append(module)
 
     log.info("Found %s detection modules", len(_modules))
@@ -105,7 +107,7 @@ def fire_lasers(statespace, module_names=(), custom_modules_directory=""):
 
     issues = []
     for module in get_detection_modules(
-        entrypoint="post",
+        entry_point=EntryPoint.POST,
         include_modules=module_names,
         custom_modules_directory=custom_modules_directory,
     ):
@@ -119,7 +121,7 @@ def fire_lasers(statespace, module_names=(), custom_modules_directory=""):
 def retrieve_callback_issues(module_names=(), custom_modules_directory=""):
     issues = []
     for module in get_detection_modules(
-        entrypoint="callback",
+        entry_point=EntryPoint.CALLBACK,
         include_modules=module_names,
         custom_modules_directory=custom_modules_directory,
     ):
