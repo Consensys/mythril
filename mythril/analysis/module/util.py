@@ -20,9 +20,9 @@ def get_detection_module_hooks(modules: List[DetectionModule], hook_type="pre"):
     for module in modules:
 
         hooks = (
-            module.detector.pre_hooks
+            module.pre_hooks
             if hook_type == "pre"
-            else module.detector.post_hooks
+            else module.post_hooks
         )
 
         for op_code in map(lambda x: x.upper(), hooks):
@@ -42,3 +42,4 @@ def get_detection_module_hooks(modules: List[DetectionModule], hook_type="pre"):
                 )
 
     return dict(hook_dict)
+
