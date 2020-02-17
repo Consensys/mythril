@@ -28,15 +28,11 @@ assertion_failed_hash = (
 class UserAssertions(DetectionModule):
     """This module searches for user supplied exceptions: emit AssertionFailed("Error")."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="External calls",
-            swc_id=ASSERT_VIOLATION,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["LOG1"],
-        )
+    name = "External calls"
+    swc_id = ASSERT_VIOLATION
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["LOG1"]
 
     def _execute(self, state: GlobalState) -> None:
         """
