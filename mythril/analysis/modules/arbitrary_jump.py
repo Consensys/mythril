@@ -15,11 +15,11 @@ Search for any writes to an arbitrary storage slot
 
 class ArbitraryJump(DetectionModule):
     """This module searches for JUMPs to an arbitrary instruction."""
-    name = "Jump to an arbitrary line",
-    swc_id = ARBITRARY_JUMP,
-    description = DESCRIPTION,
-    entry_point = EntryPoint.CALLBACK,
-    pre_hooks = ["JUMP", "JUMPI"],
+    name = "Jump to an arbitrary line"
+    swc_id = ARBITRARY_JUMP
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["JUMP", "JUMPI"]
 
     def reset_module(self):
         """

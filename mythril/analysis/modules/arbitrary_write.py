@@ -20,11 +20,11 @@ Search for any writes to an arbitrary storage slot
 
 class ArbitraryStorage(DetectionModule):
     """This module searches for a feasible write to an arbitrary storage slot."""
-    name = "Arbitrary Storage Write",
-    swc_id = WRITE_TO_ARBITRARY_STORAGE,
-    description = DESCRIPTION,
-    entry_point = EntryPoint.CALLBACK,
-    pre_hooks = ["SSTORE"],
+    name = "Arbitrary Storage Write"
+    swc_id = WRITE_TO_ARBITRARY_STORAGE
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["SSTORE"]
 
     def reset_module(self):
         """
