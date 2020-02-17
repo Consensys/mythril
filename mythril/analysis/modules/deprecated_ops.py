@@ -17,11 +17,11 @@ Check for usage of deprecated opcodes
 
 class DeprecatedOperationsModule(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
-    name = "Deprecated Operations",
-    swc_id = DEPRECATED_FUNCTIONS_USAGE,
-    description = DESCRIPTION,
-    entry_point = EntryPoint.CALLBACK,
-    pre_hooks = ["ORIGIN", "CALLCODE"],
+    name = "Deprecated Operations"
+    swc_id = DEPRECATED_FUNCTIONS_USAGE
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["ORIGIN", "CALLCODE"]
 
     def _execute(self, state: GlobalState) -> None:
         """
