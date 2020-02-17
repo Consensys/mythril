@@ -26,7 +26,7 @@ from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Type, Optional
+from typing import Union, List, Type, Optional, Tuple
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, VarType, get_variable
 
@@ -49,7 +49,7 @@ class SymExecWrapper:
         loop_bound: int = 3,
         create_timeout: Optional[int] = None,
         transaction_count: int = 2,
-        modules: List[DetectionModule] = (),
+        modules: Union[Tuple[DetectionModule], List[DetectionModule]] = (),
         compulsory_statespace: bool = True,
         iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
