@@ -1,7 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-from mythril.analysis.modules.base import EntryPoint, DetectionModule
+from mythril.analysis.module import EntryPoint, DetectionModule
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
