@@ -1,7 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-
+from mythril.analysis.modules.base import EntryPoint, DetectionModule
 from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
@@ -49,7 +49,7 @@ class SymExecWrapper:
         loop_bound: int = 3,
         create_timeout: Optional[int] = None,
         transaction_count: int = 2,
-        modules=(),
+        modules: List[DetectionModule] = (),
         compulsory_statespace: bool = True,
         iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
@@ -100,7 +100,12 @@ class SymExecWrapper:
 
         requires_statespace = (
             compulsory_statespace
-            or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
+            or len(
+                get_detection_modules(
+                    EntryPoint.POST, modules, custom_modules_directory
+                )
+            )
+            > 0
         )
         if not contract.creation_code:
             self.accounts = {hex(ACTORS.attacker.value): attacker_account}
