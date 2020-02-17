@@ -23,10 +23,12 @@ class ModuleLoader(object, metaclass=Singleton):
         self._register_mythril_modules()
 
     def register_module(self, detection_module: DetectionModule):
-        pass
+        if not isinstance(detection_module, DetectionModule):
+            raise ValueError("The passed variable is not a valid detection module")
+        self._modules.append(detection_module)
 
     def get_detection_modules(self):
-        pass
+        return self._modules[:]
 
     def _register_mythril_modules(self):
         self._modules.extend([
