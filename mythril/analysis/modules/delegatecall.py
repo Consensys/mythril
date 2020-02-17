@@ -11,7 +11,7 @@ from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import symbol_factory, UGT
@@ -21,16 +21,11 @@ log = logging.getLogger(__name__)
 
 class DelegateCallModule(DetectionModule):
     """This module detects calldata being forwarded using DELEGATECALL."""
-
-    def __init__(self) -> None:
-        """"""
-        super().__init__(
-            name="DELEGATECALL Usage in Fallback Function",
-            swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
-            description="Check for invocations of delegatecall(msg.data) in the fallback function.",
-            entrypoint="callback",
-            pre_hooks=["DELEGATECALL"],
-        )
+    name = "DELEGATECALL Usage in Fallback Function",
+    swc_id = DELEGATECALL_TO_UNTRUSTED_CONTRACT,
+    description = "Check for invocations of delegatecall(msg.data) in the fallback function.",
+    entry_point = EntryPoint.CALLBACK,
+    pre_hooks = ["DELEGATECALL"],
 
     def _execute(self, state: GlobalState) -> None:
         """
