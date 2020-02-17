@@ -4,7 +4,9 @@ from mythril.support.support_utils import Singleton
 from mythril.analysis.module.modules.arbitrary_jump import ArbitraryJump
 from mythril.analysis.module.modules.arbitrary_write import ArbitraryStorage
 from mythril.analysis.module.modules.delegatecall import DelegateCallModule
-from mythril.analysis.module.modules.dependence_on_predictable_vars import PredictableDependenceModule
+from mythril.analysis.module.modules.dependence_on_predictable_vars import (
+    PredictableDependenceModule,
+)
 from mythril.analysis.module.modules.deprecated_ops import DeprecatedOperationsModule
 from mythril.analysis.module.modules.ether_thief import EtherThief
 from mythril.analysis.module.modules.exceptions import ReachableExceptionsModule
@@ -31,8 +33,11 @@ class ModuleLoader(object, metaclass=Singleton):
             raise ValueError("The passed variable is not a valid detection module")
         self._modules.append(detection_module)
 
-    def get_detection_modules(self, entry_point: Optional[EntryPoint] = None, white_list: Optional[List[str]] = None)\
-        -> List[DetectionModule]:
+    def get_detection_modules(
+        self,
+        entry_point: Optional[EntryPoint] = None,
+        white_list: Optional[List[str]] = None,
+    ) -> List[DetectionModule]:
         """ Gets registered detection modules
 
         :param entry_point: If specified: only return detection modules with this entry point
@@ -47,19 +52,21 @@ class ModuleLoader(object, metaclass=Singleton):
         return result
 
     def _register_mythril_modules(self):
-        self._modules.extend([
-            ArbitraryJump(),
-            ArbitraryStorage(),
-            DelegateCallModule(),
-            PredictableDependenceModule(),
-            DeprecatedOperationsModule(),
-            EtherThief(),
-            ReachableExceptionsModule(),
-            ExternalCalls(),
-            IntegerOverflowUnderflowModule(),
-            MultipleSendsModule(),
-            StateChange(),
-            SuicideModule(),
-            UncheckedRetvalModule(),
-            UserAssertions(),
-        ])
+        self._modules.extend(
+            [
+                ArbitraryJump(),
+                ArbitraryStorage(),
+                DelegateCallModule(),
+                PredictableDependenceModule(),
+                DeprecatedOperationsModule(),
+                EtherThief(),
+                ReachableExceptionsModule(),
+                ExternalCalls(),
+                IntegerOverflowUnderflowModule(),
+                MultipleSendsModule(),
+                StateChange(),
+                SuicideModule(),
+                UncheckedRetvalModule(),
+                UserAssertions(),
+            ]
+        )

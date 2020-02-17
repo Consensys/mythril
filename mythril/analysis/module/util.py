@@ -20,11 +20,7 @@ def get_detection_module_hooks(modules: List[DetectionModule], hook_type="pre"):
     hook_dict = defaultdict(list)
     for module in modules:
 
-        hooks = (
-            module.pre_hooks
-            if hook_type == "pre"
-            else module.post_hooks
-        )
+        hooks = module.pre_hooks if hook_type == "pre" else module.post_hooks
 
         for op_code in map(lambda x: x.upper(), hooks):
             # A hook can be either OP_CODE or START*
@@ -47,8 +43,6 @@ def get_detection_module_hooks(modules: List[DetectionModule], hook_type="pre"):
 
 def reset_callback_modules(module_names: Optional[List[str]] = None):
     """Clean the issue records of every callback-based module."""
-    modules = ModuleLoader().get_detection_modules(
-        EntryPoint.CALLBACK, module_names
-    )
+    modules = ModuleLoader().get_detection_modules(EntryPoint.CALLBACK, module_names)
     for module in modules:
         module.detector.reset_module()
