@@ -3,7 +3,7 @@ dependence."""
 import logging
 from copy import copy
 
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
 from mythril.analysis import solver
@@ -53,20 +53,15 @@ class OldBlockNumberUsedAnnotation(StateAnnotation):
 class PredictableDependenceModule(DetectionModule):
     """This module detects whether control flow decisions are made using predictable
     parameters."""
-
-    def __init__(self) -> None:
-        """"""
-        super().__init__(
-            name="Dependence of Predictable Variables",
-            swc_id="{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS),
-            description=(
-                "Check whether important control flow decisions are influenced by block.coinbase,"
-                "block.gaslimit, block.timestamp or block.number."
-            ),
-            entrypoint="callback",
-            pre_hooks=["BLOCKHASH", "JUMPI"] + final_ops,
-            post_hooks=["BLOCKHASH"] + predictable_ops,
-        )
+    name = "Dependence of Predictable Variables",
+    swc_id = "{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS),
+    description = (
+                      "Check whether important control flow decisions are influenced by block.coinbase,"
+                      "block.gaslimit, block.timestamp or block.number."
+                  ),
+    entry_point = EntryPoint.CALLBACK,
+    pre_hooks = ["BLOCKHASH", "JUMPI"] + final_ops,
+    post_hooks = ["BLOCKHASH"] + predictable_ops,
 
     def _execute(self, state: GlobalState) -> None:
         """
