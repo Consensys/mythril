@@ -18,7 +18,9 @@ OPCODE_LIST = [c[0] for _, c in opcodes.items()]
 
 def reset_callback_modules(module_names=(), custom_modules_directory=""):
     """Clean the issue records of every callback-based module."""
-    modules = get_detection_modules(EntryPoint.CALLBACK, module_names, custom_modules_directory)
+    modules = get_detection_modules(
+        EntryPoint.CALLBACK, module_names, custom_modules_directory
+    )
     for module in modules:
         module.detector.reset_module()
 
@@ -53,7 +55,9 @@ def get_detection_module_hooks(modules, hook_type="pre", custom_modules_director
     return dict(hook_dict)
 
 
-def get_detection_modules(entry_point: EntryPoint, include_modules=(), custom_modules_directory=""):
+def get_detection_modules(
+    entry_point: EntryPoint, include_modules=(), custom_modules_directory=""
+):
     """ Gets all detection modules with the given entry_point
 
     :param entry_point: Report only the detection modules with this entry point

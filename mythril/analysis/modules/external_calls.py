@@ -51,6 +51,7 @@ def _is_precompile_call(global_state: GlobalState):
 class ExternalCalls(DetectionModule):
     """This module searches for low level calls (e.g. call.value()) that
     forward all gas to the callee."""
+
     name = "External calls"
     swc_id = REENTRANCY
     description = DESCRIPTION

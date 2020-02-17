@@ -63,25 +63,26 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
 class IntegerOverflowUnderflowModule(DetectionModule):
     """This module searches for integer over- and underflows."""
+
     name = "Integer Overflow and Underflow"
     swc_id = INTEGER_OVERFLOW_AND_UNDERFLOW
     description = (
-                      "For every SUB instruction, check if there's a possible state "
-                      "where op1 > op0. For every ADD, MUL instruction, check if "
-                      "there's a possible state where op1 + op0 > 2^32 - 1"
-                  )
+        "For every SUB instruction, check if there's a possible state "
+        "where op1 > op0. For every ADD, MUL instruction, check if "
+        "there's a possible state where op1 + op0 > 2^32 - 1"
+    )
     entry_point = EntryPoint.CALLBACK
     pre_hooks = [
-                    "ADD",
-                    "MUL",
-                    "EXP",
-                    "SUB",
-                    "SSTORE",
-                    "JUMPI",
-                    "STOP",
-                    "RETURN",
-                    "CALL",
-                ]
+        "ADD",
+        "MUL",
+        "EXP",
+        "SUB",
+        "SSTORE",
+        "JUMPI",
+        "STOP",
+        "RETURN",
+        "CALL",
+    ]
 
     def __init__(self) -> None:
         """

@@ -21,9 +21,12 @@ log = logging.getLogger(__name__)
 
 class DelegateCallModule(DetectionModule):
     """This module detects calldata being forwarded using DELEGATECALL."""
+
     name = "DELEGATECALL Usage in Fallback Function"
     swc_id = DELEGATECALL_TO_UNTRUSTED_CONTRACT
-    description = "Check for invocations of delegatecall(msg.data) in the fallback function."
+    description = (
+        "Check for invocations of delegatecall(msg.data) in the fallback function."
+    )
     entry_point = EntryPoint.CALLBACK
     pre_hooks = ["DELEGATECALL"]
 

@@ -53,12 +53,13 @@ class OldBlockNumberUsedAnnotation(StateAnnotation):
 class PredictableDependenceModule(DetectionModule):
     """This module detects whether control flow decisions are made using predictable
     parameters."""
+
     name = "Dependence of Predictable Variables"
     swc_id = "{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS)
     description = (
-                      "Check whether important control flow decisions are influenced by block.coinbase,"
-                      "block.gaslimit, block.timestamp or block.number."
-                  )
+        "Check whether important control flow decisions are influenced by block.coinbase,"
+        "block.gaslimit, block.timestamp or block.number."
+    )
     entry_point = EntryPoint.CALLBACK
     pre_hooks = ["BLOCKHASH", "JUMPI"] + final_ops
     post_hooks = ["BLOCKHASH"] + predictable_ops

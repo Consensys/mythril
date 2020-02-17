@@ -22,6 +22,7 @@ For kill-able contracts, also check whether it is possible to direct the contrac
 class SuicideModule(DetectionModule):
     """This module checks if the contact can be 'accidentally' killed by
     anyone."""
+
     name = "Unprotected Selfdestruct"
     swc_id = UNPROTECTED_SELFDESTRUCT
     description = DESCRIPTION

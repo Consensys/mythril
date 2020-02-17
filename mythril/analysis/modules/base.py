@@ -10,6 +10,7 @@ from typing import List, Set
 from mythril.analysis.report import Issue
 from abc import ABC, abstractmethod
 from enum import Enum
+
 # Get logger instance
 log = logging.getLogger(__name__)
 
