@@ -3,7 +3,7 @@ withdrawal."""
 import logging
 from copy import copy
 
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
     PotentialIssue,
@@ -35,15 +35,11 @@ class EtherThief(DetectionModule):
     """This module search for cases where Ether can be withdrawn to a user-
     specified address."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="Ether Thief",
-            swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["CALL"],
-        )
+    name = "Ether Thief"
+    swc_id = UNPROTECTED_ETHER_WITHDRAWAL
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["CALL"]
 
     def reset_module(self):
         """
