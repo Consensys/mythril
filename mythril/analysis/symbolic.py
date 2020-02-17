@@ -1,7 +1,12 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-from mythril.analysis.module import EntryPoint, DetectionModule, ModuleLoader, get_detection_module_hooks
+from mythril.analysis.module import (
+    EntryPoint,
+    DetectionModule,
+    ModuleLoader,
+    get_detection_module_hooks,
+)
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
@@ -99,13 +104,7 @@ class SymExecWrapper:
 
         requires_statespace = (
             compulsory_statespace
-            or len(
-                ModuleLoader().get_detection_modules(
-                    EntryPoint.POST,
-                    modules
-                )
-            )
-            > 0
+            or len(ModuleLoader().get_detection_modules(EntryPoint.POST, modules)) > 0
         )
         if not contract.creation_code:
             self.accounts = {hex(ACTORS.attacker.value): attacker_account}
@@ -147,17 +146,11 @@ class SymExecWrapper:
         if run_analysis_modules:
             self.laser.register_hooks(
                 hook_type="pre",
-                hook_dict=get_detection_module_hooks(
-                    modules,
-                    hook_type="pre",
-                ),
+                hook_dict=get_detection_module_hooks(modules, hook_type="pre"),
             )
             self.laser.register_hooks(
                 hook_type="post",
-                hook_dict=get_detection_module_hooks(
-                    modules,
-                    hook_type="post",
-                ),
+                hook_dict=get_detection_module_hooks(modules, hook_type="post"),
             )
 
         if isinstance(contract, SolidityContract):
