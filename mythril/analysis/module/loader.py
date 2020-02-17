@@ -31,7 +31,8 @@ class ModuleLoader(object, metaclass=Singleton):
             raise ValueError("The passed variable is not a valid detection module")
         self._modules.append(detection_module)
 
-    def get_detection_modules(self, entry_point: Optional[EntryPoint] = None, white_list: Optional[List[str]] = None):
+    def get_detection_modules(self, entry_point: Optional[EntryPoint] = None, white_list: Optional[List[str]] = None)\
+        -> List[DetectionModule]:
         """ Gets registered detection modules
 
         :param entry_point: If specified: only return detection modules with this entry point
