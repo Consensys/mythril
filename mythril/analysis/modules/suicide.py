@@ -22,15 +22,13 @@ For kill-able contracts, also check whether it is possible to direct the contrac
 class SuicideModule(DetectionModule):
     """This module checks if the contact can be 'accidentally' killed by
     anyone."""
+    name = "Unprotected Selfdestruct"
+    swc_id = UNPROTECTED_SELFDESTRUCT
+    description = DESCRIPTION
+    entrypoint = EntryPoint.CALLBACK
+    pre_hooks = ["SUICIDE"]
 
     def __init__(self):
-        super().__init__(
-            name="Unprotected Selfdestruct",
-            swc_id=UNPROTECTED_SELFDESTRUCT,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["SUICIDE"],
-        )
         self._cache_address = {}
 
     def reset_module(self):
