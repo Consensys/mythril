@@ -9,7 +9,7 @@ from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from copy import copy
 
 from mythril.laser.smt import (
@@ -63,34 +63,31 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 
 class IntegerOverflowUnderflowModule(DetectionModule):
     """This module searches for integer over- and underflows."""
+    name = "Integer Overflow and Underflow"
+    swc_id = INTEGER_OVERFLOW_AND_UNDERFLOW
+    description = (
+                      "For every SUB instruction, check if there's a possible state "
+                      "where op1 > op0. For every ADD, MUL instruction, check if "
+                      "there's a possible state where op1 + op0 > 2^32 - 1"
+                  )
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = [
+                    "ADD",
+                    "MUL",
+                    "EXP",
+                    "SUB",
+                    "SSTORE",
+                    "JUMPI",
+                    "STOP",
+                    "RETURN",
+                    "CALL",
+                ]
 
     def __init__(self) -> None:
-        """"""
-        super().__init__(
-            name="Integer Overflow and Underflow",
-            swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
-            description=(
-                "For every SUB instruction, check if there's a possible state "
-                "where op1 > op0. For every ADD, MUL instruction, check if "
-                "there's a possible state where op1 + op0 > 2^32 - 1"
-            ),
-            entrypoint="callback",
-            pre_hooks=[
-                "ADD",
-                "MUL",
-                "EXP",
-                "SUB",
-                "SSTORE",
-                "JUMPI",
-                "STOP",
-                "RETURN",
-                "CALL",
-            ],
-        )
-
         """
         Cache satisfiability of overflow constraints
         """
+        super().__init__()
 
         self._ostates_satisfiable = set()  # type: Set[GlobalState]
         self._ostates_unsatisfiable = set()  # type: Set[GlobalState]

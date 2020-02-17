@@ -6,7 +6,7 @@ from typing import cast, List
 from mythril.analysis.report import Issue
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.analysis.swc_data import MULTIPLE_SENDS
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging

@@ -6,7 +6,7 @@ from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
 )
 from mythril.analysis.swc_data import ASSERT_VIOLATION
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 import eth_abi
