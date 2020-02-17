@@ -3,7 +3,7 @@ import logging
 import json
 
 from mythril.analysis import solver
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.modules.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.exceptions import UnsatError
@@ -14,16 +14,11 @@ log = logging.getLogger(__name__)
 
 class ReachableExceptionsModule(DetectionModule):
     """"""
-
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="Reachable Exceptions",
-            swc_id=ASSERT_VIOLATION,
-            description="Checks whether any exception states are reachable.",
-            entrypoint="callback",
-            pre_hooks=["ASSERT_FAIL"],
-        )
+    name = "Reachable Exceptions"
+    swc_id = ASSERT_VIOLATION
+    description = "Checks whether any exception states are reachable."
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["ASSERT_FAIL"]
 
     def _execute(self, state: GlobalState) -> None:
         """
