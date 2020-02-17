@@ -1,9 +1,10 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Optional
 import logging
 
 from mythril.support.opcodes import opcodes
-from mythril.analysis.module.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
+from mythril.analysis.module.loader import ModuleLoader
 
 log = logging.getLogger(__name__)
 OP_CODE_LIST = [c[0] for _, c in opcodes.items()]
@@ -43,3 +44,11 @@ def get_detection_module_hooks(modules: List[DetectionModule], hook_type="pre"):
 
     return dict(hook_dict)
 
+
+def reset_callback_modules(module_names: Optional[List[str]] = None):
+    """Clean the issue records of every callback-based module."""
+    modules = ModuleLoader().get_detection_modules(
+        EntryPoint.CALLBACK, module_names
+    )
+    for module in modules:
+        module.detector.reset_module()
