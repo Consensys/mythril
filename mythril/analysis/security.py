@@ -51,12 +51,13 @@ def get_detection_module_hooks(modules, hook_type="pre", custom_modules_director
     return dict(hook_dict)
 
 
-def get_detection_modules(entrypoint, include_modules=(), custom_modules_directory=""):
-    """
+def get_detection_modules(entry_point: EntryPoint, include_modules=(), custom_modules_directory=""):
+    """ Gets all detection modules with the given entry_point
 
-    :param entrypoint:
-    :param include_modules:
-    :return:
+    :param entry_point: Report only the detection modules with this entry point
+    :param include_modules: White list of modules to include
+    :param custom_modules_directory: Directory of modules to include for loading
+    :return: List of detection modules
     """
     module = importlib.import_module("mythril.analysis.modules.base")
     module.log.setLevel(log.level)
