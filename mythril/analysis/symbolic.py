@@ -1,8 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-from mythril.analysis.module import EntryPoint, DetectionModule
-from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
+from mythril.analysis.module import EntryPoint, DetectionModule, ModuleLoader, get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
@@ -49,7 +48,7 @@ class SymExecWrapper:
         loop_bound: int = 3,
         create_timeout: Optional[int] = None,
         transaction_count: int = 2,
-        modules: Union[Tuple[DetectionModule], List[DetectionModule]] = (),
+        modules: Optional[List[DetectionModule]] = None,
         compulsory_statespace: bool = True,
         iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
@@ -101,8 +100,9 @@ class SymExecWrapper:
         requires_statespace = (
             compulsory_statespace
             or len(
-                get_detection_modules(
-                    EntryPoint.POST, modules, custom_modules_directory
+                ModuleLoader().get_detection_modules(
+                    EntryPoint.POST,
+                    modules
                 )
             )
             > 0
@@ -150,7 +150,6 @@ class SymExecWrapper:
                 hook_dict=get_detection_module_hooks(
                     modules,
                     hook_type="pre",
-                    custom_modules_directory=custom_modules_directory,
                 ),
             )
             self.laser.register_hooks(
@@ -158,7 +157,6 @@ class SymExecWrapper:
                 hook_dict=get_detection_module_hooks(
                     modules,
                     hook_type="post",
-                    custom_modules_directory=custom_modules_directory,
                 ),
             )
 
