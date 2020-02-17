@@ -16,6 +16,10 @@ from mythril.analysis.module.modules.suicide import SuicideModule
 from mythril.analysis.module.modules.unchecked_retval import UncheckedRetvalModule
 from mythril.analysis.module.modules.user_assertions import UserAssertions
 
+from mythril.analysis.module.base import EntryPoint
+
+from typing import Optional, List
+
 
 class ModuleLoader(object, metaclass=Singleton):
     def __init__(self):
@@ -27,8 +31,19 @@ class ModuleLoader(object, metaclass=Singleton):
             raise ValueError("The passed variable is not a valid detection module")
         self._modules.append(detection_module)
 
-    def get_detection_modules(self):
-        return self._modules[:]
+    def get_detection_modules(self, entry_point: Optional[EntryPoint] = None, white_list: Optional[List[str]] = None):
+        """ Gets registered detection modules
+
+        :param entry_point: If specified: only return detection modules with this entry point
+        :param white_list: If specified: only return whitelisted detection modules
+        :return:
+        """
+        result = self._modules[:]
+        if entry_point:
+            result = [module for module in result if module.entry_point == entry_point]
+        if white_list:
+            result = [module for module in result if module.name in white_list]
+        return result
 
     def _register_mythril_modules(self):
         self._modules.extend([
