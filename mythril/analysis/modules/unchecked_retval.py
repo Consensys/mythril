@@ -30,24 +30,20 @@ class UncheckedRetvalAnnotation(StateAnnotation):
 
 class UncheckedRetvalModule(DetectionModule):
     """A detection module to test whether CALL return value is checked."""
-
-    def __init__(self):
-        super().__init__(
-            name="Unchecked Return Value",
-            swc_id=UNCHECKED_RET_VAL,
-            description=(
-                "Test whether CALL return value is checked. "
-                "For direct calls, the Solidity compiler auto-generates this check. E.g.:\n"
-                "    Alice c = Alice(address);\n"
-                "    c.ping(42);\n"
-                "Here the CALL will be followed by IZSERO(retval), if retval = ZERO then state is reverted. "
-                "For low-level-calls this check is omitted. E.g.:\n"
-                '    c.call.value(0)(bytes4(sha3("ping(uint256)")),1);'
-            ),
-            entrypoint="callback",
-            pre_hooks=["STOP", "RETURN"],
-            post_hooks=["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"],
-        )
+    name = "Unchecked Return Value"
+    swc_id = UNCHECKED_RET_VAL
+    description = (
+                      "Test whether CALL return value is checked. "
+                      "For direct calls, the Solidity compiler auto-generates this check. E.g.:\n"
+                      "    Alice c = Alice(address);\n"
+                      "    c.ping(42);\n"
+                      "Here the CALL will be followed by IZSERO(retval), if retval = ZERO then state is reverted. "
+                      "For low-level-calls this check is omitted. E.g.:\n"
+                      '    c.call.value(0)(bytes4(sha3("ping(uint256)")),1);'
+                  )
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["STOP", "RETURN"]
+    post_hooks = ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
 
     def _execute(self, state: GlobalState) -> None:
         """
