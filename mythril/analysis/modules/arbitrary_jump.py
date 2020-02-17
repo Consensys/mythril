@@ -1,7 +1,7 @@
 """This module contains the detection code for Arbitrary jumps."""
 import logging
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
-from mythril.analysis.modules.base import DetectionModule, Issue
+from mythril.analysis.modules.base import DetectionModule, Issue, EntryPoint
 from mythril.analysis.swc_data import ARBITRARY_JUMP
 from mythril.laser.ethereum.state.global_state import GlobalState
 
@@ -15,16 +15,11 @@ Search for any writes to an arbitrary storage slot
 
 class ArbitraryJump(DetectionModule):
     """This module searches for JUMPs to an arbitrary instruction."""
-
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="Jump to an arbitrary line",
-            swc_id=ARBITRARY_JUMP,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["JUMP", "JUMPI"],
-        )
+    name = "Jump to an arbitrary line",
+    swc_id = ARBITRARY_JUMP,
+    description = DESCRIPTION,
+    entry_point = EntryPoint.CALLBACK,
+    pre_hooks = ["JUMP", "JUMPI"],
 
     def reset_module(self):
         """
