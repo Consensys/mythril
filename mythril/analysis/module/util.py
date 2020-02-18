@@ -10,7 +10,9 @@ log = logging.getLogger(__name__)
 OP_CODE_LIST = [c[0] for _, c in opcodes.items()]
 
 
-def get_detection_module_hooks(modules: List[DetectionModule], hook_type="pre") -> Dict[str, List[Callable]]:
+def get_detection_module_hooks(
+    modules: List[DetectionModule], hook_type="pre"
+) -> Dict[str, List[Callable]]:
     """ Gets a dictionary with the hooks for the passed detection modules
 
     :param modules: The modules for which to retrieve hooks

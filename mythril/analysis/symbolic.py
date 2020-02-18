@@ -144,14 +144,18 @@ class SymExecWrapper:
             world_state.put_account(account)
 
         if run_analysis_modules:
-            analysis_modules = ModuleLoader().get_detection_modules(EntryPoint.POST, modules)
+            analysis_modules = ModuleLoader().get_detection_modules(
+                EntryPoint.POST, modules
+            )
             self.laser.register_hooks(
                 hook_type="pre",
                 hook_dict=get_detection_module_hooks(analysis_modules, hook_type="pre"),
             )
             self.laser.register_hooks(
                 hook_type="post",
-                hook_dict=get_detection_module_hooks(analysis_modules, hook_type="post"),
+                hook_dict=get_detection_module_hooks(
+                    analysis_modules, hook_type="post"
+                ),
             )
 
         if isinstance(contract, SolidityContract):
