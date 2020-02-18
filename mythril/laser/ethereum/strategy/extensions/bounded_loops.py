@@ -45,6 +45,39 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             self, super_strategy.work_list, super_strategy.max_depth
         )
 
+    def calculate_hash(self, i, j, trace):
+        """
+        calculate hash(trace[i: j])
+        :param i:
+        :param j:
+        :param trace:
+        :return: hash(trace[i: j])
+        """
+        key = 0
+        size = 0
+        for itr in range(i, j):
+            key |= trace[itr] << ((itr - i) * 8)
+            size += 1
+
+        return key
+
+    def count_key(self, trace, key, start, size):
+        """
+        Count continuous loops in the trace.
+        :param trace:
+        :param key:
+        :param size:
+        :return:
+        """
+        count = 0
+        i = start
+        while i >= 0:
+            if self.calculate_hash(i, i + size, trace) != key:
+                break
+            count += 1
+            i -= size
+        return count
+
     def get_strategic_global_state(self) -> GlobalState:
         """ Returns the next state
 
@@ -75,25 +108,33 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             # create unique instruction identifier
 
-            key = cur_instr["address"]
+            found = False
+            for i in range(len(annotation.trace) - 3, 0, -1):
+                if (
+                    annotation.trace[i] == annotation.trace[-2]
+                    and annotation.trace[i + 1] == annotation.trace[-1]
+                ):
+                    found = True
+                    break
 
-            for i in range(1, min(128, len(annotation.trace))):
-                key |= annotation.trace[-i] << (i * 8)
-
-            if key in annotation._reached_count:
-                annotation._reached_count[key] += 1
+            if found:
+                key = self.calculate_hash(
+                    i, len(annotation.trace) - 1, annotation.trace
+                )
+                size = len(annotation.trace) - i - 1
+                count = self.count_key(annotation.trace, key, i, size)
             else:
-                annotation._reached_count[key] = 1
+                count = 0
 
             # The creation transaction gets a higher loop bound to give it a better chance of success.
             # TODO: There's probably a nicer way to do this
 
             if isinstance(
                 state.current_transaction, ContractCreationTransaction
-            ) and annotation._reached_count[key] < max(8, self.bound):
+            ) and count < max(8, self.bound):
                 return state
 
-            elif annotation._reached_count[key] > self.bound:
+            elif count > self.bound:
                 log.debug("Loop bound reached, skipping state")
                 continue
 
