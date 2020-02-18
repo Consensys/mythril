@@ -45,4 +45,4 @@ def reset_callback_modules(module_names: Optional[List[str]] = None):
     """Clean the issue records of every callback-based module."""
     modules = ModuleLoader().get_detection_modules(EntryPoint.CALLBACK, module_names)
     for module in modules:
-        module.detector.reset_module()
+        module.reset_module()
