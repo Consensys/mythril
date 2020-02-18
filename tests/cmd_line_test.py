@@ -63,13 +63,16 @@ class CommandLineToolTestCase(BaseTestCase):
         # Just check for crashes
         output_of(command)
 
+    ''''
     def test_storage(self):
         command = """python3 {} read-storage "438767356, 3" 0x76799f77587738bfeef09452df215b63d2cfb08a """.format(
             MYTH
         )
         self.assertIn("0x1a270efc", output_of(command))
+    '''
 
 
+"""
 class InfuraTestCase(BaseTestCase):
     def test_infura_mainnet(self):
         command = "python3 {} disassemble --rpc infura-mainnet  -a 0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208".format(
@@ -99,3 +102,4 @@ class InfuraTestCase(BaseTestCase):
         )
         output = output_of(command)
         self.assertIn("1821 PUSH1 0x01\n1823 PUSH2 0x070c", output)
+"""

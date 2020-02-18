@@ -66,7 +66,13 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
             cur_instr = state.get_current_instruction()
 
-            if cur_instr["opcode"].upper() != "JUMPDEST":
+            if (
+                cur_instr["opcode"].upper() != "JUMPDEST"
+                or state.environment.code.instruction_list[state.mstate.prev_pc][
+                    "opcode"
+                ]
+                != "JUMPI"
+            ):
                 return state
 
             # create unique instruction identifier

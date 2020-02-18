@@ -53,10 +53,9 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-    if (
-        isinstance(callee_address, BitVec)
-        or int(callee_address, 16) > PRECOMPILE_COUNT
-        or int(callee_address, 16) == 0
+    if isinstance(callee_address, BitVec) or (
+        isinstance(callee_address, str)
+        and (int(callee_address, 16) > PRECOMPILE_COUNT or int(callee_address, 16) == 0)
     ):
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
@@ -141,37 +140,9 @@ def get_callee_account(
         else:
             callee_address = hex(callee_address.value)[2:]
 
-    try:
-        return global_state.accounts[int(callee_address, 16)]
-    except KeyError:
-        # We have a valid call address, but contract is not in the modules list
-        log.debug("Module with address %s not loaded.", callee_address)
-
-    if dynamic_loader is None:
-        raise ValueError("dynamic_loader is None")
-
-    log.debug("Attempting to load dependency")
-
-    try:
-        code = dynamic_loader.dynld(callee_address)
-    except ValueError as error:
-        log.debug("Unable to execute dynamic loader because: %s", error)
-        raise error
-    if code is None:
-        log.debug("No code returned, not a contract account?")
-        raise ValueError("No code returned")
-    log.debug("Dependency loaded: " + callee_address)
-
-    callee_account = Account(
-        symbol_factory.BitVecVal(int(callee_address, 16), 256),
-        code,
-        callee_address,
-        dynamic_loader=dynamic_loader,
-        balances=global_state.world_state.balances,
+    return global_state.world_state.accounts_exist_or_load(
+        callee_address, dynamic_loader
     )
-    global_state.accounts[int(callee_address, 16)] = callee_account
-
-    return callee_account
 
 
 def get_call_data(
@@ -265,6 +236,7 @@ def native_call(
     global_state.mstate.min_gas_used += native_gas_min
     global_state.mstate.max_gas_used += native_gas_max
     global_state.mstate.mem_extend(mem_out_start, mem_out_sz)
+
     try:
         data = natives.native_contracts(call_address_int, call_data)
     except natives.NativeContractException:
