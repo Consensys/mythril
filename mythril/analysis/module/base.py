@@ -5,7 +5,7 @@ This is  the interface extended by all mythril detection modules, which permit t
 and bugs in smart contracts.
 """
 import logging
-from typing import List, Set
+from typing import List, Set, Optional
 
 from mythril.analysis.report import Issue
 from abc import ABC, abstractmethod
@@ -43,7 +43,7 @@ class DetectionModule(ABC):
         """
         self.issues = []
 
-    def execute(self, statespace) -> None:
+    def execute(self, statespace) -> Optional[List[Issue]]:
         """The entry point for execution, which is being called by Mythril.
 
         :param statespace:
@@ -55,6 +55,8 @@ class DetectionModule(ABC):
         self._execute(statespace)
 
         log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
+
+        return None
 
     def _execute(self, statespace):
         """Module main method (override this)
