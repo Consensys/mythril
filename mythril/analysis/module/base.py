@@ -73,14 +73,14 @@ class DetectionModule(ABC):
 
         return result
 
+    @abstractmethod
     def _execute(self, target: Union[SymExecWrapper, GlobalState]) -> Optional[List[Issue]]:
         """Module main method (override this)
 
         :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
         :return: List of encountered issues
         """
-
-        raise NotImplementedError()
+        pass
 
     def __repr__(self) -> str:
         return (
