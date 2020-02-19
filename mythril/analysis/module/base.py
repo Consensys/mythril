@@ -1,8 +1,7 @@
-""" Base DetectionModule python module
+""" Mythril Detection Modules
 
-The main interface specified in this module is DetectionModule.
-This is  the interface extended by all mythril detection modules, which permit the detection of vulnerabilities
-and bugs in smart contracts.
+This module includes an definition of the DetectionModule interface.
+DetectionModules implement different analysis rules to find weaknesses and vulnerabilities.
 """
 import logging
 from typing import List, Set, Optional, Union
@@ -24,6 +23,7 @@ class EntryPoint(Enum):
     This enum is used to signify the entry_point of detection modules.
     See also the class documentation of DetectionModule
     """
+
     POST = 1
     CALLBACK = 2
 
@@ -58,7 +58,9 @@ class DetectionModule(ABC):
         """ Resets the storage of this module """
         self.issues = []
 
-    def execute(self, target: Union[SymExecWrapper, GlobalState]) -> Optional[List[Issue]]:
+    def execute(
+        self, target: Union[SymExecWrapper, GlobalState]
+    ) -> Optional[List[Issue]]:
         """The entry point for execution, which is being called by Mythril.
 
         :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
@@ -74,7 +76,9 @@ class DetectionModule(ABC):
         return result
 
     @abstractmethod
-    def _execute(self, target: Union[SymExecWrapper, GlobalState]) -> Optional[List[Issue]]:
+    def _execute(
+        self, target: Union[SymExecWrapper, GlobalState]
+    ) -> Optional[List[Issue]]:
         """Module main method (override this)
 
         :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
