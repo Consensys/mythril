@@ -26,7 +26,7 @@ class SuicideModule(DetectionModule):
     name = "Unprotected Selfdestruct"
     swc_id = UNPROTECTED_SELFDESTRUCT
     description = DESCRIPTION
-    entrypoint = EntryPoint.CALLBACK
+    entry_point = EntryPoint.CALLBACK
     pre_hooks = ["SUICIDE"]
 
     def __init__(self):
