@@ -4,7 +4,7 @@ This module includes an definition of the DetectionModule interface.
 DetectionModules implement different analysis rules to find weaknesses and vulnerabilities.
 """
 import logging
-from typing import List, Set, Optional, Union
+from typing import List, Set, Optional, Union, cast
 
 from mythril.analysis.report import Issue
 from mythril.analysis.symbolic import SymExecWrapper
@@ -69,6 +69,11 @@ class DetectionModule(ABC):
 
         log.debug("Entering analysis module: {}".format(self.__class__.__name__))
 
+        if self.entry_point.CALLBACK:
+            cast(GlobalState, target)
+        else:
+            cast(SymExecWrapper, target)
+
         result = self._execute(target)
 
         log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
@@ -77,7 +82,7 @@ class DetectionModule(ABC):
 
     @abstractmethod
     def _execute(
-        self, target: Union[SymExecWrapper, GlobalState]
+        self, target
     ) -> Optional[List[Issue]]:
         """Module main method (override this)
 
