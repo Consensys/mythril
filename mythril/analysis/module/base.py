@@ -5,9 +5,12 @@ This is  the interface extended by all mythril detection modules, which permit t
 and bugs in smart contracts.
 """
 import logging
-from typing import List, Set, Optional
+from typing import List, Set, Optional, Union
 
 from mythril.analysis.report import Issue
+from mythril.analysis.symbolic import SymExecWrapper
+from mythril.laser.ethereum.state.global_state import GlobalState
+
 from abc import ABC, abstractmethod
 from enum import Enum
 
@@ -52,31 +55,29 @@ class DetectionModule(ABC):
         self.cache = set()  # type: Set[int]
 
     def reset_module(self):
-        """
-        Resets issues
-        """
+        """ Resets the storage of this module """
         self.issues = []
 
-    def execute(self, statespace) -> Optional[List[Issue]]:
+    def execute(self, target: Union[SymExecWrapper, GlobalState]) -> Optional[List[Issue]]:
         """The entry point for execution, which is being called by Mythril.
 
-        :param statespace:
-        :return:
+        :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
+        :return: List of encountered issues
         """
 
         log.debug("Entering analysis module: {}".format(self.__class__.__name__))
 
-        self._execute(statespace)
+        result = self._execute(target)
 
         log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
 
-        return None
+        return result
 
-    def _execute(self, statespace):
+    def _execute(self, target: Union[SymExecWrapper, GlobalState]) -> Optional[List[Issue]]:
         """Module main method (override this)
 
-        :param statespace:
-        :return:
+        :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
+        :return: List of encountered issues
         """
 
         raise NotImplementedError()
