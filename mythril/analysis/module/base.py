@@ -16,6 +16,11 @@ log = logging.getLogger(__name__)
 
 
 class EntryPoint(Enum):
+    """ EntryPoint Enum
+
+    This enum is used to signify the entry_point of detection modules.
+    See also the class documentation of DetectionModule
+    """
     POST = 1
     CALLBACK = 2
 
