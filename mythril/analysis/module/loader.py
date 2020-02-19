@@ -24,6 +24,13 @@ from typing import Optional, List
 
 
 class ModuleLoader(object, metaclass=Singleton):
+    """ModuleLoader
+
+    The module loader class implements a singleton loader for detection modules.
+
+    By default it will load the detection modules in the mythril package.
+    Additional detection modules can be loaded using the register_module function call implemented by the ModuleLoader
+    """
     def __init__(self):
         self._modules = []
         self._register_mythril_modules()
