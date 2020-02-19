@@ -24,6 +24,15 @@ class DetectionModule(ABC):
     """The base detection module.
 
     All custom-built detection modules must inherit from this class.
+
+    There are several class properties that expose information about the detection modules
+    - name: The name of the detection module
+    - swc_id: The SWC ID associated with the weakness that the module detects
+    - description: A description of the detection module, and what it detects
+    - entry_point: Mythril can run callback style detection modules, or modules that search the statespace.
+                [IMPORTANT] POST entry points severely slow down the analysis, try to always use callback style modules
+    - pre_hooks: A list of instructions to hook the laser vm for (pre execution of the instruction)
+    - post_hooks: A list of instructions to hook the laser vm for (post execution of the instruction)
     """
 
     name = "Detection Module Name"
