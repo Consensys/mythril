@@ -176,17 +176,13 @@ class MythrilAnalyzer:
                 log.critical("Keyboard Interrupt")
                 if self.iprof is not None:
                     log.info("Instruction Statistics:\n{}".format(self.iprof))
-                issues = retrieve_callback_issues(
-                    modules,
-                )
+                issues = retrieve_callback_issues(modules)
             except Exception:
                 log.critical(
                     "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n"
                     + traceback.format_exc()
                 )
-                issues = retrieve_callback_issues(
-                    modules,
-                )
+                issues = retrieve_callback_issues(modules)
                 exceptions.append(traceback.format_exc())
                 if self.iprof is not None:
                     log.info("Instruction Statistics:\n{}".format(self.iprof))
