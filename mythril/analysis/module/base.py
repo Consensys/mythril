@@ -4,10 +4,9 @@ This module includes an definition of the DetectionModule interface.
 DetectionModules implement different analysis rules to find weaknesses and vulnerabilities.
 """
 import logging
-from typing import List, Set, Optional, Union, cast
+from typing import List, Set, Optional
 
 from mythril.analysis.report import Issue
-from mythril.analysis.symbolic import SymExecWrapper
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 from abc import ABC, abstractmethod
@@ -58,9 +57,7 @@ class DetectionModule(ABC):
         """ Resets the storage of this module """
         self.issues = []
 
-    def execute(
-        self, target: Union[SymExecWrapper, GlobalState]
-    ) -> Optional[List[Issue]]:
+    def execute(self, target: GlobalState) -> Optional[List[Issue]]:
         """The entry point for execution, which is being called by Mythril.
 
         :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
@@ -68,11 +65,6 @@ class DetectionModule(ABC):
         """
 
         log.debug("Entering analysis module: {}".format(self.__class__.__name__))
-
-        if self.entry_point.CALLBACK:
-            cast(GlobalState, target)
-        else:
-            cast(SymExecWrapper, target)
 
         result = self._execute(target)
 
