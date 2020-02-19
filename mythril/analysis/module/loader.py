@@ -31,11 +31,13 @@ class ModuleLoader(object, metaclass=Singleton):
     By default it will load the detection modules in the mythril package.
     Additional detection modules can be loaded using the register_module function call implemented by the ModuleLoader
     """
+
     def __init__(self):
         self._modules = []
         self._register_mythril_modules()
 
     def register_module(self, detection_module: DetectionModule):
+        """Registers a detection module with the module loader"""
         if not isinstance(detection_module, DetectionModule):
             raise ValueError("The passed variable is not a valid detection module")
         self._modules.append(detection_module)
@@ -49,7 +51,7 @@ class ModuleLoader(object, metaclass=Singleton):
 
         :param entry_point: If specified: only return detection modules with this entry point
         :param white_list: If specified: only return whitelisted detection modules
-        :return:
+        :return: The selected detection modules
         """
         result = self._modules[:]
         if entry_point:
