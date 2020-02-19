@@ -81,9 +81,7 @@ class DetectionModule(ABC):
         return result
 
     @abstractmethod
-    def _execute(
-        self, target
-    ) -> Optional[List[Issue]]:
+    def _execute(self, target) -> Optional[List[Issue]]:
         """Module main method (override this)
 
         :param target: The target of the analysis, either a global state (callback) or the entire statespace (post)
