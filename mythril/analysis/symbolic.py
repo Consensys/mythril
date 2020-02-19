@@ -145,7 +145,7 @@ class SymExecWrapper:
 
         if run_analysis_modules:
             analysis_modules = ModuleLoader().get_detection_modules(
-                EntryPoint.POST, modules
+                EntryPoint.CALLBACK, modules
             )
             self.laser.register_hooks(
                 hook_type="pre",

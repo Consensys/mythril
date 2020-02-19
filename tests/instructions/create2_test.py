@@ -24,7 +24,7 @@ def generate_salted_address(code_str, salt, caller):
     salt = "0" * (64 - len(salt)) + salt
 
     contract_address = int(
-        get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:], 16,
+        get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:], 16
     )
     return contract_address
 
