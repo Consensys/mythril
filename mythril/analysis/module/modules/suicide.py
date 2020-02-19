@@ -30,6 +30,7 @@ class SuicideModule(DetectionModule):
     pre_hooks = ["SUICIDE"]
 
     def __init__(self):
+        super().__init__()
         self._cache_address = {}
 
     def reset_module(self):
