@@ -1716,7 +1716,7 @@ class Instruction:
                 contract_address = Extract(255, 96, address)
                 global_state.world_state.constraints.append(constraint)
             else:
-                salt = hex(create2_salt)[2:]
+                salt = hex(create2_salt.value)[2:]
                 salt = "0" * (64 - len(salt)) + salt
 
                 addr = hex(caller.value)[2:]
