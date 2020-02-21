@@ -1697,20 +1697,37 @@ class Instruction:
         gas_price = environment.gasprice
         origin = environment.origin
 
-        contract_address = None
+        contract_address = None  # type: Union[BitVec, int]
+        Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
+
         if create2_salt:
-            salt = hex(create2_salt)[2:]
-            salt = "0" * (64 - len(salt)) + salt
+            if create2_salt.symbolic:
+                if create2_salt.size() != 256:
+                    pad = symbol_factory.BitVecVal(0, 256 - create2_salt.size())
+                    create2_salt = Concat(pad, create2_salt)
+                address, constraint = keccak_function_manager.create_keccak(
+                    Concat(
+                        symbol_factory.BitVecVal(255, 8),
+                        caller,
+                        create2_salt,
+                        symbol_factory.BitVecVal(int(get_code_hash(code_str), 16), 256),
+                    )
+                )
+                contract_address = Extract(255, 96, address)
+                global_state.world_state.constraints.append(constraint)
+            else:
+                salt = hex(create2_salt.value)[2:]
+                salt = "0" * (64 - len(salt)) + salt
 
-            addr = hex(caller.value)[2:]
-            addr = "0" * (40 - len(addr)) + addr
+                addr = hex(caller.value)[2:]
+                addr = "0" * (40 - len(addr)) + addr
 
-            Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
-
-            contract_address = int(
-                get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
-                16,
-            )
+                contract_address = int(
+                    get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[
+                        26:
+                    ],
+                    16,
+                )
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
