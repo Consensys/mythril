@@ -3,7 +3,7 @@ from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
 )
 from mythril.analysis.swc_data import REENTRANCY
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.smt import symbol_factory, UGT, BitVec, Or
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -99,15 +99,11 @@ class StateChange(DetectionModule):
     """This module searches for state change after low level calls (e.g. call.value()) that
     forward gas to the callee."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="State Change After External calls",
-            swc_id=REENTRANCY,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=CALL_LIST + STATE_READ_WRITE_LIST,
-        )
+    name = "State Change After External calls"
+    swc_id = REENTRANCY
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = CALL_LIST + STATE_READ_WRITE_LIST
 
     def _execute(self, state: GlobalState) -> None:
         if state.get_current_instruction()["address"] in self.cache:

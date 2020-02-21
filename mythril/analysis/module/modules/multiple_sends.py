@@ -6,7 +6,7 @@ from typing import cast, List
 from mythril.analysis.report import Issue
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.analysis.swc_data import MULTIPLE_SENDS
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
@@ -27,22 +27,11 @@ class MultipleSendsAnnotation(StateAnnotation):
 class MultipleSendsModule(DetectionModule):
     """This module checks for multiple sends in a single transaction."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="Multiple Sends",
-            swc_id=MULTIPLE_SENDS,
-            description="Check for multiple sends in a single transaction",
-            entrypoint="callback",
-            pre_hooks=[
-                "CALL",
-                "DELEGATECALL",
-                "STATICCALL",
-                "CALLCODE",
-                "RETURN",
-                "STOP",
-            ],
-        )
+    name = "Multiple Sends"
+    swc_id = MULTIPLE_SENDS
+    description = "Check for multiple sends in a single transaction"
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE", "RETURN", "STOP"]
 
     def _execute(self, state: GlobalState) -> None:
         if state.get_current_instruction()["address"] in self.cache:
