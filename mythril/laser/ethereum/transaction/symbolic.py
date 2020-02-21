@@ -134,9 +134,7 @@ def execute_contract_creation(
                 "gas_price{}".format(next_transaction_id), 256
             ),
             gas_limit=8000000,  # block gas limit
-            origin=symbol_factory.BitVecSym(
-                "origin{}".format(next_transaction_id), 256
-            ),
+            origin=ACTORS["CREATOR"],
             code=Disassembly(contract_initialization_code),
             caller=ACTORS["CREATOR"],
             contract_name=contract_name,
