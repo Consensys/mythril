@@ -139,7 +139,7 @@ class KeccakFunctionManager:
             ULT(func(func_input), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(func_input), symbol_factory.BitVecVal(64, 256)) == 0,
         )
-        concrete_cond = False
+        concrete_cond = symbol_factory.Bool(False)
         for key, keccak in self.concrete_hashes.items():
             hash_eq = And(
                 func(func_input) == keccak,
