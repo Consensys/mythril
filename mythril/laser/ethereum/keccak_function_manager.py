@@ -35,6 +35,7 @@ class KeccakFunctionManager:
         self._index_counter = TOTAL_PARTS - 34534
         self.hash_result_store = {}  # type: Dict[int, List[BitVec]]
         self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
+        self.concrete_hashes = {}  # type: Dict[BitVec, BitVec]
 
     @staticmethod
     def find_concrete_keccak(data: BitVec) -> BitVec:
@@ -85,8 +86,14 @@ class KeccakFunctionManager:
         length = data.size()
         func, inverse = self.get_function(length)
 
+        if data.symbolic is False:
+            concrete_hash = self.find_concrete_keccak(data)
+            self.concrete_hashes[data] = concrete_hash
+            # This condition is essential to avoid some edge cases
+            condition = And(func(data) == concrete_hash, inverse(func(data)) == data)
+            return concrete_hash, condition
+
         condition = self._create_condition(func_input=data)
-        self.quick_inverse[func(data)] = data
         self.hash_result_store[length].append(func(data))
         return func(data), condition
 
@@ -132,7 +139,15 @@ class KeccakFunctionManager:
             ULT(func(func_input), symbol_factory.BitVecVal(upper_bound, 256)),
             URem(func(func_input), symbol_factory.BitVecVal(64, 256)) == 0,
         )
-        return cond
+        concrete_cond = False
+        for key, hash in self.concrete_hashes.items():
+            hash_eq = And(
+                func(func_input) == hash,
+                key == func_input,
+                inv(func(func_input)) == func_input,
+            )
+            concrete_cond = Or(concrete_cond, hash_eq)
+        return Or(cond, concrete_cond)
 
 
 keccak_function_manager = KeccakFunctionManager()
