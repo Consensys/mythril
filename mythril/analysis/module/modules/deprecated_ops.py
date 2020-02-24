@@ -15,7 +15,7 @@ Check for usage of deprecated opcodes
 """
 
 
-class DeprecatedOperationsModule(DetectionModule):
+class DeprecatedOperations(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
 
     name = "Deprecated Operations"
@@ -87,4 +87,4 @@ class DeprecatedOperationsModule(DetectionModule):
         return [potential_issue]
 
 
-detector = DeprecatedOperationsModule()
+detector = DeprecatedOperations()

@@ -50,7 +50,7 @@ class OldBlockNumberUsedAnnotation(StateAnnotation):
         pass
 
 
-class PredictableDependenceModule(DetectionModule):
+class PredictableVariables(DetectionModule):
     """This module detects whether control flow decisions are made using predictable
     parameters."""
 
@@ -232,4 +232,4 @@ class PredictableDependenceModule(DetectionModule):
         return issues
 
 
-detector = PredictableDependenceModule()
+detector = PredictableVariables()

@@ -11,7 +11,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 log = logging.getLogger(__name__)
 
 
-class ReachableExceptionsModule(DetectionModule):
+class ReachableExceptions(DetectionModule):
     """"""
 
     name = "Reachable Exceptions"
@@ -76,4 +76,4 @@ class ReachableExceptionsModule(DetectionModule):
         return []
 
 
-detector = ReachableExceptionsModule()
+detector = ReachableExceptions()

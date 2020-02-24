@@ -19,7 +19,7 @@ from mythril.laser.smt import symbol_factory, UGT
 log = logging.getLogger(__name__)
 
 
-class DelegateCallModule(DetectionModule):
+class ArbitraryDelegateCall(DetectionModule):
     """This module detects calldata being forwarded using DELEGATECALL."""
 
     name = "DELEGATECALL Usage in Fallback Function"
@@ -100,4 +100,4 @@ class DelegateCallModule(DetectionModule):
             return []
 
 
-detector = DelegateCallModule()
+detector = ArbitraryDelegateCall()

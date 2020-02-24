@@ -24,7 +24,7 @@ class MultipleSendsAnnotation(StateAnnotation):
         return result
 
 
-class MultipleSendsModule(DetectionModule):
+class MultipleSends(DetectionModule):
     """This module checks for multiple sends in a single transaction."""
 
     name = "Multiple Sends"
@@ -98,4 +98,4 @@ class MultipleSendsModule(DetectionModule):
         return []
 
 
-detector = MultipleSendsModule()
+detector = MultipleSends()

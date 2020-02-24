@@ -19,7 +19,7 @@ For kill-able contracts, also check whether it is possible to direct the contrac
 """
 
 
-class SuicideModule(DetectionModule):
+class AccidentallyKillable(DetectionModule):
     """This module checks if the contact can be 'accidentally' killed by
     anyone."""
 
@@ -106,4 +106,4 @@ class SuicideModule(DetectionModule):
         return []
 
 
-detector = SuicideModule()
+detector = AccidentallyKillable()

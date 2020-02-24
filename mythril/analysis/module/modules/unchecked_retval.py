@@ -28,7 +28,7 @@ class UncheckedRetvalAnnotation(StateAnnotation):
         return result
 
 
-class UncheckedRetvalModule(DetectionModule):
+class UncheckedRetval(DetectionModule):
     """A detection module to test whether CALL return value is checked."""
 
     name = "Unchecked Return Value"
@@ -121,4 +121,4 @@ class UncheckedRetvalModule(DetectionModule):
         return []
 
 
-detector = UncheckedRetvalModule()
+detector = UncheckedRetval()

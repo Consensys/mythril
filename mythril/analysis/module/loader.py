@@ -3,19 +3,19 @@ from mythril.support.support_utils import Singleton
 
 from mythril.analysis.module.modules.arbitrary_jump import ArbitraryJump
 from mythril.analysis.module.modules.arbitrary_write import ArbitraryStorage
-from mythril.analysis.module.modules.delegatecall import DelegateCallModule
+from mythril.analysis.module.modules.delegatecall import ArbitraryDelegateCall
 from mythril.analysis.module.modules.dependence_on_predictable_vars import (
-    PredictableDependenceModule,
+    PredictableVariables,
 )
-from mythril.analysis.module.modules.deprecated_ops import DeprecatedOperationsModule
+from mythril.analysis.module.modules.deprecated_ops import DeprecatedOperations
 from mythril.analysis.module.modules.ether_thief import EtherThief
-from mythril.analysis.module.modules.exceptions import ReachableExceptionsModule
+from mythril.analysis.module.modules.exceptions import ReachableExceptions
 from mythril.analysis.module.modules.external_calls import ExternalCalls
-from mythril.analysis.module.modules.integer import IntegerOverflowUnderflowModule
-from mythril.analysis.module.modules.multiple_sends import MultipleSendsModule
-from mythril.analysis.module.modules.state_change_external_calls import StateChange
-from mythril.analysis.module.modules.suicide import SuicideModule
-from mythril.analysis.module.modules.unchecked_retval import UncheckedRetvalModule
+from mythril.analysis.module.modules.integer import IntegerArithmetics
+from mythril.analysis.module.modules.multiple_sends import MultipleSends
+from mythril.analysis.module.modules.state_change_external_calls import StateChangeAfterCall
+from mythril.analysis.module.modules.suicide import AccidentallyKillable
+from mythril.analysis.module.modules.unchecked_retval import UncheckedRetval
 from mythril.analysis.module.modules.user_assertions import UserAssertions
 
 from mythril.analysis.module.base import EntryPoint
@@ -65,17 +65,17 @@ class ModuleLoader(object, metaclass=Singleton):
             [
                 ArbitraryJump(),
                 ArbitraryStorage(),
-                DelegateCallModule(),
-                PredictableDependenceModule(),
-                DeprecatedOperationsModule(),
+                ArbitraryDelegateCall(),
+                PredictableVariables(),
+                DeprecatedOperations(),
                 EtherThief(),
-                ReachableExceptionsModule(),
+                ReachableExceptions(),
                 ExternalCalls(),
-                IntegerOverflowUnderflowModule(),
-                MultipleSendsModule(),
-                StateChange(),
-                SuicideModule(),
-                UncheckedRetvalModule(),
+                IntegerArithmetics(),
+                MultipleSends(),
+                StateChangeAfterCall(),
+                AccidentallyKillable(),
+                UncheckedRetval(),
                 UserAssertions(),
             ]
         )
