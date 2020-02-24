@@ -177,15 +177,7 @@ def test_vmtest(
                 expected = int(value, 16)
                 actual = account.storage[symbol_factory.BitVecVal(int(index, 16), 256)]
                 if isinstance(actual, Expression):
-                    if (
-                        actual.symbolic
-                        and actual in keccak_function_manager.quick_inverse
-                    ):
-                        actual = keccak_function_manager.find_concrete_keccak(
-                            keccak_function_manager.quick_inverse[actual]
-                        )
-                    else:
-                        actual = actual.value
+                    actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual
                 else:
                     if type(actual) == bytes:
