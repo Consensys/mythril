@@ -6,7 +6,7 @@ from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
 )
 from mythril.analysis.swc_data import ASSERT_VIOLATION
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 import eth_abi
@@ -28,15 +28,11 @@ assertion_failed_hash = (
 class UserAssertions(DetectionModule):
     """This module searches for user supplied exceptions: emit AssertionFailed("Error")."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="External calls",
-            swc_id=ASSERT_VIOLATION,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["LOG1"],
-        )
+    name = "User assertions"
+    swc_id = ASSERT_VIOLATION
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["LOG1"]
 
     def _execute(self, state: GlobalState) -> None:
         """

@@ -1,4 +1,4 @@
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module import DetectionModule
 
 from mythril.plugin.interface import MythrilCLIPlugin, MythrilPlugin
 from mythril.support.support_utils import Singleton

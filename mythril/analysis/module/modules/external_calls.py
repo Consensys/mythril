@@ -9,10 +9,7 @@ from mythril.analysis.potential_issues import (
 from mythril.analysis.swc_data import REENTRANCY
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
-from mythril.laser.ethereum.transaction.transaction_models import (
-    ContractCreationTransaction,
-)
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.smt import UGT, symbol_factory, Or, BitVec
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -52,15 +49,11 @@ class ExternalCalls(DetectionModule):
     """This module searches for low level calls (e.g. call.value()) that
     forward all gas to the callee."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="External calls",
-            swc_id=REENTRANCY,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["CALL"],
-        )
+    name = "External calls"
+    swc_id = REENTRANCY
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["CALL"]
 
     def _execute(self, state: GlobalState) -> None:
         """

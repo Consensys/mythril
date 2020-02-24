@@ -171,22 +171,18 @@ class MythrilAnalyzer:
                     enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
                 )
-                issues = fire_lasers(sym, modules, self.custom_modules_directory)
+                issues = fire_lasers(sym, modules)
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
                 if self.iprof is not None:
                     log.info("Instruction Statistics:\n{}".format(self.iprof))
-                issues = retrieve_callback_issues(
-                    modules, self.custom_modules_directory
-                )
+                issues = retrieve_callback_issues(modules)
             except Exception:
                 log.critical(
                     "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n"
                     + traceback.format_exc()
                 )
-                issues = retrieve_callback_issues(
-                    modules, self.custom_modules_directory
-                )
+                issues = retrieve_callback_issues(modules)
                 exceptions.append(traceback.format_exc())
                 if self.iprof is not None:
                     log.info("Instruction Statistics:\n{}".format(self.iprof))
