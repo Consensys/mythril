@@ -788,12 +788,14 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         sys.exit()
 
     if args.command == "list-detectors":
+        modules = []
         for module in ModuleLoader().get_detection_modules():
-            print("{}: {}".format(type(module).__name__, module.name))
+            modules.append({'classname': type(module).__name__, 'title':  module.name})
         if args.outform == "json":
-            print(json.dumps({"version_str": VERSION}))
+            print(json.dumps(modules))
         else:
-            print("Mythril version {}".format(VERSION))
+            for module in modules:
+                print("{}: {}".format(module['classname'], module['title']))
         sys.exit()
 
     if args.command == "help":
