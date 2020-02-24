@@ -233,6 +233,11 @@ def main() -> None:
     )
     create_pro_parser(pro_parser)
 
+    subparsers.add_parser(
+        "list-detectors",
+        parents=[output_parser],
+        help="Lists available detection modules",
+    )
     read_storage_parser = subparsers.add_parser(
         "read-storage",
         help="Retrieves storage slots from a given address through rpc",
@@ -250,11 +255,6 @@ def main() -> None:
     )
     subparsers.add_parser(
         "version", parents=[output_parser], help="Outputs the version"
-    )
-    subparsers.add_parser(
-        "list-detectors",
-        parents=[output_parser],
-        help="Lists available detection modules",
     )
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
@@ -769,6 +769,7 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     :param parser: The parser
     :param args: The args
     """
+
 
     if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
