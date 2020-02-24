@@ -4,7 +4,7 @@ from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
 )
 from mythril.analysis.swc_data import DEPRECATED_FUNCTIONS_USAGE
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 import logging
 
@@ -18,15 +18,11 @@ Check for usage of deprecated opcodes
 class DeprecatedOperationsModule(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="Deprecated Operations",
-            swc_id=DEPRECATED_FUNCTIONS_USAGE,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["ORIGIN", "CALLCODE"],
-        )
+    name = "Deprecated Operations"
+    swc_id = DEPRECATED_FUNCTIONS_USAGE
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["ORIGIN", "CALLCODE"]
 
     def _execute(self, state: GlobalState) -> None:
         """

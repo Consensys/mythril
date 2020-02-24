@@ -2,7 +2,7 @@ from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.laser.smt.bool import And
@@ -24,14 +24,14 @@ class SuicideModule(DetectionModule):
     """This module checks if the contact can be 'accidentally' killed by
     anyone."""
 
+    name = "Unprotected Selfdestruct"
+    swc_id = UNPROTECTED_SELFDESTRUCT
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["SUICIDE"]
+
     def __init__(self):
-        super().__init__(
-            name="Unprotected Selfdestruct",
-            swc_id=UNPROTECTED_SELFDESTRUCT,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["SUICIDE"],
-        )
+        super().__init__()
         self._cache_address = {}
 
     def reset_module(self):

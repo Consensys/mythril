@@ -1,8 +1,12 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-
-from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
+from mythril.analysis.module import (
+    EntryPoint,
+    DetectionModule,
+    ModuleLoader,
+    get_detection_module_hooks,
+)
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
@@ -26,7 +30,7 @@ from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Type, Optional
+from typing import Union, List, Type, Optional, Tuple
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, VarType, get_variable
 
@@ -49,7 +53,7 @@ class SymExecWrapper:
         loop_bound: int = 3,
         create_timeout: Optional[int] = None,
         transaction_count: int = 2,
-        modules=(),
+        modules: Optional[List[str]] = None,
         compulsory_statespace: bool = True,
         iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
@@ -100,7 +104,7 @@ class SymExecWrapper:
 
         requires_statespace = (
             compulsory_statespace
-            or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
+            or len(ModuleLoader().get_detection_modules(EntryPoint.POST, modules)) > 0
         )
         if not contract.creation_code:
             self.accounts = {hex(ACTORS.attacker.value): attacker_account}
@@ -140,20 +144,17 @@ class SymExecWrapper:
             world_state.put_account(account)
 
         if run_analysis_modules:
+            analysis_modules = ModuleLoader().get_detection_modules(
+                EntryPoint.CALLBACK, modules
+            )
             self.laser.register_hooks(
                 hook_type="pre",
-                hook_dict=get_detection_module_hooks(
-                    modules,
-                    hook_type="pre",
-                    custom_modules_directory=custom_modules_directory,
-                ),
+                hook_dict=get_detection_module_hooks(analysis_modules, hook_type="pre"),
             )
             self.laser.register_hooks(
                 hook_type="post",
                 hook_dict=get_detection_module_hooks(
-                    modules,
-                    hook_type="post",
-                    custom_modules_directory=custom_modules_directory,
+                    analysis_modules, hook_type="post"
                 ),
             )
 

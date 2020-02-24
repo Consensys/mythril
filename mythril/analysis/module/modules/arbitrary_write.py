@@ -1,6 +1,6 @@
 """This module contains the detection code for arbitrary storage write."""
 import logging
-from mythril.analysis.modules.base import DetectionModule
+from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.potential_issues import (
     get_potential_issues_annotation,
     PotentialIssue,
@@ -21,15 +21,11 @@ Search for any writes to an arbitrary storage slot
 class ArbitraryStorage(DetectionModule):
     """This module searches for a feasible write to an arbitrary storage slot."""
 
-    def __init__(self):
-        """"""
-        super().__init__(
-            name="Arbitrary Storage Write",
-            swc_id=WRITE_TO_ARBITRARY_STORAGE,
-            description=DESCRIPTION,
-            entrypoint="callback",
-            pre_hooks=["SSTORE"],
-        )
+    name = "Arbitrary Storage Write"
+    swc_id = WRITE_TO_ARBITRARY_STORAGE
+    description = DESCRIPTION
+    entry_point = EntryPoint.CALLBACK
+    pre_hooks = ["SSTORE"]
 
     def reset_module(self):
         """

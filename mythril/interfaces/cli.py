@@ -719,7 +719,7 @@ def execute_command(
                 report = analyzer.fire_lasers(
                     modules=[m.strip() for m in args.modules.strip().split(",")]
                     if args.modules
-                    else [],
+                    else None,
                     transaction_count=args.transaction_count,
                 )
                 outputs = {
