@@ -17,7 +17,11 @@ import traceback
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril import mythx
-from mythril.exceptions import AddressNotFoundError, CriticalError
+from mythril.exceptions import (
+    AddressNotFoundError,
+    DetectorNotFoundError,
+    CriticalError,
+)
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -729,9 +733,11 @@ def execute_command(
                     "markdown": report.as_markdown(),
                 }
                 print(outputs[args.outform])
-            except ModuleNotFoundError as e:
+            except DetectorNotFoundError as e:
+                exit_with_error(args.outform, format(e))
+            except CriticalError as e:
                 exit_with_error(
-                    args.outform, "Error loading analysis modules: " + format(e)
+                    args.outform, "Analysis error encountered: " + format(e)
                 )
 
     else:
