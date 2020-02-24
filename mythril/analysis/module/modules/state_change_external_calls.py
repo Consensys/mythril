@@ -99,7 +99,7 @@ class StateChangeAfterCall(DetectionModule):
     """This module searches for state change after low level calls (e.g. call.value()) that
     forward gas to the callee."""
 
-    name = "State Change After External calls"
+    name = "State change after external call"
     swc_id = REENTRANCY
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK

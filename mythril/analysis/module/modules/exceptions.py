@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 class Exceptions(DetectionModule):
     """"""
 
-    name = "Reachable Exceptions"
+    name = "Exception or assertion violation"
     swc_id = ASSERT_VIOLATION
     description = "Checks whether any exception states are reachable."
     entry_point = EntryPoint.CALLBACK

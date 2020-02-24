@@ -18,7 +18,7 @@ Check for usage of deprecated opcodes
 class DeprecatedOperations(DetectionModule):
     """This module checks for the usage of deprecated op codes."""
 
-    name = "Deprecated Operations"
+    name = "Usage of deprecated instructions"
     swc_id = DEPRECATED_FUNCTIONS_USAGE
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK

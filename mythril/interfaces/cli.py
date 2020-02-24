@@ -29,6 +29,9 @@ from mythril.mythril import (
     MythrilConfig,
     MythrilLevelDB,
 )
+
+from mythril.analysis.module import ModuleLoader
+
 from mythril.__version__ import __version__ as VERSION
 
 ANALYZE_LIST = ("analyze", "a")
@@ -46,6 +49,7 @@ COMMAND_LIST = (
         "leveldb-search",
         "function-to-hash",
         "hash-to-address",
+        "list-detectors",
         "version",
         "truffle",
         "help",
@@ -246,6 +250,11 @@ def main() -> None:
     )
     subparsers.add_parser(
         "version", parents=[output_parser], help="Outputs the version"
+    )
+    subparsers.add_parser(
+        "list-detectors",
+        parents=[output_parser],
+        help="Lists available detection modules",
     )
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
@@ -772,6 +781,15 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         sys.exit()
 
     if args.command == "version":
+        if args.outform == "json":
+            print(json.dumps({"version_str": VERSION}))
+        else:
+            print("Mythril version {}".format(VERSION))
+        sys.exit()
+
+    if args.command == "list-detectors":
+        for module in ModuleLoader().get_detection_modules():
+            print("{}: {}".format(type(module).__name__, module.name))
         if args.outform == "json":
             print(json.dumps({"version_str": VERSION}))
         else:

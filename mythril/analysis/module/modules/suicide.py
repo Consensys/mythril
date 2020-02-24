@@ -23,7 +23,7 @@ class AccidentallyKillable(DetectionModule):
     """This module checks if the contact can be 'accidentally' killed by
     anyone."""
 
-    name = "Unprotected Selfdestruct"
+    name = "Contract can be accidentally killed by anyone"
     swc_id = UNPROTECTED_SELFDESTRUCT
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK

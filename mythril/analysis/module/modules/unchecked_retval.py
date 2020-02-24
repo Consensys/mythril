@@ -31,7 +31,7 @@ class UncheckedRetvalAnnotation(StateAnnotation):
 class UncheckedRetval(DetectionModule):
     """A detection module to test whether CALL return value is checked."""
 
-    name = "Unchecked Return Value"
+    name = "Return value of an external call is not checked"
     swc_id = UNCHECKED_RET_VAL
     description = (
         "Test whether CALL return value is checked. "

@@ -54,7 +54,7 @@ class PredictableVariables(DetectionModule):
     """This module detects whether control flow decisions are made using predictable
     parameters."""
 
-    name = "Dependence of Predictable Variables"
+    name = "Control flow depends on a predictable environment variable"
     swc_id = "{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS)
     description = (
         "Check whether important control flow decisions are influenced by block.coinbase,"

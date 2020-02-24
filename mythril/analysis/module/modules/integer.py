@@ -64,7 +64,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
 class IntegerArithmetics(DetectionModule):
     """This module searches for integer over- and underflows."""
 
-    name = "Integer Overflow and Underflow"
+    name = "Integer overflow or underflow"
     swc_id = INTEGER_OVERFLOW_AND_UNDERFLOW
     description = (
         "For every SUB instruction, check if there's a possible state "
