@@ -375,8 +375,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="analyze a truffle project (run from project dir)",
     )
     commands.add_argument(
-        "--infura-key",
-        help="analyze a truffle project (run from project dir)",
+        "--infura-id", help="set infura id for onchain analysis",
     )
 
     options = analyzer_parser.add_argument_group("options")
@@ -534,8 +533,8 @@ def set_config(args: Namespace):
     :return: modified config
     """
     config = MythrilConfig()
-    if args.__dict__.get("infura_key", None):
-        config.set_api_infura_key(args.infura_key)
+    if args.__dict__.get("infura_id", None):
+        config.set_api_infura_id(args.infura_id)
     if (
         args.command in ANALYZE_LIST
         and (args.dynld or not args.no_onchain_storage_access)

@@ -52,7 +52,12 @@ class EthJsonRpc(BaseClient):
         :return:
         """
         params = params or []
-        data = {"jsonrpc": "2.0", "method": method, "params": params, "id": _id, }
+        data = {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+            "id": _id,
+        }
         scheme = "http"
         if self.tls:
             scheme += "s"
