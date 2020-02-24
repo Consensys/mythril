@@ -770,7 +770,6 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     :param args: The args
     """
 
-
     if args.epic:
         path = os.path.dirname(os.path.realpath(__file__))
         sys.argv.remove("--epic")
