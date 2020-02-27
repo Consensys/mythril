@@ -42,7 +42,9 @@ class MythrilPluginLoader(object, metaclass=Singleton):
         self.loaded_plugins.append(plugin)
         log.info(f"Finished loading plugin: {plugin.name}")
 
-    def _load_detection_module(self, plugin: DetectionModule):
+    @staticmethod
+    def _load_detection_module(plugin: DetectionModule):
+        """Loads the passed detection module"""
         log.info(f"Loading detection module: {plugin.name}")
         ModuleLoader().register_module(plugin)
 
