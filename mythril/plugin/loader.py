@@ -1,6 +1,7 @@
 from mythril.analysis.module import DetectionModule
 
 from mythril.plugin.interface import MythrilCLIPlugin, MythrilPlugin
+from mythril.plugin.discovery import PluginDiscovery
 from mythril.support.support_utils import Singleton
 
 import logging
@@ -21,6 +22,7 @@ class MythrilPluginLoader(object, metaclass=Singleton):
     def __init__(self):
         log.info("Initializing mythril plugin loader")
         self.loaded_plugins = []
+        self._load_default_enabled()
 
     def load(self, plugin: MythrilPlugin):
         """Loads the passed plugin"""
@@ -38,3 +40,9 @@ class MythrilPluginLoader(object, metaclass=Singleton):
 
     def _load_detection_module(self, plugin: DetectionModule):
         pass
+
+    def _load_default_enabled(self):
+        logging.info("Loading installed analysis modules that are enabled by default")
+        for plugin_name in PluginDiscovery().get_plugins(default_enabled=True):
+            plugin = PluginDiscovery().build_plugin(plugin_name)
+            self.load(plugin)
