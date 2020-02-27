@@ -19,6 +19,7 @@ class MythrilPluginLoader(object, metaclass=Singleton):
     """
 
     def __init__(self):
+        log.info("Initializing mythril plugin loader")
         self.loaded_plugins = []
 
     def load(self, plugin: MythrilPlugin):
