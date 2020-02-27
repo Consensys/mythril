@@ -28,10 +28,10 @@ class PluginDiscovery(object, metaclass=Singleton):
 
         plugin = self._installed_plugins.get(plugin_name)
 
-        if plugin is None or not isinstance(plugin, MythrilPlugin):
+        if plugin is None or not issubclass(plugin, MythrilPlugin):
             raise ValueError(f"No valid plugin was found for {plugin_name}")
 
-        return plugin
+        return plugin()
 
     def get_plugins(self, default_enabled=None) -> List[str]:
         """ Gets a list of installed mythril plugins
