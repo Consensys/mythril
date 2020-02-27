@@ -45,7 +45,7 @@ class DetectionModule(ABC):
     name = "Detection Module Name"
     swc_id = "SWC-000"
     description = "Detection module description"
-    entry_point = EntryPoint.POST  # type: EntryPoint
+    entry_point = EntryPoint.CALLBACK  # type: EntryPoint
     pre_hooks = []  # type: List[str]
     post_hooks = []  # type: List[str]
 

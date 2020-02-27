@@ -14,6 +14,7 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
 
 from mythril.laser.smt import UGT, UGE
+from mythril.laser.smt.bool import And
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +87,9 @@ class EtherThief(DetectionModule):
             This prevents false positives where the owner willingly transfers ownership to another address.
             """
             if not isinstance(tx, ContractCreationTransaction):
-                constraints += [tx.caller != ACTORS.creator]
+                constraints.append(
+                    And(tx.caller == ACTORS.attacker, tx.caller == tx.origin)
+                )
 
         attacker_address_bitvec = ACTORS.attacker
 

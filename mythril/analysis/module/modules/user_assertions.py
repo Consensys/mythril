@@ -28,7 +28,7 @@ assertion_failed_hash = (
 class UserAssertions(DetectionModule):
     """This module searches for user supplied exceptions: emit AssertionFailed("Error")."""
 
-    name = "External calls"
+    name = "User assertions"
     swc_id = ASSERT_VIOLATION
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
