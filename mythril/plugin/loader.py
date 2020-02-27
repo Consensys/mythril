@@ -26,6 +26,7 @@ class MythrilPluginLoader(object, metaclass=Singleton):
 
     def load(self, plugin: MythrilPlugin):
         """Loads the passed plugin"""
+        logging.info(f"Loading plugin: {plugin.name}")
         if not isinstance(plugin, MythrilPlugin):
             raise ValueError("Passed plugin is not of type MythrilPlugin")
 
@@ -37,6 +38,7 @@ class MythrilPluginLoader(object, metaclass=Singleton):
             raise UnsupportedPluginType("Passed plugin type is not yet supported")
 
         self.loaded_plugins.append(plugin)
+        logging.info(f"Finished loading plugin: {plugin.name}")
 
     def _load_detection_module(self, plugin: DetectionModule):
         pass
