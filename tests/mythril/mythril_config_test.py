@@ -22,7 +22,7 @@ rpc_types_tests = [
     ("ganache", "localhost", None, True),
     ("infura-rinkeby", "rinkeby.infura.io/v3/", None, True),
     ("infura-ropsten", "ropsten.infura.io/v3/", None, True),
-    ("infura-kovan", "kovan.infura.io/v3/blah", None, True),
+    ("infura-kovan", "kovan.infura.io/v3/", None, True),
     ("localhost", "localhost", 8545, True),
     ("localhost:9022", "localhost", 9022, True),
     ("pinfura", None, None, False),
