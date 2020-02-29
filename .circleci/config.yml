@@ -57,7 +57,7 @@ jobs:
             LC_ALL: en_US.ASCII
             LANG: en_US.ASCII
             MYTHRIL_DIR: '/home/mythril'
-            INFURA_ID: $INFURA_ID
+            INFURA_ID: ${INFURA_ID}
 
       - store_test_results:
           path: /home/mythril/.tox/output
