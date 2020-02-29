@@ -33,11 +33,7 @@ rpc_types_tests = [
 @pytest.mark.parametrize("rpc_type,host,port,success", rpc_types_tests)
 def test_set_rpc(rpc_type, host, port, success):
     config = MythrilConfig()
-    assert (
-        os.getenv("MYTHRIL_DIR") != None
-        and os.getenv("INFURA_ID") != None
-        and os.getenv("IG") == ""
-    )
+    assert os.getenv("INFURA_ID") != None and os.getenv("IG") != None
     if success:
         config._set_rpc(rpc_type)
         assert host in config.eth.host
