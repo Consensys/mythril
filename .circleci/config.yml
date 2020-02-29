@@ -49,8 +49,12 @@ jobs:
           command: geth --syncmode full --rpc --shh
 
       - run:
+          name: Set env variables
+          command: export INFURA_ID=$INFURA_ID
+
+      - run:
           name: Unit-testing
-          command: export INFURA_ID=$INFURA_ID; tox
+          command: tox
           working_directory: /home/mythril
           no_output_timeout: 10m
           environment:
