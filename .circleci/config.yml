@@ -54,9 +54,9 @@ jobs:
           working_directory: /home/mythril
           no_output_timeout: 10m
           environment:
+            INFURA_ID: "BLAH"
             LANG: en_US.ASCII
             MYTHRIL_DIR: '/home/mythril'
-            INFURA_ID: "BLAH"
 
       - store_test_results:
           path: /home/mythril/.tox/output
