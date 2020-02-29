@@ -54,8 +54,7 @@ jobs:
           working_directory: /home/mythril
           no_output_timeout: 10m
           environment:
-            LANG: en_US.ASCII
-            CLANG: 'blah/blah/important'
+            LANG: "BAHH"
             MYTHRIL_DIR: '/home/mythril'
 
       - store_test_results:
