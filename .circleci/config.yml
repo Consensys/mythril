@@ -58,7 +58,7 @@ jobs:
             LANG: en_US.ASCII
             MYTHRIL_DIR: '/home/mythril'
             INFURA_ID: $INFURA_ID
-            IG: $IGNORE_REGRESSIONS
+            IG: $CIRCLE_TAG
 
       - store_test_results:
           path: /home/mythril/.tox/output
