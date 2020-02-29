@@ -5,6 +5,12 @@ defaults: &defaults
     # `mythril/dev_test_environment:0.0.43`, though a bit newer versions, thus
     # there is a chance that it breaks some small things.
     - image: mythril/dev_test_environment:0.0.45
+      environment:
+        LC_ALL: en_US.ASCII
+        LANG: en_US.ASCII
+        MYTHRIL_DIR: '/home/mythril'
+        INFURA_ID: $INFURA_ID
+
 
 version: 2
 jobs:
@@ -53,11 +59,6 @@ jobs:
           command: tox
           working_directory: /home/mythril
           no_output_timeout: 10m
-          environment:
-            LC_ALL: en_US.ASCII
-            LANG: en_US.ASCII
-            MYTHRIL_DIR: '/home/mythril'
-            INFURA_ID: $INFURA_ID
 
       - store_test_results:
           path: /home/mythril/.tox/output
