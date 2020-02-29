@@ -794,8 +794,8 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         if args.outform == "json":
             print(json.dumps(modules))
         else:
-            for module in modules:
-                print("{}: {}".format(module["classname"], module["title"]))
+            for module_data in modules:
+                print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
 
     if args.command == "help":
