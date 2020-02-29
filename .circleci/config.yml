@@ -50,11 +50,11 @@ jobs:
 
       - run:
           name: Unit-testing
-          command: tox
+          command: echo 'export INFURA_ID="BLAH"' >> $BASH_ENV; tox
           working_directory: /home/mythril
           no_output_timeout: 10m
           environment:
-            INFURA_ID: "BLAH"
+            LANG: en_US.ASCII
             MYTHRIL_DIR: '/home/mythril'
 
       - store_test_results:
