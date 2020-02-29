@@ -49,10 +49,6 @@ jobs:
           command: geth --syncmode full --rpc --shh
 
       - run:
-          name: Set env variables
-          command: export INFURA_ID=$INFURA_ID
-
-      - run:
           name: Unit-testing
           command: tox
           working_directory: /home/mythril
@@ -61,6 +57,7 @@ jobs:
             LC_ALL: en_US.ASCII
             LANG: en_US.ASCII
             MYTHRIL_DIR: '/home/mythril'
+            INFURA_ID: $INFURA_ID
 
       - store_test_results:
           path: /home/mythril/.tox/output
