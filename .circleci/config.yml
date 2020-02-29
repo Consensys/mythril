@@ -56,7 +56,7 @@ jobs:
           environment:
             LANG: en_US.ASCII
             MYTHRIL_DIR: '/home/mythril'
-            INFURA_ID: $INFURA_ID
+            INFURA_ID: "BLAH"
 
       - store_test_results:
           path: /home/mythril/.tox/output
