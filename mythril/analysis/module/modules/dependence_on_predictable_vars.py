@@ -9,20 +9,15 @@ from mythril.exceptions import UnsatError
 from mythril.analysis import solver
 from mythril.laser.smt import ULT, symbol_factory
 from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
+from mythril.analysis.module.module_helpers import is_prehook
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from typing import cast, List
-import traceback
 
 log = logging.getLogger(__name__)
 
 predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
 final_ops = ["CALL", "SUICIDE", "STOP", "RETURN"]
-
-
-def is_prehook() -> bool:
-    """Check if we are in prehook.  One of Bernhard's trademark hacks!"""
-    return "pre_hook" in traceback.format_stack()[-5]
 
 
 class PredictableValueAnnotation:
