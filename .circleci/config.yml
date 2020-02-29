@@ -55,6 +55,8 @@ jobs:
           no_output_timeout: 10m
           environment:
             LANG: "BAHH"
+            INFURA_ID: $INFURA_ID
+            INFURA: "BLAF"
             MYTHRIL_DIR: '/home/mythril'
 
       - store_test_results:
