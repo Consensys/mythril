@@ -790,12 +790,12 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     if args.command == "list-detectors":
         modules = []
         for module in ModuleLoader().get_detection_modules():
-            modules.append({'classname': type(module).__name__, 'title':  module.name})
+            modules.append({"classname": type(module).__name__, "title": module.name})
         if args.outform == "json":
             print(json.dumps(modules))
         else:
             for module in modules:
-                print("{}: {}".format(module['classname'], module['title']))
+                print("{}: {}".format(module["classname"], module["title"]))
         sys.exit()
 
     if args.command == "help":
