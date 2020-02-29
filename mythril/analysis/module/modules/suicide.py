@@ -5,6 +5,7 @@ from mythril.exceptions import UnsatError
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.laser.smt.bool import And
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
@@ -68,7 +69,9 @@ class AccidentallyKillable(DetectionModule):
 
         for tx in state.world_state.transaction_sequence:
             if not isinstance(tx, ContractCreationTransaction):
-                constraints.append(tx.caller == ACTORS.attacker)
+                constraints.append(
+                    And(tx.caller == ACTORS.attacker, tx.caller == tx.origin)
+                )
         try:
             try:
                 transaction_sequence = solver.get_transaction_sequence(
