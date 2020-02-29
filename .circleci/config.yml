@@ -51,9 +51,9 @@ jobs:
       - run:
           name: Unit-testing
           command: |
-          echo 'export INFURA_ID="BLAH"' >> $BASH_ENV
-          source $BASH_ENV
-          tox
+            echo 'export INFURA_ID="BLAH"' >> $BASH_ENV
+            source $BASH_ENV
+            tox
           working_directory: /home/mythril
           no_output_timeout: 10m
           environment:
