@@ -36,7 +36,7 @@ def test_set_rpc(rpc_type, host, port, success):
     assert (
         os.getenv("INFURA_ID") != ""
         and config.infura_id != ""
-        and os.getenv("MYTHRIL_DIR") == ""
+        and os.getenv("MYTHRIL_DIR") != ""
     )
     if success:
         config._set_rpc(rpc_type)
