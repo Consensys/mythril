@@ -128,8 +128,12 @@ class Account:
         self.balance = lambda: self._balances[self.address]
 
         if not self.address.symbolic and dynamic_loader is not None:
-            _balance = dynamic_loader.read_balance(formatted_address)
-            self.set_balance(_balance)
+            try:
+                _balance = dynamic_loader.read_balance(formatted_address)
+                self.set_balance(_balance)
+            except:
+                # Initial balance will be a symbolic variable
+                pass
 
     def __str__(self) -> str:
         return str(self.as_dict)
