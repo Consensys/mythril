@@ -387,9 +387,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         action="store_true",
         help="analyze a truffle project (run from project dir)",
     )
-    commands.add_argument(
-        "--infura-id", help="set infura id for onchain analysis",
-    )
+    commands.add_argument("--infura-id", help="set infura id for onchain analysis")
 
     options = analyzer_parser.add_argument_group("options")
     options.add_argument(

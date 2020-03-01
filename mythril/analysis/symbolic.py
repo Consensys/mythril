@@ -176,6 +176,7 @@ class SymExecWrapper:
                 contract.disassembly,
                 dynamic_loader=dynloader,
                 contract_name=contract.name,
+                balances=world_state.balances,
                 concrete_storage=True
                 if (dynloader is not None and dynloader.storage_loading)
                 else False,

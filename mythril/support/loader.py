@@ -48,6 +48,22 @@ class DynLoader:
         )
 
     @functools.lru_cache(LRU_CACHE_SIZE)
+    def read_balance(self, address: str) -> str:
+        """
+
+        :param address:
+        :return:
+        """
+        if not self.storage_loading:
+            raise ValueError(
+                "Cannot load from the storage when the storage_loading flag is false"
+            )
+        if not self.eth:
+            raise ValueError("Cannot load from the storage when eth is None")
+
+        return self.eth.eth_getBalance(address)
+
+    @functools.lru_cache(LRU_CACHE_SIZE)
     def dynld(self, dependency_address: str) -> Optional[Disassembly]:
         """
         :param dependency_address:

@@ -112,10 +112,12 @@ class Account:
             concrete_storage, address=self.address, dynamic_loader=dynamic_loader
         )
 
+        formatted_address = "{0:#0{1}x}".format(self.address.value, 42);
+
         # Metadata
         if contract_name is None:
             self.contract_name = (
-                "{0:#0{1}x}".format(self.address.value, 40)
+                formatted_address
                 if not self.address.symbolic
                 else "unknown"
             )
@@ -126,6 +128,12 @@ class Account:
 
         self._balances = balances
         self.balance = lambda: self._balances[self.address]
+
+        if not self.address.symbolic and dynamic_loader is not None:
+            _balance = dynamic_loader.read_balance(formatted_address)
+            self.set_balance(
+                _balance
+            )
 
     def __str__(self) -> str:
         return str(self.as_dict)
