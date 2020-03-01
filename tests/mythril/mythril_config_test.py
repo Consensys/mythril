@@ -1,4 +1,5 @@
 import pytest
+import os
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -13,16 +14,15 @@ def test_config_path_dynloading():
         Path(__file__).parent.parent / "testdata/mythril_config_inputs/config.ini"
     )
     config.set_api_from_config_path()
-    assert config.eth.host == "mainnet.infura.io"
-    assert config.eth.port == 443
+    assert "mainnet.infura.io/v3/" in config.eth.host
 
 
 rpc_types_tests = [
-    ("infura", "mainnet.infura.io", 443, True),
-    ("ganache", "localhost", 7545, True),
-    ("infura-rinkeby", "rinkeby.infura.io", 443, True),
-    ("infura-ropsten", "ropsten.infura.io", 443, True),
-    ("infura-kovan", "kovan.infura.io", 443, True),
+    ("infura", "mainnet.infura.io/v3/", None, True),
+    ("ganache", "localhost", None, True),
+    ("infura-rinkeby", "rinkeby.infura.io/v3/", None, True),
+    ("infura-ropsten", "ropsten.infura.io/v3/", None, True),
+    ("infura-kovan", "kovan.infura.io/v3/", None, True),
     ("localhost", "localhost", 8545, True),
     ("localhost:9022", "localhost", 9022, True),
     ("pinfura", None, None, False),
@@ -35,8 +35,7 @@ def test_set_rpc(rpc_type, host, port, success):
     config = MythrilConfig()
     if success:
         config._set_rpc(rpc_type)
-        assert config.eth.host == host
-        assert config.eth.port == port
+        assert host in config.eth.host
     else:
         with pytest.raises(CriticalError):
             config._set_rpc(rpc_type)

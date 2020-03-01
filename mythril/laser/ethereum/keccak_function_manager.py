@@ -141,7 +141,7 @@ class KeccakFunctionManager:
         )
         concrete_cond = symbol_factory.Bool(False)
         for key, keccak in self.concrete_hashes.items():
-            hash_eq = And(func(func_input) == keccak, key == func_input,)
+            hash_eq = And(func(func_input) == keccak, key == func_input)
             concrete_cond = Or(concrete_cond, hash_eq)
         return And(inv(func(func_input)) == func_input, Or(cond, concrete_cond))
 

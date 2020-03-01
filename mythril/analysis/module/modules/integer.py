@@ -61,10 +61,10 @@ class OverUnderflowStateAnnotation(StateAnnotation):
         return new_annotation
 
 
-class IntegerOverflowUnderflowModule(DetectionModule):
+class IntegerArithmetics(DetectionModule):
     """This module searches for integer over- and underflows."""
 
-    name = "Integer Overflow and Underflow"
+    name = "Integer overflow or underflow"
     swc_id = INTEGER_OVERFLOW_AND_UNDERFLOW
     description = (
         "For every SUB instruction, check if there's a possible state "
@@ -337,7 +337,7 @@ class IntegerOverflowUnderflowModule(DetectionModule):
             self.issues.append(issue)
 
 
-detector = IntegerOverflowUnderflowModule()
+detector = IntegerArithmetics()
 
 
 def _get_address_from_state(state):

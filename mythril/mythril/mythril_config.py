@@ -23,12 +23,16 @@ class MythrilConfig:
     """
 
     def __init__(self):
+        self.infura_id = os.getenv("INFURA_ID")  # type: str
         self.mythril_dir = self._init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
         self.leveldb_dir = None
         self._init_config()
         self.eth = None  # type: Optional[EthJsonRpc]
         self.eth_db = None  # type: Optional[EthLevelDB]
+
+    def set_api_infura_id(self, id):
+        self.infura_id = id
 
     @staticmethod
     def _init_mythril_dir() -> str:
@@ -83,12 +87,17 @@ class MythrilConfig:
         if not config.has_option("defaults", "dynamic_loading"):
             self._add_dynamic_loading_option(config)
 
+        if not config.has_option("defaults", "infura_id"):
+            config.set("defaults", "infura_id", "")
+
         with codecs.open(self.config_path, "w", "utf-8") as fp:
             config.write(fp)
 
         leveldb_dir = config.get(
             "defaults", "leveldb_dir", fallback=leveldb_default_path
         )
+        if not self.infura_id:
+            self.infura_id = config.get("defaults", "infura_id", fallback="")
         self.leveldb_dir = os.path.expanduser(leveldb_dir)
 
     @staticmethod
@@ -167,7 +176,9 @@ class MythrilConfig:
     def set_api_rpc_infura(self) -> None:
         """Set the RPC mode to INFURA on Mainnet."""
         log.info("Using INFURA Main Net for RPC queries")
-        self.eth = EthJsonRpc("mainnet.infura.io", 443, True)
+        self.eth = EthJsonRpc(
+            "mainnet.infura.io/v3/{}".format(self.infura_id), None, True
+        )
 
     def set_api_rpc(self, rpc: str = None, rpctls: bool = False) -> None:
         """
@@ -178,8 +189,20 @@ class MythrilConfig:
             rpcconfig = ("localhost", 7545, False)
         else:
             m = re.match(r"infura-(.*)", rpc)
+
             if m and m.group(1) in ["mainnet", "rinkeby", "kovan", "ropsten"]:
-                rpcconfig = (m.group(1) + ".infura.io", 443, True)
+                if self.infura_id in (None, ""):
+                    raise CriticalError(
+                        "Infura key not provided. Use --infura-id <INFURA_ID> "
+                        "or set it in the environment variable INFURA_ID "
+                        "or in the ~/.mythril/config.ini file'"
+                    )
+
+                rpcconfig = (
+                    "{}.infura.io/v3/{}".format(m.group(1), self.infura_id),
+                    None,
+                    True,
+                )
             else:
                 try:
                     host, port = rpc.split(":")
@@ -191,7 +214,7 @@ class MythrilConfig:
 
         if rpcconfig:
             log.info("Using RPC settings: %s" % str(rpcconfig))
-            self.eth = EthJsonRpc(rpcconfig[0], int(rpcconfig[1]), rpcconfig[2])
+            self.eth = EthJsonRpc(rpcconfig[0], rpcconfig[1], rpcconfig[2])
         else:
             raise CriticalError("Invalid RPC settings, check help for details.")
 

@@ -95,11 +95,11 @@ class StateChangeCallsAnnotation(StateAnnotation):
         )
 
 
-class StateChange(DetectionModule):
+class StateChangeAfterCall(DetectionModule):
     """This module searches for state change after low level calls (e.g. call.value()) that
     forward gas to the callee."""
 
-    name = "State Change After External calls"
+    name = "State change after an external call"
     swc_id = REENTRANCY
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
@@ -159,13 +159,13 @@ class StateChange(DetectionModule):
         # Record state changes following from a transfer of ether
         if op_code in CALL_LIST:
             value = global_state.mstate.stack[-3]  # type: BitVec
-            if StateChange._balance_change(value, global_state):
+            if StateChangeAfterCall._balance_change(value, global_state):
                 for annotation in annotations:
                     annotation.state_change_states.append(global_state)
 
         # Record external calls
         if op_code in CALL_LIST:
-            StateChange._add_external_call(global_state)
+            StateChangeAfterCall._add_external_call(global_state)
 
         # Check for vulnerabilities
         vulnerabilities = []
@@ -195,4 +195,4 @@ class StateChange(DetectionModule):
                 return False
 
 
-detector = StateChange()
+detector = StateChangeAfterCall()

@@ -24,10 +24,10 @@ class MultipleSendsAnnotation(StateAnnotation):
         return result
 
 
-class MultipleSendsModule(DetectionModule):
+class MultipleSends(DetectionModule):
     """This module checks for multiple sends in a single transaction."""
 
-    name = "Multiple Sends"
+    name = "Multiple external calls in the same transaction"
     swc_id = MULTIPLE_SENDS
     description = "Check for multiple sends in a single transaction"
     entry_point = EntryPoint.CALLBACK
@@ -98,4 +98,4 @@ class MultipleSendsModule(DetectionModule):
         return []
 
 
-detector = MultipleSendsModule()
+detector = MultipleSends()

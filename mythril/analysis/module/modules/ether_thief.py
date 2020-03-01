@@ -36,7 +36,7 @@ class EtherThief(DetectionModule):
     """This module search for cases where Ether can be withdrawn to a user-
     specified address."""
 
-    name = "Ether Thief"
+    name = "Attacker can profitably withdraw Ether from the contract account"
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK

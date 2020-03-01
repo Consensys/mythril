@@ -49,7 +49,7 @@ class ExternalCalls(DetectionModule):
     """This module searches for low level calls (e.g. call.value()) that
     forward all gas to the callee."""
 
-    name = "External calls"
+    name = "External call to another contract"
     swc_id = REENTRANCY
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
