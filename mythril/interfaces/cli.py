@@ -17,7 +17,11 @@ import traceback
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril import mythx
-from mythril.exceptions import AddressNotFoundError, CriticalError
+from mythril.exceptions import (
+    AddressNotFoundError,
+    DetectorNotFoundError,
+    CriticalError,
+)
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.mythril import (
     MythrilAnalyzer,
@@ -25,6 +29,9 @@ from mythril.mythril import (
     MythrilConfig,
     MythrilLevelDB,
 )
+
+from mythril.analysis.module import ModuleLoader
+
 from mythril.__version__ import __version__ as VERSION
 
 ANALYZE_LIST = ("analyze", "a")
@@ -42,6 +49,7 @@ COMMAND_LIST = (
         "leveldb-search",
         "function-to-hash",
         "hash-to-address",
+        "list-detectors",
         "version",
         "truffle",
         "help",
@@ -225,6 +233,11 @@ def main() -> None:
     )
     create_pro_parser(pro_parser)
 
+    subparsers.add_parser(
+        "list-detectors",
+        parents=[output_parser],
+        help="Lists available detection modules",
+    )
     read_storage_parser = subparsers.add_parser(
         "read-storage",
         help="Retrieves storage slots from a given address through rpc",
@@ -735,9 +748,11 @@ def execute_command(
                     "markdown": report.as_markdown(),
                 }
                 print(outputs[args.outform])
-            except ModuleNotFoundError as e:
+            except DetectorNotFoundError as e:
+                exit_with_error(args.outform, format(e))
+            except CriticalError as e:
                 exit_with_error(
-                    args.outform, "Error loading analysis modules: " + format(e)
+                    args.outform, "Analysis error encountered: " + format(e)
                 )
 
     else:
@@ -776,6 +791,17 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             print(json.dumps({"version_str": VERSION}))
         else:
             print("Mythril version {}".format(VERSION))
+        sys.exit()
+
+    if args.command == "list-detectors":
+        modules = []
+        for module in ModuleLoader().get_detection_modules():
+            modules.append({"classname": type(module).__name__, "title": module.name})
+        if args.outform == "json":
+            print(json.dumps(modules))
+        else:
+            for module_data in modules:
+                print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
 
     if args.command == "help":

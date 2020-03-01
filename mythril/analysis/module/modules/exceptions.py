@@ -11,10 +11,10 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 log = logging.getLogger(__name__)
 
 
-class ReachableExceptionsModule(DetectionModule):
+class Exceptions(DetectionModule):
     """"""
 
-    name = "Reachable Exceptions"
+    name = "Exception or assertion violation"
     swc_id = ASSERT_VIOLATION
     description = "Checks whether any exception states are reachable."
     entry_point = EntryPoint.CALLBACK
@@ -76,4 +76,4 @@ class ReachableExceptionsModule(DetectionModule):
         return []
 
 
-detector = ReachableExceptionsModule()
+detector = Exceptions()

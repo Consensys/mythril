@@ -9,14 +9,14 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Search for any writes to an arbitrary storage slot
+Search for jumps to arbitrary locations in the bytecode
 """
 
 
 class ArbitraryJump(DetectionModule):
     """This module searches for JUMPs to an arbitrary instruction."""
 
-    name = "Jump to an arbitrary line"
+    name = "Jump to an arbitrary bytecode location"
     swc_id = ARBITRARY_JUMP
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK

@@ -18,6 +18,7 @@ from mythril.analysis.report import Report, Issue
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.laser.smt import SolverStatistics
 from mythril.support.start_time import StartTime
+from mythril.exceptions import DetectorNotFoundError
 
 log = logging.getLogger(__name__)
 
@@ -172,6 +173,9 @@ class MythrilAnalyzer:
                     custom_modules_directory=self.custom_modules_directory,
                 )
                 issues = fire_lasers(sym, modules)
+            except DetectorNotFoundError as e:
+                # Bubble up
+                raise e
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
                 if self.iprof is not None:
