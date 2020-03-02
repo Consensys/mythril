@@ -50,7 +50,7 @@ class DynLoader:
         """
         if not self.active:
             raise ValueError(
-                "Cannot load from the storage when the storage_loading flag is false"
+                "Cannot load from storage when the loader is disabled"
             )
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
