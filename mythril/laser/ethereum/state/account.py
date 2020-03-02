@@ -40,7 +40,7 @@ class Storage:
             and self.address.value != 0
             and item.symbolic is False
             and int(item.value) not in self.storage_keys_loaded
-            and (self.dynld and self.dynld.storage_loading)
+            and (self.dynld and self.dynld.active)
         ):
             try:
                 storage[item] = symbol_factory.BitVecVal(

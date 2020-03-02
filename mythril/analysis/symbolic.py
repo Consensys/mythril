@@ -177,7 +177,7 @@ class SymExecWrapper:
                 dynamic_loader=dynloader,
                 contract_name=contract.name,
                 concrete_storage=True
-                if (dynloader is not None and dynloader.storage_loading)
+                if (dynloader is not None and dynloader.active)
                 else False,
             )
             world_state.put_account(account)
