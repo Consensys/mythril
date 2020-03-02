@@ -33,7 +33,7 @@ class MythrilAnalyzer:
         self,
         disassembler: MythrilDisassembler,
         requires_dynld: bool = False,
-        onchain_storage_access: bool = True,
+        use_onchain_data: bool = True,
         strategy: str = "dfs",
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
@@ -55,8 +55,7 @@ class MythrilAnalyzer:
         self.eth = disassembler.eth
         self.contracts = disassembler.contracts or []  # type: List[EVMContract]
         self.enable_online_lookup = disassembler.enable_online_lookup
-        self.dynld = requires_dynld
-        self.onchain_storage_access = onchain_storage_access
+        self.use_onchain_data = use_onchain_data
         self.strategy = strategy
         self.address = address
         self.max_depth = max_depth
@@ -81,11 +80,7 @@ class MythrilAnalyzer:
             contract or self.contracts[0],
             self.address,
             self.strategy,
-            dynloader=DynLoader(
-                self.eth,
-                storage_loading=self.onchain_storage_access,
-                contract_loading=self.dynld,
-            ),
+            dynloader=DynLoader(self.eth, active=self.use_onchain_data),
             max_depth=self.max_depth,
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
@@ -118,11 +113,7 @@ class MythrilAnalyzer:
             contract or self.contracts[0],
             self.address,
             self.strategy,
-            dynloader=DynLoader(
-                self.eth,
-                storage_loading=self.onchain_storage_access,
-                contract_loading=self.dynld,
-            ),
+            dynloader=DynLoader(self.eth, active=self.use_onchain_data),
             max_depth=self.max_depth,
             execution_timeout=self.execution_timeout,
             transaction_count=transaction_count,
@@ -155,11 +146,7 @@ class MythrilAnalyzer:
                     contract,
                     self.address,
                     self.strategy,
-                    dynloader=DynLoader(
-                        self.eth,
-                        storage_loading=self.onchain_storage_access,
-                        contract_loading=self.dynld,
-                    ),
+                    dynloader=DynLoader(self.eth, active=self.use_onchain_data),
                     max_depth=self.max_depth,
                     execution_timeout=self.execution_timeout,
                     loop_bound=self.loop_bound,

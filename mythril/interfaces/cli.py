@@ -442,18 +442,10 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="The amount of seconds to spend on the initial contract creation",
     )
     options.add_argument(
-        "-l",
-        "--dynld",
+        "--no-onchain-data",
         action="store_true",
-        help="auto-load dependencies from the blockchain",
+        help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
     )
-    options.add_argument(
-        "--no-onchain-storage-access",
-        "--no-onchain-access",
-        action="store_true",
-        help="turns off getting the data from onchain contracts (both loading storage and contract code)",
-    )
-
     options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
@@ -546,10 +538,9 @@ def set_config(args: Namespace):
     config = MythrilConfig()
     if args.__dict__.get("infura_id", None):
         config.set_api_infura_id(args.infura_id)
-    if (
-        args.command in ANALYZE_LIST
-        and (args.dynld or not args.no_onchain_storage_access)
-    ) and not (args.rpc or args.i):
+    if (args.command in ANALYZE_LIST and not args.no_onchain_data) and not (
+        args.rpc or args.i
+    ):
         config.set_api_from_config_path()
 
     if args.__dict__.get("address", None):
@@ -676,9 +667,8 @@ def execute_command(
             create_timeout=args.create_timeout,
             enable_iprof=args.enable_iprof,
             disable_dependency_pruning=args.disable_dependency_pruning,
-            onchain_storage_access=not args.no_onchain_storage_access,
+            use_onchain_data=not args.no_onchain_data,
             solver_timeout=args.solver_timeout,
-            requires_dynld=not args.no_onchain_storage_access,
             enable_coverage_strategy=args.enable_coverage_strategy,
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory

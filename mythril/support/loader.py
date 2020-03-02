@@ -15,18 +15,14 @@ log = logging.getLogger(__name__)
 class DynLoader:
     """The dynamic loader class."""
 
-    def __init__(
-        self, eth: Optional[EthJsonRpc], contract_loading=True, storage_loading=True
-    ):
+    def __init__(self, eth: Optional[EthJsonRpc], active=True):
         """
 
         :param eth:
-        :param contract_loading:
-        :param storage_loading:
+        :param active:
         """
         self.eth = eth
-        self.contract_loading = contract_loading
-        self.storage_loading = storage_loading
+        self.active = active
 
     @functools.lru_cache(LRU_CACHE_SIZE)
     def read_storage(self, contract_address: str, index: int) -> str:
@@ -36,10 +32,8 @@ class DynLoader:
         :param index:
         :return:
         """
-        if not self.storage_loading:
-            raise ValueError(
-                "Cannot load from the storage when the storage_loading flag is false"
-            )
+        if not self.active:
+            raise ValueError("Loader is disabled")
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
 
@@ -69,8 +63,8 @@ class DynLoader:
         :param dependency_address:
         :return:
         """
-        if not self.contract_loading:
-            raise ValueError("Cannot load contract when contract_loading flag is false")
+        if not self.active:
+            raise ValueError("Loader is disabled")
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
 
