@@ -49,9 +49,7 @@ class DynLoader:
         :return:
         """
         if not self.active:
-            raise ValueError(
-                "Cannot load from storage when the loader is disabled"
-            )
+            raise ValueError("Cannot load from storage when the loader is disabled")
         if not self.eth:
             raise ValueError("Cannot load from the chain when eth is None")
 
