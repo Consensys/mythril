@@ -48,7 +48,7 @@ class DynLoader:
         :param address:
         :return:
         """
-        if not self.storage_loading:
+        if not self.active:
             raise ValueError(
                 "Cannot load from the storage when the storage_loading flag is false"
             )
