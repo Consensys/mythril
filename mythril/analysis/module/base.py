@@ -42,7 +42,7 @@ class DetectionModule(ABC):
     - post_hooks: A list of instructions to hook the laser vm for (post execution of the instruction)
     """
 
-    name = "Detection Module Name"
+    name = "Detection Module Name / Title"
     swc_id = "SWC-000"
     description = "Detection module description"
     entry_point = EntryPoint.CALLBACK  # type: EntryPoint
