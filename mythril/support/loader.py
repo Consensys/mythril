@@ -53,7 +53,7 @@ class DynLoader:
                 "Cannot load from storage when the loader is disabled"
             )
         if not self.eth:
-            raise ValueError("Cannot load from the storage when eth is None")
+            raise ValueError("Cannot load from the chain when eth is None")
 
         return self.eth.eth_getBalance(address)
 
