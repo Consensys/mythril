@@ -14,7 +14,7 @@
 
 Mythril is a security analysis tool for EVM bytecode. It detects security vulnerabilities in smart contracts built for Ethereum, Hedera, Quorum, Vechain, Roostock, Tron and other EVM-compatible blockchains. It uses symbolic execution, SMT solving and taint analysis detect a variety of security vulnerabilities. It's also used (in combination with other tools and techniques) in the [MythX](https://mythx.io) security analysis platform.
 
-If you are a smart contract developer, we recommend using [MythX tools](https://github.com/b-mueller/awesome-mythx-smart-contract-security) which are optimized for usability and cover a wider range of security issues.
+If you are a smart contract developer, we recommend using [MythX tools](https://github.com/b-mueller/awesome-mythx-smart-contract-security-tools) which are optimized for usability and cover a wider range of security issues.
 
 Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs.
 
@@ -91,4 +91,4 @@ This will create a `build` output directory containing the HTML output. Alternat
 
 ## Vulnerability Remediation
 
-Visit the [Smart Contract Vulnerability Classification Registry](https://smartcontractsecurity.github.io/SWC-registry/) to find detailed information and remediation guidance for the vulnerabilities reported.
+Visit the [Smart Contract Vulnerability Classification Registry](https://swcregistry.io/) to find detailed information and remediation guidance for the vulnerabilities reported.
