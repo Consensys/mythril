@@ -9,7 +9,7 @@ from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
-from mythril.laser.ethereum.instructions import Instruction
+from mythril.laser.ethereum.instructions import Instruction, transfer_ether
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
 from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
@@ -349,6 +349,13 @@ class LaserEVM:
             new_global_state.node = global_state.node
             new_global_state.world_state.constraints = (
                 start_signal.global_state.world_state.constraints
+            )
+
+            transfer_ether(
+                new_global_state,
+                start_signal.transaction.caller,
+                start_signal.transaction.callee_account.address,
+                start_signal.transaction.call_value,
             )
 
             log.debug("Starting new transaction %s", start_signal.transaction)

@@ -73,21 +73,51 @@ class WorldState:
         new_world_state.constraints = copy(self.constraints)
         return new_world_state
 
-    def accounts_exist_or_load(self, addr: str, dynamic_loader: DynLoader) -> Account:
+    def accounts_exist_or_load(self, addr, dynamic_loader: DynLoader) -> Account:
         """
         returns account if it exists, else it loads from the dynamic loader
         :param addr: address
         :param dynamic_loader: Dynamic Loader
         :return: The code
         """
-        addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+
+        if isinstance(addr, str):
+            addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+        elif isinstance(addr, int):
+            addr_bitvec = symbol_factory.BitVecVal(addr, 256)
+        elif not isinstance(addr, BitVec):
+            addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
 
         if addr_bitvec.value in self.accounts:
             return self.accounts[addr_bitvec.value]
         if dynamic_loader is None:
             raise ValueError("dynamic_loader is None")
+
+        if isinstance(addr, int):
+            try:
+                balance = dynamic_loader.read_balance("{0:#0{1}x}".format(addr, 42))
+                return self.create_account(
+                    balance=balance,
+                    address=addr_bitvec.value,
+                    dynamic_loader=dynamic_loader,
+                    code=dynamic_loader.dynld(addr),
+                )
+            except:
+                # Initial balance will be a symbolic variable
+                pass
+        elif isinstance(addr, str):
+            try:
+                balance = dynamic_loader.read_balance(addr)
+                return self.create_account(
+                    balance=balance,
+                    address=addr_bitvec.value,
+                    dynamic_loader=dynamic_loader,
+                    code=dynamic_loader.dynld(addr),
+                )
+            except:
+                pass
+
         return self.create_account(
-            balance=0,
             address=addr_bitvec.value,
             dynamic_loader=dynamic_loader,
             code=dynamic_loader.dynld(addr),
@@ -126,8 +156,8 @@ class WorldState:
         )
         if code:
             new_account.code = code
-        if balance:
-            new_account.add_balance(symbol_factory.BitVecVal(balance, 256))
+
+        new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
 
         self.put_account(new_account)
         return new_account
