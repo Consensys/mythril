@@ -18,7 +18,7 @@ from mythril.laser.ethereum.state.calldata import (
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec, is_true
+from mythril.laser.smt import BitVec, is_true, If
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 
@@ -61,7 +61,8 @@ def get_call_parameters(
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
-    gas = gas + symbol_factory.BitVecVal(GSTIPEND, 256) * (value > 0)
+
+    gas = gas + If(value > 0, symbol_factory.BitVecVal(GSTIPEND, gas.size()), 0)
     return (
         callee_address,
         callee_account,
