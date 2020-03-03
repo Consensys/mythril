@@ -57,7 +57,11 @@ class EthJsonRpc(BaseClient):
         if self.tls:
             scheme += "s"
         if self.host:
-            url = "{}://{}:{}".format(scheme, self.host, self.port)
+            if self.port:
+                url = "{}://{}:{}".format(scheme, self.host, self.port)
+            else:
+                url = "{}://{}".format(scheme, self.host)
+
         else:
             url = "{}".format(scheme)
 
