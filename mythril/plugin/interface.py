@@ -12,6 +12,7 @@ class MythrilPlugin:
     """
 
     author = "Default Author"
+    name = "Plugin Name"
     plugin_license = "All rights reserved."
     plugin_type = "Mythril Plugin"
     plugin_version = "0.0.1 "
