@@ -901,7 +901,11 @@ class Instruction:
         state = global_state.mstate
         address = state.stack.pop()
 
-        balance = global_state.world_state.balances[address]
+        account = global_state.world_state.accounts_exist_or_load(
+            address.value, self.dynamic_loader
+        )
+
+        balance = account.balance()
         state.stack.append(balance)
         return [global_state]
 

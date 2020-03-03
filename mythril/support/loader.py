@@ -69,9 +69,13 @@ class DynLoader:
         log.debug("Dynld at contract %s", dependency_address)
 
         # Ensure that dependency_address is the correct length, with 0s prepended as needed.
-        dependency_address = (
-            "0x" + "0" * (42 - len(dependency_address)) + dependency_address[2:]
-        )
+
+        if isinstance(dependency_address, int):
+            dependency_address = "0x{:040X}".format(dependency_address)
+        else:
+            dependency_address = (
+                "0x" + "0" * (42 - len(dependency_address)) + dependency_address[2:]
+            )
 
         m = re.match(r"^(0x[0-9a-fA-F]{40})$", dependency_address)
 
