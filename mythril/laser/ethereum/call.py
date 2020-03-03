@@ -5,6 +5,7 @@ parameters for the new global state."""
 import logging
 import re
 from typing import Union, List, cast, Callable, Optional
+from ethereum.opcodes import GSTIPEND
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
@@ -60,7 +61,7 @@ def get_call_parameters(
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
-
+    gas = gas + GSTIPEND * (value > 0)
     return (
         callee_address,
         callee_account,
