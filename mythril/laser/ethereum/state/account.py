@@ -127,6 +127,7 @@ class Account:
         self._balances = balances
         self.balance = lambda: self._balances[self.address]
 
+        """
         if not self.address.symbolic and dynamic_loader is not None:
             try:
                 _balance = dynamic_loader.read_balance(
@@ -136,6 +137,7 @@ class Account:
             except:
                 # Initial balance will be a symbolic variable
                 pass
+        """
 
     def __str__(self) -> str:
         return str(self.as_dict)
