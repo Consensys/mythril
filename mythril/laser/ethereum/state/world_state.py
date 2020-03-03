@@ -94,24 +94,29 @@ class WorldState:
         if isinstance(addr, int):
             try:
                 _balance = dynamic_loader.read_balance("{0:#0{1}x}".format(addr, 42))
-                self.set_balance(_balance)
             except:
                 # Initial balance will be a symbolic variable
                 pass
         elif isinstance(addr, str):
             try:
                 _balance = dynamic_loader.read_balance(addr)
-                self.set_balance(_balance)
             except:
                 # Initial balance will be a symbolic variable
                 pass
 
-        return self.create_account(
-            balance=0,
-            address=addr_bitvec.value,
-            dynamic_loader=dynamic_loader,
-            code=dynamic_loader.dynld(addr),
-        )
+        if _balance is None:
+            return self.create_account(
+                address=addr_bitvec.value,
+                dynamic_loader=dynamic_loader,
+                code=dynamic_loader.dynld(addr),
+            )
+        else:
+            return self.create_account(
+                balance=_balance,
+                address=addr_bitvec.value,
+                dynamic_loader=dynamic_loader,
+                code=dynamic_loader.dynld(addr),
+            )
 
     def create_account(
         self,
@@ -146,8 +151,8 @@ class WorldState:
         )
         if code:
             new_account.code = code
-        if balance:
-            new_account.add_balance(symbol_factory.BitVecVal(balance, 256))
+
+        new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
 
         self.put_account(new_account)
         return new_account
