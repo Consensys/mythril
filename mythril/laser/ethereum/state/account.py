@@ -40,7 +40,7 @@ class Storage:
             and self.address.value != 0
             and item.symbolic is False
             and int(item.value) not in self.storage_keys_loaded
-            and (self.dynld and self.dynld.storage_loading)
+            and (self.dynld and self.dynld.active)
         ):
             try:
                 storage[item] = symbol_factory.BitVecVal(
@@ -115,7 +115,7 @@ class Account:
         # Metadata
         if contract_name is None:
             self.contract_name = (
-                "{0:#0{1}x}".format(self.address.value, 40)
+                "{0:#0{1}x}".format(self.address.value, 42)
                 if not self.address.symbolic
                 else "unknown"
             )
@@ -126,6 +126,16 @@ class Account:
 
         self._balances = balances
         self.balance = lambda: self._balances[self.address]
+
+        if not self.address.symbolic and dynamic_loader is not None:
+            try:
+                _balance = dynamic_loader.read_balance(
+                    "{0:#0{1}x}".format(self.address.value, 42)
+                )
+                self.set_balance(_balance)
+            except:
+                # Initial balance will be a symbolic variable
+                pass
 
     def __str__(self) -> str:
         return str(self.as_dict)
