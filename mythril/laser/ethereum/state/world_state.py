@@ -90,6 +90,22 @@ class WorldState:
             return self.accounts[addr_bitvec.value]
         if dynamic_loader is None:
             raise ValueError("dynamic_loader is None")
+
+        if isinstance(addr, int):
+            try:
+                _balance = dynamic_loader.read_balance("{0:#0{1}x}".format(addr, 42))
+                self.set_balance(_balance)
+            except:
+                # Initial balance will be a symbolic variable
+                pass
+        elif isinstance(addr, str):
+            try:
+                _balance = dynamic_loader.read_balance(addr)
+                self.set_balance(_balance)
+            except:
+                # Initial balance will be a symbolic variable
+                pass
+
         return self.create_account(
             balance=0,
             address=addr_bitvec.value,
