@@ -61,7 +61,7 @@ def get_call_parameters(
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
-    gas = gas + GSTIPEND * (value > 0)
+    gas = gas + symbol_factory.BitVecVal(GSTIPEND, 256) * (value > 0)
     return (
         callee_address,
         callee_account,
