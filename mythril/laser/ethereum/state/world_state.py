@@ -81,7 +81,9 @@ class WorldState:
         :return: The code
         """
 
-        if isinstance(addr, int):
+        if isinstance(addr, str):
+            addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+        elif isinstance(addr, int):
             addr_bitvec = symbol_factory.BitVecVal(addr, 256)
         elif not isinstance(addr, BitVec):
             addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
