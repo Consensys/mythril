@@ -171,6 +171,7 @@ class SymExecWrapper:
                 world_state=world_state,
             )
         else:
+
             account = Account(
                 address,
                 contract.disassembly,
@@ -181,6 +182,34 @@ class SymExecWrapper:
                 if (dynloader is not None and dynloader.active)
                 else False,
             )
+
+            if dynloader is not None:
+                if isinstance(address, int):
+                    try:
+                        _balance = dynloader.read_balance(
+                            "{0:#0{1}x}".format(address, 42)
+                        )
+                        account.set_balance(_balance)
+                    except:
+                        # Initial balance will be a symbolic variable
+                        pass
+                elif isinstance(address, str):
+                    try:
+                        _balance = dynloader.read_balance(address)
+                        account.set_balance(_balance)
+                    except:
+                        # Initial balance will be a symbolic variable
+                        pass
+                elif isinstance(address, BitVec):
+                    try:
+                        _balance = dynloader.read_balance(
+                            "{0:#0{1}x}".format(address.value, 42)
+                        )
+                        account.set_balance(_balance)
+                    except:
+                        # Initial balance will be a symbolic variable
+                        pass
+
             world_state.put_account(account)
             self.laser.sym_exec(world_state=world_state, target_address=address.value)
 
