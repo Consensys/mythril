@@ -52,17 +52,16 @@ class EthJsonRpc(BaseClient):
         :return:
         """
         params = params or []
-        data = {
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params,
-            "id": _id,
-        }
+        data = {"jsonrpc": "2.0", "method": method, "params": params, "id": _id}
         scheme = "http"
         if self.tls:
             scheme += "s"
         if self.host:
-            url = "{}://{}:{}".format(scheme, self.host, self.port)
+            if self.port:
+                url = "{}://{}:{}".format(scheme, self.host, self.port)
+            else:
+                url = "{}://{}".format(scheme, self.host)
+
         else:
             url = "{}".format(scheme)
 

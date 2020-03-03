@@ -96,10 +96,10 @@ class SymExecWrapper:
             raise ValueError("Invalid strategy argument supplied")
 
         creator_account = Account(
-            hex(ACTORS.creator.value), "", dynamic_loader=dynloader, contract_name=None
+            hex(ACTORS.creator.value), "", dynamic_loader=None, contract_name=None
         )
         attacker_account = Account(
-            hex(ACTORS.attacker.value), "", dynamic_loader=dynloader, contract_name=None
+            hex(ACTORS.attacker.value), "", dynamic_loader=None, contract_name=None
         )
 
         requires_statespace = (
@@ -176,8 +176,9 @@ class SymExecWrapper:
                 contract.disassembly,
                 dynamic_loader=dynloader,
                 contract_name=contract.name,
+                balances=world_state.balances,
                 concrete_storage=True
-                if (dynloader is not None and dynloader.storage_loading)
+                if (dynloader is not None and dynloader.active)
                 else False,
             )
             world_state.put_account(account)
