@@ -246,7 +246,7 @@ class DependencyPruner(LaserPlugin):
             annotation.has_call = True
 
         @symbolic_vm.pre_hook("STATICCALL")
-        def call_hook(state: GlobalState):
+        def staticcall_hook(state: GlobalState):
             annotation = get_dependency_annotation(state)
 
             self.update_calls(annotation.path)
