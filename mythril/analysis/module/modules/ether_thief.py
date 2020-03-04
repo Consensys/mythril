@@ -40,7 +40,7 @@ class EtherThief(DetectionModule):
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["CALL"]
+    pre_hooks = ["STOP"]
 
     def reset_module(self):
         """
@@ -71,44 +71,15 @@ class EtherThief(DetectionModule):
         state = copy(state)
         instruction = state.get_current_instruction()
 
-        value = state.mstate.stack[-3]
-        target = state.mstate.stack[-2]
-
         constraints = copy(state.world_state.constraints)
 
-        """
-        Require that the current transaction is sent by the attacker and
-        that the Ether sent to the attacker's address is greater than the
-        amount of Ether the attacker sent.
-        """
-        for tx in state.world_state.transaction_sequence:
-            """
-            Constraint: All transactions must originate from regular users (not the creator/owner).
-            This prevents false positives where the owner willingly transfers ownership to another address.
-            """
-            if not isinstance(tx, ContractCreationTransaction):
-                constraints.append(
-                    And(tx.caller == ACTORS.attacker, tx.caller == tx.origin)
-                )
-
         attacker_address_bitvec = ACTORS.attacker
-
-        constraints += [
-            UGE(
-                state.world_state.balances[state.environment.active_account.address],
-                value,
-            )
-        ]
-        state.world_state.balances[attacker_address_bitvec] += value
-        state.world_state.balances[state.environment.active_account.address] -= value
 
         constraints += [
             UGT(
                 state.world_state.balances[attacker_address_bitvec],
                 state.world_state.starting_balances[attacker_address_bitvec],
-            ),
-            target == ACTORS.attacker,
-            state.current_transaction.caller == ACTORS.attacker,
+            )
         ]
 
         potential_issue = PotentialIssue(
