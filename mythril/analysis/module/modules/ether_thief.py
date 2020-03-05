@@ -40,7 +40,7 @@ class EtherThief(DetectionModule):
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["STOP"]
+    pre_hooks = ["CALL", "STATICCALL"]
 
     def reset_module(self):
         """
@@ -70,16 +70,16 @@ class EtherThief(DetectionModule):
         """
         state = copy(state)
         instruction = state.get_current_instruction()
+        to = state.mstate.stack[-2]
 
         constraints = copy(state.world_state.constraints)
 
-        attacker_address_bitvec = ACTORS.attacker
-
         constraints += [
+            to == ACTORS.attacker,
             UGT(
-                state.world_state.balances[attacker_address_bitvec],
-                state.world_state.starting_balances[attacker_address_bitvec],
-            )
+                state.world_state.balances[ACTORS.attacker],
+                state.world_state.starting_balances[ACTORS.attacker],
+            ),
         ]
 
         potential_issue = PotentialIssue(

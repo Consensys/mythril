@@ -125,7 +125,7 @@ class WorldState:
 
     def create_account(
         self,
-        balance=0,
+        balance=None,
         address=None,
         concrete_storage=False,
         dynamic_loader=None,
@@ -157,7 +157,12 @@ class WorldState:
         if code:
             new_account.code = code
 
-        new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
+        if balance is not None:
+            new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
+        else:
+            new_account.set_balance(
+                symbol_factory.BitVecSym("initial)_balance_{}".format(address), 256)
+            )
 
         self.put_account(new_account)
         return new_account
