@@ -35,6 +35,7 @@ class EtherThief(DetectionModule):
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
     pre_hooks = ["CALL", "STATICCALL"]
+    post_hooks = ["CALL", "STATICCALL"]
 
     def reset_module(self):
         """
@@ -62,16 +63,19 @@ class EtherThief(DetectionModule):
         """
         state = copy(state)
         instruction = state.get_current_instruction()
-        to = state.mstate.stack[-2]
 
         constraints = copy(state.world_state.constraints)
 
+        """
+        Fixme: Potential issue should only be created it call target is the attacker.
+        This requires a prehook in addition to the posthook
+        """
+
         constraints += [
-            to == ACTORS.attacker,
             UGT(
                 state.world_state.balances[ACTORS.attacker],
                 state.world_state.starting_balances[ACTORS.attacker],
-            ),
+            )
         ]
 
         potential_issue = PotentialIssue(
