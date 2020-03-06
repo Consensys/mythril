@@ -11,24 +11,18 @@ from mythril.analysis.potential_issues import (
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.transaction import ContractCreationTransaction
 
-from mythril.laser.smt import UGT, UGE
-from mythril.laser.smt.bool import And
+from mythril.laser.smt import UGT
 
 log = logging.getLogger(__name__)
 
 DESCRIPTION = """
-
 Search for cases where Ether can be withdrawn to a user-specified address.
-
 An issue is reported if:
-
 - The transaction sender does not match contract creator;
 - The sender address can be chosen arbitrarily;
 - The receiver address is identical to the sender address;
 - The sender can withdraw *more* than the total amount they sent over all transactions.
-
 """
 
 
@@ -40,7 +34,7 @@ class EtherThief(DetectionModule):
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["STOP"]
+    pre_hooks = ["CALL", "STATICCALL"]
 
     def reset_module(self):
         """
@@ -51,7 +45,6 @@ class EtherThief(DetectionModule):
 
     def _execute(self, state: GlobalState) -> None:
         """
-
         :param state:
         :return:
         """
@@ -64,22 +57,21 @@ class EtherThief(DetectionModule):
 
     def _analyze_state(self, state):
         """
-
         :param state:
         :return:
         """
         state = copy(state)
         instruction = state.get_current_instruction()
+        to = state.mstate.stack[-2]
 
         constraints = copy(state.world_state.constraints)
 
-        attacker_address_bitvec = ACTORS.attacker
-
         constraints += [
+            to == ACTORS.attacker,
             UGT(
-                state.world_state.balances[attacker_address_bitvec],
-                state.world_state.starting_balances[attacker_address_bitvec],
-            )
+                state.world_state.balances[ACTORS.attacker],
+                state.world_state.starting_balances[ACTORS.attacker],
+            ),
         ]
 
         potential_issue = PotentialIssue(
