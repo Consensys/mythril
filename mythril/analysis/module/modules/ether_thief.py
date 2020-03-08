@@ -18,11 +18,8 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 Search for cases where Ether can be withdrawn to a user-specified address.
-An issue is reported if:
-- The transaction sender does not match contract creator;
-- The sender address can be chosen arbitrarily;
-- The receiver address is identical to the sender address;
-- The sender can withdraw *more* than the total amount they sent over all transactions.
+An issue is reported if there is a valid end state where the attacker has successfully
+increased their Ether balance.
 """
 
 
