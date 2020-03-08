@@ -3,14 +3,13 @@ from mythril.laser.ethereum.plugins.plugin import LaserPlugin
 from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
     MutationAnnotation,
 )
-from mythril.laser.smt.bitvec_helper import UGT
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 from mythril.analysis import solver
-from mythril.exceptions import UnsatError, CriticalError
+from mythril.exceptions import UnsatError
 
 
 class MutationPruner(LaserPlugin):
