@@ -34,7 +34,6 @@ class EtherThief(DetectionModule):
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["CALL", "STATICCALL"]
     post_hooks = ["CALL", "STATICCALL"]
 
     def reset_module(self):
@@ -67,7 +66,7 @@ class EtherThief(DetectionModule):
         constraints = copy(state.world_state.constraints)
 
         """
-        Fixme: Potential issue should only be created it call target is the attacker.
+        FIXME: Potential issue should only be created it call target is the attacker.
         This requires a prehook in addition to the posthook
         """
 
