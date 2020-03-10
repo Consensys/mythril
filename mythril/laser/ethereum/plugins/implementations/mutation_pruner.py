@@ -5,6 +5,7 @@ from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
+from mythril.laser.smt import UGT, symbol_factory
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
@@ -59,9 +60,17 @@ class MutationPruner(LaserPlugin):
             ):
                 return
 
+            if isinstance(global_state.environment.callvalue, int):
+                callvalue = symbol_factory.BitVecVal(
+                    global_state.environment.callvalue, 256
+                )
+            else:
+                callvalue = global_state.environment.callvalue
+
             try:
+
                 constraints = global_state.world_state.constraints + [
-                    global_state.environment.callvalue > 0
+                    UGT(callvalue, symbol_factory.BitVecVal(0, 256))
                 ]
 
                 solver.get_model(constraints)
