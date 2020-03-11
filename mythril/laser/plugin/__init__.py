@@ -18,4 +18,4 @@ For the implementation of plugins the following modules are of interest:
 
 Which show the basic interfaces with which plugins are able to interact
 """
-from mythril.laser.plugin.plugin import LaserPlugin
+from mythril.laser.plugin.interface import LaserPlugin
