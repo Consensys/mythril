@@ -209,7 +209,7 @@ class LaserEVM:
             self.open_states = [
                 state for state in self.open_states if state.constraints.is_possible
             ]
-            prune_count = len(self.open_states) - old_states_count
+            prune_count = old_states_count - len(self.open_states)
             if prune_count:
                 log.info("Pruned {} unreachable states".format(prune_count))
             log.info(
