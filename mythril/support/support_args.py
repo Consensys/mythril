@@ -7,7 +7,7 @@ class Args(object, metaclass=Singleton):
     """
 
     def __init__(self):
-        self.solver_timeout = None
+        self.solver_timeout = 10000
 
 
 args = Args()
