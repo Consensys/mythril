@@ -12,11 +12,8 @@ class PluginBuilder(ABC):
 
     plugin_name = "Default Plugin Name"
 
-    @abstractmethod
-    @property
-    def enabled(self) -> Optional[bool]:
-        """Returns whether this plugin builder is enabled"""
-        pass
+    def __init__(self):
+        self.enabled = False
 
     @abstractmethod
     def __call__(self, *args, **kwargs) -> LaserPlugin:
