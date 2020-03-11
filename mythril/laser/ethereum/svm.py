@@ -11,7 +11,7 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction, transfer_ether
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
-from mythril.laser.plugin import PluginSkipWorldState, PluginSkipState
+from mythril.laser.plugin.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.plugin.plugins.plugin_annotations import MutationAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -59,8 +59,6 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         iprof=None,
-        enable_coverage_strategy=False,
-        instruction_laser_plugin=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -108,11 +106,6 @@ class LaserEVM:
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
         self.iprof = iprof
-
-        if enable_coverage_strategy:
-            from mythril.laser.plugin import CoverageStrategy
-
-            self.strategy = CoverageStrategy(self.strategy, instruction_laser_plugin)
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
