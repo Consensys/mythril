@@ -1,6 +1,7 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
@@ -130,9 +131,9 @@ def test_vmtest(
         world_state.put_account(account)
         account.set_balance(int(details["balance"], 16))
 
+    time_handler.start_execution(10000)
     laser_evm = LaserEVM()
     laser_evm.open_states = [world_state]
-
     # Act
     laser_evm.time = datetime.now()
 
