@@ -15,10 +15,10 @@ log = logging.getLogger(__name__)
 @lru_cache(maxsize=2 ** 23)
 def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
     """
-
-    :param constraints:
-    :param minimize:
-    :param maximize:
+    Returns a model based on given constraints as a tuple
+    :param constraints: Tuple of constraints
+    :param minimize: Tuple of minimization conditions
+    :param maximize: Tuple of maximization conditions
     :param enforce_execution_time: Bool variable which enforces --execution-timeout's time
     :return:
     """
