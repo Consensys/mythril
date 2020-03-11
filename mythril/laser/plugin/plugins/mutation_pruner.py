@@ -1,5 +1,5 @@
 from mythril.laser.plugin.signals import PluginSkipWorldState
-from mythril.laser.plugin import LaserPlugin
+from mythril.laser.plugin import LaserPlugin, PluginBuilder
 from mythril.laser.plugin.plugins.plugin_annotations import MutationAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
@@ -7,6 +7,13 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 from mythril.laser.smt import And, symbol_factory
+
+
+class MutationPrunerBuilder(PluginBuilder):
+    plugin_name = "mutation-pruner"
+
+    def __call__(self, *args, **kwargs):
+        return MutationPruner()
 
 
 class MutationPruner(LaserPlugin):
