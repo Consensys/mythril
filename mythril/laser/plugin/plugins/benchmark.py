@@ -1,10 +1,17 @@
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.plugin import LaserPlugin
+from mythril.laser.plugin import LaserPlugin, PluginBuilder
 from time import time
 import matplotlib.pyplot as plt
 import logging
 
 log = logging.getLogger(__name__)
+
+
+class BenchmarkPluginBuilder(PluginBuilder):
+    plugin_name = "benchmark"
+
+    def __call__(self, *args, **kwargs):
+        return BenchmarkPlugin()
 
 
 # TODO: introduce dependency on coverage plugin
