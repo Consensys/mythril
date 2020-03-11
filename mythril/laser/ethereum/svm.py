@@ -11,10 +11,8 @@ from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
 from mythril.laser.ethereum.instructions import Instruction, transfer_ether
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
-from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
-from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
-    MutationAnnotation,
-)
+from mythril.laser.plugin import PluginSkipWorldState, PluginSkipState
+from mythril.laser.plugin.plugins.plugin_annotations import MutationAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -112,9 +110,7 @@ class LaserEVM:
         self.iprof = iprof
 
         if enable_coverage_strategy:
-            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
-                CoverageStrategy,
-            )
+            from mythril.laser.plugin import CoverageStrategy
 
             self.strategy = CoverageStrategy(self.strategy, instruction_laser_plugin)
 

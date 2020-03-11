@@ -1,5 +1,5 @@
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.plugins.plugin import LaserPlugin
+from mythril.laser.plugin import LaserPlugin
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 from typing import Dict, Tuple, List

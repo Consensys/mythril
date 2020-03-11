@@ -1,6 +1,5 @@
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.plugins.plugin import LaserPlugin
-
+from mythril.laser.plugin import LaserPlugin
 from typing import List
 import logging
 

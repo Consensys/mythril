@@ -1,8 +1,6 @@
 from mythril.laser.ethereum.strategy import BasicSearchStrategy
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.plugins.implementations.coverage import (
-    InstructionCoveragePlugin,
-)
+from mythril.laser.plugin.plugins.coverage import InstructionCoveragePlugin
 
 
 class CoverageStrategy(BasicSearchStrategy):

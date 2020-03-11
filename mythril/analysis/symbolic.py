@@ -1,12 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-from mythril.analysis.module import (
-    EntryPoint,
-    DetectionModule,
-    ModuleLoader,
-    get_detection_module_hooks,
-)
+from mythril.analysis.module import EntryPoint, ModuleLoader, get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
@@ -23,14 +18,14 @@ from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
 
-from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
-from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
+from mythril.laser.plugin import PluginFactory
+from mythril.laser.plugin.plugin_loader import LaserPluginLoader
 
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Type, Optional, Tuple
+from typing import Union, List, Type, Optional
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, VarType, get_variable
 
