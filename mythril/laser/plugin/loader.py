@@ -1,6 +1,6 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.plugin import LaserPlugin
-from typing import List, Callable
+from typing import Callable, Dict
 
 import logging
 from mythril.support.support_utils import Singleton
@@ -16,7 +16,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
 
     def __init__(self) -> None:
         """ Initializes the plugin loader """
-        self.laser_plugin_builders = {}  # type: Dict[str, LaserPlugin]
+        self.laser_plugin_builders = {}  # type: Dict[str, Callable[[], LaserPlugin]]
 
     def enable(
         self, plugin_name: str, plugin_builder: Callable[[], LaserPlugin]
@@ -26,10 +26,10 @@ class LaserPluginLoader(object, metaclass=Singleton):
         :param plugin_name: Name of the plugin to enable
         :param plugin_builder: Function that builds and returns a laser plugin
         """
-        log.info(f"Loading plugin: {plugin_name}")
+        log.info(f"Enabling laser plugin: {plugin_name}")
         if plugin_name in self.laser_plugin_builders:
             log.warning(
-                f"Plugin with name {plugin_name} was already loaded, skipping..."
+                f"Laser plugin with name {plugin_name} was already enabled, skipping..."
             )
             return
         self.laser_plugin_builders[plugin_name] = plugin_builder
@@ -42,5 +42,8 @@ class LaserPluginLoader(object, metaclass=Singleton):
         return plugin_name in self.laser_plugin_builders
 
     def load_plugins(self, symbolic_vm: LaserEVM):
-        """ Load enabled plugins into the passed symbolic virtual machine"""
-        pass
+        """ Load enabled plugins into the passed symbolic virtual machine """
+        for plugin_name, plugin_builder in self.laser_plugin_builders:
+            log.info(f"Instrumenting symbolic vm with plugin: {plugin_name}")
+            plugin = plugin_builder()
+            plugin.initialize(symbolic_vm)
