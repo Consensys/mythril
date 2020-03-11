@@ -21,7 +21,7 @@ def test_generate_graph():
             execution_timeout=5,
             max_depth=30,
             address=(util.get_indexed_address(0)),
-            solver_timeout=10000
+            solver_timeout=10000,
         )
 
         analyzer.graph_html(transaction_count=1)
