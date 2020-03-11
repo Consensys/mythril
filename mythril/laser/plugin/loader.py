@@ -1,10 +1,8 @@
-from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.plugin import LaserPlugin
-from mythril.laser.plugin.builder import PluginBuilder
-
-from typing import Callable, Dict
-
 import logging
+from typing import Dict
+
+from mythril.laser.ethereum.svm import LaserEVM
+from mythril.laser.plugin.builder import PluginBuilder
 from mythril.support.support_utils import Singleton
 
 log = logging.getLogger(__name__)
@@ -38,7 +36,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
 
         :param plugin_name: Name of the plugin to check
         """
-        if not plugin_name in self.laser_plugin_builders:
+        if plugin_name not in self.laser_plugin_builders:
             return False
         else:
             return self.laser_plugin_builders[plugin_name].enabled
