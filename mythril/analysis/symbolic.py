@@ -18,9 +18,12 @@ from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
 
-from mythril.laser.plugin import PluginFactory
-from mythril.laser.plugin.plugin_loader import LaserPluginLoader
-
+from mythril.laser.plugin.loader import LaserPluginLoader
+from mythril.laser.plugin.plugins import (
+    MutationPrunerBuilder,
+    DependencyPrunerBuilder,
+    CoveragePluginBuilder,
+)
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
@@ -109,8 +112,6 @@ class SymExecWrapper:
                 hex(ACTORS.attacker.value): attacker_account,
             }
 
-        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
-
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
             max_depth=max_depth,
@@ -121,18 +122,17 @@ class SymExecWrapper:
             requires_statespace=requires_statespace,
             iprof=iprof,
             enable_coverage_strategy=enable_coverage_strategy,
-            instruction_laser_plugin=instruction_laser_plugin,
         )
 
         if loop_bound is not None:
             self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
 
-        plugin_loader = LaserPluginLoader(self.laser)
-        plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(instruction_laser_plugin)
+        plugin_loader = LaserPluginLoader()
+        plugin_loader.load(CoveragePluginBuilder())
+        plugin_loader.load(MutationPrunerBuilder())
 
         if not disable_dependency_pruning:
-            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+            plugin_loader.load(DependencyPrunerBuilder())
 
         world_state = WorldState()
         for account in self.accounts.values():
