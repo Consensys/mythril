@@ -13,7 +13,7 @@ class PluginBuilder(ABC):
     plugin_name = "Default Plugin Name"
 
     def __init__(self):
-        self.enabled = False
+        self.enabled = True
 
     @abstractmethod
     def __call__(self, *args, **kwargs) -> LaserPlugin:
