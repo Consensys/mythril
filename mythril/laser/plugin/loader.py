@@ -1,5 +1,5 @@
 import logging
-from typing import Dict
+from typing import Dict, List, Optional
 
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.plugin.builder import PluginBuilder
@@ -46,9 +46,23 @@ class LaserPluginLoader(object, metaclass=Singleton):
             return ValueError(f"Plugin with name: {plugin_name} was not loaded")
         self.laser_plugin_builders[plugin_name].enabled = True
 
-    def instrument_virtual_machine(self, symbolic_vm: LaserEVM):
-        """ Load enabled plugins into the passed symbolic virtual machine """
+    def instrument_virtual_machine(
+        self, symbolic_vm: LaserEVM, with_plugins: Optional[List[str]]
+    ):
+        """ Load enabled plugins into the passed symbolic virtual machine
+        :param symbolic_vm: The virtual machine to instrument the plugins with
+        :param with_plugins: Override the globally enabled/disabled builders and load all plugins in the list
+        """
         for plugin_name, plugin_builder in self.laser_plugin_builders:
+            enabled = (
+                plugin_builder.enabled
+                if not with_plugins
+                else plugin_name in with_plugins
+            )
+
+            if not enabled:
+                continue
+
             log.info(f"Instrumenting symbolic vm with plugin: {plugin_name}")
             plugin = plugin_builder()
             plugin.initialize(symbolic_vm)
