@@ -1,37 +1,46 @@
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.plugin import LaserPlugin
-from typing import List
+from typing import List, Callable
+
 import logging
+from mythril.support.support_utils import Singleton
 
 log = logging.getLogger(__name__)
 
 
-class LaserPluginLoader:
+class LaserPluginLoader(object, metaclass=Singleton):
     """
     The LaserPluginLoader is used to abstract the logic relating to plugins.
     Components outside of laser thus don't have to be aware of the interface that plugins provide
     """
 
-    def __init__(self, symbolic_vm: LaserEVM) -> None:
-        """ Initializes the plugin loader
+    def __init__(self) -> None:
+        """ Initializes the plugin loader """
+        self.laser_plugin_builders = {}  # type: Dict[str, LaserPlugin]
 
-        :param symbolic_vm: symbolic virtual machine to load plugins for
+    def enable(
+        self, plugin_name: str, plugin_builder: Callable[[], LaserPlugin]
+    ) -> None:
+        """ Enables a Laser Plugin
+
+        :param plugin_name: Name of the plugin to enable
+        :param plugin_builder: Function that builds and returns a laser plugin
         """
-        self.symbolic_vm = symbolic_vm
-        self.laser_plugins = []  # type: List[LaserPlugin]
+        log.info(f"Loading plugin: {plugin_name}")
+        if plugin_name in self.laser_plugin_builders:
+            log.warning(
+                f"Plugin with name {plugin_name} was already loaded, skipping..."
+            )
+            return
+        self.laser_plugin_builders[plugin_name] = plugin_builder
 
-    def load(self, laser_plugin: LaserPlugin) -> None:
-        """ Loads the plugin
-
-        :param laser_plugin: plugin that will be loaded in the symbolic virtual machine
-        """
-        log.info("Loading plugin: {}".format(str(laser_plugin)))
-        laser_plugin.initialize(self.symbolic_vm)
-        self.laser_plugins.append(laser_plugin)
-
-    def is_enabled(self, laser_plugin: LaserPlugin) -> bool:
+    def is_enabled(self, plugin_name: str) -> bool:
         """ Returns whether the plugin is loaded in the symbolic_vm
 
-        :param laser_plugin: plugin that will be checked
+        :param plugin_name: Name of the plugin to check
         """
-        return laser_plugin in self.laser_plugins
+        return plugin_name in self.laser_plugin_builders
+
+    def load_plugins(self, symbolic_vm: LaserEVM):
+        """ Load enabled plugins into the passed symbolic virtual machine"""
+        pass
