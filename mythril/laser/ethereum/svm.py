@@ -256,11 +256,6 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-            new_states = [
-                state
-                for state in new_states
-                if state.world_state.constraints.is_possible
-            ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
