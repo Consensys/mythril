@@ -29,7 +29,7 @@ from mythril.laser.ethereum.transaction import (
     execute_message_call,
 )
 from mythril.laser.smt import symbol_factory
-
+from mythril.support.support_args import args
 
 log = logging.getLogger(__name__)
 
@@ -257,6 +257,12 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
+            if args.sparse_pruning is False:
+                new_states = [
+                    state
+                    for state in new_states
+                    if state.world_state.constraints.is_possible
+                ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:

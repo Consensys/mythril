@@ -6,6 +6,7 @@ class Args:
 
     def __init__(self):
         self.solver_timeout = 10000
+        self.sparse_pruning = True
 
 
 args = Args()
