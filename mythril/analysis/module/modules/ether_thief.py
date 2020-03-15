@@ -67,7 +67,8 @@ class EtherThief(DetectionModule):
             UGT(
                 state.world_state.balances[ACTORS.attacker],
                 state.world_state.starting_balances[ACTORS.attacker],
-            )
+            ),
+            state.environment.sender == ACTORS.attacker,
         ]
 
         try:
