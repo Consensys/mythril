@@ -78,7 +78,8 @@ class EtherThief(DetectionModule):
             potential_issue = PotentialIssue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
-                address=instruction["address"],
+                address=instruction["address"]
+                - 1,  # In post hook we use offset of previous instruction
                 swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
                 title="Unprotected Ether Withdrawal",
                 severity="High",
