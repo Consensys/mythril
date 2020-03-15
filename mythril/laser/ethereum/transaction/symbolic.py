@@ -145,6 +145,7 @@ def execute_contract_creation(
         )
         _setup_global_state_for_execution(laser_evm, transaction)
         new_account = new_account or transaction.callee_account
+
     laser_evm.exec(True)
 
     return new_account
