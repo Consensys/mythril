@@ -447,9 +447,9 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
     )
     options.add_argument(
-        "--deep-pruning",
+        "--sparse-pruning",
         action="store_true",
-        help="Checks for reachability after every JUMPI. Recommended for long execution timeouts e.g: 10 minutes",
+        help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
     )
     options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
@@ -678,7 +678,7 @@ def execute_command(
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
-            sparse_pruning=not args.deep_pruning,
+            sparse_pruning=args.sparse_pruning,
         )
 
         if not disassembler.contracts:
