@@ -69,6 +69,7 @@ class EtherThief(DetectionModule):
                 state.world_state.starting_balances[ACTORS.attacker],
             ),
             state.environment.sender == ACTORS.attacker,
+            state.current_transaction.caller == state.current_transaction.origin,
         ]
 
         try:
