@@ -67,7 +67,9 @@ class EtherThief(DetectionModule):
             UGT(
                 state.world_state.balances[ACTORS.attacker],
                 state.world_state.starting_balances[ACTORS.attacker],
-            )
+            ),
+            state.environment.sender == ACTORS.attacker,
+            state.current_transaction.caller == state.current_transaction.origin,
         ]
 
         try:
@@ -78,7 +80,8 @@ class EtherThief(DetectionModule):
             potential_issue = PotentialIssue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,
-                address=instruction["address"],
+                address=instruction["address"]
+                - 1,  # In post hook we use offset of previous instruction
                 swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
                 title="Unprotected Ether Withdrawal",
                 severity="High",
