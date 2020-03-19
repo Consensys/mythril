@@ -9,6 +9,7 @@ from mythril.laser.smt import (
     ULT,
     Bool,
     Or,
+    simplify
 )
 from typing import Dict, Tuple, List, Optional
 
@@ -84,11 +85,13 @@ class KeccakFunctionManager:
         :return: Tuple of keccak and the condition it should satisfy
         """
         length = data.size()
+        data.simplify()
         func, inverse = self.get_function(length)
-
+        self.quick_inverse[func(data)] = data
         if data.symbolic is False:
-            concrete_hash = self.find_concrete_keccak(data)
+            concrete_hash = simplify(self.find_concrete_keccak(data))
             self.concrete_hashes[data] = concrete_hash
+            self.quick_inverse[concrete_hash] = data
             # This condition is essential to avoid some edge cases
             condition = And(func(data) == concrete_hash, inverse(func(data)) == data)
             return concrete_hash, condition
