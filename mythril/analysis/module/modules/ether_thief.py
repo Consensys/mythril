@@ -13,7 +13,7 @@ from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.analysis import solver
 from mythril.exceptions import UnsatError
-from mythril.laser.smt import UGT
+from mythril.laser.smt import symbol_factory, UGE, UGT
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class EtherThief(DetectionModule):
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    post_hooks = ["CALL", "STATICCALL"]
+    pre_hooks = ["CALL", "STATICCALL"]
 
     def reset_module(self):
         """
@@ -62,15 +62,28 @@ class EtherThief(DetectionModule):
         instruction = state.get_current_instruction()
 
         constraints = copy(state.world_state.constraints)
+        to = state.mstate.stack[-2]
+        value = state.mstate.stack[-3]
 
+        constraints += [
+            UGT(value, symbol_factory.BitVecVal(0, 256)),
+            to == ACTORS.attacker,
+            UGE(
+                state.world_state.balances[ACTORS.attacker],
+                state.world_state.starting_balances[ACTORS.attacker],
+            ),
+        ]
+
+        """
         constraints += [
             UGT(
                 state.world_state.balances[ACTORS.attacker],
                 state.world_state.starting_balances[ACTORS.attacker],
             ),
-            state.environment.sender == ACTORS.attacker,
-            state.current_transaction.caller == state.current_transaction.origin,
+            # state.environment.sender == ACTORS.attacker,
+            # state.current_transaction.caller == state.current_transaction.origin,
         ]
+        """
 
         try:
             # Pre-solve so we only add potential issues if the attacker's balance is increased.
