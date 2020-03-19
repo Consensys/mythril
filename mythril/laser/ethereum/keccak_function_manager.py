@@ -9,7 +9,7 @@ from mythril.laser.smt import (
     ULT,
     Bool,
     Or,
-    simplify
+    simplify,
 )
 from typing import Dict, Tuple, List, Optional
 

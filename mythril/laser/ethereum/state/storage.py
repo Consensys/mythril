@@ -3,7 +3,15 @@ from copy import copy, deepcopy
 from typing import Any, Dict, Union, Set
 
 from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
-from mythril.laser.smt import Array, K, BitVec, simplify, BaseArray, Extract, symbol_factory
+from mythril.laser.smt import (
+    Array,
+    K,
+    BitVec,
+    simplify,
+    BaseArray,
+    Extract,
+    symbol_factory,
+)
 
 log = logging.getLogger(__name__)
 
@@ -110,4 +118,3 @@ class MapStorage:
         storage = self.get_storage(key)
         inv_keccak_key = keccak_function_manager.quick_inverse[simplify(key)]
         storage[inv_keccak_key] = value
-
