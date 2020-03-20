@@ -65,25 +65,19 @@ class EtherThief(DetectionModule):
         to = state.mstate.stack[-2]
         value = state.mstate.stack[-3]
 
+        if value.value is not None and value.value == 0:
+            # Zero value calls aren't interesting at all
+            return []
+
         constraints += [
             UGT(value, symbol_factory.BitVecVal(0, 256)),
             to == ACTORS.attacker,
             UGE(
-                state.world_state.balances[ACTORS.attacker],
+                state.world_state.balances[ACTORS.attacker] + value,
                 state.world_state.starting_balances[ACTORS.attacker],
             ),
+            state.environment.origin == ACTORS.attacker,
         ]
-
-        """
-        constraints += [
-            UGT(
-                state.world_state.balances[ACTORS.attacker],
-                state.world_state.starting_balances[ACTORS.attacker],
-            ),
-            # state.environment.sender == ACTORS.attacker,
-            # state.current_transaction.caller == state.current_transaction.origin,
-        ]
-        """
 
         try:
             # Pre-solve so we only add potential issues if the attacker's balance is increased.
