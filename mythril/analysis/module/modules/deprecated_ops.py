@@ -1,8 +1,6 @@
 """This module contains the detection code for deprecated op codes."""
-from mythril.analysis.potential_issues import (
-    PotentialIssue,
-    get_potential_issues_annotation,
-)
+
+from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import DEPRECATED_FUNCTIONS_USAGE
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -34,8 +32,7 @@ class DeprecatedOperations(DetectionModule):
             return
         issues = self._analyze_state(state)
 
-        annotation = get_potential_issues_annotation(state)
-        annotation.potential_issues.extend(issues)
+        self.issues.extend(issues)
 
     def _analyze_state(self, state):
         """
@@ -71,20 +68,18 @@ class DeprecatedOperations(DetectionModule):
         else:
             return []
 
-        potential_issue = PotentialIssue(
+        issue = Issue(
             contract=state.environment.active_account.contract_name,
             function_name=state.environment.active_function_name,
             address=instruction["address"],
             title=title,
             bytecode=state.environment.code.bytecode,
-            detector=self,
             swc_id=swc_id,
             severity="Medium",
             description_head=description_head,
             description_tail=description_tail,
-            constraints=[],
         )
-        return [potential_issue]
+        return [issue]
 
 
 detector = DeprecatedOperations()
