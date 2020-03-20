@@ -20,13 +20,11 @@ log = logging.getLogger(__name__)
 
 
 class ArbitraryDelegateCall(DetectionModule):
-    """This module detects calldata being forwarded using DELEGATECALL."""
+    """This module detects delegatecall to a user-supplied address."""
 
     name = "Delegatecall to a user-specified address"
     swc_id = DELEGATECALL_TO_UNTRUSTED_CONTRACT
-    description = (
-        "Check for invocations of delegatecall(msg.data) in the fallback function."
-    )
+    description = "Check for invocations of delegatecall to a user-supplied address."
     entry_point = EntryPoint.CALLBACK
     pre_hooks = ["DELEGATECALL"]
 
