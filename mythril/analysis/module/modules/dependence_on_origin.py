@@ -72,9 +72,9 @@ class TxOrigin(DetectionModule):
 
                     description = (
                         "The tx.origin environment variable has been found to influence a control flow decision. "
-                        + "Note that using tx.origin as a security control might cause a situation where a user "
-                        + "inadvertently authorizes a smart contract to perform an action on their behalf. It is "
-                        + "recommended to use msg.sender instead."
+                        "Note that using tx.origin as a security control might cause a situation where a user "
+                        "inadvertently authorizes a smart contract to perform an action on their behalf. It is "
+                        "recommended to use msg.sender instead."
                     )
 
                     severity = "Low"

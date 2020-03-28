@@ -95,10 +95,10 @@ class PredictableVariables(DetectionModule):
                         )
                         description += (
                             "Note that the values of variables like coinbase, gaslimit, block number and timestamp are "
-                            + "predictable and can be manipulated by a malicious miner. Also keep in mind that "
-                            + "attackers know hashes of earlier blocks. Don't use any of those environment variables "
-                            + " as sources of randomness and be aware that use of these variables introduces "
-                            " a certain level of trust into miners."
+                            "predictable and can be manipulated by a malicious miner. Also keep in mind that "
+                            "attackers know hashes of earlier blocks. Don't use any of those environment variables "
+                            "as sources of randomness and be aware that use of these variables introduces "
+                            "a certain level of trust into miners."
                         )
 
                         """

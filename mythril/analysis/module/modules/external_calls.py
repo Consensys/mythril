@@ -86,10 +86,10 @@ class ExternalCalls(DetectionModule):
 
             description_head = "A call to a user-supplied address is executed."
             description_tail = (
-                "An external message is sent to an address specified by the caller. Note that "
+                "An external message call to an address specified by the caller is executed. Note that "
                 "the callee account might contain arbitrary code and could re-enter any function "
-                "with this contract. Reentering the contract in an intermediate state may lead to "
-                "unexpected behaviour. Make sure that state is no state modifications "
+                "within this contract. Reentering the contract in an intermediate state may lead to "
+                "unexpected behaviour. Make sure that no state modifications "
                 "are executed after this call and/or reentrancy guards are in place."
             )
 

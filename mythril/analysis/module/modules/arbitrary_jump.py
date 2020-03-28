@@ -67,8 +67,8 @@ class ArbitraryJump(DetectionModule):
             bytecode=state.environment.code.bytecode,
             description_head="The caller can redirect execution to arbitrary bytecode locations.",
             description_tail="It is possible to redirect the control flow to arbitrary locations in the code. "
-            + "This may allow an attacker to bypass security controls or manipulate the business logic of the "
-            + "smart contract. Avoid using low-level-operations and assembly to prevent this issue.",
+            "This may allow an attacker to bypass security controls or manipulate the business logic of the "
+            "smart contract. Avoid using low-level-operations and assembly to prevent this issue.",
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             transaction_sequence=transaction_sequence,
         )

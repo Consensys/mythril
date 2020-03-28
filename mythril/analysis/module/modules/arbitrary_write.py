@@ -69,8 +69,8 @@ class ArbitraryStorage(DetectionModule):
             bytecode=state.environment.code.bytecode,
             description_head="Any storage slot can be written by the caller.",
             description_tail="It is possible to write to arbitrary storage locations. By modifying the values of "
-            + "storage variables, attackers may bypass security controls or manipulate the business logic of "
-            + "the smart contract.",
+            "storage variables, attackers may bypass security controls or manipulate the business logic of "
+            "the smart contract.",
             detector=self,
             constraints=constraints,
         )
