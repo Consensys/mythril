@@ -17,31 +17,19 @@ from typing import cast, List
 log = logging.getLogger(__name__)
 
 predictable_ops = ["COINBASE", "GASLIMIT", "TIMESTAMP", "NUMBER"]
-final_ops = ["CALL", "SUICIDE", "STOP", "RETURN"]
 
 
 class PredictableValueAnnotation:
     """Symbol annotation used if a variable is initialized from a predictable environment variable."""
 
-    def __init__(self, operation: str, add_constraints=None) -> None:
+    def __init__(self, operation: str) -> None:
         self.operation = operation
-        self.add_constraints = add_constraints
-
-
-class PredictablePathAnnotation(StateAnnotation):
-    """State annotation used when a path is chosen based on a predictable variable."""
-
-    def __init__(self, operation: str, location: int, add_constraints=None) -> None:
-        self.operation = operation
-        self.location = location
-        self.add_constraints = add_constraints
 
 
 class OldBlockNumberUsedAnnotation(StateAnnotation):
-    """State annotation set in blockhash prehook if the input value is lower than the current block number."""
+    """Symbol annotation used if a variable is initialized from a predictable environment variable."""
 
-    def __init__(self, constraints) -> None:
-        self.block_constraints = constraints
+    def __init__(self) -> None:
         pass
 
 
@@ -56,7 +44,7 @@ class PredictableVariables(DetectionModule):
         "block.gaslimit, block.timestamp or block.number."
     )
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["BLOCKHASH", "JUMPI"] + final_ops
+    pre_hooks = ["JUMPI", "BLOCKHASH"]
     post_hooks = ["BLOCKHASH"] + predictable_ops
 
     def _execute(self, state: GlobalState) -> None:
@@ -86,18 +74,15 @@ class PredictableVariables(DetectionModule):
 
             opcode = state.get_current_instruction()["opcode"]
 
-            if opcode in final_ops:
+            if opcode == "JUMPI":
 
-                for annotation in state.annotations:
+                # Look for predictable state variables in jump condition
 
-                    if isinstance(annotation, PredictablePathAnnotation):
-                        if annotation.add_constraints:
-                            constraints = (
-                                state.world_state.constraints
-                                + annotation.add_constraints
-                            )
-                        else:
-                            constraints = copy(state.world_state.constraints)
+                for annotation in state.mstate.stack[-2].annotations:
+
+                    if isinstance(annotation, PredictableValueAnnotation):
+
+                        constraints = state.world_state.constraints
                         try:
                             transaction_sequence = solver.get_transaction_sequence(
                                 state, constraints
@@ -105,15 +90,14 @@ class PredictableVariables(DetectionModule):
                         except UnsatError:
                             continue
                         description = (
-                            "The environment variable  "
-                            + annotation.operation
-                            + " is used in to determine a control flow decision. "
+                            annotation.operation
+                            + " is used to determine a control flow decision. "
                         )
                         description += (
                             "Note that the values of variables like coinbase, gaslimit, block number and timestamp are "
                             + "predictable and can be manipulated by a malicious miner. Also keep in mind that "
                             + "attackers know hashes of earlier blocks. Don't use any of those environment variables "
-                            + +" as sources of randomness and be aware that use of these variables introduces "
+                            + " as sources of randomness and be aware that use of these variables introduces "
                             " a certain level of trust into miners."
                         )
 
@@ -122,12 +106,7 @@ class PredictableVariables(DetectionModule):
                         determine control flow. 
                         """
 
-                        severity = "Medium" if "hash" in annotation.operation else "Low"
-
-                        """
-                        Note: We report the location of the JUMPI that lead to this path. Usually this maps to an if or
-                        require statement.
-                        """
+                        severity = "Low"
 
                         swc_id = (
                             TIMESTAMP_DEPENDENCE
@@ -138,12 +117,14 @@ class PredictableVariables(DetectionModule):
                         issue = Issue(
                             contract=state.environment.active_account.contract_name,
                             function_name=state.environment.active_function_name,
-                            address=annotation.location,
+                            address=state.get_current_instruction()["address"],
                             swc_id=swc_id,
                             bytecode=state.environment.code.bytecode,
                             title="Dependence on predictable environment variable",
                             severity=severity,
-                            description_head="A control flow decision is made based on a predictable variable.",
+                            description_head="A control flow decision is made based on {}.".format(
+                                annotation.operation
+                            ),
                             description_tail=description,
                             gas_used=(
                                 state.mstate.min_gas_used,
@@ -154,41 +135,27 @@ class PredictableVariables(DetectionModule):
 
                         issues.append(issue)
 
-            elif opcode == "JUMPI":
-
-                # Look for predictable state variables in jump condition
-
-                for annotation in state.mstate.stack[-2].annotations:
-
-                    if isinstance(annotation, PredictableValueAnnotation):
-                        state.annotate(
-                            PredictablePathAnnotation(
-                                annotation.operation,
-                                state.get_current_instruction()["address"],
-                                add_constraints=annotation.add_constraints,
-                            )
-                        )
-                        break
-
             elif opcode == "BLOCKHASH":
 
                 param = state.mstate.stack[-1]
 
-                try:
-                    constraint = [
-                        ULT(param, state.environment.block_number),
-                        ULT(
-                            state.environment.block_number,
-                            symbol_factory.BitVecVal(2 ** 255, 256),
-                        ),
-                    ]
+                constraint = [
+                    ULT(param, state.environment.block_number),
+                    ULT(
+                        state.environment.block_number,
+                        symbol_factory.BitVecVal(2 ** 255, 256),
+                    ),
+                ]
 
-                    # Why the second constraint? Because without it Z3 returns a solution where param overflows.
+                # Why the second constraint? Because without it Z3 returns a solution where param overflows.
+
+                try:
 
                     solver.get_model(
                         state.world_state.constraints + constraint  # type: ignore
                     )
-                    state.annotate(OldBlockNumberUsedAnnotation(constraint))
+
+                    state.annotate(OldBlockNumberUsedAnnotation())
 
                 except UnsatError:
                     pass
@@ -211,17 +178,14 @@ class PredictableVariables(DetectionModule):
                 if len(annotations):
                     # We can append any block constraint here
                     state.mstate.stack[-1].annotate(
-                        PredictableValueAnnotation(
-                            "block hash of a previous block",
-                            add_constraints=annotations[0].block_constraints,
-                        )
+                        PredictableValueAnnotation("The block hash of a previous block")
                     )
             else:
                 # Always create an annotation when COINBASE, GASLIMIT, TIMESTAMP or NUMBER is executed.
 
                 state.mstate.stack[-1].annotate(
                     PredictableValueAnnotation(
-                        "block.{} environment variable".format(opcode.lower())
+                        "The block.{} environment variable".format(opcode.lower())
                     )
                 )
 
