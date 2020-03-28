@@ -100,7 +100,7 @@ class ExternalCalls(DetectionModule):
                 swc_id=REENTRANCY,
                 title="External Call To User-Supplied Address",
                 bytecode=state.environment.code.bytecode,
-                severity="Medium",
+                severity="Low",
                 description_head=description_head,
                 description_tail=description_tail,
                 constraints=constraints,

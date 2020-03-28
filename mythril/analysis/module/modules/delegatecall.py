@@ -73,9 +73,9 @@ class ArbitraryDelegateCall(DetectionModule):
 
             description_head = "The contract delegates execution to another contract with a user-supplied address."
             description_tail = (
-                "The smart contract delegates execution to a user-supplied address. This could allow an attacker to "
-                "execute arbitrary code in the context of this contract account and manipulate permanent storage of "
-                "the account."
+                "The smart contract delegates execution to a user-supplied address.This could allow an attacker to "
+                "execute arbitrary code in the context of this contract account and manipulate the state of the "
+                "contract account or execute actions on its behalf."
             )
 
             return [
