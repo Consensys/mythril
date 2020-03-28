@@ -2,7 +2,7 @@ import pkg_resources
 from mythril.support.support_utils import Singleton
 from mythril.plugin.interface import MythrilPlugin
 
-from typing import List
+from typing import List, Dict, Any
 
 
 class PluginDiscovery(object, metaclass=Singleton):
@@ -12,21 +12,30 @@ class PluginDiscovery(object, metaclass=Singleton):
     """
 
     # Installed plugins structure. Retrieves all modules that have an entry point for mythril.plugins
-    _installed_plugins = {
-        entry_point.name: entry_point.load()
-        for entry_point in pkg_resources.iter_entry_points("mythril.plugins")
-    }
+    _installed_plugins = {}  # type: Dict[str, Any]
+
+    def init_installed_plugins(self):
+        self._installed_plugins = {
+            entry_point.name: entry_point.load()
+            for entry_point in pkg_resources.iter_entry_points("mythril.plugins")
+        }
+
+    @property
+    def installed_plugins(self):
+        if self._installed_plugins is {}:
+            self.init_installed_plugins()
+        return self._installed_plugins
 
     def is_installed(self, plugin_name: str) -> bool:
         """Returns whether there is python package with a plugin with plugin_name"""
-        return plugin_name in self._installed_plugins.keys()
+        return plugin_name in self.installed_plugins.keys()
 
     def build_plugin(self, plugin_name: str) -> MythrilPlugin:
         """Returns the plugin for the given plugin_name  if it is installed"""
         if not self.is_installed(plugin_name):
             raise ValueError(f"Plugin with name: `{plugin_name}` is not installed")
 
-        plugin = self._installed_plugins.get(plugin_name)
+        plugin = self.installed_plugins.get(plugin_name)
 
         if plugin is None or not issubclass(plugin, MythrilPlugin):
             raise ValueError(f"No valid plugin was found for {plugin_name}")
