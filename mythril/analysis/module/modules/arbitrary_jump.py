@@ -14,9 +14,9 @@ Search for jumps to arbitrary locations in the bytecode
 
 
 class ArbitraryJump(DetectionModule):
-    """This module searches for JUMPs to an arbitrary instruction."""
+    """This module searches for JUMPs to an user-specified location."""
 
-    name = "Jump to an arbitrary bytecode location"
+    name = "Caller can redirect execution to arbitrary bytecode locations"
     swc_id = ARBITRARY_JUMP
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
@@ -63,11 +63,12 @@ class ArbitraryJump(DetectionModule):
             address=state.get_current_instruction()["address"],
             swc_id=ARBITRARY_JUMP,
             title="Jump to an arbitrary instruction",
-            severity="Medium",
+            severity="High",
             bytecode=state.environment.code.bytecode,
-            description_head="The caller can jump to any point in the code.",
-            description_tail="This can lead to unintended consequences."
-            "Please avoid using low level code as much as possible",
+            description_head="The caller can redirect execution to arbitrary bytecode locations.",
+            description_tail="It is possible to redirect the control flow to arbitrary locations in the code. "
+            + "This may allow an attacker to bypass security controls or manipulate the business logic of the "
+            + "smart contract. Avoid using low-level-operations and assembly to prevent this issue.",
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             transaction_sequence=transaction_sequence,
         )

@@ -52,7 +52,7 @@ class PredictableVariables(DetectionModule):
     name = "Control flow depends on a predictable environment variable"
     swc_id = "{} {}".format(TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS)
     description = (
-        "Check whether important control flow decisions are influenced by block.coinbase,"
+        "Check whether control flow decisions are influenced by block.coinbase,"
         "block.gaslimit, block.timestamp or block.number."
     )
     entry_point = EntryPoint.CALLBACK
@@ -105,15 +105,16 @@ class PredictableVariables(DetectionModule):
                         except UnsatError:
                             continue
                         description = (
-                            "The "
+                            "The environment variable  "
                             + annotation.operation
                             + " is used in to determine a control flow decision. "
                         )
                         description += (
-                            "Note that the values of variables like coinbase, gaslimit, block number and timestamp "
-                            "are predictable and can be manipulated by a malicious miner. Also keep in mind that attackers "
-                            "know hashes of earlier blocks. Don't use any of those environment variables for random number "
-                            "generation or to make critical control flow decisions."
+                            "Note that the values of variables like coinbase, gaslimit, block number and timestamp are "
+                            + "predictable and can be manipulated by a malicious miner. Also keep in mind that "
+                            + "attackers know hashes of earlier blocks. Don't use any of those environment variables "
+                            + +" as sources of randomness and be aware that use of these variables introduces "
+                            " a certain level of trust into miners."
                         )
 
                         """

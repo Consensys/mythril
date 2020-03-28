@@ -46,10 +46,10 @@ class DeprecatedOperations(DetectionModule):
         if instruction["opcode"] == "ORIGIN":
             log.debug("ORIGIN in function " + node.function_name)
             title = "Use of tx.origin"
-            description_head = "Use of tx.origin is deprecated."
+            description_head = "Use of the keyword tx.origin is deprecated."
             description_tail = (
                 "The smart contract retrieves the transaction origin (tx.origin) using msg.origin. "
-                "Use of msg.origin is deprecated and the instruction may be removed in the  future. "
+                "Use of msg.origin is deprecated and the instruction may be removed in the future. "
                 "Use msg.sender instead.\nSee also: "
                 "https://solidity.readthedocs.io/en/develop/security-considerations.html#tx-origin"
             )
