@@ -14,7 +14,7 @@ Search for jumps to arbitrary locations in the bytecode
 
 
 class ArbitraryJump(DetectionModule):
-    """This module searches for JUMPs to an user-specified location."""
+    """This module searches for JUMPs to a user-specified location."""
 
     name = "Caller can redirect execution to arbitrary bytecode locations"
     swc_id = ARBITRARY_JUMP
