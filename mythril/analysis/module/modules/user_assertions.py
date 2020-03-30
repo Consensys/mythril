@@ -69,11 +69,11 @@ class UserAssertions(DetectionModule):
 
         description_head = "A user-provided assertion failed."
         if message:
-            description_tail = "A user-provided assertion failed with message '{}'. Make sure the user-provided assertion is correct.".format(
+            description_tail = "A user-provided assertion failed with the message '{}'".format(
                 message
             )
         else:
-            description_tail = "A user-provided assertion failed. Make sure the user-provided assertion is correct."
+            description_tail = "A user-provided assertion failed."
 
         address = state.get_current_instruction()["address"]
         issue = PotentialIssue(

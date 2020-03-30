@@ -44,12 +44,12 @@ class CommandLineToolTestCase(BaseTestCase):
     def test_analyze(self):
         solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
         command = "python3 {} analyze {}".format(MYTH, solidity_file)
-        self.assertIn("111", output_of(command))
+        self.assertIn("115", output_of(command))
 
     def test_analyze_bytecode(self):
         solidity_file = str(TESTDATA / "inputs" / "origin.sol.o")
         command = "python3 {} analyze --bin-runtime -f {}".format(MYTH, solidity_file)
-        self.assertIn("111", output_of(command))
+        self.assertIn("115", output_of(command))
 
     def test_invalid_args_iprof(self):
         solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
