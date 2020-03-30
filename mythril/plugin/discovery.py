@@ -49,10 +49,10 @@ class PluginDiscovery(object, metaclass=Singleton):
         :return: List of plugin names
         """
         if default_enabled is None:
-            return list(self._installed_plugins.keys())
+            return list(self.installed_plugins.keys())
 
         return [
             plugin_name
-            for plugin_name, plugin_class in self._installed_plugins.items()
+            for plugin_name, plugin_class in self.installed_plugins.items()
             if plugin_class.plugin_default_enabled == default_enabled
         ]
