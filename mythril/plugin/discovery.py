@@ -22,7 +22,7 @@ class PluginDiscovery(object, metaclass=Singleton):
 
     @property
     def installed_plugins(self):
-        if self._installed_plugins is {}:
+        if self._installed_plugins is None:
             self.init_installed_plugins()
         return self._installed_plugins
 
