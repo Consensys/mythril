@@ -21,7 +21,7 @@ Search for any writes to an arbitrary storage slot
 class ArbitraryStorage(DetectionModule):
     """This module searches for a feasible write to an arbitrary storage slot."""
 
-    name = "Write to an arbitrary storage location"
+    name = "Caller can write to arbitrary storage locations"
     swc_id = WRITE_TO_ARBITRARY_STORAGE
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
@@ -64,12 +64,13 @@ class ArbitraryStorage(DetectionModule):
             function_name=state.environment.active_function_name,
             address=state.get_current_instruction()["address"],
             swc_id=WRITE_TO_ARBITRARY_STORAGE,
-            title="Write to an arbitrary storage slot",
+            title="The caller can write to arbitrary storage locations.",
             severity="High",
             bytecode=state.environment.code.bytecode,
             description_head="Any storage slot can be written by the caller.",
-            description_tail="The attacker can modify any value in the storage."
-            + " This can lead to unintended consequences.",
+            description_tail="It is possible to write to arbitrary storage locations. By modifying the values of "
+            "storage variables, attackers may bypass security controls or manipulate the business logic of "
+            "the smart contract.",
             detector=self,
             constraints=constraints,
         )

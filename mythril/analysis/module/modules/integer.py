@@ -202,14 +202,10 @@ class IntegerArithmetics(DetectionModule):
     def _get_description_tail(annotation, _type):
 
         return (
-            "The operands of the {} operation are not sufficiently constrained. "
-            "The {} could therefore result in an integer {}. Prevent the {} by checking inputs "
-            "or ensure sure that the {} is caught by an assertion.".format(
-                annotation.operator,
-                annotation.operator,
-                _type.lower(),
-                _type.lower(),
-                _type.lower(),
+            "It is possible to cause an integer {} in the {} operation. Prevent the {} by constraining inputs "
+            "using the require() statement or use the OpenZeppelin SafeMath library for integer arithmetic operations. "
+            "Refer to the transaction trace generated for this issue to reproduce the {}.".format(
+                _type.lower(), annotation.operator, _type.lower(), _type.lower()
             )
         )
 

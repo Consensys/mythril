@@ -7,7 +7,7 @@ from mythril.analysis.module.modules.delegatecall import ArbitraryDelegateCall
 from mythril.analysis.module.modules.dependence_on_predictable_vars import (
     PredictableVariables,
 )
-from mythril.analysis.module.modules.deprecated_ops import DeprecatedOperations
+from mythril.analysis.module.modules.dependence_on_origin import TxOrigin
 from mythril.analysis.module.modules.ether_thief import EtherThief
 from mythril.analysis.module.modules.exceptions import Exceptions
 from mythril.analysis.module.modules.external_calls import ExternalCalls
@@ -88,7 +88,7 @@ class ModuleLoader(object, metaclass=Singleton):
                 ArbitraryStorage(),
                 ArbitraryDelegateCall(),
                 PredictableVariables(),
-                DeprecatedOperations(),
+                TxOrigin(),
                 EtherThief(),
                 Exceptions(),
                 ExternalCalls(),

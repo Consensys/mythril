@@ -28,7 +28,7 @@ class EtherThief(DetectionModule):
     """This module search for cases where Ether can be withdrawn to a user-
     specified address."""
 
-    name = "Attacker can profitably withdraw Ether from the contract account"
+    name = "Any sender can withdraw ETH from the contract account"
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
@@ -86,9 +86,10 @@ class EtherThief(DetectionModule):
                 title="Unprotected Ether Withdrawal",
                 severity="High",
                 bytecode=state.environment.code.bytecode,
-                description_head="Anyone can withdraw ETH from the contract account.",
-                description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
-                + " account. This is likely to be a vulnerability.",
+                description_head="Any sender can withdraw Ether from the contract account.",
+                description_tail="Arbitrary senders other than the contract creator can profitably extract Ether "
+                "from the contract account. Verify the business logic carefully and make sure that appropriate "
+                "security controls are in place to prevent unexpected loss of funds.",
                 detector=self,
                 constraints=constraints,
             )

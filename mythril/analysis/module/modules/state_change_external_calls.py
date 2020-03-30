@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Check whether there is a state change of the contract after the execution of an external call
+Check whether the account state is accesses after the execution of an external call
 """
 
 CALL_LIST = ["CALL", "DELEGATECALL", "CALLCODE"]
@@ -69,22 +69,25 @@ class StateChangeCallsAnnotation(StateAnnotation):
         logging.debug(
             "[EXTERNAL_CALLS] Detected state changes at addresses: {}".format(address)
         )
-        read_or_write = "write"
+        read_or_write = "Write to"
         if global_state.get_current_instruction()["opcode"] == "SLOAD":
-            read_or_write = "read"
+            read_or_write = "Read of"
         address_type = "user defined" if self.user_defined_address else "fixed"
-        description_head = "Persistent state {} after call".format(read_or_write)
+        description_head = "{} persistent state following external call".format(
+            read_or_write
+        )
         description_tail = (
-            "The contract account state is changed after an external call to a {} address. "
-            "Consider that the called contract could re-enter the function before this "
-            "state change takes place".format(address_type)
+            "The contract account state is accessed after an external call to a {} address. Note that the callee "
+            "could re-enter any function in this contract before the state access has occurred. Review the contract "
+            "logic carefully and consider performing all state operations before executing the external call, "
+            "especially if the callee is not trusted.".format(address_type)
         )
 
         return PotentialIssue(
             contract=global_state.environment.active_account.contract_name,
             function_name=global_state.environment.active_function_name,
             address=address,
-            title="State change after external call",
+            title="State access after external call",
             severity=severity,
             description_head=description_head,
             description_tail=description_tail,
