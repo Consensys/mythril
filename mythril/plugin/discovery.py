@@ -2,7 +2,7 @@ import pkg_resources
 from mythril.support.support_utils import Singleton
 from mythril.plugin.interface import MythrilPlugin
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 class PluginDiscovery(object, metaclass=Singleton):
