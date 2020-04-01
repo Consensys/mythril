@@ -29,7 +29,7 @@ from mythril.laser.ethereum.transaction import (
     execute_message_call,
 )
 from mythril.laser.smt import symbol_factory
-
+from mythril.support.support_args import args
 
 log = logging.getLogger(__name__)
 
@@ -203,6 +203,15 @@ class LaserEVM:
         self.time = datetime.now()
 
         for i in range(self.transaction_count):
+            if len(self.open_states) == 0:
+                break
+            old_states_count = len(self.open_states)
+            self.open_states = [
+                state for state in self.open_states if state.constraints.is_possible
+            ]
+            prune_count = old_states_count - len(self.open_states)
+            if prune_count:
+                log.info("Pruned {} unreachable states".format(prune_count))
             log.info(
                 "Starting message call transaction, iteration: {}, {} initial states".format(
                     i, len(self.open_states)
@@ -248,11 +257,12 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-            new_states = [
-                state
-                for state in new_states
-                if state.world_state.constraints.is_possible
-            ]
+            if args.sparse_pruning is False:
+                new_states = [
+                    state
+                    for state in new_states
+                    if state.world_state.constraints.is_possible
+                ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
