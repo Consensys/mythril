@@ -62,7 +62,7 @@ class Exceptions(DetectionModule):
                 swc_id=ASSERT_VIOLATION,
                 title="Exception State",
                 severity="Medium",
-                description_head="An exception or assertion violation was triggered.",
+                description_head="An assertion violation was triggered.",
                 description_tail=description_tail,
                 bytecode=state.environment.code.bytecode,
                 transaction_sequence=transaction_sequence,

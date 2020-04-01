@@ -64,10 +64,10 @@ class ArbitraryStorage(DetectionModule):
             function_name=state.environment.active_function_name,
             address=state.get_current_instruction()["address"],
             swc_id=WRITE_TO_ARBITRARY_STORAGE,
-            title="The caller can write to arbitrary storage locations.",
+            title="Write to an arbitrary storage location",
             severity="High",
             bytecode=state.environment.code.bytecode,
-            description_head="Any storage slot can be written by the caller.",
+            description_head="The caller can write to arbitrary storage locations.",
             description_tail="It is possible to write to arbitrary storage locations. By modifying the values of "
             "storage variables, attackers may bypass security controls or manipulate the business logic of "
             "the smart contract.",
