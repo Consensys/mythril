@@ -63,7 +63,7 @@ class AccidentallyKillable(DetectionModule):
 
         log.debug("SUICIDE in function %s", state.environment.active_function_name)
 
-        description_head = "The contract can be killed by anyone."
+        description_head = "Any sender can cause the contract to self-destruct."
 
         constraints = []
 
@@ -80,15 +80,24 @@ class AccidentallyKillable(DetectionModule):
                     + constraints
                     + [to == ACTORS.attacker],
                 )
+
                 description_tail = (
-                    "Anyone can kill this contract and withdraw its balance to an arbitrary "
-                    "address."
+                    "Any sender can trigger execution of the SELFDESTRUCT instruction to destroy this "
+                    "contract account and withdraw its balance to an arbitrary address. Review the transaction trace "
+                    "generated for this issue and make sure that appropriate security controls are in place to prevent "
+                    "unrestricted access."
                 )
+
             except UnsatError:
                 transaction_sequence = solver.get_transaction_sequence(
                     state, state.world_state.constraints + constraints
                 )
-                description_tail = "Arbitrary senders can kill this contract."
+                description_tail = (
+                    "Any sender can trigger execution of the SELFDESTRUCT instruction to destroy this "
+                    "contract account. Review the transaction trace generated for this issue and make sure that "
+                    "appropriate security controls are in place to prevent unrestricted access."
+                )
+
             issue = Issue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,

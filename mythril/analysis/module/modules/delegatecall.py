@@ -73,9 +73,9 @@ class ArbitraryDelegateCall(DetectionModule):
 
             description_head = "The contract delegates execution to another contract with a user-supplied address."
             description_tail = (
-                "The smart contract delegates execution to a user-supplied address. Note that callers "
-                "can execute arbitrary contracts and that the callee contract "
-                "can access the storage of the calling contract. "
+                "The smart contract delegates execution to a user-supplied address.This could allow an attacker to "
+                "execute arbitrary code in the context of this contract account and manipulate the state of the "
+                "contract account or execute actions on its behalf."
             )
 
             return [
@@ -85,8 +85,8 @@ class ArbitraryDelegateCall(DetectionModule):
                     address=address,
                     swc_id=DELEGATECALL_TO_UNTRUSTED_CONTRACT,
                     bytecode=state.environment.code.bytecode,
-                    title="Delegatecall Proxy To User-Supplied Address",
-                    severity="Medium",
+                    title="Delegatecall to user-supplied address",
+                    severity="High",
                     description_head=description_head,
                     description_tail=description_tail,
                     constraints=constraints,

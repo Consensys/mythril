@@ -447,6 +447,11 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
     )
     options.add_argument(
+        "--sparse-pruning",
+        action="store_true",
+        help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
+    )
+    options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
     options.add_argument(
@@ -673,6 +678,7 @@ def execute_command(
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
+            sparse_pruning=args.sparse_pruning,
         )
 
         if not disassembler.contracts:

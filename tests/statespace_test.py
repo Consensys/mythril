@@ -18,6 +18,7 @@ def test_statespace_dump():
             execution_timeout=5,
             max_depth=30,
             address=(util.get_indexed_address(0)),
+            solver_timeout=10000,
         )
 
         analyzer.dump_statespace(contract=contract)
