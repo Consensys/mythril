@@ -77,10 +77,12 @@ class StateChangeCallsAnnotation(StateAnnotation):
             read_or_write
         )
         description_tail = (
-            "The contract account state is accessed after an external call to a {} address. Note that the callee "
-            "could re-enter any function in this contract before the state access has occurred. Review the contract "
-            "logic carefully and consider performing all state operations before executing the external call, "
-            "especially if the callee is not trusted.".format(address_type)
+            "The contract account state is accessed after an external call to a {} address. "
+            "To prevent reentrancy issues, consider accessing the state only before the call, especially if the callee is untrusted. "
+            "Alternatively, a reentrancy lock can be used to prevent "
+            "untrusted callees from re-entering the contract in an intermediate state.".format(
+                address_type
+            )
         )
 
         return PotentialIssue(
