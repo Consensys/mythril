@@ -23,6 +23,7 @@ from mythril.exceptions import (
     CriticalError,
 )
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.plugin.loader import MythrilPluginLoader
 from mythril.mythril import (
     MythrilAnalyzer,
     MythrilDisassembler,
@@ -33,6 +34,9 @@ from mythril.mythril import (
 from mythril.analysis.module import ModuleLoader
 
 from mythril.__version__ import __version__ as VERSION
+
+# Initialise core Mythril Component
+_ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")

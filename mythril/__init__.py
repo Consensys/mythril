@@ -8,7 +8,3 @@ from .__version__ import __version__ as VERSION  # NOQA
 from mythril.plugin.loader import MythrilPluginLoader
 
 log = logging.getLogger(__name__)
-
-# Initialise core Mythril Components
-log.info("Initializing core Mythril components")
-_ = MythrilPluginLoader()
