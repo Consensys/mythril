@@ -42,6 +42,7 @@ class Storage:
             and item.symbolic is False
             and int(item.value) not in self.storage_keys_loaded
             and (self.dynld and self.dynld.active)
+            and args.unconstrained_storage is False
         ):
             try:
                 storage[item] = symbol_factory.BitVecVal(
