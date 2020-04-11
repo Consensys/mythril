@@ -46,6 +46,7 @@ class MythrilAnalyzer:
         enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
         sparse_pruning: bool = False,
+        unconstrained_storage: bool = False,
     ):
         """
 
@@ -69,6 +70,7 @@ class MythrilAnalyzer:
         self.custom_modules_directory = custom_modules_directory
         args.sparse_pruning = sparse_pruning
         args.solver_timeout = solver_timeout
+        args.unconstrained_storage = unconstrained_storage
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """

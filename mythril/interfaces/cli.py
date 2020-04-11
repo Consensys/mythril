@@ -456,6 +456,12 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
     )
     options.add_argument(
+        "--unconstrained-storage",
+        action="store_true",
+        help="Default storage value is symbolic, turns off the on-chain storage loading",
+    )
+
+    options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
     options.add_argument(
@@ -683,6 +689,7 @@ def execute_command(
             if args.custom_modules_directory
             else "",
             sparse_pruning=args.sparse_pruning,
+            unconstrained_storage=args.unconstrained_storage,
         )
 
         if not disassembler.contracts:
