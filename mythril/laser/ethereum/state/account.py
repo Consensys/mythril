@@ -10,6 +10,7 @@ from typing import Any, Dict, Union, Set
 from mythril.laser.smt import Array, K, BitVec, simplify, BaseArray
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
+from mythril.support.support_args import args
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ class Storage:
 
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
-        if concrete:
+        if concrete and args.unconstrained_storage is False:
             self._standard_storage = K(256, 256, 0)  # type: BaseArray
         else:
             self._standard_storage = Array("Storage", 256, 256)
@@ -41,6 +42,7 @@ class Storage:
             and item.symbolic is False
             and int(item.value) not in self.storage_keys_loaded
             and (self.dynld and self.dynld.active)
+            and args.unconstrained_storage is False
         ):
             try:
                 storage[item] = symbol_factory.BitVecVal(
