@@ -167,6 +167,7 @@ workflows:
           filters:
             tags:
               only: /.*/
+
       - pypi_release:
           filters:
             branches:
@@ -174,13 +175,13 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
           requires:
-            - integration_tests
+            - test
       - dockerhub_dev_release:
           filters:
             branches:
               only: develop
           requires:
-            - integration_tests
+            - test
       - dockerhub_release:
           filters:
             branches:
@@ -188,4 +189,4 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
           requires:
-            - integration_tests
+            - test
