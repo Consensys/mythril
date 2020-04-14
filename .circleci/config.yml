@@ -167,7 +167,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-
       - pypi_release:
           filters:
             branches:
