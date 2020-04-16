@@ -46,7 +46,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         )
 
     @staticmethod
-    def calculate_hash(i, j, trace):
+    def calculate_hash(i: int, j: int, trace: List[int]) -> int:
         """
         calculate hash(trace[i: j])
         :param i:
@@ -63,7 +63,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         return key
 
     @staticmethod
-    def count_key(trace, key, start, size):
+    def count_key(trace: List[int], key: int, start: int, size: int) -> int:
         """
         Count continuous loops in the trace.
         :param trace:
@@ -81,7 +81,12 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         return count
 
     @staticmethod
-    def get_loop_count(trace):
+    def get_loop_count(trace: List[int]) -> int:
+        """
+        Gets the loop count
+        :param trace: annotation trace
+        :return:
+        """
         found = False
         for i in range(len(trace) - 3, 0, -1):
             if trace[i] == trace[-2] and trace[i + 1] == trace[-1]:
