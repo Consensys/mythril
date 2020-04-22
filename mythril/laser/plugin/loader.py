@@ -53,7 +53,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
         :param symbolic_vm: The virtual machine to instrument the plugins with
         :param with_plugins: Override the globally enabled/disabled builders and load all plugins in the list
         """
-        for plugin_name, plugin_builder in self.laser_plugin_builders:
+        for plugin_name, plugin_builder in self.laser_plugin_builders.items():
             enabled = (
                 plugin_builder.enabled
                 if not with_plugins
