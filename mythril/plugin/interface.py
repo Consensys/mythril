@@ -36,13 +36,10 @@ class MythrilCLIPlugin(MythrilPlugin):
     pass
 
 
-class MythrilLaserPlugin(MythrilPlugin, ABC):
+class MythrilLaserPlugin(MythrilPlugin, LaserPluginBuilder, ABC):
     """ Mythril Laser Plugin interface
 
     Plugins of this type are used to instrument the laser EVM
     """
 
-    @abstractmethod
-    @property
-    def builder(self) -> LaserPluginBuilder:
-        pass
+    pass
