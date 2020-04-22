@@ -43,7 +43,6 @@ class MythrilAnalyzer:
         enable_iprof: bool = False,
         disable_dependency_pruning: bool = False,
         solver_timeout: Optional[int] = None,
-        enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
     ):
         """
@@ -64,7 +63,6 @@ class MythrilAnalyzer:
         self.create_timeout = create_timeout
         self.iprof = InstructionProfiler() if enable_iprof else None
         self.disable_dependency_pruning = disable_dependency_pruning
-        self.enable_coverage_strategy = enable_coverage_strategy
         self.custom_modules_directory = custom_modules_directory
 
         analysis_args.set_loop_bound(loop_bound)
@@ -87,7 +85,6 @@ class MythrilAnalyzer:
             iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
-            enable_coverage_strategy=self.enable_coverage_strategy,
             custom_modules_directory=self.custom_modules_directory,
         )
 
@@ -121,7 +118,6 @@ class MythrilAnalyzer:
             iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
-            enable_coverage_strategy=self.enable_coverage_strategy,
             custom_modules_directory=self.custom_modules_directory,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
@@ -156,7 +152,6 @@ class MythrilAnalyzer:
                     compulsory_statespace=False,
                     iprof=self.iprof,
                     disable_dependency_pruning=self.disable_dependency_pruning,
-                    enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
                 )
                 issues = fire_lasers(sym, modules)
