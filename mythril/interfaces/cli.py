@@ -669,7 +669,6 @@ def execute_command(
             disable_dependency_pruning=args.disable_dependency_pruning,
             use_onchain_data=not args.no_onchain_data,
             solver_timeout=args.solver_timeout,
-            enable_coverage_strategy=args.enable_coverage_strategy,
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
