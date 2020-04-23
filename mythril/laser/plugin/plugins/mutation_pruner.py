@@ -1,5 +1,6 @@
 from mythril.laser.plugin.signals import PluginSkipWorldState
-from mythril.laser.plugin import LaserPlugin, PluginBuilder
+from mythril.laser.plugin.interface import LaserPlugin
+from mythril.laser.plugin.builder import PluginBuilder
 from mythril.laser.plugin.plugins.plugin_annotations import MutationAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM

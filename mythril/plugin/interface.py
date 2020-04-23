@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from mythril.laser.plugin import PluginBuilder as LaserPluginBuilder
+from mythril.laser.plugin.builder import PluginBuilder as LaserPluginBuilder
 
 
 class MythrilPlugin:

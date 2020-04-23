@@ -5,7 +5,7 @@ from mythril.plugin.discovery import PluginDiscovery
 from mythril.support.support_utils import Singleton
 
 from mythril.analysis.module.loader import ModuleLoader
-from mythril.laser.plugin import PluginBuilder as LaserPluginBuilder
+from mythril.laser.plugin.builder import PluginBuilder as LaserPluginBuilder
 from mythril.laser.plugin.loader import LaserPluginLoader
 import logging
 
