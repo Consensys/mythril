@@ -26,6 +26,14 @@ class StateAnnotation:
         """
         return False
 
+    @property
+    def persist_over_calls(self) -> bool:
+        """If this function returns true then laser will propagate the annotation between calls
+
+        The default is set to False
+        """
+        return False
+
 
 class NoCopyAnnotation(StateAnnotation):
     """This class provides a base annotation class for annotations that
