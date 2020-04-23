@@ -372,21 +372,13 @@ class LaserEVM:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
 
-                # TODO: Remove the following section from the svm
-                # ================================================================
-                # Propogate codecall based annotations
-                if return_global_state.get_current_instruction()["opcode"] in (
-                    "DELEGATECALL",
-                    "CALLCODE",
-                ):
-                    new_annotations = [
-                        annotation
-                        for annotation in global_state.get_annotations(
-                            MutationAnnotation
-                        )
-                    ]
-                    return_global_state.add_annotations(new_annotations)
-                # ================================================================
+                # Propagate annotations
+                new_annotations = [
+                    annotation
+                    for annotation in global_state.annotations
+                    if annotation.persist_over_calls
+                ]
+                return_global_state.add_annotations(new_annotations)
 
                 new_global_states = self._end_message_call(
                     copy(return_global_state),
