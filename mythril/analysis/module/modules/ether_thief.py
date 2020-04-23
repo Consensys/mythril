@@ -11,24 +11,16 @@ from mythril.analysis.potential_issues import (
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.analysis.swc_data import UNPROTECTED_ETHER_WITHDRAWAL
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.transaction import ContractCreationTransaction
-
-from mythril.laser.smt import UGT, UGE
-from mythril.laser.smt.bool import And
+from mythril.analysis import solver
+from mythril.exceptions import UnsatError
+from mythril.laser.smt import UGT
 
 log = logging.getLogger(__name__)
 
 DESCRIPTION = """
-
 Search for cases where Ether can be withdrawn to a user-specified address.
-
-An issue is reported if:
-
-- The transaction sender does not match contract creator;
-- The sender address can be chosen arbitrarily;
-- The receiver address is identical to the sender address;
-- The sender can withdraw *more* than the total amount they sent over all transactions.
-
+An issue is reported if there is a valid end state where the attacker has successfully
+increased their Ether balance.
 """
 
 
@@ -36,11 +28,11 @@ class EtherThief(DetectionModule):
     """This module search for cases where Ether can be withdrawn to a user-
     specified address."""
 
-    name = "Attacker can profitably withdraw Ether from the contract account"
+    name = "Any sender can withdraw ETH from the contract account"
     swc_id = UNPROTECTED_ETHER_WITHDRAWAL
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["STOP"]
+    post_hooks = ["CALL", "STATICCALL"]
 
     def reset_module(self):
         """
@@ -51,7 +43,6 @@ class EtherThief(DetectionModule):
 
     def _execute(self, state: GlobalState) -> None:
         """
-
         :param state:
         :return:
         """
@@ -64,7 +55,6 @@ class EtherThief(DetectionModule):
 
     def _analyze_state(self, state):
         """
-
         :param state:
         :return:
         """
@@ -73,32 +63,40 @@ class EtherThief(DetectionModule):
 
         constraints = copy(state.world_state.constraints)
 
-        attacker_address_bitvec = ACTORS.attacker
-
         constraints += [
             UGT(
-                state.world_state.balances[attacker_address_bitvec],
-                state.world_state.starting_balances[attacker_address_bitvec],
-            )
+                state.world_state.balances[ACTORS.attacker],
+                state.world_state.starting_balances[ACTORS.attacker],
+            ),
+            state.environment.sender == ACTORS.attacker,
+            state.current_transaction.caller == state.current_transaction.origin,
         ]
 
-        potential_issue = PotentialIssue(
-            contract=state.environment.active_account.contract_name,
-            function_name=state.environment.active_function_name,
-            address=instruction["address"],
-            swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
-            title="Unprotected Ether Withdrawal",
-            severity="High",
-            bytecode=state.environment.code.bytecode,
-            description_head="Anyone can withdraw ETH from the contract account.",
-            description_tail="Arbitrary senders other than the contract creator can withdraw ETH from the contract"
-            + " account without previously having sent an equivalent amount of ETH to it. This is likely to be"
-            + " a vulnerability.",
-            detector=self,
-            constraints=constraints,
-        )
+        try:
+            # Pre-solve so we only add potential issues if the attacker's balance is increased.
 
-        return [potential_issue]
+            solver.get_model(constraints)
+
+            potential_issue = PotentialIssue(
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
+                address=instruction["address"]
+                - 1,  # In post hook we use offset of previous instruction
+                swc_id=UNPROTECTED_ETHER_WITHDRAWAL,
+                title="Unprotected Ether Withdrawal",
+                severity="High",
+                bytecode=state.environment.code.bytecode,
+                description_head="Any sender can withdraw Ether from the contract account.",
+                description_tail="Arbitrary senders other than the contract creator can profitably extract Ether "
+                "from the contract account. Verify the business logic carefully and make sure that appropriate "
+                "security controls are in place to prevent unexpected loss of funds.",
+                detector=self,
+                constraints=constraints,
+            )
+
+            return [potential_issue]
+        except UnsatError:
+            return []
 
 
 detector = EtherThief()

@@ -195,25 +195,6 @@ class IntegerArithmetics(DetectionModule):
         return stack[index]
 
     @staticmethod
-    def _get_description_head(annotation, _type):
-        return "The binary {} can {}.".format(annotation.operator, _type.lower())
-
-    @staticmethod
-    def _get_description_tail(annotation, _type):
-
-        return (
-            "The operands of the {} operation are not sufficiently constrained. "
-            "The {} could therefore result in an integer {}. Prevent the {} by checking inputs "
-            "or ensure sure that the {} is caught by an assertion.".format(
-                annotation.operator,
-                annotation.operator,
-                _type.lower(),
-                _type.lower(),
-                _type.lower(),
-            )
-        )
-
-    @staticmethod
     def _get_title(_type):
         return "Integer {}".format(_type)
 
@@ -317,17 +298,24 @@ class IntegerArithmetics(DetectionModule):
             except UnsatError:
                 continue
 
-            _type = "Underflow" if annotation.operator == "subtraction" else "Overflow"
+            description_head = "The arithmetic operator can {}.".format(
+                "underflow" if annotation.operator == "subtraction" else "overflow"
+            )
+            description_tail = "It is possible to cause an integer overflow or underflow in the arithmetic operation. "
+            "Prevent this by constraining inputs using the require() statement or use the OpenZeppelin "
+            "SafeMath library for integer arithmetic operations. "
+            "Refer to the transaction trace generated for this issue to reproduce the issue."
+
             issue = Issue(
                 contract=ostate.environment.active_account.contract_name,
                 function_name=ostate.environment.active_function_name,
                 address=ostate.get_current_instruction()["address"],
                 swc_id=INTEGER_OVERFLOW_AND_UNDERFLOW,
                 bytecode=ostate.environment.code.bytecode,
-                title=self._get_title(_type),
+                title="Integer Arithmetic Bugs",
                 severity="High",
-                description_head=self._get_description_head(annotation, _type),
-                description_tail=self._get_description_tail(annotation, _type),
+                description_head=description_head,
+                description_tail=description_tail,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 transaction_sequence=transaction_sequence,
             )

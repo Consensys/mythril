@@ -75,8 +75,11 @@ class MultipleSends(DetectionModule):
                 except UnsatError:
                     continue
                 description_tail = (
-                    "This call is executed after a previous call in the same transaction. "
-                    "Try to isolate each call, transfer or send into its own transaction."
+                    "This call is executed following another call within the same transaction. It is possible "
+                    "that the call never gets executed if a prior call fails permanently. This might be caused "
+                    "intentionally by a malicious callee. If possible, refactor the code such that each transaction "
+                    "only executes one external call or "
+                    "make sure that all callees can be trusted (i.e. they’re part of your own codebase)."
                 )
 
                 issue = Issue(

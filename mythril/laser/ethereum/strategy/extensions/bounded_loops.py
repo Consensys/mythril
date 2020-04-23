@@ -45,7 +45,8 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             self, super_strategy.work_list, super_strategy.max_depth
         )
 
-    def calculate_hash(self, i, j, trace):
+    @staticmethod
+    def calculate_hash(i: int, j: int, trace: List[int]) -> int:
         """
         calculate hash(trace[i: j])
         :param i:
@@ -61,7 +62,8 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
 
         return key
 
-    def count_key(self, trace, key, start, size):
+    @staticmethod
+    def count_key(trace: List[int], key: int, start: int, size: int) -> int:
         """
         Count continuous loops in the trace.
         :param trace:
@@ -69,13 +71,34 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         :param size:
         :return:
         """
-        count = 0
+        count = 1
         i = start
         while i >= 0:
-            if self.calculate_hash(i, i + size, trace) != key:
+            if BoundedLoopsStrategy.calculate_hash(i, i + size, trace) != key:
                 break
             count += 1
             i -= size
+        return count
+
+    @staticmethod
+    def get_loop_count(trace: List[int]) -> int:
+        """
+        Gets the loop count
+        :param trace: annotation trace
+        :return:
+        """
+        found = False
+        for i in range(len(trace) - 3, 0, -1):
+            if trace[i] == trace[-2] and trace[i + 1] == trace[-1]:
+                found = True
+                break
+
+        if found:
+            key = BoundedLoopsStrategy.calculate_hash(i + 1, len(trace) - 1, trace)
+            size = len(trace) - i - 2
+            count = BoundedLoopsStrategy.count_key(trace, key, i + 1, size)
+        else:
+            count = 0
         return count
 
     def get_strategic_global_state(self) -> GlobalState:
@@ -107,28 +130,9 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
                 return state
 
             # create unique instruction identifier
-
-            found = False
-            for i in range(len(annotation.trace) - 3, 0, -1):
-                if (
-                    annotation.trace[i] == annotation.trace[-2]
-                    and annotation.trace[i + 1] == annotation.trace[-1]
-                ):
-                    found = True
-                    break
-
-            if found:
-                key = self.calculate_hash(
-                    i, len(annotation.trace) - 1, annotation.trace
-                )
-                size = len(annotation.trace) - i - 1
-                count = self.count_key(annotation.trace, key, i, size)
-            else:
-                count = 0
-
+            count = BoundedLoopsStrategy.get_loop_count(annotation.trace)
             # The creation transaction gets a higher loop bound to give it a better chance of success.
             # TODO: There's probably a nicer way to do this
-
             if isinstance(
                 state.current_transaction, ContractCreationTransaction
             ) and count < max(8, self.bound):

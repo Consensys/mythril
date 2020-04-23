@@ -86,9 +86,10 @@ class UncheckedRetval(DetectionModule):
                     continue
 
                 description_tail = (
-                    "External calls return a boolean value. If the callee contract halts with an exception, 'false' is "
-                    "returned and execution continues in the caller. It is usually recommended to wrap external calls "
-                    "into a require statement to prevent unexpected states."
+                    "External calls return a boolean value. If the callee halts with an exception, 'false' is "
+                    "returned and execution continues in the caller. "
+                    "The caller should check whether an exception happened and react accordingly to avoid unexpected behavior. "
+                    "For example it is often desirable to wrap external calls in require() so the transaction is reverted if the call fails."
                 )
 
                 issue = Issue(
@@ -96,9 +97,9 @@ class UncheckedRetval(DetectionModule):
                     function_name=state.environment.active_function_name,
                     address=retval["address"],
                     bytecode=state.environment.code.bytecode,
-                    title="Unchecked Call Return Value",
+                    title="Unchecked return value from external call.",
                     swc_id=UNCHECKED_RET_VAL,
-                    severity="Low",
+                    severity="Medium",
                     description_head="The return value of a message call is not checked.",
                     description_tail=description_tail,
                     gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),

@@ -21,9 +21,7 @@ log = logging.getLogger(__name__)
 
 DESCRIPTION = """
 
-Search for low level calls (e.g. call.value()) that forward all gas to the callee.
-Report a warning if the callee address can be set by the sender, otherwise create 
-an informational issue.
+Search for external calls with unrestricted gas to a user-specified address.
 
 """
 
@@ -78,70 +76,36 @@ class ExternalCalls(DetectionModule):
         address = state.get_current_instruction()["address"]
 
         try:
-            constraints = Constraints([UGT(gas, symbol_factory.BitVecVal(2300, 256))])
+            constraints = Constraints(
+                [UGT(gas, symbol_factory.BitVecVal(2300, 256)), to == ACTORS.attacker]
+            )
 
             solver.get_transaction_sequence(
                 state, constraints + state.world_state.constraints
             )
 
-            # Check whether we can also set the callee address
+            description_head = "A call to a user-supplied address is executed."
+            description_tail = (
+                "An external message call to an address specified by the caller is executed. Note that "
+                "the callee account might contain arbitrary code and could re-enter any function "
+                "within this contract. Reentering the contract in an intermediate state may lead to "
+                "unexpected behaviour. Make sure that no state modifications "
+                "are executed after this call and/or reentrancy guards are in place."
+            )
 
-            try:
-                new_constraints = constraints + [to == ACTORS.attacker]
-
-                solver.get_transaction_sequence(
-                    state, new_constraints + state.world_state.constraints
-                )
-
-                description_head = "A call to a user-supplied address is executed."
-                description_tail = (
-                    "The callee address of an external message call can be set by "
-                    "the caller. Note that the callee can contain arbitrary code and may re-enter any function "
-                    "in this contract. Review the business logic carefully to prevent averse effects on the "
-                    "contract state."
-                )
-
-                issue = PotentialIssue(
-                    contract=state.environment.active_account.contract_name,
-                    function_name=state.environment.active_function_name,
-                    address=address,
-                    swc_id=REENTRANCY,
-                    title="External Call To User-Supplied Address",
-                    bytecode=state.environment.code.bytecode,
-                    severity="Medium",
-                    description_head=description_head,
-                    description_tail=description_tail,
-                    constraints=new_constraints,
-                    detector=self,
-                )
-
-            except UnsatError:
-                if _is_precompile_call(state):
-                    return []
-
-                log.debug(
-                    "[EXTERNAL_CALLS] Callee address cannot be modified. Reporting informational issue."
-                )
-
-                description_head = "The contract executes an external message call."
-                description_tail = (
-                    "An external function call to a fixed contract address is executed. Make sure "
-                    "that the callee contract has been reviewed carefully."
-                )
-
-                issue = PotentialIssue(
-                    contract=state.environment.active_account.contract_name,
-                    function_name=state.environment.active_function_name,
-                    address=address,
-                    swc_id=REENTRANCY,
-                    title="External Call To Fixed Address",
-                    bytecode=state.environment.code.bytecode,
-                    severity="Low",
-                    description_head=description_head,
-                    description_tail=description_tail,
-                    constraints=constraints,
-                    detector=self,
-                )
+            issue = PotentialIssue(
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
+                address=address,
+                swc_id=REENTRANCY,
+                title="External Call To User-Supplied Address",
+                bytecode=state.environment.code.bytecode,
+                severity="Low",
+                description_head=description_head,
+                description_tail=description_tail,
+                constraints=constraints,
+                detector=self,
+            )
 
         except UnsatError:
             log.debug("[EXTERNAL_CALLS] No model found.")

@@ -23,6 +23,7 @@ from mythril.exceptions import (
     CriticalError,
 )
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.plugin.loader import MythrilPluginLoader
 from mythril.mythril import (
     MythrilAnalyzer,
     MythrilDisassembler,
@@ -33,6 +34,9 @@ from mythril.mythril import (
 from mythril.analysis.module import ModuleLoader
 
 from mythril.__version__ import __version__ as VERSION
+
+# Initialise core Mythril Component
+_ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
@@ -447,6 +451,17 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
     )
     options.add_argument(
+        "--sparse-pruning",
+        action="store_true",
+        help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
+    )
+    options.add_argument(
+        "--unconstrained-storage",
+        action="store_true",
+        help="Default storage value is symbolic, turns off the on-chain storage loading",
+    )
+
+    options.add_argument(
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
     options.add_argument(
@@ -672,6 +687,8 @@ def execute_command(
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
+            sparse_pruning=args.sparse_pruning,
+            unconstrained_storage=args.unconstrained_storage,
         )
 
         if not disassembler.contracts:

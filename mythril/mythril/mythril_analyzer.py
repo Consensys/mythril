@@ -9,9 +9,9 @@ from mythril.laser.ethereum.iprof import InstructionProfiler
 from . import MythrilDisassembler
 from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
+from mythril.support.support_args import args
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
-from mythril.analysis.analysis_args import analysis_args
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report, Issue
@@ -44,6 +44,8 @@ class MythrilAnalyzer:
         disable_dependency_pruning: bool = False,
         solver_timeout: Optional[int] = None,
         custom_modules_directory: str = "",
+        sparse_pruning: bool = False,
+        unconstrained_storage: bool = False,
     ):
         """
 
@@ -64,9 +66,9 @@ class MythrilAnalyzer:
         self.iprof = InstructionProfiler() if enable_iprof else None
         self.disable_dependency_pruning = disable_dependency_pruning
         self.custom_modules_directory = custom_modules_directory
-
-        analysis_args.set_loop_bound(loop_bound)
-        analysis_args.set_solver_timeout(solver_timeout)
+        args.sparse_pruning = sparse_pruning
+        args.solver_timeout = solver_timeout
+        args.unconstrained_storage = unconstrained_storage
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
