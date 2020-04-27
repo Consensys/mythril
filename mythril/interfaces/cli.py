@@ -446,6 +446,11 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="The amount of seconds to spend on the initial contract creation",
     )
     options.add_argument(
+        "--parallel-solving",
+        action="store_true",
+        help="Enable solving z3 queries in parallel",
+    )
+    options.add_argument(
         "--no-onchain-data",
         action="store_true",
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
@@ -684,6 +689,7 @@ def execute_command(
             disable_dependency_pruning=args.disable_dependency_pruning,
             use_onchain_data=not args.no_onchain_data,
             solver_timeout=args.solver_timeout,
+            parallel_solving=args.parallel_solving,
             enable_coverage_strategy=args.enable_coverage_strategy,
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
