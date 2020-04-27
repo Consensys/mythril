@@ -8,6 +8,7 @@ class Args:
         self.solver_timeout = 10000
         self.sparse_pruning = True
         self.unconstrained_storage = False
+        self.parallel_solving = False
 
 
 args = Args()
