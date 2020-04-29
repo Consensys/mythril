@@ -1,12 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-from mythril.analysis.module import (
-    EntryPoint,
-    DetectionModule,
-    ModuleLoader,
-    get_detection_module_hooks,
-)
+from mythril.analysis.module import EntryPoint, ModuleLoader, get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
@@ -23,14 +18,17 @@ from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
 
-from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
-from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-
+from mythril.laser.plugin.loader import LaserPluginLoader
+from mythril.laser.plugin.plugins import (
+    MutationPrunerBuilder,
+    DependencyPrunerBuilder,
+    CoveragePluginBuilder,
+)
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
-from typing import Union, List, Type, Optional, Tuple
+from typing import Union, List, Type, Optional
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, VarType, get_variable
 
@@ -58,7 +56,6 @@ class SymExecWrapper:
         iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
         run_analysis_modules: bool = True,
-        enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
     ):
         """
@@ -114,8 +111,6 @@ class SymExecWrapper:
                 hex(ACTORS.attacker.value): attacker_account,
             }
 
-        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
-
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
             max_depth=max_depth,
@@ -125,19 +120,17 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             iprof=iprof,
-            enable_coverage_strategy=enable_coverage_strategy,
-            instruction_laser_plugin=instruction_laser_plugin,
         )
 
         if loop_bound is not None:
             self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
 
-        plugin_loader = LaserPluginLoader(self.laser)
-        plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(instruction_laser_plugin)
+        plugin_loader = LaserPluginLoader()
+        plugin_loader.load(CoveragePluginBuilder())
+        plugin_loader.load(MutationPrunerBuilder())
 
         if not disable_dependency_pruning:
-            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+            plugin_loader.load(DependencyPrunerBuilder())
 
         world_state = WorldState()
         for account in self.accounts.values():

@@ -13,6 +13,10 @@ class MutationAnnotation(StateAnnotation):
     def __init__(self):
         pass
 
+    @property
+    def persist_over_calls(self) -> bool:
+        return True
+
 
 class DependencyAnnotation(StateAnnotation):
     """Dependency Annotation

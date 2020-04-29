@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from mythril.laser.plugin.builder import PluginBuilder as LaserPluginBuilder
 
 
 class MythrilPlugin:
@@ -30,6 +31,15 @@ class MythrilCLIPlugin(MythrilPlugin):
     """MythrilCLIPlugin interface
 
     This interface should be implemented by mythril plugins that aim to add commands to the mythril cli
+    """
+
+    pass
+
+
+class MythrilLaserPlugin(MythrilPlugin, LaserPluginBuilder, ABC):
+    """ Mythril Laser Plugin interface
+
+    Plugins of this type are used to instrument the laser EVM
     """
 
     pass

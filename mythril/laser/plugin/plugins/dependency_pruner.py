@@ -1,7 +1,8 @@
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.plugins.plugin import LaserPlugin
-from mythril.laser.ethereum.plugins.signals import PluginSkipState
-from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
+from mythril.laser.plugin.interface import LaserPlugin
+from mythril.laser.plugin.builder import PluginBuilder
+from mythril.laser.plugin.signals import PluginSkipState
+from mythril.laser.plugin.plugins.plugin_annotations import (
     DependencyAnnotation,
     WSDependencyAnnotation,
 )
@@ -67,6 +68,13 @@ def get_ws_dependency_annotation(state: GlobalState) -> WSDependencyAnnotation:
         annotation = annotations[0]
 
     return annotation
+
+
+class DependencyPrunerBuilder(PluginBuilder):
+    plugin_name = "dependency-pruner"
+
+    def __call__(self, *args, **kwargs):
+        return DependencyPruner()
 
 
 class DependencyPruner(LaserPlugin):
