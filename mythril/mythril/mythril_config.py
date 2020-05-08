@@ -192,11 +192,14 @@ class MythrilConfig:
 
             if m and m.group(1) in ["mainnet", "rinkeby", "kovan", "ropsten"]:
                 if self.infura_id in (None, ""):
-                    raise CriticalError(
-                        "Infura key not provided. Use --infura-id <INFURA_ID> "
+                    log.info(
+                        "Infura key not provided, so onchain access is disabled. "
+                        "Use --infura-id <INFURA_ID> "
                         "or set it in the environment variable INFURA_ID "
-                        "or in the ~/.mythril/config.ini file'"
+                        "or in the ~/.mythril/config.ini file"
                     )
+                    self.eth = None
+                    return
 
                 rpcconfig = (
                     "{}.infura.io/v3/{}".format(m.group(1), self.infura_id),
