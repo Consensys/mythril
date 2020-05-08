@@ -563,7 +563,7 @@ def set_config(args: Namespace):
     ):
         config.set_api_from_config_path()
 
-    if args.__dict__.get("address", None):
+    if args.__dict__.get("rpc", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
     if args.command in ("hash-to-address", "leveldb-search"):

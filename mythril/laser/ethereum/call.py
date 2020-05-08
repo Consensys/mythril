@@ -178,14 +178,6 @@ def get_call_data(
             else memory_size
         ),
     )
-
-    uses_entire_calldata = simplify(
-        memory_size == global_state.environment.calldata.calldatasize
-    )
-
-    if is_true(uses_entire_calldata):
-        return global_state.environment.calldata
-
     try:
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
