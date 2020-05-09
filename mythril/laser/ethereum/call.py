@@ -189,7 +189,7 @@ def get_call_data(
         ]
         return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
-        log.info(
+        log.debug(
             "Unsupported symbolic memory offset %s size %s", memory_start, memory_size
         )
         return SymbolicCalldata(transaction_id)
