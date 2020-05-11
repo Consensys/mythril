@@ -28,6 +28,7 @@ to get the necessary elements from the stack and determine the parameters for th
 """
 
 log = logging.getLogger(__name__)
+SYMBOLIC_CALLDATA_SIZE = 320  # Used when copying symbolic calldata
 
 
 def get_call_parameters(
@@ -178,6 +179,8 @@ def get_call_data(
             else memory_size
         ),
     )
+    if memory_size.symbolic:
+        memory_size = SYMBOLIC_CALLDATA_SIZE
     try:
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(
