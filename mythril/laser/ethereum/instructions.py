@@ -35,7 +35,12 @@ from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCall
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
-from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
+from mythril.laser.ethereum.call import (
+    get_call_parameters,
+    native_call,
+    get_call_data,
+    SYMBOLIC_CALLDATA_SIZE,
+)
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
     StackUnderflowException,
@@ -812,7 +817,7 @@ class Instruction:
             size = util.get_concrete_int(size)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
-            size = 320  # The excess size will get overwritten
+            size = SYMBOLIC_CALLDATA_SIZE  # The excess size will get overwritten
 
         size = cast(int, size)
         if size > 0:
@@ -2188,7 +2193,6 @@ class Instruction:
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
                 )
                 return [global_state]
-
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(
