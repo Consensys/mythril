@@ -62,6 +62,7 @@ log = logging.getLogger(__name__)
 TT256 = 2 ** 256
 TT256M1 = 2 ** 256 - 1
 
+MAX_CALL_DEPTH = 5
 
 def transfer_ether(
     global_state: GlobalState,
@@ -1909,6 +1910,21 @@ class Instruction:
         environment = global_state.environment
 
         memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
+
+        if(len(global_state.transaction_stack) >= MAX_CALL_DEPTH):
+            log.info(
+                "Max call depth reached"
+            )
+
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+
+            return [global_state]
+
         try:
             (
                 callee_address,
@@ -2137,6 +2153,20 @@ class Instruction:
         environment = global_state.environment
         memory_out_size, memory_out_offset = global_state.mstate.stack[-6:-4]
 
+        if(len(global_state.transaction_stack) >= MAX_CALL_DEPTH):
+            log.info(
+                "Max call depth reached"
+            )
+
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+
+            return [global_state]
+
         try:
             (
                 callee_address,
@@ -2272,6 +2302,21 @@ class Instruction:
         instr = global_state.get_current_instruction()
         environment = global_state.environment
         memory_out_size, memory_out_offset = global_state.mstate.stack[-6:-4]
+
+        if(len(global_state.transaction_stack) >= MAX_CALL_DEPTH):
+            log.info(
+                "Max call depth reached"
+            )
+
+            self._write_symbolic_returndata(
+                global_state, memory_out_offset, memory_out_size
+            )
+            global_state.mstate.stack.append(
+                global_state.new_bitvec("retval_" + str(instr["address"]), 256)
+            )
+
+            return [global_state]
+
         try:
             (
                 callee_address,

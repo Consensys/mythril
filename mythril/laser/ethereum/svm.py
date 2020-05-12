@@ -144,7 +144,7 @@ class LaserEVM:
 
         if pre_configuration_mode:
             self.open_states = [world_state]
-            log.info("Starting message call transaction to {}".format(target_address))
+            log.info("Starting message call transaction to {:#42x}".format(target_address))
             self._execute_transactions(symbol_factory.BitVecVal(target_address, 256))
 
         elif scratch_mode:
@@ -356,7 +356,7 @@ class LaserEVM:
                 start_signal.transaction.call_value,
             )
 
-            log.debug("Starting new transaction %s", start_signal.transaction)
+            log.debug("Starting new transaction %s, call stack size %d", start_signal.transaction, len(new_global_state.transaction_stack))
 
             return [new_global_state], op_code
 

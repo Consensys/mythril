@@ -138,10 +138,16 @@ class BaseTransaction:
         raise NotImplementedError
 
     def __str__(self) -> str:
+
+        try:
+            _caller = "{:#42x}".format(int(str(self.caller)))
+        except:
+            _caller = str(self.caller)
+
         return "{} {} from {} to {:#42x}".format(
             self.__class__.__name__,
             self.id,
-            self.caller,
+            _caller,
             int(str(self.callee_account.address)) if self.callee_account else -1,
         )
 
