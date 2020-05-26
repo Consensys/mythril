@@ -23,7 +23,7 @@ from mythril.laser.plugin.plugins import (
     MutationPrunerBuilder,
     DependencyPrunerBuilder,
     CoveragePluginBuilder,
-    StateMerge,
+    StateMergePluginBuilder,
 )
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
@@ -132,7 +132,7 @@ class SymExecWrapper:
         plugin_loader.load(CoveragePluginBuilder())
         plugin_loader.load(MutationPrunerBuilder())
         if enable_state_merging:
-            plugin_loader.load(StateMerge())
+            plugin_loader.load(StateMergePluginBuilder())
 
         if not disable_dependency_pruning:
             plugin_loader.load(DependencyPrunerBuilder())

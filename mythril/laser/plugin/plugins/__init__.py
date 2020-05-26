@@ -9,4 +9,4 @@ from mythril.laser.plugin.plugins.benchmark import BenchmarkPluginBuilder
 from mythril.laser.plugin.plugins.coverage.coverage_plugin import CoveragePluginBuilder
 from mythril.laser.plugin.plugins.dependency_pruner import DependencyPrunerBuilder
 from mythril.laser.plugin.plugins.mutation_pruner import MutationPrunerBuilder
-from mythril.laser.plugin.plugins.state_merge import StateMerge
+from mythril.laser.plugin.plugins.state_merge import StateMergePluginBuilder

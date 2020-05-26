@@ -1,11 +1,10 @@
 from copy import copy
 from typing import Set, List
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.laser.ethereum.plugins.plugin import LaserPlugin
-from mythril.laser.ethereum.plugins.implementations.state_merge.merge_states import (
-    merge_states,
-)
-from mythril.laser.ethereum.plugins.implementations.state_merge.check_mergeability import (
+from mythril.laser.plugin.interface import LaserPlugin
+from mythril.laser.plugin.plugins.state_merge.merge_states import merge_states
+from mythril.laser.plugin.builder import PluginBuilder
+from mythril.laser.plugin.plugins.state_merge.check_mergeability import (
     check_ws_merge_condition,
 )
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -17,6 +16,13 @@ log = logging.getLogger(__name__)
 
 class MergeAnnotation(StateAnnotation):
     pass
+
+
+class StateMergePluginBuilder(PluginBuilder):
+    plugin_name = "state merge"
+
+    def __call__(self, *args, **kwargs):
+        return StateMerge()
 
 
 class StateMerge(LaserPlugin):
@@ -38,7 +44,6 @@ class StateMerge(LaserPlugin):
 
         @symbolic_vm.laser_hook("stop_sym_trans")
         def execute_stop_sym_trans_hook(svm: LaserEVM):
-
             open_states = svm.open_states
             if len(open_states) <= 1:
                 return
