@@ -1,8 +1,7 @@
 """This module contains a wrapper around LASER for extended analysis
 purposes."""
 
-
-from mythril.analysis.security import get_detection_module_hooks, get_detection_modules
+from mythril.analysis.module import EntryPoint, ModuleLoader, get_detection_module_hooks
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
@@ -19,9 +18,13 @@ from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
 
-from mythril.laser.ethereum.plugins.plugin_factory import PluginFactory
-from mythril.laser.ethereum.plugins.plugin_loader import LaserPluginLoader
-
+from mythril.laser.plugin.loader import LaserPluginLoader
+from mythril.laser.plugin.plugins import (
+    MutationPrunerBuilder,
+    DependencyPrunerBuilder,
+    CoveragePluginBuilder,
+    StateMerge,
+)
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
@@ -49,12 +52,11 @@ class SymExecWrapper:
         loop_bound: int = 3,
         create_timeout: Optional[int] = None,
         transaction_count: int = 2,
-        modules=(),
+        modules: Optional[List[str]] = None,
         compulsory_statespace: bool = True,
         iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
         run_analysis_modules: bool = True,
-        enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
         enable_state_merging: bool = False,
     ):
@@ -94,15 +96,15 @@ class SymExecWrapper:
             raise ValueError("Invalid strategy argument supplied")
 
         creator_account = Account(
-            hex(ACTORS.creator.value), "", dynamic_loader=dynloader, contract_name=None
+            hex(ACTORS.creator.value), "", dynamic_loader=None, contract_name=None
         )
         attacker_account = Account(
-            hex(ACTORS.attacker.value), "", dynamic_loader=dynloader, contract_name=None
+            hex(ACTORS.attacker.value), "", dynamic_loader=None, contract_name=None
         )
 
         requires_statespace = (
             compulsory_statespace
-            or len(get_detection_modules("post", modules, custom_modules_directory)) > 0
+            or len(ModuleLoader().get_detection_modules(EntryPoint.POST, modules)) > 0
         )
         if not contract.creation_code:
             self.accounts = {hex(ACTORS.attacker.value): attacker_account}
@@ -111,8 +113,6 @@ class SymExecWrapper:
                 hex(ACTORS.creator.value): creator_account,
                 hex(ACTORS.attacker.value): attacker_account,
             }
-
-        instruction_laser_plugin = PluginFactory.build_instruction_coverage_plugin()
 
         self.laser = svm.LaserEVM(
             dynamic_loader=dynloader,
@@ -123,41 +123,36 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             iprof=iprof,
-            enable_coverage_strategy=enable_coverage_strategy,
-            instruction_laser_plugin=instruction_laser_plugin,
         )
 
         if loop_bound is not None:
             self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
 
-        plugin_loader = LaserPluginLoader(self.laser)
-        plugin_loader.load(PluginFactory.build_mutation_pruner_plugin())
-        plugin_loader.load(instruction_laser_plugin)
+        plugin_loader = LaserPluginLoader()
+        plugin_loader.load(CoveragePluginBuilder())
+        plugin_loader.load(MutationPrunerBuilder())
         if enable_state_merging:
-            plugin_loader.load(PluginFactory.build_state_merge_plugin())
+            plugin_loader.load(StateMerge())
 
         if not disable_dependency_pruning:
-            plugin_loader.load(PluginFactory.build_dependency_pruner_plugin())
+            plugin_loader.load(DependencyPrunerBuilder())
 
         world_state = WorldState()
         for account in self.accounts.values():
             world_state.put_account(account)
 
         if run_analysis_modules:
+            analysis_modules = ModuleLoader().get_detection_modules(
+                EntryPoint.CALLBACK, modules
+            )
             self.laser.register_hooks(
                 hook_type="pre",
-                hook_dict=get_detection_module_hooks(
-                    modules,
-                    hook_type="pre",
-                    custom_modules_directory=custom_modules_directory,
-                ),
+                hook_dict=get_detection_module_hooks(analysis_modules, hook_type="pre"),
             )
             self.laser.register_hooks(
                 hook_type="post",
                 hook_dict=get_detection_module_hooks(
-                    modules,
-                    hook_type="post",
-                    custom_modules_directory=custom_modules_directory,
+                    analysis_modules, hook_type="post"
                 ),
             )
 
@@ -174,15 +169,45 @@ class SymExecWrapper:
                 world_state=world_state,
             )
         else:
+
             account = Account(
                 address,
                 contract.disassembly,
                 dynamic_loader=dynloader,
                 contract_name=contract.name,
+                balances=world_state.balances,
                 concrete_storage=True
-                if (dynloader is not None and dynloader.storage_loading)
+                if (dynloader is not None and dynloader.active)
                 else False,
             )
+
+            if dynloader is not None:
+                if isinstance(address, int):
+                    try:
+                        _balance = dynloader.read_balance(
+                            "{0:#0{1}x}".format(address, 42)
+                        )
+                        account.set_balance(_balance)
+                    except:
+                        # Initial balance will be a symbolic variable
+                        pass
+                elif isinstance(address, str):
+                    try:
+                        _balance = dynloader.read_balance(address)
+                        account.set_balance(_balance)
+                    except:
+                        # Initial balance will be a symbolic variable
+                        pass
+                elif isinstance(address, BitVec):
+                    try:
+                        _balance = dynloader.read_balance(
+                            "{0:#0{1}x}".format(address.value, 42)
+                        )
+                        account.set_balance(_balance)
+                    except:
+                        # Initial balance will be a symbolic variable
+                        pass
+
             world_state.put_account(account)
             self.laser.sym_exec(world_state=world_state, target_address=address.value)
 

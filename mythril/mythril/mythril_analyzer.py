@@ -9,15 +9,16 @@ from mythril.laser.ethereum.iprof import InstructionProfiler
 from . import MythrilDisassembler
 from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
+from mythril.support.support_args import args
 from mythril.analysis.symbolic import SymExecWrapper
 from mythril.analysis.callgraph import generate_graph
-from mythril.analysis.analysis_args import analysis_args
 from mythril.analysis.traceexplore import get_serializable_statespace
 from mythril.analysis.security import fire_lasers, retrieve_callback_issues
 from mythril.analysis.report import Report, Issue
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.laser.smt import SolverStatistics
 from mythril.support.start_time import StartTime
+from mythril.exceptions import DetectorNotFoundError
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class MythrilAnalyzer:
         self,
         disassembler: MythrilDisassembler,
         requires_dynld: bool = False,
-        onchain_storage_access: bool = True,
+        use_onchain_data: bool = True,
         strategy: str = "dfs",
         address: Optional[str] = None,
         max_depth: Optional[int] = None,
@@ -42,9 +43,11 @@ class MythrilAnalyzer:
         enable_iprof: bool = False,
         disable_dependency_pruning: bool = False,
         solver_timeout: Optional[int] = None,
-        enable_coverage_strategy: bool = False,
         custom_modules_directory: str = "",
         enable_state_merging: bool = False,
+        sparse_pruning: bool = False,
+        unconstrained_storage: bool = False,
+        parallel_solving: bool = False,
     ):
         """
 
@@ -55,8 +58,7 @@ class MythrilAnalyzer:
         self.eth = disassembler.eth
         self.contracts = disassembler.contracts or []  # type: List[EVMContract]
         self.enable_online_lookup = disassembler.enable_online_lookup
-        self.dynld = requires_dynld
-        self.onchain_storage_access = onchain_storage_access
+        self.use_onchain_data = use_onchain_data
         self.strategy = strategy
         self.address = address
         self.max_depth = max_depth
@@ -65,11 +67,12 @@ class MythrilAnalyzer:
         self.create_timeout = create_timeout
         self.iprof = InstructionProfiler() if enable_iprof else None
         self.disable_dependency_pruning = disable_dependency_pruning
-        self.enable_coverage_strategy = enable_coverage_strategy
         self.custom_modules_directory = custom_modules_directory
         self.enable_state_merging = enable_state_merging
-        analysis_args.set_loop_bound(loop_bound)
-        analysis_args.set_solver_timeout(solver_timeout)
+        args.sparse_pruning = sparse_pruning
+        args.solver_timeout = solver_timeout
+        args.parallel_solving = parallel_solving
+        args.unconstrained_storage = unconstrained_storage
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -81,18 +84,13 @@ class MythrilAnalyzer:
             contract or self.contracts[0],
             self.address,
             self.strategy,
-            dynloader=DynLoader(
-                self.eth,
-                storage_loading=self.onchain_storage_access,
-                contract_loading=self.dynld,
-            ),
+            dynloader=DynLoader(self.eth, active=self.use_onchain_data),
             max_depth=self.max_depth,
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
             iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
-            enable_coverage_strategy=self.enable_coverage_strategy,
             custom_modules_directory=self.custom_modules_directory,
         )
 
@@ -118,11 +116,7 @@ class MythrilAnalyzer:
             contract or self.contracts[0],
             self.address,
             self.strategy,
-            dynloader=DynLoader(
-                self.eth,
-                storage_loading=self.onchain_storage_access,
-                contract_loading=self.dynld,
-            ),
+            dynloader=DynLoader(self.eth, active=self.use_onchain_data),
             max_depth=self.max_depth,
             execution_timeout=self.execution_timeout,
             transaction_count=transaction_count,
@@ -130,7 +124,6 @@ class MythrilAnalyzer:
             iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
-            enable_coverage_strategy=self.enable_coverage_strategy,
             custom_modules_directory=self.custom_modules_directory,
         )
         return generate_graph(sym, physics=enable_physics, phrackify=phrackify)
@@ -155,11 +148,7 @@ class MythrilAnalyzer:
                     contract,
                     self.address,
                     self.strategy,
-                    dynloader=DynLoader(
-                        self.eth,
-                        storage_loading=self.onchain_storage_access,
-                        contract_loading=self.dynld,
-                    ),
+                    dynloader=DynLoader(self.eth, active=self.use_onchain_data),
                     max_depth=self.max_depth,
                     execution_timeout=self.execution_timeout,
                     loop_bound=self.loop_bound,
@@ -169,26 +158,24 @@ class MythrilAnalyzer:
                     compulsory_statespace=False,
                     iprof=self.iprof,
                     disable_dependency_pruning=self.disable_dependency_pruning,
-                    enable_coverage_strategy=self.enable_coverage_strategy,
                     custom_modules_directory=self.custom_modules_directory,
                     enable_state_merging=self.enable_state_merging,
                 )
-                issues = fire_lasers(sym, modules, self.custom_modules_directory)
+                issues = fire_lasers(sym, modules)
+            except DetectorNotFoundError as e:
+                # Bubble up
+                raise e
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
                 if self.iprof is not None:
                     log.info("Instruction Statistics:\n{}".format(self.iprof))
-                issues = retrieve_callback_issues(
-                    modules, self.custom_modules_directory
-                )
+                issues = retrieve_callback_issues(modules)
             except Exception:
                 log.critical(
                     "Exception occurred, aborting analysis. Please report this issue to the Mythril GitHub page.\n"
                     + traceback.format_exc()
                 )
-                issues = retrieve_callback_issues(
-                    modules, self.custom_modules_directory
-                )
+                issues = retrieve_callback_issues(modules)
                 exceptions.append(traceback.format_exc())
                 if self.iprof is not None:
                     log.info("Instruction Statistics:\n{}".format(self.iprof))

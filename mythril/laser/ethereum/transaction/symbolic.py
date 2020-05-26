@@ -83,6 +83,11 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
             continue
 
         next_transaction_id = get_next_transaction_id()
+
+        external_sender = symbol_factory.BitVecSym(
+            "sender_{}".format(next_transaction_id), 256
+        )
+
         transaction = MessageCallTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
@@ -90,12 +95,8 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
                 "gas_price{}".format(next_transaction_id), 256
             ),
             gas_limit=8000000,  # block gas limit
-            origin=symbol_factory.BitVecSym(
-                "origin{}".format(next_transaction_id), 256
-            ),
-            caller=symbol_factory.BitVecSym(
-                "sender_{}".format(next_transaction_id), 256
-            ),
+            origin=external_sender,
+            caller=external_sender,
             callee_account=open_world_state[callee_address],
             call_data=SymbolicCalldata(next_transaction_id),
             call_value=symbol_factory.BitVecSym(
@@ -134,9 +135,7 @@ def execute_contract_creation(
                 "gas_price{}".format(next_transaction_id), 256
             ),
             gas_limit=8000000,  # block gas limit
-            origin=symbol_factory.BitVecSym(
-                "origin{}".format(next_transaction_id), 256
-            ),
+            origin=ACTORS["CREATOR"],
             code=Disassembly(contract_initialization_code),
             caller=ACTORS["CREATOR"],
             contract_name=contract_name,
@@ -147,6 +146,7 @@ def execute_contract_creation(
         )
         _setup_global_state_for_execution(laser_evm, transaction)
         new_account = new_account or transaction.callee_account
+
     laser_evm.exec(True)
 
     return new_account

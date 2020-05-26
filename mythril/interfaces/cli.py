@@ -17,15 +17,26 @@ import traceback
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril import mythx
-from mythril.exceptions import AddressNotFoundError, CriticalError
+from mythril.exceptions import (
+    AddressNotFoundError,
+    DetectorNotFoundError,
+    CriticalError,
+)
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.plugin.loader import MythrilPluginLoader
 from mythril.mythril import (
     MythrilAnalyzer,
     MythrilDisassembler,
     MythrilConfig,
     MythrilLevelDB,
 )
+
+from mythril.analysis.module import ModuleLoader
+
 from mythril.__version__ import __version__ as VERSION
+
+# Initialise core Mythril Component
+_ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
@@ -42,6 +53,7 @@ COMMAND_LIST = (
         "leveldb-search",
         "function-to-hash",
         "hash-to-address",
+        "list-detectors",
         "version",
         "truffle",
         "help",
@@ -225,6 +237,11 @@ def main() -> None:
     )
     create_pro_parser(pro_parser)
 
+    subparsers.add_parser(
+        "list-detectors",
+        parents=[output_parser],
+        help="Lists available detection modules",
+    )
     read_storage_parser = subparsers.add_parser(
         "read-storage",
         help="Retrieves storage slots from a given address through rpc",
@@ -374,6 +391,8 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         action="store_true",
         help="analyze a truffle project (run from project dir)",
     )
+    commands.add_argument("--infura-id", help="set infura id for onchain analysis")
+
     options = analyzer_parser.add_argument_group("options")
     options.add_argument(
         "-m",
@@ -427,16 +446,24 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="The amount of seconds to spend on the initial contract creation",
     )
     options.add_argument(
-        "-l",
-        "--dynld",
+        "--parallel-solving",
         action="store_true",
-        help="auto-load dependencies from the blockchain",
+        help="Enable solving z3 queries in parallel",
     )
     options.add_argument(
-        "--no-onchain-storage-access",
-        "--no-onchain-access",
+        "--no-onchain-data",
         action="store_true",
-        help="turns off getting the data from onchain contracts (both loading storage and contract code)",
+        help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
+    )
+    options.add_argument(
+        "--sparse-pruning",
+        action="store_true",
+        help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
+    )
+    options.add_argument(
+        "--unconstrained-storage",
+        action="store_true",
+        help="Default storage value is symbolic, turns off the on-chain storage loading",
     )
 
     options.add_argument(
@@ -532,13 +559,14 @@ def set_config(args: Namespace):
     :return: modified config
     """
     config = MythrilConfig()
-    if (
-        args.command in ANALYZE_LIST
-        and (args.dynld or not args.no_onchain_storage_access)
-    ) and not (args.rpc or args.i):
+    if args.__dict__.get("infura_id", None):
+        config.set_api_infura_id(args.infura_id)
+    if (args.command in ANALYZE_LIST and not args.no_onchain_data) and not (
+        args.rpc or args.i
+    ):
         config.set_api_from_config_path()
 
-    if args.__dict__.get("address", None):
+    if args.__dict__.get("rpc", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
     if args.command in ("hash-to-address", "leveldb-search"):
@@ -662,14 +690,15 @@ def execute_command(
             create_timeout=args.create_timeout,
             enable_iprof=args.enable_iprof,
             disable_dependency_pruning=args.disable_dependency_pruning,
-            onchain_storage_access=not args.no_onchain_storage_access,
+            use_onchain_data=not args.no_onchain_data,
             solver_timeout=args.solver_timeout,
-            requires_dynld=not args.no_onchain_storage_access,
-            enable_coverage_strategy=args.enable_coverage_strategy,
+            parallel_solving=args.parallel_solving,
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
             enable_state_merging=args.enable_state_merging,
+            sparse_pruning=args.sparse_pruning,
+            unconstrained_storage=args.unconstrained_storage,
         )
 
         if not disassembler.contracts:
@@ -723,7 +752,7 @@ def execute_command(
                 report = analyzer.fire_lasers(
                     modules=[m.strip() for m in args.modules.strip().split(",")]
                     if args.modules
-                    else [],
+                    else None,
                     transaction_count=args.transaction_count,
                 )
                 outputs = {
@@ -733,9 +762,11 @@ def execute_command(
                     "markdown": report.as_markdown(),
                 }
                 print(outputs[args.outform])
-            except ModuleNotFoundError as e:
+            except DetectorNotFoundError as e:
+                exit_with_error(args.outform, format(e))
+            except CriticalError as e:
                 exit_with_error(
-                    args.outform, "Error loading analysis modules: " + format(e)
+                    args.outform, "Analysis error encountered: " + format(e)
                 )
 
     else:
@@ -774,6 +805,17 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             print(json.dumps({"version_str": VERSION}))
         else:
             print("Mythril version {}".format(VERSION))
+        sys.exit()
+
+    if args.command == "list-detectors":
+        modules = []
+        for module in ModuleLoader().get_detection_modules():
+            modules.append({"classname": type(module).__name__, "title": module.name})
+        if args.outform == "json":
+            print(json.dumps(modules))
+        else:
+            for module_data in modules:
+                print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
 
     if args.command == "help":

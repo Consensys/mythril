@@ -35,7 +35,12 @@ from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCall
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
-from mythril.laser.ethereum.call import get_call_parameters, native_call, get_call_data
+from mythril.laser.ethereum.call import (
+    get_call_parameters,
+    native_call,
+    get_call_data,
+    SYMBOLIC_CALLDATA_SIZE,
+)
 from mythril.laser.ethereum.evm_exceptions import (
     VmException,
     StackUnderflowException,
@@ -811,7 +816,7 @@ class Instruction:
             size = util.get_concrete_int(size)  # type: Union[int, BitVec]
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
-            size = 320  # The excess size will get overwritten
+            size = SYMBOLIC_CALLDATA_SIZE  # The excess size will get overwritten
 
         size = cast(int, size)
         if size > 0:
@@ -901,7 +906,11 @@ class Instruction:
         state = global_state.mstate
         address = state.stack.pop()
 
-        balance = global_state.world_state.balances[address]
+        account = global_state.world_state.accounts_exist_or_load(
+            address.value, self.dynamic_loader
+        )
+
+        balance = account.balance()
         state.stack.append(balance)
         return [global_state]
 
@@ -1140,7 +1149,7 @@ class Instruction:
         try:
             code = global_state.world_state.accounts_exist_or_load(
                 addr, self.dynamic_loader
-            )
+            ).code.bytecode
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             state.stack.append(global_state.new_bitvec("extcodesize_" + str(addr), 256))
@@ -1236,7 +1245,7 @@ class Instruction:
         try:
             code = global_state.world_state.accounts_exist_or_load(
                 addr, self.dynamic_loader
-            )
+            ).code.bytecode
         except (ValueError, AttributeError) as e:
             log.debug("error accessing contract storage due to: " + str(e))
             return [global_state]
@@ -1267,7 +1276,9 @@ class Instruction:
             code_hash = symbol_factory.BitVecVal(0, 256)
         else:
             addr = "0" * (40 - len(hex(address.value)[2:])) + hex(address.value)[2:]
-            code = world_state.accounts_exist_or_load(addr, self.dynamic_loader)
+            code = world_state.accounts_exist_or_load(
+                addr, self.dynamic_loader
+            ).code.bytecode
             code_hash = symbol_factory.BitVecVal(int(get_code_hash(code), 16), 256)
         stack.append(code_hash)
         return [global_state]
@@ -1695,20 +1706,37 @@ class Instruction:
         gas_price = environment.gasprice
         origin = environment.origin
 
-        contract_address = None
+        contract_address = None  # type: Union[BitVec, int]
+        Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
+
         if create2_salt:
-            salt = hex(create2_salt)[2:]
-            salt = "0" * (64 - len(salt)) + salt
+            if create2_salt.symbolic:
+                if create2_salt.size() != 256:
+                    pad = symbol_factory.BitVecVal(0, 256 - create2_salt.size())
+                    create2_salt = Concat(pad, create2_salt)
+                address, constraint = keccak_function_manager.create_keccak(
+                    Concat(
+                        symbol_factory.BitVecVal(255, 8),
+                        caller,
+                        create2_salt,
+                        symbol_factory.BitVecVal(int(get_code_hash(code_str), 16), 256),
+                    )
+                )
+                contract_address = Extract(255, 96, address)
+                global_state.world_state.constraints.append(constraint)
+            else:
+                salt = hex(create2_salt.value)[2:]
+                salt = "0" * (64 - len(salt)) + salt
 
-            addr = hex(caller.value)[2:]
-            addr = "0" * (40 - len(addr)) + addr
+                addr = hex(caller.value)[2:]
+                addr = "0" * (40 - len(addr)) + addr
 
-            Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
-
-            contract_address = int(
-                get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[26:],
-                16,
-            )
+                contract_address = int(
+                    get_code_hash("0xff" + addr + salt + get_code_hash(code_str)[2:])[
+                        26:
+                    ],
+                    16,
+                )
         transaction = ContractCreationTransaction(
             world_state=world_state,
             caller=caller,
@@ -1870,7 +1898,7 @@ class Instruction:
         for i in range(memory_out_size.value):
             global_state.mstate.memory[memory_out_offset + i] = global_state.new_bitvec(
                 "call_output_var({})_{}".format(
-                    simplify(memory_out_offset + i), global_state.mstate.pc,
+                    simplify(memory_out_offset + i), global_state.mstate.pc
                 ),
                 8,
             )
@@ -2135,7 +2163,6 @@ class Instruction:
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
                 )
                 return [global_state]
-
         except ValueError as e:
             log.debug(
                 "Could not determine required parameters for call, putting fresh symbol on the stack. \n{}".format(

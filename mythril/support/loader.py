@@ -15,18 +15,14 @@ log = logging.getLogger(__name__)
 class DynLoader:
     """The dynamic loader class."""
 
-    def __init__(
-        self, eth: Optional[EthJsonRpc], contract_loading=True, storage_loading=True
-    ):
+    def __init__(self, eth: Optional[EthJsonRpc], active=True):
         """
 
         :param eth:
-        :param contract_loading:
-        :param storage_loading:
+        :param active:
         """
         self.eth = eth
-        self.contract_loading = contract_loading
-        self.storage_loading = storage_loading
+        self.active = active
 
     @functools.lru_cache(LRU_CACHE_SIZE)
     def read_storage(self, contract_address: str, index: int) -> str:
@@ -36,10 +32,8 @@ class DynLoader:
         :param index:
         :return:
         """
-        if not self.storage_loading:
-            raise ValueError(
-                "Cannot load from the storage when the storage_loading flag is false"
-            )
+        if not self.active:
+            raise ValueError("Loader is disabled")
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
 
@@ -48,22 +42,40 @@ class DynLoader:
         )
 
     @functools.lru_cache(LRU_CACHE_SIZE)
+    def read_balance(self, address: str) -> str:
+        """
+
+        :param address:
+        :return:
+        """
+        if not self.active:
+            raise ValueError("Cannot load from storage when the loader is disabled")
+        if not self.eth:
+            raise ValueError("Cannot load from the chain when eth is None")
+
+        return self.eth.eth_getBalance(address)
+
+    @functools.lru_cache(LRU_CACHE_SIZE)
     def dynld(self, dependency_address: str) -> Optional[Disassembly]:
         """
         :param dependency_address:
         :return:
         """
-        if not self.contract_loading:
-            raise ValueError("Cannot load contract when contract_loading flag is false")
+        if not self.active:
+            raise ValueError("Loader is disabled")
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
 
         log.debug("Dynld at contract %s", dependency_address)
 
         # Ensure that dependency_address is the correct length, with 0s prepended as needed.
-        dependency_address = (
-            "0x" + "0" * (42 - len(dependency_address)) + dependency_address[2:]
-        )
+
+        if isinstance(dependency_address, int):
+            dependency_address = "0x{:040X}".format(dependency_address)
+        else:
+            dependency_address = (
+                "0x" + "0" * (42 - len(dependency_address)) + dependency_address[2:]
+            )
 
         m = re.match(r"^(0x[0-9a-fA-F]{40})$", dependency_address)
 

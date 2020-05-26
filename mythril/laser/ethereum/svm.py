@@ -9,12 +9,9 @@ from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
-from mythril.laser.ethereum.instructions import Instruction
+from mythril.laser.ethereum.instructions import Instruction, transfer_ether
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
-from mythril.laser.ethereum.plugins.signals import PluginSkipWorldState, PluginSkipState
-from mythril.laser.ethereum.plugins.implementations.plugin_annotations import (
-    MutationAnnotation,
-)
+from mythril.laser.plugin.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
@@ -29,7 +26,7 @@ from mythril.laser.ethereum.transaction import (
     execute_message_call,
 )
 from mythril.laser.smt import symbol_factory
-
+from mythril.support.support_args import args
 
 log = logging.getLogger(__name__)
 
@@ -61,8 +58,6 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         iprof=None,
-        enable_coverage_strategy=False,
-        instruction_laser_plugin=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -110,13 +105,6 @@ class LaserEVM:
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
         self.iprof = iprof
-
-        if enable_coverage_strategy:
-            from mythril.laser.ethereum.plugins.implementations.coverage.coverage_strategy import (
-                CoverageStrategy,
-            )
-
-            self.strategy = CoverageStrategy(self.strategy, instruction_laser_plugin)
 
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
@@ -203,6 +191,15 @@ class LaserEVM:
         self.time = datetime.now()
 
         for i in range(self.transaction_count):
+            if len(self.open_states) == 0:
+                break
+            old_states_count = len(self.open_states)
+            self.open_states = [
+                state for state in self.open_states if state.constraints.is_possible
+            ]
+            prune_count = old_states_count - len(self.open_states)
+            if prune_count:
+                log.info("Pruned {} unreachable states".format(prune_count))
             log.info(
                 "Starting message call transaction, iteration: {}, {} initial states".format(
                     i, len(self.open_states)
@@ -248,11 +245,12 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-            new_states = [
-                state
-                for state in new_states
-                if state.world_state.constraints.is_possible
-            ]
+            if args.sparse_pruning is False:
+                new_states = [
+                    state
+                    for state in new_states
+                    if state.world_state.constraints.is_possible
+                ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
@@ -351,6 +349,13 @@ class LaserEVM:
                 start_signal.global_state.world_state.constraints
             )
 
+            transfer_ether(
+                new_global_state,
+                start_signal.transaction.caller,
+                start_signal.transaction.callee_account.address,
+                start_signal.transaction.call_value,
+            )
+
             log.debug("Starting new transaction %s", start_signal.transaction)
 
             return [new_global_state], op_code
@@ -376,18 +381,13 @@ class LaserEVM:
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
 
-                # Propogate codecall based annotations
-                if return_global_state.get_current_instruction()["opcode"] in (
-                    "DELEGATECALL",
-                    "CALLCODE",
-                ):
-                    new_annotations = [
-                        annotation
-                        for annotation in global_state.get_annotations(
-                            MutationAnnotation
-                        )
-                    ]
-                    return_global_state.add_annotations(new_annotations)
+                # Propagate annotations
+                new_annotations = [
+                    annotation
+                    for annotation in global_state.annotations
+                    if annotation.persist_over_calls
+                ]
+                return_global_state.add_annotations(new_annotations)
 
                 new_global_states = self._end_message_call(
                     copy(return_global_state),

@@ -57,15 +57,15 @@ Analyzing On-Chain Contracts
 
 When analyzing contracts on the blockchain, Mythril will by default attempt to query INFURA. You can use the built-in INFURA support or manually configure the RPC settings with the :code:`--rpc` argument.
 
-+--------------------------------+-------------------------------------------------+
-| :code:`--rpc ganache`          | Connect to local Ganache                        |
-+--------------------------------+-------------------------------------------------+
-| :code:`--rpc infura-[netname]` | Connect to mainnet, rinkeby, kovan, or ropsten. |
-+--------------------------------+-------------------------------------------------+
-| :code:`--rpc host:port`        | Connect to custom rpc                           |
-+--------------------------------+-------------------------------------------------+
-| :code:`--rpctls <True/False>`  | RPC connection over TLS (default: False)        |
-+--------------------------------+-------------------------------------------------+
++-------------------------------------------------+-------------------------------------------------+
+| :code:`--rpc ganache`                           | Connect to local Ganache                        |
++-------------------------------------------------+-------------------------------------------------+
+| :code:`--rpc infura-[netname] --infura-id <ID>` | Connect to mainnet, rinkeby, kovan, or ropsten. |
++-------------------------------------------------+-------------------------------------------------+
+| :code:`--rpc host:port`                         | Connect to custom rpc                           |
++-------------------------------------------------+-------------------------------------------------+
+| :code:`--rpctls <True/False>`                   | RPC connection over TLS (default: False)        |
++-------------------------------------------------+-------------------------------------------------+
 
 To specify a contract address, use :code:`-a <address>`
 
@@ -73,13 +73,14 @@ Analyze mainnet contract via INFURA:
 
 .. code-block:: bash
 
-   myth analyze -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd
+   myth analyze -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --infura-id <ID>
 
+You can also use the environment variable `INFURA_ID` instead of the cmd line argument or set it in ~/.mythril/config.ini.
 Adding the :code:`-l` flag will cause mythril to automatically retrieve dependencies, such as dynamically linked library contracts:
 
 .. code-block:: bash
 
-   myth -v4 analyze -l -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264
+   myth -v4 analyze -l -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 --infura-id <ID>
 
 ******************
 Speed vs. Coverage
@@ -88,3 +89,4 @@ Speed vs. Coverage
 The execution timeout can be specified with the :code:`--execution-timeout <seconds>` argument. When the timeout is reached, mythril will stop analysis and print out all currently found issues.
 
 The maximum recursion depth for the symbolic execution engine can be controlled with the :code:`--max-depth` argument. The default value is 22. Lowering this value will decrease the number of explored states and analysis time, while increasing this number will increase the number of explored states and increase analysis time. For some contracts, it helps to fine tune this number to get the best analysis results.
+-

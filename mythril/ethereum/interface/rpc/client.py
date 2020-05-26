@@ -56,7 +56,15 @@ class EthJsonRpc(BaseClient):
         scheme = "http"
         if self.tls:
             scheme += "s"
-        url = "{}://{}:{}".format(scheme, self.host, self.port)
+        if self.host:
+            if self.port:
+                url = "{}://{}:{}".format(scheme, self.host, self.port)
+            else:
+                url = "{}://{}".format(scheme, self.host)
+
+        else:
+            url = "{}".format(scheme)
+
         headers = {"Content-Type": JSON_MEDIA_TYPE}
         log.debug("rpc send: %s" % json.dumps(data))
         try:

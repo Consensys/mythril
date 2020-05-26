@@ -5,6 +5,7 @@ parameters for the new global state."""
 import logging
 import re
 from typing import Union, List, cast, Callable, Optional
+from ethereum.opcodes import GSTIPEND
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
@@ -17,7 +18,7 @@ from mythril.laser.ethereum.state.calldata import (
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec, is_true
+from mythril.laser.smt import BitVec, is_true, If
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 
@@ -27,6 +28,7 @@ to get the necessary elements from the stack and determine the parameters for th
 """
 
 log = logging.getLogger(__name__)
+SYMBOLIC_CALLDATA_SIZE = 320  # Used when copying symbolic calldata
 
 
 def get_call_parameters(
@@ -53,15 +55,15 @@ def get_call_parameters(
 
     callee_account = None
     call_data = get_call_data(global_state, memory_input_offset, memory_input_size)
-    if (
-        isinstance(callee_address, BitVec)
-        or int(callee_address, 16) > PRECOMPILE_COUNT
-        or int(callee_address, 16) == 0
+    if isinstance(callee_address, BitVec) or (
+        isinstance(callee_address, str)
+        and (int(callee_address, 16) > PRECOMPILE_COUNT or int(callee_address, 16) == 0)
     ):
         callee_account = get_callee_account(
             global_state, callee_address, dynamic_loader
         )
 
+    gas = gas + If(value > 0, symbol_factory.BitVecVal(GSTIPEND, gas.size()), 0)
     return (
         callee_address,
         callee_account,
@@ -141,37 +143,9 @@ def get_callee_account(
         else:
             callee_address = hex(callee_address.value)[2:]
 
-    try:
-        return global_state.accounts[int(callee_address, 16)]
-    except KeyError:
-        # We have a valid call address, but contract is not in the modules list
-        log.debug("Module with address %s not loaded.", callee_address)
-
-    if dynamic_loader is None:
-        raise ValueError("dynamic_loader is None")
-
-    log.debug("Attempting to load dependency")
-
-    try:
-        code = dynamic_loader.dynld(callee_address)
-    except ValueError as error:
-        log.debug("Unable to execute dynamic loader because: %s", error)
-        raise error
-    if code is None:
-        log.debug("No code returned, not a contract account?")
-        raise ValueError("No code returned")
-    log.debug("Dependency loaded: " + callee_address)
-
-    callee_account = Account(
-        symbol_factory.BitVecVal(int(callee_address, 16), 256),
-        code,
-        callee_address,
-        dynamic_loader=dynamic_loader,
-        balances=global_state.world_state.balances,
+    return global_state.world_state.accounts_exist_or_load(
+        callee_address, dynamic_loader
     )
-    global_state.accounts[int(callee_address, 16)] = callee_account
-
-    return callee_account
 
 
 def get_call_data(
@@ -205,14 +179,8 @@ def get_call_data(
             else memory_size
         ),
     )
-
-    uses_entire_calldata = simplify(
-        memory_size == global_state.environment.calldata.calldatasize
-    )
-
-    if is_true(uses_entire_calldata):
-        return global_state.environment.calldata
-
+    if memory_size.symbolic:
+        memory_size = SYMBOLIC_CALLDATA_SIZE
     try:
         calldata_from_mem = state.memory[
             util.get_concrete_int(memory_start) : util.get_concrete_int(

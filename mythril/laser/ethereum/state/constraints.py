@@ -1,10 +1,11 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 
-from mythril.laser.smt import Solver, Bool, symbol_factory, simplify, And
+from mythril.laser.smt import Bool, simplify
 
+from mythril.exceptions import UnsatError
+from mythril.support.model import get_model
 from typing import Iterable, List, Optional, Union
-from z3 import unsat
 
 
 class Constraints(list):
@@ -14,21 +15,14 @@ class Constraints(list):
 
     """
 
-    def __init__(
-        self,
-        constraint_list: Optional[List[Bool]] = None,
-        is_possible: Optional[bool] = None,
-    ) -> None:
+    def __init__(self, constraint_list: Optional[List[Bool]] = None,) -> None:
         """
 
         :param constraint_list: List of constraints
-        :param is_possible: Whether it is possible to satisfy the constraints or not
         """
         constraint_list = constraint_list or []
         constraint_list = self._get_smt_bool_list(constraint_list)
         super(Constraints, self).__init__(constraint_list)
-        self._default_timeout = 100
-        self._is_possible = is_possible
 
     @property
     def is_possible(self) -> bool:
@@ -36,19 +30,11 @@ class Constraints(list):
         :return: True/False based on the existence of solution of constraints
         """
 
-        if self._is_possible is not None:
-            return self._is_possible
-        solver = Solver()
-        solver.set_timeout(self._default_timeout)
-        for constraint in self[:]:
-            constraint = (
-                symbol_factory.Bool(constraint)
-                if isinstance(constraint, bool)
-                else constraint
-            )
-            solver.add(constraint)
-        self._is_possible = solver.check() != unsat
-        return self._is_possible
+        try:
+            get_model(tuple(self[:]))
+        except UnsatError:
+            return False
+        return True
 
     def append(self, constraint: Union[bool, Bool]) -> None:
         """
@@ -59,7 +45,6 @@ class Constraints(list):
             simplify(constraint) if isinstance(constraint, Bool) else Bool(constraint)
         )
         super(Constraints, self).append(constraint)
-        self._is_possible = None
 
     def pop(self, index: int = -1) -> None:
         """
@@ -81,7 +66,7 @@ class Constraints(list):
         :return: The copied constraint List
         """
         constraint_list = super(Constraints, self).copy()
-        return Constraints(constraint_list, is_possible=self._is_possible)
+        return Constraints(constraint_list)
 
     def copy(self) -> "Constraints":
         return self.__copy__()
@@ -102,7 +87,7 @@ class Constraints(list):
         """
         constraints_list = self._get_smt_bool_list(constraints)
         constraints_list = super(Constraints, self).__add__(constraints_list)
-        return Constraints(constraint_list=constraints_list, is_possible=None)
+        return Constraints(constraint_list=constraints_list)
 
     def __iadd__(self, constraints: Iterable[Union[bool, Bool]]) -> "Constraints":
         """
@@ -112,7 +97,6 @@ class Constraints(list):
         """
         list_constraints = self._get_smt_bool_list(constraints)
         super(Constraints, self).__iadd__(list_constraints)
-        self._is_possible = None
         return self
 
     @staticmethod
