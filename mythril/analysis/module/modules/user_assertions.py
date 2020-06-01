@@ -1,13 +1,12 @@
 """This module contains the detection code for potentially insecure low-level
 calls."""
 
-from mythril.analysis.potential_issues import (
-    PotentialIssue,
-    get_potential_issues_annotation,
-)
+from mythril.analysis import solver
+from mythril.analysis.potential_issues import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.exceptions import UnsatError
 import logging
 import eth_abi
 
@@ -40,10 +39,12 @@ class UserAssertions(DetectionModule):
         :param state:
         :return:
         """
-        potential_issues = self._analyze_state(state)
 
-        annotation = get_potential_issues_annotation(state)
-        annotation.potential_issues.extend(potential_issues)
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self.cache.add(issue.address)
+        self.issues.extend(issues)
+
 
     def _analyze_state(self, state: GlobalState):
         """
@@ -51,46 +52,63 @@ class UserAssertions(DetectionModule):
         :param state:
         :return:
         """
-        topic, size, mem_start = state.mstate.stack[-3:]
 
-        if topic.symbolic or topic.value != assertion_failed_hash:
-            return []
+        try:
 
-        message = None
-        if not mem_start.symbolic and not size.symbolic:
-            message = eth_abi.decode_single(
-                "string",
-                bytes(
-                    state.mstate.memory[
-                        mem_start.value + 32 : mem_start.value + size.value
-                    ]
-                ),
-            ).decode("utf8")
-
-        description_head = "A user-provided assertion failed."
-        if message:
-            description_tail = "A user-provided assertion failed with the message '{}'".format(
-                message
+            transaction_sequence = solver.get_transaction_sequence(
+                state, state.world_state.constraints
             )
-        else:
-            description_tail = "A user-provided assertion failed."
 
-        address = state.get_current_instruction()["address"]
-        issue = PotentialIssue(
-            contract=state.environment.active_account.contract_name,
-            function_name=state.environment.active_function_name,
-            address=address,
-            swc_id=ASSERT_VIOLATION,
-            title="Assertion Failed",
-            bytecode=state.environment.code.bytecode,
-            severity="Medium",
-            description_head=description_head,
-            description_tail=description_tail,
-            constraints=[],
-            detector=self,
-        )
+            topic, size, mem_start = state.mstate.stack[-3:]
 
-        return [issue]
+            if topic.symbolic or topic.value != assertion_failed_hash:
+                return []
+
+            message = None
+            if not mem_start.symbolic and not size.symbolic:
+                try:
+                    message = eth_abi.decode_single(
+                        "string",
+                        bytes(
+                            state.mstate.memory[
+                                mem_start.value + 32 : mem_start.value + size.value
+                            ]
+                        ),
+                    ).decode("utf8")
+                except:
+                    pass
+
+            if message:
+                description_tail = "A user-provided assertion failed with the message '{}'".format(
+                    message
+                )
+
+            else:
+                description_tail = "A user-provided assertion failed."
+
+            log.debug("MythX assertion emitted: {}".format(description_tail))
+
+            address = state.get_current_instruction()["address"]
+
+            issue = Issue(
+                contract=state.environment.active_account.contract_name,
+                function_name=state.environment.active_function_name,
+                address=address,
+                swc_id=ASSERT_VIOLATION,
+                title="Exception State",
+                severity="Medium",
+                description_head="A user-provided assertion failed.",
+                description_tail=description_tail,
+                bytecode=state.environment.code.bytecode,
+                transaction_sequence=transaction_sequence,
+                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+            return [issue]
+
+        except UnsatError:
+            log.debug("no model found")
+
+        return []
 
 
 detector = UserAssertions()
