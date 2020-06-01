@@ -45,7 +45,6 @@ class UserAssertions(DetectionModule):
             self.cache.add(issue.address)
         self.issues.extend(issues)
 
-
     def _analyze_state(self, state: GlobalState):
         """
 
