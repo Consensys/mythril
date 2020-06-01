@@ -132,6 +132,8 @@ class SymExecWrapper:
         if not disable_dependency_pruning:
             plugin_loader.load(DependencyPrunerBuilder())
 
+        plugin_loader.instrument_virtual_machine(self.laser, None)
+
         world_state = WorldState()
         for account in self.accounts.values():
             world_state.put_account(account)
