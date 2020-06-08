@@ -45,6 +45,8 @@ class MythrilPluginLoader(object, metaclass=Singleton):
 
         if isinstance(plugin, DetectionModule):
             self._load_detection_module(plugin)
+        elif isinstance(plugin, MythrilLaserPlugin):
+            self._load_laser_plugin(plugin)
         else:
             raise UnsupportedPluginType("Passed plugin type is not yet supported")
 
