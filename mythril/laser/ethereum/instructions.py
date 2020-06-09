@@ -907,7 +907,7 @@ class Instruction:
         if address.symbolic is False:
             balance = global_state.world_state.accounts_exist_or_load(
                 address, self.dynamic_loader
-            ).balance
+            ).balance()
         else:
             balance = symbol_factory.BitVecVal(0, 256)
             for account in global_state.world_state.accounts.values():
