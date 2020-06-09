@@ -251,7 +251,11 @@ class LaserEVM:
                     for state in new_states
                     if state.world_state.constraints.is_possible
                 ]
-
+            new_states = [
+                state
+                for state in new_states
+                if state.mstate.pc < len(state.environment.code.instruction_list)
+            ]
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
