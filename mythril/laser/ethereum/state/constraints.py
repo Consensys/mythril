@@ -13,7 +13,7 @@ class Constraints(list):
 
     """
 
-    def __init__(self, constraint_list: Optional[List[Bool]] = None,) -> None:
+    def __init__(self, constraint_list: Optional[List[Bool]] = None) -> None:
         """
 
         :param constraint_list: List of constraints

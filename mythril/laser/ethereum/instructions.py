@@ -4,9 +4,8 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Set, Union, Tuple, Any
+from typing import cast, Callable, List, Union
 from datetime import datetime
-from ethereum import utils
 
 from mythril.laser.smt import (
     Extract,
@@ -905,12 +904,14 @@ class Instruction:
         """
         state = global_state.mstate
         address = state.stack.pop()
-
-        account = global_state.world_state.accounts_exist_or_load(
-            address.value, self.dynamic_loader
-        )
-
-        balance = account.balance()
+        if address.symbolic is False:
+            balance = global_state.world_state.accounts_exist_or_load(
+                address, self.dynamic_loader
+            ).balance()
+        else:
+            balance = symbol_factory.BitVecVal(0, 256)
+            for account in global_state.world_state.accounts.values():
+                balance = If(address == account.address, account.balance(), balance)
         state.stack.append(balance)
         return [global_state]
 
@@ -1003,22 +1004,14 @@ class Instruction:
         """
 
         state = global_state.mstate
-        op0, op1 = state.stack.pop(), state.stack.pop()
+        index, op1 = state.stack.pop(), state.stack.pop()
 
         try:
-            index, length = util.get_concrete_int(op0), util.get_concrete_int(op1)
+            length = util.get_concrete_int(op1)
         except TypeError:
             # Can't access symbolic memory offsets
-            if isinstance(op0, Expression):
-                op0 = simplify(op0)
-            state.stack.append(
-                symbol_factory.BitVecSym("KECCAC_mem[{}]".format(hash(op0)), 256)
-            )
-            gas_tuple = get_opcode_gas("SHA3")
-            state.min_gas_used += gas_tuple[0]
-            state.max_gas_used += gas_tuple[1]
-            return [global_state]
-
+            length = 64
+            global_state.world_state.constraints.append(op1 == length)
         Instruction._sha3_gas_helper(global_state, length)
 
         state.mem_extend(index, length)

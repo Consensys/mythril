@@ -87,6 +87,8 @@ class WorldState:
             addr_bitvec = symbol_factory.BitVecVal(addr, 256)
         elif not isinstance(addr, BitVec):
             addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
+        else:
+            addr_bitvec = addr
 
         if addr_bitvec.value in self.accounts:
             return self.accounts[addr_bitvec.value]
