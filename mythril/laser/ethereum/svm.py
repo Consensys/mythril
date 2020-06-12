@@ -489,6 +489,12 @@ class LaserEVM:
         :param edge_type:
         :param condition:
         """
+        try:
+            address = state.environment.code.instruction_list[state.mstate.pc][
+                "address"
+            ]
+        except IndexError:
+            return
         new_node = Node(state.environment.active_account.contract_name)
         old_node = state.node
         state.node = new_node
@@ -511,8 +517,6 @@ class LaserEVM:
                     new_node.flags |= NodeFlags.FUNC_ENTRY
             except StackUnderflowException:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
-
-        address = state.environment.code.instruction_list[state.mstate.pc]["address"]
 
         environment = state.environment
         disassembly = environment.code
