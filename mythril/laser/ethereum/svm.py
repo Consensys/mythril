@@ -251,11 +251,7 @@ class LaserEVM:
                     for state in new_states
                     if state.world_state.constraints.is_possible
                 ]
-            new_states = [
-                state
-                for state in new_states
-                if state.mstate.pc < len(state.environment.code.instruction_list)
-            ]
+
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
@@ -493,6 +489,12 @@ class LaserEVM:
         :param edge_type:
         :param condition:
         """
+        try:
+            address = state.environment.code.instruction_list[state.mstate.pc][
+                "address"
+            ]
+        except IndexError:
+            return
         new_node = Node(state.environment.active_account.contract_name)
         old_node = state.node
         state.node = new_node
@@ -515,8 +517,6 @@ class LaserEVM:
                     new_node.flags |= NodeFlags.FUNC_ENTRY
             except StackUnderflowException:
                 new_node.flags |= NodeFlags.FUNC_ENTRY
-
-        address = state.environment.code.instruction_list[state.mstate.pc]["address"]
 
         environment = state.environment
         disassembly = environment.code

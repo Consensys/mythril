@@ -207,8 +207,10 @@ class DependencyPruner(LaserPlugin):
 
         @symbolic_vm.post_hook("JUMP")
         def jump_hook(state: GlobalState):
-            address = state.get_current_instruction()["address"]
-
+            try:
+                address = state.get_current_instruction()["address"]
+            except IndexError:
+                raise PluginSkipState
             annotation = get_dependency_annotation(state)
             annotation.path.append(address)
 
@@ -216,8 +218,10 @@ class DependencyPruner(LaserPlugin):
 
         @symbolic_vm.post_hook("JUMPI")
         def jumpi_hook(state: GlobalState):
-            address = state.get_current_instruction()["address"]
-
+            try:
+                address = state.get_current_instruction()["address"]
+            except IndexError:
+                raise PluginSkipState
             annotation = get_dependency_annotation(state)
             annotation.path.append(address)
 
