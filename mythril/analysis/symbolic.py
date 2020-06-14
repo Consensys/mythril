@@ -23,11 +23,13 @@ from mythril.laser.plugin.plugins import (
     MutationPrunerBuilder,
     DependencyPrunerBuilder,
     CoveragePluginBuilder,
+    CallDepthLimitBuilder,
 )
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
 from mythril.laser.smt import symbol_factory, BitVec
+from mythril.support.support_args import args
 from typing import Union, List, Type, Optional
 from mythril.solidity.soliditycontract import EVMContract, SolidityContract
 from .ops import Call, VarType, get_variable
@@ -128,7 +130,10 @@ class SymExecWrapper:
         plugin_loader = LaserPluginLoader()
         plugin_loader.load(CoveragePluginBuilder())
         plugin_loader.load(MutationPrunerBuilder())
-
+        plugin_loader.load(CallDepthLimitBuilder())
+        plugin_loader.add_args(
+            "call-depth-limit", call_depth_limit=args.call_depth_limit
+        )
         if not disable_dependency_pruning:
             plugin_loader.load(DependencyPrunerBuilder())
 

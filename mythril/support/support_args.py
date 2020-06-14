@@ -9,6 +9,7 @@ class Args:
         self.sparse_pruning = True
         self.unconstrained_storage = False
         self.parallel_solving = False
+        self.call_depth_limit = 3
 
 
 args = Args()
