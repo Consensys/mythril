@@ -7,6 +7,7 @@ from mythril.support.support_utils import Singleton
 from mythril.analysis.module.loader import ModuleLoader
 from mythril.laser.plugin.builder import PluginBuilder as LaserPluginBuilder
 from mythril.laser.plugin.loader import LaserPluginLoader
+from typing import Dict
 import logging
 
 log = logging.getLogger(__name__)
@@ -28,6 +29,10 @@ class MythrilPluginLoader(object, metaclass=Singleton):
         log.info("Initializing mythril plugin loader")
         self.loaded_plugins = []
         self._load_default_enabled()
+        self.plugin_args = dict()  # type: Dict[str, Dict]
+
+    def set_args(self, plugin_name: str, **kwargs):
+        self.plugin_args[plugin_name] = kwargs
 
     def load(self, plugin: MythrilPlugin):
         """Loads the passed plugin
@@ -69,5 +74,7 @@ class MythrilPluginLoader(object, metaclass=Singleton):
         """Loads the plugins that have the default enabled flag"""
         log.info("Loading installed analysis modules that are enabled by default")
         for plugin_name in PluginDiscovery().get_plugins(default_enabled=True):
-            plugin = PluginDiscovery().build_plugin(plugin_name)
+            plugin = PluginDiscovery().build_plugin(
+                plugin_name, self.plugin_args.get(plugin_name, {})
+            )
             self.load(plugin)
