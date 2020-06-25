@@ -28,8 +28,8 @@ class MythrilPluginLoader(object, metaclass=Singleton):
     def __init__(self):
         log.info("Initializing mythril plugin loader")
         self.loaded_plugins = []
-        self._load_default_enabled()
         self.plugin_args = dict()  # type: Dict[str, Dict]
+        self._load_default_enabled()
 
     def set_args(self, plugin_name: str, **kwargs):
         self.plugin_args[plugin_name] = kwargs
