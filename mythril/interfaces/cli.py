@@ -407,6 +407,13 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Maximum recursion depth for symbolic execution",
     )
     options.add_argument(
+        "--call-depth-limit",
+        type=int,
+        default=3,
+        help="Maximum call depth limit for symbolic execution",
+    )
+
+    options.add_argument(
         "--strategy",
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",

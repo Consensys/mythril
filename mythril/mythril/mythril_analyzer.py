@@ -47,6 +47,7 @@ class MythrilAnalyzer:
         sparse_pruning: bool = False,
         unconstrained_storage: bool = False,
         parallel_solving: bool = False,
+        call_depth_limit: int = 3,
     ):
         """
 
@@ -71,6 +72,7 @@ class MythrilAnalyzer:
         args.solver_timeout = solver_timeout
         args.parallel_solving = parallel_solving
         args.unconstrained_storage = unconstrained_storage
+        args.call_depth_limit = call_depth_limit
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
