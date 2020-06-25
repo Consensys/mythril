@@ -19,7 +19,7 @@ class MythrilPlugin:
     plugin_version = "0.0.1 "
     plugin_description = "This is an example plugin description"
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
     def __repr__(self):

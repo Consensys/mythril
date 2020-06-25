@@ -30,7 +30,7 @@ class PluginDiscovery(object, metaclass=Singleton):
         """Returns whether there is python package with a plugin with plugin_name"""
         return plugin_name in self.installed_plugins.keys()
 
-    def build_plugin(self, plugin_name: str) -> MythrilPlugin:
+    def build_plugin(self, plugin_name: str, plugin_args: Dict) -> MythrilPlugin:
         """Returns the plugin for the given plugin_name  if it is installed"""
         if not self.is_installed(plugin_name):
             raise ValueError(f"Plugin with name: `{plugin_name}` is not installed")
@@ -40,7 +40,7 @@ class PluginDiscovery(object, metaclass=Singleton):
         if plugin is None or not issubclass(plugin, MythrilPlugin):
             raise ValueError(f"No valid plugin was found for {plugin_name}")
 
-        return plugin()
+        return plugin(**plugin_args)
 
     def get_plugins(self, default_enabled=None) -> List[str]:
         """ Gets a list of installed mythril plugins
