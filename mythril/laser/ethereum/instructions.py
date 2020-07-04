@@ -1,8 +1,6 @@
 """This module contains a representation class for EVM instructions and
 transitions between them."""
 import binascii
-from builtins import hash
-
 import logging
 
 from copy import copy, deepcopy
@@ -19,6 +17,7 @@ from mythril.laser.smt import (
     UGT,
     BitVec,
     is_false,
+    is_true,
     URem,
     SRem,
     If,
@@ -628,7 +627,6 @@ class Instruction:
         """
         mstate = global_state.mstate
         s0, s1 = mstate.stack.pop(), mstate.stack.pop()
-
         try:
             s0 = util.get_concrete_int(s0)
         except TypeError:
@@ -642,7 +640,7 @@ class Instruction:
 
         if s0 <= 31:
             testbit = s0 * 8 + 7
-            if s1 & (1 << testbit):
+            if not is_true(simplify((s1 & (1 << testbit)) == 0)):
                 mstate.stack.append(s1 | (TT256 - (1 << testbit)))
             else:
                 mstate.stack.append(s1 & ((1 << testbit) - 1))
