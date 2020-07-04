@@ -1,6 +1,8 @@
 """This module contains a representation class for EVM instructions and
 transitions between them."""
 import binascii
+from builtins import hash
+
 import logging
 
 from copy import copy, deepcopy
@@ -629,7 +631,6 @@ class Instruction:
 
         try:
             s0 = util.get_concrete_int(s0)
-            s1 = util.get_concrete_int(s1)
         except TypeError:
             log.debug("Unsupported symbolic argument for SIGNEXTEND")
             mstate.stack.append(
