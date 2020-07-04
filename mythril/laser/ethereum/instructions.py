@@ -905,7 +905,7 @@ class Instruction:
         address = state.stack.pop()
         if address.symbolic is False:
             balance = global_state.world_state.accounts_exist_or_load(
-                address, self.dynamic_loader
+                address.value, self.dynamic_loader
             ).balance()
         else:
             balance = symbol_factory.BitVecVal(0, 256)
