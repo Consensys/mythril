@@ -64,7 +64,7 @@ class DynLoader:
         if not self.active:
             raise ValueError("Loader is disabled")
         if not self.eth:
-            raise ValueError("Cannot load from the storage when eth is None")
+            raise ValueError("Cannot load from the chain when eth is None")
 
         log.debug("Dynld at contract %s", dependency_address)
 
