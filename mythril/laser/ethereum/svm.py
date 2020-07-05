@@ -105,7 +105,8 @@ class LaserEVM:
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
         self.iprof = iprof
-
+        self.instr_pre_hook = {}
+        self.instr_post_hook = {}
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def extend_strategy(self, extension: ABCMeta, *args) -> None:
@@ -578,6 +579,13 @@ class LaserEVM:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type
             )
+
+    def register_instr_hooks(self, hook_type: str, opcode: str, hook: Callable):
+        if hook_type == "pre":
+            if opcode ==
+            if opcode not in self.instr_pre_hook:
+                self.instr_pre_hook[opcode] = []
+            self.instr_pre_hook[opcode].append(hook)
 
     def laser_hook(self, hook_type: str) -> Callable:
         """Registers the annotated function with register_laser_hooks
