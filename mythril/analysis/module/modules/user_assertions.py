@@ -6,6 +6,7 @@ from mythril.analysis.potential_issues import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import Extract
 from mythril.exceptions import UnsatError
 import logging
 import eth_abi
@@ -23,6 +24,8 @@ assertion_failed_hash = (
     0xB42604CB105A16C8F6DB8A41E6B00C0C1B4826465E8BC504B3EB3E88B3E6A4A0
 )
 
+mstore_pattern = "0xcafecafecafecafecafecafecafecafecafecafecafecafecafecafecafe"
+
 
 class UserAssertions(DetectionModule):
     """This module searches for user supplied exceptions: emit AssertionFailed("Error")."""
@@ -31,7 +34,7 @@ class UserAssertions(DetectionModule):
     swc_id = ASSERT_VIOLATION
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["LOG1"]
+    pre_hooks = ["LOG1", "MSTORE"]
 
     def _execute(self, state: GlobalState) -> None:
         """
@@ -51,19 +54,21 @@ class UserAssertions(DetectionModule):
         :param state:
         :return:
         """
+        opcode = state.get_current_instruction()["opcode"]
+        message = None
+        if opcode == "MSTORE":
+            value = state.mstate.stack[-2]
+            if value.symbolic:
+                return []
+            if mstore_pattern not in hex(value.value)[:126]:
+                return []
+            message = "Failed property id {}".format(Extract(15, 0, value).value)
 
-        try:
-
-            transaction_sequence = solver.get_transaction_sequence(
-                state, state.world_state.constraints
-            )
-
+        else:
             topic, size, mem_start = state.mstate.stack[-3:]
 
             if topic.symbolic or topic.value != assertion_failed_hash:
                 return []
-
-            message = None
             if not mem_start.symbolic and not size.symbolic:
                 try:
                     message = eth_abi.decode_single(
@@ -76,6 +81,10 @@ class UserAssertions(DetectionModule):
                     ).decode("utf8")
                 except:
                     pass
+        try:
+            transaction_sequence = solver.get_transaction_sequence(
+                state, state.world_state.constraints
+            )
 
             if message:
                 description_tail = "A user-provided assertion failed with the message '{}'".format(
