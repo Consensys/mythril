@@ -65,7 +65,6 @@ class MythrilAnalyzer:
         self.execution_timeout = execution_timeout
         self.loop_bound = loop_bound
         self.create_timeout = create_timeout
-        self.iprof = InstructionProfiler() if enable_iprof else None
         self.disable_dependency_pruning = disable_dependency_pruning
         self.custom_modules_directory = custom_modules_directory
         args.sparse_pruning = sparse_pruning
@@ -73,6 +72,7 @@ class MythrilAnalyzer:
         args.parallel_solving = parallel_solving
         args.unconstrained_storage = unconstrained_storage
         args.call_depth_limit = call_depth_limit
+        args.iprof = enable_iprof
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """
@@ -88,7 +88,6 @@ class MythrilAnalyzer:
             max_depth=self.max_depth,
             execution_timeout=self.execution_timeout,
             create_timeout=self.create_timeout,
-            iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
             custom_modules_directory=self.custom_modules_directory,
@@ -121,7 +120,6 @@ class MythrilAnalyzer:
             execution_timeout=self.execution_timeout,
             transaction_count=transaction_count,
             create_timeout=self.create_timeout,
-            iprof=self.iprof,
             disable_dependency_pruning=self.disable_dependency_pruning,
             run_analysis_modules=False,
             custom_modules_directory=self.custom_modules_directory,
@@ -156,7 +154,6 @@ class MythrilAnalyzer:
                     transaction_count=transaction_count,
                     modules=modules,
                     compulsory_statespace=False,
-                    iprof=self.iprof,
                     disable_dependency_pruning=self.disable_dependency_pruning,
                     custom_modules_directory=self.custom_modules_directory,
                 )
@@ -166,8 +163,6 @@ class MythrilAnalyzer:
                 raise e
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
-                if self.iprof is not None:
-                    log.info("Instruction Statistics:\n{}".format(self.iprof))
                 issues = retrieve_callback_issues(modules)
             except Exception:
                 log.critical(
@@ -176,8 +171,6 @@ class MythrilAnalyzer:
                 )
                 issues = retrieve_callback_issues(modules)
                 exceptions.append(traceback.format_exc())
-                if self.iprof is not None:
-                    log.info("Instruction Statistics:\n{}".format(self.iprof))
             for issue in issues:
                 issue.add_code_info(contract)
 
