@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple
 from mythril.laser.plugin.builder import PluginBuilder
 from mythril.laser.plugin.interface import LaserPlugin
 from mythril.laser.ethereum.svm import LaserEVM
+from mythril.laser.ethereum.state.global_state import GlobalState
 from datetime import datetime
 import logging
 
@@ -50,15 +51,15 @@ class InstructionProfiler(LaserPlugin):
 
     def initialize(self, symbolic_vm: LaserEVM) -> None:
         @symbolic_vm.instr_hook("pre", None)
-        def get_start_time(op_code):
-            def start_time_wrapper(global_state):
+        def get_start_time(op_code: str):
+            def start_time_wrapper(global_state: GlobalState):
                 self.start_time = datetime.now()
 
             return start_time_wrapper
 
         @symbolic_vm.instr_hook("post", None)
-        def record(op_code):
-            def record_opcode(global_state):
+        def record(op_code: str):
+            def record_opcode(global_state: GlobalState):
                 end_time = datetime.now()
                 try:
                     self.records[op_code].append(

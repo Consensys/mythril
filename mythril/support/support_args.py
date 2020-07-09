@@ -10,6 +10,7 @@ class Args:
         self.unconstrained_storage = False
         self.parallel_solving = False
         self.call_depth_limit = 3
+        self.iprof = True
 
 
 args = Args()

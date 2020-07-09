@@ -163,8 +163,6 @@ class MythrilAnalyzer:
                 raise e
             except KeyboardInterrupt:
                 log.critical("Keyboard Interrupt")
-                if args.iprof is not None:
-                    log.info("Instruction Statistics:\n{}".format(self.iprof))
                 issues = retrieve_callback_issues(modules)
             except Exception:
                 log.critical(
@@ -173,8 +171,6 @@ class MythrilAnalyzer:
                 )
                 issues = retrieve_callback_issues(modules)
                 exceptions.append(traceback.format_exc())
-                if args.iprof is not None:
-                    log.info("Instruction Statistics:\n{}".format(args.iprof))
             for issue in issues:
                 issue.add_code_info(contract)
 

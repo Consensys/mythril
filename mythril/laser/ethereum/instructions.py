@@ -202,7 +202,11 @@ class Instruction:
     instruction."""
 
     def __init__(
-        self, op_code: str, dynamic_loader: DynLoader, pre_hooks, post_hooks
+        self,
+        op_code: str,
+        dynamic_loader: DynLoader,
+        pre_hooks: List[Callable],
+        post_hooks: List[Callable],
     ) -> None:
         """
 
@@ -215,11 +219,11 @@ class Instruction:
         self.pre_hook = pre_hooks
         self.post_hook = post_hooks
 
-    def _execute_pre_hooks(self, global_state):
+    def _execute_pre_hooks(self, global_state: GlobalState):
         for hook in self.pre_hook:
             hook(global_state)
 
-    def _execute_post_hooks(self, global_state):
+    def _execute_post_hooks(self, global_state: GlobalState):
         for hook in self.post_hook:
             hook(global_state)
 
