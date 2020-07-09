@@ -1,4 +1,4 @@
-from mythril.laser.ethereum.instructions import Instruction
+from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.plugin.interface import LaserPlugin
 from mythril.laser.plugin.builder import PluginBuilder
 from mythril.laser.plugin.signals import PluginSkipState
@@ -194,7 +194,7 @@ class DependencyPruner(LaserPlugin):
 
         return False
 
-    def initialize(self, intruction: Instruction) -> None:
+    def initialize(self, symbolic_vm: LaserEVM) -> None:
         """Initializes the DependencyPruner
 
         :param symbolic_vm
