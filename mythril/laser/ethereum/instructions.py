@@ -205,8 +205,8 @@ class Instruction:
         self,
         op_code: str,
         dynamic_loader: DynLoader,
-        pre_hooks: List[Callable],
-        post_hooks: List[Callable],
+        pre_hooks: List[Callable] = None,
+        post_hooks: List[Callable] = None,
     ) -> None:
         """
 
@@ -216,8 +216,8 @@ class Instruction:
         """
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code.upper()
-        self.pre_hook = pre_hooks
-        self.post_hook = post_hooks
+        self.pre_hook = pre_hooks if pre_hooks else []
+        self.post_hook = post_hooks if post_hooks else []
 
     def _execute_pre_hooks(self, global_state: GlobalState):
         for hook in self.pre_hook:
