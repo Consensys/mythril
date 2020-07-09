@@ -4,6 +4,8 @@ from typing import Dict, List, Tuple
 from mythril.laser.plugin.builder import PluginBuilder
 from mythril.laser.plugin.interface import LaserPlugin
 from mythril.laser.ethereum.svm import LaserEVM
+from datetime import datetime
+import logging
 
 # Type annotations:
 #   start_time: datetime
@@ -25,6 +27,9 @@ _InstrExecRecords = Dict[str, List[_InstrExecRecord]]
 # Map the instruction opcode to the statistic of its execution times
 _InstrExecStatistics = Dict[str, _InstrExecStatistic]
 
+log = logging.getLogger(__name__)
+
+
 class InstructionProfilerBuilder(PluginBuilder):
     plugin_name = "dependency-pruner"
 
@@ -41,16 +46,50 @@ class InstructionProfiler(LaserPlugin):
 
     def _reset(self):
         self.records = dict()
+        self.start_time = None
 
     def initialize(self, symbolic_vm: LaserEVM) -> None:
+        @symbolic_vm.instr_hook("pre", None)
+        def get_start_time(op_code):
+            def start_time_wrapper(global_state):
+                self.start_time = datetime.now()
 
-        @symbolic_vm.register_instr_hooks(None)
-        def get_start_time
-        def record(self, op: int, start_time: datetime, end_time: datetime):
-            try:
-                self.records[op].append(_InstrExecRecord(start_time, end_time))
-            except KeyError:
-                self.records[op] = [_InstrExecRecord(start_time, end_time)]
+            return start_time_wrapper
+
+        @symbolic_vm.instr_hook("post", None)
+        def record(op_code):
+            def record_opcode(global_state):
+                end_time = datetime.now()
+                try:
+                    self.records[op_code].append(
+                        _InstrExecRecord(self.start_time, end_time)
+                    )
+                except KeyError:
+                    self.records[op_code] = [
+                        _InstrExecRecord(self.start_time, end_time)
+                    ]
+
+            return record_opcode
+
+        @symbolic_vm.laser_hook("stop_sym_exec")
+        def print_stats():
+            total, stats = self._make_stats()
+
+            s = "Total: {} s\n".format(total)
+
+            for op in sorted(stats):
+                stat = stats[op]
+                s += "[{:12s}] {:>8.4f} %,  nr {:>6},  total {:>8.4f} s,  avg {:>8.4f} s,  min {:>8.4f} s,  max {:>8.4f} s\n".format(
+                    op,
+                    stat.total_time * 100 / total,
+                    stat.total_nr,
+                    stat.total_time,
+                    stat.total_time / stat.total_nr,
+                    stat.min_time,
+                    stat.max_time,
+                )
+
+            log.info(s)
 
     def _make_stats(self) -> Tuple[float, _InstrExecStatistics]:
         periods = {
@@ -74,22 +113,3 @@ class InstructionProfiler(LaserPlugin):
             stats[op] = stat
 
         return total_time, stats
-
-    def print_stats(self):
-        total, stats = self._make_stats()
-
-        s = "Total: {} s\n".format(total)
-
-        for op in sorted(stats):
-            stat = stats[op]
-            s += "[{:12s}] {:>8.4f} %,  nr {:>6},  total {:>8.4f} s,  avg {:>8.4f} s,  min {:>8.4f} s,  max {:>8.4f} s\n".format(
-                op,
-                stat.total_time * 100 / total,
-                stat.total_nr,
-                stat.total_time,
-                stat.total_time / stat.total_nr,
-                stat.min_time,
-                stat.max_time,
-            )
-
-        return s

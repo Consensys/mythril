@@ -23,7 +23,7 @@ from mythril.laser.plugin.plugins import (
     DependencyPrunerBuilder,
     CoveragePluginBuilder,
     CallDepthLimitBuilder,
-    InstructionProfilerBuilder
+    InstructionProfilerBuilder,
 )
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
@@ -133,9 +133,7 @@ class SymExecWrapper:
         plugin_loader.add_args(
             "call-depth-limit", call_depth_limit=args.call_depth_limit
         )
-        plugin_loader.add_args(
-            "iprof", call_depth_limit=args.iprof
-        )
+        plugin_loader.add_args("iprof", call_depth_limit=args.iprof)
 
         if not disable_dependency_pruning:
             plugin_loader.load(DependencyPrunerBuilder())

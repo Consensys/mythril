@@ -201,7 +201,9 @@ class Instruction:
     """Instruction class is used to mutate a state according to the current
     instruction."""
 
-    def __init__(self, op_code: str, dynamic_loader: DynLoader, pre_hooks, post_hooks) -> None:
+    def __init__(
+        self, op_code: str, dynamic_loader: DynLoader, pre_hooks, post_hooks
+    ) -> None:
         """
 
         :param op_code:
