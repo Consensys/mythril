@@ -2,6 +2,7 @@
 purposes."""
 
 from mythril.analysis.module import EntryPoint, ModuleLoader, get_detection_module_hooks
+from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -300,3 +301,7 @@ class SymExecWrapper:
                         )
 
                 state_index += 1
+
+    @property
+    def execution_info(self) -> List[ExecutionInfo]:
+        return self.laser.execution_info

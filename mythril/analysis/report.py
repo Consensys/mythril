@@ -6,6 +6,7 @@ from jinja2 import PackageLoader, Environment
 from typing import Dict, List
 import hashlib
 
+from mythril.laser.execution_info import ExecutionInfo
 from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
@@ -184,7 +185,7 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, contracts=None, exceptions=None):
+    def __init__(self, contracts=None, exceptions=None, execution_info: List[ExecutionInfo] = None):
         """
 
         :param contracts:
@@ -196,6 +197,7 @@ class Report:
         self.source = Source()
         self.source.get_source_from_contracts_list(contracts)
         self.exceptions = exceptions or []
+        self.execution_info = execution_info or []
 
     def sorted_issues(self):
         """
