@@ -139,6 +139,7 @@ class MythrilAnalyzer:
         all_issues = []  # type: List[Issue]
         SolverStatistics().enabled = True
         exceptions = []
+        execution_info = None
         for contract in self.contracts:
             StartTime()  # Reinitialize start time for new contracts
             try:
@@ -158,6 +159,7 @@ class MythrilAnalyzer:
                     custom_modules_directory=self.custom_modules_directory,
                 )
                 issues = fire_lasers(sym, modules)
+                execution_info = sym.execution_info
             except DetectorNotFoundError as e:
                 # Bubble up
                 raise e
@@ -184,7 +186,7 @@ class MythrilAnalyzer:
         report = Report(
             contracts=self.contracts,
             exceptions=exceptions,
-            execution_info=sym.execution_info,
+            execution_info=execution_info,
         )
         for issue in all_issues:
             report.append_issue(issue)
