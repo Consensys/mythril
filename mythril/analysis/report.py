@@ -185,7 +185,12 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, contracts=None, exceptions=None, execution_info: List[ExecutionInfo] = None):
+    def __init__(
+        self,
+        contracts=None,
+        exceptions=None,
+        execution_info: List[ExecutionInfo] = None,
+    ):
         """
 
         :param contracts:

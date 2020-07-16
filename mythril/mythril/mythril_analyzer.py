@@ -181,7 +181,11 @@ class MythrilAnalyzer:
         source_data.get_source_from_contracts_list(self.contracts)
 
         # Finally, output the results
-        report = Report(contracts=self.contracts, exceptions=exceptions, execution_info=sym.execution_info)
+        report = Report(
+            contracts=self.contracts,
+            exceptions=exceptions,
+            execution_info=sym.execution_info,
+        )
         for issue in all_issues:
             report.append_issue(issue)
 
