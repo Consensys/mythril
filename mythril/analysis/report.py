@@ -284,7 +284,7 @@ class Report:
         meta_data = self.meta
 
         # Add logs to meta
-        meta_data["logs"] = self._get_exception_data()
+        meta_data.update(self._get_exception_data()["logs"])
 
         # Add execution info to meta
         meta_data["mythril_execution_info"] = {}
