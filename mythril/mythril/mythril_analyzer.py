@@ -19,6 +19,7 @@ from mythril.ethereum.evmcontract import EVMContract
 from mythril.laser.smt import SolverStatistics
 from mythril.support.start_time import StartTime
 from mythril.exceptions import DetectorNotFoundError
+from mythril.laser.execution_info import ExecutionInfo
 
 log = logging.getLogger(__name__)
 
@@ -139,7 +140,7 @@ class MythrilAnalyzer:
         all_issues = []  # type: List[Issue]
         SolverStatistics().enabled = True
         exceptions = []
-        execution_info = None
+        execution_info = None  # type: Optional[List[ExecutionInfo]]
         for contract in self.contracts:
             StartTime()  # Reinitialize start time for new contracts
             try:

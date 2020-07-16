@@ -3,7 +3,7 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import hashlib
 
 from mythril.laser.execution_info import ExecutionInfo
@@ -189,7 +189,7 @@ class Report:
         self,
         contracts=None,
         exceptions=None,
-        execution_info: List[ExecutionInfo] = None,
+        execution_info: Optional[List[ExecutionInfo]] = None,
     ):
         """
 
