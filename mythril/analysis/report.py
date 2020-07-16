@@ -3,7 +3,7 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-from typing import Dict, List
+from typing import Dict, List, Any
 import hashlib
 
 from mythril.laser.execution_info import ExecutionInfo
@@ -198,7 +198,7 @@ class Report:
         """
         self.issues = {}  # type: Dict[bytes, Issue]
         self.solc_version = ""
-        self.meta = {}  # type: Dict[str, any]
+        self.meta = {}  # type: Dict[str, Any]
         self.source = Source()
         self.source.get_source_from_contracts_list(contracts)
         self.exceptions = exceptions or []
