@@ -196,9 +196,9 @@ class Report:
         :param contracts:
         :param exceptions:
         """
-        self.issues = {}
+        self.issues = {}  # type: Dict[bytes, Issue]
         self.solc_version = ""
-        self.meta = {}
+        self.meta = {}  # type: Dict[str, any]
         self.source = Source()
         self.source.get_source_from_contracts_list(contracts)
         self.exceptions = exceptions or []
