@@ -248,6 +248,7 @@ class Report:
 
         :return:
         """
+        # Setup issues
         _issues = []
 
         for key, issue in self.issues.items():
@@ -274,7 +275,17 @@ class Report:
                     "extra": extra,
                 }
             )
-        meta_data = self._get_exception_data()
+        # Setup meta
+        meta_data = self.meta
+
+        # Add logs to meta
+        meta_data["logs"] = self._get_exception_data()
+
+        # Add execution info to meta
+        meta_data["mythril_execution_info"] = {}
+        for execution_info in self.execution_info:
+            meta_data["mythril_execution_info"].update(execution_info.as_dict())
+
         result = [
             {
                 "issues": _issues,
