@@ -14,6 +14,7 @@ from mythril.exceptions import CompilerError
 
 if sys.version_info[1] >= 6:
     import solcx
+    from solcx.exceptions import SolcNotInstalled
 
 
 def safe_decode(hex_encoded_string):
@@ -131,12 +132,15 @@ def solc_exists(version):
                 "bin/solc",
             )  # py-solc setup
         ]
+        for solc_path in solc_binaries:
+            if os.path.exists(solc_path):
+                return solc_path
     elif sys.version_info[1] >= 6:
         # we are using solc-x for the the 0.5 and higher
-        solc_binaries = [os.path.join(solcx.__path__[0], "bin", "solc-v" + version)]
-    for solc_path in solc_binaries:
-        if os.path.exists(solc_path):
-            return solc_path
+        try:
+            return solcx.install.get_executable(version)
+        except SolcNotInstalled:
+            pass
 
     # Last resort is to use the system installation
     default_binary = "/usr/bin/solc"
