@@ -84,7 +84,7 @@ class LaserEVM:
         self.transaction_count = transaction_count
 
         self.execution_timeout = execution_timeout or 0
-        self.create_timeout = create_timeout
+        self.create_timeout = create_timeout or 0
 
         self.requires_statespace = requires_statespace
         if self.requires_statespace:
