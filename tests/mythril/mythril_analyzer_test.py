@@ -1,7 +1,7 @@
 from pathlib import Path
 from mythril.mythril import MythrilDisassembler, MythrilAnalyzer
 from mythril.analysis.report import Issue
-from mock import patch
+from mock import patch, PropertyMock
 
 
 @patch("mythril.analysis.report.Issue.add_code_info", return_value=None)
@@ -9,8 +9,9 @@ from mock import patch
     "mythril.mythril.mythril_analyzer.fire_lasers",
     return_value=[Issue("", "", "234", "101", "title", "0x02445")],
 )
-@patch("mythril.mythril.mythril_analyzer.SymExecWrapper", return_value=None)
+@patch("mythril.mythril.mythril_analyzer.SymExecWrapper")
 def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
+    type(mock_sym.return_value).execution_info = PropertyMock(return_value=[])
     disassembler = MythrilDisassembler(eth=None)
     disassembler.load_from_solidity(
         [
