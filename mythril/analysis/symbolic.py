@@ -2,8 +2,8 @@
 purposes."""
 
 from mythril.analysis.module import EntryPoint, ModuleLoader, get_detection_module_hooks
+from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum import svm
-from mythril.laser.ethereum.iprof import InstructionProfiler
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import (
@@ -24,6 +24,7 @@ from mythril.laser.plugin.plugins import (
     DependencyPrunerBuilder,
     CoveragePluginBuilder,
     CallDepthLimitBuilder,
+    InstructionProfilerBuilder,
 )
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
@@ -55,7 +56,6 @@ class SymExecWrapper:
         transaction_count: int = 2,
         modules: Optional[List[str]] = None,
         compulsory_statespace: bool = True,
-        iprof: Optional[InstructionProfiler] = None,
         disable_dependency_pruning: bool = False,
         run_analysis_modules: bool = True,
         custom_modules_directory: str = "",
@@ -121,7 +121,6 @@ class SymExecWrapper:
             create_timeout=create_timeout,
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
-            iprof=iprof,
         )
 
         if loop_bound is not None:
@@ -131,9 +130,11 @@ class SymExecWrapper:
         plugin_loader.load(CoveragePluginBuilder())
         plugin_loader.load(MutationPrunerBuilder())
         plugin_loader.load(CallDepthLimitBuilder())
+        plugin_loader.load(InstructionProfilerBuilder())
         plugin_loader.add_args(
             "call-depth-limit", call_depth_limit=args.call_depth_limit
         )
+
         if not disable_dependency_pruning:
             plugin_loader.load(DependencyPrunerBuilder())
 
@@ -300,3 +301,7 @@ class SymExecWrapper:
                         )
 
                 state_index += 1
+
+    @property
+    def execution_info(self) -> List[ExecutionInfo]:
+        return self.laser.execution_info

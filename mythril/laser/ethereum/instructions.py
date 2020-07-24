@@ -4,7 +4,7 @@ import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union
+from typing import cast, Callable, List, Union, Optional
 from datetime import datetime
 
 from mythril.laser.smt import (
@@ -202,7 +202,13 @@ class Instruction:
     """Instruction class is used to mutate a state according to the current
     instruction."""
 
-    def __init__(self, op_code: str, dynamic_loader: DynLoader, iprof=None) -> None:
+    def __init__(
+        self,
+        op_code: str,
+        dynamic_loader: DynLoader,
+        pre_hooks: List[Callable] = None,
+        post_hooks: List[Callable] = None,
+    ) -> None:
         """
 
         :param op_code:
@@ -211,7 +217,16 @@ class Instruction:
         """
         self.dynamic_loader = dynamic_loader
         self.op_code = op_code.upper()
-        self.iprof = iprof
+        self.pre_hook = pre_hooks if pre_hooks else []
+        self.post_hook = post_hooks if post_hooks else []
+
+    def _execute_pre_hooks(self, global_state: GlobalState):
+        for hook in self.pre_hook:
+            hook(global_state)
+
+    def _execute_post_hooks(self, global_state: GlobalState):
+        for hook in self.post_hook:
+            hook(global_state)
 
     def evaluate(self, global_state: GlobalState, post=False) -> List[GlobalState]:
         """Performs the mutation for this instruction.
@@ -241,13 +256,10 @@ class Instruction:
         if instruction_mutator is None:
             raise NotImplementedError
 
-        if self.iprof is None:
-            result = instruction_mutator(global_state)
-        else:
-            start_time = datetime.now()
-            result = instruction_mutator(global_state)
-            end_time = datetime.now()
-            self.iprof.record(op, start_time, end_time)
+        self._execute_pre_hooks(global_state)
+
+        result = instruction_mutator(global_state)
+        self._execute_post_hooks(global_state)
 
         return result
 

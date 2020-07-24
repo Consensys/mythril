@@ -3,9 +3,10 @@ import logging
 import json
 import operator
 from jinja2 import PackageLoader, Environment
-from typing import Dict, List
+from typing import Dict, List, Any, Optional
 import hashlib
 
+from mythril.laser.execution_info import ExecutionInfo
 from mythril.solidity.soliditycontract import SolidityContract
 from mythril.analysis.swc_data import SWC_TO_TITLE
 from mythril.support.source_support import Source
@@ -184,18 +185,24 @@ class Report:
         loader=PackageLoader("mythril.analysis"), trim_blocks=True
     )
 
-    def __init__(self, contracts=None, exceptions=None):
+    def __init__(
+        self,
+        contracts=None,
+        exceptions=None,
+        execution_info: Optional[List[ExecutionInfo]] = None,
+    ):
         """
 
         :param contracts:
         :param exceptions:
         """
-        self.issues = {}
+        self.issues = {}  # type: Dict[bytes, Issue]
         self.solc_version = ""
-        self.meta = {}
+        self.meta = {}  # type: Dict[str, Any]
         self.source = Source()
         self.source.get_source_from_contracts_list(contracts)
         self.exceptions = exceptions or []
+        self.execution_info = execution_info or []
 
     def sorted_issues(self):
         """
@@ -246,6 +253,7 @@ class Report:
 
         :return:
         """
+        # Setup issues
         _issues = []
 
         for key, issue in self.issues.items():
@@ -272,7 +280,17 @@ class Report:
                     "extra": extra,
                 }
             )
-        meta_data = self._get_exception_data()
+        # Setup meta
+        meta_data = self.meta
+
+        # Add logs to meta
+        meta_data.update(self._get_exception_data())
+
+        # Add execution info to meta
+        meta_data["mythril_execution_info"] = {}
+        for execution_info in self.execution_info:
+            meta_data["mythril_execution_info"].update(execution_info.as_dict())
+
         result = [
             {
                 "issues": _issues,
