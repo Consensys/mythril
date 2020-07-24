@@ -43,7 +43,6 @@ steps:
     branch:
     - develop
     - master
-    - run-edelweiss-drone
     event:
     - push
     - tag
