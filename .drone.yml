@@ -46,7 +46,6 @@ steps:
       --ignore-regressions $IGNORE_REGRESSIONS
   when:
     branch:
-    - run-edelweiss-drone
     - develop
     - master
     event:
