@@ -14,22 +14,27 @@ steps:
     IGNORE_REGRESSIONS:
       from_secret: IGNORE_REGRESSIONS
     AWS_DEFAULT_REGION:
-        from_secret: AWS_DEFAULT_REGION
+      from_secret: AWS_DEFAULT_REGION
     AWS_ACCESS_KEY_ID:
-        from_secret: AWS_ACCESS_KEY_ID
+      from_secret: AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY:
-        from_secret: AWS_SECRET_ACCESS_KEY
+      from_secret: AWS_SECRET_ACCESS_KEY
     MONGO_URL:
-        from_secret: MONGO_URL
+      from_secret: MONGO_URL
   commands:
+    # CIRCLE_* env vars is used by edelweiss cli to generate
+    # the reports storage directory structure
     - export CIRCLE_BUILD_NUM=$DRONE_BUILD_NUMBER
     - export CIRCLE_BUILD_URL=$DRONE_BUILD_LINK
     - export CIRCLE_BRANCH=$DRONE_BRANCH
     - export CIRCLE_SHA1=$DRONE_COMMIT_SHA
+    # install pip module from current dir
+    - pip3 install $(pwd)
+    # update SWC-registry
     - cd /edelweiss
     - git submodule update --init --recursive
     - git submodule update --remote --recursive
-    - pip3 install mythril
+    # run edelewiss tests
     - edelweiss-cli 
       -p mythril 
       --timeout 90 
