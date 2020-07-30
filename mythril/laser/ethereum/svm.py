@@ -7,6 +7,7 @@ from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
 from mythril.support.opcodes import opcodes as OPCODES
 from mythril.analysis.potential_issues import check_potential_issues
+from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
@@ -72,8 +73,9 @@ class LaserEVM:
         :param requires_statespace: Variable indicating whether the statespace should be recorded
         :param iprof: Instruction Profiler
         """
-        self.open_states = []  # type: List[WorldState]
+        self.execution_info = []  # type: List[ExecutionInfo]
 
+        self.open_states = []  # type: List[WorldState]
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
 

@@ -1,0 +1,56 @@
+kind: pipeline
+name: default
+
+platform:
+    os: linux
+    arch: amd64
+
+steps:
+- name: edelweiss_swc
+  image: mythx.azurecr.io/tools/edelweiss
+  environment:
+    IGNORE_FALSE_POSITIVES:
+      from_secret: IGNORE_FALSE_POSITIVES
+    IGNORE_REGRESSIONS:
+      from_secret: IGNORE_REGRESSIONS
+    AWS_DEFAULT_REGION:
+      from_secret: AWS_DEFAULT_REGION
+    AWS_ACCESS_KEY_ID:
+      from_secret: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: AWS_SECRET_ACCESS_KEY
+    MONGO_URL:
+      from_secret: MONGO_URL
+  commands:
+    # CIRCLE_* env vars is used by edelweiss cli to generate
+    # the reports storage directory structure
+    - export CIRCLE_BUILD_NUM=$DRONE_BUILD_NUMBER
+    - export CIRCLE_BUILD_URL=$DRONE_BUILD_LINK
+    - export CIRCLE_BRANCH=$DRONE_BRANCH
+    - export CIRCLE_SHA1=$DRONE_COMMIT_SHA
+    # install pip module from current dir
+    - pip3 install $(pwd)
+    # update SWC-registry
+    - cd /edelweiss
+    - git submodule update --init --recursive
+    - git submodule update --remote --recursive
+    # run edelewiss tests
+    - edelweiss-cli 
+      -p mythril 
+      --timeout 90 
+      --output-dir $(pwd) 
+      --s3 
+      --dynamodb 
+      --circle-ci CircleCI/mythril.csv 
+      --ignore-false-positives $IGNORE_FALSE_POSITIVES 
+      --ignore-regressions $IGNORE_REGRESSIONS
+  when:
+    branch:
+    - develop
+    - master
+    event:
+    - push
+    - tag
+
+image_pull_secrets:
+    - DOCKER_CONFIG_JSON
