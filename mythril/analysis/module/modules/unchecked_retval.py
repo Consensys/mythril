@@ -79,6 +79,12 @@ class UncheckedRetval(DetectionModule):
             issues = []
             for retval in retvals:
                 try:
+                    """
+                    To check whether retval is unconstrained we are checking it against retval = 0 and retval = 1
+                    """
+                    solver.get_transaction_sequence(
+                        state, state.world_state.constraints + [retval["retval"] == 1]
+                    )
                     transaction_sequence = solver.get_transaction_sequence(
                         state, state.world_state.constraints + [retval["retval"] == 0]
                     )
