@@ -86,7 +86,7 @@ class LaserEVM:
         self.transaction_count = transaction_count
 
         self.execution_timeout = execution_timeout or 0
-        self.create_timeout = create_timeout
+        self.create_timeout = create_timeout or 0
 
         self.requires_statespace = requires_statespace
         if self.requires_statespace:
@@ -218,6 +218,20 @@ class LaserEVM:
             for hook in self._stop_sym_trans_hooks:
                 hook()
 
+    def _check_create_termination(self) -> bool:
+        if len(self.open_states) != 0:
+            return (
+                self.create_timeout > 0
+                and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
+            )
+        return self._check_execution_termination()
+
+    def _check_execution_termination(self) -> bool:
+        return (
+            self.execution_timeout > 0
+            and self.time + timedelta(seconds=self.execution_timeout) <= datetime.now()
+        )
+
     def exec(self, create=False, track_gas=False) -> Optional[List[GlobalState]]:
         """
 
@@ -227,20 +241,11 @@ class LaserEVM:
         """
         final_states = []  # type: List[GlobalState]
         for global_state in self.strategy:
-            if (
-                self.create_timeout
-                and create
-                and self.time + timedelta(seconds=self.create_timeout) <= datetime.now()
-            ):
+            if create and self._check_create_termination():
                 log.debug("Hit create timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
-            if (
-                self.execution_timeout
-                and self.time + timedelta(seconds=self.execution_timeout)
-                <= datetime.now()
-                and not create
-            ):
+            if not create and self._check_execution_termination():
                 log.debug("Hit execution timeout, returning.")
                 return final_states + [global_state] if track_gas else None
 
