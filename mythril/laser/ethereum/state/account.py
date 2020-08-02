@@ -7,7 +7,7 @@ from copy import copy, deepcopy
 from typing import Any, Dict, Union, Set
 
 
-from mythril.laser.smt import Array, K, BitVec, simplify, BaseArray
+from mythril.laser.smt import Array, K, BitVec, simplify, BaseArray, If, Bool
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.smt import symbol_factory
 from mythril.support.support_args import args
@@ -62,6 +62,9 @@ class Storage:
         return simplify(storage[item])
 
     def __setitem__(self, key, value: Any) -> None:
+        if isinstance(value, Bool):
+            value = If(value, 1, 0)
+
         self.printable_storage[key] = value
         self._standard_storage[key] = value
         if key.symbolic is False:
