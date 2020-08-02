@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from mythril.laser.ethereum.state.global_state import GlobalState
 
 
-class UidCounter(object, metaclass=Singleton):
+class NodeUidCounter(object, metaclass=Singleton):
     def __init__(self):
         self.gbl_next_uid = 0  # node counter
 
@@ -19,7 +19,7 @@ class UidCounter(object, metaclass=Singleton):
         return self.gbl_next_uid
 
 
-new_uid = UidCounter()
+new_node_uid = NodeUidCounter()
 
 
 class JumpType(Enum):
