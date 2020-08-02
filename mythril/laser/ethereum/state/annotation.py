@@ -36,7 +36,7 @@ class StateAnnotation:
         """
         return False
 
-    def check_merge_annotation(self, annotation: "StateAnnotation") -> bool:
+    def check_merge_annotation(self, annotation) -> bool:
         """Used by State merging plugin.
 
         The default is set to false. Using this function
@@ -46,11 +46,11 @@ class StateAnnotation:
 
 class MergeableStateAnnoation(StateAnnotation):
     @abstractmethod
-    def check_merge_annotation(self, annotation: "StateAnnotation") -> bool:
+    def check_merge_annotation(self, annotation) -> bool:
         pass
 
     @abstractmethod
-    def merge_annotation(self, annotation: "StateAnnotation"):
+    def merge_annotation(self, annotation):
         pass
 
 
