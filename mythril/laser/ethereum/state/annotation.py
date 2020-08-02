@@ -4,6 +4,8 @@ This includes the base StateAnnotation class, as well as an adaption,
 which will not be copied on every new state.
 """
 
+from abc import abstractmethod
+
 
 class StateAnnotation:
     """The StateAnnotation class is used to persist information over traces.
@@ -33,6 +35,23 @@ class StateAnnotation:
         The default is set to False
         """
         return False
+
+    def check_merge_annotation(self, annotation: "StateAnnotation") -> bool:
+        """Used by State merging plugin.
+
+        The default is set to false. Using this function
+        """
+        return False
+
+
+class MergeableStateAnnoation(StateAnnotation):
+    @abstractmethod
+    def check_merge_annotation(self, annotation: "StateAnnotation") -> bool:
+        pass
+
+    @abstractmethod
+    def merge_annotation(self, annotation: "StateAnnotation"):
+        pass
 
 
 class NoCopyAnnotation(StateAnnotation):
