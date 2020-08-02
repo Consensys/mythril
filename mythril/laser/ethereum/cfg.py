@@ -66,7 +66,7 @@ class Node:
         self.function_name = function_name
         self.flags = NodeFlags()
 
-        self.uid = new_uid()
+        self.uid = new_node_uid()
 
     def get_cfg_dict(self) -> Dict:
         """
