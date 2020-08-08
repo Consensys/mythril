@@ -3,10 +3,17 @@ import z3
 
 from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec
-from mythril.laser.smt.array import BaseArray
-from mythril.laser.smt.array_helper import z3_array_converter
+from mythril.laser.smt.array import BaseArray, Array
 
 Annotations = Set[Any]
+
+
+def _z3_array_converter(array: Union[z3.Array, z3.K]) -> Array:
+    new_array = Array(
+        "name_to_be_overwritten", array.domain().size(), array.range().size()
+    )
+    new_array.raw = array
+    return new_array
 
 
 def _comparison_helper(a: BitVec, b: BitVec, operation: Callable) -> Bool:
@@ -51,7 +58,7 @@ def If(
 
     if isinstance(b, BaseArray) and isinstance(c, BaseArray):
         array = z3.If(a.raw, b.raw, c.raw)
-        return z3_array_converter(array)
+        return _z3_array_converter(array)
 
     if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))

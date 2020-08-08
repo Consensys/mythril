@@ -3,23 +3,10 @@ from enum import Enum
 from typing import Dict, List, TYPE_CHECKING
 
 from mythril.laser.ethereum.state.constraints import Constraints
-from mythril.support.support_utils import Singleton
 from flags import Flags
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.global_state import GlobalState
-
-
-class NodeUidCounter(object, metaclass=Singleton):
-    def __init__(self):
-        self.gbl_next_uid = 0  # node counter
-
-    def __call__(self, *args, **kwargs):
-        self.gbl_next_uid += 1
-        return self.gbl_next_uid
-
-
-new_node_uid = NodeUidCounter()
 
 
 class JumpType(Enum):
@@ -66,7 +53,7 @@ class Node:
         self.function_name = function_name
         self.flags = NodeFlags()
 
-        self.uid = new_node_uid()
+        self.uid = hash(self)
 
     def get_cfg_dict(self) -> Dict:
         """
