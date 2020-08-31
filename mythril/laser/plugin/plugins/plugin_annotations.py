@@ -61,11 +61,17 @@ class DependencyAnnotation(MergeableStateAnnotation):
         merged_annotation.blocks_seen = self.blocks_seen.union(other.blocks_seen)
         merged_annotation.has_call = self.has_call
         merged_annotation.path = copy(self.path)
-        merged_annotation.storage_loaded = self.storage_loaded.union(other.storage_loaded)
-        keys = set(list(other.storage_written.keys()) + list(self.storage_written.keys()))
+        merged_annotation.storage_loaded = self.storage_loaded.union(
+            other.storage_loaded
+        )
+        keys = set(
+            list(other.storage_written.keys()) + list(self.storage_written.keys())
+        )
         for key in keys:
             other_set = other.storage_written.get(key, set())
-            merged_annotation.storage_written[key] = self.storage_written.get(key, set()).union(other_set)
+            merged_annotation.storage_written[key] = self.storage_written.get(
+                key, set()
+            ).union(other_set)
         return merged_annotation
 
 
@@ -104,7 +110,9 @@ class WSDependencyAnnotation(MergeableStateAnnotation):
                     return False
         return True
 
-    def merge_annotation(self, annotation: "WSDependencyAnnotation") -> "WSDependencyAnnotation":
+    def merge_annotation(
+        self, annotation: "WSDependencyAnnotation"
+    ) -> "WSDependencyAnnotation":
         merged_annotation = WSDependencyAnnotation()
         for a1, a2 in zip(self.annotations_stack, annotation.annotations_stack):
             if a1 == a2:
