@@ -53,6 +53,7 @@ REQUIRED = [
     "matplotlib",
     "pythx",
     "py-evm==0.3.0a13",
+    "certifi>=2020.06.20",
 ]
 
 TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
