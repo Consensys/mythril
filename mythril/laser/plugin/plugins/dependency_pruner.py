@@ -332,6 +332,6 @@ class DependencyPruner(LaserPlugin):
             # the next transaction
 
             annotation.path = [0]
-            annotation.storage_loaded = []
+            annotation.storage_loaded = set()
 
             world_state_annotation.annotations_stack.append(annotation)
