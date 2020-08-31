@@ -89,6 +89,8 @@ class WSDependencyAnnotation(MergeableStateAnnoation):
 
     def check_merge_annotation(self, annotation: "WSDependencyAnnotation") -> bool:
         if len(self.annotations_stack) != len(annotation.annotations_stack):
+            # We can only merge worldstate annotations that have seen an equal amount of transactions
+            # since the beginning of symbolic execution
             return False
         for a1, a2 in zip(self.annotations_stack, annotation.annotations_stack):
             if a1 == a2:
