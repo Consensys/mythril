@@ -44,7 +44,7 @@ class StateAnnotation:
         return False
 
 
-class MergeableStateAnnoation(StateAnnotation):
+class MergeableStateAnnotation(StateAnnotation):
     @abstractmethod
     def check_merge_annotation(self, annotation) -> bool:
         pass

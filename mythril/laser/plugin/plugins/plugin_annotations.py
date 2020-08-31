@@ -1,6 +1,6 @@
 from mythril.laser.ethereum.state.annotation import (
     StateAnnotation,
-    MergeableStateAnnoation,
+    MergeableStateAnnotation,
 )
 
 from copy import copy
@@ -24,7 +24,7 @@ class MutationAnnotation(StateAnnotation):
         return True
 
 
-class DependencyAnnotation(MergeableStateAnnoation):
+class DependencyAnnotation(MergeableStateAnnotation):
     """Dependency Annotation
 
     This annotation tracks read and write access to the state during each transaction.
@@ -47,18 +47,13 @@ class DependencyAnnotation(MergeableStateAnnoation):
         return result
 
     def get_storage_write_cache(self, iteration: int):
-        if iteration not in self.storage_written:
-            self.storage_written[iteration] = set()
-
-        return self.storage_written[iteration]
+        return self.storage_written.get(iteration, set())
 
     def extend_storage_write_cache(self, iteration: int, value: object):
-        if iteration not in self.storage_written:
-            self.storage_written[iteration] = {value}
-        elif value not in self.storage_written[iteration]:
-            self.storage_written[iteration].add(value)
+        self.storage_written.get(iteration, set()).add(value)
 
-    def check_merge_annotation(self, other):
+    def check_merge_annotation(self, other: "DependencyAnnotation"):
+        assert isinstance(other, DependencyAnnotation)
         return self.has_call == other.has_call and self.path == other.path
 
     def merge_annotation(self, other: "DependencyAnnotation"):
@@ -67,12 +62,10 @@ class DependencyAnnotation(MergeableStateAnnoation):
             if v not in self.storage_loaded:
                 self.storage_loaded.append(v)
         for key, val in other.storage_written.items():
-            if key not in self.storage_written:
-                self.storage_written[key] = val
-            self.storage_written[key] = self.storage_written[key].union(val)
+            self.storage_written[key] = self.storage_written.get(key, set()).union(val)
 
 
-class WSDependencyAnnotation(MergeableStateAnnoation):
+class WSDependencyAnnotation(MergeableStateAnnotation):
     """Dependency Annotation for World state
 
     This  world state annotation maintains a stack of state annotations.
@@ -80,7 +73,7 @@ class WSDependencyAnnotation(MergeableStateAnnoation):
     """
 
     def __init__(self):
-        self.annotations_stack = []
+        self.annotations_stack: List[DependencyAnnotation] = []
 
     def __copy__(self):
         result = WSDependencyAnnotation()
@@ -93,19 +86,16 @@ class WSDependencyAnnotation(MergeableStateAnnoation):
         for a1, a2 in zip(self.annotations_stack, annotation.annotations_stack):
             if a1 == a2:
                 continue
-            if type(a1) != type(a2):
-                return False
-            try:
+            if isinstance(a1, MergeableStateAnnotation) and isinstance(
+                a2, MergeableStateAnnotation
+            ):
                 if a1.check_merge_annotation(a2) is False:
                     return False
-            except AttributeError:
-                log.info(
-                    "check_merge_annotation() method doesn't exist "
-                    "for the annotation {}. Aborting merge for the state".format(
-                        type(a1)
+                else:
+                    log.debug(
+                        "Aborting merge between annotations {} and {}".format(a1, a2)
                     )
-                )
-                return False
+                    return False
         return True
 
     def merge_annotation(self, annotation: "WSDependencyAnnotation"):
