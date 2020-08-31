@@ -31,7 +31,7 @@ class DependencyAnnotation(MergeableStateAnnotation):
     """
 
     def __init__(self):
-        self.storage_loaded = []  # type: List
+        self.storage_loaded = {}  # type: Set
         self.storage_written = {}  # type: Dict[int, Set]
         self.has_call = False  # type: bool
         self.path = [0]  # type: List
@@ -57,12 +57,16 @@ class DependencyAnnotation(MergeableStateAnnotation):
         return self.has_call == other.has_call and self.path == other.path
 
     def merge_annotation(self, other: "DependencyAnnotation"):
-        self.blocks_seen = self.blocks_seen.union(other.blocks_seen)
-        for v in other.storage_loaded:
-            if v not in self.storage_loaded:
-                self.storage_loaded.append(v)
-        for key, val in other.storage_written.items():
-            self.storage_written[key] = self.storage_written.get(key, set()).union(val)
+        merged_annotation = DependencyAnnotation()
+        merged_annotation.blocks_seen = self.blocks_seen.union(other.blocks_seen)
+        merged_annotation.has_call = self.has_call
+        merged_annotation.path = copy(self.path)
+        merged_annotation.storage_loaded = self.storage_loaded.union(other.storage_loaded)
+        keys = set(list(other.storage_written.keys()) + list(self.storage_written.keys()))
+        for key in keys:
+            other_set = other.storage_written.get(key, set())
+            merged_annotation.storage_written[key] = self.storage_written.get(key, set()).union(other_set)
+        return merged_annotation
 
 
 class WSDependencyAnnotation(MergeableStateAnnotation):
@@ -100,8 +104,10 @@ class WSDependencyAnnotation(MergeableStateAnnotation):
                     return False
         return True
 
-    def merge_annotation(self, annotation: "WSDependencyAnnotation"):
+    def merge_annotation(self, annotation: "WSDependencyAnnotation") -> "WSDependencyAnnotation":
+        merged_annotation = WSDependencyAnnotation()
         for a1, a2 in zip(self.annotations_stack, annotation.annotations_stack):
             if a1 == a2:
-                continue
-            a1.merge_annotation(a2)
+                merged_annotation.annotations_stack.append(copy(a1))
+            merged_annotation.annotations_stack.append(a1.merge_annotation(a2))
+        return merged_annotation
