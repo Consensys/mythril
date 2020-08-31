@@ -31,7 +31,7 @@ class DependencyAnnotation(MergeableStateAnnotation):
     """
 
     def __init__(self):
-        self.storage_loaded = {}  # type: Set
+        self.storage_loaded = set()  # type: Set
         self.storage_written = {}  # type: Dict[int, Set]
         self.has_call = False  # type: bool
         self.path = [0]  # type: List
