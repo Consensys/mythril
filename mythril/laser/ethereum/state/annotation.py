@@ -39,7 +39,7 @@ class StateAnnotation:
     def check_merge_annotation(self, annotation) -> bool:
         """Used by State merging plugin.
 
-        The default is set to false. Using this function
+        The default is set to false.
         """
         return False
 
