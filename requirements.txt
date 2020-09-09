@@ -18,7 +18,7 @@ persistent>=4.2.0
 plyvel
 py-flags
 py-evm==0.3.0a13
-py-solc-x==0.10.0
+py-solc-x==0.10.1
 py-solc
 pytest>=3.6.0
 pytest-cov

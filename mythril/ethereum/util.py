@@ -4,6 +4,7 @@ import binascii
 import json
 import sys
 import os
+import platform
 from pathlib import Path
 from subprocess import PIPE, Popen
 
@@ -136,9 +137,22 @@ def solc_exists(version):
             if os.path.exists(solc_path):
                 return solc_path
     elif sys.version_info[1] >= 6:
-        # we are using solc-x for the the 0.5 and higher
+        # we are using solc-x for the the 0.5 and higher/
         try:
-            return solcx.install.get_executable(version)
+            if platform.system() == "Darwin":
+                solcx.import_installed_solc()
+            installed = solcx.get_installed_solc_versions()
+            if "v" + version in installed:
+                solcx.set_solc_version("v" + version)
+                solc_binary = solcx.install.get_executable()
+                return solc_binary
+            else:
+                available = solcx.get_available_solc_versions()
+                if "v" + version in available:
+                    solcx.install_solc("v" + version)
+                    solcx.set_solc_version("v" + version)
+                    solc_binary = solcx.install.get_executable()
+                    return solc_binary
         except SolcNotInstalled:
             pass
 

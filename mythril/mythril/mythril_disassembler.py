@@ -3,6 +3,7 @@ import re
 import solc
 import sys
 import os
+import platform
 
 from ethereum import utils
 from typing import List, Tuple, Optional
@@ -80,7 +81,20 @@ class MythrilDisassembler:
                 elif sys.version_info[1] >= 6:
                     # solcx supports python 3.6+
                     try:
-                        solcx.install_solc("v" + version)
+                        if platform.system() == "Darwin":
+                            solcx.import_installed_solc()
+                        installed = solcx.get_installed_solc_versions()
+                        if "v" + version in installed:
+                            solcx.set_solc_version("v" + version)
+                            solc_binary = solcx.install.get_executable()
+                        else:
+                            available = solcx.get_available_solc_versions()
+                            if "v" + version in available:
+                                solcx.install_solc("v" + version)
+                                solcx.set_solc_version("v" + version)
+                                solc_binary = solcx.install.get_executable()
+                            else:
+                                raise CriticalError("The version of solc that is needed cannot be installed automatically")
                     except solcx.exceptions.SolcError:
                         raise CriticalError(
                             "There was an error when trying to install the specified solc version"
@@ -90,7 +104,7 @@ class MythrilDisassembler:
                         "Py-Solc doesn't support 0.5.*. You can switch to python 3.6 which uses solcx."
                     )
 
-                solc_binary = util.solc_exists(version)
+                # solc_binary = util.solc_exists(version)
                 if not solc_binary:
                     raise solc.exceptions.SolcError()
 
