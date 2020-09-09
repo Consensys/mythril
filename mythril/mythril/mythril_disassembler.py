@@ -55,7 +55,7 @@ class MythrilDisassembler:
             return os.environ.get("SOLC") or "solc"
 
         # tried converting input to semver, seemed not necessary so just slicing for now
-        main_version = solc.main.get_solc_version_string()
+        main_version = solc.get_solc_version_string()
         main_version_number = re.match(r"\d+.\d+.\d+", main_version)
         if main_version is None:
             raise CriticalError(
