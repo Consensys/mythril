@@ -137,7 +137,7 @@ def solc_exists(version):
             if os.path.exists(solc_path):
                 return solc_path
     elif sys.version_info[1] >= 6:
-        # we are using solc-x for the the 0.5 and higher/
+        # we are using solc-x for the the 0.5 and higher
         try:
             if platform.system() == "Darwin":
                 solcx.import_installed_solc()

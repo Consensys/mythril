@@ -94,7 +94,9 @@ class MythrilDisassembler:
                                 solcx.set_solc_version("v" + version)
                                 solc_binary = solcx.install.get_executable()
                             else:
-                                raise CriticalError("The version of solc that is needed cannot be installed automatically")
+                                raise CriticalError(
+                                    "The version of solc that is needed cannot be installed automatically"
+                                )
                     except solcx.exceptions.SolcError:
                         raise CriticalError(
                             "There was an error when trying to install the specified solc version"
