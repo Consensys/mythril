@@ -4,13 +4,15 @@ import binascii
 import json
 import sys
 import os
+import platform
 from pathlib import Path
 from subprocess import PIPE, Popen
-
+import solc
 from ethereum.abi import encode_abi, encode_int, method_id
 from ethereum.utils import zpad
 
 from mythril.exceptions import CompilerError
+from semantic_version import Version
 
 if sys.version_info[1] >= 6:
     import solcx
@@ -124,25 +126,42 @@ def solc_exists(version):
     """
 
     solc_binaries = []
-    if version.startswith("0.4"):
-        solc_binaries = [
-            os.path.join(
-                os.environ.get("HOME", str(Path.home())),
-                ".py-solc/solc-v" + version,
-                "bin/solc",
-            )  # py-solc setup
-        ]
-        for solc_path in solc_binaries:
-            if os.path.exists(solc_path):
-                return solc_path
-    elif sys.version_info[1] >= 6:
-        # we are using solc-x for the the 0.5 and higher
-        try:
-            return solcx.install.get_executable(version)
-        except SolcNotInstalled:
-            pass
-
-    # Last resort is to use the system installation
     default_binary = "/usr/bin/solc"
-    if os.path.exists(default_binary):
+    if sys.version_info[1] >= 6:
+        if platform.system() == "Darwin":
+            solcx.import_installed_solc()
+        installed = solcx.get_installed_solc_versions()
+        if "v" + version in installed:
+            solcx.set_solc_version("v" + version)
+            solc_binary = solcx.install.get_executable()
+            return solc_binary
+        else:
+            available = solcx.get_available_solc_versions()
+            if "v" + version in available:
+                solcx.install_solc("v" + version)
+                solcx.set_solc_version("v" + version)
+                solc_binary = solcx.install.get_executable()
+                return solc_binary
+            elif Version("0.4.2") <= Version(version) <= Version("0.4.9"):
+                return None
+    elif Version("0.4.2") <= Version(version) <= Version("0.4.25"):
+        if not solc.main.is_solc_available():
+            solc.install_solc("v" + version)
+            solc_binary = solc.install.get_executable_path("v" + version)
+            return solc_binary
+        else:
+            solc_binaries = [
+                os.path.join(
+                    os.environ.get("HOME", str(Path.home())),
+                    ".py-solc/solc-v" + version,
+                    "bin/solc",
+                )  # py-solc setup
+            ]
+            for solc_path in solc_binaries:
+                if os.path.exists(solc_path):
+                    return solc_path
+    elif os.path.exists(default_binary):
         return default_binary
+
+    else:
+        return None
