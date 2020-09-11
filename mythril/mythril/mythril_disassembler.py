@@ -56,6 +56,12 @@ class MythrilDisassembler:
 
         # tried converting input to semver, seemed not necessary so just slicing for now
         main_version = solc.get_solc_version_string()
+
+        # In case instead of just the version number, --solv v0.x.x is used
+
+        if version.startswith("v"):
+            version = version[1:]
+
         main_version_number = re.match(r"\d+.\d+.\d+", main_version)
         if main_version is None:
             raise CriticalError(
