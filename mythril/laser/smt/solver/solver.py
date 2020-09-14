@@ -63,6 +63,9 @@ class BaseSolver(Generic[T]):
         """
         return Model([self.raw.model()])
 
+    def sexpr(self):
+        return self.raw.sexpr()
+
 
 class Solver(BaseSolver[z3.Solver]):
     """An SMT solver object."""

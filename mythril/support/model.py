@@ -1,5 +1,6 @@
 from functools import lru_cache
 from z3 import sat, unknown
+from pathlib import Path
 
 from mythril.support.support_args import args
 from mythril.laser.smt import Optimize
@@ -8,7 +9,6 @@ from mythril.exceptions import UnsatError
 import logging
 
 log = logging.getLogger(__name__)
-
 # LRU cache works great when used in powers of 2
 
 
@@ -41,6 +41,19 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
         s.minimize(e)
     for e in maximize:
         s.maximize(e)
+    if args.solver_log:
+        Path(args.solver_log).mkdir(parents=True, exist_ok=True)
+        constraint_hash_input = tuple(
+            list(constraints)
+            + list(minimize)
+            + list(maximize)
+            + [len(constraints), len(minimize), len(maximize)]
+        )
+        with open(
+            args.solver_log + f"/{abs(hash(constraint_hash_input))}.smt2", "w"
+        ) as f:
+            f.write(s.sexpr())
+
     result = s.check()
     if result == sat:
         return s.model()

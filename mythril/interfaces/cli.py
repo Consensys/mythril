@@ -458,6 +458,11 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Enable solving z3 queries in parallel",
     )
     options.add_argument(
+        "--solver-log",
+        help="Path to the directory for solver log",
+        metavar="SOLVER_LOG",
+    )
+    options.add_argument(
         "--no-onchain-data",
         action="store_true",
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
@@ -702,6 +707,7 @@ def execute_command(
             else "",
             sparse_pruning=args.sparse_pruning,
             unconstrained_storage=args.unconstrained_storage,
+            solver_log=args.solver_log,
         )
 
         if not disassembler.contracts:
