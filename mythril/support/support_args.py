@@ -11,6 +11,7 @@ class Args:
         self.parallel_solving = False
         self.call_depth_limit = 3
         self.iprof = True
+        self.solver_log = None
 
 
 args = Args()
