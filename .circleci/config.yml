@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Black style check
           command: |
-            pip3 install --user black
+            pip3 install --user black==19.10b0
             python3 -m black --check /home/mythril/
 
       - run:

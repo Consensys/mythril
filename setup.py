@@ -30,8 +30,8 @@ REQUIRED = [
     "z3-solver>=4.8.5.0",
     "requests>=2.22.0",
     "py-solc",
-    "py-solc-x==0.6.0",
-    "semantic_version==2.8.1",
+    "py-solc-x==0.10.1",
+    "semantic_version==2.8.5",
     "plyvel",
     "eth_abi==1.3.0",
     "eth-account>=0.1.0a2,<=0.3.0",
@@ -53,6 +53,7 @@ REQUIRED = [
     "matplotlib",
     "pythx",
     "py-evm==0.3.0a13",
+    "certifi>=2020.06.20",
 ]
 
 TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]

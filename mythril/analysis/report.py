@@ -291,6 +291,7 @@ class Report:
         for execution_info in self.execution_info:
             meta_data["mythril_execution_info"].update(execution_info.as_dict())
 
+        meta_data["mythril_analysis_duration"] = time() - StartTime().global_start_time
         result = [
             {
                 "issues": _issues,

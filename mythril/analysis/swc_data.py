@@ -30,6 +30,7 @@ ARBITRARY_JUMP = "127"
 DOS_WITH_BLOCK_GAS_LIMIT = "128"
 TYPOGRAPHICAL_ERROR = "129"
 UNEXPECTED_ETHER_BALANCE = "132"
+EFFECT_FREE_CODE = "135"
 
 SWC_TO_TITLE = {
     "100": "Function Default Visibility",
@@ -62,4 +63,5 @@ SWC_TO_TITLE = {
     "128": "DoS With Block Gas Limit",
     "129": "Typographical Error",
     "132": "Unexpected Ether Balance",
+    "135": "Effect Free Code",
 }

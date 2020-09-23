@@ -26,7 +26,7 @@ class Storage:
         if concrete and args.unconstrained_storage is False:
             self._standard_storage = K(256, 256, 0)  # type: BaseArray
         else:
-            self._standard_storage = Array("Storage", 256, 256)
+            self._standard_storage = Array(f"Storage{address}", 256, 256)
 
         self.printable_storage = {}  # type: Dict[BitVec, BitVec]
 
@@ -105,6 +105,7 @@ class Account:
         :param balance: The balance for the account
         :param concrete_storage: Interpret storage as concrete
         """
+        self.concrete_storage = concrete_storage
         self.nonce = 0
         self.code = code or Disassembly("")
         self.address = (
@@ -179,6 +180,7 @@ class Account:
             code=self.code,
             contract_name=self.contract_name,
             balances=self._balances,
+            concrete_storage=self.concrete_storage,
         )
         new_account.storage = deepcopy(self.storage)
         new_account.code = self.code
