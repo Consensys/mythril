@@ -3,8 +3,17 @@ import z3
 
 from mythril.laser.smt.bool import Bool, Or
 from mythril.laser.smt.bitvec import BitVec
+from mythril.laser.smt.array import BaseArray, Array
 
 Annotations = Set[Any]
+
+
+def _z3_array_converter(array: Union[z3.Array, z3.K]) -> Array:
+    new_array = Array(
+        "name_to_be_overwritten", array.domain().size(), array.range().size()
+    )
+    new_array.raw = array
+    return new_array
 
 
 def _comparison_helper(a: BitVec, b: BitVec, operation: Callable) -> Bool:
@@ -22,7 +31,21 @@ def LShR(a: BitVec, b: BitVec):
     return _arithmetic_helper(a, b, z3.LShR)
 
 
+@overload
 def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> BitVec:
+    ...
+
+
+@overload
+def If(a: Union[Bool, bool], b: BaseArray, c: BaseArray) -> BaseArray:
+    ...
+
+
+def If(
+    a: Union[Bool, bool],
+    b: Union[BaseArray, BitVec, int],
+    c: Union[BaseArray, BitVec, int],
+) -> Union[BitVec, BaseArray]:
     """Create an if-then-else expression.
 
     :param a:
@@ -32,6 +55,11 @@ def If(a: Union[Bool, bool], b: Union[BitVec, int], c: Union[BitVec, int]) -> Bi
     """
     if not isinstance(a, Bool):
         a = Bool(z3.BoolVal(a))
+
+    if isinstance(b, BaseArray) and isinstance(c, BaseArray):
+        array = z3.If(a.raw, b.raw, c.raw)
+        return _z3_array_converter(array)
+
     if not isinstance(b, BitVec):
         b = BitVec(z3.BitVecVal(b, 256))
     if not isinstance(c, BitVec):
