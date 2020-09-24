@@ -108,6 +108,10 @@ class WSDependencyAnnotation(MergeableStateAnnotation):
                         "Aborting merge between annotations {} and {}".format(a1, a2)
                     )
                     return False
+            else:
+                log.debug("Aborting merge between annotations {} and {}".format(a1, a2))
+                return False
+
         return True
 
     def merge_annotation(
