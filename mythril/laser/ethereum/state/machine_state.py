@@ -89,6 +89,7 @@ class MachineState:
         gas_limit: int,
         pc=0,
         stack=None,
+        rstack=None,
         memory: Optional[Memory] = None,
         constraints=None,
         depth=0,
@@ -110,6 +111,7 @@ class MachineState:
         """
         self._pc = pc
         self.stack = MachineStack(stack)
+        self.rstack = MachineStack(rstack)
         self.memory = memory or Memory()
         self.gas_limit = gas_limit
         self.min_gas_used = min_gas_used  # lower gas usage bound
@@ -216,6 +218,7 @@ class MachineState:
             memory=copy(self.memory),
             depth=self.depth,
             prev_pc=self.prev_pc,
+            rstack=copy(self.rstack),
         )
 
     def __str__(self):
@@ -255,6 +258,7 @@ class MachineState:
         return dict(
             pc=self._pc,
             stack=self.stack,
+            rstack=self.rstack,
             memory=self.memory,
             memsize=self.memory_size,
             gas=self.gas_limit,
