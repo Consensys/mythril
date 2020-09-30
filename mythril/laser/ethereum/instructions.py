@@ -1641,9 +1641,7 @@ class Instruction:
             raise VmException(
                 "Encountered invalid JUMPSUB location :{}".format(instr["address"])
             )
-        global_state.mstate.rstack.append(
-            symbol_factory.BitVecVal(global_state.mstate.pc + 1, 256)
-        )
+        global_state.mstate.subroutine_stack.append(global_state.mstate.pc + 1)
         global_state.mstate.pc = location
         return [global_state]
 
@@ -1652,7 +1650,7 @@ class Instruction:
         """
         Returns control to the caller of the subroutine
         """
-        global_state.mstate.pc = global_state.mstate.rstack.pop().value
+        global_state.mstate.pc = global_state.mstate.subroutine_stack.pop()
         return [global_state]
 
     @StateTransition()

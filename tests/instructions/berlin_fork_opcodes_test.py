@@ -36,7 +36,7 @@ def test_jumpsub_success():
     state = get_state()
     state.mstate.pc = 2
     state.mstate.stack = [BVV(4, 256)]
-    state.mstate.rstack = []
+    state.mstate.subroutine_stack = []
     instruction = Instruction("jumpsub", dynamic_loader=None)
 
     # Act
@@ -45,7 +45,7 @@ def test_jumpsub_success():
     # Assert
     assert new_state.mstate.pc == 5
     assert new_state.mstate.stack == []
-    assert new_state.mstate.rstack == [BVV(3, 256)]
+    assert new_state.mstate.subroutine_stack == [3]
 
 
 def test_jumpsub_fail():
@@ -53,7 +53,7 @@ def test_jumpsub_fail():
     state = get_state()
     state.mstate.pc = 2
     state.mstate.stack = [BVV(5, 256)]
-    state.mstate.rstack = []
+    state.mstate.subroutine_stack = []
     instruction = Instruction("jumpsub", dynamic_loader=None)
 
     # Act + Assert
@@ -66,7 +66,7 @@ def test_beginsub():
     state = get_state()
     state.mstate.pc = 3
     state.mstate.stack = []
-    state.mstate.rstack = []
+    state.mstate.subroutine_stack = []
     instruction = Instruction("beginsub", dynamic_loader=None)
 
     # Act + Assert
@@ -79,7 +79,7 @@ def test_returnsub():
     state = get_state()
     state.mstate.pc = 5
     state.mstate.stack = []
-    state.mstate.rstack = [BVV(3, 256)]
+    state.mstate.subroutine_stack = [3]
     instruction = Instruction("returnsub", dynamic_loader=None)
 
     # Act
