@@ -133,7 +133,7 @@ def solc_exists(version):
         solcx.set_solc_version("v" + version)
         solc_binary = solcx.install.get_executable()
         return solc_binary
-    elif Version("0.4.2") <= Version(version) <= Version("0.4.11"):
+    elif Version("0.4.2") <= Version(version) <= Version("0.4.25"):
         if not solc.main.is_solc_available():
             solc.install_solc("v" + version)
             solc_binary = solc.install.get_executable_path("v" + version)
