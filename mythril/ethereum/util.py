@@ -125,25 +125,14 @@ def solc_exists(version):
     :return:
     """
 
-    solc_binaries = []
     default_binary = "/usr/bin/solc"
     if sys.version_info[1] >= 6:
         if platform.system() == "Darwin":
             solcx.import_installed_solc()
-        installed = solcx.get_installed_solc_versions()
-        if "v" + version in installed:
-            solcx.set_solc_version("v" + version)
-            solc_binary = solcx.install.get_executable()
-            return solc_binary
-        else:
-            available = solcx.get_available_solc_versions()
-            if "v" + version in available:
-                solcx.install_solc("v" + version)
-                solcx.set_solc_version("v" + version)
-                solc_binary = solcx.install.get_executable()
-                return solc_binary
-            elif Version("0.4.2") <= Version(version) <= Version("0.4.9"):
-                return None
+        solcx.install_solc("v" + version)
+        solcx.set_solc_version("v" + version)
+        solc_binary = solcx.install.get_executable()
+        return solc_binary
     elif Version("0.4.2") <= Version(version) <= Version("0.4.25"):
         if not solc.main.is_solc_available():
             solc.install_solc("v" + version)
