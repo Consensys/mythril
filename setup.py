@@ -30,7 +30,7 @@ REQUIRED = [
     "z3-solver>=4.8.5.0",
     "requests>=2.22.0",
     "py-solc",
-    "py-solc-x==0.10.1",
+    "py-solc-x==1.0.0",
     "semantic_version==2.8.5",
     "plyvel",
     "eth_abi==1.3.0",
