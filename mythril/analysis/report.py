@@ -287,11 +287,13 @@ class Report:
         meta_data.update(self._get_exception_data())
 
         # Add execution info to meta
-        meta_data["mythril_execution_info"] = {}
+        analysis_duration = int(
+            round((time() - StartTime().global_start_time) * (10 ** 9))
+        )
+        meta_data["mythril_execution_info"] = {"analysis_duration": analysis_duration}
         for execution_info in self.execution_info:
             meta_data["mythril_execution_info"].update(execution_info.as_dict())
 
-        meta_data["mythril_analysis_duration"] = time() - StartTime().global_start_time
         result = [
             {
                 "issues": _issues,
