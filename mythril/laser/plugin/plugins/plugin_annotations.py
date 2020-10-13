@@ -101,16 +101,14 @@ class WSDependencyAnnotation(MergeableStateAnnotation):
         for a1, a2 in zip(self.annotations_stack, annotation.annotations_stack):
             if a1 == a2:
                 continue
-            if isinstance(a1, MergeableStateAnnotation) and isinstance(
-                a2, MergeableStateAnnotation
+            if (
+                isinstance(a1, MergeableStateAnnotation)
+                and isinstance(a2, MergeableStateAnnotation)
+                and a1.check_merge_annotation(a2) is True
             ):
-                if a1.check_merge_annotation(a2) is True:
-                    continue
-                log.debug("Aborting merge between annotations {} and {}".format(a1, a2))
-                return False
-            else:
-                log.debug("Aborting merge between annotations {} and {}".format(a1, a2))
-                return False
+                continue
+            log.debug("Aborting merge between annotations {} and {}".format(a1, a2))
+            return False
 
         return True
 
