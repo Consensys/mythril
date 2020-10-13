@@ -50,10 +50,11 @@ class DependencyAnnotation(MergeableStateAnnotation):
         return self.storage_written.get(iteration, set())
 
     def extend_storage_write_cache(self, iteration: int, value: object):
-        self.storage_written.get(iteration, set()).add(value)
+        self.storage_written = self.storage_written.get(iteration, set()).add(value)
 
     def check_merge_annotation(self, other: "DependencyAnnotation"):
-        assert isinstance(other, DependencyAnnotation)
+        if not isinstance(other, DependencyAnnotation):
+            raise TypeError("Expected an instance of DependencyAnnotation")
         return self.has_call == other.has_call and self.path == other.path
 
     def merge_annotation(self, other: "DependencyAnnotation"):
@@ -101,13 +102,10 @@ class WSDependencyAnnotation(MergeableStateAnnotation):
             if isinstance(a1, MergeableStateAnnotation) and isinstance(
                 a2, MergeableStateAnnotation
             ):
-                if a1.check_merge_annotation(a2) is False:
-                    return False
-                else:
-                    log.debug(
-                        "Aborting merge between annotations {} and {}".format(a1, a2)
-                    )
-                    return False
+                if a1.check_merge_annotation(a2) is True:
+                    continue
+                log.debug("Aborting merge between annotations {} and {}".format(a1, a2))
+                return False
             else:
                 log.debug("Aborting merge between annotations {} and {}".format(a1, a2))
                 return False

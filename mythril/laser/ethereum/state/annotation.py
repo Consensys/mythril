@@ -38,6 +38,10 @@ class StateAnnotation:
 
 
 class MergeableStateAnnotation(StateAnnotation):
+    """This class allows a base annotation class for annotations that
+    can be merged.
+    """
+
     @abstractmethod
     def check_merge_annotation(self, annotation) -> bool:
         pass
