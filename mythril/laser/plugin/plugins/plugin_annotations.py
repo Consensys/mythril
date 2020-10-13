@@ -50,7 +50,9 @@ class DependencyAnnotation(MergeableStateAnnotation):
         return self.storage_written.get(iteration, set())
 
     def extend_storage_write_cache(self, iteration: int, value: object):
-        self.storage_written = self.storage_written.get(iteration, set()).add(value)
+        if iteration not in self.storage_written:
+            self.storage_written[iteration] = set()
+        self.storage_written[iteration].add(value)
 
     def check_merge_annotation(self, other: "DependencyAnnotation"):
         if not isinstance(other, DependencyAnnotation):
