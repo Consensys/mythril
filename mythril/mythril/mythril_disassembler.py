@@ -3,6 +3,7 @@ import re
 import solc
 import sys
 import os
+import platform
 
 from ethereum import utils
 from typing import List, Tuple, Optional
@@ -54,7 +55,13 @@ class MythrilDisassembler:
             return os.environ.get("SOLC") or "solc"
 
         # tried converting input to semver, seemed not necessary so just slicing for now
-        main_version = solc.main.get_solc_version_string()
+        main_version = solc.get_solc_version_string()
+
+        # In case instead of just the version number, --solv v0.x.x is used
+
+        if version.startswith("v"):
+            version = version[1:]
+
         main_version_number = re.match(r"\d+.\d+.\d+", main_version)
         if main_version is None:
             raise CriticalError(
@@ -65,36 +72,21 @@ class MythrilDisassembler:
             solc_binary = os.environ.get("SOLC") or "solc"
         else:
             solc_binary = util.solc_exists(version)
-            if solc_binary and solc_binary != util.solc_exists(
-                "default_ubuntu_version"
-            ):
-                log.info("Given version is already installed")
-            else:
-                if version.startswith("0.4"):
-                    try:
-                        solc.install_solc("v" + version)
-                    except solc.exceptions.SolcError:
-                        raise CriticalError(
-                            "There was an error when trying to install the specified solc version"
-                        )
-                elif sys.version_info[1] >= 6:
-                    # solcx supports python 3.6+
-                    try:
-                        solcx.install_solc("v" + version)
-                    except solcx.exceptions.SolcError:
-                        raise CriticalError(
-                            "There was an error when trying to install the specified solc version"
-                        )
+            if solc_binary is None:
+                if sys.version_info[1] >= 6:
+                    raise CriticalError(
+                        "The version of solc that is needed cannot be installed automatically"
+                    )
+                elif sys.version_info[1] == 5:
+                    raise CriticalError(
+                        "Py-Solc doesn't support 0.5.*+. You can switch to python 3.6 which uses solcx."
+                    )
                 else:
                     raise CriticalError(
-                        "Py-Solc doesn't support 0.5.*. You can switch to python 3.6 which uses solcx."
+                        "There was an error when trying to install the specified solc version"
                     )
-
-                solc_binary = util.solc_exists(version)
-                if not solc_binary:
-                    raise solc.exceptions.SolcError()
-
-            log.info("Setting the compiler to %s", solc_binary)
+            else:
+                log.info("Setting the compiler to %s", solc_binary)
 
         return solc_binary
 

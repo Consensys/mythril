@@ -18,14 +18,14 @@ persistent>=4.2.0
 plyvel
 py-flags
 py-evm==0.3.0a13
-py-solc-x==0.10.0
+py-solc-x==1.0.0
 py-solc
 pytest>=3.6.0
 pytest-cov
 pytest_mock
 requests>=2.22.0
 rlp>=1.0.1
-semantic_version==2.8.1
+semantic_version==2.8.5
 transaction>=2.2.1
 z3-solver>=4.8.5.0
 pysha3

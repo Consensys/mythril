@@ -8,8 +8,6 @@ from flags import Flags
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.global_state import GlobalState
 
-gbl_next_uid = 0  # node counter
-
 
 class JumpType(Enum):
     """An enum to represent the types of possible JUMP scenarios."""
@@ -55,11 +53,7 @@ class Node:
         self.function_name = function_name
         self.flags = NodeFlags()
 
-        # Self-assign a unique ID
-        global gbl_next_uid
-
-        self.uid = gbl_next_uid
-        gbl_next_uid += 1
+        self.uid = hash(self)
 
     def get_cfg_dict(self) -> Dict:
         """

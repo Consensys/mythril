@@ -181,6 +181,9 @@ OPCODES = {
     "SUICIDE": {GAS: (5000, 30000), STACK: (1, 0)},
     "ASSERT_FAIL": {GAS: (0, 0), STACK: (0, 0)},
     "INVALID": {GAS: (0, 0), STACK: (0, 0)},
+    "BEGINSUB": {GAS: (2, 2), STACK: (0, 0)},
+    "JUMPSUB": {GAS: (10, 10), STACK: (1, 0)},
+    "RETURNSUB": {GAS: (5, 5), STACK: (0, 0)},
 }  # type: Dict[str, Dict[str, Tuple[int, int]]]
 
 
