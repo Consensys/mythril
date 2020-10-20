@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class BenchmarkPluginBuilder(PluginBuilder):
-    plugin_name = "benchmark"
+    name = "benchmark"
 
     def __call__(self, *args, **kwargs):
         return BenchmarkPlugin()
