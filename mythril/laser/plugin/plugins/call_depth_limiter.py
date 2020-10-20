@@ -6,7 +6,7 @@ from mythril.laser.ethereum.svm import LaserEVM
 
 
 class CallDepthLimitBuilder(PluginBuilder):
-    plugin_name = "call-depth-limit"
+    name = "call-depth-limit"
 
     def __call__(self, *args, **kwargs):
         return CallDepthLimit(kwargs["call_depth_limit"])

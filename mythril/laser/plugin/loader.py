@@ -27,13 +27,13 @@ class LaserPluginLoader(object, metaclass=Singleton):
 
         :param plugin_builder: Builder that constructs the plugin
         """
-        log.info(f"Loading laser plugin: {plugin_builder.plugin_name}")
-        if plugin_builder.plugin_name in self.laser_plugin_builders:
+        log.info(f"Loading laser plugin: {plugin_builder.name}")
+        if plugin_builder.name in self.laser_plugin_builders:
             log.warning(
-                f"Laser plugin with name {plugin_builder.plugin_name} was already loaded, skipping..."
+                f"Laser plugin with name {plugin_builder.name} was already loaded, skipping..."
             )
             return
-        self.laser_plugin_builders[plugin_builder.plugin_name] = plugin_builder
+        self.laser_plugin_builders[plugin_builder.name] = plugin_builder
 
     def is_enabled(self, plugin_name: str) -> bool:
         """ Returns whether the plugin is loaded in the symbolic_vm

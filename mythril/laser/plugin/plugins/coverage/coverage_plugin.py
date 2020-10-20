@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class CoveragePluginBuilder(PluginBuilder):
-    plugin_name = "coverage"
+    name = "coverage"
 
     def __call__(self, *args, **kwargs):
         return InstructionCoveragePlugin()
