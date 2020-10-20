@@ -43,7 +43,7 @@ REQUIRED = [
     "eth-typing>=2.0.0",
     "coverage",
     "jinja2>=2.9",
-    "rlp>=1.0.1",
+    "rlp>=1.0.1,<2.0.0",
     "transaction>=2.2.1",
     "py-flags",
     "mock",
