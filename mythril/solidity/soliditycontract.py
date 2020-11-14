@@ -182,8 +182,12 @@ class SolidityContract(EVMContract):
         :param file_index: file the code corresponds to
         :return: True if the code is internally generated, else false
         """
-        # Handle internal compiler files
-        if file_index == -1:
+
+        """Handle internal compiler files
+        The second condition will be placed till 
+        https://github.com/ethereum/solidity/issues/10300 is dealt
+        """
+        if file_index == -1 or file_index >= len(self.solidity_files):
             return True
         # Handle the common code src map for the entire code.
         if (
