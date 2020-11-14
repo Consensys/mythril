@@ -56,7 +56,6 @@ COMMAND_LIST = (
         "list-detectors",
         "version",
         "help",
-        "pro",
     )
 )
 
