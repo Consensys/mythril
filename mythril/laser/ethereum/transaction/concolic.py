@@ -6,6 +6,7 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     get_next_transaction_id,
@@ -17,11 +18,11 @@ def execute_message_call(
     callee_address,
     caller_address,
     origin_address,
-    code,
     data,
     gas_limit,
     gas_price,
     value,
+    code=None,
     track_gas=False,
 ) -> Union[None, List[GlobalState]]:
     """Execute a message call transaction from all open states.
@@ -39,11 +40,11 @@ def execute_message_call(
     :return:
     """
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
-    open_states = laser_evm.open_states[:]
+    open_states: List[WorldState] = laser_evm.open_states[:]
     del laser_evm.open_states[:]
-
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
+        code = code or open_world_state.accounts[callee_address].code.bytecode
         transaction = MessageCallTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
