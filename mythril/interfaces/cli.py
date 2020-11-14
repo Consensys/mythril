@@ -55,7 +55,6 @@ COMMAND_LIST = (
         "hash-to-address",
         "list-detectors",
         "version",
-        "truffle",
         "help",
         "pro",
     )
@@ -265,7 +264,6 @@ def main() -> None:
     create_func_to_hash_parser(contract_func_to_hash)
     create_leveldb_parser(leveldb_search_parser)
 
-    subparsers.add_parser("truffle", parents=[analyzer_parser], add_help=False)
     subparsers.add_parser("help", add_help=False)
 
     # Get config values
@@ -385,11 +383,6 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         "--statespace-json",
         help="dumps the statespace json",
         metavar="OUTPUT_FILE",
-    )
-    commands.add_argument(
-        "--truffle",
-        action="store_true",
-        help="analyze a truffle project (run from project dir)",
     )
     commands.add_argument("--infura-id", help="set infura id for onchain analysis")
 
