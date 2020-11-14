@@ -107,12 +107,25 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
+        self._start_exec_hooks = []  # type: List[Callable]
+        self._stop_exec_hooks = []  # type: List[Callable]
+
         self.iprof = iprof
         self.instr_pre_hook = {}  # type: Dict[str, List[Callable]]
         self.instr_post_hook = {}  # type: Dict[str, List[Callable]]
         for op, _, _, _ in OPCODES.values():
             self.instr_pre_hook[op] = []
             self.instr_post_hook[op] = []
+        self.hook_type_map = {
+            "add_world_state": self._add_world_state_hooks,
+            "execute_state": self._execute_state_hooks,
+            "start_sym_exec": self._start_sym_exec_hooks,
+            "stop_sym_exec": self._stop_sym_exec_hooks,
+            "start_sym_trans": self._start_sym_trans_hooks,
+            "stop_sym_trans": self._stop_sym_trans_hooks,
+            "start_exec": self._start_exec_hooks,
+            "stop_exec": self._stop_exec_hooks,
+        }
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def extend_strategy(self, extension: ABCMeta, *args) -> None:
@@ -240,6 +253,9 @@ class LaserEVM:
         :return:
         """
         final_states = []  # type: List[GlobalState]
+        for hook in self._start_exec_hooks:
+            hook()
+
         for global_state in self.strategy:
             if create and self._check_create_termination():
                 log.debug("Hit create timeout, returning.")
@@ -267,6 +283,9 @@ class LaserEVM:
             elif track_gas:
                 final_states.append(global_state)
             self.total_states += len(new_states)
+
+        for hook in self._stop_exec_hooks:
+            hook()
 
         return final_states if track_gas else None
 
@@ -576,18 +595,8 @@ class LaserEVM:
 
     def register_laser_hooks(self, hook_type: str, hook: Callable):
         """registers the hook with this Laser VM"""
-        if hook_type == "add_world_state":
-            self._add_world_state_hooks.append(hook)
-        elif hook_type == "execute_state":
-            self._execute_state_hooks.append(hook)
-        elif hook_type == "start_sym_exec":
-            self._start_sym_exec_hooks.append(hook)
-        elif hook_type == "stop_sym_exec":
-            self._stop_sym_exec_hooks.append(hook)
-        elif hook_type == "start_sym_trans":
-            self._start_sym_trans_hooks.append(hook)
-        elif hook_type == "stop_sym_trans":
-            self._stop_sym_trans_hooks.append(hook)
+        if hook_type in self.hook_type_map:
+            self.hook_type_map[hook_type].append(hook)
         else:
             raise ValueError(
                 "Invalid hook type %s. Must be one of {add_world_state}", hook_type

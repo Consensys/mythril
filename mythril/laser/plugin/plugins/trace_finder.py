@@ -36,14 +36,13 @@ class TraceFinder(LaserPlugin):
         """
         self._reset()
 
-        @symbolic_vm.laser_hook("start_sym_trans")
+        @symbolic_vm.laser_hook("start_exec")
         def start_sym_trans_hook():
             self.iteration += 1
 
-        @symbolic_vm.pre_hook("JUMPI")
+        @symbolic_vm.laser_hook("execute_state")
         def trace_jumpi_hook(global_state: GlobalState):
-            condition = global_state.mstate.stack[-2]
-            condition = (
-                simplify(condition) if isinstance(condition, Bool) else condition != 0
-            )
-            self.tx_trace[self.iteration].append(condition)
+            if self.iteration not in self.tx_trace:
+                self.tx_trace[self.iteration] = []
+
+            self.tx_trace[self.iteration].append(global_state.mstate.pc)

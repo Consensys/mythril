@@ -1,16 +1,70 @@
 """This module contains functions to set up and execute concolic message
 calls."""
-from typing import List, Union
+import binascii
 
+from typing import List, Union
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
+from mythril.laser.smt import symbol_factory
+from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
+    ContractCreationTransaction,
     get_next_transaction_id,
 )
+
+
+def execute_contract_creation(
+    laser_evm,
+    callee_address,
+    caller_address,
+    origin_address,
+    data,
+    gas_limit,
+    gas_price,
+    value,
+    code=None,
+    track_gas=False,
+    contract_name=None,
+):
+    """Executes a contract creation transaction from all open states.
+
+    :param laser_evm:
+    :param contract_initialization_code:
+    :param contract_name:
+    :return:
+    """
+    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
+    del laser_evm.open_states[:]
+
+    world_state = WorldState()
+    open_states = [world_state]
+    new_account = None
+    data = binascii.b2a_hex(data).decode("utf-8")
+
+    for open_world_state in open_states:
+        next_transaction_id = get_next_transaction_id()
+        # call_data "should" be '[]', but it is easier to model the calldata symbolically
+        # and add logic in codecopy/codesize/calldatacopy/calldatasize than to model code "correctly"
+        transaction = ContractCreationTransaction(
+            world_state=open_world_state,
+            identifier=next_transaction_id,
+            gas_price=gas_price,
+            gas_limit=gas_limit,  # block gas limit
+            origin=origin_address,
+            code=Disassembly(data),
+            caller=caller_address,
+            contract_name=contract_name,
+            call_data=None,
+            call_value=value,
+        )
+        _setup_global_state_for_execution(laser_evm, transaction)
+        new_account = new_account or transaction.callee_account
+
+    return laser_evm.exec(True, track_gas=track_gas)
 
 
 def execute_message_call(
@@ -39,12 +93,13 @@ def execute_message_call(
     :param track_gas:
     :return:
     """
+
     # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states: List[WorldState] = laser_evm.open_states[:]
     del laser_evm.open_states[:]
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
-        code = code or open_world_state.accounts[callee_address].code.bytecode
+        code = code or open_world_state[callee_address].code.bytecode
         transaction = MessageCallTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
@@ -95,3 +150,12 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
+
+
+def execute_transaction(*args, **kwargs) -> Union[None, List[GlobalState]]:
+    if kwargs["callee_address"] == "":
+        return execute_contract_creation(*args, **kwargs)
+    kwargs["callee_address"] = symbol_factory.BitVecVal(
+        int(kwargs["callee_address"], 16), 256
+    )
+    return execute_message_call(*args, **kwargs)

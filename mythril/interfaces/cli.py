@@ -17,6 +17,7 @@ import traceback
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril import mythx
+from mythril.concolic import concolic_execution
 from mythril.exceptions import (
     AddressNotFoundError,
     DetectorNotFoundError,
@@ -41,6 +42,7 @@ _ = MythrilPluginLoader()
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
 PRO_LIST = ("pro", "p")
+CONCOLIC_LIST = ("concolic", "c")
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +50,7 @@ COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
     + PRO_LIST
+    + CONCOLIC_LIST
     + (
         "read-storage",
         "leveldb-search",
@@ -182,6 +185,22 @@ def get_utilities_parser() -> ArgumentParser:
     return parser
 
 
+def create_concolic_parser(parser: ArgumentParser) -> ArgumentParser:
+    """
+    Get parser which handles arguments for concolic branch flipping
+    """
+    parser.add_argument(
+        "input", help="The input jsonv2 file with concrete data",
+    )
+    parser.add_argument(
+        "--branches",
+        help="branch addresses to be flipped. usage: --branches 34,6f8,16a",
+        required=True,
+        metavar="BRANCH",
+    )
+    return parser
+
+
 def main() -> None:
     """The main CLI interface entry point."""
 
@@ -190,6 +209,7 @@ def main() -> None:
     runtime_input_parser = get_runtime_input_parser()
     creation_input_parser = get_creation_input_parser()
     output_parser = get_output_parser()
+
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
@@ -236,6 +256,15 @@ def main() -> None:
         formatter_class=RawTextHelpFormatter,
     )
     create_pro_parser(pro_parser)
+
+    concolic_parser = subparsers.add_parser(
+        CONCOLIC_LIST[0],
+        help="Analyzes input with the MythX API (https://mythx.io)",
+        aliases=CONCOLIC_LIST[1:],
+        parents=[],
+        formatter_class=RawTextHelpFormatter,
+    )
+    create_concolic_parser(concolic_parser)
 
     subparsers.add_parser(
         "list-detectors",
@@ -830,6 +859,9 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     if args.command == "help":
         parser.print_help()
         sys.exit()
+
+    if args.command in CONCOLIC_LIST:
+        concolic_execution(args.input, args.branches.split(","))
 
     # Parse cmdline args
     validate_args(args)
