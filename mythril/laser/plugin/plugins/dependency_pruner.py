@@ -71,7 +71,7 @@ def get_ws_dependency_annotation(state: GlobalState) -> WSDependencyAnnotation:
 
 
 class DependencyPrunerBuilder(PluginBuilder):
-    plugin_name = "dependency-pruner"
+    name = "dependency-pruner"
 
     def __call__(self, *args, **kwargs):
         return DependencyPruner()

@@ -1,4 +1,6 @@
-FROM ubuntu:bionic
+FROM ubuntu:focal
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Space-separated version string without leading 'v' (e.g. "0.4.21 0.4.22") 
 ARG SOLC
@@ -8,10 +10,11 @@ RUN apt-get update \
      libsqlite3-0 \
      libsqlite3-dev \
   && apt-get install -y \
+     apt-utils \
      build-essential \
      locales \
-     python-pip-whl=9.0.1-2 \
-     python3-pip=9.0.1-2 \
+     python-pip-whl \
+     python3-pip \
      libleveldb-dev \
      python3-setuptools \
      software-properties-common \

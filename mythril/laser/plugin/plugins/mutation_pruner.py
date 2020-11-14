@@ -13,7 +13,7 @@ from mythril.exceptions import UnsatError
 
 
 class MutationPrunerBuilder(PluginBuilder):
-    plugin_name = "mutation-pruner"
+    name = "mutation-pruner"
 
     def __call__(self, *args, **kwargs):
         return MutationPruner()
