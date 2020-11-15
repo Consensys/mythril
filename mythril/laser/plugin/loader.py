@@ -19,7 +19,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
         """ Initializes the plugin loader """
         self.laser_plugin_builders = {}  # type: Dict[str, PluginBuilder]
         self.plugin_args = {}  # type: Dict[str, Dict]
-        self.plugin_list = {}  # type" Dict[str, LaserPlugin]
+        self.plugin_list = {}  # type: Dict[str, LaserPlugin]
 
     def add_args(self, plugin_name, **kwargs):
         self.plugin_args[plugin_name] = kwargs

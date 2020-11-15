@@ -90,3 +90,24 @@ class ReturnWeightedRandomStrategy(BasicSearchStrategy):
         return self.work_list.pop(
             choices(range(len(self.work_list)), probability_distribution)[0]
         )
+
+
+class ConcolicStrategy(BasicSearchStrategy):
+    """Implements a depth first search strategy I.E.
+
+    Follow one path to a leaf, and then continue to the next one
+    """
+
+    def __init__(self, work_list, max_depth, trace):
+        super().__init__(work_list, max_depth)
+        self.trace = trace
+        self.trace_index = 0
+
+    def get_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
+        state = self.work_list.pop()
+        # TODO: Add strategy
+        return state

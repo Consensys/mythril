@@ -24,8 +24,7 @@ class TraceFinder(LaserPlugin):
         self._reset()
 
     def _reset(self):
-        self.tx_trace = {}
-        self.iteration = 0
+        self.tx_trace = []
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the mutation pruner
@@ -38,11 +37,8 @@ class TraceFinder(LaserPlugin):
 
         @symbolic_vm.laser_hook("start_exec")
         def start_sym_trans_hook():
-            self.iteration += 1
+            self.tx_trace.append([])
 
         @symbolic_vm.laser_hook("execute_state")
         def trace_jumpi_hook(global_state: GlobalState):
-            if self.iteration not in self.tx_trace:
-                self.tx_trace[self.iteration] = []
-
-            self.tx_trace[self.iteration].append(global_state.mstate.pc)
+            self.tx_trace[-1].append(global_state.mstate.pc)
