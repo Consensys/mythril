@@ -13,9 +13,15 @@ from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.plugin.plugins import TraceFinderBuilder
 
 
-def setup_concrete_initial_state(concolic_data: Dict) -> WorldState:
+def setup_concrete_initial_state(concrete_data: Dict) -> WorldState:
+    """
+    Sets up concrete initial state
+    :param concrete_data: Concrete data
+    :return: initialised world state
+
+    """
     world_state = WorldState()
-    for address, details in concolic_data["initialState"]["accounts"].items():
+    for address, details in concrete_data["initialState"]["accounts"].items():
         account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
         account.nonce = details["nonce"]
@@ -28,7 +34,13 @@ def setup_concrete_initial_state(concolic_data: Dict) -> WorldState:
     return world_state
 
 
-def concrete_execution(concrete_data: Dict) -> Dict:
+def concrete_execution(concrete_data: Dict) -> List:
+    """
+    Executes code concretely to find the path to be followed by concolic executor
+    :param concrete_data: Concrete data
+    :return: path trace
+
+    """
     init_state = setup_concrete_initial_state(concrete_data)
     laser_evm = LaserEVM(execution_timeout=100)
     laser_evm.open_states = [init_state]
@@ -38,7 +50,7 @@ def concrete_execution(concrete_data: Dict) -> Dict:
     laser_evm.time = datetime.now()
     plugin_loader.instrument_virtual_machine(laser_evm, None)
     for transaction in concrete_data["steps"]:
-        states = execute_transaction(
+        execute_transaction(
             laser_evm,
             callee_address=transaction["address"],
             caller_address=symbol_factory.BitVecVal(
@@ -53,4 +65,5 @@ def concrete_execution(concrete_data: Dict) -> Dict:
             value=int(transaction["value"], 16),
             track_gas=False,
         )
+
     return plugin_loader.plugin_list["trace-finder"].tx_trace  # type: ignore

@@ -854,6 +854,7 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
 
     if args.command in CONCOLIC_LIST:
         concolic_execution(args.input, args.branches.split(","))
+        sys.exit()
 
     # Parse cmdline args
     validate_args(args)

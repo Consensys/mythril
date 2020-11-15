@@ -30,14 +30,20 @@ def execute_contract_creation(
     track_gas=False,
     contract_name=None,
 ):
-    """Executes a contract creation transaction from all open states.
+    """Executes a contract creation transaction concretely.
 
     :param laser_evm:
-    :param contract_initialization_code:
-    :param contract_name:
+    :param callee_address:
+    :param caller_address:
+    :param origin_address:
+    :param code:
+    :param data:
+    :param gas_limit:
+    :param gas_price:
+    :param value:
+    :param track_gas:
     :return:
     """
-    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     del laser_evm.open_states[:]
 
     world_state = WorldState()
@@ -47,8 +53,6 @@ def execute_contract_creation(
 
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
-        # call_data "should" be '[]', but it is easier to model the calldata symbolically
-        # and add logic in codecopy/codesize/calldatacopy/calldatasize than to model code "correctly"
         transaction = ContractCreationTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
@@ -94,7 +98,6 @@ def execute_message_call(
     :return:
     """
 
-    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
     open_states: List[WorldState] = laser_evm.open_states[:]
     del laser_evm.open_states[:]
     for open_world_state in open_states:
@@ -153,6 +156,10 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
 
 
 def execute_transaction(*args, **kwargs) -> Union[None, List[GlobalState]]:
+    """
+    Chooses the transaction type based on callee address and
+    executes the transaction
+    """
     if kwargs["callee_address"] == "":
         return execute_contract_creation(*args, **kwargs)
     kwargs["callee_address"] = symbol_factory.BitVecVal(
