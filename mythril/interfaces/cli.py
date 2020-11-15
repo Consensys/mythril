@@ -257,7 +257,7 @@ def main() -> None:
 
     concolic_parser = subparsers.add_parser(
         CONCOLIC_LIST[0],
-        help="Analyzes input with the MythX API (https://mythx.io)",
+        help="Runs on concrete input",
         aliases=CONCOLIC_LIST[1:],
         parents=[],
         formatter_class=RawTextHelpFormatter,
