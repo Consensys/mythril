@@ -29,7 +29,9 @@ class Source:
             self.source_type = "solidity-file"
             self.source_format = "text"
             for contract in contracts:
-                self.source_list += [file.filename for file in contract.solidity_files]
+                self.source_list += [
+                    file.filename for file in contract.solc_indices.values()
+                ]
                 self._source_hash.append(contract.bytecode_hash)
                 self._source_hash.append(contract.creation_bytecode_hash)
         elif isinstance(contracts[0], EVMContract):
