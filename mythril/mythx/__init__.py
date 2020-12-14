@@ -50,7 +50,7 @@ def analyze(contracts: List[SolidityContract], analysis_mode: str = "quick") -> 
 
         try:
             main_source = contract.input_file
-            for solidity_file in contract.solidity_files:
+            for solidity_file in contract.solc_indices.values():
                 source_codes[solidity_file.filename] = solidity_file.data
             for filename in contract.solc_json["sources"].keys():
                 sources[filename] = {}
