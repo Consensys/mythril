@@ -28,7 +28,7 @@ REQUIRED = [
     "py_ecc==1.6.0",
     "ethereum>=2.3.2",
     "z3-solver>=4.8.5.0",
-    "requests>=2.22.0",
+    "requests==2.25.0",
     "py-solc",
     "py-solc-x==1.0.0",
     "semantic_version==2.8.5",
