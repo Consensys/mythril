@@ -32,6 +32,7 @@ REQUIRED = [
     "py-solc",
     "py-solc-x==1.0.0",
     "semantic_version==2.8.5",
+    "numpy==1.19.0",
     "plyvel",
     "eth_abi==1.3.0",
     "eth-account>=0.1.0a2,<=0.3.0",

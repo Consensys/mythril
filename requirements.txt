@@ -14,6 +14,7 @@ eth-tester==0.1.0b32
 eth-typing>=2.0.0
 jinja2>=2.9
 mock
+numpy==1.19.0
 persistent>=4.2.0
 plyvel
 py-flags
