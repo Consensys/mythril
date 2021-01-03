@@ -251,7 +251,7 @@ class ContractCreationTransaction(BaseTransaction):
             self.return_data = None
             raise TransactionEndSignal(global_state, revert=revert)
 
-        contract_code = bytes.hex(array.array("B", return_data).tostring())
+        contract_code = bytes.hex(array.array("B", return_data).tobytes())
 
         global_state.environment.active_account.code.assign_bytecode(contract_code)
         self.return_data = str(
