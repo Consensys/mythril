@@ -203,10 +203,8 @@ def execute_transaction(*args, **kwargs):
             contract_initialization_code=kwargs["data"],
             world_state=kwargs["world_state"],
         )
+        return
 
-    kwargs["callee_address"] = symbol_factory.BitVecVal(
-        int(kwargs["callee_address"], 16), 256
-    )
     execute_message_call(
         laser_evm=args[0],
         callee_address=symbol_factory.BitVecVal(int(kwargs["callee_address"], 16), 256),

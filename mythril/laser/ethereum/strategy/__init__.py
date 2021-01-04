@@ -26,5 +26,5 @@ class BasicSearchStrategy(ABC):
             if global_state.mstate.depth >= self.max_depth:
                 return self.__next__()
             return global_state
-        except IndexError:
+        except (IndexError, StopIteration):
             raise StopIteration

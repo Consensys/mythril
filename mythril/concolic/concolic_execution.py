@@ -32,13 +32,14 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, get_trace: List):
         )
         account.set_storage(data["storage"])
     for transaction in concrete_data["steps"]:
+
         execute_transaction(
             laser_evm,
             callee_address=transaction["address"],
             caller_address=symbol_factory.BitVecVal(
                 int(transaction["origin"], 16), 256
             ),
-            data=binascii.a2b_hex(transaction["input"][2:]),
+            data=transaction["input"][2:],
             world_state=world_state,
         )
 
