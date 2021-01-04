@@ -102,7 +102,7 @@ class Account:
         :param address: Address of the account
         :param code: The contract code of the account
         :param contract_name: The name associated with the account
-        :param balance: The balance for the account
+        :param balances: The balance for the account
         :param concrete_storage: Interpret storage as concrete
         """
         self.concrete_storage = concrete_storage
@@ -148,6 +148,16 @@ class Account:
         )
         assert self._balances is not None
         self._balances[self.address] = balance
+
+    def set_storage(self, storage: Dict):
+        """
+        Sets concrete storage
+        """
+        for key, value in storage.items():
+            concrete_key, concrete_value = int(key, 16), int(value, 16)
+            self.storage[
+                symbol_factory.BitVecVal(concrete_key, 256)
+            ] = symbol_factory.BitVecVal(concrete_value, 256)
 
     def add_balance(self, balance: Union[int, BitVec]) -> None:
         """

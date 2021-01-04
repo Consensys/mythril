@@ -4,33 +4,7 @@ from typing import List
 
 from mythril.laser.ethereum.state.global_state import GlobalState
 from . import BasicSearchStrategy
-
-try:
-    from random import choices
-except ImportError:
-
-    # This is for supporting python versions < 3.6
-    from itertools import accumulate
-    from random import random
-    from bisect import bisect
-
-    # TODO: Remove ignore after this has been fixed: https://github.com/python/mypy/issues/1297
-    def choices(  # type: ignore
-        population: List, weights: List[int] = None
-    ) -> List[int]:
-        """Returns a random element out of the population based on weight.
-
-        If the relative weights or cumulative weights are not specified,
-        the selections are made with equal probability.
-        """
-        if weights is None:
-            return [population[int(random() * len(population))]]
-        cum_weights = list(accumulate(weights))
-        return [
-            population[
-                bisect(cum_weights, random() * cum_weights[-1], 0, len(population) - 1)
-            ]
-        ]
+from random import choices
 
 
 class DepthFirstSearchStrategy(BasicSearchStrategy):
@@ -101,13 +75,19 @@ class ConcolicStrategy(BasicSearchStrategy):
     def __init__(self, work_list, max_depth, trace):
         super().__init__(work_list, max_depth)
         self.trace = trace
-        self.trace_index = 0
+        self.trace_index = {}
 
     def get_strategic_global_state(self) -> GlobalState:
         """
 
         :return:
         """
-        state = self.work_list.pop()
-        # TODO: Add strategy
-        return state
+        for state in self.work_list:
+            seq_id = len(state.world_state.transaction_sequence)
+            if state not in self.trace_index:
+                self.trace_index[state] = 0
+            trace_index = self.trace_index[state]
+            if state.mstate.pc not in self.trace[seq_id][trace_index]:
+                continue
+
+            return state

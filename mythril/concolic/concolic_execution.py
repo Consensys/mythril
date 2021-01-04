@@ -1,9 +1,15 @@
 import json
+import binascii
 
 from typing import Dict, List
+from mythril.concolic.find_trace import concrete_execution
+from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.strategy.basic import ConcolicStrategy
 from mythril.laser.ethereum.svm import LaserEVM
-from mythril.concolic.find_trace import concrete_execution
+from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.transaction.symbolic import execute_transaction
+from mythril.laser.smt import Expression, BitVec, symbol_factory
 
 
 def flip_branches(concrete_data: Dict, jump_addresses: List, get_trace: List):
@@ -16,6 +22,25 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, get_trace: List):
     """
     laser_evm = LaserEVM(execution_timeout=100, use_reachability_check=False)
     laser_evm.strategy = ConcolicStrategy(work_list=[], max_depth=None, trace=get_trace)
+    world_state = WorldState()
+    for address, data in concrete_data["initialState"]["accounts"].items():
+        account = world_state.create_account(
+            balance=int(data["balance"], 16),
+            address=int(address, 16),
+            concrete_storage=True,
+            code=Disassembly(data["code"]),
+        )
+        account.set_storage(data["storage"])
+    for transaction in concrete_data["steps"]:
+        execute_transaction(
+            laser_evm,
+            callee_address=transaction["address"],
+            caller_address=symbol_factory.BitVecVal(
+                int(transaction["origin"], 16), 256
+            ),
+            data=binascii.a2b_hex(transaction["input"][2:]),
+            world_state=world_state,
+        )
 
 
 def concolic_execution(input_file: str, jump_addresses: List):

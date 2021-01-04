@@ -14,6 +14,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     get_next_transaction_id,
     BaseTransaction,
 )
+from typing import List, Union
 from mythril.laser.smt import symbol_factory, Or, BitVec
 
 log = logging.getLogger(__name__)
@@ -189,3 +190,24 @@ def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
+
+
+def execute_transaction(*args, **kwargs):
+    """
+    Chooses the transaction type based on callee address and
+    executes the transaction
+    """
+    if kwargs["callee_address"] == "":
+        execute_contract_creation(
+            laser_evm=args[0],
+            contract_initialization_code=kwargs["data"],
+            world_state=kwargs["world_state"],
+        )
+
+    kwargs["callee_address"] = symbol_factory.BitVecVal(
+        int(kwargs["callee_address"], 16), 256
+    )
+    execute_message_call(
+        laser_evm=args[0],
+        callee_address=symbol_factory.BitVecVal(int(kwargs["callee_address"], 16), 256),
+    )
