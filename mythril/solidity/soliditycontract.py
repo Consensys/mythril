@@ -56,20 +56,22 @@ def get_contracts_from_file(input_file, solc_settings_json=None, solc_binary="so
     )
 
     try:
-        for contract_name in data["contracts"][input_file].keys():
-            if len(
-                data["contracts"][input_file][contract_name]["evm"]["deployedBytecode"][
-                    "object"
-                ]
-            ):
-                yield SolidityContract(
-                    input_file=input_file,
-                    name=contract_name,
-                    solc_settings_json=solc_settings_json,
-                    solc_binary=solc_binary,
-                )
+        contract_names = data["contracts"][input_file].keys()
     except KeyError:
         raise NoContractFoundError
+
+    for contract_name in contract_names:
+        if len(
+            data["contracts"][input_file][contract_name]["evm"]["deployedBytecode"][
+                "object"
+            ]
+        ):
+            yield SolidityContract(
+                input_file=input_file,
+                name=contract_name,
+                solc_settings_json=solc_settings_json,
+                solc_binary=solc_binary,
+            )
 
 
 class SolidityContract(EVMContract):
@@ -82,19 +84,9 @@ class SolidityContract(EVMContract):
             input_file, solc_settings_json=solc_settings_json, solc_binary=solc_binary
         )
 
-        self.solidity_files = []
+        self.solc_indices = self.get_solc_indices(data)
         self.solc_json = data
         self.input_file = input_file
-
-        for filename, contract in data["sources"].items():
-            with open(filename, "r", encoding="utf-8") as file:
-                code = file.read()
-                full_contract_src_maps = self.get_full_contract_src_maps(
-                    contract["ast"]
-                )
-                self.solidity_files.append(
-                    SolidityFile(filename, code, full_contract_src_maps)
-                )
 
         has_contract = False
 
@@ -139,6 +131,39 @@ class SolidityContract(EVMContract):
         super().__init__(code, creation_code, name=name)
 
     @staticmethod
+    def get_solc_indices(data: Dict) -> Dict:
+        """
+        Returns solc file indices
+        """
+        indices = {}
+        has_sources = True
+        for contract_data in data["contracts"].values():
+            for source_data in contract_data.values():
+                if "generatedSources" not in source_data["evm"]["deployedBytecode"]:
+                    has_sources = False
+                    break
+                sources = source_data["evm"]["deployedBytecode"]["generatedSources"]
+                for source in sources:
+                    full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
+                        source["ast"]
+                    )
+                    indices[source["id"]] = SolidityFile(
+                        source["name"], source["contents"], full_contract_src_maps
+                    )
+            if has_sources is False:
+                break
+        for source in data["sources"].values():
+            full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
+                source["ast"]
+            )
+            with open(source["ast"]["absolutePath"]) as f:
+                code = f.read()
+                indices[source["id"]] = SolidityFile(
+                    source["ast"]["absolutePath"], code, full_contract_src_maps
+                )
+        return indices
+
+    @staticmethod
     def get_full_contract_src_maps(ast: Dict) -> Set[str]:
         """
         Takes a solc AST and gets the src mappings for all the contracts defined in the top level of the ast
@@ -146,9 +171,14 @@ class SolidityContract(EVMContract):
         :return: The source maps
         """
         source_maps = set()
-        for child in ast["nodes"]:
-            if child.get("contractKind"):
+        if ast["nodeType"] == "SourceUnit":
+            for child in ast["nodes"]:
+                if child.get("contractKind"):
+                    source_maps.add(child["src"])
+        elif ast["nodeType"] == "YulBlock":
+            for child in ast["statements"]:
                 source_maps.add(child["src"])
+
         return source_maps
 
     def get_source_info(self, address, constructor=False):
@@ -162,7 +192,7 @@ class SolidityContract(EVMContract):
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
 
-        solidity_file = self.solidity_files[mappings[index].solidity_file_idx]
+        solidity_file = self.solc_indices[mappings[index].solidity_file_idx]
         filename = solidity_file.filename
 
         offset = mappings[index].offset
@@ -183,16 +213,12 @@ class SolidityContract(EVMContract):
         :return: True if the code is internally generated, else false
         """
 
-        """Handle internal compiler files
-        The second condition will be placed till 
-        https://github.com/ethereum/solidity/issues/10300 is dealt
-        """
-        if file_index == -1 or file_index >= len(self.solidity_files):
+        if file_index == -1:
             return True
         # Handle the common code src map for the entire code.
         if (
             "{}:{}:{}".format(offset, length, file_index)
-            in self.solidity_files[file_index].full_contract_src_maps
+            in self.solc_indices[file_index].full_contract_src_maps
         ):
             return True
 
@@ -224,7 +250,7 @@ class SolidityContract(EVMContract):
                 lineno = None
             else:
                 lineno = (
-                    self.solidity_files[idx]
+                    self.solc_indices[idx]
                     .data.encode("utf-8")[0:offset]
                     .count("\n".encode("utf-8"))
                     + 1
