@@ -87,7 +87,10 @@ class ConcolicStrategy(BasicSearchStrategy):
             if state not in self.trace_index:
                 self.trace_index[state] = 0
             trace_index = self.trace_index[state]
-            if state.mstate.pc not in self.trace[seq_id][trace_index]:
+            if state.mstate.pc != self.trace[seq_id][trace_index]:
+                print("HERE")
                 continue
+            
+            print("FOUND")
             return state
         raise StopIteration
