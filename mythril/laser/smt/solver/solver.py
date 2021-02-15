@@ -59,7 +59,7 @@ class BaseSolver(Generic[T]):
             evaluate = self.raw.check(args)
         except z3.z3types.Z3Exception as e:
             # Some requests crash the solver
-            evaluate = None
+            evaluate = z3.unknown
             log.info(f"Encountered Z3 exception when checking the constraints: {e}")
         sys.stdout = old_stdout
         return evaluate

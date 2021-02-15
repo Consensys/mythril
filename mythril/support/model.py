@@ -58,5 +58,5 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     if result == sat:
         return s.model()
     elif result == unknown:
-        log.debug("Timeout encountered while solving expression using z3")
+        log.debug("Timeout/Error encountered while solving expression using z3")
     raise UnsatError
