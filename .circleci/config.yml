@@ -46,7 +46,7 @@ jobs:
       - run:
           background: true
           name: Launch of background geth instance
-          command: geth --syncmode full --rpc --rpcapi="db,eth,net,web3,personal,web3" --shh
+          command: geth --syncmode full --rpc --rpcapi="db,eth,net,web3,personal" --shh
 
       - run:
           name: Unit-testing
