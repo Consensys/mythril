@@ -46,7 +46,7 @@ jobs:
       - run:
           background: true
           name: Launch of background geth instance
-          command: geth --syncmode full --http --httpapi="db,eth,net,web3,personal" --shh
+          command: geth --syncmode full --http --http.api="db,eth,net,web3,personal" --shh
 
       - run:
           name: Unit-testing
