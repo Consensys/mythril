@@ -13,7 +13,9 @@ solc_binary = MythrilDisassembler._init_solc_binary("v0.5.0")
 
 
 def test_create():
-    contract = SolidityContract(str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"), solc_binary=solc_binary)
+    contract = SolidityContract(
+        str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"), solc_binary=solc_binary
+    )
 
     laser_evm = svm.LaserEVM({})
 
@@ -34,7 +36,9 @@ def test_create():
 
 
 def test_sym_exec():
-    contract = SolidityContract(str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"), solc_binary=solc_binary)
+    contract = SolidityContract(
+        str(tests.TESTDATA_INPUTS_CONTRACTS / "calls.sol"), solc_binary=solc_binary
+    )
 
     sym = SymExecWrapper(
         contract,
