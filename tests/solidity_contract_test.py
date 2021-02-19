@@ -13,8 +13,7 @@ class SolidityContractTest(BaseTestCase):
         input_file = TEST_FILES / "multi_contracts.sol"
         contract = SolidityContract(str(input_file), solc_binary=solc_binary)
 
-        code_info = contract.get_source_info(109)
-
+        code_info = contract.get_source_info(116)
         self.assertEqual(code_info.filename, str(input_file))
         self.assertEqual(code_info.lineno, 14)
         self.assertEqual(code_info.code, "msg.sender.transfer(2 ether)")
@@ -25,7 +24,7 @@ class SolidityContractTest(BaseTestCase):
             str(input_file), name="Transfer1", solc_binary=solc_binary
         )
 
-        code_info = contract.get_source_info(109)
+        code_info = contract.get_source_info(116)
 
         self.assertEqual(code_info.filename, str(input_file))
         self.assertEqual(code_info.lineno, 6)
