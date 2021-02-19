@@ -12,7 +12,7 @@ from mock import patch, PropertyMock
 @patch("mythril.mythril.mythril_analyzer.SymExecWrapper")
 def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
     type(mock_sym.return_value).execution_info = PropertyMock(return_value=[])
-    disassembler = MythrilDisassembler(eth=None)
+    disassembler = MythrilDisassembler(eth=None, solc_version="v0.5.0")
     disassembler.load_from_solidity(
         [
             str(
