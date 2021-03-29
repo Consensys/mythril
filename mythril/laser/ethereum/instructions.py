@@ -651,7 +651,7 @@ class Instruction:
 
         if s0 <= 31:
             testbit = s0 * 8 + 7
-            sign_bit_set = simplify((s1 & (1 << testbit)) == 1)
+            sign_bit_set = simplify(Not((s1 & (1 << testbit)) == 0))
             if is_true(sign_bit_set):
                 mstate.stack.append(s1 | (TT256 - (1 << testbit)))
             elif is_false(sign_bit_set):
