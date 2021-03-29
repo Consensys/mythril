@@ -651,10 +651,21 @@ class Instruction:
 
         if s0 <= 31:
             testbit = s0 * 8 + 7
-            if not is_true(simplify((s1 & (1 << testbit)) == 0)):
+            sign_bit_set = simplify((s1 & (1 << testbit)) == 1)
+            if is_true(sign_bit_set):
                 mstate.stack.append(s1 | (TT256 - (1 << testbit)))
-            else:
+            elif is_false(sign_bit_set):
                 mstate.stack.append(s1 & ((1 << testbit) - 1))
+            else:
+                mstate.stack.append(
+                    simplify(
+                        If(
+                            sign_bit_set,
+                            s1 | (TT256 - (1 << testbit)),
+                            s1 & ((1 << testbit) - 1),
+                        )
+                    )
+                )
         else:
             mstate.stack.append(s1)
 
