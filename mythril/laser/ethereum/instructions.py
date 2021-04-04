@@ -644,14 +644,14 @@ class Instruction:
 
         mstate.stack.append(
             simplify(
-                If( 
+                If(
                     s0 <= 31,
                     If(
                         sign_bit_set,
                         s1 | (TT256 - (1 << testbit)),
                         s1 & ((1 << testbit) - 1),
                     ),
-                    s1
+                    s1,
                 )
             )
         )
