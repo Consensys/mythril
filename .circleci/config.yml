@@ -4,7 +4,7 @@ defaults: &defaults
     # used for new integration testing, and it is build on top of the previous
     # `mythril/dev_test_environment:0.0.43`, though a bit newer versions, thus
     # there is a chance that it breaks some small things.
-    - image: mythril/dev_test_environment:0.0.45
+    - image: mythril/mythril-ci
 
 version: 2
 jobs:
@@ -46,7 +46,7 @@ jobs:
       - run:
           background: true
           name: Launch of background geth instance
-          command: geth --syncmode full --rpc --shh
+          command: geth --syncmode full --http --http.api="db,eth,net,web3,personal" --shh
 
       - run:
           name: Unit-testing

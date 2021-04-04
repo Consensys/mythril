@@ -21,7 +21,7 @@ class CommandLineToolTestCase(BaseTestCase):
 
     def test_disassemble_solidity_file_correctly(self):
         solidity_file = str(TESTDATA / "input_contracts" / "metacoin.sol")
-        command = "python3 {} disassemble {}".format(MYTH, solidity_file)
+        command = "python3 {} disassemble {} --solv 0.5.0".format(MYTH, solidity_file)
         self.assertIn("2 PUSH1 0x40\n4 MSTORE", output_of(command))
 
     def test_hash_a_function_correctly(self):
@@ -43,7 +43,7 @@ class CommandLineToolTestCase(BaseTestCase):
 
     def test_analyze(self):
         solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
-        command = "python3 {} analyze {}".format(MYTH, solidity_file)
+        command = "python3 {} analyze {} --solv 0.5.0".format(MYTH, solidity_file)
         self.assertIn("115", output_of(command))
 
     def test_analyze_bytecode(self):
