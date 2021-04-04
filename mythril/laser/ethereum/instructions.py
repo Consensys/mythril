@@ -1,11 +1,9 @@
 """This module contains a representation class for EVM instructions and
 transitions between them."""
-import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union, Optional
-from datetime import datetime
+from typing import cast, Callable, List, Union
 
 from mythril.laser.smt import (
     Extract,

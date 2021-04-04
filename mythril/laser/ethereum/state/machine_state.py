@@ -3,7 +3,7 @@ stack."""
 from copy import copy
 from typing import cast, Sized, Union, Any, List, Dict, Optional
 
-from mythril.laser.smt import BitVec, Expression, symbol_factory
+from mythril.laser.smt import BitVec, Bool, If, Expression, symbol_factory
 
 from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
@@ -11,7 +11,6 @@ from mythril.laser.ethereum.evm_exceptions import (
     StackUnderflowException,
     OutOfGasException,
 )
-from mythril.laser.smt import Bool, If
 from mythril.laser.ethereum.state.memory import Memory
 
 
@@ -43,7 +42,6 @@ class MachineStack(list):
                 symbol_factory.BitVecVal(1, 256),
                 symbol_factory.BitVecVal(0, 256),
             )
-            print(element)
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
             raise StackOverflowException(
                 "Reached the EVM stack limit of {}, you can't append more "
@@ -93,7 +91,8 @@ class MachineStack(list):
 
 
 class MachineState:
-    """MachineState represents current machine state also referenced to as \mu.
+    """
+        MachineState represents current machine state also referenced to as \mu.
     """
 
     def __init__(
