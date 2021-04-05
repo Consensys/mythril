@@ -3,7 +3,7 @@ stack."""
 from copy import copy
 from typing import cast, Sized, Union, Any, List, Dict, Optional
 
-from mythril.laser.smt import BitVec, Expression, symbol_factory
+from mythril.laser.smt import BitVec, Bool, If, Expression, symbol_factory
 
 from ethereum import opcodes, utils
 from mythril.laser.ethereum.evm_exceptions import (
@@ -28,11 +28,20 @@ class MachineStack(list):
 
     def append(self, element: Union[int, Expression]) -> None:
         """
+        This function ensures the following properties when appending to a list:
+            - Element appended to this list should be a BitVec
+            - Ensures stack overflow bound
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
         if isinstance(element, int):
             element = symbol_factory.BitVecVal(element, 256)
+        if isinstance(element, Bool):
+            element = If(
+                element,
+                symbol_factory.BitVecVal(1, 256),
+                symbol_factory.BitVecVal(0, 256),
+            )
         if super(MachineStack, self).__len__() >= self.STACK_LIMIT:
             raise StackOverflowException(
                 "Reached the EVM stack limit of {}, you can't append more "
@@ -42,6 +51,7 @@ class MachineStack(list):
 
     def pop(self, index=-1) -> Union[int, Expression]:
         """
+        This function ensures stack underflow bound
         :param index:index to be popped, same as the list() class.
         :returns popped value
         :function: same as list() class but throws StackUnderflowException for popping from an empty list
@@ -81,7 +91,8 @@ class MachineStack(list):
 
 
 class MachineState:
-    """MachineState represents current machine state also referenced to as \mu.
+    """
+        MachineState represents current machine state also referenced to as \mu.
     """
 
     def __init__(

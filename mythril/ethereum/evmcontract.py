@@ -117,6 +117,4 @@ class EVMContract(persistent.Persistent):
 
                 str_eval += '"' + sign_hash + '" in self.disassembly.func_hashes'
 
-                continue
-
         return eval(str_eval.strip())
