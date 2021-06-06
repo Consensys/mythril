@@ -36,7 +36,7 @@ REQUIRED = [
     "plyvel",
     "eth_abi==1.3.0",
     "eth-account>=0.1.0a2,<=0.3.0",
-    "eth-hash<0.3.0",
+    "eth-hash>=0.3.1",
     "eth-keyfile>=0.5.1",
     "eth-keys>=0.2.0b3,<0.3.0",
     "eth-rlp>=0.1.0",
