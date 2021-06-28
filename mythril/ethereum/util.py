@@ -77,11 +77,11 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
         )
 
     out = stdout.decode("UTF-8")
-    
+
     try:
         result = json.loads(out)
     except JSONDecodeError as e:
-        log.error(f"Encountered a decode error, stdout:{}, stderr: {}".format(out, stderr))
+        log.error(f"Encountered a decode error, stdout:{out}, stderr: {stderr}")
         raise e
 
     for error in result.get("errors", []):
