@@ -102,6 +102,7 @@ class MythrilDisassembler:
         """
         if address is None:
             address = util.get_indexed_address(0)
+
         if bin_runtime:
             self.contracts.append(
                 EVMContract(

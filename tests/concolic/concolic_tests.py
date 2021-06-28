@@ -1,20 +1,28 @@
 import pytest
+import json
 
-test_data = (
-    (, ),
-)
+from subprocess import check_output
+from tests import BaseTestCase, TESTDATA, PROJECT_DIR, TESTS_DIR
+from mock import patch
+
+MYTH = str(PROJECT_DIR / "myth")
 
 
-@pytest.mark.parametrize("inputs,output", test_data)
-def test_sar(inputs, output):
-    # Arrange
-    state = get_state()
+def output_of(command):
+    return json.loads(check_output(command, shell=True).decode("UTF-8"))
 
-    state.mstate.stack = inputs
-    instruction = Instruction("sar", dynamic_loader=None)
 
-    # Act
-    new_state = instruction.evaluate(state)[0]
+test_data = (("simple_example_input.json", "simple_example_output.json", "153"),)
 
-    # Assert
-    assert simplify(new_state.mstate.stack[-1]) == output
+
+@pytest.mark.parametrize("input_file,output_file,branches", test_data)
+def test_concolic(input_file, output_file, branches):
+    input_path = str(TESTS_DIR / "concolic" / "concolic_io" / input_file)
+    output_path = str(TESTS_DIR / "concolic" / "concolic_io" / output_file)
+
+    command = f"{MYTH} concolic {input_path} --branches {branches}"
+    with open(output_path) as f:
+        expected_output = json.load(f)
+    received_output = output_of(command)
+
+    assert received_output == expected_output

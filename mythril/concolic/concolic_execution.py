@@ -1,5 +1,6 @@
 import json
 import binascii
+import sys
 
 from datetime import datetime, timedelta
 from typing import Dict, List
@@ -56,7 +57,7 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
                 world_state=world_state,
             )
         results = laser_evm.strategy.results
-        print(results)
+        json.dump(results, sys.stdout, indent=4)
 
 
 def concolic_execution(input_file: str, jump_addresses: List):

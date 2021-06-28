@@ -1,5 +1,4 @@
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.strategy.basic import BasicSearchStrategy
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.transaction import ContractCreationTransaction
@@ -30,7 +29,6 @@ class ConcolicStrategy(CriterionSearchStrategy):
         super().__init__(work_list, max_depth)
         self.trace = trace
         self.flip_branch_addr = flip_branch_addr
-        self.trace = trace
         self.results = None
 
     def get_strategic_global_state(self) -> GlobalState:
@@ -42,11 +40,11 @@ class ConcolicStrategy(CriterionSearchStrategy):
 
             state = self.work_list.pop()
 
-            seq_id = len(state.world_state.transaction_sequence)
+            seq_id = len(state.world_state.transaction_sequence) - 1
             concolic_pc = self.trace[seq_id][state.mstate.instr_execution_cnt]
 
             flip_branch = get_instruction_index(
-                state.environment.code.instruction_list, int(self.flip_branch_addr, 16)
+                state.environment.code.instruction_list, int(self.flip_branch_addr)
             )
 
             if (
@@ -56,8 +54,11 @@ class ConcolicStrategy(CriterionSearchStrategy):
             ):
                 constraint = state.world_state.constraints.pop()
                 state.world_state.constraints.append(Not(constraint))
+
                 self.criterion_satisfied = True
-                self.results = get_transaction_sequence(state, Constraints())
+                self.results = get_transaction_sequence(
+                    state, state.world_state.constraints
+                )
             else:
                 if state.mstate.pc != concolic_pc:
                     continue
