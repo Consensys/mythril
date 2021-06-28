@@ -193,6 +193,8 @@ class StateTransition(object):
             new_global_states = [
                 self.accumulate_gas(state) for state in new_global_states
             ]
+            for state in new_global_states:
+                state.mstate.instr_execution_cnt += 1
             return self.increment_states_pc(new_global_states)
 
         return wrapper

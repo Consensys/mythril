@@ -4,9 +4,9 @@ from mythril.laser.ethereum.state.global_state import GlobalState
 
 
 class BasicSearchStrategy(ABC):
-    """"""
-
-    __slots__ = "work_list", "max_depth"
+    """
+    A basic search strategy which halts based on depth
+    """
 
     def __init__(self, work_list, max_depth):
         self.work_list = work_list  # type: List[GlobalState]
@@ -28,3 +28,18 @@ class BasicSearchStrategy(ABC):
             return global_state
         except (IndexError, StopIteration):
             raise StopIteration
+
+
+class CriterionSearchStrategy(BasicSearchStrategy):
+    """
+    If a criterion is satisfied, the search halts
+    """
+
+    def __init__(self, work_list, max_depth):
+        super().__init__(work_list, max_depth)
+        self.satisfied_criterion = False
+
+    def __next__(self):
+        if self.satisfied_criterion:
+            raise StopIteration
+        return super().__next__()

@@ -96,6 +96,7 @@ class MachineState:
         max_gas_used=0,
         min_gas_used=0,
         prev_pc=-1,
+        instr_execution_cnt=0,
     ) -> None:
         """Constructor for machineState.
 
@@ -118,6 +119,7 @@ class MachineState:
         self.max_gas_used = max_gas_used  # upper gas usage bound
         self.depth = depth
         self.prev_pc = prev_pc  # holds context of current pc
+        self.instr_execution_cnt = instr_execution_cnt  # No of instructions executed
 
     def calculate_extension_size(self, start: int, size: int) -> int:
         """
@@ -219,6 +221,7 @@ class MachineState:
             depth=self.depth,
             prev_pc=self.prev_pc,
             subroutine_stack=copy(self.subroutine_stack),
+            instr_execution_cnt=self.instr_execution_cnt,
         )
 
     def __str__(self):
@@ -265,4 +268,5 @@ class MachineState:
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
             prev_pc=self.prev_pc,
+            instr_execution_cnt=self.instr_execution_cnt,
         )
