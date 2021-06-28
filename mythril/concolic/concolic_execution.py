@@ -12,16 +12,18 @@ from mythril.laser.ethereum.transaction.symbolic import execute_transaction
 from mythril.laser.smt import Expression, BitVec, symbol_factory
 
 
-def flip_branches(concrete_data: Dict, jump_addresses: List, get_trace: List):
+def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
     """
     Flips branches and prints the input required for branch flip
 
     :param concrete_data: Concrete data
     :param jump_addresses: Jump addresses to flip
-    :param get_trace: trace to follow
+    :param trace: trace to follow
     """
     laser_evm = LaserEVM(execution_timeout=100, use_reachability_check=False)
-    laser_evm.strategy = ConcolicStrategy(work_list=laser_evm.work_list, max_depth=None, trace=get_trace)
+    laser_evm.strategy = ConcolicStrategy(
+        work_list=laser_evm.work_list, max_depth=None, trace=trace
+    )
     world_state = WorldState()
     for address, data in concrete_data["initialState"]["accounts"].items():
         account = world_state.create_account(
@@ -33,7 +35,6 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, get_trace: List):
         account.set_storage(data["storage"])
 
     for transaction in concrete_data["steps"]:
-        print("EXECUTE")
         execute_transaction(
             laser_evm,
             callee_address=transaction["address"],
@@ -43,7 +44,6 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, get_trace: List):
             data=transaction["input"][2:],
             world_state=world_state,
         )
-        print(laser_evm.open_states)
 
 
 def concolic_execution(input_file: str, jump_addresses: List):

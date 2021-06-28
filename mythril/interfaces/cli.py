@@ -257,7 +257,7 @@ def main() -> None:
 
     concolic_parser = subparsers.add_parser(
         CONCOLIC_LIST[0],
-        help="concolic execution to flip the desired branches",
+        help="Runs concolic execution to flip the desired branches",
         aliases=CONCOLIC_LIST[1:],
         parents=[],
         formatter_class=RawTextHelpFormatter,

@@ -2384,7 +2384,7 @@ class Instruction:
             memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
 
         try:
-            with_value = function_name is not "staticcall"
+            with_value = function_name != "staticcall"
             (
                 callee_address,
                 callee_account,
