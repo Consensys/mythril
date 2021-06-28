@@ -5,9 +5,11 @@ import json
 import sys
 import os
 import platform
+import logging
+import solc
+
 from pathlib import Path
 from subprocess import PIPE, Popen
-import solc
 from ethereum.abi import encode_abi, encode_int, method_id
 from ethereum.utils import zpad
 from json.decoder import JSONDecodeError
