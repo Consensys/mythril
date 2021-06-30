@@ -149,9 +149,10 @@ class WorldState:
         address = (
             symbol_factory.BitVecVal(address, 256)
             if address
-            else self._generate_new_address(creator)
+            else self._generate_new_address(creator, nonce=self.accounts[creator].nonce)
         )
-
+        if creator:
+            self.accounts[creator].nonce += 1
         new_account = Account(
             address=address,
             balances=self.balances,
@@ -207,14 +208,14 @@ class WorldState:
         """
         return filter(lambda x: isinstance(x, annotation_type), self.annotations)
 
-    def _generate_new_address(self, creator=None) -> BitVec:
+    def _generate_new_address(self, creator=None, nonce=0) -> BitVec:
         """Generates a new address for the global state.
 
         :return:
         """
         if creator:
             # TODO: Use nounce
-            address = "0x" + str(mk_contract_address(creator, 0).hex())
+            address = "0x" + str(mk_contract_address(creator, nonce).hex())
             return symbol_factory.BitVecVal(int(address, 16), 256)
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])

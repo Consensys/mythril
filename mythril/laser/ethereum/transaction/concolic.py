@@ -44,10 +44,8 @@ def execute_contract_creation(
     :param track_gas:
     :return:
     """
-    del laser_evm.open_states[:]
 
-    world_state = WorldState()
-    open_states = [world_state]
+    open_states = laser_evm.open_states
     new_account = None
     data = binascii.b2a_hex(data).decode("utf-8")
 
@@ -161,6 +159,8 @@ def execute_transaction(*args, **kwargs) -> Union[None, List[GlobalState]]:
     executes the transaction
     """
     if kwargs["callee_address"] == "":
+        if kwargs["caller_address"] == "":
+            kwargs["caller_address"] = kwargs["origin"]
         return execute_contract_creation(*args, **kwargs)
     kwargs["callee_address"] = symbol_factory.BitVecVal(
         int(kwargs["callee_address"], 16), 256

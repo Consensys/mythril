@@ -110,7 +110,12 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
 
 
 def execute_contract_creation(
-    laser_evm, contract_initialization_code, contract_name=None, world_state=None
+    laser_evm,
+    contract_initialization_code,
+    contract_name=None,
+    world_state=None,
+    origin=ACTORS["CREATOR"],
+    caller=ACTORS["CREATOR"],
 ) -> Account:
     """Executes a contract creation transaction from all open states.
 
@@ -119,8 +124,6 @@ def execute_contract_creation(
     :param contract_name:
     :return:
     """
-    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
-    del laser_evm.open_states[:]
 
     world_state = world_state or WorldState()
     open_states = [world_state]
@@ -136,9 +139,9 @@ def execute_contract_creation(
                 "gas_price{}".format(next_transaction_id), 256
             ),
             gas_limit=8000000,  # block gas limit
-            origin=ACTORS["CREATOR"],
+            origin=origin,
             code=Disassembly(contract_initialization_code),
-            caller=ACTORS["CREATOR"],
+            caller=caller,
             contract_name=contract_name,
             call_data=None,
             call_value=symbol_factory.BitVecSym(
@@ -197,15 +200,18 @@ def execute_transaction(*args, **kwargs):
     Chooses the transaction type based on callee address and
     executes the transaction
     """
+    laser_evm = args[0]
+
     if kwargs["callee_address"] == "":
-        execute_contract_creation(
-            laser_evm=args[0],
-            contract_initialization_code=kwargs["data"],
-            world_state=kwargs["world_state"],
-        )
+        for ws in laser_evm.open_states:
+            execute_contract_creation(
+                laser_evm=laser_evm,
+                contract_initialization_code=kwargs["data"],
+                world_state=ws,
+            )
         return
 
     execute_message_call(
-        laser_evm=args[0],
+        laser_evm=laser_evm,
         callee_address=symbol_factory.BitVecVal(int(kwargs["callee_address"], 16), 256),
     )

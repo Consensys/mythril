@@ -1,8 +1,10 @@
 import json
 import binascii
 
+from copy import deepcopy
 from datetime import datetime
 from typing import Dict, List
+
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -43,7 +45,7 @@ def concrete_execution(concrete_data: Dict) -> List:
     """
     init_state = setup_concrete_initial_state(concrete_data)
     laser_evm = LaserEVM(execution_timeout=100)
-    laser_evm.open_states = [init_state]
+    laser_evm.open_states = [deepcopy(init_state)]
     plugin_loader = LaserPluginLoader()
     trace_plugin = TraceFinderBuilder()
     plugin_loader.load(trace_plugin)
@@ -66,4 +68,4 @@ def concrete_execution(concrete_data: Dict) -> List:
             track_gas=False,
         )
 
-    return plugin_loader.plugin_list["trace-finder"].tx_trace  # type: ignore
+    return init_state, plugin_loader.plugin_list["trace-finder"].tx_trace  # type: ignore

@@ -4,6 +4,7 @@ import sys
 
 from datetime import datetime, timedelta
 from typing import Dict, List
+from copy import deepcopy
 
 from mythril.concolic.find_trace import concrete_execution
 from mythril.disassembler.disassembly import Disassembly
@@ -16,7 +17,9 @@ from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 
 
-def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
+def flip_branches(
+    init_state: WorldState, concrete_data: Dict, jump_addresses: List, trace: List
+):
     """
     Flips branches and prints the input required for branch flip
 
@@ -27,6 +30,7 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
     output_list = []
     for addr in jump_addresses:
         laser_evm = LaserEVM(execution_timeout=10, use_reachability_check=False)
+        laser_evm.open_states = [deepcopy(init_state)]
         laser_evm.strategy = ConcolicStrategy(
             work_list=laser_evm.work_list,
             max_depth=100,
@@ -37,16 +41,6 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
         time_handler.start_execution(laser_evm.execution_timeout)
         laser_evm.time = datetime.now()
 
-        world_state = WorldState()
-        for address, data in concrete_data["initialState"]["accounts"].items():
-            account = world_state.create_account(
-                balance=int(data["balance"], 16),
-                address=int(address, 16),
-                concrete_storage=True,
-                code=Disassembly(data["code"]),
-            )
-            account.set_storage(data["storage"])
-
         for transaction in concrete_data["steps"]:
             execute_transaction(
                 laser_evm,
@@ -55,7 +49,6 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
                     int(transaction["origin"], 16), 256
                 ),
                 data=transaction["input"][2:],
-                world_state=world_state,
             )
         results = laser_evm.strategy.results
         output_list.append(results)
@@ -69,5 +62,10 @@ def concolic_execution(concrete_data: Dict, jump_addresses: List):
     :param jump_addresses: Jump addresses to flip
 
     """
-    trace = concrete_execution(concrete_data)
-    flip_branches(concrete_data, jump_addresses, trace)
+    init_state, trace = concrete_execution(concrete_data)
+    flip_branches(
+        init_state=init_state,
+        concrete_data=concrete_data,
+        jump_addresses=jump_addresses,
+        trace=trace,
+    )

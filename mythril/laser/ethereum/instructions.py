@@ -1592,7 +1592,7 @@ class Instruction:
             log.debug("Pruned unreachable states.")
 
         # True case
-
+        print(condi, disassembly.instruction_list[state.pc])
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 
