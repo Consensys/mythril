@@ -1,11 +1,9 @@
 """This module contains a representation class for EVM instructions and
 transitions between them."""
-import binascii
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union, Optional
-from datetime import datetime
+from typing import cast, Callable, List, Union
 
 from mythril.laser.smt import (
     Extract,
@@ -64,8 +62,8 @@ from mythril.support.loader import DynLoader
 
 log = logging.getLogger(__name__)
 
-TT256 = 2 ** 256
-TT256M1 = 2 ** 256 - 1
+TT256 = symbol_factory.BitVecVal(0, 256)
+TT256M1 = symbol_factory.BitVecVal(2 ** 256 - 1, 256)
 
 
 def transfer_ether(
@@ -395,7 +393,7 @@ class Instruction:
         :return:
         """
         mstate = global_state.mstate
-        mstate.stack.append(symbol_factory.BitVecVal(TT256M1, 256) - mstate.stack.pop())
+        mstate.stack.append(TT256M1 - mstate.stack.pop())
         return [global_state]
 
     @StateTransition()
@@ -640,25 +638,26 @@ class Instruction:
         """
         mstate = global_state.mstate
         s0, s1 = mstate.stack.pop(), mstate.stack.pop()
-        try:
-            s0 = util.get_concrete_int(s0)
-        except TypeError:
-            log.debug("Unsupported symbolic argument for SIGNEXTEND")
-            mstate.stack.append(
-                global_state.new_bitvec(
-                    "SIGNEXTEND({},{})".format(hash(s0), hash(s1)), 256
+
+        testbit = s0 * symbol_factory.BitVecVal(8, 256) + symbol_factory.BitVecVal(
+            7, 256
+        )
+        set_testbit = symbol_factory.BitVecVal(1, 256) << testbit
+        sign_bit_set = simplify(Not(s1 & set_testbit == 0))
+
+        mstate.stack.append(
+            simplify(
+                If(
+                    s0 <= 31,
+                    If(
+                        sign_bit_set,
+                        s1 | (TT256 - set_testbit),
+                        s1 & (set_testbit - 1),
+                    ),
+                    s1,
                 )
             )
-            return [global_state]
-
-        if s0 <= 31:
-            testbit = s0 * 8 + 7
-            if not is_true(simplify((s1 & (1 << testbit)) == 0)):
-                mstate.stack.append(s1 | (TT256 - (1 << testbit)))
-            else:
-                mstate.stack.append(s1 & ((1 << testbit) - 1))
-        else:
-            mstate.stack.append(s1)
+        )
 
         return [global_state]
 

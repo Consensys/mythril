@@ -1,4 +1,5 @@
 """This module contains an abstract SMT representation of an SMT solver."""
+import logging
 import os
 import sys
 import z3
@@ -10,6 +11,8 @@ from mythril.laser.smt.bool import Bool
 from mythril.laser.smt.solver.solver_statistics import stat_smt_query
 
 T = TypeVar("T", bound=Union[z3.Solver, z3.Optimize])
+
+log = logging.getLogger(__name__)
 
 
 class BaseSolver(Generic[T]):
@@ -52,7 +55,12 @@ class BaseSolver(Generic[T]):
         """
         old_stdout = sys.stdout
         sys.stdout = open(os.devnull, "w")
-        evaluate = self.raw.check(args)
+        try:
+            evaluate = self.raw.check(args)
+        except z3.z3types.Z3Exception as e:
+            # Some requests crash the solver
+            evaluate = z3.unknown
+            log.info(f"Encountered Z3 exception when checking the constraints: {e}")
         sys.stdout = old_stdout
         return evaluate
 
@@ -61,7 +69,11 @@ class BaseSolver(Generic[T]):
 
         :return:
         """
-        return Model([self.raw.model()])
+        try:
+            return Model([self.raw.model()])
+        except z3.z3types.Z3Exception as e:
+            log.info(f"Encountered a Z3 exception while querying for the model: {e}")
+            return Model()
 
     def sexpr(self):
         return self.raw.sexpr()

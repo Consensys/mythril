@@ -5,18 +5,22 @@ import json
 import sys
 import os
 import platform
+import logging
+import solc
+
 from pathlib import Path
 from subprocess import PIPE, Popen
-import solc
 from ethereum.abi import encode_abi, encode_int, method_id
 from ethereum.utils import zpad
-
+from json.decoder import JSONDecodeError
 from mythril.exceptions import CompilerError
 from semantic_version import Version
 
 if sys.version_info[1] >= 6:
     import solcx
     from solcx.exceptions import SolcNotInstalled
+
+log = logging.getLogger(__name__)
 
 
 def safe_decode(hex_encoded_string):
@@ -76,7 +80,11 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
 
     out = stdout.decode("UTF-8")
 
-    result = json.loads(out)
+    try:
+        result = json.loads(out)
+    except JSONDecodeError as e:
+        log.error(f"Encountered a decode error, stdout:{out}, stderr: {stderr}")
+        raise e
 
     for error in result.get("errors", []):
         if error["severity"] == "error":

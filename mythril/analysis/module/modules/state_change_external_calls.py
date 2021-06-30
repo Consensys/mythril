@@ -154,9 +154,9 @@ class StateChangeAfterCall(DetectionModule):
         )
         op_code = global_state.get_current_instruction()["opcode"]
 
-        if len(annotations) == 0:
-            if op_code in STATE_READ_WRITE_LIST:
-                return []
+        if len(annotations) == 0 and op_code in STATE_READ_WRITE_LIST:
+            return []
+
         if op_code in STATE_READ_WRITE_LIST:
             for annotation in annotations:
                 annotation.state_change_states.append(global_state)

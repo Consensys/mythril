@@ -15,11 +15,6 @@ class RpcTest(BaseTestCase):
         """"""
         self.client.close()
 
-    def test_eth_coinbase(self):
-        coinbase = self.client.eth_coinbase()
-        self.assertTrue(coinbase.startswith("0x"), "coinbase should be a hex string")
-        self.assertEqual(len(coinbase), 42, "coinbase is a string with length of 42")
-
     def test_eth_blockNumber(self):
         block_number = self.client.eth_blockNumber()
         self.assertGreater(

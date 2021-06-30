@@ -36,12 +36,13 @@ REQUIRED = [
     "plyvel",
     "eth_abi==1.3.0",
     "eth-account>=0.1.0a2,<=0.3.0",
-    "eth-hash>=0.1.0",
+    "eth-hash>=0.3.1",
     "eth-keyfile>=0.5.1",
     "eth-keys>=0.2.0b3,<0.3.0",
     "eth-rlp>=0.1.0",
     "eth-tester==0.1.0b32",
     "eth-typing>=2.0.0",
+    "eth-utils==1.9.0",
     "coverage",
     "jinja2>=2.9",
     "rlp>=1.0.1,<2.0.0",
@@ -57,7 +58,7 @@ REQUIRED = [
     "certifi>=2020.06.20",
 ]
 
-TESTS_REQUIRE = ["mypy", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
+TESTS_REQUIRE = ["mypy==0.782", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
 
 # What packages are optional?
 EXTRAS = {

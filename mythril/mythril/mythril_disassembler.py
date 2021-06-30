@@ -130,6 +130,11 @@ class MythrilDisassembler:
         if not re.match(r"0x[a-fA-F0-9]{40}", address):
             raise CriticalError("Invalid contract address. Expected format is '0x...'.")
 
+        if self.eth is None:
+            raise CriticalError(
+                "Please check whether the Infura key is set or use a different RPC method."
+            )
+
         try:
             code = self.eth.eth_getCode(address)
         except FileNotFoundError as e:
