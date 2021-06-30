@@ -726,6 +726,7 @@ def execute_command(
             custom_modules_directory=args.custom_modules_directory
             if args.custom_modules_directory
             else "",
+            call_depth_limit=args.call_depth_limit,
             sparse_pruning=args.sparse_pruning,
             unconstrained_storage=args.unconstrained_storage,
             solver_log=args.solver_log,

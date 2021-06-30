@@ -1,4 +1,4 @@
-from mythril.laser.plugin.signals import PluginSkipWorldState
+from mythril.laser.plugin.signals import PluginSkipState
 from mythril.laser.plugin.interface import LaserPlugin
 from mythril.laser.plugin.builder import PluginBuilder
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -27,4 +27,4 @@ class CallDepthLimit(LaserPlugin):
         @symbolic_vm.pre_hook("CALL")
         def sstore_mutator_hook(global_state: GlobalState):
             if len(global_state.transaction_stack) - 1 == self.call_depth_limit:
-                raise PluginSkipWorldState
+                raise PluginSkipState
