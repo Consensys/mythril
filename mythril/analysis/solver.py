@@ -1,5 +1,5 @@
 """This module contains analysis module helpers to solve path constraints."""
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Any
 from z3 import FuncInterp
 import z3
 
@@ -47,7 +47,7 @@ def pretty_print_model(model):
 
 def get_transaction_sequence(
     global_state: GlobalState, constraints: Constraints
-) -> Dict:
+) -> Dict[str, Any]:
     """Generate concrete transaction sequence.
 
     :param global_state: GlobalState to generate transaction sequence for
@@ -152,13 +152,15 @@ def _replace_with_actual_sha(
             )
 
 
-def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
+def _get_concrete_state(
+    initial_accounts: Dict, min_price_dict: Dict[str, int]
+) -> Dict[str, Dict]:
     """ Gets a concrete state """
     accounts = {}
     for address, account in initial_accounts.items():
         # Skip empty default account
 
-        data = dict()  # type: Dict[str, Union[int, str]]
+        data: Dict[str, Union[int, str]] = {}
         data["nonce"] = account.nonce
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)

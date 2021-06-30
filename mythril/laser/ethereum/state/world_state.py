@@ -133,7 +133,7 @@ class WorldState:
         dynamic_loader=None,
         creator=None,
         code=None,
-        nounce=0,
+        nonce=0,
     ) -> Account:
         """Create non-contract account.
 
@@ -143,7 +143,7 @@ class WorldState:
         :param dynamic_loader: used for dynamically loading storage from the block chain
         :param creator: The address of the creator of the contract if it's a contract
         :param code: The code of the contract, if it's a contract
-        :param nounce: Nounce of the account
+        :param nonce: Nonce of the account
         :return: The new account
         """
         address = (
@@ -160,7 +160,7 @@ class WorldState:
         )
         if code:
             new_account.code = code
-        new_account.nounce = nounce
+        new_account.nonce = nonce
         new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
 
         self.put_account(new_account)

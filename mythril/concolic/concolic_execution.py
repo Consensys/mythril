@@ -24,6 +24,7 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
     :param jump_addresses: Jump addresses to flip
     :param trace: trace to follow
     """
+    output_list = []
     for addr in jump_addresses:
         laser_evm = LaserEVM(execution_timeout=10, use_reachability_check=False)
         laser_evm.strategy = ConcolicStrategy(
@@ -57,17 +58,16 @@ def flip_branches(concrete_data: Dict, jump_addresses: List, trace: List):
                 world_state=world_state,
             )
         results = laser_evm.strategy.results
-        json.dump(results, sys.stdout, indent=4)
+        output_list.append(results)
+    json.dump(output_list, sys.stdout, indent=4)
 
 
-def concolic_execution(input_file: str, jump_addresses: List):
+def concolic_execution(concrete_data: Dict, jump_addresses: List):
     """
     Executes codes and prints input required to cover the branch flips
     :param input_file: Input file
     :param jump_addresses: Jump addresses to flip
 
     """
-    with open(input_file) as f:
-        concrete_data = json.load(f)
     trace = concrete_execution(concrete_data)
     flip_branches(concrete_data, jump_addresses, trace)

@@ -5,7 +5,7 @@ from mythril.laser.ethereum.transaction import ContractCreationTransaction
 from mythril.laser.ethereum.util import get_instruction_index
 from mythril.analysis.solver import get_transaction_sequence
 from mythril.laser.smt import Not
-from typing import Dict, cast, List
+from typing import Dict, cast, List, Any
 from copy import copy
 from . import CriterionSearchStrategy
 import logging
@@ -29,7 +29,7 @@ class ConcolicStrategy(CriterionSearchStrategy):
         super().__init__(work_list, max_depth)
         self.trace = trace
         self.flip_branch_addr = flip_branch_addr
-        self.results = None
+        self.results: Dict[str, Any] = None
 
     def get_strategic_global_state(self) -> GlobalState:
         """

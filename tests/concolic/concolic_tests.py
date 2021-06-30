@@ -12,7 +12,10 @@ def output_of(command):
     return json.loads(check_output(command, shell=True).decode("UTF-8"))
 
 
-test_data = (("simple_example_input.json", "simple_example_output.json", "153"),)
+test_data = (
+    ("simple_example_input.json", "simple_example_output.json", "153"),
+    ("multiple_example_input.json", "multiple_example_output.json", "153,192,243"),
+)
 
 
 @pytest.mark.parametrize("input_file,output_file,branches", test_data)

@@ -853,7 +853,9 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         sys.exit()
 
     if args.command in CONCOLIC_LIST:
-        concolic_execution(args.input, args.branches.split(","))
+        with open(args.input) as f:
+            concrete_data = json.load(f)
+        concolic_execution(concrete_data, args.branches.split(","))
         sys.exit()
 
     # Parse cmdline args
