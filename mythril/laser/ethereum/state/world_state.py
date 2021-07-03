@@ -82,8 +82,9 @@ class WorldState:
         """
 
         if isinstance(addr, str):
-            addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
-        elif isinstance(addr, int):
+            addr = int(addr, 16)
+
+        if isinstance(addr, int):
             addr_bitvec = symbol_factory.BitVecVal(addr, 256)
         elif not isinstance(addr, BitVec):
             addr_bitvec = symbol_factory.BitVecVal(int(addr, 16), 256)
@@ -106,17 +107,6 @@ class WorldState:
                 )
             except:
                 # Initial balance will be a symbolic variable
-                pass
-        elif isinstance(addr, str):
-            try:
-                balance = dynamic_loader.read_balance(addr)
-                return self.create_account(
-                    balance=balance,
-                    address=addr_bitvec.value,
-                    dynamic_loader=dynamic_loader,
-                    code=dynamic_loader.dynld(addr),
-                )
-            except:
                 pass
 
         return self.create_account(
