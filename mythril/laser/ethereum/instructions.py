@@ -191,8 +191,7 @@ class StateTransition(object):
             new_global_states = [
                 self.accumulate_gas(state) for state in new_global_states
             ]
-            for state in new_global_states:
-                state.mstate.instr_execution_cnt += 1
+
             return self.increment_states_pc(new_global_states)
 
         return wrapper
@@ -1591,8 +1590,6 @@ class Instruction:
         else:
             log.debug("Pruned unreachable states.")
 
-        # True case
-        print(condi, disassembly.instruction_list[state.pc])
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
 

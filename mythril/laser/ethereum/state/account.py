@@ -96,6 +96,7 @@ class Account:
         balances: Array = None,
         concrete_storage=False,
         dynamic_loader=None,
+        nonce=0,
     ) -> None:
         """Constructor for account.
 
@@ -106,7 +107,7 @@ class Account:
         :param concrete_storage: Interpret storage as concrete
         """
         self.concrete_storage = concrete_storage
-        self.nonce = 0
+        self.nonce = nonce
         self.code = code or Disassembly("")
         self.address = (
             address
@@ -191,6 +192,7 @@ class Account:
             contract_name=self.contract_name,
             balances=self._balances,
             concrete_storage=self.concrete_storage,
+            nonce=self.nonce,
         )
         new_account.storage = deepcopy(self.storage)
         new_account.code = self.code

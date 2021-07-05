@@ -45,7 +45,9 @@ def execute_contract_creation(
     :return:
     """
 
-    open_states = laser_evm.open_states
+    open_states: List[WorldState] = laser_evm.open_states[:]
+    del laser_evm.open_states[:]
+
     new_account = None
     data = binascii.b2a_hex(data).decode("utf-8")
 

@@ -127,6 +127,7 @@ def execute_contract_creation(
 
     world_state = world_state or WorldState()
     open_states = [world_state]
+    del laser_evm.open_states[:]
     new_account = None
     for open_world_state in open_states:
         next_transaction_id = get_next_transaction_id()
@@ -201,9 +202,8 @@ def execute_transaction(*args, **kwargs):
     executes the transaction
     """
     laser_evm = args[0]
-
     if kwargs["callee_address"] == "":
-        for ws in laser_evm.open_states:
+        for ws in laser_evm.open_states[:]:
             execute_contract_creation(
                 laser_evm=laser_evm,
                 contract_initialization_code=kwargs["data"],

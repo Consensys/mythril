@@ -42,4 +42,10 @@ class CriterionSearchStrategy(BasicSearchStrategy):
     def __next__(self):
         if self.satisfied_criterion:
             raise StopIteration
-        return super().__next__()
+        try:
+            global_state = self.get_strategic_global_state()
+            if global_state.mstate.depth >= self.max_depth:
+                return self.__next__()
+            return global_state
+        except (IndexError, StopIteration):
+            raise StopIteration

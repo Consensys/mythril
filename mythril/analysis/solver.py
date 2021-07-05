@@ -161,7 +161,7 @@ def _get_concrete_state(
         # Skip empty default account
 
         data: Dict[str, Union[int, str]] = {}
-        data["nonce"] = account.nonce
+        data["nonce"] = 0
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))
