@@ -21,42 +21,10 @@ AUTHOR = "ConsenSys Dilligence"
 AUTHOR_MAIL = None
 REQUIRES_PYTHON = ">=3.6.0"
 
+here = os.path.abspath(os.path.dirname(__file__))
 
 # What packages are required for this module to be executed?
-REQUIRED = [
-    "coloredlogs>=10.0",
-    "py_ecc==1.6.0",
-    "ethereum>=2.3.2",
-    "z3-solver>=4.8.8.0",
-    "requests==2.25.0",
-    "py-solc",
-    "py-solc-x==1.0.0",
-    "semantic_version==2.8.5",
-    "numpy==1.19.0",
-    "plyvel",
-    "eth_abi==1.3.0",
-    "eth-account>=0.1.0a2,<=0.3.0",
-    "eth-hash>=0.3.1",
-    "eth-keyfile>=0.5.1",
-    "eth-keys>=0.2.0b3,<0.3.0",
-    "eth-rlp>=0.1.0",
-    "eth-tester==0.1.0b32",
-    "eth-typing>=2.0.0",
-    "eth-utils==1.9.0",
-    "coverage",
-    "jinja2>=2.9",
-    "rlp>=1.0.1,<2.0.0",
-    "transaction>=2.2.1",
-    "py-flags",
-    "mock",
-    "configparser>=3.5.0",
-    "persistent>=4.2.0",
-    "ethereum-input-decoder>=0.2.2",
-    "matplotlib",
-    "pythx",
-    "py-evm==0.3.0a13",
-    "certifi>=2020.06.20",
-]
+REQUIRED = io.open(os.path.join(here, "requirements.txt"), encoding="utf-8").read().split()
 
 TESTS_REQUIRE = ["mypy==0.782", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
 
@@ -67,8 +35,6 @@ EXTRAS = {
 
 # If version is set to None then it will be fetched from __version__.py
 VERSION = None
-
-here = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
