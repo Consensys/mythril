@@ -24,7 +24,9 @@ REQUIRES_PYTHON = ">=3.6.0"
 here = os.path.abspath(os.path.dirname(__file__))
 
 # What packages are required for this module to be executed?
-REQUIRED = io.open(os.path.join(here, "requirements.txt"), encoding="utf-8").read().split()
+REQUIRED = (
+    io.open(os.path.join(here, "requirements.txt"), encoding="utf-8").read().split()
+)
 
 TESTS_REQUIRE = ["mypy==0.782", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
 
