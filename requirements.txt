@@ -25,7 +25,7 @@ py-solc
 pytest>=3.6.0
 pytest-cov
 pytest_mock
-requests==2.25.0
+requests
 rlp>=1.0.1,<2.0.0
 semantic_version
 transaction>=2.2.1
