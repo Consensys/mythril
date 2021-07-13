@@ -76,7 +76,7 @@ class EtherThief(DetectionModule):
             # Pre-solve so we only add potential issues if the attacker's balance is increased.
 
             solver.get_model(constraints)
-
+            print(constraints)
             potential_issue = PotentialIssue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,

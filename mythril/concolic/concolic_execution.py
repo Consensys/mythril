@@ -18,6 +18,7 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.transaction.symbolic import execute_transaction
 from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
+from mythril.support.support_args import args
 
 
 def flip_branches(
@@ -33,7 +34,7 @@ def flip_branches(
     output_list = []
     for addr in jump_addresses:
         laser_evm = LaserEVM(
-            execution_timeout=10, use_reachability_check=False, transaction_count=1
+            execution_timeout=60, use_reachability_check=False, transaction_count=1
         )
         laser_evm.open_states = [deepcopy(init_state)]
         laser_evm.strategy = ConcolicStrategy(
@@ -72,7 +73,7 @@ def concolic_execution(concrete_data: Dict, jump_addresses: List):
 
     """
     init_state, trace = concrete_execution(concrete_data)
-
+    args.solver_timeout = 50000
     flip_branches(
         init_state=init_state,
         concrete_data=concrete_data,

@@ -16,6 +16,7 @@ test_data = (
     ("simple_example_input.json", "simple_example_output.json", "153"),
     ("multiple_example_input.json", "multiple_example_output.json", "153,192,243"),
     ("two_contract_input.json", "two_contract_output.json", "311,341,371"),
+    ("multi_contract_example_input.json", "multi_contract_example_output.json", "453,483"),
 )
 
 

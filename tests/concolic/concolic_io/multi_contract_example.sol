@@ -39,18 +39,15 @@ contract D3 {
        d1 = D1(0x0901d12ebE1b195E5AA8748E62Bd7734aE19B51F);
        d2 = D2(0x384f682f4a5AbefC8795Cc38a340dE9446dFAE7A);
   }
-  function test(uint256 num) public returns(uint) {
-    uint sum = d1.retval() + d2.retval() + num;
+  function test(uint256 num) public returns(uint256) {
+    uint256 sum = d1.retval() + d2.retval() + num;
     if (sum == 10) {
         return sum + 10;
     }
-    else if(sum == 11) {
-        return sum + 12;
-    }
-    else if(sum == 30) {
+    else if(sum == 25) {
         return sum * 2;
     }
-    assert(sum != 20);
+    else return sum*10;
     return sum;
   }
 }
