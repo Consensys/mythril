@@ -1,24 +1,24 @@
 """This module contains analysis module helpers to solve path constraints."""
+import logging
 from typing import Dict, List, Tuple, Union
-from z3 import FuncInterp
+
 import z3
+from z3 import FuncInterp
 
-from mythril.support.model import get_model
-from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.state.constraints import Constraints
-from mythril.laser.ethereum.keccak_function_manager import (
-    keccak_function_manager,
-    hash_matcher,
-)
-from mythril.laser.ethereum.exponent_function_manager import exponent_function_manager
-
-from mythril.laser.ethereum.transaction import BaseTransaction
-from mythril.laser.smt import UGE, symbol_factory, Function, UDiv, Extract
 from mythril.exceptions import UnsatError
+from mythril.laser.ethereum.exponent_function_manager import exponent_function_manager
+from mythril.laser.ethereum.keccak_function_manager import (
+    hash_matcher,
+    keccak_function_manager,
+)
+from mythril.laser.ethereum.state.constraints import Constraints
+from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.ethereum.transaction import BaseTransaction
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
-import logging
+from mythril.laser.smt import UGE, symbol_factory
+from mythril.support.model import get_model
 
 log = logging.getLogger(__name__)
 

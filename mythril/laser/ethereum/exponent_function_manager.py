@@ -1,22 +1,16 @@
+import logging
+from typing import Dict, List, Optional, Tuple
+
 from ethereum import utils
+
 from mythril.laser.smt import (
+    And,
     BitVec,
-    Extract,
+    Bool,
     Function,
     URem,
     symbol_factory,
-    ULE,
-    And,
-    ULT,
-    UDiv,
-    Bool,
-    If,
-    Or,
-    Not,
 )
-from typing import Dict, Tuple, List, Optional
-
-import logging
 
 log = logging.getLogger(__name__)
 
