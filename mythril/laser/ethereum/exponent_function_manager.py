@@ -39,8 +39,9 @@ class ExponentFunctionManager:
         """
 
     def create_condition(self, base: BitVec, exponent: BitVec) -> Tuple[BitVec, Bool]:
-        power = Function("Power", [256, 256], 256)
+        # power = Function("Power", [256, 256], 256)
         # exponentiation = power(base, exponent)
+        exponentiation = symbol_factory.BitVecSym("Symbol", 256)
         constraint = symbol_factory.Bool(True)
         # constraint = exponentiation > 0
         """
