@@ -27,7 +27,7 @@ REQUIRED = [
     "coloredlogs>=10.0",
     "py_ecc==1.6.0",
     "ethereum>=2.3.2",
-    "z3-solver>=4.8.8.0,<=4.8.12",
+    "z3-solver>=4.8.8.0,<4.8.12",
     "requests==2.25.0",
     "py-solc",
     "py-solc-x==1.0.0",
