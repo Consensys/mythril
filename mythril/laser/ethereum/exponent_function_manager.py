@@ -31,49 +31,31 @@ class ExponentFunctionManager:
     """
 
     def __init__(self):
-        self.exp_set: Set[List[BitVec, BitVec, BitVec]] = set()
+        power = Function("Power", [256, 256], 256)
+        NUMBER_256 = symbol_factory.BitVecVal(256, 256)
+        self.concrete_constraints = And(
+            *[
+                power(NUMBER_256, symbol_factory.BitVecVal(i, 256))
+                == symbol_factory.BitVecVal(256 ** i, 256)
+                for i in range(0, 32)
+            ]
+        )
+        self.concrete_constraints_sent = False
 
     def create_condition(self, base: BitVec, exponent: BitVec) -> Tuple[BitVec, Bool]:
         power = Function("Power", [256, 256], 256)
         exponentiation = power(base, exponent)
-        constraint = And(
-            exponentiation >= 0,
-            Or(
-                And(power(base, exponent) == 1, exponent == 0),
-                And(power(base, exponent) != 1, exponent != 0),
-            ),
-        )
+        constraint = exponentiation > 0
+        if self.concrete_constraints_sent is False:
+            constraint = And(constraint, self.concrete_constraints)
+            self.concrete_constraints_sent = True
         if base.value == 256:
             constraint = And(
-                constraint, (Extract(7, 0, exponentiation) == 0) ^ (exponent == 0)
+                constraint,
+                power(base, URem(exponent, symbol_factory.BitVecVal(32, 256)))
+                == power(base, exponent),
             )
-        for a, b, c in self.exp_set:
-            constraint = And(
-                constraint, Or(c != exponentiation, Not((a == base) ^ (b == exponent)))
-            )
-            if base.value != a.value:
-                continue
-            equivalent_division = And(
-                Or(
-                    And(power(a, b - exponent) == 1, b - exponent == 0),
-                    And(power(a, b - exponent) != 1, b - exponent != 0),
-                ),
-                UDiv(exponentiation, power(a, b)) == power(a, exponent - b),
-                UDiv(power(a, b), exponentiation) == power(a, b - exponent),
-                Or(
-                    And(exponent > b, exponentiation > power(a, b)),
-                    And(exponent <= b, exponentiation <= power(a, b)),
-                ),
-            )
-            constraint = And(constraint, equivalent_division)
-            if base.value == 256:
-                constraint = And(
-                    constraint,
-                    (Extract(7, 0, power(a, exponent - b)) == 0) ^ (exponent == b),
-                    (Extract(7, 0, power(a, b - exponent)) == 0) ^ (exponent == b),
-                )
 
-        self.exp_set.add((base, exponent, exponentiation))
         if exponent.symbolic is False and base.symbolic is False:
             const_exponentiation = symbol_factory.BitVecVal(
                 pow(base.value, exponent.value, 2 ** 256),

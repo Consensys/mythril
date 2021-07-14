@@ -2,11 +2,6 @@
 withdrawal."""
 import logging
 from copy import copy
-import z3
-
-z3.set_option(
-    max_args=10000000, max_lines=1000000, max_depth=10000000, max_visited=1000000
-)
 
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.potential_issues import (

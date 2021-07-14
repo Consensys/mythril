@@ -1,4 +1,4 @@
-from typing import cast, List
+from typing import cast, List, Any, Set
 import z3
 
 from mythril.laser.smt.bitvec import BitVec
@@ -22,7 +22,7 @@ class Function:
 
     def __call__(self, *items) -> BitVec:
         """Function accessor, item can be symbolic."""
-        annotations = set().union(*[item.annotations for item in items])
+        annotations: Set[Any] = set().union(*[item.annotations for item in items])
         return BitVec(
             cast(z3.BitVecRef, self.raw(*[item.raw for item in items])),
             annotations=annotations,
