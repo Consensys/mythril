@@ -25,7 +25,7 @@ class ExponentFunctionManager:
     """
 
     def __init__(self):
-        power = Function("Power", [256, 256], 256)
+        #power = Function("Power", [256, 256], 256)
         NUMBER_256 = symbol_factory.BitVecVal(256, 256)
         """
         self.concrete_constraints = And(
@@ -40,8 +40,9 @@ class ExponentFunctionManager:
 
     def create_condition(self, base: BitVec, exponent: BitVec) -> Tuple[BitVec, Bool]:
         power = Function("Power", [256, 256], 256)
-        exponentiation = power(base, exponent)
-        constraint = exponentiation > 0
+        #exponentiation = power(base, exponent)
+        constraint = symbol_factory.Bool(True)
+        #constraint = exponentiation > 0
         """
         if self.concrete_constraints_sent is False:
             constraint = And(constraint, self.concrete_constraints)
@@ -60,7 +61,7 @@ class ExponentFunctionManager:
                 256,
                 annotations=base.annotations.union(exponent.annotations),
             )
-            constraint = And(constraint, const_exponentiation == exponentiation)
+            #constraint = And(constraint, const_exponentiation == exponentiation)
             return const_exponentiation, constraint
         return exponentiation, constraint
 
