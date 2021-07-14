@@ -8,6 +8,7 @@ from typing import cast, Callable, List, Union
 from mythril.laser.smt import (
     Extract,
     Expression,
+    Function,
     UDiv,
     simplify,
     Concat,
@@ -33,6 +34,8 @@ from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCall
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
 from mythril.laser.ethereum.keccak_function_manager import keccak_function_manager
+from mythril.laser.ethereum.exponent_function_manager import exponent_function_manager
+
 from mythril.laser.ethereum.call import (
     get_call_parameters,
     native_call,
@@ -601,30 +604,11 @@ class Instruction:
         """
         state = global_state.mstate
         base, exponent = util.pop_bitvec(state), util.pop_bitvec(state)
-
-        if base.symbolic or exponent.symbolic:
-
-            state.stack.append(
-                global_state.new_bitvec(
-                    "invhash("
-                    + str(hash(simplify(base)))
-                    + ")**invhash("
-                    + str(hash(simplify(exponent)))
-                    + ")",
-                    256,
-                    base.annotations.union(exponent.annotations),
-                )
-            )  # Hash is used because str(symbol) takes a long time to be converted to a string
-        else:
-
-            state.stack.append(
-                symbol_factory.BitVecVal(
-                    pow(base.value, exponent.value, 2 ** 256),
-                    256,
-                    annotations=base.annotations.union(exponent.annotations),
-                )
-            )
-
+        exponentiation, constraint = exponent_function_manager.create_condition(
+            base, exponent
+        )
+        state.stack.append(exponentiation)
+        global_state.world_state.constraints.append(constraint)
         return [global_state]
 
     @StateTransition()

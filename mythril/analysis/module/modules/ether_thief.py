@@ -2,6 +2,11 @@
 withdrawal."""
 import logging
 from copy import copy
+import z3
+
+z3.set_option(
+    max_args=10000000, max_lines=1000000, max_depth=10000000, max_visited=1000000
+)
 
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.potential_issues import (
@@ -76,7 +81,6 @@ class EtherThief(DetectionModule):
             # Pre-solve so we only add potential issues if the attacker's balance is increased.
 
             solver.get_model(constraints)
-
             potential_issue = PotentialIssue(
                 contract=state.environment.active_account.contract_name,
                 function_name=state.environment.active_function_name,

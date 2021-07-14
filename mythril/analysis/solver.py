@@ -10,8 +10,10 @@ from mythril.laser.ethereum.keccak_function_manager import (
     keccak_function_manager,
     hash_matcher,
 )
+from mythril.laser.ethereum.exponent_function_manager import exponent_function_manager
+
 from mythril.laser.ethereum.transaction import BaseTransaction
-from mythril.laser.smt import UGE, symbol_factory
+from mythril.laser.smt import UGE, symbol_factory, Function, UDiv, Extract
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
@@ -65,7 +67,6 @@ def get_transaction_sequence(
         model = get_model(tx_constraints, minimize=minimize)
     except UnsatError:
         raise UnsatError
-
     # Include creation account in initial state
     # Note: This contains the code, which should not exist until after the first tx
     initial_world_state = transaction_sequence[0].world_state

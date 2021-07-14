@@ -58,6 +58,18 @@ class Bool(Expression[z3.BoolRef]):
                         self.annotations.union(other.annotations))
         return Bool(cast(z3.BoolRef, self.raw == other), self.annotations)
 
+    # MYPY: complains about overloading __xor__ # noqa
+    def __xor__(self, other: object) -> "Bool":  # type: ignore
+        """
+
+        :param other:
+        :return:
+        """
+        if isinstance(other, Expression):
+            return Bool(cast(z3.BoolRef, z3.Xor(self.raw, other.raw)),
+                        self.annotations.union(other.annotations))
+        return Bool(cast(z3.BoolRef, z3.Xor(self.raw, other.raw)), self.annotations)
+
     # MYPY: complains about overloading __ne__ # noqa
     def __ne__(self, other: object) -> "Bool":  # type: ignore
         """
