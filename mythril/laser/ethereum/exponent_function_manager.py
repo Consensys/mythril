@@ -63,6 +63,7 @@ class ExponentFunctionManager:
                 annotations=base.annotations.union(exponent.annotations),
             )
             constraint = And(constraint, const_exponentiation == exponentiation)
+            return const_exponentiation, constraint
         return exponentiation, constraint
 
 
