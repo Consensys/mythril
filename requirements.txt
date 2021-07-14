@@ -29,7 +29,7 @@ requests
 rlp>=1.0.1,<2.0.0
 semantic_version
 transaction>=2.2.1
-z3-solver>=4.8.8.0,<4.8.10
+z3-solver>=4.8.8.0
 pysha3
 matplotlib
 pythx
