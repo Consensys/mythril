@@ -8,14 +8,14 @@ from tests import PROJECT_DIR, TESTDATA
 MYTH = str(PROJECT_DIR / "myth")
 test_data = (
     (
-        "flag_array.sol.o", 
+        "flag_array.sol.o",
         {
             "TX_COUNT": 1,
             "TX_OUTPUT": 1,
             "MODULE": "EtherThief",
             "ISSUE_COUNT": 1,
-            "ISSUE_NUMBER":0,
-        }, 
+            "ISSUE_NUMBER": 0,
+        },
         "0xab12585800000000000000000000000000000000000000000000000000000000000004d2",
     ),
 )

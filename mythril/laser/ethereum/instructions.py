@@ -33,7 +33,10 @@ from mythril.laser.ethereum.state.calldata import ConcreteCalldata, SymbolicCall
 
 import mythril.laser.ethereum.util as helper
 from mythril.laser.ethereum import util
-from mythril.laser.ethereum.function_managers import keccak_function_manager, exponent_function_manager
+from mythril.laser.ethereum.function_managers import (
+    keccak_function_manager,
+    exponent_function_manager,
+)
 
 from mythril.laser.ethereum.call import (
     get_call_parameters,

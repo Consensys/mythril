@@ -30,6 +30,7 @@ class KeccakFunctionManager:
     for each encountered input.
     For more info https://files.sri.inf.ethz.ch/website/papers/sp20-verx.pdf
     """
+
     hash_matcher = "fffffff"  # This is usually the prefix for the hash in the output
 
     def __init__(self):

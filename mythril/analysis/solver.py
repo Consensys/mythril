@@ -6,7 +6,10 @@ import z3
 from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.function_managers import exponent_function_manager, keccak_function_manager
+from mythril.laser.ethereum.function_managers import (
+    exponent_function_manager,
+    keccak_function_manager,
+)
 
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -127,7 +130,10 @@ def _replace_with_actual_sha(
             s_index = 10
         for i in range(s_index, len(tx["input"])):
             data_slice = tx["input"][i : i + 64]
-            if keccak_function_manager.hash_matcher not in data_slice or len(data_slice) != 64:
+            if (
+                keccak_function_manager.hash_matcher not in data_slice
+                or len(data_slice) != 64
+            ):
                 continue
             find_input = symbol_factory.BitVecVal(int(data_slice, 16), 256)
             input_ = None
