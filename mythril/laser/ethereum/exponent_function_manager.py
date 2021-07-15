@@ -27,7 +27,6 @@ class ExponentFunctionManager:
     def __init__(self):
         # power = Function("Power", [256, 256], 256)
         NUMBER_256 = symbol_factory.BitVecVal(256, 256)
-        """
         self.concrete_constraints = And(
             *[
                 power(NUMBER_256, symbol_factory.BitVecVal(i, 256))
@@ -36,14 +35,22 @@ class ExponentFunctionManager:
             ]
         )
         self.concrete_constraints_sent = False
-        """
 
     def create_condition(self, base: BitVec, exponent: BitVec) -> Tuple[BitVec, Bool]:
         power = Function("Power", [256, 256], 256)
         exponentiation = power(base, exponent)
         constraint = symbol_factory.Bool(True)
-        # constraint = exponentiation > 0
-        """
+
+        if exponent.symbolic is False and base.symbolic is False:
+            const_exponentiation = symbol_factory.BitVecVal(
+                pow(base.value, exponent.value, 2 ** 256),
+                256,
+                annotations=base.annotations.union(exponent.annotations),
+            )
+            constraint = And(constraint, const_exponentiation == exponentiation)
+            return const_exponentiation, constraint
+
+        constraint = exponentiation > 0
         if self.concrete_constraints_sent is False:
             constraint = And(constraint, self.concrete_constraints)
             self.concrete_constraints_sent = True
@@ -53,16 +60,7 @@ class ExponentFunctionManager:
                 power(base, URem(exponent, symbol_factory.BitVecVal(32, 256)))
                 == power(base, exponent),
             )
-        """
 
-        if exponent.symbolic is False and base.symbolic is False:
-            const_exponentiation = symbol_factory.BitVecVal(
-                pow(base.value, exponent.value, 2 ** 256),
-                256,
-                annotations=base.annotations.union(exponent.annotations),
-            )
-            # constraint = And(constraint, const_exponentiation == exponentiation)
-            return const_exponentiation, constraint
         return exponentiation, constraint
 
 
