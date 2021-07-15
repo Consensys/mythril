@@ -6,11 +6,8 @@ import z3
 from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
-from mythril.laser.ethereum.exponent_function_manager import exponent_function_manager
-from mythril.laser.ethereum.keccak_function_manager import (
-    hash_matcher,
-    keccak_function_manager,
-)
+from mythril.laser.ethereum.function_managers import exponent_function_manager, keccak_function_manager
+
 from mythril.laser.ethereum.state.constraints import Constraints
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction import BaseTransaction
@@ -122,7 +119,7 @@ def _replace_with_actual_sha(
 ):
     concrete_hashes = keccak_function_manager.get_concrete_hash_data(model)
     for tx in concrete_transactions:
-        if hash_matcher not in tx["input"]:
+        if keccak_function_manager.hash_matcher not in tx["input"]:
             continue
         if code is not None and code.bytecode in tx["input"]:
             s_index = len(code.bytecode) + 2
@@ -130,7 +127,7 @@ def _replace_with_actual_sha(
             s_index = 10
         for i in range(s_index, len(tx["input"])):
             data_slice = tx["input"][i : i + 64]
-            if hash_matcher not in data_slice or len(data_slice) != 64:
+            if keccak_function_manager.hash_matcher not in data_slice or len(data_slice) != 64:
                 continue
             find_input = symbol_factory.BitVecVal(int(data_slice, 16), 256)
             input_ = None
