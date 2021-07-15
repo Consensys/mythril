@@ -1,7 +1,7 @@
 from mythril.disassembler.disassembly import Disassembly
 from mythril.ethereum import util
 from tests import *
-
+import os
 
 class DisassemblerTestCase(BaseTestCase):
     def test_instruction_list(self):
@@ -13,7 +13,9 @@ class DisassemblerTestCase(BaseTestCase):
         for input_file in TESTDATA_INPUTS.iterdir():
             output_expected = TESTDATA_OUTPUTS_EXPECTED / (input_file.name + ".easm")
             output_current = TESTDATA_OUTPUTS_CURRENT / (input_file.name + ".easm")
-
+            if os.path.isfile(output_current) is False:
+                # Ignore files which do not have output data
+                continue
             code = input_file.read_text()
             disassembly = Disassembly(code)
             output_current.write_text(disassembly.get_easm())
