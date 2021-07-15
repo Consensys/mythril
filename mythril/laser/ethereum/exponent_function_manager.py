@@ -25,7 +25,7 @@ class ExponentFunctionManager:
     """
 
     def __init__(self):
-        # power = Function("Power", [256, 256], 256)
+        power = Function("Power", [256, 256], 256)
         NUMBER_256 = symbol_factory.BitVecVal(256, 256)
         self.concrete_constraints = And(
             *[
