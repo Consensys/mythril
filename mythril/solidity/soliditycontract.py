@@ -1,11 +1,14 @@
 """This module contains representation classes for Solidity files, contracts
 and source mappings."""
 from typing import Dict, Set
+import logging
 
 import mythril.laser.ethereum.util as helper
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.util import get_solc_json
 from mythril.exceptions import NoContractFoundError
+
+log = logging.getLogger(__name__)
 
 
 class SourceMapping:
@@ -191,8 +194,12 @@ class SolidityContract(EVMContract):
         disassembly = self.creation_disassembly if constructor else self.disassembly
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
+        file_index = mappings[index].solidity_file_idx
+        if file_index == -1:
+            # If issue is detected in an internal file
+            return None
 
-        solidity_file = self.solc_indices[mappings[index].solidity_file_idx]
+        solidity_file = self.solc_indices[file_index]
         filename = solidity_file.filename
 
         offset = mappings[index].offset

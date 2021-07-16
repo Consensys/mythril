@@ -144,6 +144,12 @@ class Issue:
             codeinfo = contract.get_source_info(
                 self.address, constructor=(self.function == "constructor")
             )
+
+            if codeinfo is None:
+                self.source_mapping = self.address
+                self.filename = "Internal File"
+                return
+
             self.filename = codeinfo.filename
             self.code = codeinfo.code
             self.lineno = codeinfo.lineno
