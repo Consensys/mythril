@@ -17,7 +17,6 @@ import logging
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
 INTERVAL_DIFFERENCE = 10 ** 30
-hash_matcher = "fffffff"  # This is usually the prefix for the hash in the output
 log = logging.getLogger(__name__)
 
 
@@ -31,6 +30,8 @@ class KeccakFunctionManager:
     for each encountered input.
     For more info https://files.sri.inf.ethz.ch/website/papers/sp20-verx.pdf
     """
+
+    hash_matcher = "fffffff"  # This is usually the prefix for the hash in the output
 
     def __init__(self):
         self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
@@ -65,8 +66,8 @@ class KeccakFunctionManager:
         try:
             func, inverse = self.store_function[length]
         except KeyError:
-            func = Function("keccak256_{}".format(length), length, 256)
-            inverse = Function("keccak256_{}-1".format(length), 256, length)
+            func = Function("keccak256_{}".format(length), [length], 256)
+            inverse = Function("keccak256_{}-1".format(length), [256], length)
             self.store_function[length] = (func, inverse)
             self.hash_result_store[length] = []
         return func, inverse
