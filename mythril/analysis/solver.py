@@ -3,6 +3,8 @@
 from typing import Dict, List, Tuple, Union, Any
 
 import z3
+import logging
+
 from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
