@@ -146,6 +146,11 @@ class WorldState:
         :param nonce: Nonce of the account
         :return: The new account
         """
+        if creator in self.accounts:
+            nonce = self.accounts[creator].nonce
+        elif creator:
+            self.create_account(address=creator)
+
         address = (
             symbol_factory.BitVecVal(address, 256)
             if address
