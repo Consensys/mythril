@@ -1,0 +1,6 @@
+{
+ "remappings": [ "@openzeppelin/contracts/token/PRC20/=../" ],
+  "optimizer": {
+    "enabled": true
+  }
+}
