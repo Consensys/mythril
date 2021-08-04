@@ -29,5 +29,4 @@ def test_analysis(file_name, tx_data, calldata):
 
     assert len(output[0]["issues"]) == tx_data["ISSUE_COUNT"]
     test_case = output[0]["issues"][tx_data["ISSUE_NUMBER"]]["extra"]["testCases"][0]
-    print(test_case["steps"])
     assert test_case["steps"][tx_data["TX_OUTPUT"]]["input"] == calldata
