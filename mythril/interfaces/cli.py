@@ -39,14 +39,12 @@ _ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
-PRO_LIST = ("pro", "p")
 
 log = logging.getLogger(__name__)
 
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
-    + PRO_LIST
     + (
         "read-storage",
         "leveldb-search",
@@ -634,16 +632,6 @@ def execute_command(
         )
         print(storage)
 
-    elif args.command in PRO_LIST:
-        mode = "full" if args.full else "quick"
-        report = mythx.analyze(disassembler.contracts, mode)
-        outputs = {
-            "json": report.as_json(),
-            "jsonv2": report.as_swc_standard_format(),
-            "text": report.as_text(),
-            "markdown": report.as_markdown(),
-        }
-        print(outputs[args.outform])
 
     elif args.command in DISASSEMBLE_LIST:
         if disassembler.contracts[0].code:
