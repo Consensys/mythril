@@ -32,6 +32,5 @@ transaction>=2.2.1
 z3-solver>=4.8.8.0
 pysha3
 matplotlib
-pythx
 pre-commit
 certifi>=2020.06.20
