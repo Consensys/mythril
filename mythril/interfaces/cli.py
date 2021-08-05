@@ -632,7 +632,6 @@ def execute_command(
         )
         print(storage)
 
-
     elif args.command in DISASSEMBLE_LIST:
         if disassembler.contracts[0].code:
             print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
