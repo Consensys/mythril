@@ -44,8 +44,10 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     :return:
     """
     cmd = [solc_binary, "--standard-json", "--allow-paths", "."]
-
-    settings = json.loads(solc_settings_json) if solc_settings_json else {}
+    settings = {}
+    if solc_settings_json:
+        with open(solc_settings_json) as f:
+            settings = json.load(f)
     settings.update(
         {
             "optimizer": {"enabled": True},
@@ -62,6 +64,7 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
             },
         }
     )
+
     input_json = json.dumps(
         {
             "language": "Solidity",

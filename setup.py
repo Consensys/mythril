@@ -28,7 +28,7 @@ REQUIRED = [
     "py_ecc==1.6.0",
     "ethereum>=2.3.2",
     "z3-solver>=4.8.8.0",
-    "requests==2.25.0",
+    "requests",
     "py-solc",
     "py-solc-x==1.0.0",
     "semantic_version==2.8.5",
@@ -53,7 +53,6 @@ REQUIRED = [
     "persistent>=4.2.0",
     "ethereum-input-decoder>=0.2.2",
     "matplotlib",
-    "pythx",
     "py-evm==0.3.0a13",
     "certifi>=2020.06.20",
 ]
