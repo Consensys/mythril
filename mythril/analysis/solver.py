@@ -53,7 +53,9 @@ def get_transaction_sequence(
     global_state: GlobalState, constraints: Constraints
 ) -> Dict[str, Any]:
     """Generate concrete transaction sequence.
-
+    Note: This function only considers the constraints in constraint argument,
+    which in some cases is expected to differ from global_state's constraints
+    
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
     """

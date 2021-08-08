@@ -196,6 +196,12 @@ def create_concolic_parser(parser: ArgumentParser) -> ArgumentParser:
         required=True,
         metavar="BRANCH",
     )
+    parser.add_argument(
+        "--solver-timeout",
+        type=int,
+        default=100000,
+        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
+    )
     return parser
 
 
@@ -856,7 +862,7 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     if args.command in CONCOLIC_LIST:
         with open(args.input) as f:
             concrete_data = json.load(f)
-        concolic_execution(concrete_data, args.branches.split(","))
+        concolic_execution(concrete_data, args.branches.split(","), args.solver_timeout)
         sys.exit()
 
     # Parse cmdline args
