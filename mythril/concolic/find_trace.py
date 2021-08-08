@@ -40,7 +40,6 @@ def concrete_execution(concrete_data: Dict) -> List:
     Executes code concretely to find the path to be followed by concolic executor
     :param concrete_data: Concrete data
     :return: path trace
-
     """
     init_state = setup_concrete_initial_state(concrete_data)
     laser_evm = LaserEVM(execution_timeout=100)
