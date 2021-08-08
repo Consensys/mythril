@@ -50,18 +50,21 @@ class ConcolicStrategy(CriterionSearchStrategy):
         super().__init__(work_list, max_depth)
         self.trace: List[int] = reduce(operator.iconcat, trace, [])
         self.last_tx_count: int = len(trace)
-        self.flip_branch_addr: List[str] = flip_branch_addresses
+        self.flip_branch_addresses: List[str] = flip_branch_addresses
         self.results: Dict[str, Dict[str, Any]] = {}
 
     def get_strategic_global_state(self) -> GlobalState:
         """
-
+        This function does the following:-
+        1) Choose the states by following the concolic trace.
+        2) In case we have an executed JUMPI that is in flip_branch_addresses, flip that branch.
         :return:
         """
         while len(self.work_list) > 0:
 
             state = self.work_list.pop()
             seq_id = len(state.world_state.transaction_sequence)
+
             trace_annotations = cast(
                 List[TraceAnnotation],
                 list(state.world_state.get_annotations(TraceAnnotation)),
@@ -73,25 +76,34 @@ class ConcolicStrategy(CriterionSearchStrategy):
             else:
                 annotation = trace_annotations[0]
 
+            # Appends trace
             annotation.trace.append(state.mstate.pc)
+
+            # If trace is 1 then it is not a JUMPI
             if len(annotation.trace) < 2:
+                # If trace does not follow the specified path, ignore the state
                 if annotation.trace != self.trace[: len(annotation.trace)]:
                     continue
                 return state
 
+            # Get the address of the previous pc
             addr: str = str(
                 state.environment.code.instruction_list[annotation.trace[-2]]["address"]
             )
-
             if (
                 annotation.trace == self.trace[: len(annotation.trace)]
                 and seq_id == self.last_tx_count
-                and addr in self.flip_branch_addr
+                and addr in self.flip_branch_addresses
                 and addr not in self.results
             ):
-                if state.environment.code.instruction_list[state.mstate.pc] == "JUMPI":
+                if (
+                    state.environment.code.instruction_list[annotation.trace[-2]][
+                        "opcode"
+                    ]
+                    != "JUMPI"
+                ):
                     log.error(
-                        f"The branch {addr} does not lead"
+                        f"The branch {addr} does not lead "
                         "to a jump address, skipping this branch"
                     )
                     continue
@@ -103,9 +115,8 @@ class ConcolicStrategy(CriterionSearchStrategy):
                     self.results[addr] = get_transaction_sequence(state, constraints)
                 except UnsatError:
                     self.results[addr] = None
-            else:
-                if annotation.trace != self.trace[: len(annotation.trace)]:
-                    continue
+            elif annotation.trace != self.trace[: len(annotation.trace)]:
+                continue
 
             return state
         raise StopIteration

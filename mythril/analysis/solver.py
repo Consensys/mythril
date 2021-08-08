@@ -73,6 +73,8 @@ def get_transaction_sequence(
         raise UnsatError
     # Include creation account in initial state
     # Note: This contains the code, which should not exist until after the first tx
+
+    # TODO: This isn't initial state, have an accurate way to maintain initial state.
     initial_world_state = transaction_sequence[0].world_state
     initial_accounts = initial_world_state.accounts
 
@@ -80,7 +82,7 @@ def get_transaction_sequence(
         concrete_transaction = _get_concrete_transaction(model, transaction)
         concrete_transactions.append(concrete_transaction)
 
-    min_price_dict = {}  # type: Dict[str, int]
+    min_price_dict: Dict[str, int] = {}
     for address in initial_accounts.keys():
         min_price_dict[address] = model.eval(
             initial_world_state.starting_balances[

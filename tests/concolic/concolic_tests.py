@@ -1,7 +1,7 @@
 import pytest
 import json
+import subprocess
 
-from subprocess import check_output
 from tests import BaseTestCase, TESTDATA, PROJECT_DIR, TESTS_DIR
 from mock import patch
 
@@ -9,7 +9,7 @@ MYTH = str(PROJECT_DIR / "myth")
 
 
 def output_of(command):
-    return json.loads(check_output(command, shell=True).decode("UTF-8"))
+    return json.loads(subprocess.check_output(command, shell=True).decode("UTF-8"))
 
 
 test_data = (
@@ -23,6 +23,8 @@ test_data = (
     ),
 )
 
+test_data_error = (("simple_example_input.json", "508"),)
+
 
 @pytest.mark.parametrize("input_file,output_file,branches", test_data)
 def test_concolic(input_file, output_file, branches):
@@ -35,3 +37,17 @@ def test_concolic(input_file, output_file, branches):
     received_output = output_of(command)
 
     assert received_output == expected_output
+
+
+@pytest.mark.parametrize("input_file,branch", test_data_error)
+def test_concolic_error(input_file, branch):
+    input_path = str(TESTS_DIR / "concolic" / "concolic_io" / input_file)
+    command = f"{MYTH} concolic {input_path} --branches {branch}"
+    received_output = subprocess.run(
+        command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+
+    assert (
+        f"The branch {branch} does not lead to a jump address, skipping this branch"
+        in received_output.stderr.decode("UTF-8")
+    )

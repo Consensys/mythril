@@ -71,7 +71,7 @@ def concolic_execution(
     """
     init_state, trace = concrete_execution(concrete_data)
     args.solver_timeout = solver_timeout
-    flip_branches(
+    output_list = flip_branches(
         init_state=init_state,
         concrete_data=concrete_data,
         jump_addresses=jump_addresses,
