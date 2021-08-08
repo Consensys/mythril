@@ -44,7 +44,7 @@ class ConcolicStrategy(CriterionSearchStrategy):
         work_list: List[GlobalState],
         max_depth: int,
         trace: List[List[int]],
-        flip_branch_addresses: int,
+        flip_branch_addresses: List[str],
     ):
         super().__init__(work_list, max_depth)
         self.trace: List[int] = reduce(operator.iconcat, trace, [])
