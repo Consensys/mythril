@@ -19,9 +19,8 @@ log = logging.getLogger(__name__)
 
 
 class TraceAnnotation(StateAnnotation):
-    """Mutation Annotation
-
-    This is the annotation used by the MutationPruner plugin to record mutations
+    """
+    This is the annotation used by the ConcolicStrategy to store concolic traces.
     """
 
     def __init__(self, trace=None):
@@ -52,6 +51,10 @@ class ConcolicStrategy(CriterionSearchStrategy):
         self.last_tx_count: int = len(trace)
         self.flip_branch_addresses: List[str] = flip_branch_addresses
         self.results: Dict[str, Dict[str, Any]] = {}
+
+    def check_completion_criterion(self):
+        if len(self.flip_branch_addresses) == len(self.results):
+            self.set_criterion_satisfied()
 
     def get_strategic_global_state(self) -> GlobalState:
         """
@@ -117,6 +120,6 @@ class ConcolicStrategy(CriterionSearchStrategy):
                     self.results[addr] = None
             elif annotation.trace != self.trace[: len(annotation.trace)]:
                 continue
-
+            self.check_completion_criterion()
             return state
         raise StopIteration
