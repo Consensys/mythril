@@ -20,7 +20,6 @@ def setup_concrete_initial_state(concrete_data: Dict) -> WorldState:
     Sets up concrete initial state
     :param concrete_data: Concrete data
     :return: initialised world state
-
     """
     world_state = WorldState()
     for address, details in concrete_data["initialState"]["accounts"].items():
