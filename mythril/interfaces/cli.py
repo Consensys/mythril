@@ -16,7 +16,6 @@ import traceback
 
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
-from mythril import mythx
 from mythril.exceptions import (
     AddressNotFoundError,
     DetectorNotFoundError,
@@ -40,14 +39,12 @@ _ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
-PRO_LIST = ("pro", "p")
 
 log = logging.getLogger(__name__)
 
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
-    + PRO_LIST
     + (
         "read-storage",
         "leveldb-search",
@@ -226,15 +223,6 @@ def main() -> None:
     )
     create_disassemble_parser(disassemble_parser)
 
-    pro_parser = subparsers.add_parser(
-        PRO_LIST[0],
-        help="Analyzes input with the MythX API (https://mythx.io)",
-        aliases=PRO_LIST[1:],
-        parents=[utilities_parser, creation_input_parser, output_parser],
-        formatter_class=RawTextHelpFormatter,
-    )
-    create_pro_parser(pro_parser)
-
     subparsers.add_parser(
         "list-detectors",
         parents=[output_parser],
@@ -283,25 +271,6 @@ def create_disassemble_parser(parser: ArgumentParser):
         nargs="*",
         help="Inputs file name and contract name. Currently supports a single contract\n"
         "usage: file1.sol:OptionalContractName",
-    )
-
-
-def create_pro_parser(parser: ArgumentParser):
-    """
-    Modify parser to handle mythx analysis
-    :param parser:
-    :return:
-    """
-    parser.add_argument(
-        "solidity_files",
-        nargs="*",
-        help="Inputs file name and contract name. \n"
-        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
-    )
-    parser.add_argument(
-        "--full",
-        help="Run a full analysis. Default: quick analysis",
-        action="store_true",
     )
 
 
@@ -662,17 +631,6 @@ def execute_command(
             params=[a.strip() for a in args.storage_slots.strip().split(",")],
         )
         print(storage)
-
-    elif args.command in PRO_LIST:
-        mode = "full" if args.full else "quick"
-        report = mythx.analyze(disassembler.contracts, mode)
-        outputs = {
-            "json": report.as_json(),
-            "jsonv2": report.as_swc_standard_format(),
-            "text": report.as_text(),
-            "markdown": report.as_markdown(),
-        }
-        print(outputs[args.outform])
 
     elif args.command in DISASSEMBLE_LIST:
         if disassembler.contracts[0].code:

@@ -200,8 +200,8 @@ class MythrilDisassembler:
                         self.contracts.append(contract)
                         contracts.append(contract)
 
-            except FileNotFoundError:
-                raise CriticalError("Input file not found: " + file)
+            except FileNotFoundError as e:
+                raise CriticalError(f"Input file not found {e}")
             except CompilerError as e:
                 error_msg = str(e)
                 # Check if error is related to solidity version mismatch

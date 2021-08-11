@@ -43,11 +43,14 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     :param solc_settings_json:
     :return:
     """
-    cmd = [solc_binary, "--optimize", "--standard-json", "--allow-paths", "."]
-
-    settings = json.loads(solc_settings_json) if solc_settings_json else {}
+    cmd = [solc_binary, "--standard-json", "--allow-paths", "."]
+    settings = {}
+    if solc_settings_json:
+        with open(solc_settings_json) as f:
+            settings = json.load(f)
     settings.update(
         {
+            "optimizer": {"enabled": True},
             "outputSelection": {
                 "*": {
                     "": ["ast"],
@@ -58,9 +61,10 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
                         "evm.methodIdentifiers",
                     ],
                 }
-            }
+            },
         }
     )
+
     input_json = json.dumps(
         {
             "language": "Solidity",
