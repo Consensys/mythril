@@ -19,7 +19,7 @@ numpy
 persistent>=4.2.0
 plyvel
 py-flags
-py-evm
+py-evm<=0.3.0-alpha.18  # last compatible with rlp<2
 py-solc-x
 py-solc
 pytest>=3.6.0
