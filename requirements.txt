@@ -19,14 +19,14 @@ numpy
 persistent>=4.2.0
 plyvel
 py-flags
-py-evm<=0.3.0-alpha.18  # last compatible with rlp<2
+py-evm
 py-solc-x
 py-solc
 pytest>=3.6.0
 pytest-cov
 pytest_mock
 requests
-rlp>=1.0.1,<2.0.0
+rlp
 semantic_version
 transaction>=2.2.1
 z3-solver>=4.8.8.0
