@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List
 from copy import deepcopy
 
+from mythril.concolic.concrete_data import ConcreteData
 from mythril.concolic.find_trace import concrete_execution
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.strategy.concolic import ConcolicStrategy
@@ -19,7 +20,10 @@ from mythril.support.support_args import args
 
 
 def flip_branches(
-    init_state: WorldState, concrete_data: Dict, jump_addresses: List[str], trace: List
+    init_state: WorldState,
+    concrete_data: ConcreteData,
+    jump_addresses: List[str],
+    trace: List,
 ):
     """
     Flips branches and prints the input required for branch flip
@@ -60,7 +64,7 @@ def flip_branches(
 
 
 def concolic_execution(
-    concrete_data: Dict, jump_addresses: List, solver_timeout=100000
+    concrete_data: ConcreteData, jump_addresses: List, solver_timeout=100000
 ):
     """
     Executes codes and prints input required to cover the branch flips

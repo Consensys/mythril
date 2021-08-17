@@ -118,7 +118,7 @@ class MachineState:
         :param max_gas_used:
         :param min_gas_used:
         """
-        self._pc = pc
+        self.pc = pc
         self.stack = MachineStack(stack)
         self.subroutine_stack = MachineStack(subroutine_stack)
         self.memory = memory or Memory()
@@ -221,7 +221,7 @@ class MachineState:
             gas_limit=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
-            pc=self._pc,
+            pc=self.pc,
             stack=copy(self.stack),
             memory=copy(self.memory),
             depth=self.depth,
@@ -234,18 +234,6 @@ class MachineState:
         :return:
         """
         return str(self.as_dict)
-
-    @property
-    def pc(self) -> int:
-        """
-
-        :return:
-        """
-        return self._pc
-
-    @pc.setter
-    def pc(self, value):
-        self._pc = value
 
     @property
     def memory_size(self) -> int:
@@ -262,7 +250,7 @@ class MachineState:
         :return:
         """
         return dict(
-            pc=self._pc,
+            pc=self.pc,
             stack=self.stack,
             subroutine_stack=self.subroutine_stack,
             memory=self.memory,

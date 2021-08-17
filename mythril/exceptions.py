@@ -46,3 +46,10 @@ class DetectorNotFoundError(MythrilBaseException):
     detection module."""
 
     pass
+
+
+class IllegalArgumentError(ValueError):
+    """The argument used does not exist
+    """
+
+    pass

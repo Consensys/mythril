@@ -5,6 +5,8 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Dict, List
 
+from mythril.concolic.concrete_data import ConcreteData
+
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -15,7 +17,7 @@ from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.plugin.plugins import TraceFinderBuilder
 
 
-def setup_concrete_initial_state(concrete_data: Dict) -> WorldState:
+def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
     """
     Sets up concrete initial state
     :param concrete_data: Concrete data
@@ -35,7 +37,7 @@ def setup_concrete_initial_state(concrete_data: Dict) -> WorldState:
     return world_state
 
 
-def concrete_execution(concrete_data: Dict) -> List:
+def concrete_execution(concrete_data: ConcreteData) -> List:
     """
     Executes code concretely to find the path to be followed by concolic executor
     :param concrete_data: Concrete data

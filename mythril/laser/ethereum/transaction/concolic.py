@@ -3,6 +3,7 @@ calls."""
 import binascii
 
 from typing import List, Union
+from mythril.support.exceptions import IllegalArgumentError
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.smt import symbol_factory
@@ -48,7 +49,6 @@ def execute_contract_creation(
     open_states: List[WorldState] = laser_evm.open_states[:]
     del laser_evm.open_states[:]
 
-    new_account = None
     data = binascii.b2a_hex(data).decode("utf-8")
 
     for open_world_state in open_states:
@@ -66,7 +66,6 @@ def execute_contract_creation(
             call_value=value,
         )
         _setup_global_state_for_execution(laser_evm, transaction)
-        new_account = new_account or transaction.callee_account
 
     return laser_evm.exec(True, track_gas=track_gas)
 
@@ -160,11 +159,14 @@ def execute_transaction(*args, **kwargs) -> Union[None, List[GlobalState]]:
     Chooses the transaction type based on callee address and
     executes the transaction
     """
-    if kwargs["callee_address"] == "":
-        if kwargs["caller_address"] == "":
-            kwargs["caller_address"] = kwargs["origin"]
-        return execute_contract_creation(*args, **kwargs)
-    kwargs["callee_address"] = symbol_factory.BitVecVal(
-        int(kwargs["callee_address"], 16), 256
-    )
+    try:
+        if kwargs["callee_address"] == "":
+            if kwargs["caller_address"] == "":
+                kwargs["caller_address"] = kwargs["origin"]
+            return execute_contract_creation(*args, **kwargs)
+        kwargs["callee_address"] = symbol_factory.BitVecVal(
+            int(kwargs["callee_address"], 16), 256
+        )
+    except KeyError as k:
+        raise IllegalArgumentError(f"Argument not found: {k}")
     return execute_message_call(*args, **kwargs)
