@@ -75,7 +75,7 @@ def get_transaction_sequence(
     # Note: This contains the code, which should not exist until after the first tx
 
     # TODO: This isn't initial state, have an accurate way to maintain initial state.
-    initial_world_state = transaction_sequence[0].world_state
+    initial_world_state = transaction_sequence[0].prev_world_state
     initial_accounts = initial_world_state.accounts
 
     for transaction in transaction_sequence:
@@ -171,7 +171,7 @@ def _get_concrete_state(
         # Skip empty default account
 
         data: Dict[str, Union[int, str]] = {}
-        data["nonce"] = 0
+        data["nonce"] = account.nonce
         data["code"] = account.code.bytecode
         data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))

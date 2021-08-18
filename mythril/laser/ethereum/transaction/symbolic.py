@@ -2,6 +2,7 @@
 symbolic values."""
 import logging
 from typing import Optional
+from copy import deepcopy
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
@@ -190,7 +191,7 @@ def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -
             )
         new_node.constraints = global_state.world_state.constraints
 
-    global_state.world_state.transaction_sequence.append(transaction)
+    global_state.world_state.transaction_sequence.append(deepcopy(transaction))
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)

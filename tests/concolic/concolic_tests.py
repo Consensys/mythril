@@ -12,31 +12,118 @@ def output_of(command):
     return json.loads(subprocess.check_output(command, shell=True).decode("UTF-8"))
 
 
+# TODO: Try using some python EVM for these tests
+
+
+def validate_simple_example(output, branches):
+    for branch_output, branch in zip(output, branches):
+        if branch == "153":
+            # Validation for initialState
+
+            # Validation for tx steps
+            tx_step = branch["steps"][1]
+            assert tx_step["input"] == tx_step["calldata"]
+            assert int(tx_step["input"][10:], 16) == 3
+
+
+def validate_multiple_example(output, branches):
+    for branch_output, branch in zip(output, branches):
+        if branch == "153":
+            # Validation for initialState
+
+            # Validation for tx steps
+            tx_step = branch["steps"][1]
+            assert tx_step["input"] == tx_step["calldata"]
+            assert int(tx_step["input"][10:], 16) == 3
+        elif branch == "192":
+            # Validation for initialState
+
+            # Validation for tx steps
+            tx_step = branch["steps"][1]
+            assert tx_step["input"] == tx_step["calldata"]
+            assert int(tx_step["input"][10:], 16) == 5
+        elif branch == "243":
+            # Validation for initialState
+
+            # Validation for tx steps
+            tx_step = branch["steps"][1]
+            assert tx_step["input"] == tx_step["calldata"]
+            assert int(tx_step["input"][10:], 16) == 7
+
+
+def validate_two_contract(output, branches):
+    for branch_output, branch in zip(output, branches):
+        if branch == "311":
+            # Validation for initialState
+
+            # Validation for tx steps
+            assert (
+                int(branch["steps"][1][10:], 16) + int(branch["steps"][3][10:], 16)
+                == 11
+            )
+
+        if branch == "341":
+            # Validation for initialState
+
+            # Validation for tx steps
+            assert (
+                int(branch["steps"][1][10:], 16) + int(branch["steps"][3][10:], 16)
+                == 30
+            )
+
+        if branch == "371":
+            # Validation for initialState
+
+            # Validation for tx steps
+            assert (
+                int(branch["steps"][1][10:], 16) + int(branch["steps"][3][10:], 16)
+                == 20
+            )
+
+
+def validate_multi_contract(output, branches):
+    for branch_output, branch in zip(output, branches):
+        if branch == "453":
+            # Validation for initialState
+
+            # Validation for tx steps
+            assert (
+                int(branch["steps"][1][10:], 16)
+                + int(branch["steps"][3][10:], 16)
+                + int(branch["steps"][5][10:], 16)
+                == 10
+            )
+
+        if branch == "483":
+            # Validation for initialState
+
+            # Validation for tx steps
+            assert (
+                int(branch["steps"][1][10:], 16)
+                + int(branch["steps"][3][10:], 16)
+                + int(branch["steps"][5][10:], 16)
+                == 25
+            )
+
+
 test_data = (
-    ("simple_example_input.json", "simple_example_output.json", "153"),
-    ("multiple_example_input.json", "multiple_example_output.json", "153,192,243"),
-    ("two_contract_input.json", "two_contract_output.json", "311,341,371"),
-    (
-        "multi_contract_example_input.json",
-        "multi_contract_example_output.json",
-        "453,483",
-    ),
+    ("simple_example_input.json", validate_simple_example, "153"),
+    ("multiple_example_input.json", validate_multiple_example, "153,192,243"),
+    ("two_contract_input.json", validate_two_contract, "311,341,371"),
+    ("multi_contract_example_input.json", validate_multi_contract, "453,483"),
 )
 
 test_data_error = (("simple_example_input.json", "508"),)
 
 
-@pytest.mark.parametrize("input_file,output_file,branches", test_data)
-def test_concolic(input_file, output_file, branches):
+@pytest.mark.parametrize("input_file,validate_function,branches", test_data)
+def test_concolic(input_file, validate_function, branches):
     input_path = str(TESTS_DIR / "concolic" / "concolic_io" / input_file)
-    output_path = str(TESTS_DIR / "concolic" / "concolic_io" / output_file)
 
     command = f"{MYTH} concolic {input_path} --branches {branches}"
-    with open(output_path) as f:
-        expected_output = json.load(f)
     received_output = output_of(command)
 
-    assert received_output == expected_output
+    validate_function(received_output, branches)
 
 
 @pytest.mark.parametrize("input_file,branch", test_data_error)

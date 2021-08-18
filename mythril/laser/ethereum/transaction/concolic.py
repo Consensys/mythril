@@ -3,7 +3,9 @@ calls."""
 import binascii
 
 from typing import List, Union
-from mythril.support.exceptions import IllegalArgumentError
+from copy import deepcopy
+
+from mythril.exceptions import IllegalArgumentError
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
 from mythril.laser.smt import symbol_factory
@@ -148,7 +150,7 @@ def _setup_global_state_for_execution(laser_evm, transaction) -> None:
         )
         new_node.constraints = global_state.world_state.constraints
 
-    global_state.world_state.transaction_sequence.append(transaction)
+    global_state.world_state.transaction_sequence.append(deepcopy(transaction))
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
