@@ -71,11 +71,12 @@ def get_transaction_sequence(
         model = get_model(tx_constraints, minimize=minimize)
     except UnsatError:
         raise UnsatError
-    # Include creation account in initial state
-    # Note: This contains the code, which should not exist until after the first tx
 
-    # TODO: This isn't initial state, have an accurate way to maintain initial state.
-    initial_world_state = transaction_sequence[0].prev_world_state
+    if isinstance(transaction_sequence[0], ContractCreationTransaction):
+        initial_world_state = transaction_sequence[0].prev_world_state
+    else:
+        initial_world_state = transaction_sequence[0].world_state
+
     initial_accounts = initial_world_state.accounts
 
     for transaction in transaction_sequence:
