@@ -143,7 +143,7 @@ class WorldState:
 
         address = (
             symbol_factory.BitVecVal(address, 256)
-            if address
+            if address is not None
             else self._generate_new_address(creator, nonce=self.accounts[creator].nonce)
         )
         if creator:
