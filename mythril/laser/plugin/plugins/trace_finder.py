@@ -10,6 +10,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 )
 from mythril.analysis import solver
 from mythril.exceptions import UnsatError
+from typing import List, Tuple
 
 
 class TraceFinderBuilder(PluginBuilder):
@@ -24,7 +25,7 @@ class TraceFinder(LaserPlugin):
         self._reset()
 
     def _reset(self):
-        self.tx_trace = []
+        self.tx_trace: List[List[Tuple[int, str]]] = []
 
     def initialize(self, symbolic_vm: LaserEVM):
         """Initializes the mutation pruner
@@ -41,4 +42,6 @@ class TraceFinder(LaserPlugin):
 
         @symbolic_vm.laser_hook("execute_state")
         def trace_jumpi_hook(global_state: GlobalState):
-            self.tx_trace[-1].append(global_state.mstate.pc)
+            self.tx_trace[-1].append(
+                (global_state.mstate.pc, global_state.current_transaction.id)
+            )

@@ -9,7 +9,7 @@ from mythril.laser.smt import Not
 from mythril.exceptions import UnsatError
 
 from functools import reduce
-from typing import Dict, cast, List, Any
+from typing import Dict, cast, List, Any, Tuple
 from copy import copy
 from . import CriterionSearchStrategy
 import logging
@@ -43,11 +43,18 @@ class ConcolicStrategy(CriterionSearchStrategy):
         self,
         work_list: List[GlobalState],
         max_depth: int,
-        trace: List[List[int]],
+        trace: List[List[Tuple[int, str]]],
         flip_branch_addresses: List[str],
     ):
+        """
+
+        work_list: The work-list of states
+        max_depth: The maximum depth for the strategy to go through
+        trace: This is the trace to be followed, each element is of the type Tuple(program counter, tx_id)
+        flip_branch_addresses: Branch addresses to be flipped.
+        """
         super().__init__(work_list, max_depth)
-        self.trace: List[int] = reduce(operator.iconcat, trace, [])
+        self.trace: List[Tuple[int, str]] = reduce(operator.iconcat, trace, [])
         self.last_tx_count: int = len(trace)
         self.flip_branch_addresses: List[str] = flip_branch_addresses
         self.results: Dict[str, Dict[str, Any]] = {}
@@ -64,7 +71,6 @@ class ConcolicStrategy(CriterionSearchStrategy):
         :return:
         """
         while len(self.work_list) > 0:
-
             state = self.work_list.pop()
             seq_id = len(state.world_state.transaction_sequence)
 
@@ -80,9 +86,9 @@ class ConcolicStrategy(CriterionSearchStrategy):
                 annotation = trace_annotations[0]
 
             # Appends trace
-            annotation.trace.append(state.mstate.pc)
+            annotation.trace.append((state.mstate.pc, state.current_transaction.id))
 
-            # If trace is 1 then it is not a JUMPI
+            # If length of trace is 1 then it is not a JUMPI
             if len(annotation.trace) < 2:
                 # If trace does not follow the specified path, ignore the state
                 if annotation.trace != self.trace[: len(annotation.trace)]:
@@ -91,7 +97,9 @@ class ConcolicStrategy(CriterionSearchStrategy):
 
             # Get the address of the previous pc
             addr: str = str(
-                state.environment.code.instruction_list[annotation.trace[-2]]["address"]
+                state.environment.code.instruction_list[annotation.trace[-2][0]][
+                    "address"
+                ]
             )
             if (
                 annotation.trace == self.trace[: len(annotation.trace)]
@@ -100,7 +108,7 @@ class ConcolicStrategy(CriterionSearchStrategy):
                 and addr not in self.results
             ):
                 if (
-                    state.environment.code.instruction_list[annotation.trace[-2]][
+                    state.environment.code.instruction_list[annotation.trace[-2][0]][
                         "opcode"
                     ]
                     != "JUMPI"

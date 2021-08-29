@@ -12,7 +12,7 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
-    get_next_transaction_id,
+    tx_id_manager,
     BaseTransaction,
 )
 from typing import List, Union
@@ -84,7 +84,7 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
             log.debug("Can not execute dead contract, skipping.")
             continue
 
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
 
         external_sender = symbol_factory.BitVecSym(
             "sender_{}".format(next_transaction_id), 256
@@ -131,7 +131,7 @@ def execute_contract_creation(
     del laser_evm.open_states[:]
     new_account = None
     for open_world_state in open_states:
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
         # call_data "should" be '[]', but it is easier to model the calldata symbolically
         # and add logic in codecopy/codesize/calldatacopy/calldatasize than to model code "correctly"
         transaction = ContractCreationTransaction(

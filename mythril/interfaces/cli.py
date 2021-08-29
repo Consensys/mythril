@@ -820,7 +820,10 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
     if args.command in CONCOLIC_LIST:
         with open(args.input) as f:
             concrete_data = json.load(f)
-        concolic_execution(concrete_data, args.branches.split(","), args.solver_timeout)
+        output_list = concolic_execution(
+            concrete_data, args.branches.split(","), args.solver_timeout
+        )
+        json.dump(output_list, sys.stdout, indent=4)
         sys.exit()
 
     # Parse cmdline args

@@ -16,7 +16,7 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
-    get_next_transaction_id,
+    tx_id_manager,
 )
 
 
@@ -54,7 +54,7 @@ def execute_contract_creation(
     data = binascii.b2a_hex(data).decode("utf-8")
 
     for open_world_state in open_states:
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
         transaction = ContractCreationTransaction(
             world_state=open_world_state,
             identifier=next_transaction_id,
@@ -102,7 +102,7 @@ def execute_message_call(
     open_states: List[WorldState] = laser_evm.open_states[:]
     del laser_evm.open_states[:]
     for open_world_state in open_states:
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
         code = code or open_world_state[callee_address].code.bytecode
         transaction = MessageCallTransaction(
             world_state=open_world_state,

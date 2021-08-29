@@ -3,7 +3,7 @@ import binascii
 
 from copy import deepcopy
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from mythril.concolic.concrete_data import ConcreteData
 
@@ -15,6 +15,7 @@ from mythril.laser.ethereum.transaction.concolic import execute_transaction
 from mythril.laser.plugin.loader import LaserPluginLoader
 from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.plugin.plugins import TraceFinderBuilder
+from mythril.laser.ethereum.transaction.transaction_models import tx_id_manager
 
 
 def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
@@ -28,6 +29,8 @@ def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
         account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
         account.nonce = details["nonce"]
+        if type(details["storage"]) == str:
+            details["storage"] = eval(details["storage"])  # type: ignore
         for key, value in details["storage"].items():
             key_bitvec = symbol_factory.BitVecVal(int(key, 16), 256)
             account.storage[key_bitvec] = symbol_factory.BitVecVal(int(value, 16), 256)
@@ -37,14 +40,15 @@ def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
     return world_state
 
 
-def concrete_execution(concrete_data: ConcreteData) -> List:
+def concrete_execution(concrete_data: ConcreteData) -> Tuple[WorldState, List]:
     """
     Executes code concretely to find the path to be followed by concolic executor
     :param concrete_data: Concrete data
     :return: path trace
     """
+    tx_id_manager.restart_counter()
     init_state = setup_concrete_initial_state(concrete_data)
-    laser_evm = LaserEVM(execution_timeout=100)
+    laser_evm = LaserEVM(execution_timeout=1000)
     laser_evm.open_states = [deepcopy(init_state)]
     plugin_loader = LaserPluginLoader()
     trace_plugin = TraceFinderBuilder()
@@ -61,11 +65,11 @@ def concrete_execution(concrete_data: ConcreteData) -> List:
             origin_address=symbol_factory.BitVecVal(
                 int(transaction["origin"], 16), 256
             ),
-            gas_limit=int(transaction["gasLimit"], 16),
+            gas_limit=int(transaction.get("gasLimit", "0x9999999999999999999999"), 16),
             data=binascii.a2b_hex(transaction["input"][2:]),
-            gas_price=int(transaction["gasPrice"], 16),
+            gas_price=int(transaction.get("gasPrice", "0x773594000"), 16),
             value=int(transaction["value"], 16),
             track_gas=False,
         )
-
+    tx_id_manager.restart_counter()
     return init_state, plugin_loader.plugin_list["trace-finder"].tx_trace  # type: ignore

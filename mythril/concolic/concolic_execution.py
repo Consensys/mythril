@@ -1,9 +1,8 @@
 import json
 import binascii
-import sys
 
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Any
 from copy import deepcopy
 
 from mythril.concolic.concrete_data import ConcreteData
@@ -14,6 +13,7 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.transaction.symbolic import execute_transaction
+from mythril.laser.ethereum.transaction.transaction_models import tx_id_manager
 from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.support.support_args import args
@@ -24,7 +24,7 @@ def flip_branches(
     concrete_data: ConcreteData,
     jump_addresses: List[str],
     trace: List,
-):
+) -> List[Dict[str, Dict[str, Any]]]:
     """
     Flips branches and prints the input required for branch flip
 
@@ -32,6 +32,7 @@ def flip_branches(
     :param jump_addresses: Jump addresses to flip
     :param trace: trace to follow
     """
+    tx_id_manager.restart_counter()
     output_list = []
     laser_evm = LaserEVM(
         execution_timeout=600, use_reachability_check=False, transaction_count=10
@@ -65,7 +66,7 @@ def flip_branches(
 
 def concolic_execution(
     concrete_data: ConcreteData, jump_addresses: List, solver_timeout=100000
-):
+) -> List[Dict[str, Dict[str, Any]]]:
     """
     Executes codes and prints input required to cover the branch flips
     :param input_file: Input file
@@ -81,4 +82,4 @@ def concolic_execution(
         jump_addresses=jump_addresses,
         trace=trace,
     )
-    json.dump(output_list, sys.stdout, indent=4)
+    return output_list
