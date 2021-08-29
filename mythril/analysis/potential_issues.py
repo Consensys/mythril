@@ -89,7 +89,6 @@ def check_potential_issues(state: GlobalState) -> None:
         except UnsatError:
             continue
 
-        annotation.potential_issues.remove(potential_issue)
         potential_issue.detector.cache.add(potential_issue.address)
         potential_issue.detector.issues.append(
             Issue(
