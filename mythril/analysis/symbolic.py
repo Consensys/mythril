@@ -159,13 +159,17 @@ class SymExecWrapper:
                 ),
             )
 
-        if isinstance(contract, SolidityContract):
+        if isinstance(contract, SolidityContract) and create_timeout != 0:
             self.laser.sym_exec(
                 creation_code=contract.creation_code,
                 contract_name=contract.name,
                 world_state=world_state,
             )
-        elif isinstance(contract, EVMContract) and contract.creation_code:
+        elif (
+            isinstance(contract, EVMContract)
+            and contract.creation_code
+            and create_timeout != 0
+        ):
             self.laser.sym_exec(
                 creation_code=contract.creation_code,
                 contract_name=contract.name,
