@@ -775,7 +775,7 @@ def print_function_report(myth_disassembler: MythrilDisassembler, report: Report
             contract_data[issue.contract].remove(issue.function)
 
     for contract, function_list in contract_data.items():
-        print(f"Contract {contract}: \n\n")
+        print(f"Contract {contract}: \n")
         print(
             f"{len(function_list)} functions are deemed safe in this contract: {function_list}\n\n\n"
         )
