@@ -770,6 +770,7 @@ def print_function_report(myth_disassembler: MythrilDisassembler, report: Report
         contract_data[contract.name] = list(
             set(contract.disassembly.address_to_function_name.values())
         )
+        print(list(contract.disassembly.address_to_function_name))
     for issue in report.issues.values():
         if issue.function in contract_data[issue.contract]:
             contract_data[issue.contract].remove(issue.function)
@@ -777,7 +778,7 @@ def print_function_report(myth_disassembler: MythrilDisassembler, report: Report
     for contract, function_list in contract_data.items():
         print(f"Contract {contract}: \n")
         print(
-            f"{len(function_list)} functions are deemed safe in this contract: {function_list}\n\n\n"
+            f"""{len(function_list)} functions are deemed safe in this contract: {", ".join(function_list)}\n\n"""
         )
 
 
