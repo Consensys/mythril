@@ -1,7 +1,7 @@
 """This module contains detection code to find occurrences of calls whose
 return value remains unchecked."""
 from copy import copy
-from typing import cast, List, Union, Mapping
+from typing import cast, List
 
 from mythril.analysis import solver
 from mythril.analysis.report import Issue
@@ -14,7 +14,7 @@ from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 import logging
-from typing import TypedDict
+from typing_extensions import TypedDict
 
 log = logging.getLogger(__name__)
 
