@@ -23,12 +23,12 @@ class Issue:
 
     def __init__(
         self,
-        contract,
-        function_name,
-        address,
-        swc_id,
-        title,
-        bytecode,
+        contract: str,
+        function_name: str,
+        address: int,
+        swc_id: str,
+        title: str,
+        bytecode: str,
         gas_used=(None, None),
         severity=None,
         description_head="",
@@ -224,7 +224,11 @@ class Report:
         :param issue:
         """
         m = hashlib.md5()
-        m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
+        m.update(
+            (issue.contract + issue.function + str(issue.address) + issue.title).encode(
+                "utf-8"
+            )
+        )
         issue.resolve_function_names()
         self.issues[m.digest()] = issue
 
