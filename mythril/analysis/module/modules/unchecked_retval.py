@@ -14,13 +14,19 @@ from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 import logging
+from typing import TypedDict
 
 log = logging.getLogger(__name__)
 
 
+class RetVal(TypedDict):
+    address: int
+    retval: BitVec
+
+
 class UncheckedRetvalAnnotation(StateAnnotation):
     def __init__(self) -> None:
-        self.retvals = []  # type: List[Mapping[str, Union[int, BitVec]]]
+        self.retvals: List[RetVal] = []
 
     def __copy__(self):
         result = UncheckedRetvalAnnotation()

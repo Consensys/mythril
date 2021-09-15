@@ -18,6 +18,17 @@ test_data = (
         },
         "0xab12585800000000000000000000000000000000000000000000000000000000000004d2",
     ),
+    (
+        "exceptions_0.8.0.sol.o",
+        {
+            "TX_COUNT": 1,
+            "TX_OUTPUT": 1,
+            "MODULE": "Exceptions",
+            "ISSUE_COUNT": 2,
+            "ISSUE_NUMBER": 0,
+        },
+        None,
+    ),
 )
 
 
@@ -28,5 +39,8 @@ def test_analysis(file_name, tx_data, calldata):
     output = json.loads(check_output(command, shell=True).decode("UTF-8"))
 
     assert len(output[0]["issues"]) == tx_data["ISSUE_COUNT"]
-    test_case = output[0]["issues"][tx_data["ISSUE_NUMBER"]]["extra"]["testCases"][0]
-    assert test_case["steps"][tx_data["TX_OUTPUT"]]["input"] == calldata
+    if calldata:
+        test_case = output[0]["issues"][tx_data["ISSUE_NUMBER"]]["extra"]["testCases"][
+            0
+        ]
+        assert test_case["steps"][tx_data["TX_OUTPUT"]]["input"] == calldata
