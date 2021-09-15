@@ -1042,6 +1042,16 @@ class Instruction:
         return [global_state]
 
     @StateTransition()
+    def basefee_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        global_state.mstate.stack.append(global_state.environment.basefee)
+        return [global_state]
+
+    @StateTransition()
     def codecopy_(self, global_state: GlobalState) -> List[GlobalState]:
         """
 
