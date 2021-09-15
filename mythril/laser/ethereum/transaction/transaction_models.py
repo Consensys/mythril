@@ -69,6 +69,7 @@ class BaseTransaction:
         call_value=None,
         init_call_data=True,
         static=False,
+        base_fee=None,
     ) -> None:
         assert isinstance(world_state, WorldState)
         self.world_state = world_state
@@ -77,14 +78,21 @@ class BaseTransaction:
         self.gas_price = (
             gas_price
             if gas_price is not None
-            else symbol_factory.BitVecSym("gasprice{}".format(identifier), 256)
+            else symbol_factory.BitVecSym(f"gasprice{identifier}", 256)
         )
+
+        self.base_fee = (
+            base_fee
+            if base_fee is not None
+            else symbol_factory.BitVecSym(f"basefee{identifier}", 256)
+        )
+
         self.gas_limit = gas_limit
 
         self.origin = (
             origin
             if origin is not None
-            else symbol_factory.BitVecSym("origin{}".format(identifier), 256)
+            else symbol_factory.BitVecSym(f"origin{identifier}", 256)
         )
         self.code = code
 
@@ -102,7 +110,7 @@ class BaseTransaction:
         self.call_value = (
             call_value
             if call_value is not None
-            else symbol_factory.BitVecSym("callvalue{}".format(identifier), 256)
+            else symbol_factory.BitVecSym(f"callvalue{identifier}", 256)
         )
         self.static = static
         self.return_data = None  # type: str
@@ -161,6 +169,7 @@ class MessageCallTransaction(BaseTransaction):
             self.gas_price,
             self.call_value,
             self.origin,
+            self.base_fee,
             code=self.code or self.callee_account.code,
             static=self.static,
         )
@@ -196,6 +205,7 @@ class ContractCreationTransaction(BaseTransaction):
         call_value=None,
         contract_name=None,
         contract_address=None,
+        base_fee=None,
     ) -> None:
         self.prev_world_state = deepcopy(world_state)
         contract_address = (
@@ -219,18 +229,20 @@ class ContractCreationTransaction(BaseTransaction):
             code=code,
             call_value=call_value,
             init_call_data=True,
+            base_fee=base_fee,
         )
 
     def initial_global_state(self) -> GlobalState:
         """Initialize the execution environment."""
         environment = Environment(
-            self.callee_account,
-            self.caller,
-            self.call_data,
-            self.gas_price,
-            self.call_value,
-            self.origin,
-            self.code,
+            active_account=self.callee_account,
+            sender=self.caller,
+            calldata=self.call_data,
+            gasprice=self.gas_price,
+            callvalue=self.call_value,
+            origin=self.origin,
+            basefee=self.base_fee,
+            code=self.code,
         )
         return super().initial_global_state_from_environment(
             environment, active_function="constructor"

@@ -175,6 +175,7 @@ OPCODES = {
     "CALL": {GAS: (700, 700 + 9000 + 25000), STACK: (7, 1)},
     "CALLCODE": {GAS: (700, 700 + 9000 + 25000), STACK: (7, 1)},
     "RETURN": {GAS: (0, 0), STACK: (2, 0)},
+    "BASEFEE": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE},
     "DELEGATECALL": {GAS: (700, 700 + 9000 + 25000), STACK: (6, 1)},
     "STATICCALL": {GAS: (700, 700 + 9000 + 25000), STACK: (6, 1)},
     "REVERT": {GAS: (0, 0), STACK: (2, 0)},
