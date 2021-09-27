@@ -31,6 +31,7 @@ from mythril.mythril import (
 )
 
 from mythril.analysis.module import ModuleLoader
+from mythril.analysis.report import Report
 
 from mythril.__version__ import __version__ as VERSION
 
@@ -39,6 +40,14 @@ _ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
+SAFE_FUNCTIONS_COMMAND = "safe-functions"
+READ_STORAGE_COMNAND = "read-storage"
+LEVELDB_SEARCH_COMMAND = "leveldb-search"
+FUNCTION_TO_HASH_COMMAND = "function-to-hash"
+HASH_TO_ADDRESS_COMMAND = "hash-to-address"
+LIST_DETECTORS_COMMAND = "list-detectors"
+VERSION_COMMAND = "version"
+HELP_COMMAND = "help"
 
 log = logging.getLogger(__name__)
 
@@ -46,13 +55,14 @@ COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
     + (
-        "read-storage",
-        "leveldb-search",
-        "function-to-hash",
-        "hash-to-address",
-        "list-detectors",
-        "version",
-        "help",
+        READ_STORAGE_COMNAND,
+        SAFE_FUNCTIONS_COMMAND,
+        LEVELDB_SEARCH_COMMAND,
+        FUNCTION_TO_HASH_COMMAND,
+        HASH_TO_ADDRESS_COMMAND,
+        LIST_DETECTORS_COMMAND,
+        VERSION_COMMAND,
+        HELP_COMMAND,
     )
 )
 
@@ -124,6 +134,28 @@ def get_creation_input_parser() -> ArgumentParser:
     return parser
 
 
+def get_safe_functions_parser() -> ArgumentParser:
+    """
+    Returns Parser which handles checking for safe functions
+    :return: Parser which handles checking for safe functions
+    """
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument(
+        "-c",
+        "--code",
+        help='hex-encoded bytecode string ("6060604052...")',
+        metavar="BYTECODE",
+    )
+    parser.add_argument(
+        "-f",
+        "--codefile",
+        help="file containing hex-encoded bytecode string",
+        metavar="BYTECODEFILE",
+        type=argparse.FileType("r"),
+    )
+    return parser
+
+
 def get_output_parser() -> ArgumentParser:
     """
     Get parser which handles output
@@ -156,6 +188,8 @@ def get_rpc_parser() -> ArgumentParser:
     parser.add_argument(
         "--rpctls", type=bool, default=False, help="RPC connection over TLS"
     )
+    parser.add_argument("--infura-id", help="set infura id for onchain analysis")
+
     return parser
 
 
@@ -194,6 +228,18 @@ def main() -> None:
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
+    safe_function_parser = subparsers.add_parser(
+        SAFE_FUNCTIONS_COMMAND,
+        help="Check functions which are completely safe using symbolic execution",
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            creation_input_parser,
+            runtime_input_parser,
+            output_parser,
+        ],
+        formatter_class=RawTextHelpFormatter,
+    )
     analyzer_parser = subparsers.add_parser(
         ANALYZE_LIST[0],
         help="Triggers the analysis of the smart contract",
@@ -207,6 +253,7 @@ def main() -> None:
         aliases=ANALYZE_LIST[1:],
         formatter_class=RawTextHelpFormatter,
     )
+    create_safe_functions_parser(safe_function_parser)
     create_analyzer_parser(analyzer_parser)
 
     disassemble_parser = subparsers.add_parser(
@@ -224,7 +271,7 @@ def main() -> None:
     create_disassemble_parser(disassemble_parser)
 
     subparsers.add_parser(
-        "list-detectors",
+        LIST_DETECTORS_COMMAND,
         parents=[output_parser],
         help="Lists available detection modules",
     )
@@ -237,21 +284,21 @@ def main() -> None:
         "leveldb-search", help="Searches the code fragment in local leveldb"
     )
     contract_func_to_hash = subparsers.add_parser(
-        "function-to-hash", help="Returns the hash signature of the function"
+        FUNCTION_TO_HASH_COMMAND, help="Returns the hash signature of the function"
     )
     contract_hash_to_addr = subparsers.add_parser(
-        "hash-to-address",
+        HASH_TO_ADDRESS_COMMAND,
         help="converts the hashes in the blockchain to ethereum address",
     )
     subparsers.add_parser(
-        "version", parents=[output_parser], help="Outputs the version"
+        VERSION_COMMAND, parents=[output_parser], help="Outputs the version"
     )
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
     create_leveldb_parser(leveldb_search_parser)
 
-    subparsers.add_parser("help", add_help=False)
+    subparsers.add_parser(HELP_COMMAND, add_help=False)
 
     # Get config values
 
@@ -332,6 +379,124 @@ def create_hash_to_addr_parser(hash_parser: ArgumentParser):
     )
 
 
+def add_graph_commands(parser: ArgumentParser):
+    commands = parser.add_argument_group("commands")
+    commands.add_argument("-g", "--graph", help="generate a control flow graph")
+    commands.add_argument(
+        "-j",
+        "--statespace-json",
+        help="dumps the statespace json",
+        metavar="OUTPUT_FILE",
+    )
+
+
+def create_safe_functions_parser(parser: ArgumentParser):
+    """
+    The duplication exists between safe-functions and analyze as some of them have different default values.
+    """
+    parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
+
+    options = parser.add_argument_group("options")
+
+    options.add_argument(
+        "-m",
+        "--modules",
+        help="Comma-separated list of security analysis modules",
+        metavar="MODULES",
+    )
+    options.add_argument(
+        "--max-depth",
+        type=int,
+        default=128,
+        help="Maximum recursion depth for symbolic execution",
+    )
+    options.add_argument(
+        "--call-depth-limit",
+        type=int,
+        default=10,
+        help="Maximum call depth limit for symbolic execution",
+    )
+
+    options.add_argument(
+        "--strategy",
+        choices=["dfs", "bfs", "naive-random", "weighted-random"],
+        default="bfs",
+        help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "-b",
+        "--loop-bound",
+        type=int,
+        default=5,
+        help="Bound loops at n iterations",
+        metavar="N",
+    )
+    options.add_argument(
+        "--execution-timeout",
+        type=int,
+        default=86400,
+        help="The amount of seconds to spend on symbolic execution",
+    )
+    options.add_argument(
+        "--solver-timeout",
+        type=int,
+        default=100000,
+        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
+    )
+    options.add_argument(
+        "--parallel-solving",
+        action="store_true",
+        help="Enable solving z3 queries in parallel",
+    )
+    options.add_argument(
+        "--solver-log",
+        help="Path to the directory for solver log",
+        metavar="SOLVER_LOG",
+    )
+
+    options.add_argument(
+        "-q",
+        "--query-signature",
+        action="store_true",
+        help="Lookup function signatures through www.4byte.directory",
+    )
+    options.add_argument(
+        "--create-timeout",
+        type=int,
+        default=10,
+        help="The amount of seconds to spend on the initial contract creation",
+    )
+
+    options.add_argument(
+        "--enable-iprof", action="store_true", help="enable the instruction profiler"
+    )
+    options.add_argument(
+        "--enable-coverage-strategy",
+        action="store_true",
+        help="enable coverage based search strategy",
+    )
+    options.add_argument(
+        "--custom-modules-directory",
+        help="designates a separate directory to search for custom analysis modules",
+        metavar="CUSTOM_MODULES_DIRECTORY",
+    )
+    options.add_argument(
+        "--attacker-address",
+        help="Designates a specific attacker address to use during analysis",
+        metavar="ATTACKER_ADDRESS",
+    )
+    options.add_argument(
+        "--creator-address",
+        help="Designates a specific creator address to use during analysis",
+        metavar="CREATOR_ADDRESS",
+    )
+
+
 def create_analyzer_parser(analyzer_parser: ArgumentParser):
     """
     Modify parser to handle analyze command
@@ -344,16 +509,7 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Inputs file name and contract name. \n"
         "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
     )
-    commands = analyzer_parser.add_argument_group("commands")
-    commands.add_argument("-g", "--graph", help="generate a control flow graph")
-    commands.add_argument(
-        "-j",
-        "--statespace-json",
-        help="dumps the statespace json",
-        metavar="OUTPUT_FILE",
-    )
-    commands.add_argument("--infura-id", help="set infura id for onchain analysis")
-
+    add_graph_commands(analyzer_parser)
     options = analyzer_parser.add_argument_group("options")
     options.add_argument(
         "-m",
@@ -539,7 +695,7 @@ def set_config(args: Namespace):
     if args.__dict__.get("rpc", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-    if args.command in ("hash-to-address", "leveldb-search"):
+    if args.command in (HASH_TO_ADDRESS_COMMAND, "leveldb-search"):
         # Open LevelDB if necessary
         if not args.__dict__.get("leveldb_dir", None):
             leveldb_dir = config.leveldb_dir
@@ -556,7 +712,7 @@ def leveldb_search(config: MythrilConfig, args: Namespace):
     :param args:
     :return:
     """
-    if args.command in ("hash-to-address", "leveldb-search"):
+    if args.command in (HASH_TO_ADDRESS_COMMAND, "leveldb-search"):
         leveldb_searcher = MythrilLevelDB(config.eth_db)
         if args.command == "leveldb-search":
             # Database search ops
@@ -610,6 +766,29 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
     return address
 
 
+def print_function_report(myth_disassembler: MythrilDisassembler, report: Report):
+    """
+    Prints the function report
+    :param report: Mythril's report
+    :return:
+    """
+    contract_data = {}
+    for contract in myth_disassembler.contracts:
+        contract_data[contract.name] = list(
+            set(contract.disassembly.address_to_function_name.values())
+        )
+
+    for issue in report.issues.values():
+        if issue.function in contract_data[issue.contract]:
+            contract_data[issue.contract].remove(issue.function)
+
+    for contract, function_list in contract_data.items():
+        print(f"Contract {contract}: \n")
+        print(
+            f"""{len(function_list)} functions are deemed safe in this contract: {", ".join(function_list)}\n\n"""
+        )
+
+
 def execute_command(
     disassembler: MythrilDisassembler,
     address: str,
@@ -637,6 +816,41 @@ def execute_command(
             print("Runtime Disassembly: \n" + disassembler.contracts[0].get_easm())
         if disassembler.contracts[0].creation_code:
             print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
+
+    elif args.command == SAFE_FUNCTIONS_COMMAND:
+        function_analyzer = MythrilAnalyzer(
+            strategy=args.strategy,
+            disassembler=disassembler,
+            address=address,
+            max_depth=args.max_depth,
+            execution_timeout=args.execution_timeout,
+            loop_bound=args.loop_bound,
+            create_timeout=args.create_timeout,
+            enable_iprof=args.enable_iprof,
+            disable_dependency_pruning=True,
+            use_onchain_data=False,
+            solver_timeout=args.solver_timeout,
+            parallel_solving=args.parallel_solving,
+            custom_modules_directory=args.custom_modules_directory
+            if args.custom_modules_directory
+            else "",
+            call_depth_limit=args.call_depth_limit,
+            sparse_pruning=False,
+            unconstrained_storage=True,
+            solver_log=args.solver_log,
+        )
+        try:
+            report = function_analyzer.fire_lasers(
+                modules=[m.strip() for m in args.modules.strip().split(",")]
+                if args.modules
+                else None,
+                transaction_count=1,
+            )
+            print_function_report(disassembler, report)
+        except DetectorNotFoundError as e:
+            exit_with_error("text", format(e))
+        except CriticalError as e:
+            exit_with_error("text", "Analysis error encountered: " + format(e))
 
     elif args.command in ANALYZE_LIST:
         analyzer = MythrilAnalyzer(
@@ -760,14 +974,14 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         parser.print_help()
         sys.exit()
 
-    if args.command == "version":
+    if args.command == VERSION_COMMAND:
         if args.outform == "json":
             print(json.dumps({"version_str": VERSION}))
         else:
             print("Mythril version {}".format(VERSION))
         sys.exit()
 
-    if args.command == "list-detectors":
+    if args.command == LIST_DETECTORS_COMMAND:
         modules = []
         for module in ModuleLoader().get_detection_modules():
             modules.append({"classname": type(module).__name__, "title": module.name})
@@ -778,14 +992,14 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
                 print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
 
-    if args.command == "help":
+    if args.command == HELP_COMMAND:
         parser.print_help()
         sys.exit()
 
     # Parse cmdline args
     validate_args(args)
     try:
-        if args.command == "function-to-hash":
+        if args.command == FUNCTION_TO_HASH_COMMAND:
             contract_hash_to_address(args)
         config = set_config(args)
         leveldb_search(config, args)
