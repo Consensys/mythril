@@ -466,6 +466,13 @@ def create_safe_functions_parser(parser: ArgumentParser):
         help="Lookup function signatures through www.4byte.directory",
     )
     options.add_argument(
+        "--create-timeout",
+        type=int,
+        default=10,
+        help="The amount of seconds to spend on the initial contract creation",
+    )
+
+    options.add_argument(
         "--enable-iprof", action="store_true", help="enable the instruction profiler"
     )
     options.add_argument(
@@ -770,7 +777,7 @@ def print_function_report(myth_disassembler: MythrilDisassembler, report: Report
         contract_data[contract.name] = list(
             set(contract.disassembly.address_to_function_name.values())
         )
-        print(list(contract.disassembly.address_to_function_name))
+
     for issue in report.issues.values():
         if issue.function in contract_data[issue.contract]:
             contract_data[issue.contract].remove(issue.function)
@@ -818,7 +825,7 @@ def execute_command(
             max_depth=args.max_depth,
             execution_timeout=args.execution_timeout,
             loop_bound=args.loop_bound,
-            create_timeout=0,
+            create_timeout=args.create_timeout,
             enable_iprof=args.enable_iprof,
             disable_dependency_pruning=True,
             use_onchain_data=False,

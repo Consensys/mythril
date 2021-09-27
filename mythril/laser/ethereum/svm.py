@@ -240,6 +240,7 @@ class LaserEVM:
         :return:
         """
         final_states = []  # type: List[GlobalState]
+
         for global_state in self.strategy:
             if create and self._check_create_termination():
                 log.debug("Hit create timeout, returning.")

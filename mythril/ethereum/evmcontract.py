@@ -31,11 +31,11 @@ class EVMContract(persistent.Persistent):
         """
         creation_code = re.sub(r"(_{2}.{38})", "aa" * 20, creation_code)
         code = re.sub(r"(_{2}.{38})", "aa" * 20, code)
-
         self.creation_code = creation_code
         self.name = name
         self.code = code
         self.disassembly = Disassembly(code, enable_online_lookup=enable_online_lookup)
+
         self.creation_disassembly = Disassembly(
             creation_code, enable_online_lookup=enable_online_lookup
         )

@@ -165,18 +165,13 @@ class SymExecWrapper:
                 contract_name=contract.name,
                 world_state=world_state,
             )
-        elif (
-            isinstance(contract, EVMContract)
-            and contract.creation_code
-            and create_timeout != 0
-        ):
+        elif isinstance(contract, EVMContract) and contract.creation_code:
             self.laser.sym_exec(
                 creation_code=contract.creation_code,
                 contract_name=contract.name,
                 world_state=world_state,
             )
         else:
-
             account = Account(
                 address,
                 contract.disassembly,
@@ -186,7 +181,7 @@ class SymExecWrapper:
                 concrete_storage=True
                 if (dynloader is not None and dynloader.active)
                 else False,
-            )
+            )  # concrete_storage can get overridden by global args
 
             if dynloader is not None:
                 if isinstance(address, int):
