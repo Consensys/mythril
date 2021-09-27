@@ -90,7 +90,6 @@ class SolidityContract(EVMContract):
         self.solc_indices = self.get_solc_indices(data)
         self.solc_json = data
         self.input_file = input_file
-
         has_contract = False
 
         # If a contract name has been specified, find the bytecode of that specific contract
@@ -195,6 +194,7 @@ class SolidityContract(EVMContract):
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
         file_index = mappings[index].solidity_file_idx
+
         if file_index == -1:
             # If issue is detected in an internal file
             return None
