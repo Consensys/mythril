@@ -142,10 +142,10 @@ class SolidityContract(EVMContract):
         has_sources = True
         for contract_data in data["contracts"].values():
             for source_data in contract_data.values():
-                if "generatedSources" not in source_data["evm"]["deployedBytecode"]:
+                if "generatedSources" not in source_data["evm"]["bytecode"]:
                     has_sources = False
                     break
-                sources = source_data["evm"]["deployedBytecode"]["generatedSources"]
+                sources = source_data["evm"]["bytecode"]["generatedSources"]
                 for source in sources:
                     full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
                         source["ast"]
