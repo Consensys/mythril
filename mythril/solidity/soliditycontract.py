@@ -154,7 +154,7 @@ class SolidityContract(EVMContract):
         """
         Returns solc file indices
         """
-        indices = {}
+        indices: Dict = {}
         for contract_data in data["contracts"].values():
             for source_data in contract_data.values():
                 SolidityContract.get_sources(indices, source_data["evm"]["bytecode"])
