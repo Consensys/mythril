@@ -1850,14 +1850,14 @@ class Instruction:
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition(is_state_mutation_instruction=True)
-    def suicide_(self, global_state: GlobalState):
+    def selfdestruct_(self, global_state: GlobalState):
         """
 
         :param global_state:
         """
         target = global_state.mstate.stack.pop()
         transfer_amount = global_state.environment.active_account.balance()
-        # Often the target of the suicide instruction will be symbolic
+        # Often the target of the selfdestruct instruction will be symbolic
         # If it isn't then we'll transfer the balance to the indicated contract
         global_state.world_state.balances[target] += transfer_amount
 

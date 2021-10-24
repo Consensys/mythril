@@ -35,7 +35,7 @@ class Exceptions(DetectionModule):
     swc_id = ASSERT_VIOLATION
     description = "Checks whether any exception states are reachable."
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["ASSERT_FAIL", "JUMP", "REVERT"]
+    pre_hooks = ["INVALID", "JUMP", "REVERT"]
 
     def _execute(self, state: GlobalState) -> None:
         """
