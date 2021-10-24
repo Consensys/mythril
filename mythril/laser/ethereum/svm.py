@@ -5,7 +5,7 @@ from copy import copy
 from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
-from mythril.support.opcodes import opcodes as OPCODES
+from mythril.support.opcodes import OPCODES
 from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
@@ -110,7 +110,7 @@ class LaserEVM:
         self.iprof = iprof
         self.instr_pre_hook = {}  # type: Dict[str, List[Callable]]
         self.instr_post_hook = {}  # type: Dict[str, List[Callable]]
-        for op, _, _, _ in OPCODES.values():
+        for op in OPCODES:
             self.instr_pre_hook[op] = []
             self.instr_post_hook[op] = []
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -261,7 +261,6 @@ class LaserEVM:
                     for state in new_states
                     if state.world_state.constraints.is_possible
                 ]
-
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
@@ -598,13 +597,13 @@ class LaserEVM:
         """Registers instructions hooks from plugins"""
         if hook_type == "pre":
             if opcode is None:
-                for op, _, _, _ in OPCODES.values():
+                for op in OPCODES:
                     self.instr_pre_hook[op].append(hook(op))
             else:
                 self.instr_pre_hook[opcode].append(hook)
         else:
             if opcode is None:
-                for op, _, _, _ in OPCODES.values():
+                for op in OPCODES:
                     self.instr_post_hook[op].append(hook(op))
             else:
                 self.instr_post_hook[opcode].append(hook)

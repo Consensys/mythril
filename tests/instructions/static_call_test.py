@@ -56,7 +56,7 @@ def test_staticcall(f1):
 
 
 test_data = (
-    "suicide",
+    "selfdestruct",
     "create",
     "create2",
     "log0",

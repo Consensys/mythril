@@ -4,12 +4,9 @@ code disassembly."""
 import re
 from collections import Generator
 
-from mythril.support.opcodes import opcodes
+from mythril.support.opcodes import OPCODES, ADDRESS, ADDRESS_OPCODE_MAPPING
 
 regex_PUSH = re.compile(r"^PUSH(\d*)$")
-
-# Additional mnemonic to catch failed assertions
-opcodes[254] = ("ASSERT_FAIL", 0, 0, 0)
 
 
 class EvmInstruction:
@@ -54,9 +51,8 @@ def get_opcode_from_name(operation_name: str) -> int:
     :param operation_name:
     :return:
     """
-    for op_code, value in opcodes.items():
-        if operation_name == value[0]:
-            return op_code
+    if operation_name in OPCODES:
+        return OPCODES[operation_name][ADDRESS]
     raise RuntimeError("Unknown opcode")
 
 
@@ -105,16 +101,15 @@ def disassemble(bytecode: bytes) -> list:
 
     while address < length:
         try:
-            op_code = opcodes[bytecode[address]]
+            op_code = ADDRESS_OPCODE_MAPPING[bytecode[address]]
         except KeyError:
             instruction_list.append(EvmInstruction(address, "INVALID"))
             address += 1
             continue
 
-        op_code_name = op_code[0]
-        current_instruction = EvmInstruction(address, op_code_name)
+        current_instruction = EvmInstruction(address, op_code)
 
-        match = re.search(regex_PUSH, op_code_name)
+        match = re.search(regex_PUSH, op_code)
         if match:
             argument_bytes = bytecode[address + 1 : address + 1 + int(match.group(1))]
             current_instruction.argument = "0x" + argument_bytes.hex()
