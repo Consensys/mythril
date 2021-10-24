@@ -2074,6 +2074,12 @@ class Instruction:
             )
             return [global_state]
 
+        native_result = native_call(
+            global_state, callee_address, call_data, memory_out_offset, memory_out_size
+        )
+        if native_result:
+            return native_result
+
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
@@ -2210,6 +2216,12 @@ class Instruction:
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
             return [global_state]
+
+        native_result = native_call(
+            global_state, callee_address, call_data, memory_out_offset, memory_out_size
+        )
+        if native_result:
+            return native_result
 
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
