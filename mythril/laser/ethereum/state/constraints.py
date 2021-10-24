@@ -40,7 +40,9 @@ class Constraints(list):
         :param constraint: The constraint to be appended
         """
         constraint = (
-            simplify(constraint) if isinstance(constraint, Bool) else symbol_factory.Bool(constraint)
+            simplify(constraint)
+            if isinstance(constraint, Bool)
+            else symbol_factory.Bool(constraint)
         )
         super(Constraints, self).append(constraint)
 
@@ -100,7 +102,9 @@ class Constraints(list):
     @staticmethod
     def _get_smt_bool_list(constraints: Iterable[Union[bool, Bool]]) -> List[Bool]:
         return [
-            constraint if isinstance(constraint, Bool) else symbol_factory.Bool(constraint)
+            constraint
+            if isinstance(constraint, Bool)
+            else symbol_factory.Bool(constraint)
             for constraint in constraints
         ]
 
