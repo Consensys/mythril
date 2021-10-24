@@ -779,15 +779,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        state = global_state.mstate
-        environment = global_state.environment
-
-        if isinstance(global_state.current_transaction, ContractCreationTransaction):
-            log.debug("Attempt to use CALLDATASIZE in creation transaction")
-            state.stack.append(0)
-        else:
-            state.stack.append(environment.calldata.calldatasize)
-
+        global_state.mstate.stack.append(global_state.environment.calldata.calldatasize)
         return [global_state]
 
     @staticmethod
@@ -2391,7 +2383,7 @@ class Instruction:
             memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
 
         try:
-            with_value = function_name is not "staticcall"
+            with_value = function_name != "staticcall"
             (
                 callee_address,
                 callee_account,
