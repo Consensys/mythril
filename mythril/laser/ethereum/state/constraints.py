@@ -1,7 +1,7 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 from mythril.exceptions import UnsatError
-from mythril.laser.smt import Bool, simplify
+from mythril.laser.smt import symbol_factory, simplify, Bool
 from mythril.support.model import get_model
 from typing import Iterable, List, Optional, Union
 
@@ -40,7 +40,7 @@ class Constraints(list):
         :param constraint: The constraint to be appended
         """
         constraint = (
-            simplify(constraint) if isinstance(constraint, Bool) else Bool(constraint)
+            simplify(constraint) if isinstance(constraint, Bool) else symbol_factory.Bool(constraint)
         )
         super(Constraints, self).append(constraint)
 
@@ -100,7 +100,7 @@ class Constraints(list):
     @staticmethod
     def _get_smt_bool_list(constraints: Iterable[Union[bool, Bool]]) -> List[Bool]:
         return [
-            constraint if isinstance(constraint, Bool) else Bool(constraint)
+            constraint if isinstance(constraint, Bool) else symbol_factory.Bool(constraint)
             for constraint in constraints
         ]
 
