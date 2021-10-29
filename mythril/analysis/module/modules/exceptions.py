@@ -121,7 +121,7 @@ class Exceptions(DetectionModule):
 
 def is_assertion_failure(global_state):
     state = global_state.mstate
-    offset, length = state.stack.pop(), state.stack.pop()
+    offset, length = state.stack[-1], state.stack[-2]
     try:
         return_data = state.memory[
             util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
