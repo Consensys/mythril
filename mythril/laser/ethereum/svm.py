@@ -360,13 +360,6 @@ class LaserEVM:
                 start_signal.global_state.world_state.constraints
             )
 
-            transfer_ether(
-                new_global_state,
-                start_signal.transaction.caller,
-                start_signal.transaction.callee_account.address,
-                start_signal.transaction.call_value,
-            )
-
             log.debug("Starting new transaction %s", start_signal.transaction)
 
             return [new_global_state], op_code
