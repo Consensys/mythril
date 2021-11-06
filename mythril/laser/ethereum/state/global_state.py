@@ -97,7 +97,7 @@ class GlobalState:
         instructions = self.environment.code.instruction_list
         try:
             return instructions[self.mstate.pc]
-        except KeyError:
+        except IndexError:
             return {"address": self.mstate.pc, "opcode": "STOP"}
 
     @property
