@@ -36,7 +36,7 @@ class SolidityContractTest(BaseTestCase):
             str(input_file), name="AssertFail", solc_binary=solc_binary
         )
 
-        code_info = contract.get_source_info(58, constructor=True)
+        code_info = contract.get_source_info(75, constructor=True)
 
         self.assertEqual(code_info.filename, str(input_file))
         self.assertEqual(code_info.lineno, 6)

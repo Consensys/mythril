@@ -32,7 +32,7 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
             raise UnsatError
-
+    constraints = constraints.get_all_constraints()
     constraints = [constraint for constraint in constraints if type(constraint) != bool]
 
     for constraint in constraints:
