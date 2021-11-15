@@ -1017,9 +1017,8 @@ class Instruction:
             state.stack.append(result)
             return [global_state]
 
-        result, condition = keccak_function_manager.create_keccak(data)
+        result = keccak_function_manager.create_keccak(data)
         state.stack.append(result)
-        global_state.world_state.constraints.append(condition)
 
         return [global_state]
 
@@ -1538,6 +1537,7 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
+
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:
@@ -1740,7 +1740,7 @@ class Instruction:
                 if create2_salt.size() != 256:
                     pad = symbol_factory.BitVecVal(0, 256 - create2_salt.size())
                     create2_salt = Concat(pad, create2_salt)
-                address, constraint = keccak_function_manager.create_keccak(
+                address = keccak_function_manager.create_keccak(
                     Concat(
                         symbol_factory.BitVecVal(255, 8),
                         caller,
@@ -1749,7 +1749,7 @@ class Instruction:
                     )
                 )
                 contract_address = Extract(255, 96, address)
-                global_state.world_state.constraints.append(constraint)
+
             else:
                 salt = hex(create2_salt.value)[2:]
                 salt = "0" * (64 - len(salt)) + salt

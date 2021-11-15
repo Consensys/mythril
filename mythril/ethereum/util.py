@@ -50,7 +50,7 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
             settings = json.load(f)
     settings.update(
         {
-            "optimizer": {"enabled": True},
+            "optimizer": {"enabled": False},
             "outputSelection": {
                 "*": {
                     "": ["ast"],
