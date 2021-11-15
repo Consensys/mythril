@@ -8,10 +8,16 @@ from tests import PROJECT_DIR, TESTDATA
 MYTH = str(PROJECT_DIR / "myth")
 test_data = (
     ("suicide.sol", [], "0.5.0"),
-    ("overflow.sol", ["balanceOf(address)"], "0.5.0"),
+    ("overflow.sol", ["balanceOf(address)", "totalSupply()"], "0.5.0"),
     (
         "ether_send.sol",
-        ["crowdfunding()", "withdrawfunds()", "owner()", "balances(address)"],
+        [
+            "crowdfunding()",
+            "withdrawfunds()",
+            "owner()",
+            "balances(address)",
+            "getBalance()",
+        ],
         "0.5.0",
     ),
 )
