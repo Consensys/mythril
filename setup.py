@@ -44,6 +44,7 @@ REQUIRED = [
     "eth-typing<3.0.0,>=2.1.0",
     "eth-utils==1.9.0",
     "coverage",
+    "pyparsing<3,>=2.0.2",
     "jinja2>=2.9",
     "rlp>=1.0.1,<2.0.0",
     "transaction>=2.2.1",
