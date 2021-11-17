@@ -37,9 +37,12 @@ class DynLoader:
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
 
-        return self.eth.eth_getStorageAt(
+        value = self.eth.eth_getStorageAt(
             contract_address, position=index, block="latest"
         )
+        if value == "0x":
+            value = "0x0000000000000000000000000000000000000000000000000000000000000000"
+        return value
 
     @functools.lru_cache(LRU_CACHE_SIZE)
     def read_balance(self, address: str) -> str:
