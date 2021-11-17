@@ -41,7 +41,7 @@ REQUIRED = [
     "eth-keys>=0.2.0b3,<0.3.0",
     "eth-rlp>=0.1.0",
     "eth-tester==0.1.0b32",
-    "eth-typing>=2.0.0",
+    "eth-typing<3.0.0,>=2.1.0",
     "eth-utils==1.9.0",
     "coverage",
     "jinja2>=2.9",
