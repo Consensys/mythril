@@ -23,6 +23,7 @@ py-evm
 py-solc-x
 py-solc
 pytest>=3.6.0
+pyparsing<3,>=2.0.2
 pytest-cov
 pytest_mock
 requests
