@@ -180,8 +180,11 @@ def ec_add(data: List[int]) -> List[int]:
     y1 = extract32(bytes_data, 32)
     x2 = extract32(bytes_data, 64)
     y2 = extract32(bytes_data, 96)
-    p1 = validate_point(x1, y1)
-    p2 = validate_point(x2, y2)
+    try:
+        p1 = validate_point(x1, y1)
+        p2 = validate_point(x2, y2)
+    except ValidationError:
+        return []
     if p1 is False or p2 is False:
         return []
     o = bn128.normalize(bn128.add(p1, p2))
@@ -193,7 +196,10 @@ def ec_mul(data: List[int]) -> List[int]:
     x = extract32(bytes_data, 0)
     y = extract32(bytes_data, 32)
     m = extract32(bytes_data, 64)
-    p = validate_point(x, y)
+    try:
+        p = validate_point(x, y)
+    except ValidationError:
+        return []
     if p is False:
         return []
     o = bn128.normalize(bn128.multiply(p, m))

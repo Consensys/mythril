@@ -17,6 +17,7 @@ mock
 persistent>=4.2.0
 py-flags
 py-evm
+pysha3
 py-solc-x
 py-solc
 pytest>=3.6.0

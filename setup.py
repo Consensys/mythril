@@ -29,6 +29,7 @@ REQUIRED = [
     "z3-solver>=4.8.8.0",
     "requests",
     "py-solc",
+    "pysha3",
     "py-solc-x==1.0.0",
     "semantic_version==2.8.5",
     "eth_abi",
