@@ -2,7 +2,7 @@ coloredlogs>=10.0
 coincurve
 configparser>=3.5.0
 coverage
-py_ecc
+py_ecc<5.0.0,>=1.4.7
 eth_abi
 eth-account
 ethereum-input-decoder>=0.2.2
