@@ -25,7 +25,7 @@ REQUIRES_PYTHON = ">=3.6.0"
 # What packages are required for this module to be executed?
 REQUIRED = [
     "coloredlogs>=10.0",
-    "py_ecc",
+    "coincurve" "py_ecc",
     "z3-solver>=4.8.8.0",
     "requests",
     "py-solc",

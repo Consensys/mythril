@@ -1,4 +1,5 @@
 coloredlogs>=10.0
+coincurve
 configparser>=3.5.0
 coverage
 py_ecc

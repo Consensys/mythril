@@ -41,12 +41,15 @@ def get_code_hash(code: str) -> str:
         return ""
 
 
-def sha3(seed):
+def sha3(value):
     keccak = _pysha3.keccak_256()
-    if type(seed) == str:
-        keccak.update(bytes.fromhex(seed))
-    elif type(seed) == bytes:
-        keccak.update(seed)
+    if type(value) == str:
+        if value[:2] == "0x":
+            keccak.update(bytes.fromhex(value))
+        else:
+            keccak.update(value.encode())
+    else:
+        keccak.update(value)
     return keccak.digest()
 
 
