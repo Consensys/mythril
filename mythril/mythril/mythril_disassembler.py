@@ -11,6 +11,7 @@ from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
+from mythril.support.support_utils import rzpad
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
@@ -262,7 +263,7 @@ class MythrilDisassembler:
                 position_formatted = zpad(int_to_big_endian(position), 32)
                 for i in range(2, len(params)):
                     key = bytes(params[i], "utf8")
-                    key_formatted = utils.rzpad(key, 32)
+                    key_formatted = rzpad(key, 32)
                     mappings.append(
                         int.from_bytes(
                             sha3(key_formatted + position_formatted), byteorder="big",
