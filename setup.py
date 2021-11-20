@@ -42,7 +42,7 @@ REQUIRED = [
     "eth-rlp>=0.1.0",
     "eth-tester==0.1.0b32",
     "eth-typing<3.0.0,>=2.1.0",
-    "eth-utils==1.9.0",
+    "eth-utils",
     "coverage",
     "pyparsing<3,>=2.0.2",
     "jinja2>=2.9",
