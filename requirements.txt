@@ -1,3 +1,4 @@
+blake2b-py
 coloredlogs>=10.0
 coincurve
 configparser>=3.5.0
