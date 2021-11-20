@@ -331,8 +331,6 @@ def create_read_storage_parser(read_storage_parser: ArgumentParser):
     )
 
 
-
-
 def create_func_to_hash_parser(parser: ArgumentParser):
     """
     Modify parser to handle func_to_hash command
@@ -673,8 +671,6 @@ def set_config(args: Namespace):
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
 
     return config
-
-
 
 
 def load_code(disassembler: MythrilDisassembler, args: Namespace):

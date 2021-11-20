@@ -40,13 +40,15 @@ def get_code_hash(code: str) -> str:
         log.debug("Unable to change the bytecode to bytes. Bytecode: {}".format(code))
         return ""
 
+
 def sha3(seed):
     keccak = _pysha3.keccak_256()
     keccak.update(bytes.fromhex(seed))
     return keccak.digest()
 
+
 def zpad(x, l):
     """ 
     Left zero pad value `x` at least to length `l`.
     """
-    return b'\x00' * max(0, l - len(x)) + x
+    return b"\x00" * max(0, l - len(x)) + x

@@ -63,7 +63,6 @@ class MythrilConfig:
             - dynamic loading is set to infura by default in the file
         """
 
-
         if not os.path.exists(self.config_path):
             log.info("No config file found. Creating default: " + self.config_path)
             open(self.config_path, "a").close()
@@ -87,7 +86,6 @@ class MythrilConfig:
         if not self.infura_id:
             self.infura_id = config.get("defaults", "infura_id", fallback="")
 
-
     @staticmethod
     def _add_default_options(config: ConfigParser) -> None:
         """
@@ -96,7 +94,6 @@ class MythrilConfig:
         :return: None
         """
         config.add_section("defaults")
-
 
     @staticmethod
     def _add_dynamic_loading_option(config: ConfigParser) -> None:
@@ -118,7 +115,6 @@ class MythrilConfig:
             "defaults", "#– To connect to local host use dynamic_loading: localhost", ""
         )
         config.set("defaults", "dynamic_loading", "infura")
-
 
     def set_api_rpc_infura(self) -> None:
         """Set the RPC mode to INFURA on Mainnet."""

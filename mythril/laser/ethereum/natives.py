@@ -14,9 +14,7 @@ import py_ecc.optimized_bn128 as bn128
 from rlp.utils import ALL_BYTES
 from eth_utils import ValidationError
 from eth._utils.blake2.coders import extract_blake2b_parameters
-from eth._utils.bn128 import (
-    validate_point,
-)
+from eth._utils.bn128 import validate_point
 
 from mythril.support.support_utils import sha3, zpad
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
@@ -26,9 +24,8 @@ from eth_utils import int_to_big_endian, big_endian_to_int
 log = logging.getLogger(__name__)
 
 
-
 def encode_int32(v):
-    return v.to_bytes(32, byteorder='big')
+    return v.to_bytes(32, byteorder="big")
 
 
 def safe_ord(value):
@@ -37,19 +34,22 @@ def safe_ord(value):
     else:
         return ord(value)
 
+
 def int_to_32bytearray(i):
     o = [0] * 32
     for x in range(32):
-        o[31 - x] = i & 0xff
+        o[31 - x] = i & 0xFF
         i >>= 8
     return o
+
 
 def ecrecover_to_pub(rawhash, v, r, s):
     if hasattr(coincurve, "PublicKey"):
         try:
             pk = coincurve.PublicKey.from_signature_and_message(
-                zpad(bytes(int_to_32bytearray(r)), 32) + zpad(bytes(int_to_32bytearray(s)), 32) +
-                ALL_BYTES[v - 27],
+                zpad(bytes(int_to_32bytearray(r)), 32)
+                + zpad(bytes(int_to_32bytearray(s)), 32)
+                + ALL_BYTES[v - 27],
                 rawhash,
                 hasher=None,
             )
@@ -62,7 +62,7 @@ def ecrecover_to_pub(rawhash, v, r, s):
             x, y = result
             pub = encode_int32(x) + encode_int32(y)
         else:
-            raise ValueError('Invalid VRS')
+            raise ValueError("Invalid VRS")
     assert len(pub) == 64
     return pub
 

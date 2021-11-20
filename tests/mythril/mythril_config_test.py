@@ -41,7 +41,6 @@ def test_set_rpc(rpc_type, host, port, success):
             config._set_rpc(rpc_type)
 
 
-
 def test_dynld_config_addition():
     config = ConfigParser()
     config.add_section("defaults")

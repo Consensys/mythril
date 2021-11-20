@@ -265,8 +265,7 @@ class MythrilDisassembler:
                     key_formatted = utils.rzpad(key, 32)
                     mappings.append(
                         int.from_bytes(
-                            sha3(key_formatted + position_formatted),
-                            byteorder="big",
+                            sha3(key_formatted + position_formatted), byteorder="big",
                         )
                     )
 
@@ -283,12 +282,8 @@ class MythrilDisassembler:
                 if len(params) >= 2:
                     length = int(params[1])
                 if len(params) == 3 and params[2] == "array":
-                    position_formatted = zpad(
-                        int_to_big_endian(position), 32
-                    )
-                    position = int.from_bytes(
-                        sha3(position_formatted), byteorder="big"
-                    )
+                    position_formatted = zpad(int_to_big_endian(position), 32)
+                    position = int.from_bytes(sha3(position_formatted), byteorder="big")
 
         except ValueError:
             raise CriticalError(
