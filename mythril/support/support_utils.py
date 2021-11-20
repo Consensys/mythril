@@ -1,7 +1,7 @@
 """This module contains utility functions for the Mythril support package."""
 from typing import Dict
 import logging
-import _pysha3 as sha3
+import _pysha3
 
 log = logging.getLogger(__name__)
 
@@ -33,9 +33,35 @@ def get_code_hash(code: str) -> str:
     """
     code = code[2:] if code[:2] == "0x" else code
     try:
-        keccak = sha3.keccak_256()
+        keccak = _pysha3.keccak_256()
         keccak.update(bytes.fromhex(code))
         return "0x" + keccak.hexdigest()
     except ValueError:
         log.debug("Unable to change the bytecode to bytes. Bytecode: {}".format(code))
         return ""
+
+
+def sha3(value):
+    keccak = _pysha3.keccak_256()
+    if type(value) == str:
+        if value[:2] == "0x":
+            keccak.update(bytes.fromhex(value))
+        else:
+            keccak.update(value.encode())
+    else:
+        keccak.update(value)
+    return keccak.digest()
+
+
+def zpad(x, l):
+    """ 
+    Left zero pad value `x` at least to length `l`.
+    """
+    return b"\x00" * max(0, l - len(x)) + x
+
+
+def rzpad(value, total_length):
+    """ 
+    Right zero pad value `x` at least to length `l`.
+    """
+    return value + b"\x00" * max(0, total_length - len(value))

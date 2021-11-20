@@ -27,7 +27,6 @@ from mythril.mythril import (
     MythrilAnalyzer,
     MythrilDisassembler,
     MythrilConfig,
-    MythrilLevelDB,
 )
 
 from mythril.analysis.module import ModuleLoader
@@ -42,7 +41,6 @@ ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
 SAFE_FUNCTIONS_COMMAND = "safe-functions"
 READ_STORAGE_COMNAND = "read-storage"
-LEVELDB_SEARCH_COMMAND = "leveldb-search"
 FUNCTION_TO_HASH_COMMAND = "function-to-hash"
 HASH_TO_ADDRESS_COMMAND = "hash-to-address"
 LIST_DETECTORS_COMMAND = "list-detectors"
@@ -57,7 +55,6 @@ COMMAND_LIST = (
     + (
         READ_STORAGE_COMNAND,
         SAFE_FUNCTIONS_COMMAND,
-        LEVELDB_SEARCH_COMMAND,
         FUNCTION_TO_HASH_COMMAND,
         HASH_TO_ADDRESS_COMMAND,
         LIST_DETECTORS_COMMAND,
@@ -280,9 +277,6 @@ def main() -> None:
         help="Retrieves storage slots from a given address through rpc",
         parents=[rpc_parser],
     )
-    leveldb_search_parser = subparsers.add_parser(
-        "leveldb-search", help="Searches the code fragment in local leveldb"
-    )
     contract_func_to_hash = subparsers.add_parser(
         FUNCTION_TO_HASH_COMMAND, help="Returns the hash signature of the function"
     )
@@ -296,7 +290,6 @@ def main() -> None:
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
-    create_leveldb_parser(leveldb_search_parser)
 
     subparsers.add_parser(HELP_COMMAND, add_help=False)
 
@@ -338,20 +331,6 @@ def create_read_storage_parser(read_storage_parser: ArgumentParser):
     )
 
 
-def create_leveldb_parser(parser: ArgumentParser):
-    """
-    Modify parser to handle leveldb-search
-    :param parser:
-    :return:
-    """
-    parser.add_argument("search")
-    parser.add_argument(
-        "--leveldb-dir",
-        help="specify leveldb directory for search or direct access operations",
-        metavar="LEVELDB_PATH",
-    )
-
-
 def create_func_to_hash_parser(parser: ArgumentParser):
     """
     Modify parser to handle func_to_hash command
@@ -371,11 +350,6 @@ def create_hash_to_addr_parser(hash_parser: ArgumentParser):
     """
     hash_parser.add_argument(
         "hash", help="Find the address from hash", metavar="FUNCTION_NAME"
-    )
-    hash_parser.add_argument(
-        "--leveldb-dir",
-        help="specify leveldb directory for search or direct access operations",
-        metavar="LEVELDB_PATH",
     )
 
 
@@ -695,37 +669,8 @@ def set_config(args: Namespace):
     if args.__dict__.get("rpc", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-    if args.command in (HASH_TO_ADDRESS_COMMAND, "leveldb-search"):
-        # Open LevelDB if necessary
-        if not args.__dict__.get("leveldb_dir", None):
-            leveldb_dir = config.leveldb_dir
-        else:
-            leveldb_dir = args.leveldb_dir
-        config.set_api_leveldb(leveldb_dir)
+
     return config
-
-
-def leveldb_search(config: MythrilConfig, args: Namespace):
-    """
-    Handle leveldb search
-    :param config:
-    :param args:
-    :return:
-    """
-    if args.command in (HASH_TO_ADDRESS_COMMAND, "leveldb-search"):
-        leveldb_searcher = MythrilLevelDB(config.eth_db)
-        if args.command == "leveldb-search":
-            # Database search ops
-            leveldb_searcher.search_db(args.search)
-
-        else:
-            # search corresponding address
-            try:
-                leveldb_searcher.contract_hash_to_address(args.hash)
-            except AddressNotFoundError:
-                print("Address not found.")
-
-        sys.exit()
 
 
 def load_code(disassembler: MythrilDisassembler, args: Namespace):
@@ -1002,7 +947,6 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         if args.command == FUNCTION_TO_HASH_COMMAND:
             contract_hash_to_address(args)
         config = set_config(args)
-        leveldb_search(config, args)
         query_signature = args.__dict__.get("query_signature", None)
         solc_json = args.__dict__.get("solc_json", None)
         solv = args.__dict__.get("solv", None)

@@ -2,7 +2,7 @@
 code disassembly."""
 
 import re
-from collections import Generator
+from collections.abc import Generator
 
 from mythril.support.opcodes import OPCODES, ADDRESS, ADDRESS_OPCODE_MAPPING
 

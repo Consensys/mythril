@@ -4,8 +4,9 @@ from copy import copy
 from typing import cast, Sized, Union, Any, List, Dict, Optional
 
 from mythril.laser.smt import BitVec, Bool, If, Expression, symbol_factory
+from eth._utils.numeric import ceil32
 
-from ethereum import opcodes, utils
+from eth.constants import GAS_MEMORY, GAS_MEMORY_QUADRATIC_DENOMINATOR
 from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
@@ -141,7 +142,7 @@ class MachineState:
             return 0
 
         # The extension size is calculated based on the word length
-        new_size = utils.ceil32(start + size) // 32
+        new_size = ceil32(start + size) // 32
         old_size = self.memory_size // 32
 
         return (new_size - old_size) * 32
@@ -156,11 +157,11 @@ class MachineState:
         # https://github.com/ethereum/pyethereum/blob/develop/ethereum/vm.py#L148
         oldsize = self.memory_size // 32
         old_totalfee = (
-            oldsize * opcodes.GMEMORY + oldsize ** 2 // opcodes.GQUADRATICMEMDENOM
+            oldsize * GAS_MEMORY + oldsize ** 2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
         )
-        newsize = utils.ceil32(start + size) // 32
+        newsize = ceil32(start + size) // 32
         new_totalfee = (
-            newsize * opcodes.GMEMORY + newsize ** 2 // opcodes.GQUADRATICMEMDENOM
+            newsize * GAS_MEMORY + newsize ** 2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
         )
         return new_totalfee - old_totalfee
 

@@ -1,4 +1,3 @@
-from ethereum import utils
 from mythril.laser.smt import (
     BitVec,
     Function,
@@ -10,6 +9,8 @@ from mythril.laser.smt import (
     Bool,
     Or,
 )
+
+from mythril.support.support_utils import sha3
 from typing import Dict, Tuple, List, Optional
 
 import logging
@@ -61,8 +62,7 @@ class KeccakFunctionManager:
         """
         keccak = symbol_factory.BitVecVal(
             int.from_bytes(
-                utils.sha3(data.value.to_bytes(data.size() // 8, byteorder="big")),
-                "big",
+                sha3(data.value.to_bytes(data.size() // 8, byteorder="big")), "big",
             ),
             256,
         )

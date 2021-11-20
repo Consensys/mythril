@@ -4,7 +4,7 @@ import re
 import logging
 import persistent
 
-from ethereum import utils
+from mythril.support.support_utils import sha3
 from mythril.disassembler.disassembly import Disassembly
 from mythril.support.support_utils import get_code_hash
 
@@ -113,8 +113,7 @@ class EVMContract(persistent.Persistent):
 
             if m:
 
-                sign_hash = "0x" + utils.sha3(m.group(1))[:4].hex()
-
+                sign_hash = "0x" + sha3(m.group(1))[:4].hex()
                 str_eval += '"' + sign_hash + '" in self.disassembly.func_hashes'
 
         return eval(str_eval.strip())
