@@ -11,7 +11,7 @@ eth-keyfile>=0.5.1
 eth-keys>=0.2.0b3
 eth-rlp>=0.1.0
 eth-tester
-eth-typing>=2.1.0
+eth-typing<3.0.0,>=2.1.0
 eth-utils<2
 jinja2>=2.9
 mock
@@ -22,7 +22,7 @@ pysha3
 py-solc-x
 py-solc
 pytest>=3.6.0
-pyparsing>=2.0.2
+pyparsing<3,>=2.0.2
 pytest-cov
 pytest_mock
 requests
