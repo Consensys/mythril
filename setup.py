@@ -24,6 +24,7 @@ REQUIRES_PYTHON = ">=3.6.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
+    "blake2b-py",
     "coloredlogs>=10.0",
     "coincurve",
     "py_ecc<5.0.0,>=1.4.7",
