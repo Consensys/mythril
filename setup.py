@@ -53,7 +53,7 @@ REQUIRED = [
     "persistent>=4.2.0",
     "ethereum-input-decoder>=0.2.2",
     "matplotlib",
-    "typing_extensions",
+    "typing-extensions<4,>=3.7.4",
     "py-evm",
     "certifi>=2020.06.20",
 ]
