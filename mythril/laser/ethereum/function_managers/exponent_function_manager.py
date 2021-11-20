@@ -1,7 +1,6 @@
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from ethereum import utils
 
 from mythril.laser.smt import (
     And,

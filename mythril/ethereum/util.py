@@ -10,8 +10,7 @@ import solc
 
 from pathlib import Path
 from subprocess import PIPE, Popen
-from ethereum.abi import encode_abi, encode_int, method_id
-from ethereum.utils import zpad
+
 from json.decoder import JSONDecodeError
 from mythril.exceptions import CompilerError
 from semantic_version import Version
@@ -97,20 +96,6 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
             )
 
     return result
-
-
-def encode_calldata(func_name, arg_types, args):
-    """
-
-    :param func_name:
-    :param arg_types:
-    :param args:
-    :return:
-    """
-    mid = method_id(func_name, arg_types)
-    function_selector = zpad(encode_int(mid), 4)
-    args = encode_abi(arg_types, args)
-    return "0x" + function_selector.hex() + args.hex()
 
 
 def get_random_address():

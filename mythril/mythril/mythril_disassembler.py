@@ -5,7 +5,7 @@ import sys
 import os
 import platform
 
-from ethereum import utils
+from mythril.support.support_utils import sha3, zpad
 from typing import List, Tuple, Optional
 from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
@@ -14,6 +14,7 @@ from mythril.support import signatures
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
+from eth_utils import int_to_big_endian
 
 if sys.version_info[1] >= 6:
     import solcx
@@ -238,7 +239,7 @@ class MythrilDisassembler:
         :param func: function name
         :return: Its hash signature
         """
-        return "0x%s" % utils.sha3(func)[:4].hex()
+        return "0x%s" % sha3(func)[:4].hex()
 
     def get_state_variable_from_storage(
         self, address: str, params: Optional[List[str]] = None
@@ -258,13 +259,13 @@ class MythrilDisassembler:
                 if len(params) < 3:
                     raise CriticalError("Invalid number of parameters.")
                 position = int(params[1])
-                position_formatted = utils.zpad(utils.int_to_big_endian(position), 32)
+                position_formatted = zpad(int_to_big_endian(position), 32)
                 for i in range(2, len(params)):
                     key = bytes(params[i], "utf8")
                     key_formatted = utils.rzpad(key, 32)
                     mappings.append(
                         int.from_bytes(
-                            utils.sha3(key_formatted + position_formatted),
+                            sha3(key_formatted + position_formatted),
                             byteorder="big",
                         )
                     )
@@ -282,11 +283,11 @@ class MythrilDisassembler:
                 if len(params) >= 2:
                     length = int(params[1])
                 if len(params) == 3 and params[2] == "array":
-                    position_formatted = utils.zpad(
-                        utils.int_to_big_endian(position), 32
+                    position_formatted = zpad(
+                        int_to_big_endian(position), 32
                     )
                     position = int.from_bytes(
-                        utils.sha3(position_formatted), byteorder="big"
+                        sha3(position_formatted), byteorder="big"
                     )
 
         except ValueError:

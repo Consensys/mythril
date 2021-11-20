@@ -15,7 +15,6 @@ RUN apt-get update \
      locales \
      python-pip-whl \
      python3-pip \
-     libleveldb-dev \
      python3-setuptools \
      software-properties-common \
   && add-apt-repository -y ppa:ethereum/ethereum \
