@@ -112,7 +112,7 @@ class WorldState:
         try:
             code = dynamic_loader.dynld(addr)
         except ValueError:
-            code = Disassembly("0x")
+            code = None
         return self.create_account(
             address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code,
         )
