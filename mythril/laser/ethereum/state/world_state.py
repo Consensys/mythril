@@ -6,6 +6,7 @@ from eth._utils.address import generate_contract_address
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
+from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints
@@ -105,14 +106,15 @@ class WorldState:
                     dynamic_loader=dynamic_loader,
                     code=dynamic_loader.dynld(addr),
                 )
-            except:
+            except ValueError:
                 # Initial balance will be a symbolic variable
                 pass
-
+        try:
+            code = dynamic_loader.dynld(addr)
+        except ValueError:
+            code = Disassembly("0x")
         return self.create_account(
-            address=addr_bitvec.value,
-            dynamic_loader=dynamic_loader,
-            code=dynamic_loader.dynld(addr),
+            address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code,
         )
 
     def create_account(
