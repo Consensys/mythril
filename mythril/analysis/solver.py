@@ -111,7 +111,11 @@ def _add_calldata_placeholder(
         tx["calldata"] = tx["input"]
     if not isinstance(transaction_sequence[0], ContractCreationTransaction):
         return
-    code_len = len(transaction_sequence[0].code.bytecode)
+
+    if type(transaction_sequence[0].code.bytecode) == tuple:
+        code_len = len(transaction_sequence[0].code.bytecode) * 2
+    else:
+        code_len = len(transaction_sequence[0].code.bytecode)
     concrete_transactions[0]["calldata"] = concrete_transactions[0]["input"][
         code_len + 2 :
     ]
@@ -164,7 +168,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
 
         data = dict()  # type: Dict[str, Union[int, str]]
         data["nonce"] = account.nonce
-        data["code"] = account.code.bytecode
+        data["code"] = account.serialised_code()
         data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))
         accounts[hex(address)] = data

@@ -282,17 +282,39 @@ class Instruction:
         :return:
         """
         push_instruction = global_state.get_current_instruction()
-        push_value = push_instruction["argument"][2:]
-
+        push_value = push_instruction["argument"]
         try:
             length_of_value = 2 * int(push_instruction["opcode"][4:])
         except ValueError:
             raise VmException("Invalid Push instruction")
 
-        push_value += "0" * max(length_of_value - len(push_value), 0)
-        global_state.mstate.stack.append(
-            symbol_factory.BitVecVal(int(push_value, 16), 256)
-        )
+        if type(push_value) == tuple:
+            if type(push_value[0]) == int:
+                new_value = symbol_factory.BitVecVal(push_value[0], 8)
+            else:
+                new_value = push_value[0]
+            if len(push_value) > 1:
+                for val in push_value[1:]:
+                    if type(val) == int:
+                        new_value = Concat(new_value, symbol_factory.BitVecVal(val, 8))
+                    else:
+                        new_value = Concat(new_value, val)
+
+            pad_length = length_of_value // 2 - len(push_value)
+
+            if pad_length > 0:
+                new_value = Concat(new_value, symbol_factory.BitVecVal(0, pad_length))
+            if new_value.size() < 256:
+                new_value = Concat(
+                    symbol_factory.BitVecVal(0, 256 - new_value.size()), new_value
+                )
+            global_state.mstate.stack.append(new_value)
+
+        else:
+            push_value += "0" * max(length_of_value - len(push_value), 0)
+            global_state.mstate.stack.append(
+                symbol_factory.BitVecVal(int(push_value, 16), 256)
+            )
         return [global_state]
 
     @StateTransition()

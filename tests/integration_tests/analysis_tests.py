@@ -29,6 +29,17 @@ test_data = (
         },
         None,
     ),
+    (
+        "symbolic_exec_bytecode.sol.o",
+        {
+            "TX_COUNT": 1,
+            "TX_OUTPUT": 0,
+            "MODULE": "AccidentallyKillable",
+            "ISSUE_COUNT": 1,
+            "ISSUE_NUMBER": 0,
+        },
+        None,
+    ),
 )
 
 
