@@ -105,6 +105,7 @@ class WorldState:
                     address=addr_bitvec.value,
                     dynamic_loader=dynamic_loader,
                     code=dynamic_loader.dynld(addr),
+                    concrete_storage=True,
                 )
             except ValueError:
                 # Initial balance will be a symbolic variable
