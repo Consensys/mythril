@@ -100,12 +100,20 @@ def disassemble(bytecode) -> list:
     instruction_list = []
     address = 0
     length = len(bytecode)
+
     if type(bytecode) == str:
         bytecode = util.safe_decode(bytecode)
         length = len(bytecode)
-        if "bzzr" in str(bytecode[-43:]):
+        part_code = bytecode[-43:]
+    else:
+        part_code = bytes(bytecode[-43:])
+
+    try:
+        if "bzzr" in str(part_code):
             # ignore swarm hash
             length -= 43
+    except ValueError:
+        pass
 
     while address < length:
         try:
