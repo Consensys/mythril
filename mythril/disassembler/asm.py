@@ -3,7 +3,9 @@ code disassembly."""
 
 import re
 from collections.abc import Generator
+from functools import lru_cache
 
+from mythril.ethereum import util
 from mythril.support.opcodes import OPCODES, ADDRESS, ADDRESS_OPCODE_MAPPING
 
 regex_PUSH = re.compile(r"^PUSH(\d*)$")
@@ -86,7 +88,10 @@ def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool
     return True
 
 
-def disassemble(bytecode: bytes) -> list:
+lru_cache(maxsize=2 ** 10)
+
+
+def disassemble(bytecode) -> list:
     """Disassembles evm bytecode and returns a list of instructions.
 
     :param bytecode:
@@ -95,9 +100,20 @@ def disassemble(bytecode: bytes) -> list:
     instruction_list = []
     address = 0
     length = len(bytecode)
-    if "bzzr" in str(bytecode[-43:]):
-        # ignore swarm hash
-        length -= 43
+
+    if type(bytecode) == str:
+        bytecode = util.safe_decode(bytecode)
+        length = len(bytecode)
+        part_code = bytecode[-43:]
+    else:
+        part_code = bytes(bytecode[-43:])
+
+    try:
+        if "bzzr" in str(part_code):
+            # ignore swarm hash
+            length -= 43
+    except ValueError:
+        pass
 
     while address < length:
         try:
@@ -112,7 +128,10 @@ def disassemble(bytecode: bytes) -> list:
         match = re.search(regex_PUSH, op_code)
         if match:
             argument_bytes = bytecode[address + 1 : address + 1 + int(match.group(1))]
-            current_instruction.argument = "0x" + argument_bytes.hex()
+            if type(argument_bytes) == bytes:
+                current_instruction.argument = "0x" + argument_bytes.hex()
+            else:
+                current_instruction.argument = argument_bytes
             address += int(match.group(1))
 
         instruction_list.append(current_instruction)

@@ -182,10 +182,21 @@ class Account:
         """
         return {
             "nonce": self.nonce,
-            "code": self.code,
+            "code": self.serialised_code(),
             "balance": self.balance(),
             "storage": self.storage,
         }
+
+    def serialised_code(self):
+        if type(self.code.bytecode) == str:
+            return self.code.bytecode
+        new_code = "0x"
+        for byte in self.code.bytecode:
+            if type(byte) == int:
+                new_code += hex(byte)
+            else:
+                new_code += "<call_data>"
+        return new_code
 
     def __copy__(self, memodict={}):
         new_account = Account(

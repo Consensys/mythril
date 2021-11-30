@@ -255,17 +255,12 @@ class ContractCreationTransaction(BaseTransaction):
         :param return_data:
         :param revert:
         """
-        if (
-            return_data is None
-            or not all([isinstance(element, int) for element in return_data])
-            or len(return_data) == 0
-        ):
+
+        if return_data is None or len(return_data) == 0:
             self.return_data = None
             raise TransactionEndSignal(global_state, revert=revert)
 
-        contract_code = bytes.hex(array.array("B", return_data).tobytes())
-
-        global_state.environment.active_account.code.assign_bytecode(contract_code)
+        global_state.environment.active_account.code.assign_bytecode(tuple(return_data))
         self.return_data = str(
             hex(global_state.environment.active_account.address.value)
         )

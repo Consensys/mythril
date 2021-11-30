@@ -26,11 +26,15 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-def get_code_hash(code: str) -> str:
+def get_code_hash(code) -> str:
     """
     :param code: bytecode
     :return: Returns hash of the given bytecode
     """
+    if type(code) == tuple:
+        # Temporary hack, since we cannot find symbols of sha3
+        return str(hash(code))
+
     code = code[2:] if code[:2] == "0x" else code
     try:
         keccak = _pysha3.keccak_256()
