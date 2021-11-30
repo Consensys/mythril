@@ -121,7 +121,7 @@ def disassemble(bytecode) -> list:
         if match:
             argument_bytes = bytecode[address + 1 : address + 1 + int(match.group(1))]
             if type(argument_bytes) == bytes:
-                current_instruction.argument = argument_bytes.hex()
+                current_instruction.argument = "0x" + argument_bytes.hex()
             else:
                 current_instruction.argument = argument_bytes
             address += int(match.group(1))

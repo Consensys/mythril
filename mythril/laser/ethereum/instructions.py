@@ -311,7 +311,7 @@ class Instruction:
             global_state.mstate.stack.append(new_value)
 
         else:
-            push_value += "0" * max(length_of_value - len(push_value), 0)
+            push_value += "0" * max(length_of_value - (len(push_value) - 2), 0)
             global_state.mstate.stack.append(
                 symbol_factory.BitVecVal(int(push_value, 16), 256)
             )
