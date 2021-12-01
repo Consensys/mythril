@@ -20,44 +20,12 @@ URL = "https://github.com/ConsenSys/mythril"
 AUTHOR = "ConsenSys Dilligence"
 AUTHOR_MAIL = None
 REQUIRES_PYTHON = ">=3.6.0"
-
+here = os.path.abspath(os.path.dirname(__file__))
 
 # What packages are required for this module to be executed?
-REQUIRED = [
-    "blake2b-py",
-    "coloredlogs>=10.0",
-    "coincurve",
-    "py_ecc<5.0.0,>=1.4.7",
-    "z3-solver>=4.8.8.0",
-    "requests",
-    "py-solc",
-    "pysha3",
-    "py-solc-x==1.0.0",
-    "semantic_version==2.8.5",
-    "eth_abi",
-    "eth-account",
-    "eth-hash>=0.3.1",
-    "eth-keyfile>=0.5.1",
-    "eth-keys>=0.2.0b3",
-    "eth-rlp>=0.1.0",
-    "eth-tester",
-    "eth-typing<3.0.0,>=2.1.0",
-    "eth-utils<2",
-    "coverage",
-    "pyparsing<3,>=2.0.2",
-    "jinja2>=2.9",
-    "rlp",
-    "transaction>=2.2.1",
-    "py-flags",
-    "mock",
-    "configparser>=3.5.0",
-    "persistent>=4.2.0",
-    "ethereum-input-decoder>=0.2.2",
-    "matplotlib",
-    "typing-extensions<4,>=3.7.4",
-    "py-evm",
-    "certifi>=2020.06.20",
-]
+REQUIRED = (
+    io.open(os.path.join(here, "requirements.txt"), encoding="utf-8").read().split()
+)
 
 TESTS_REQUIRE = ["mypy==0.782", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
 
@@ -69,7 +37,6 @@ EXTRAS = {
 # If version is set to None then it will be fetched from __version__.py
 VERSION = None
 
-here = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
