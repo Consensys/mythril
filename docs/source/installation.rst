@@ -36,7 +36,7 @@ PyPI on Ubuntu
 
    # Install mythril
    pip3 install mythril
-   myth --version
+   myth version
 
 
 ******
