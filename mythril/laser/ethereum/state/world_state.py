@@ -2,10 +2,11 @@
 from copy import copy
 from random import randint
 from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
+from eth._utils.address import generate_contract_address
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
-from ethereum.utils import mk_contract_address
+from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints
@@ -104,15 +105,17 @@ class WorldState:
                     address=addr_bitvec.value,
                     dynamic_loader=dynamic_loader,
                     code=dynamic_loader.dynld(addr),
+                    concrete_storage=True,
                 )
-            except:
+            except ValueError:
                 # Initial balance will be a symbolic variable
                 pass
-
+        try:
+            code = dynamic_loader.dynld(addr)
+        except ValueError:
+            code = None
         return self.create_account(
-            address=addr_bitvec.value,
-            dynamic_loader=dynamic_loader,
-            code=dynamic_loader.dynld(addr),
+            address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code,
         )
 
     def create_account(
@@ -202,7 +205,7 @@ class WorldState:
         """
         if creator:
             # TODO: Use nounce
-            address = "0x" + str(mk_contract_address(creator, 0).hex())
+            address = "0x" + str(generate_contract_address(creator, 0).hex())
             return symbol_factory.BitVecVal(int(address, 16), 256)
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])

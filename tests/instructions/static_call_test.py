@@ -19,7 +19,7 @@ from mythril.laser.ethereum.evm_exceptions import WriteProtection
 def get_global_state():
     active_account = Account("0x0", code=Disassembly("60606040"))
     environment = Environment(
-        active_account, None, SymbolicCalldata("2"), None, None, None
+        active_account, None, SymbolicCalldata("2"), None, None, None, None
     )
     world_state = WorldState()
     world_state.put_account(active_account)
@@ -56,7 +56,7 @@ def test_staticcall(f1):
 
 
 test_data = (
-    "suicide",
+    "selfdestruct",
     "create",
     "create2",
     "log0",

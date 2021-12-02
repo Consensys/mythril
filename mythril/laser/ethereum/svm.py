@@ -5,7 +5,7 @@ from copy import copy
 from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
-from mythril.support.opcodes import opcodes as OPCODES
+from mythril.support.opcodes import OPCODES
 from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
@@ -110,7 +110,7 @@ class LaserEVM:
         self.iprof = iprof
         self.instr_pre_hook = {}  # type: Dict[str, List[Callable]]
         self.instr_post_hook = {}  # type: Dict[str, List[Callable]]
-        for op, _, _, _ in OPCODES.values():
+        for op in OPCODES:
             self.instr_pre_hook[op] = []
             self.instr_post_hook[op] = []
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
@@ -240,6 +240,7 @@ class LaserEVM:
         :return:
         """
         final_states = []  # type: List[GlobalState]
+
         for global_state in self.strategy:
             if create and self._check_create_termination():
                 log.debug("Hit create timeout, returning.")
@@ -254,6 +255,7 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
+
             if args.sparse_pruning is False:
                 new_states = [
                     state
@@ -358,13 +360,6 @@ class LaserEVM:
             new_global_state.node = global_state.node
             new_global_state.world_state.constraints = (
                 start_signal.global_state.world_state.constraints
-            )
-
-            transfer_ether(
-                new_global_state,
-                start_signal.transaction.caller,
-                start_signal.transaction.callee_account.address,
-                start_signal.transaction.call_value,
             )
 
             log.debug("Starting new transaction %s", start_signal.transaction)
@@ -597,13 +592,13 @@ class LaserEVM:
         """Registers instructions hooks from plugins"""
         if hook_type == "pre":
             if opcode is None:
-                for op, _, _, _ in OPCODES.values():
+                for op in OPCODES:
                     self.instr_pre_hook[op].append(hook(op))
             else:
                 self.instr_pre_hook[opcode].append(hook)
         else:
             if opcode is None:
-                for op, _, _, _ in OPCODES.values():
+                for op in OPCODES:
                     self.instr_post_hook[op].append(hook(op))
             else:
                 self.instr_post_hook[opcode].append(hook)

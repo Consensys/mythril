@@ -1,9 +1,10 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
 from mythril.exceptions import UnsatError
-from mythril.laser.smt import Bool, simplify
+from mythril.laser.smt import symbol_factory, simplify, Bool
 from mythril.support.model import get_model
 from typing import Iterable, List, Optional, Union
+from mythril.laser.ethereum.function_managers import keccak_function_manager
 
 
 class Constraints(list):
@@ -29,7 +30,7 @@ class Constraints(list):
         """
 
         try:
-            get_model(tuple(self[:]))
+            get_model(self)
         except UnsatError:
             return False
         return True
@@ -40,7 +41,9 @@ class Constraints(list):
         :param constraint: The constraint to be appended
         """
         constraint = (
-            simplify(constraint) if isinstance(constraint, Bool) else Bool(constraint)
+            simplify(constraint)
+            if isinstance(constraint, Bool)
+            else symbol_factory.Bool(constraint)
         )
         super(Constraints, self).append(constraint)
 
@@ -100,9 +103,14 @@ class Constraints(list):
     @staticmethod
     def _get_smt_bool_list(constraints: Iterable[Union[bool, Bool]]) -> List[Bool]:
         return [
-            constraint if isinstance(constraint, Bool) else Bool(constraint)
+            constraint
+            if isinstance(constraint, Bool)
+            else symbol_factory.Bool(constraint)
             for constraint in constraints
         ]
+
+    def get_all_constraints(self):
+        return self[:] + [keccak_function_manager.create_conditions()]
 
     def __hash__(self):
         return tuple(self[:]).__hash__()

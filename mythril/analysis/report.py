@@ -23,17 +23,18 @@ class Issue:
 
     def __init__(
         self,
-        contract,
-        function_name,
-        address,
-        swc_id,
-        title,
-        bytecode,
+        contract: str,
+        function_name: str,
+        address: int,
+        swc_id: str,
+        title: str,
+        bytecode: str,
         gas_used=(None, None),
         severity=None,
         description_head="",
         description_tail="",
         transaction_sequence=None,
+        source_location=None,
     ):
         """
 
@@ -66,6 +67,7 @@ class Issue:
         self.discovery_time = time() - StartTime().global_start_time
         self.bytecode_hash = get_code_hash(bytecode)
         self.transaction_sequence = transaction_sequence
+        self.source_location = source_location
 
     @property
     def transaction_sequence_users(self):
@@ -141,9 +143,14 @@ class Issue:
         :param contract:
         """
         if self.address and isinstance(contract, SolidityContract):
-            codeinfo = contract.get_source_info(
-                self.address, constructor=(self.function == "constructor")
-            )
+            if self.source_location:
+                codeinfo = contract.get_source_info(
+                    self.source_location, constructor=(self.function == "constructor")
+                )
+            else:
+                codeinfo = contract.get_source_info(
+                    self.address, constructor=(self.function == "constructor")
+                )
 
             if codeinfo is None:
                 self.source_mapping = self.address
@@ -224,7 +231,11 @@ class Report:
         :param issue:
         """
         m = hashlib.md5()
-        m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
+        m.update(
+            (issue.contract + issue.function + str(issue.address) + issue.title).encode(
+                "utf-8"
+            )
+        )
         issue.resolve_function_names()
         self.issues[m.digest()] = issue
 

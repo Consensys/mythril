@@ -34,7 +34,7 @@ def test_create2():
     world_state = WorldState()
     account = world_state.create_account(balance=10, address=101)
     account.code = Disassembly("60606040")
-    environment = Environment(account, None, None, None, None, None)
+    environment = Environment(account, None, None, None, None, None, None)
     og_state = GlobalState(
         world_state, environment, None, MachineState(gas_limit=8000000)
     )

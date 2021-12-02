@@ -1,7 +1,6 @@
 """This module contains functionality for hooking in detection modules and
 executing them."""
 
-from mythril.support.opcodes import opcodes
 from mythril.analysis.module import ModuleLoader, reset_callback_modules
 from mythril.analysis.module.base import EntryPoint
 from mythril.analysis.report import Issue

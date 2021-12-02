@@ -1,4 +1,3 @@
-from ethereum import utils
 from mythril.laser.smt import (
     BitVec,
     Function,
@@ -10,9 +9,12 @@ from mythril.laser.smt import (
     Bool,
     Or,
 )
+
+from mythril.support.support_utils import sha3
 from typing import Dict, Tuple, List, Optional
 
 import logging
+
 
 TOTAL_PARTS = 10 ** 40
 PART = (2 ** 256 - 1) // TOTAL_PARTS
@@ -34,12 +36,22 @@ class KeccakFunctionManager:
     hash_matcher = "fffffff"  # This is usually the prefix for the hash in the output
 
     def __init__(self):
-        self.store_function = {}  # type: Dict[int, Tuple[Function, Function]]
-        self.interval_hook_for_size = {}  # type: Dict[int, int]
+        self.store_function: Dict[int, Tuple[Function, Function]] = {}
+        self.interval_hook_for_size: Dict[int, int] = {}
         self._index_counter = TOTAL_PARTS - 34534
-        self.hash_result_store = {}  # type: Dict[int, List[BitVec]]
-        self.quick_inverse = {}  # type: Dict[BitVec, BitVec]  # This is for VMTests
-        self.concrete_hashes = {}  # type: Dict[BitVec, BitVec]
+        self.hash_result_store: Dict[int, List[BitVec]] = {}
+
+        self.quick_inverse: Dict[BitVec, BitVec] = {}  # This is for VMTests
+        self.concrete_hashes: Dict[BitVec, BitVec] = {}
+        self.symbolic_inputs: Dict[int, List[BitVec]] = {}
+
+    def reset(self):
+        self.store_function = {}
+        self.interval_hook_for_size = {}
+        self.hash_result_store: Dict[int, List[BitVec]] = {}
+        self.quick_inverse = {}
+        self.concrete_hashes = {}
+        self.symbolic_inputs = {}
 
     @staticmethod
     def find_concrete_keccak(data: BitVec) -> BitVec:
@@ -50,8 +62,7 @@ class KeccakFunctionManager:
         """
         keccak = symbol_factory.BitVecVal(
             int.from_bytes(
-                utils.sha3(data.value.to_bytes(data.size() // 8, byteorder="big")),
-                "big",
+                sha3(data.value.to_bytes(data.size() // 8, byteorder="big")), "big",
             ),
             256,
         )
@@ -81,7 +92,7 @@ class KeccakFunctionManager:
         val = 89477152217924674838424037953991966239322087453347756267410168184682657981552
         return symbol_factory.BitVecVal(val, 256)
 
-    def create_keccak(self, data: BitVec) -> Tuple[BitVec, Bool]:
+    def create_keccak(self, data: BitVec) -> BitVec:
         """
         Creates Keccak of the data
         :param data: input
@@ -93,13 +104,31 @@ class KeccakFunctionManager:
         if data.symbolic is False:
             concrete_hash = self.find_concrete_keccak(data)
             self.concrete_hashes[data] = concrete_hash
-            # This condition is essential to avoid some edge cases
-            condition = And(func(data) == concrete_hash, inverse(func(data)) == data)
-            return concrete_hash, condition
+            return concrete_hash
 
-        condition = self._create_condition(func_input=data)
+        if length not in self.symbolic_inputs:
+            self.symbolic_inputs[length] = []
+
+        self.symbolic_inputs[length].append(data)
         self.hash_result_store[length].append(func(data))
-        return func(data), condition
+        return func(data)
+
+    def create_conditions(self) -> Bool:
+        condition = symbol_factory.Bool(True)
+        for inputs_list in self.symbolic_inputs.values():
+            for symbolic_input in inputs_list:
+                condition = And(
+                    condition, self._create_condition(func_input=symbolic_input)
+                )
+        for concrete_input, concrete_hash in self.concrete_hashes.items():
+            func, inverse = self.get_function(concrete_input.size())
+            condition = And(
+                condition,
+                func(concrete_input) == concrete_hash,
+                inverse(func(concrete_input)) == concrete_input,
+            )
+
+        return condition
 
     def get_concrete_hash_data(self, model) -> Dict[int, List[Optional[int]]]:
         """
@@ -145,8 +174,9 @@ class KeccakFunctionManager:
         )
         concrete_cond = symbol_factory.Bool(False)
         for key, keccak in self.concrete_hashes.items():
-            hash_eq = And(func(func_input) == keccak, key == func_input)
-            concrete_cond = Or(concrete_cond, hash_eq)
+            if key.size() == func_input.size():
+                hash_eq = And(func(func_input) == keccak, key == func_input)
+                concrete_cond = Or(concrete_cond, hash_eq)
         return And(inv(func(func_input)) == func_input, Or(cond, concrete_cond))
 
 

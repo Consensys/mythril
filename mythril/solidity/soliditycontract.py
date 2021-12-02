@@ -90,7 +90,6 @@ class SolidityContract(EVMContract):
         self.solc_indices = self.get_solc_indices(data)
         self.solc_json = data
         self.input_file = input_file
-
         has_contract = False
 
         # If a contract name has been specified, find the bytecode of that specific contract
@@ -134,27 +133,33 @@ class SolidityContract(EVMContract):
         super().__init__(code, creation_code, name=name)
 
     @staticmethod
+    def get_sources(indices_data: Dict, source_data: Dict) -> None:
+        """
+        Get source indices mapping
+        """
+        if "generatedSources" not in source_data:
+            return
+        sources = source_data["generatedSources"]
+        for source in sources:
+            full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
+                source["ast"]
+            )
+            indices_data[source["id"]] = SolidityFile(
+                source["name"], source["contents"], full_contract_src_maps
+            )
+
+    @staticmethod
     def get_solc_indices(data: Dict) -> Dict:
         """
         Returns solc file indices
         """
-        indices = {}
-        has_sources = True
+        indices: Dict = {}
         for contract_data in data["contracts"].values():
             for source_data in contract_data.values():
-                if "generatedSources" not in source_data["evm"]["deployedBytecode"]:
-                    has_sources = False
-                    break
-                sources = source_data["evm"]["deployedBytecode"]["generatedSources"]
-                for source in sources:
-                    full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
-                        source["ast"]
-                    )
-                    indices[source["id"]] = SolidityFile(
-                        source["name"], source["contents"], full_contract_src_maps
-                    )
-            if has_sources is False:
-                break
+                SolidityContract.get_sources(indices, source_data["evm"]["bytecode"])
+                SolidityContract.get_sources(
+                    indices, source_data["evm"]["deployedBytecode"]
+                )
         for source in data["sources"].values():
             full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
                 source["ast"]
@@ -195,6 +200,7 @@ class SolidityContract(EVMContract):
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
         file_index = mappings[index].solidity_file_idx
+
         if file_index == -1:
             # If issue is detected in an internal file
             return None

@@ -76,11 +76,10 @@ Analyze mainnet contract via INFURA:
    myth analyze -a 0x5c436ff914c458983414019195e0f4ecbef9e6dd --infura-id <ID>
 
 You can also use the environment variable `INFURA_ID` instead of the cmd line argument or set it in ~/.mythril/config.ini.
-Adding the :code:`-l` flag will cause mythril to automatically retrieve dependencies, such as dynamically linked library contracts:
 
 .. code-block:: bash
 
-   myth -v4 analyze -l -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 --infura-id <ID>
+   myth -v4 analyze -a 0xEbFD99838cb0c132016B9E117563CB41f2B02264 --infura-id <ID>
 
 ******************
 Speed vs. Coverage

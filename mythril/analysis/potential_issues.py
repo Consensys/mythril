@@ -81,15 +81,16 @@ def check_potential_issues(state: GlobalState) -> None:
     :return:
     """
     annotation = get_potential_issues_annotation(state)
+    unsat_potential_issues = []
     for potential_issue in annotation.potential_issues:
         try:
             transaction_sequence = get_transaction_sequence(
                 state, state.world_state.constraints + potential_issue.constraints
             )
         except UnsatError:
+            unsat_potential_issues.append(potential_issue)
             continue
 
-        annotation.potential_issues.remove(potential_issue)
         potential_issue.detector.cache.add(potential_issue.address)
         potential_issue.detector.issues.append(
             Issue(
@@ -106,3 +107,4 @@ def check_potential_issues(state: GlobalState) -> None:
                 transaction_sequence=transaction_sequence,
             )
         )
+    annotation.potential_issues = unsat_potential_issues
