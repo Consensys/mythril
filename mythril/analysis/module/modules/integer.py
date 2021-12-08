@@ -162,7 +162,9 @@ class IntegerArithmetics(DetectionModule):
     def _handle_exp(self, state):
         op0, op1 = self._get_args(state)
 
-        if op1.value == 0 or op0.value < 2:
+        if (op1.symbolic is False and op1.value == 0) or (
+            op0.symbolic is False and op0.value < 2
+        ):
             return
         if op0.symbolic and op1.symbolic:
             constraint = And(
