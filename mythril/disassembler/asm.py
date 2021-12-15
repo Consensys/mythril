@@ -106,8 +106,10 @@ def disassemble(bytecode) -> list:
         length = len(bytecode)
         part_code = bytecode[-43:]
     else:
-        part_code = bytes(bytecode[-43:])
-
+        try:
+            part_code = bytes(bytecode[-43:])
+        except TypeError:
+            part_code = ""
     try:
         if "bzzr" in str(part_code):
             # ignore swarm hash
