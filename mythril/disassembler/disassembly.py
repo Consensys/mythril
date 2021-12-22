@@ -97,7 +97,7 @@ def get_function_info(
     function_names = signature_database.get(function_hash)
 
     if len(function_names) > 0:
-        function_name = function_names[0]
+        function_name = " or ".join(function_names)
     else:
         function_name = "_function_" + function_hash
 

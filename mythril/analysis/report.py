@@ -182,7 +182,7 @@ class Issue:
 
             try:
                 sig = signatures.get(_hash)
-
+                # TODO: Check other mythx tools for dependency before supporting multiple possible function names
                 if len(sig) > 0:
                     step["name"] = sig[0]
                 else:
