@@ -1,5 +1,6 @@
 coloredlogs>=10.0
-coincurve
+coincurve>=13.0.0
+asn1crypto>=0.22.0
 configparser>=3.5.0
 coverage
 py_ecc<5.0.0,>=1.4.7
