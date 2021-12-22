@@ -1,4 +1,3 @@
-blake2b-py
 coloredlogs>=10.0
 coincurve
 configparser>=3.5.0
@@ -12,11 +11,13 @@ eth-keyfile>=0.5.1
 eth-keys>=0.2.0b3
 eth-rlp>=0.1.0
 eth-tester
+eth-typing<3.0.0,>=2.1.0
+eth-utils<2
 jinja2>=2.9
 mock
 persistent>=4.2.0
 py-flags
-py-evm
+py-evm==0.5.0a1
 pysha3
 py-solc-x
 py-solc
@@ -25,7 +26,7 @@ pyparsing<3,>=2.0.2
 pytest-cov
 pytest_mock
 requests
-rlp>=3,<4
+rlp<3
 semantic_version
 transaction>=2.2.1
 typing-extensions<4,>=3.7.4
