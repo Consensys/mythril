@@ -169,7 +169,8 @@ class LaserEVM:
             if len(self.open_states) == 0:
                 log.warning(
                     "No contract was created during the execution of contract creation "
-                    "Increase the resources for creation execution (--max-depth or --create-timeout)"
+                    "Increase the resources for creation execution (--max-depth or --create-timeout) "
+                    "Check whether the bytecode is indeed the creation code, otherwise use the --bin-runtime flag"
                 )
 
             self._execute_transactions(created_account.address)
