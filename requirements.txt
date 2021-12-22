@@ -18,7 +18,7 @@ jinja2>=2.9
 mock
 persistent>=4.2.0
 py-flags
-py-evm==0.4.0a1
+py-evm
 pysha3
 py-solc-x
 py-solc
