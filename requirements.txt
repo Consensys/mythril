@@ -4,8 +4,8 @@ coincurve
 configparser>=3.5.0
 coverage
 py_ecc<5.0.0,>=1.4.7
-eth_abi
-eth-account
+eth_abi<3.0.0,>=2.0.0b4
+eth-account<0.6.0,>=0.5.6
 ethereum-input-decoder>=0.2.2
 eth-hash>=0.3.1
 eth-keyfile>=0.5.1
@@ -18,7 +18,7 @@ jinja2>=2.9
 mock
 persistent>=4.2.0
 py-flags
-py-evm
+py-evm==0.4.0a4
 pysha3
 py-solc-x
 py-solc
