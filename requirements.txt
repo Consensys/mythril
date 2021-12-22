@@ -12,12 +12,9 @@ eth-keyfile>=0.5.1
 eth-keys>=0.2.0b3
 eth-rlp>=0.1.0
 eth-tester
-eth-typing<3.0.0,>=2.1.0
-eth-utils<2
 jinja2>=2.9
 mock
 persistent>=4.2.0
-trie<2.0.0
 py-flags
 py-evm
 pysha3
@@ -28,7 +25,7 @@ pyparsing<3,>=2.0.2
 pytest-cov
 pytest_mock
 requests
-rlp<3.0.0
+rlp>=3,<4
 semantic_version
 transaction>=2.2.1
 typing-extensions<4,>=3.7.4
