@@ -9,7 +9,7 @@ eth-account<0.6.0,>=0.5.6
 ethereum-input-decoder>=0.2.2
 eth-hash>=0.3.1
 eth-keyfile>=0.5.1
-eth-keys>=0.2.0b3
+eth-keys<0.4.0,>=0.2.1
 eth-rlp>=0.1.0
 eth-tester
 eth-typing<3.0.0,>=2.1.0
