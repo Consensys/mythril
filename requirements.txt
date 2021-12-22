@@ -17,6 +17,7 @@ eth-utils<2
 jinja2>=2.9
 mock
 persistent>=4.2.0
+trie<2.0.0
 py-flags
 py-evm
 pysha3
