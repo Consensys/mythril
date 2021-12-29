@@ -54,13 +54,14 @@ class BaseSolver(Generic[T]):
         :return: The evaluated result which is either of sat, unsat or unknown
         """
         old_stdout = sys.stdout
-        sys.stdout = open(os.devnull, "w")
-        try:
-            evaluate = self.raw.check(args)
-        except z3.z3types.Z3Exception as e:
-            # Some requests crash the solver
-            evaluate = z3.unknown
-            log.info(f"Encountered Z3 exception when checking the constraints: {e}")
+        with open(os.devnull, "w") as dev_null_fd:
+            sys.stdout = dev_null_fd
+            try:
+                evaluate = self.raw.check(args)
+            except z3.z3types.Z3Exception as e:
+                # Some requests crash the solver
+                evaluate = z3.unknown
+                log.info(f"Encountered Z3 exception when checking the constraints: {e}")
         sys.stdout = old_stdout
         return evaluate
 
