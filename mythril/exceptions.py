@@ -34,7 +34,6 @@ class CriticalError(MythrilBaseException):
     pass
 
 
-
 class DetectorNotFoundError(MythrilBaseException):
     """A Mythril exception denoting attempted usage of a non-existant
     detection module."""
