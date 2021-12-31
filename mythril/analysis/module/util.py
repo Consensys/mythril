@@ -13,7 +13,7 @@ OP_CODE_LIST = OPCODES.keys()
 def get_detection_module_hooks(
     modules: List[DetectionModule], hook_type="pre"
 ) -> Dict[str, List[Callable]]:
-    """ Gets a dictionary with the hooks for the passed detection modules
+    """Gets a dictionary with the hooks for the passed detection modules
 
     :param modules: The modules for which to retrieve hooks
     :param hook_type: The type  of hooks to retrieve (default: "pre")

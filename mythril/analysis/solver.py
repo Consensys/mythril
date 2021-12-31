@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 def pretty_print_model(model):
-    """ Pretty prints a z3 model
+    """Pretty prints a z3 model
 
     :param model:
     :return:
@@ -161,7 +161,7 @@ def _replace_with_actual_sha(
 
 
 def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
-    """ Gets a concrete state """
+    """Gets a concrete state"""
     accounts = {}
     for address, account in initial_accounts.items():
         # Skip empty default account
@@ -176,7 +176,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
 
 
 def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
-    """ Gets a concrete transaction from a transaction and z3 model"""
+    """Gets a concrete transaction from a transaction and z3 model"""
     # Get concrete values from transaction
     address = hex(transaction.callee_account.address.value)
     value = model.eval(transaction.call_value.raw, model_completion=True).as_long()
@@ -210,7 +210,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
 def _set_minimisation_constraints(
     transaction_sequence, constraints, minimize, max_size, world_state
 ) -> Tuple[Constraints, tuple]:
-    """ Set constraints that minimise key transaction values
+    """Set constraints that minimise key transaction values
 
     Constraints generated:
     - Upper bound on calldata size

@@ -12,7 +12,7 @@ class ExponentFunctionManager:
     Uses an uninterpreted function for exponentiation with the following properties:
     1) power(a, b) > 0
     2) if a = 256 => forall i if b = i then power(a, b) = (256 ^ i) % (2^256)
-    
+
     Only these two properties are added as to handle indexing of boolean arrays.
     Caution should be exercised when increasing the conditions since it severely affects
     the solving time.

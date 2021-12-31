@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class EntryPoint(Enum):
-    """ EntryPoint Enum
+    """EntryPoint Enum
 
     This enum is used to signify the entry_point of detection modules.
     See also the class documentation of DetectionModule
@@ -54,7 +54,7 @@ class DetectionModule(ABC):
         self.cache = set()  # type: Set[Optional[Union[int, Tuple[int, str]]]]
 
     def reset_module(self):
-        """ Resets the storage of this module """
+        """Resets the storage of this module"""
         self.issues = []
 
     def execute(self, target: GlobalState) -> Optional[List[Issue]]:

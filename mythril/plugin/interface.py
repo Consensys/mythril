@@ -37,7 +37,7 @@ class MythrilCLIPlugin(MythrilPlugin):
 
 
 class MythrilLaserPlugin(MythrilPlugin, LaserPluginBuilder, ABC):
-    """ Mythril Laser Plugin interface
+    """Mythril Laser Plugin interface
 
     Plugins of this type are used to instrument the laser EVM
     """

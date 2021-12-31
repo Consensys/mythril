@@ -24,8 +24,7 @@ _InstrExecStatistics = Dict[str, _InstrExecStatistic]
 
 
 class InstructionProfiler:
-    """Performance profile for the execution of each instruction.
-    """
+    """Performance profile for the execution of each instruction."""
 
     def __init__(self):
         self.records = dict()

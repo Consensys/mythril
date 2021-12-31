@@ -39,8 +39,7 @@ class InstructionProfilerBuilder(PluginBuilder):
 
 
 class InstructionProfiler(LaserPlugin):
-    """Performance profile for the execution of each instruction.
-    """
+    """Performance profile for the execution of each instruction."""
 
     def __init__(self):
         self._reset()

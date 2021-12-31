@@ -8,7 +8,7 @@ class PluginSignal(Exception):
 
 
 class PluginSkipWorldState(PluginSignal):
-    """ Plugin to skip world state
+    """Plugin to skip world state
 
     Plugins that raise this signal while the add_world_state hook is being executed
     will force laser to abandon that world state.
@@ -18,7 +18,7 @@ class PluginSkipWorldState(PluginSignal):
 
 
 class PluginSkipState(PluginSignal):
-    """ Plugin to skip world state
+    """Plugin to skip world state
 
     Plugins that raise this signal while the add_world_state hook is being executed
     will force laser to abandon that world state.

@@ -27,7 +27,7 @@ def stat_smt_query(func: Callable):
 
 
 class SolverStatistics(object, metaclass=Singleton):
-    """ Solver Statistics Class
+    """Solver Statistics Class
 
     Keeps track of the important statistics around smt queries
     """
