@@ -83,7 +83,7 @@ class BenchmarkPlugin(LaserPlugin):
     def _write_to_graph(self):
         """Write the coverage results to a graph"""
         traces = []
-        for byte_code, trace_data in self.coverage.items():
+        for _, trace_data in self.coverage.items():
             traces += [list(trace_data.keys()), list(trace_data.values()), "r--"]
 
         plt.plot(*traces)

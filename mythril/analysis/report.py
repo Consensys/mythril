@@ -273,7 +273,7 @@ class Report:
         # Setup issues
         _issues = []
 
-        for key, issue in self.issues.items():
+        for _, issue in self.issues.items():
 
             idx = self.source.get_source_index(issue.bytecode_hash)
             try:

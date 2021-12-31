@@ -165,7 +165,7 @@ class LolCat(object):
         if not s:
             return
 
-        for i in range(1, options.duration):
+        for _ in range(1, options.duration):
             self.output.write("\x1b[%dD" % (len(s),))
             self.output.flush()
             options.os += options.spread

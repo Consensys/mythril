@@ -2,7 +2,6 @@
 from typing import cast, Union, Tuple, List
 
 
-from enum import Enum
 from typing import Any, Union
 
 from z3 import Model

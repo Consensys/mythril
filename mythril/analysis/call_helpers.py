@@ -19,7 +19,7 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
     stack = state.mstate.stack
 
     if op in ("CALL", "CALLCODE"):
-        gas, to, value, meminstart, meminsz, memoutstart, memoutsz = (
+        gas, to, value, meminstart, meminsz, _, _ = (
             get_variable(stack[-1]),
             get_variable(stack[-2]),
             get_variable(stack[-3]),
@@ -47,7 +47,7 @@ def get_call_from_state(state: GlobalState) -> Union[Call, None]:
             return Call(state.node, state, None, op, to, gas, value)
 
     else:
-        gas, to, meminstart, meminsz, memoutstart, memoutsz = (
+        gas, to, meminstart, meminsz, _, _ = (
             get_variable(stack[-1]),
             get_variable(stack[-2]),
             get_variable(stack[-3]),

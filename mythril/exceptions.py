@@ -34,12 +34,6 @@ class CriticalError(MythrilBaseException):
     pass
 
 
-class AddressNotFoundError(MythrilBaseException):
-    """A Mythril exception denoting the given smart contract address was not
-    found."""
-
-    pass
-
 
 class DetectorNotFoundError(MythrilBaseException):
     """A Mythril exception denoting attempted usage of a non-existant

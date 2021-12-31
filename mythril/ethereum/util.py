@@ -17,7 +17,6 @@ from semantic_version import Version
 
 if sys.version_info[1] >= 6:
     import solcx
-    from solcx.exceptions import SolcNotInstalled
 
 log = logging.getLogger(__name__)
 

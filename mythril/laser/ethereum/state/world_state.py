@@ -6,7 +6,6 @@ from eth._utils.address import generate_contract_address
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
-from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints

@@ -1,7 +1,6 @@
 import codecs
 import logging
 import os
-import platform
 import re
 
 from pathlib import Path
