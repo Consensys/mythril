@@ -267,7 +267,7 @@ class MythrilDisassembler:
                     key_formatted = rzpad(key, 32)
                     mappings.append(
                         int.from_bytes(
-                            sha3(key_formatted + position_formatted), byteorder="big",
+                            sha3(key_formatted + position_formatted), byteorder="big"
                         )
                     )
 

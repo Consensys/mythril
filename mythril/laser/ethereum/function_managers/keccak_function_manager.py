@@ -62,7 +62,7 @@ class KeccakFunctionManager:
         """
         keccak = symbol_factory.BitVecVal(
             int.from_bytes(
-                sha3(data.value.to_bytes(data.size() // 8, byteorder="big")), "big",
+                sha3(data.value.to_bytes(data.size() // 8, byteorder="big")), "big"
             ),
             256,
         )

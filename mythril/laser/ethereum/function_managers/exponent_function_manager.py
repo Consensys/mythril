@@ -2,14 +2,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 
-from mythril.laser.smt import (
-    And,
-    BitVec,
-    Bool,
-    Function,
-    URem,
-    symbol_factory,
-)
+from mythril.laser.smt import And, BitVec, Bool, Function, URem, symbol_factory
 
 log = logging.getLogger(__name__)
 

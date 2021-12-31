@@ -656,9 +656,7 @@ class Instruction:
                 If(
                     s0 <= 31,
                     If(
-                        sign_bit_set,
-                        s1 | (TT256 - set_testbit),
-                        s1 & (set_testbit - 1),
+                        sign_bit_set, s1 | (TT256 - set_testbit), s1 & (set_testbit - 1)
                     ),
                     s1,
                 )
