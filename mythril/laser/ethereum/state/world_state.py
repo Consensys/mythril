@@ -115,7 +115,7 @@ class WorldState:
         except ValueError:
             code = None
         return self.create_account(
-            address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code,
+            address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code
         )
 
     def create_account(

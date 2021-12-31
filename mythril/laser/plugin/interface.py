@@ -2,7 +2,7 @@ from mythril.laser.ethereum.svm import LaserEVM
 
 
 class LaserPlugin:
-    """ Base class for laser plugins
+    """Base class for laser plugins
 
     Functionality in laser that the symbolic execution process does not need to depend on
     can be implemented in the form of a laser plugin.
@@ -16,7 +16,7 @@ class LaserPlugin:
     """
 
     def initialize(self, symbolic_vm: LaserEVM) -> None:
-        """ Initializes this plugin on the symbolic virtual machine
+        """Initializes this plugin on the symbolic virtual machine
 
         :param symbolic_vm: symbolic virtual machine to initialize the laser plugin on
         """

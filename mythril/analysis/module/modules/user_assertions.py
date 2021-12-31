@@ -87,8 +87,10 @@ class UserAssertions(DetectionModule):
             )
 
             if message:
-                description_tail = "A user-provided assertion failed with the message '{}'".format(
-                    message
+                description_tail = (
+                    "A user-provided assertion failed with the message '{}'".format(
+                        message
+                    )
                 )
 
             else:

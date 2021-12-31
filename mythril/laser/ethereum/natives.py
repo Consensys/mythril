@@ -134,11 +134,6 @@ def identity(data: List[int]) -> List[int]:
     :param data:
     :return:
     """
-    # Group up into an array of 32 byte words instead
-    # of an array of bytes. If saved to memory, 32 byte
-    # words are currently needed, but a correct memory
-    # implementation would be byte indexed for the most
-    # part.
     return data
 
 
@@ -279,7 +274,7 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     """
 
     if not isinstance(data, ConcreteCalldata):
-        raise NativeContractException()
+        raise NativeContractException
     concrete_data = data.concrete(None)
     try:
         return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)

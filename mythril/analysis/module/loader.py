@@ -51,7 +51,7 @@ class ModuleLoader(object, metaclass=Singleton):
         entry_point: Optional[EntryPoint] = None,
         white_list: Optional[List[str]] = None,
     ) -> List[DetectionModule]:
-        """ Gets registered detection modules
+        """Gets registered detection modules
 
         :param entry_point: If specified: only return detection modules with this entry point
         :param white_list: If specified: only return whitelisted detection modules

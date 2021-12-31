@@ -23,11 +23,7 @@ from mythril.exceptions import (
 )
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.plugin.loader import MythrilPluginLoader
-from mythril.mythril import (
-    MythrilAnalyzer,
-    MythrilDisassembler,
-    MythrilConfig,
-)
+from mythril.mythril import MythrilAnalyzer, MythrilDisassembler, MythrilConfig
 
 from mythril.analysis.module import ModuleLoader
 from mythril.analysis.report import Report

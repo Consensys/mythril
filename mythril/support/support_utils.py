@@ -58,14 +58,14 @@ def sha3(value):
 
 
 def zpad(x, l):
-    """ 
+    """
     Left zero pad value `x` at least to length `l`.
     """
     return b"\x00" * max(0, l - len(x)) + x
 
 
 def rzpad(value, total_length):
-    """ 
+    """
     Right zero pad value `x` at least to length `l`.
     """
     return value + b"\x00" * max(0, total_length - len(value))

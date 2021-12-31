@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
-    """ Symbol Annotation used if a BitVector can overflow"""
+    """Symbol Annotation used if a BitVector can overflow"""
 
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint: Bool
@@ -46,7 +46,7 @@ class OverUnderflowAnnotation:
 
 
 class OverUnderflowStateAnnotation(StateAnnotation):
-    """ State Annotation used if an overflow is both possible and used in the annotated path"""
+    """State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = set()  # type: Set[OverUnderflowAnnotation]

@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 
 def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
-    """ Returns a dependency annotation
+    """Returns a dependency annotation
 
     :param state: A global state object
     """
@@ -51,7 +51,7 @@ def get_dependency_annotation(state: GlobalState) -> DependencyAnnotation:
 
 
 def get_ws_dependency_annotation(state: GlobalState) -> WSDependencyAnnotation:
-    """ Returns the world state annotation
+    """Returns the world state annotation
 
     :param state: A global state object
     """
@@ -80,14 +80,14 @@ class DependencyPrunerBuilder(PluginBuilder):
 class DependencyPruner(LaserPlugin):
     """Dependency Pruner Plugin
 
-        For every basic block, this plugin keeps a list of storage locations that
-        are accessed (read) in the execution path containing that block. This map
-        is built up over the whole symbolic execution run.
+    For every basic block, this plugin keeps a list of storage locations that
+    are accessed (read) in the execution path containing that block. This map
+    is built up over the whole symbolic execution run.
 
-        After the initial build up of the map in the first transaction, blocks are
-        executed only if any of the storage locations written to in the previous
-        transaction can have an effect on that block or any of its successors.
-        """
+    After the initial build up of the map in the first transaction, blocks are
+    executed only if any of the storage locations written to in the previous
+    transaction can have an effect on that block or any of its successors.
+    """
 
     def __init__(self):
         """Creates DependencyPruner"""
@@ -293,9 +293,9 @@ class DependencyPruner(LaserPlugin):
         def _check_basic_block(address: int, annotation: DependencyAnnotation):
             """This method is where the actual pruning happens.
 
-             :param address: Start address (bytecode offset) of the block
-             :param annotation:
-             """
+            :param address: Start address (bytecode offset) of the block
+            :param annotation:
+            """
 
             # Don't skip any blocks in the contract creation transaction
             if self.iteration < 2:
