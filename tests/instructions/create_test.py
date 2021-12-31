@@ -46,7 +46,6 @@ def test_create():
 
     assert t.value.transaction.call_value == value
     assert t.value.transaction.code.bytecode == code
-    assert (
-        t.value.transaction.callee_account.address
-        == world_state._generate_new_address(account.address.value)
+    assert t.value.transaction.callee_account.address == world_state._generate_new_address(
+        account.address.value
     )
