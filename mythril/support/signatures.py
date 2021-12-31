@@ -1,17 +1,14 @@
 """The Mythril function signature database."""
 import functools
-import json
 import logging
 import multiprocessing
 import os
 import sqlite3
 import time
 from collections import defaultdict
-from subprocess import PIPE, Popen
 from typing import List, Set, DefaultDict, Dict
 
 from mythril.ethereum.util import get_solc_json
-from mythril.exceptions import CompilerError
 
 log = logging.getLogger(__name__)
 

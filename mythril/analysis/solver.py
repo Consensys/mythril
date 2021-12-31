@@ -7,7 +7,6 @@ from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.function_managers import (
-    exponent_function_manager,
     keccak_function_manager,
 )
 

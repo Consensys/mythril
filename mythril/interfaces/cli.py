@@ -17,7 +17,6 @@ import traceback
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 from mythril.exceptions import (
-    AddressNotFoundError,
     DetectorNotFoundError,
     CriticalError,
 )

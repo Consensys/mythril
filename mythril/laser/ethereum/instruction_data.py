@@ -1,5 +1,5 @@
 from eth._utils.numeric import ceil32
-from typing import Callable, Dict, Tuple, Union
+from typing import Tuple
 from mythril.support.opcodes import OPCODES, STACK, GAS
 from eth.constants import (
     GAS_ECRECOVER,

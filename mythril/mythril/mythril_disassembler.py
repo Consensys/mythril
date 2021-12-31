@@ -3,7 +3,6 @@ import re
 import solc
 import sys
 import os
-import platform
 
 from mythril.support.support_utils import sha3, zpad
 from typing import List, Tuple, Optional
@@ -17,8 +16,6 @@ from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
 from eth_utils import int_to_big_endian
 
-if sys.version_info[1] >= 6:
-    import solcx
 
 log = logging.getLogger(__name__)
 
