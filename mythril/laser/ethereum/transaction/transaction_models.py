@@ -1,7 +1,6 @@
 """This module contians the transaction models used throughout LASER's symbolic
 execution."""
 
-import array
 from copy import deepcopy
 from z3 import ExprRef
 from typing import Union, Optional

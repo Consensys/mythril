@@ -11,7 +11,7 @@ from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
-from mythril.laser.ethereum.instructions import Instruction, transfer_ether
+from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
 from mythril.laser.plugin.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -287,7 +287,7 @@ class LaserEVM:
     def handle_vm_exception(
         self, global_state: GlobalState, op_code: str, error_msg: str
     ) -> List[GlobalState]:
-        transaction, return_global_state = global_state.transaction_stack.pop()
+        _, return_global_state = global_state.transaction_stack.pop()
 
         if return_global_state is None:
             # In this case we don't put an unmodified world state in the open_states list Since in the case of an

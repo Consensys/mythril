@@ -46,7 +46,7 @@ class TxOrigin(DetectionModule):
         self.issues.extend(issues)
 
     @staticmethod
-    def _analyze_state(state: GlobalState) -> list:
+    def _analyze_state(state: GlobalState) -> List[Issue]:
         """
 
         :param state:

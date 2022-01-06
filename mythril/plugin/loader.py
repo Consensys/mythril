@@ -1,11 +1,10 @@
 from mythril.analysis.module import DetectionModule
 
-from mythril.plugin.interface import MythrilCLIPlugin, MythrilPlugin, MythrilLaserPlugin
+from mythril.plugin.interface import MythrilPlugin, MythrilLaserPlugin
 from mythril.plugin.discovery import PluginDiscovery
 from mythril.support.support_utils import Singleton
 
 from mythril.analysis.module.loader import ModuleLoader
-from mythril.laser.plugin.builder import PluginBuilder as LaserPluginBuilder
 from mythril.laser.plugin.loader import LaserPluginLoader
 from typing import Dict
 import logging

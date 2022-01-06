@@ -99,7 +99,7 @@ class KeccakFunctionManager:
         :return: Tuple of keccak and the condition it should satisfy
         """
         length = data.size()
-        func, inverse = self.get_function(length)
+        func, _ = self.get_function(length)
 
         if data.symbolic is False:
             concrete_hash = self.find_concrete_keccak(data)

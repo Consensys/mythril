@@ -4,7 +4,7 @@ parameters for the new global state."""
 
 import logging
 import re
-from typing import Union, List, cast, Callable, Optional
+from typing import Union, List, cast, Optional
 from eth.constants import GAS_CALLSTIPEND
 
 import mythril.laser.ethereum.util as util
@@ -18,7 +18,7 @@ from mythril.laser.ethereum.state.calldata import (
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec, is_true, If
+from mythril.laser.smt import BitVec, If
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 

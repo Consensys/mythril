@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Tuple
 
 
 from mythril.laser.smt import And, BitVec, Bool, Function, URem, symbol_factory

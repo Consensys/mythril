@@ -8,7 +8,6 @@ from typing import cast, Callable, List, Union, Tuple
 from mythril.laser.smt import (
     Extract,
     Expression,
-    Function,
     UDiv,
     simplify,
     Concat,
@@ -16,7 +15,6 @@ from mythril.laser.smt import (
     UGT,
     BitVec,
     is_false,
-    is_true,
     URem,
     SRem,
     If,
@@ -1712,9 +1710,9 @@ class Instruction:
         """
         # TODO: implement me
         state = global_state.mstate
-        dpth = int(self.op_code[3:])
+        depth = int(self.op_code[3:])
         state.stack.pop(), state.stack.pop()
-        log_data = [state.stack.pop() for _ in range(dpth)]
+        _ = [state.stack.pop() for _ in range(depth)]
         # Not supported
         return [global_state]
 
@@ -2123,10 +2121,10 @@ class Instruction:
         memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
         try:
             (
-                callee_address,
                 _,
                 _,
-                value,
+                _,
+                _,
                 _,
                 memory_out_offset,
                 memory_out_size,
@@ -2267,10 +2265,10 @@ class Instruction:
 
         try:
             (
-                callee_address,
                 _,
                 _,
-                value,
+                _,
+                _,
                 _,
                 memory_out_offset,
                 memory_out_size,
@@ -2411,11 +2409,11 @@ class Instruction:
         try:
             with_value = function_name != "staticcall"
             (
-                callee_address,
-                callee_account,
-                call_data,
-                value,
-                gas,
+                _,
+                _,
+                _,
+                _,
+                _,
                 memory_out_offset,
                 memory_out_size,
             ) = get_call_parameters(global_state, self.dynamic_loader, with_value)
