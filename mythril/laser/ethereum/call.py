@@ -179,6 +179,7 @@ def get_call_data(
             else memory_size
         ),
     )
+
     if memory_size.symbolic:
         memory_size = SYMBOLIC_CALLDATA_SIZE
     try:
