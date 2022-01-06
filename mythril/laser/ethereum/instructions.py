@@ -3,7 +3,7 @@ transitions between them."""
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union
+from typing import cast, Callable, List, Union, Tuple
 
 from mythril.laser.smt import (
     Extract,
@@ -306,6 +306,7 @@ class Instruction:
                 new_value = Concat(
                     symbol_factory.BitVecVal(0, 256 - new_value.size()), new_value
                 )
+
             global_state.mstate.stack.append(new_value)
 
         else:
@@ -1076,7 +1077,6 @@ class Instruction:
         if code[0:2] == "0x":
             code = code[2:]
         code_size = len(code) // 2
-
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
             # Treat creation code after the expected disassembly as calldata.
             # This is a slightly hacky way to ensure that symbolic constructor
@@ -1168,7 +1168,7 @@ class Instruction:
 
     @staticmethod
     def _code_copy_helper(
-        code: str,
+        code: Union[str, Tuple],
         memory_offset: Union[int, BitVec],
         code_offset: Union[int, BitVec],
         size: Union[int, BitVec],
@@ -1218,14 +1218,25 @@ class Instruction:
             code = code[2:]
 
         for i in range(concrete_size):
-            if 2 * (concrete_code_offset + i + 1) > len(code):
-                break
-            global_state.mstate.memory[concrete_memory_offset + i] = int(
-                code[
-                    2 * (concrete_code_offset + i) : 2 * (concrete_code_offset + i + 1)
-                ],
-                16,
-            )
+            if isinstance(code, str):
+                if 2 * (concrete_code_offset + i + 1) > len(code):
+                    break
+
+                global_state.mstate.memory[concrete_memory_offset + i] = int(
+                    code[
+                        2
+                        * (concrete_code_offset + i) : 2
+                        * (concrete_code_offset + i + 1)
+                    ],
+                    16,
+                )
+            else:
+                if (concrete_code_offset + i + 1) > len(code):
+                    break
+
+                global_state.mstate.memory[concrete_memory_offset + i] = code[
+                    concrete_code_offset + i
+                ]
 
         return [global_state]
 
@@ -1717,12 +1728,11 @@ class Instruction:
         world_state = global_state.world_state
 
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
-
         code_raw = []
         code_end = call_data.size
         size = call_data.size
         if isinstance(size, BitVec):
-            # This should be fine because of the below check
+            # Other size restriction checks handle this
             if size.symbolic:
                 size = 10 ** 5
             else:

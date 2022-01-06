@@ -53,10 +53,12 @@ class InstructionCoveragePlugin(LaserPlugin):
                     cov_percentage = 0
                 else:
                     cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
-
+                string_code = code
+                if type(code) == tuple:
+                    string_code = bytearray(code).hex()
                 log.info(
                     "Achieved {:.2f}% coverage for code: {}".format(
-                        cov_percentage, code
+                        cov_percentage, string_code
                     )
                 )
 
