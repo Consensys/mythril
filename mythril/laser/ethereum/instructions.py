@@ -1168,7 +1168,7 @@ class Instruction:
 
     @staticmethod
     def _code_copy_helper(
-        code: Union[str, Tuple[int]],
+        code: Union[str, Tuple],
         memory_offset: Union[int, BitVec],
         code_offset: Union[int, BitVec],
         size: Union[int, BitVec],
@@ -1218,9 +1218,10 @@ class Instruction:
             code = code[2:]
 
         for i in range(concrete_size):
-            if type(code) == str:
+            if isinstance(code, str):
                 if 2 * (concrete_code_offset + i + 1) > len(code):
                     break
+
                 global_state.mstate.memory[concrete_memory_offset + i] = int(
                     code[
                         2
@@ -1232,6 +1233,7 @@ class Instruction:
             else:
                 if (concrete_code_offset + i + 1) > len(code):
                     break
+
                 global_state.mstate.memory[concrete_memory_offset + i] = code[
                     concrete_code_offset + i
                 ]
