@@ -1223,16 +1223,18 @@ class Instruction:
                     break
                 global_state.mstate.memory[concrete_memory_offset + i] = int(
                     code[
-                        2 * (concrete_code_offset + i) : 2 * (concrete_code_offset + i + 1)
+                        2
+                        * (concrete_code_offset + i) : 2
+                        * (concrete_code_offset + i + 1)
                     ],
                     16,
                 )
             else:
                 if (concrete_code_offset + i + 1) > len(code):
                     break
-                global_state.mstate.memory[concrete_memory_offset + i] = code[concrete_code_offset + i]
-
-
+                global_state.mstate.memory[concrete_memory_offset + i] = code[
+                    concrete_code_offset + i
+                ]
 
         return [global_state]
 
@@ -1728,9 +1730,9 @@ class Instruction:
         code_end = call_data.size
         size = call_data.size
         if isinstance(size, BitVec):
-            # Other size restriction checks handle this  
+            # Other size restriction checks handle this
             if size.symbolic:
-                size = 10**5
+                size = 10 ** 5
             else:
                 size = size.value
         for i in range(size):
@@ -1738,7 +1740,7 @@ class Instruction:
                 code_end = i
                 break
             code_raw.append(call_data[i].value)
-        
+
         if len(code_raw) < 1:
             global_state.mstate.stack.append(1)
             log.debug("No code found for trying to execute a create type instruction.")
