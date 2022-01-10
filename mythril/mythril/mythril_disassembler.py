@@ -57,7 +57,7 @@ class MythrilDisassembler:
         try:
             main_version = solc.get_solc_version_string()
         except:
-            main_version = ""  # allow missing solc, will download instead
+            main_version = ""  # allow missing solc will download instead
         main_version_number = re.match(r"\d+.\d+.\d+", main_version)
 
         # In case instead of just the version number, --solv v0.x.x is used
