@@ -54,18 +54,16 @@ class MythrilDisassembler:
             return os.environ.get("SOLC") or "solc"
 
         # tried converting input to semver, seemed not necessary so just slicing for now
-        main_version = solc.get_solc_version_string()
+        try:
+            main_version = solc.get_solc_version_string()
+        except:
+            main_version = ""  # allow missing solc will download instead
+        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
 
         # In case instead of just the version number, --solv v0.x.x is used
-
         if version.startswith("v"):
             version = version[1:]
 
-        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
-        if main_version is None:
-            raise CriticalError(
-                "Could not extract solc version from string {}".format(main_version)
-            )
         if version == main_version_number:
             log.info("Given version matches installed version")
             solc_binary = os.environ.get("SOLC") or "solc"
