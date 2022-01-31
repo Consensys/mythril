@@ -7,7 +7,6 @@ import z3
 
 from mythril.laser.smt.expression import Expression
 
-
 # fmt: off
 
 
@@ -79,6 +78,18 @@ class Bool(Expression[z3.BoolRef]):
             return self.value
         else:
             return False
+
+    def substitute(self, original_expression, new_expression):
+        """
+
+        :param original_expression:
+        :param new_expression:
+        """
+        if self.raw is None:
+            return
+        original_z3 = original_expression.raw
+        new_z3 = new_expression.raw
+        self.raw = z3.substitute(self.raw, (original_z3, new_z3))
 
     def __hash__(self) -> int:
         return self.raw.__hash__()
