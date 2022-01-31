@@ -25,7 +25,18 @@ class BaseArray:
     def __setitem__(self, key: BitVec, value: BitVec) -> None:
         """Sets an item in the array, key can be symbolic."""
         self.raw = z3.Store(self.raw, key.raw, value.raw)  # type: ignore
+    
+    def substitute(self, original_expression: "BaseArray", new_expression: "BaseArray"):
+        """
 
+        :param original_expression:
+        :param new_expression:
+        """
+        if self.raw is None:
+            return
+        original_z3 = original_expression.raw
+        new_z3 = new_expression.raw
+        self.raw = z3.substitute(self.raw, (original_z3, new_z3))
 
 class Array(BaseArray):
     """A basic symbolic array."""
