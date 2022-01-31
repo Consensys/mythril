@@ -107,7 +107,7 @@ class LaserEVM:
         self._start_sym_exec_hooks = []  # type: List[Callable]
         self._stop_sym_exec_hooks = []  # type: List[Callable]
 
-        self._transaction_end_hooks: List[Callable] = [] 
+        self._transaction_end_hooks: List[Callable] = []
         self.iprof = iprof
         self.instr_pre_hook = {}  # type: Dict[str, List[Callable]]
         self.instr_post_hook = {}  # type: Dict[str, List[Callable]]
@@ -255,7 +255,6 @@ class LaserEVM:
             try:
                 new_states, op_code = self.execute_state(global_state)
             except NotImplementedError as e:
-                raise e
                 log.debug("Encountered unimplemented instruction")
                 continue
 
@@ -345,7 +344,7 @@ class LaserEVM:
         except PluginSkipState:
             self._add_world_state(global_state)
             return [], None
-        
+
         try:
             new_global_states = Instruction(
                 op_code,
@@ -378,13 +377,12 @@ class LaserEVM:
                 transaction,
                 return_global_state,
             ) = end_signal.global_state.transaction_stack[-1]
-            
+
             log.debug("Ending transaction %s.", transaction)
 
             for hook in self._transaction_end_hooks:
                 hook(global_state, transaction, return_global_state, end_signal.revert)
-            
-            
+
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
@@ -598,9 +596,7 @@ class LaserEVM:
         elif hook_type == "transaction_end":
             self._transaction_end_hooks.append(hook)
         else:
-            raise ValueError(
-               f"Invalid hook type {hook_type}" 
-            )
+            raise ValueError(f"Invalid hook type {hook_type}")
 
     def register_instr_hooks(self, hook_type: str, opcode: str, hook: Callable):
         """Registers instructions hooks from plugins"""
