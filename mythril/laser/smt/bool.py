@@ -7,7 +7,6 @@ import z3
 
 from mythril.laser.smt.expression import Expression
 
-
 # fmt: off
 
 
@@ -80,7 +79,7 @@ class Bool(Expression[z3.BoolRef]):
         else:
             return False
 
-    def substitute(self, original_expression: "BaseArray", new_expression: "BaseArray"):
+    def substitute(self, original_expression, new_expression):
         """
 
         :param original_expression:
