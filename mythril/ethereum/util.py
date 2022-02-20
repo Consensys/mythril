@@ -10,13 +10,13 @@ import solc
 
 from pathlib import Path
 from subprocess import PIPE, Popen
+from typing import Optional
 
 from json.decoder import JSONDecodeError
 from mythril.exceptions import CompilerError
-from semantic_version import Version
+from semantic_version import Version, NpmSpec
 
-if sys.version_info[1] >= 6:
-    import solcx
+import solcx
 
 log = logging.getLogger(__name__)
 
@@ -123,31 +123,39 @@ def solc_exists(version):
     """
 
     default_binary = "/usr/bin/solc"
-    if sys.version_info[1] >= 6:
-        if platform.system() == "Darwin":
-            solcx.import_installed_solc()
-        solcx.install_solc("v" + version)
-        solcx.set_solc_version("v" + version)
-        solc_binary = solcx.install.get_executable()
-        return solc_binary
-    elif Version("0.4.2") <= Version(version) <= Version("0.4.25"):
-        if not solc.main.is_solc_available():
-            solc.install_solc("v" + version)
-            solc_binary = solc.install.get_executable_path("v" + version)
-            return solc_binary
-        else:
-            solc_binaries = [
-                os.path.join(
-                    os.environ.get("HOME", str(Path.home())),
-                    ".py-solc/solc-v" + version,
-                    "bin/solc",
-                )  # py-solc setup
-            ]
-            for solc_path in solc_binaries:
-                if os.path.exists(solc_path):
-                    return solc_path
-    elif os.path.exists(default_binary):
-        return default_binary
+    if platform.system() == "Darwin":
+        solcx.import_installed_solc()
+    solcx.install_solc("v" + version)
+    solcx.set_solc_version("v" + version)
+    solc_binary = solcx.install.get_executable()
+    return solc_binary
 
-    else:
+
+all_versions = solcx.get_installable_solc_versions()
+
+
+def extract_version(file: str) -> Optional[str]:
+    version_line = None
+    for line in file.split("\n"):
+        if "pragma solidity" not in line:
+            continue
+        version_line = line
+        break
+    if version_line is None:
         return None
+    if version_line[-1] == ";":
+        version_line = version_line[:-1]
+    version_line = version_line.replace("pragma solidity", "").lstrip()
+    version_constraint = NpmSpec(version_line)
+    for version in all_versions:
+        if version in version_constraint:
+            return str(version)
+    return None
+
+
+def extract_binary(file: str) -> str:
+    with open(file) as f:
+        version = extract_version(f.read())
+    if version is None:
+        return os.environ.get("SOLC") or "solc"
+    return solc_exists(version)

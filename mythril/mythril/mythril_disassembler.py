@@ -43,7 +43,7 @@ class MythrilDisassembler:
         self.contracts = []  # type: List[EVMContract]
 
     @staticmethod
-    def _init_solc_binary(version: str) -> str:
+    def _init_solc_binary(version: str) -> Optional[str]:
         """
         Only proper versions are supported. No nightlies, commits etc (such as available in remix).
         :param version: Version of the solc binary required
@@ -51,7 +51,7 @@ class MythrilDisassembler:
         """
 
         if not version:
-            return os.environ.get("SOLC") or "solc"
+            return None
 
         # tried converting input to semver, seemed not necessary so just slicing for now
         try:
@@ -60,7 +60,6 @@ class MythrilDisassembler:
             main_version = ""  # allow missing solc will download instead
         main_version_number = re.match(r"\d+.\d+.\d+", main_version)
 
-        # In case instead of just the version number, --solv v0.x.x is used
         if version.startswith("v"):
             version = version[1:]
 
@@ -70,18 +69,9 @@ class MythrilDisassembler:
         else:
             solc_binary = util.solc_exists(version)
             if solc_binary is None:
-                if sys.version_info[1] >= 6:
-                    raise CriticalError(
-                        "The version of solc that is needed cannot be installed automatically"
-                    )
-                elif sys.version_info[1] == 5:
-                    raise CriticalError(
-                        "Py-Solc doesn't support 0.5.*+. You can switch to python 3.6 which uses solcx."
-                    )
-                else:
-                    raise CriticalError(
-                        "There was an error when trying to install the specified solc version"
-                    )
+                raise CriticalError(
+                    "The version of solc that is needed cannot be installed automatically"
+                )
             else:
                 log.info("Setting the compiler to %s", solc_binary)
 
@@ -171,12 +161,12 @@ class MythrilDisassembler:
                 contract_name = None
 
             file = os.path.expanduser(file)
-
+            solc_binary = self.solc_binary or util.extract_binary(file)
             try:
                 # import signatures from solidity source
                 self.sigs.import_solidity_file(
                     file,
-                    solc_binary=self.solc_binary,
+                    solc_binary=solc_binary,
                     solc_settings_json=self.solc_settings_json,
                 )
                 if contract_name is not None:
@@ -184,7 +174,7 @@ class MythrilDisassembler:
                         input_file=file,
                         name=contract_name,
                         solc_settings_json=self.solc_settings_json,
-                        solc_binary=self.solc_binary,
+                        solc_binary=solc_binary,
                     )
                     self.contracts.append(contract)
                     contracts.append(contract)
@@ -192,7 +182,7 @@ class MythrilDisassembler:
                     for contract in get_contracts_from_file(
                         input_file=file,
                         solc_settings_json=self.solc_settings_json,
-                        solc_binary=self.solc_binary,
+                        solc_binary=solc_binary,
                     ):
                         self.contracts.append(contract)
                         contracts.append(contract)
