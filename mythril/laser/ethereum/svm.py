@@ -5,13 +5,13 @@ from copy import copy
 from datetime import datetime, timedelta
 from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
-from mythril.support.opcodes import opcodes as OPCODES
+from mythril.support.opcodes import OPCODES
 from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
 from mythril.laser.ethereum.evm_exceptions import VmException
-from mythril.laser.ethereum.instructions import Instruction, transfer_ether
+from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
 from mythril.laser.plugin.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -111,10 +111,12 @@ class LaserEVM:
         self._start_exec_hooks = []  # type: List[Callable]
         self._stop_exec_hooks = []  # type: List[Callable]
 
+        self._transaction_end_hooks: List[Callable] = []
+        
         self.iprof = iprof
         self.instr_pre_hook = {}  # type: Dict[str, List[Callable]]
         self.instr_post_hook = {}  # type: Dict[str, List[Callable]]
-        for op, _, _, _ in OPCODES.values():
+        for op in OPCODES:
             self.instr_pre_hook[op] = []
             self.instr_post_hook[op] = []
         self.hook_type_map = {
@@ -139,7 +141,7 @@ class LaserEVM:
         creation_code: str = None,
         contract_name: str = None,
     ) -> None:
-        """ Starts symbolic execution
+        """Starts symbolic execution
         There are two modes of execution.
         Either we analyze a preconfigured configuration, in which case the world_state and target_address variables
         must be supplied.
@@ -183,7 +185,8 @@ class LaserEVM:
             if len(self.open_states) == 0:
                 log.warning(
                     "No contract was created during the execution of contract creation "
-                    "Increase the resources for creation execution (--max-depth or --create-timeout)"
+                    "Increase the resources for creation execution (--max-depth or --create-timeout) "
+                    "Check whether the bytecode is indeed the creation code, otherwise use the --bin-runtime flag"
                 )
 
             self._execute_transactions(created_account.address)
@@ -272,6 +275,7 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
+
             if args.sparse_pruning is False:
                 new_states = [
                     state
@@ -292,7 +296,7 @@ class LaserEVM:
         return final_states if track_gas else None
 
     def _add_world_state(self, global_state: GlobalState):
-        """ Stores the world_state of the passed global state in the open states"""
+        """Stores the world_state of the passed global state in the open states"""
 
         for hook in self._add_world_state_hooks:
             try:
@@ -330,8 +334,12 @@ class LaserEVM:
         :return: A list of successor states.
         """
         # Execute hooks
-        for hook in self._execute_state_hooks:
-            hook(global_state)
+        try:
+            for hook in self._execute_state_hooks:
+                hook(global_state)
+        except PluginSkipState:
+            self._add_world_state(global_state)
+            return [], None
 
         instructions = global_state.environment.code.instruction_list
         try:
@@ -381,13 +389,6 @@ class LaserEVM:
                 start_signal.global_state.world_state.constraints
             )
 
-            transfer_ether(
-                new_global_state,
-                start_signal.transaction.caller,
-                start_signal.transaction.callee_account.address,
-                start_signal.transaction.call_value,
-            )
-
             log.debug("Starting new transaction %s", start_signal.transaction)
 
             return [new_global_state], op_code
@@ -399,6 +400,10 @@ class LaserEVM:
             ) = end_signal.global_state.transaction_stack[-1]
 
             log.debug("Ending transaction %s.", transaction)
+
+            for hook in self._transaction_end_hooks:
+                hook(global_state, transaction, return_global_state, end_signal.revert)
+
             if return_global_state is None:
                 if (
                     not isinstance(transaction, ContractCreationTransaction)
@@ -597,24 +602,39 @@ class LaserEVM:
 
     def register_laser_hooks(self, hook_type: str, hook: Callable):
         """registers the hook with this Laser VM"""
+<<<<<<< HEAD
         if hook_type in self.hook_type_map:
             self.hook_type_map[hook_type].append(hook)
+=======
+        if hook_type == "add_world_state":
+            self._add_world_state_hooks.append(hook)
+        elif hook_type == "execute_state":
+            self._execute_state_hooks.append(hook)
+        elif hook_type == "start_sym_exec":
+            self._start_sym_exec_hooks.append(hook)
+        elif hook_type == "stop_sym_exec":
+            self._stop_sym_exec_hooks.append(hook)
+        elif hook_type == "start_sym_trans":
+            self._start_sym_trans_hooks.append(hook)
+        elif hook_type == "stop_sym_trans":
+            self._stop_sym_trans_hooks.append(hook)
+        elif hook_type == "transaction_end":
+            self._transaction_end_hooks.append(hook)
+>>>>>>> 0ea0f4fbe26aca3e01988eff5d55c51fef635e5b
         else:
-            raise ValueError(
-                "Invalid hook type %s. Must be one of {add_world_state}", hook_type
-            )
+            raise ValueError(f"Invalid hook type {hook_type}")
 
     def register_instr_hooks(self, hook_type: str, opcode: str, hook: Callable):
         """Registers instructions hooks from plugins"""
         if hook_type == "pre":
             if opcode is None:
-                for op, _, _, _ in OPCODES.values():
+                for op in OPCODES:
                     self.instr_pre_hook[op].append(hook(op))
             else:
                 self.instr_pre_hook[opcode].append(hook)
         else:
             if opcode is None:
-                for op, _, _, _ in OPCODES.values():
+                for op in OPCODES:
                     self.instr_post_hook[op].append(hook(op))
             else:
                 self.instr_post_hook[opcode].append(hook)
@@ -627,7 +647,7 @@ class LaserEVM:
         """
 
         def hook_decorator(func: Callable):
-            """ Hook decorator generated by laser_hook
+            """Hook decorator generated by laser_hook
 
             :param func: Decorated function
             """
@@ -643,7 +663,7 @@ class LaserEVM:
         """
 
         def hook_decorator(func: Callable):
-            """ Hook decorator generated by laser_hook
+            """Hook decorator generated by laser_hook
 
             :param func: Decorated function
             """

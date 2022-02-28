@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
-    """ Symbol Annotation used if a BitVector can overflow"""
+    """Symbol Annotation used if a BitVector can overflow"""
 
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint: Bool
@@ -46,7 +46,7 @@ class OverUnderflowAnnotation:
 
 
 class OverUnderflowStateAnnotation(StateAnnotation):
-    """ State Annotation used if an overflow is both possible and used in the annotated path"""
+    """State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = set()  # type: Set[OverUnderflowAnnotation]
@@ -161,25 +161,24 @@ class IntegerArithmetics(DetectionModule):
 
     def _handle_exp(self, state):
         op0, op1 = self._get_args(state)
+
+        if (op1.symbolic is False and op1.value == 0) or (
+            op0.symbolic is False and op0.value < 2
+        ):
+            return
         if op0.symbolic and op1.symbolic:
             constraint = And(
                 op1 > symbol_factory.BitVecVal(256, 256),
                 op0 > symbol_factory.BitVecVal(1, 256),
             )
-        elif op1.symbolic:
-            if op0.value < 2:
-                return
-            constraint = op1 >= symbol_factory.BitVecVal(
-                ceil(256 / log2(op0.value)), 256
-            )
         elif op0.symbolic:
-            if op1.value == 0:
-                return
             constraint = op0 >= symbol_factory.BitVecVal(
                 2 ** ceil(256 / op1.value), 256
             )
         else:
-            constraint = op0.value ** op1.value >= 2 ** 256
+            constraint = op1 >= symbol_factory.BitVecVal(
+                ceil(256 / log2(op0.value)), 256
+            )
 
         annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
         op0.annotate(annotation)

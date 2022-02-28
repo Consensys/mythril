@@ -35,7 +35,7 @@ class CoverageStrategy(BasicSearchStrategy):
         return self.super_strategy.get_strategic_global_state()
 
     def _is_covered(self, global_state: GlobalState) -> bool:
-        """ Checks if the instruction for the given global state is already covered"""
+        """Checks if the instruction for the given global state is already covered"""
         bytecode = global_state.environment.code.bytecode
         index = global_state.mstate.pc
         return self.instruction_coverage_plugin.is_instruction_covered(bytecode, index)

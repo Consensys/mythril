@@ -102,7 +102,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         return count
 
     def get_strategic_global_state(self) -> GlobalState:
-        """ Returns the next state
+        """Returns the next state
 
         :return: Global state
         """

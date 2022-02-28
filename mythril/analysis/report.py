@@ -23,17 +23,18 @@ class Issue:
 
     def __init__(
         self,
-        contract,
-        function_name,
-        address,
-        swc_id,
-        title,
-        bytecode,
+        contract: str,
+        function_name: str,
+        address: int,
+        swc_id: str,
+        title: str,
+        bytecode: str,
         gas_used=(None, None),
         severity=None,
         description_head="",
         description_tail="",
         transaction_sequence=None,
+        source_location=None,
     ):
         """
 
@@ -66,15 +67,16 @@ class Issue:
         self.discovery_time = time() - StartTime().global_start_time
         self.bytecode_hash = get_code_hash(bytecode)
         self.transaction_sequence = transaction_sequence
+        self.source_location = source_location
 
     @property
     def transaction_sequence_users(self):
-        """ Returns the transaction sequence without pre-generated block data"""
+        """Returns the transaction sequence without pre-generated block data"""
         return self.transaction_sequence
 
     @property
     def transaction_sequence_jsonv2(self):
-        """ Returns the transaction sequence as a json string with pre-generated block data"""
+        """Returns the transaction sequence as a json string with pre-generated block data"""
         return (
             self.add_block_data(self.transaction_sequence)
             if self.transaction_sequence
@@ -83,7 +85,7 @@ class Issue:
 
     @staticmethod
     def add_block_data(transaction_sequence: Dict):
-        """ Adds sane block data to a transaction_sequence """
+        """Adds sane block data to a transaction_sequence"""
         for step in transaction_sequence["steps"]:
             step["gasLimit"] = "0x7d000"
             step["gasPrice"] = "0x773594000"
@@ -141,9 +143,14 @@ class Issue:
         :param contract:
         """
         if self.address and isinstance(contract, SolidityContract):
-            codeinfo = contract.get_source_info(
-                self.address, constructor=(self.function == "constructor")
-            )
+            if self.source_location:
+                codeinfo = contract.get_source_info(
+                    self.source_location, constructor=(self.function == "constructor")
+                )
+            else:
+                codeinfo = contract.get_source_info(
+                    self.address, constructor=(self.function == "constructor")
+                )
 
             if codeinfo is None:
                 self.source_mapping = self.address
@@ -160,7 +167,7 @@ class Issue:
             self.source_mapping = self.address
 
     def resolve_function_names(self):
-        """ Resolves function names for each step """
+        """Resolves function names for each step"""
 
         if (
             self.transaction_sequence is None
@@ -175,7 +182,7 @@ class Issue:
 
             try:
                 sig = signatures.get(_hash)
-
+                # TODO: Check other mythx tools for dependency before supporting multiple possible function names
                 if len(sig) > 0:
                     step["name"] = sig[0]
                 else:
@@ -224,7 +231,11 @@ class Report:
         :param issue:
         """
         m = hashlib.md5()
-        m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
+        m.update(
+            (issue.contract + issue.function + str(issue.address) + issue.title).encode(
+                "utf-8"
+            )
+        )
         issue.resolve_function_names()
         self.issues[m.digest()] = issue
 
@@ -262,7 +273,7 @@ class Report:
         # Setup issues
         _issues = []
 
-        for key, issue in self.issues.items():
+        for _, issue in self.issues.items():
 
             idx = self.source.get_source_index(issue.bytecode_hash)
             try:

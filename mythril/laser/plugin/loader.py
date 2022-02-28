@@ -16,7 +16,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
     """
 
     def __init__(self) -> None:
-        """ Initializes the plugin loader """
+        """Initializes the plugin loader"""
         self.laser_plugin_builders = {}  # type: Dict[str, PluginBuilder]
         self.plugin_args = {}  # type: Dict[str, Dict]
         self.plugin_list = {}  # type: Dict[str, LaserPlugin]
@@ -25,7 +25,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
         self.plugin_args[plugin_name] = kwargs
 
     def load(self, plugin_builder: PluginBuilder) -> None:
-        """ Enables a Laser Plugin
+        """Enables a Laser Plugin
 
         :param plugin_builder: Builder that constructs the plugin
         """
@@ -38,7 +38,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
         self.laser_plugin_builders[plugin_builder.name] = plugin_builder
 
     def is_enabled(self, plugin_name: str) -> bool:
-        """ Returns whether the plugin is loaded in the symbolic_vm
+        """Returns whether the plugin is loaded in the symbolic_vm
 
         :param plugin_name: Name of the plugin to check
         """
@@ -55,7 +55,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
     def instrument_virtual_machine(
         self, symbolic_vm: LaserEVM, with_plugins: Optional[List[str]]
     ):
-        """ Load enabled plugins into the passed symbolic virtual machine
+        """Load enabled plugins into the passed symbolic virtual machine
         :param symbolic_vm: The virtual machine to instrument the plugins with
         :param with_plugins: Override the globally enabled/disabled builders and load all plugins in the list
         """

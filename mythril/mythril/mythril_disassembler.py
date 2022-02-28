@@ -3,20 +3,19 @@ import re
 import solc
 import sys
 import os
-import platform
 
-from ethereum import utils
+from mythril.support.support_utils import sha3, zpad
 from typing import List, Tuple, Optional
 from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
+from mythril.support.support_utils import rzpad
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
+from eth_utils import int_to_big_endian
 
-if sys.version_info[1] >= 6:
-    import solcx
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +43,7 @@ class MythrilDisassembler:
         self.contracts = []  # type: List[EVMContract]
 
     @staticmethod
-    def _init_solc_binary(version: str) -> str:
+    def _init_solc_binary(version: str) -> Optional[str]:
         """
         Only proper versions are supported. No nightlies, commits etc (such as available in remix).
         :param version: Version of the solc binary required
@@ -52,39 +51,27 @@ class MythrilDisassembler:
         """
 
         if not version:
-            return os.environ.get("SOLC") or "solc"
+            return None
 
         # tried converting input to semver, seemed not necessary so just slicing for now
-        main_version = solc.get_solc_version_string()
-
-        # In case instead of just the version number, --solv v0.x.x is used
+        try:
+            main_version = solc.get_solc_version_string()
+        except:
+            main_version = ""  # allow missing solc will download instead
+        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
 
         if version.startswith("v"):
             version = version[1:]
 
-        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
-        if main_version is None:
-            raise CriticalError(
-                "Could not extract solc version from string {}".format(main_version)
-            )
         if version == main_version_number:
             log.info("Given version matches installed version")
             solc_binary = os.environ.get("SOLC") or "solc"
         else:
             solc_binary = util.solc_exists(version)
             if solc_binary is None:
-                if sys.version_info[1] >= 6:
-                    raise CriticalError(
-                        "The version of solc that is needed cannot be installed automatically"
-                    )
-                elif sys.version_info[1] == 5:
-                    raise CriticalError(
-                        "Py-Solc doesn't support 0.5.*+. You can switch to python 3.6 which uses solcx."
-                    )
-                else:
-                    raise CriticalError(
-                        "There was an error when trying to install the specified solc version"
-                    )
+                raise CriticalError(
+                    "The version of solc that is needed cannot be installed automatically"
+                )
             else:
                 log.info("Setting the compiler to %s", solc_binary)
 
@@ -175,12 +162,12 @@ class MythrilDisassembler:
                 contract_name = None
 
             file = os.path.expanduser(file)
-
+            solc_binary = self.solc_binary or util.extract_binary(file)
             try:
                 # import signatures from solidity source
                 self.sigs.import_solidity_file(
                     file,
-                    solc_binary=self.solc_binary,
+                    solc_binary=solc_binary,
                     solc_settings_json=self.solc_settings_json,
                 )
                 if contract_name is not None:
@@ -188,7 +175,7 @@ class MythrilDisassembler:
                         input_file=file,
                         name=contract_name,
                         solc_settings_json=self.solc_settings_json,
-                        solc_binary=self.solc_binary,
+                        solc_binary=solc_binary,
                     )
                     self.contracts.append(contract)
                     contracts.append(contract)
@@ -196,7 +183,7 @@ class MythrilDisassembler:
                     for contract in get_contracts_from_file(
                         input_file=file,
                         solc_settings_json=self.solc_settings_json,
-                        solc_binary=self.solc_binary,
+                        solc_binary=solc_binary,
                     ):
                         self.contracts.append(contract)
                         contracts.append(contract)
@@ -235,11 +222,12 @@ class MythrilDisassembler:
     @staticmethod
     def hash_for_function_signature(func: str) -> str:
         """
-        Return function names corresponding signature hash
+        Return function nadmes corresponding signature hash
         :param func: function name
         :return: Its hash signature
         """
-        return "0x%s" % utils.sha3(func)[:4].hex()
+        print(sha3(func))
+        return "0x%s" % sha3(func)[:4].hex()
 
     def get_state_variable_from_storage(
         self, address: str, params: Optional[List[str]] = None
@@ -259,14 +247,13 @@ class MythrilDisassembler:
                 if len(params) < 3:
                     raise CriticalError("Invalid number of parameters.")
                 position = int(params[1])
-                position_formatted = utils.zpad(utils.int_to_big_endian(position), 32)
+                position_formatted = zpad(int_to_big_endian(position), 32)
                 for i in range(2, len(params)):
                     key = bytes(params[i], "utf8")
-                    key_formatted = utils.rzpad(key, 32)
+                    key_formatted = rzpad(key, 32)
                     mappings.append(
                         int.from_bytes(
-                            utils.sha3(key_formatted + position_formatted),
-                            byteorder="big",
+                            sha3(key_formatted + position_formatted), byteorder="big"
                         )
                     )
 
@@ -283,12 +270,8 @@ class MythrilDisassembler:
                 if len(params) >= 2:
                     length = int(params[1])
                 if len(params) == 3 and params[2] == "array":
-                    position_formatted = utils.zpad(
-                        utils.int_to_big_endian(position), 32
-                    )
-                    position = int.from_bytes(
-                        utils.sha3(position_formatted), byteorder="big"
-                    )
+                    position_formatted = zpad(int_to_big_endian(position), 32)
+                    position = int.from_bytes(sha3(position_formatted), byteorder="big")
 
         except ValueError:
             raise CriticalError(

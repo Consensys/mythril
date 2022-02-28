@@ -28,7 +28,7 @@ class AccidentallyKillable(DetectionModule):
     swc_id = UNPROTECTED_SELFDESTRUCT
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["SUICIDE"]
+    pre_hooks = ["SELFDESTRUCT"]
 
     def __init__(self):
         super().__init__()
@@ -61,7 +61,7 @@ class AccidentallyKillable(DetectionModule):
 
         to = state.mstate.stack[-1]
 
-        log.debug("SUICIDE in function %s", state.environment.active_function_name)
+        log.debug("SELFDESTRUCT in function %s", state.environment.active_function_name)
 
         description_head = "Any sender can cause the contract to self-destruct."
 

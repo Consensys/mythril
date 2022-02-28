@@ -70,6 +70,7 @@ class GlobalState:
         mstate = deepcopy(self.mstate)
         transaction_stack = copy(self.transaction_stack)
         environment.active_account = world_state[environment.active_account.address]
+
         return GlobalState(
             world_state,
             environment,
@@ -97,7 +98,7 @@ class GlobalState:
         instructions = self.environment.code.instruction_list
         try:
             return instructions[self.mstate.pc]
-        except KeyError:
+        except IndexError:
             return {"address": self.mstate.pc, "opcode": "STOP"}
 
     @property

@@ -2,14 +2,13 @@
 code disassembly."""
 
 import re
-from collections import Generator
+from collections.abc import Generator
+from functools import lru_cache
 
-from mythril.support.opcodes import opcodes
+from mythril.ethereum import util
+from mythril.support.opcodes import OPCODES, ADDRESS, ADDRESS_OPCODE_MAPPING
 
 regex_PUSH = re.compile(r"^PUSH(\d*)$")
-
-# Additional mnemonic to catch failed assertions
-opcodes[254] = ("ASSERT_FAIL", 0, 0, 0)
 
 
 class EvmInstruction:
@@ -54,9 +53,8 @@ def get_opcode_from_name(operation_name: str) -> int:
     :param operation_name:
     :return:
     """
-    for op_code, value in opcodes.items():
-        if operation_name == value[0]:
-            return op_code
+    if operation_name in OPCODES:
+        return OPCODES[operation_name][ADDRESS]
     raise RuntimeError("Unknown opcode")
 
 
@@ -90,7 +88,10 @@ def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool
     return True
 
 
-def disassemble(bytecode: bytes) -> list:
+lru_cache(maxsize=2 ** 10)
+
+
+def disassemble(bytecode) -> list:
     """Disassembles evm bytecode and returns a list of instructions.
 
     :param bytecode:
@@ -99,25 +100,40 @@ def disassemble(bytecode: bytes) -> list:
     instruction_list = []
     address = 0
     length = len(bytecode)
-    if "bzzr" in str(bytecode[-43:]):
-        # ignore swarm hash
-        length -= 43
+
+    if type(bytecode) == str:
+        bytecode = util.safe_decode(bytecode)
+        length = len(bytecode)
+        part_code = bytecode[-43:]
+    else:
+        try:
+            part_code = bytes(bytecode[-43:])
+        except TypeError:
+            part_code = ""
+    try:
+        if "bzzr" in str(part_code):
+            # ignore swarm hash
+            length -= 43
+    except ValueError:
+        pass
 
     while address < length:
         try:
-            op_code = opcodes[bytecode[address]]
+            op_code = ADDRESS_OPCODE_MAPPING[bytecode[address]]
         except KeyError:
             instruction_list.append(EvmInstruction(address, "INVALID"))
             address += 1
             continue
 
-        op_code_name = op_code[0]
-        current_instruction = EvmInstruction(address, op_code_name)
+        current_instruction = EvmInstruction(address, op_code)
 
-        match = re.search(regex_PUSH, op_code_name)
+        match = re.search(regex_PUSH, op_code)
         if match:
             argument_bytes = bytecode[address + 1 : address + 1 + int(match.group(1))]
-            current_instruction.argument = "0x" + argument_bytes.hex()
+            if type(argument_bytes) == bytes:
+                current_instruction.argument = "0x" + argument_bytes.hex()
+            else:
+                current_instruction.argument = argument_bytes
             address += int(match.group(1))
 
         instruction_list.append(current_instruction)

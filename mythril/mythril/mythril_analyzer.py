@@ -5,7 +5,6 @@ import logging
 import traceback
 from typing import Optional, List
 
-from mythril.laser.ethereum.iprof import InstructionProfiler
 from . import MythrilDisassembler
 from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader

@@ -3,12 +3,11 @@ transitions between them."""
 import logging
 
 from copy import copy, deepcopy
-from typing import cast, Callable, List, Union
+from typing import cast, Callable, List, Union, Tuple
 
 from mythril.laser.smt import (
     Extract,
     Expression,
-    Function,
     UDiv,
     simplify,
     Concat,
@@ -16,7 +15,6 @@ from mythril.laser.smt import (
     UGT,
     BitVec,
     is_false,
-    is_true,
     URem,
     SRem,
     If,
@@ -283,17 +281,40 @@ class Instruction:
         :return:
         """
         push_instruction = global_state.get_current_instruction()
-        push_value = push_instruction["argument"][2:]
-
+        push_value = push_instruction["argument"]
         try:
             length_of_value = 2 * int(push_instruction["opcode"][4:])
         except ValueError:
             raise VmException("Invalid Push instruction")
 
-        push_value += "0" * max(length_of_value - len(push_value), 0)
-        global_state.mstate.stack.append(
-            symbol_factory.BitVecVal(int(push_value, 16), 256)
-        )
+        if type(push_value) == tuple:
+            if type(push_value[0]) == int:
+                new_value = symbol_factory.BitVecVal(push_value[0], 8)
+            else:
+                new_value = push_value[0]
+            if len(push_value) > 1:
+                for val in push_value[1:]:
+                    if type(val) == int:
+                        new_value = Concat(new_value, symbol_factory.BitVecVal(val, 8))
+                    else:
+                        new_value = Concat(new_value, val)
+
+            pad_length = length_of_value // 2 - len(push_value)
+
+            if pad_length > 0:
+                new_value = Concat(new_value, symbol_factory.BitVecVal(0, pad_length))
+            if new_value.size() < 256:
+                new_value = Concat(
+                    symbol_factory.BitVecVal(0, 256 - new_value.size()), new_value
+                )
+
+            global_state.mstate.stack.append(new_value)
+
+        else:
+            push_value += "0" * max(length_of_value - (len(push_value) - 2), 0)
+            global_state.mstate.stack.append(
+                symbol_factory.BitVecVal(int(push_value, 16), 256)
+            )
         return [global_state]
 
     @StateTransition()
@@ -635,9 +656,7 @@ class Instruction:
                 If(
                     s0 <= 31,
                     If(
-                        sign_bit_set,
-                        s1 | (TT256 - set_testbit),
-                        s1 & (set_testbit - 1),
+                        sign_bit_set, s1 | (TT256 - set_testbit), s1 & (set_testbit - 1)
                     ),
                     s1,
                 )
@@ -779,15 +798,7 @@ class Instruction:
         :param global_state:
         :return:
         """
-        state = global_state.mstate
-        environment = global_state.environment
-
-        if isinstance(global_state.current_transaction, ContractCreationTransaction):
-            log.debug("Attempt to use CALLDATASIZE in creation transaction")
-            state.stack.append(0)
-        else:
-            state.stack.append(environment.calldata.calldatasize)
-
+        global_state.mstate.stack.append(global_state.environment.calldata.calldatasize)
         return [global_state]
 
     @staticmethod
@@ -1025,9 +1036,8 @@ class Instruction:
             state.stack.append(result)
             return [global_state]
 
-        result, condition = keccak_function_manager.create_keccak(data)
+        result = keccak_function_manager.create_keccak(data)
         state.stack.append(result)
-        global_state.world_state.constraints.append(condition)
 
         return [global_state]
 
@@ -1039,6 +1049,16 @@ class Instruction:
         :return:
         """
         global_state.mstate.stack.append(global_state.environment.gasprice)
+        return [global_state]
+
+    @StateTransition()
+    def basefee_(self, global_state: GlobalState) -> List[GlobalState]:
+        """
+
+        :param global_state:
+        :return:
+        """
+        global_state.mstate.stack.append(global_state.environment.basefee)
         return [global_state]
 
     @StateTransition()
@@ -1057,7 +1077,6 @@ class Instruction:
         if code[0:2] == "0x":
             code = code[2:]
         code_size = len(code) // 2
-
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
             # Treat creation code after the expected disassembly as calldata.
             # This is a slightly hacky way to ensure that symbolic constructor
@@ -1149,7 +1168,7 @@ class Instruction:
 
     @staticmethod
     def _code_copy_helper(
-        code: str,
+        code: Union[str, Tuple],
         memory_offset: Union[int, BitVec],
         code_offset: Union[int, BitVec],
         size: Union[int, BitVec],
@@ -1199,14 +1218,25 @@ class Instruction:
             code = code[2:]
 
         for i in range(concrete_size):
-            if 2 * (concrete_code_offset + i + 1) > len(code):
-                break
-            global_state.mstate.memory[concrete_memory_offset + i] = int(
-                code[
-                    2 * (concrete_code_offset + i) : 2 * (concrete_code_offset + i + 1)
-                ],
-                16,
-            )
+            if isinstance(code, str):
+                if 2 * (concrete_code_offset + i + 1) > len(code):
+                    break
+
+                global_state.mstate.memory[concrete_memory_offset + i] = int(
+                    code[
+                        2
+                        * (concrete_code_offset + i) : 2
+                        * (concrete_code_offset + i + 1)
+                    ],
+                    16,
+                )
+            else:
+                if (concrete_code_offset + i + 1) > len(code):
+                    break
+
+                global_state.mstate.memory[concrete_memory_offset + i] = code[
+                    concrete_code_offset + i
+                ]
 
         return [global_state]
 
@@ -1536,6 +1566,7 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
+
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:
@@ -1682,9 +1713,9 @@ class Instruction:
         """
         # TODO: implement me
         state = global_state.mstate
-        dpth = int(self.op_code[3:])
+        depth = int(self.op_code[3:])
         state.stack.pop(), state.stack.pop()
-        log_data = [state.stack.pop() for _ in range(dpth)]
+        _ = [state.stack.pop() for _ in range(depth)]
         # Not supported
         return [global_state]
 
@@ -1696,12 +1727,11 @@ class Instruction:
         world_state = global_state.world_state
 
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
-
         code_raw = []
         code_end = call_data.size
         size = call_data.size
         if isinstance(size, BitVec):
-            # This should be fine because of the below check
+            # Other size restriction checks handle this
             if size.symbolic:
                 size = 10 ** 5
             else:
@@ -1737,7 +1767,7 @@ class Instruction:
                 if create2_salt.size() != 256:
                     pad = symbol_factory.BitVecVal(0, 256 - create2_salt.size())
                     create2_salt = Concat(pad, create2_salt)
-                address, constraint = keccak_function_manager.create_keccak(
+                address = keccak_function_manager.create_keccak(
                     Concat(
                         symbol_factory.BitVecVal(255, 8),
                         caller,
@@ -1746,7 +1776,7 @@ class Instruction:
                     )
                 )
                 contract_address = Extract(255, 96, address)
-                global_state.world_state.constraints.append(constraint)
+
             else:
                 salt = hex(create2_salt.value)[2:]
                 salt = "0" * (64 - len(salt)) + salt
@@ -1839,14 +1869,14 @@ class Instruction:
         global_state.current_transaction.end(global_state, return_data)
 
     @StateTransition(is_state_mutation_instruction=True)
-    def suicide_(self, global_state: GlobalState):
+    def selfdestruct_(self, global_state: GlobalState):
         """
 
         :param global_state:
         """
         target = global_state.mstate.stack.pop()
         transfer_amount = global_state.environment.active_account.balance()
-        # Often the target of the suicide instruction will be symbolic
+        # Often the target of the selfdestruct instruction will be symbolic
         # If it isn't then we'll transfer the balance to the indicated contract
         global_state.world_state.balances[target] += transfer_amount
 
@@ -2063,6 +2093,12 @@ class Instruction:
             )
             return [global_state]
 
+        native_result = native_call(
+            global_state, callee_address, call_data, memory_out_offset, memory_out_size
+        )
+        if native_result:
+            return native_result
+
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
@@ -2088,10 +2124,10 @@ class Instruction:
         memory_out_size, memory_out_offset = global_state.mstate.stack[-7:-5]
         try:
             (
-                callee_address,
                 _,
                 _,
-                value,
+                _,
+                _,
                 _,
                 memory_out_offset,
                 memory_out_size,
@@ -2200,6 +2236,12 @@ class Instruction:
             )
             return [global_state]
 
+        native_result = native_call(
+            global_state, callee_address, call_data, memory_out_offset, memory_out_size
+        )
+        if native_result:
+            return native_result
+
         transaction = MessageCallTransaction(
             world_state=global_state.world_state,
             gas_price=environment.gasprice,
@@ -2226,10 +2268,10 @@ class Instruction:
 
         try:
             (
-                callee_address,
                 _,
                 _,
-                value,
+                _,
+                _,
                 _,
                 memory_out_offset,
                 memory_out_size,
@@ -2370,11 +2412,11 @@ class Instruction:
         try:
             with_value = function_name != "staticcall"
             (
-                callee_address,
-                callee_account,
-                call_data,
-                value,
-                gas,
+                _,
+                _,
+                _,
+                _,
+                _,
                 memory_out_offset,
                 memory_out_size,
             ) = get_call_parameters(global_state, self.dynamic_loader, with_value)

@@ -4,7 +4,7 @@ This module includes an definition of the DetectionModule interface.
 DetectionModules implement different analysis rules to find weaknesses and vulnerabilities.
 """
 import logging
-from typing import List, Set, Optional
+from typing import List, Set, Optional, Tuple, Union
 
 from mythril.analysis.report import Issue
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class EntryPoint(Enum):
-    """ EntryPoint Enum
+    """EntryPoint Enum
 
     This enum is used to signify the entry_point of detection modules.
     See also the class documentation of DetectionModule
@@ -51,10 +51,10 @@ class DetectionModule(ABC):
 
     def __init__(self) -> None:
         self.issues = []  # type: List[Issue]
-        self.cache = set()  # type: Set[int]
+        self.cache = set()  # type: Set[Optional[Union[int, Tuple[int, str]]]]
 
     def reset_module(self):
-        """ Resets the storage of this module """
+        """Resets the storage of this module"""
         self.issues = []
 
     def execute(self, target: GlobalState) -> Optional[List[Issue]]:

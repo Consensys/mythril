@@ -1,11 +1,10 @@
 from mythril.laser.plugin.interface import LaserPlugin
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class PluginBuilder(ABC):
-    """ PluginBuilder
+    """PluginBuilder
 
     The plugin builder interface enables construction of Laser plugins
     """

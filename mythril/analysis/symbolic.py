@@ -159,7 +159,7 @@ class SymExecWrapper:
                 ),
             )
 
-        if isinstance(contract, SolidityContract):
+        if isinstance(contract, SolidityContract) and create_timeout != 0:
             self.laser.sym_exec(
                 creation_code=contract.creation_code,
                 contract_name=contract.name,
@@ -172,7 +172,6 @@ class SymExecWrapper:
                 world_state=world_state,
             )
         else:
-
             account = Account(
                 address,
                 contract.disassembly,
@@ -182,7 +181,7 @@ class SymExecWrapper:
                 concrete_storage=True
                 if (dynloader is not None and dynloader.active)
                 else False,
-            )
+            )  # concrete_storage can get overridden by global args
 
             if dynloader is not None:
                 if isinstance(address, int):
@@ -239,7 +238,7 @@ class SymExecWrapper:
                     stack = state.mstate.stack
 
                     if op in ("CALL", "CALLCODE"):
-                        gas, to, value, meminstart, meminsz, memoutstart, memoutsz = (
+                        gas, to, value, meminstart, meminsz, _, _ = (
                             get_variable(stack[-1]),
                             get_variable(stack[-2]),
                             get_variable(stack[-3]),
@@ -287,7 +286,7 @@ class SymExecWrapper:
                                 )
                             )
                     else:
-                        gas, to, meminstart, meminsz, memoutstart, memoutsz = (
+                        gas, to, meminstart, meminsz, _, _ = (
                             get_variable(stack[-1]),
                             get_variable(stack[-2]),
                             get_variable(stack[-3]),

@@ -3,29 +3,68 @@
 import hashlib
 import logging
 import blake2b
+import coincurve
+
 from typing import List
 
-from ethereum.utils import ecrecover_to_pub
 from py_ecc.secp256k1 import N as secp256k1n
+from py_ecc.secp256k1 import ecdsa_raw_recover
 import py_ecc.optimized_bn128 as bn128
-from rlp.utils import ALL_BYTES
 
+from rlp.utils import ALL_BYTES
 from eth_utils import ValidationError
 from eth._utils.blake2.coders import extract_blake2b_parameters
+from eth._utils.bn128 import validate_point
 
+from mythril.support.support_utils import sha3, zpad
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
 from mythril.laser.ethereum.util import extract_copy, extract32
-from ethereum.utils import (
-    sha3,
-    big_endian_to_int,
-    safe_ord,
-    zpad,
-    int_to_big_endian,
-    encode_int32,
-)
-from ethereum.specials import validate_point
+from eth_utils import int_to_big_endian, big_endian_to_int
 
 log = logging.getLogger(__name__)
+
+
+def encode_int32(v):
+    return v.to_bytes(32, byteorder="big")
+
+
+def safe_ord(value):
+    if isinstance(value, int):
+        return value
+    else:
+        return ord(value)
+
+
+def int_to_32bytearray(i):
+    o = [0] * 32
+    for x in range(32):
+        o[31 - x] = i & 0xFF
+        i >>= 8
+    return o
+
+
+def ecrecover_to_pub(rawhash, v, r, s):
+    if hasattr(coincurve, "PublicKey"):
+        try:
+            pk = coincurve.PublicKey.from_signature_and_message(
+                zpad(bytes(int_to_32bytearray(r)), 32)
+                + zpad(bytes(int_to_32bytearray(s)), 32)
+                + ALL_BYTES[v - 27],
+                rawhash,
+                hasher=None,
+            )
+            pub = pk.format(compressed=False)[1:]
+        except BaseException:
+            pub = b"\x00" * 64
+    else:
+        result = ecdsa_raw_recover(rawhash, (v, r, s))
+        if result:
+            x, y = result
+            pub = encode_int32(x) + encode_int32(y)
+        else:
+            raise ValueError("Invalid VRS")
+    assert len(pub) == 64
+    return pub
 
 
 class NativeContractException(Exception):
@@ -95,11 +134,6 @@ def identity(data: List[int]) -> List[int]:
     :param data:
     :return:
     """
-    # Group up into an array of 32 byte words instead
-    # of an array of bytes. If saved to memory, 32 byte
-    # words are currently needed, but a correct memory
-    # implementation would be byte indexed for the most
-    # part.
     return data
 
 
@@ -141,8 +175,11 @@ def ec_add(data: List[int]) -> List[int]:
     y1 = extract32(bytes_data, 32)
     x2 = extract32(bytes_data, 64)
     y2 = extract32(bytes_data, 96)
-    p1 = validate_point(x1, y1)
-    p2 = validate_point(x2, y2)
+    try:
+        p1 = validate_point(x1, y1)
+        p2 = validate_point(x2, y2)
+    except ValidationError:
+        return []
     if p1 is False or p2 is False:
         return []
     o = bn128.normalize(bn128.add(p1, p2))
@@ -154,7 +191,10 @@ def ec_mul(data: List[int]) -> List[int]:
     x = extract32(bytes_data, 0)
     y = extract32(bytes_data, 32)
     m = extract32(bytes_data, 64)
-    p = validate_point(x, y)
+    try:
+        p = validate_point(x, y)
+    except ValidationError:
+        return []
     if p is False:
         return []
     o = bn128.normalize(bn128.multiply(p, m))
@@ -234,7 +274,7 @@ def native_contracts(address: int, data: BaseCalldata) -> List[int]:
     """
 
     if not isinstance(data, ConcreteCalldata):
-        raise NativeContractException()
+        raise NativeContractException
     concrete_data = data.concrete(None)
     try:
         return PRECOMPILE_FUNCTIONS[address - 1](concrete_data)

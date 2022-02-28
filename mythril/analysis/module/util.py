@@ -2,18 +2,18 @@ from collections import defaultdict
 from typing import List, Optional, Callable, Mapping, Dict
 import logging
 
-from mythril.support.opcodes import opcodes
+from mythril.support.opcodes import OPCODES
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.module.loader import ModuleLoader
 
 log = logging.getLogger(__name__)
-OP_CODE_LIST = [c[0] for _, c in opcodes.items()]
+OP_CODE_LIST = OPCODES.keys()
 
 
 def get_detection_module_hooks(
     modules: List[DetectionModule], hook_type="pre"
 ) -> Dict[str, List[Callable]]:
-    """ Gets a dictionary with the hooks for the passed detection modules
+    """Gets a dictionary with the hooks for the passed detection modules
 
     :param modules: The modules for which to retrieve hooks
     :param hook_type: The type  of hooks to retrieve (default: "pre")

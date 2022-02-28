@@ -16,7 +16,7 @@ def test_extcodecopy():
     ext_account = new_world_state.create_account(balance=1000, address=121)
     ext_account.code = Disassembly("6040404040")
 
-    new_environment = Environment(new_account, None, None, None, None, None)
+    new_environment = Environment(new_account, None, None, None, None, None, None)
     state = GlobalState(
         new_world_state, new_environment, None, MachineState(gas_limit=8000000)
     )
@@ -38,7 +38,7 @@ def test_extcodecopy_fail():
     new_world_state = WorldState()
     new_account = new_world_state.create_account(balance=10, address=101)
     new_account.code = Disassembly("60616240")
-    new_environment = Environment(new_account, None, None, None, None, None)
+    new_environment = Environment(new_account, None, None, None, None, None, None)
     state = GlobalState(
         new_world_state, new_environment, None, MachineState(gas_limit=8000000)
     )

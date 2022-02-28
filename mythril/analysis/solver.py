@@ -9,7 +9,6 @@ from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.function_managers import (
-    exponent_function_manager,
     keccak_function_manager,
 )
 
@@ -26,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 def pretty_print_model(model):
-    """ Pretty prints a z3 model
+    """Pretty prints a z3 model
 
     :param model:
     :return:
@@ -118,7 +117,11 @@ def _add_calldata_placeholder(
         tx["calldata"] = tx["input"]
     if not isinstance(transaction_sequence[0], ContractCreationTransaction):
         return
-    code_len = len(transaction_sequence[0].code.bytecode)
+
+    if type(transaction_sequence[0].code.bytecode) == tuple:
+        code_len = len(transaction_sequence[0].code.bytecode) * 2
+    else:
+        code_len = len(transaction_sequence[0].code.bytecode)
     concrete_transactions[0]["calldata"] = concrete_transactions[0]["input"][
         code_len + 2 :
     ]
@@ -173,7 +176,7 @@ def _get_concrete_state(
 
         data: Dict[str, Union[int, str]] = {}
         data["nonce"] = account.nonce
-        data["code"] = account.code.bytecode
+        data["code"] = account.serialised_code()
         data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))
         accounts[hex(address)] = data
@@ -181,7 +184,7 @@ def _get_concrete_state(
 
 
 def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
-    """ Gets a concrete transaction from a transaction and z3 model"""
+    """Gets a concrete transaction from a transaction and z3 model"""
     # Get concrete values from transaction
     address = hex(transaction.callee_account.address.value)
     value = model.eval(transaction.call_value.raw, model_completion=True).as_long()
@@ -215,7 +218,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
 def _set_minimisation_constraints(
     transaction_sequence, constraints, minimize, max_size, world_state
 ) -> Tuple[Constraints, tuple]:
-    """ Set constraints that minimise key transaction values
+    """Set constraints that minimise key transaction values
 
     Constraints generated:
     - Upper bound on calldata size

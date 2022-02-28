@@ -8,7 +8,7 @@ from typing import List, Dict, Any, Optional
 class PluginDiscovery(object, metaclass=Singleton):
     """PluginDiscovery class
 
-     This plugin implements the logic to discover and build plugins in installed python packages
+    This plugin implements the logic to discover and build plugins in installed python packages
     """
 
     # Installed plugins structure. Retrieves all modules that have an entry point for mythril.plugins
@@ -43,7 +43,7 @@ class PluginDiscovery(object, metaclass=Singleton):
         return plugin(**plugin_args)
 
     def get_plugins(self, default_enabled=None) -> List[str]:
-        """ Gets a list of installed mythril plugins
+        """Gets a list of installed mythril plugins
 
         :param default_enabled: Select plugins that are enabled by default
         :return: List of plugin names

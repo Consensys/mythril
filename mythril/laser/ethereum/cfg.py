@@ -66,7 +66,7 @@ class Node:
 
             code += str(instruction["address"]) + " " + instruction["opcode"]
             if instruction["opcode"].startswith("PUSH"):
-                code += " " + instruction["argument"]
+                code += " " + "".join(instruction["argument"])
 
             code += "\\n"
 

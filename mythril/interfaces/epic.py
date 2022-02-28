@@ -16,6 +16,7 @@ import random
 import re
 import sys
 import time
+import argparse
 
 PY3 = sys.version_info >= (3,)
 
@@ -165,7 +166,7 @@ class LolCat(object):
         if not s:
             return
 
-        for i in range(1, options.duration):
+        for _ in range(1, options.duration):
             self.output.write("\x1b[%dD" % (len(s),))
             self.output.flush()
             options.os += options.spread
@@ -208,30 +209,29 @@ def detect_mode(term_hint="xterm-256color"):
 
 def run():
     """Main entry point."""
-    import optparse
 
-    parser = optparse.OptionParser(usage=r"%prog [<options>] [file ...]")
-    parser.add_option(
-        "-p", "--spread", type="float", default=3.0, help="Rainbow spread"
+    parser = argparse.ArgumentParser(usage=r"%prog [<options>] [file ...]")
+    parser.add_argument(
+        "-p", "--spread", type=float, default=3.0, help="Rainbow spread"
     )
-    parser.add_option(
-        "-F", "--freq", type="float", default=0.1, help="Rainbow frequency"
+    parser.add_argument(
+        "-F", "--freq", type=float, default=0.1, help="Rainbow frequency"
     )
-    parser.add_option("-S", "--seed", type="int", default=0, help="Rainbow seed")
-    parser.add_option(
+    parser.add_argument("-S", "--seed", type=int, default=0, help="Rainbow seed")
+    parser.add_argument(
         "-a",
         "--animate",
         action="store_true",
         default=False,
         help="Enable psychedelics",
     )
-    parser.add_option(
-        "-d", "--duration", type="int", default=12, help="Animation duration"
+    parser.add_argument(
+        "-d", "--duration", type=int, default=12, help="Animation duration"
     )
-    parser.add_option(
-        "-s", "--speed", type="float", default=20.0, help="Animation speed"
+    parser.add_argument(
+        "-s", "--speed", type=float, default=20.0, help="Animation speed"
     )
-    parser.add_option(
+    parser.add_argument(
         "-f",
         "--force",
         action="store_true",
@@ -239,17 +239,17 @@ def run():
         help="Force colour even when stdout is not a tty",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-3", action="store_const", dest="mode", const=8, help="Force 3 bit colour mode"
     )
-    parser.add_option(
+    parser.add_argument(
         "-4",
         action="store_const",
         dest="mode",
         const=16,
         help="Force 4 bit colour mode",
     )
-    parser.add_option(
+    parser.add_argument(
         "-8",
         action="store_const",
         dest="mode",
@@ -257,21 +257,19 @@ def run():
         help="Force 8 bit colour mode",
     )
 
-    parser.add_option(
+    parser.add_argument(
         "-c",
         "--charset-py2",
         default="utf-8",
         help="Manually set a charset to convert from, for python 2.7",
     )
 
-    options, args = parser.parse_args()
+    options = parser.parse_args()
     options.os = random.randint(0, 256) if options.seed == 0 else options.seed
     options.mode = options.mode or detect_mode()
 
     lolcat = LolCat(mode=options.mode)
-
-    if not args:
-        args = ["-"]
+    args = ["-"]
 
     for filename in args:
         if filename == "-":

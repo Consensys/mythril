@@ -1,5 +1,5 @@
 import pytest
-from ethereum import utils
+from eth._utils.numeric import ceil32
 from mythril.laser.smt import simplify, symbol_factory
 
 from mythril.laser.ethereum.state.machine_state import MachineState
@@ -24,7 +24,7 @@ def test_memory_extension(initial_size, start, extension_size):
     # Assert
     assert machine_state.memory_size == len(machine_state.memory)
     assert machine_state.memory_size == max(
-        initial_size, (utils.ceil32(start + extension_size) // 32) * 32
+        initial_size, (ceil32(start + extension_size) // 32) * 32
     )
 
 
