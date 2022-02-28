@@ -54,7 +54,7 @@ def get_transaction_sequence(
     """Generate concrete transaction sequence.
     Note: This function only considers the constraints in constraint argument,
     which in some cases is expected to differ from global_state's constraints
-    
+
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
     """
@@ -169,7 +169,7 @@ def _replace_with_actual_sha(
 def _get_concrete_state(
     initial_accounts: Dict, min_price_dict: Dict[str, int]
 ) -> Dict[str, Dict]:
-    """ Gets a concrete state """
+    """Gets a concrete state"""
     accounts = {}
     for address, account in initial_accounts.items():
         # Skip empty default account

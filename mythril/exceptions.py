@@ -42,7 +42,6 @@ class DetectorNotFoundError(MythrilBaseException):
 
 
 class IllegalArgumentError(ValueError):
-    """The argument used does not exist
-    """
+    """The argument used does not exist"""
 
     pass

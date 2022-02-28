@@ -212,7 +212,8 @@ def create_concolic_parser(parser: ArgumentParser) -> ArgumentParser:
     Get parser which handles arguments for concolic branch flipping
     """
     parser.add_argument(
-        "input", help="The input jsonv2 file with concrete data",
+        "input",
+        help="The input jsonv2 file with concrete data",
     )
     parser.add_argument(
         "--branches",

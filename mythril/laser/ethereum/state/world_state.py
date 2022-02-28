@@ -212,7 +212,7 @@ class WorldState:
         """
         if creator:
             # TODO: Use nounce
-            address = "0x" + str(mk_contract_address(creator, nonce).hex())
+            address = "0x" + str(generate_contract_address(creator, nonce).hex())
             return symbol_factory.BitVecVal(int(address, 16), 256)
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])
