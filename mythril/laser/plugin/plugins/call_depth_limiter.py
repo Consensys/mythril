@@ -3,11 +3,6 @@ from mythril.laser.plugin.interface import LaserPlugin
 from mythril.laser.plugin.builder import PluginBuilder
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.svm import LaserEVM
-from z3 import set_option
-
-set_option(
-    max_args=10000000, max_lines=1000000, max_depth=10000000, max_visited=1000000
-)
 
 
 class CallDepthLimitBuilder(PluginBuilder):
