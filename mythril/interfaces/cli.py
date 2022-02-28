@@ -22,7 +22,9 @@ from mythril.exceptions import (
     CriticalError,
 )
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.plugin.discovery import PluginDiscovery
 from mythril.plugin.loader import MythrilPluginLoader
+
 from mythril.mythril import MythrilAnalyzer, MythrilDisassembler, MythrilConfig
 
 from mythril.analysis.module import ModuleLoader
@@ -290,14 +292,15 @@ def main() -> None:
     )
     create_disassemble_parser(disassemble_parser)
 
-    concolic_parser = subparsers.add_parser(
-        CONCOLIC_LIST[0],
-        help="Runs concolic execution to flip the desired branches",
-        aliases=CONCOLIC_LIST[1:],
-        parents=[],
-        formatter_class=RawTextHelpFormatter,
-    )
-    create_concolic_parser(concolic_parser)
+    if PluginDiscovery().is_installed("myth_concolic_execution"):
+        concolic_parser = subparsers.add_parser(
+            CONCOLIC_LIST[0],
+            help="Runs concolic execution to flip the desired branches",
+            aliases=CONCOLIC_LIST[1:],
+            parents=[],
+            formatter_class=RawTextHelpFormatter,
+        )
+        create_concolic_parser(concolic_parser)
 
     subparsers.add_parser(
         LIST_DETECTORS_COMMAND,

@@ -46,7 +46,6 @@ class MythrilPluginLoader(object, metaclass=Singleton):
         logging.info(f"Loading plugin: {plugin.name}")
 
         log.info(f"Loading plugin: {str(plugin)}")
-
         if isinstance(plugin, DetectionModule):
             self._load_detection_module(plugin)
         elif isinstance(plugin, MythrilLaserPlugin):

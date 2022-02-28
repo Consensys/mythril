@@ -36,7 +36,6 @@ class PluginDiscovery(object, metaclass=Singleton):
             raise ValueError(f"Plugin with name: `{plugin_name}` is not installed")
 
         plugin = self.installed_plugins.get(plugin_name)
-
         if plugin is None or not issubclass(plugin, MythrilPlugin):
             raise ValueError(f"No valid plugin was found for {plugin_name}")
 

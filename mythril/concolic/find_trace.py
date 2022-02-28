@@ -14,8 +14,9 @@ from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.transaction.concolic import execute_transaction
 from mythril.laser.plugin.loader import LaserPluginLoader
 from mythril.laser.smt import Expression, BitVec, symbol_factory
-from mythril.laser.plugin.plugins import TraceFinderBuilder
 from mythril.laser.ethereum.transaction.transaction_models import tx_id_manager
+from mythril.plugin.discovery import PluginDiscovery
+
 
 
 def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
@@ -51,7 +52,9 @@ def concrete_execution(concrete_data: ConcreteData) -> Tuple[WorldState, List]:
     laser_evm = LaserEVM(execution_timeout=1000)
     laser_evm.open_states = [deepcopy(init_state)]
     plugin_loader = LaserPluginLoader()
-    trace_plugin = TraceFinderBuilder()
+    assert PluginDiscovery().is_installed("myth_concolic_execution")
+    trace_plugin = PluginDiscovery().installed_plugins["myth_concolic_execution"]()
+
     plugin_loader.load(trace_plugin)
     laser_evm.time = datetime.now()
     plugin_loader.instrument_virtual_machine(laser_evm, None)
@@ -71,5 +74,6 @@ def concrete_execution(concrete_data: ConcreteData) -> Tuple[WorldState, List]:
             value=int(transaction["value"], 16),
             track_gas=False,
         )
+
     tx_id_manager.restart_counter()
-    return init_state, plugin_loader.plugin_list["trace-finder"].tx_trace  # type: ignore
+    return init_state, plugin_loader.plugin_list["MythX Trace Finder"].tx_trace  # type: ignore
