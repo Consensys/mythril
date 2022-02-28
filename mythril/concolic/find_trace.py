@@ -18,7 +18,6 @@ from mythril.laser.ethereum.transaction.transaction_models import tx_id_manager
 from mythril.plugin.discovery import PluginDiscovery
 
 
-
 def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
     """
     Sets up concrete initial state
