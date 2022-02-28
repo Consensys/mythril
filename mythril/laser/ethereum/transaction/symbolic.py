@@ -2,6 +2,7 @@
 symbolic values."""
 import logging
 from typing import Optional
+from copy import deepcopy
 
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.cfg import Node, Edge, JumpType
@@ -11,9 +12,10 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
     ContractCreationTransaction,
-    get_next_transaction_id,
+    tx_id_manager,
     BaseTransaction,
 )
+from typing import List, Union
 from mythril.laser.smt import symbol_factory, Or, BitVec
 
 log = logging.getLogger(__name__)
@@ -82,7 +84,7 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
             log.debug("Can not execute dead contract, skipping.")
             continue
 
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
 
         external_sender = symbol_factory.BitVecSym(
             "sender_{}".format(next_transaction_id), 256
@@ -109,7 +111,12 @@ def execute_message_call(laser_evm, callee_address: BitVec) -> None:
 
 
 def execute_contract_creation(
-    laser_evm, contract_initialization_code, contract_name=None, world_state=None
+    laser_evm,
+    contract_initialization_code,
+    contract_name=None,
+    world_state=None,
+    origin=ACTORS["CREATOR"],
+    caller=ACTORS["CREATOR"],
 ) -> Account:
     """Executes a contract creation transaction from all open states.
 
@@ -118,14 +125,13 @@ def execute_contract_creation(
     :param contract_name:
     :return:
     """
-    # TODO: Resolve circular import between .transaction and ..svm to import LaserEVM here
-    del laser_evm.open_states[:]
 
     world_state = world_state or WorldState()
     open_states = [world_state]
+    del laser_evm.open_states[:]
     new_account = None
     for open_world_state in open_states:
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
         # call_data "should" be '[]', but it is easier to model the calldata symbolically
         # and add logic in codecopy/codesize/calldatacopy/calldatasize than to model code "correctly"
         transaction = ContractCreationTransaction(
@@ -135,9 +141,9 @@ def execute_contract_creation(
                 "gas_price{}".format(next_transaction_id), 256
             ),
             gas_limit=8000000,  # block gas limit
-            origin=ACTORS["CREATOR"],
+            origin=origin,
             code=Disassembly(contract_initialization_code),
-            caller=ACTORS["CREATOR"],
+            caller=caller,
             contract_name=contract_name,
             call_data=None,
             call_value=symbol_factory.BitVecSym(
@@ -189,3 +195,24 @@ def _setup_global_state_for_execution(laser_evm, transaction: BaseTransaction) -
     global_state.node = new_node
     new_node.states.append(global_state)
     laser_evm.work_list.append(global_state)
+
+
+def execute_transaction(*args, **kwargs):
+    """
+    Chooses the transaction type based on callee address and
+    executes the transaction
+    """
+    laser_evm = args[0]
+    if kwargs["callee_address"] == "":
+        for ws in laser_evm.open_states[:]:
+            execute_contract_creation(
+                laser_evm=laser_evm,
+                contract_initialization_code=kwargs["data"],
+                world_state=ws,
+            )
+        return
+
+    execute_message_call(
+        laser_evm=laser_evm,
+        callee_address=symbol_factory.BitVecVal(int(kwargs["callee_address"], 16), 256),
+    )

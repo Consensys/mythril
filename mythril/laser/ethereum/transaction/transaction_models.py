@@ -4,7 +4,7 @@ execution."""
 from copy import deepcopy
 from z3 import ExprRef
 from typing import Union, Optional
-
+from mythril.support.support_utils import Singleton
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
@@ -16,17 +16,20 @@ import logging
 
 log = logging.getLogger(__name__)
 
-_next_transaction_id = 0
+
+class TxIdManager(object, metaclass=Singleton):
+    def __init__(self):
+        self._next_transaction_id = 0
+
+    def get_next_tx_id(self):
+        self._next_transaction_id += 1
+        return str(self._next_transaction_id)
+
+    def restart_counter(self):
+        self._next_transaction_id = 0
 
 
-def get_next_transaction_id() -> str:
-    """
-
-    :return:
-    """
-    global _next_transaction_id
-    _next_transaction_id += 1
-    return str(_next_transaction_id)
+tx_id_manager = TxIdManager()
 
 
 class TransactionEndSignal(Exception):
@@ -72,7 +75,7 @@ class BaseTransaction:
     ) -> None:
         assert isinstance(world_state, WorldState)
         self.world_state = world_state
-        self.id = identifier or get_next_transaction_id()
+        self.id = identifier or tx_id_manager.get_next_tx_id()
 
         self.gas_price = (
             gas_price

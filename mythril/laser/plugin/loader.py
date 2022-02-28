@@ -2,6 +2,7 @@ import logging
 from typing import Dict, List, Optional
 
 from mythril.laser.ethereum.svm import LaserEVM
+from mythril.laser.plugin.interface import LaserPlugin
 from mythril.laser.plugin.builder import PluginBuilder
 from mythril.support.support_utils import Singleton
 
@@ -18,6 +19,7 @@ class LaserPluginLoader(object, metaclass=Singleton):
         """Initializes the plugin loader"""
         self.laser_plugin_builders = {}  # type: Dict[str, PluginBuilder]
         self.plugin_args = {}  # type: Dict[str, Dict]
+        self.plugin_list = {}  # type: Dict[str, LaserPlugin]
 
     def add_args(self, plugin_name, **kwargs):
         self.plugin_args[plugin_name] = kwargs
@@ -70,3 +72,4 @@ class LaserPluginLoader(object, metaclass=Singleton):
             log.info(f"Instrumenting symbolic vm with plugin: {plugin_name}")
             plugin = plugin_builder(**self.plugin_args.get(plugin_name, {}))
             plugin.initialize(symbolic_vm)
+            self.plugin_list[plugin_name] = plugin

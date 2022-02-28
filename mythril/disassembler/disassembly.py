@@ -23,8 +23,10 @@ class Disassembly(object):
         :param enable_online_lookup:
         """
         self.bytecode = code
-        self.instruction_list = asm.disassemble(util.safe_decode(code))
-
+        if type(code) == str:
+            self.instruction_list = asm.disassemble(util.safe_decode(code))
+        else:
+            self.instruction_list = asm.disassemble(code)
         self.func_hashes = []  # type: List[str]
         self.function_name_to_address = {}  # type: Dict[str, int]
         self.address_to_function_name = {}  # type: Dict[int, str]

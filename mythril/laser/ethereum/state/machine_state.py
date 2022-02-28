@@ -107,7 +107,6 @@ class MachineState:
         depth=0,
         max_gas_used=0,
         min_gas_used=0,
-        prev_pc=-1,
     ) -> None:
         """Constructor for machineState.
 
@@ -119,9 +118,8 @@ class MachineState:
         :param depth:
         :param max_gas_used:
         :param min_gas_used:
-        :param prev_pc:
         """
-        self._pc = pc
+        self.pc = pc
         self.stack = MachineStack(stack)
         self.subroutine_stack = MachineStack(subroutine_stack)
         self.memory = memory or Memory()
@@ -129,7 +127,6 @@ class MachineState:
         self.min_gas_used = min_gas_used  # lower gas usage bound
         self.max_gas_used = max_gas_used  # upper gas usage bound
         self.depth = depth
-        self.prev_pc = prev_pc  # holds context of current pc
 
     def calculate_extension_size(self, start: int, size: int) -> int:
         """
@@ -225,11 +222,10 @@ class MachineState:
             gas_limit=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
-            pc=self._pc,
+            pc=self.pc,
             stack=copy(self.stack),
             memory=copy(self.memory),
             depth=self.depth,
-            prev_pc=self.prev_pc,
             subroutine_stack=copy(self.subroutine_stack),
         )
 
@@ -239,19 +235,6 @@ class MachineState:
         :return:
         """
         return str(self.as_dict)
-
-    @property
-    def pc(self) -> int:
-        """
-
-        :return:
-        """
-        return self._pc
-
-    @pc.setter
-    def pc(self, value):
-        self.prev_pc = self._pc
-        self._pc = value
 
     @property
     def memory_size(self) -> int:
@@ -268,7 +251,7 @@ class MachineState:
         :return:
         """
         return dict(
-            pc=self._pc,
+            pc=self.pc,
             stack=self.stack,
             subroutine_stack=self.subroutine_stack,
             memory=self.memory,
@@ -276,5 +259,4 @@ class MachineState:
             gas=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
-            prev_pc=self.prev_pc,
         )

@@ -1,8 +1,10 @@
 """This module contains analysis module helpers to solve path constraints."""
-import logging
-from typing import Dict, List, Tuple, Union
+
+from typing import Dict, List, Tuple, Union, Any
 
 import z3
+import logging
+
 from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
@@ -48,8 +50,10 @@ def pretty_print_model(model):
 
 def get_transaction_sequence(
     global_state: GlobalState, constraints: Constraints
-) -> Dict:
+) -> Dict[str, Any]:
     """Generate concrete transaction sequence.
+    Note: This function only considers the constraints in constraint argument,
+    which in some cases is expected to differ from global_state's constraints
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
@@ -66,16 +70,19 @@ def get_transaction_sequence(
         model = get_model(tx_constraints, minimize=minimize)
     except UnsatError:
         raise UnsatError
-    # Include creation account in initial state
-    # Note: This contains the code, which should not exist until after the first tx
-    initial_world_state = transaction_sequence[0].world_state
+
+    if isinstance(transaction_sequence[0], ContractCreationTransaction):
+        initial_world_state = transaction_sequence[0].prev_world_state
+    else:
+        initial_world_state = transaction_sequence[0].world_state
+
     initial_accounts = initial_world_state.accounts
 
     for transaction in transaction_sequence:
         concrete_transaction = _get_concrete_transaction(model, transaction)
         concrete_transactions.append(concrete_transaction)
 
-    min_price_dict = {}  # type: Dict[str, int]
+    min_price_dict: Dict[str, int] = {}
     for address in initial_accounts.keys():
         min_price_dict[address] = model.eval(
             initial_world_state.starting_balances[
@@ -159,13 +166,15 @@ def _replace_with_actual_sha(
             )
 
 
-def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
+def _get_concrete_state(
+    initial_accounts: Dict, min_price_dict: Dict[str, int]
+) -> Dict[str, Dict]:
     """Gets a concrete state"""
     accounts = {}
     for address, account in initial_accounts.items():
         # Skip empty default account
 
-        data = dict()  # type: Dict[str, Union[int, str]]
+        data: Dict[str, Union[int, str]] = {}
         data["nonce"] = account.nonce
         data["code"] = account.serialised_code()
         data["storage"] = str(account.storage)

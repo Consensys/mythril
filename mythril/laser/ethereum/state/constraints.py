@@ -47,13 +47,6 @@ class Constraints(list):
         )
         super(Constraints, self).append(constraint)
 
-    def pop(self, index: int = -1) -> None:
-        """
-
-        :param index: Index to be popped from the list
-        """
-        raise NotImplementedError
-
     @property
     def as_list(self) -> List[Bool]:
         """

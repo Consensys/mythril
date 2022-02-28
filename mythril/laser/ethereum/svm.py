@@ -60,6 +60,7 @@ class LaserEVM:
         transaction_count=2,
         requires_statespace=True,
         iprof=None,
+        use_reachability_check=True,
     ) -> None:
         """
         Initializes the laser evm object
@@ -73,14 +74,15 @@ class LaserEVM:
         :param requires_statespace: Variable indicating whether the statespace should be recorded
         :param iprof: Instruction Profiler
         """
-        self.execution_info = []  # type: List[ExecutionInfo]
+        self.execution_info: List[ExecutionInfo] = []
 
-        self.open_states = []  # type: List[WorldState]
+        self.open_states: List[WorldState] = []
         self.total_states = 0
         self.dynamic_loader = dynamic_loader
+        self.use_reachability_check = use_reachability_check
 
         # TODO: What about using a deque here?
-        self.work_list = []  # type: List[GlobalState]
+        self.work_list: List[GlobalState] = []
         self.strategy = strategy(self.work_list, max_depth)
         self.max_depth = max_depth
         self.transaction_count = transaction_count
@@ -90,30 +92,45 @@ class LaserEVM:
 
         self.requires_statespace = requires_statespace
         if self.requires_statespace:
-            self.nodes = {}  # type: Dict[int, Node]
-            self.edges = []  # type: List[Edge]
+            self.nodes: Dict[int, Node] = {}
+            self.edges: List[Edge] = []
 
-        self.time = None  # type: datetime
+        self.time: datetime = None
 
-        self.pre_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
-        self.post_hooks = defaultdict(list)  # type: DefaultDict[str, List[Callable]]
+        self.pre_hooks: DefaultDict[str, List[Callable]] = defaultdict(list)
+        self.post_hooks: DefaultDict[str, List[Callable]] = defaultdict(list)
 
-        self._add_world_state_hooks = []  # type: List[Callable]
-        self._execute_state_hooks = []  # type: List[Callable]
+        self._add_world_state_hooks: List[Callable] = []
+        self._execute_state_hooks: List[Callable] = []
 
-        self._start_sym_trans_hooks = []  # type: List[Callable]
-        self._stop_sym_trans_hooks = []  # type: List[Callable]
+        self._start_sym_trans_hooks: List[Callable] = []
+        self._stop_sym_trans_hooks: List[Callable] = []
 
-        self._start_sym_exec_hooks = []  # type: List[Callable]
-        self._stop_sym_exec_hooks = []  # type: List[Callable]
+        self._start_sym_exec_hooks: List[Callable] = []
+        self._stop_sym_exec_hooks: List[Callable] = []
+
+        self._start_exec_hooks: List[Callable] = []
+        self._stop_exec_hooks: List[Callable] = []
 
         self._transaction_end_hooks: List[Callable] = []
+
         self.iprof = iprof
-        self.instr_pre_hook = {}  # type: Dict[str, List[Callable]]
-        self.instr_post_hook = {}  # type: Dict[str, List[Callable]]
+        self.instr_pre_hook: Dict[str, List[Callable]] = {}
+        self.instr_post_hook: Dict[str, List[Callable]] = {}
         for op in OPCODES:
             self.instr_pre_hook[op] = []
             self.instr_post_hook[op] = []
+        self.hook_type_map = {
+            "add_world_state": self._add_world_state_hooks,
+            "execute_state": self._execute_state_hooks,
+            "start_sym_exec": self._start_sym_exec_hooks,
+            "stop_sym_exec": self._stop_sym_exec_hooks,
+            "start_sym_trans": self._start_sym_trans_hooks,
+            "stop_sym_trans": self._stop_sym_trans_hooks,
+            "start_exec": self._start_exec_hooks,
+            "stop_exec": self._stop_exec_hooks,
+            "transaction_end": self._transaction_end_hooks,
+        }
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
     def extend_strategy(self, extension: ABCMeta, *args) -> None:
@@ -200,12 +217,13 @@ class LaserEVM:
             if len(self.open_states) == 0:
                 break
             old_states_count = len(self.open_states)
-            self.open_states = [
-                state for state in self.open_states if state.constraints.is_possible
-            ]
-            prune_count = old_states_count - len(self.open_states)
-            if prune_count:
-                log.info("Pruned {} unreachable states".format(prune_count))
+            if self.use_reachability_check:
+                self.open_states = [
+                    state for state in self.open_states if state.constraints.is_possible
+                ]
+                prune_count = old_states_count - len(self.open_states)
+                if prune_count:
+                    log.info("Pruned {} unreachable states".format(prune_count))
             log.info(
                 "Starting message call transaction, iteration: {}, {} initial states".format(
                     i, len(self.open_states)
@@ -242,6 +260,8 @@ class LaserEVM:
         :return:
         """
         final_states = []  # type: List[GlobalState]
+        for hook in self._start_exec_hooks:
+            hook()
 
         for global_state in self.strategy:
             if create and self._check_create_termination():
@@ -271,6 +291,9 @@ class LaserEVM:
             elif track_gas:
                 final_states.append(global_state)
             self.total_states += len(new_states)
+
+        for hook in self._stop_exec_hooks:
+            hook()
 
         return final_states if track_gas else None
 
@@ -581,20 +604,9 @@ class LaserEVM:
 
     def register_laser_hooks(self, hook_type: str, hook: Callable):
         """registers the hook with this Laser VM"""
-        if hook_type == "add_world_state":
-            self._add_world_state_hooks.append(hook)
-        elif hook_type == "execute_state":
-            self._execute_state_hooks.append(hook)
-        elif hook_type == "start_sym_exec":
-            self._start_sym_exec_hooks.append(hook)
-        elif hook_type == "stop_sym_exec":
-            self._stop_sym_exec_hooks.append(hook)
-        elif hook_type == "start_sym_trans":
-            self._start_sym_trans_hooks.append(hook)
-        elif hook_type == "stop_sym_trans":
-            self._stop_sym_trans_hooks.append(hook)
-        elif hook_type == "transaction_end":
-            self._transaction_end_hooks.append(hook)
+
+        if hook_type in self.hook_type_map:
+            self.hook_type_map[hook_type].append(hook)
         else:
             raise ValueError(f"Invalid hook type {hook_type}")
 

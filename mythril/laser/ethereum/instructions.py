@@ -56,7 +56,7 @@ from mythril.laser.ethereum.transaction import (
     MessageCallTransaction,
     TransactionStartSignal,
     ContractCreationTransaction,
-    get_next_transaction_id,
+    tx_id_manager,
 )
 
 from mythril.support.support_utils import get_code_hash
@@ -194,6 +194,7 @@ class StateTransition(object):
             new_global_states = [
                 self.accumulate_gas(state) for state in new_global_states
             ]
+
             return self.increment_states_pc(new_global_states)
 
         return wrapper
@@ -726,7 +727,6 @@ class Instruction:
 
         op1 = state.stack.pop()
         op2 = state.stack.pop()
-
         if isinstance(op1, Bool):
             op1 = If(
                 op1, symbol_factory.BitVecVal(1, 256), symbol_factory.BitVecVal(0, 256)
@@ -1599,14 +1599,13 @@ class Instruction:
             new_state.mstate.max_gas_used += max_gas
 
             # manually increment PC
+
             new_state.mstate.depth += 1
             new_state.mstate.pc += 1
             new_state.world_state.constraints.append(negated)
             states.append(new_state)
         else:
             log.debug("Pruned unreachable states.")
-
-        # True case
 
         # Get jump destination
         index = util.get_instruction_index(disassembly.instruction_list, jump_addr)
@@ -1750,7 +1749,7 @@ class Instruction:
 
         code_str = bytes.hex(bytes(code_raw))
 
-        next_transaction_id = get_next_transaction_id()
+        next_transaction_id = tx_id_manager.get_next_tx_id()
         constructor_arguments = ConcreteCalldata(
             next_transaction_id, call_data[code_end:]
         )

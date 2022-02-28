@@ -16,12 +16,15 @@ import traceback
 
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
+from mythril.concolic import concolic_execution
 from mythril.exceptions import (
     DetectorNotFoundError,
     CriticalError,
 )
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.plugin.discovery import PluginDiscovery
 from mythril.plugin.loader import MythrilPluginLoader
+
 from mythril.mythril import MythrilAnalyzer, MythrilDisassembler, MythrilConfig
 
 from mythril.analysis.module import ModuleLoader
@@ -34,6 +37,8 @@ _ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
+
+CONCOLIC_LIST = ("concolic", "c")
 SAFE_FUNCTIONS_COMMAND = "safe-functions"
 READ_STORAGE_COMNAND = "read-storage"
 FUNCTION_TO_HASH_COMMAND = "function-to-hash"
@@ -47,6 +52,7 @@ log = logging.getLogger(__name__)
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
+    + CONCOLIC_LIST
     + (
         READ_STORAGE_COMNAND,
         SAFE_FUNCTIONS_COMMAND,
@@ -203,6 +209,29 @@ def get_utilities_parser() -> ArgumentParser:
     return parser
 
 
+def create_concolic_parser(parser: ArgumentParser) -> ArgumentParser:
+    """
+    Get parser which handles arguments for concolic branch flipping
+    """
+    parser.add_argument(
+        "input",
+        help="The input jsonv2 file with concrete data",
+    )
+    parser.add_argument(
+        "--branches",
+        help="branch addresses to be flipped. usage: --branches 34,6f8,16a",
+        required=True,
+        metavar="BRANCH",
+    )
+    parser.add_argument(
+        "--solver-timeout",
+        type=int,
+        default=100000,
+        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
+    )
+    return parser
+
+
 def main() -> None:
     """The main CLI interface entry point."""
 
@@ -211,6 +240,7 @@ def main() -> None:
     runtime_input_parser = get_runtime_input_parser()
     creation_input_parser = get_creation_input_parser()
     output_parser = get_output_parser()
+
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
@@ -261,6 +291,16 @@ def main() -> None:
         formatter_class=RawTextHelpFormatter,
     )
     create_disassemble_parser(disassemble_parser)
+
+    if PluginDiscovery().is_installed("myth_concolic_execution"):
+        concolic_parser = subparsers.add_parser(
+            CONCOLIC_LIST[0],
+            help="Runs concolic execution to flip the desired branches",
+            aliases=CONCOLIC_LIST[1:],
+            parents=[],
+            formatter_class=RawTextHelpFormatter,
+        )
+        create_concolic_parser(concolic_parser)
 
     subparsers.add_parser(
         LIST_DETECTORS_COMMAND,
@@ -934,6 +974,15 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
 
     if args.command == HELP_COMMAND:
         parser.print_help()
+        sys.exit()
+
+    if args.command in CONCOLIC_LIST:
+        with open(args.input) as f:
+            concrete_data = json.load(f)
+        output_list = concolic_execution(
+            concrete_data, args.branches.split(","), args.solver_timeout
+        )
+        json.dump(output_list, sys.stdout, indent=4)
         sys.exit()
 
     # Parse cmdline args
