@@ -977,6 +977,7 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         sys.exit()
 
     if args.command in CONCOLIC_LIST:
+        _ = MythrilConfig.init_mythril_dir()
         with open(args.input) as f:
             concrete_data = json.load(f)
         output_list = concolic_execution(

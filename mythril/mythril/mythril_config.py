@@ -22,7 +22,7 @@ class MythrilConfig:
 
     def __init__(self):
         self.infura_id = os.getenv("INFURA_ID")  # type: str
-        self.mythril_dir = self._init_mythril_dir()
+        self.mythril_dir = self.init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
         self._init_config()
         self.eth = None  # type: Optional[EthJsonRpc]
@@ -31,7 +31,7 @@ class MythrilConfig:
         self.infura_id = id
 
     @staticmethod
-    def _init_mythril_dir() -> str:
+    def init_mythril_dir() -> str:
         """
         Initializes the mythril dir and config.ini file
         :return: The mythril dir's path
