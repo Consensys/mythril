@@ -47,9 +47,11 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     if solc_settings_json:
         with open(solc_settings_json) as f:
             settings = json.load(f)
+    if "optimizer" not in settings:
+        settings.update({"optimizer": {"enabled": False}})
+
     settings.update(
         {
-            "optimizer": {"enabled": False},
             "outputSelection": {
                 "*": {
                     "": ["ast"],

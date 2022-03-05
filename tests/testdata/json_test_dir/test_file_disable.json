@@ -1,0 +1,4 @@
+{
+    "remappings": [ "@openzeppelin/contracts/token/PRC20/=../" ]
+}
+   
