@@ -143,13 +143,21 @@ class Issue:
         :param contract:
         """
         if self.address and isinstance(contract, SolidityContract):
+            is_constructor = False
+            if (
+                contract.creation_code
+                in self.transaction_sequence["steps"][-1]["input"]
+                and self.function == "constructor"
+            ):
+                is_constructor = True
+
             if self.source_location:
                 codeinfo = contract.get_source_info(
-                    self.source_location, constructor=(self.function == "constructor")
+                    self.source_location, constructor=is_constructor
                 )
             else:
                 codeinfo = contract.get_source_info(
-                    self.address, constructor=(self.function == "constructor")
+                    self.address, constructor=is_constructor
                 )
 
             if codeinfo is None:
