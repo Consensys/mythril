@@ -17,7 +17,7 @@ test_data = (
         [f"0.6.{x}" for x in range(3, 13)],
     ),
     (
-        """pragma solidity >=0.4.0 <0.6.0;
+        """pragma solidity >=0.4.0 <0.6.0             ;               
         contract SimpleStorage {
             uint storedData;
             function set(uint x) public {
