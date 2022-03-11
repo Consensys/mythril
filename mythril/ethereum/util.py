@@ -141,7 +141,7 @@ def extract_version(file: str) -> Optional[str]:
     for line in file.split("\n"):
         if "pragma solidity" not in line:
             continue
-        version_line = line
+        version_line = line.rstrip()
         break
     if version_line is None:
         return None
