@@ -54,6 +54,10 @@ class PotentialIssuesAnnotation(StateAnnotation):
     def __init__(self):
         self.potential_issues = []
 
+    @property
+    def search_importance(self):
+        return 10 * len(self.potential_issues)
+
 
 def get_potential_issues_annotation(state: GlobalState) -> PotentialIssuesAnnotation:
     """

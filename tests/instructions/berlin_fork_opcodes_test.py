@@ -7,7 +7,6 @@ from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.transaction.transaction_models import MessageCallTransaction
 from mythril.laser.smt import symbol_factory, simplify
