@@ -800,7 +800,8 @@ def execute_command(
     if args.__dict__.get("beam_search"):
         strategy = f"beam-search: {args.beam_search}"
     else:
-        strategy = args.strategy
+        strategy = args.__dict__.get("strategy")
+
     if args.command == "read-storage":
         storage = disassembler.get_state_variable_from_storage(
             address=address,
