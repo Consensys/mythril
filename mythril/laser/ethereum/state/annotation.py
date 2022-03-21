@@ -36,6 +36,14 @@ class StateAnnotation:
         """
         return False
 
+    @property
+    def search_importance(self) -> int:
+        """
+        Used in estimating the priority of a state annotated with the corresponding annotation.
+        Default is 1
+        """
+        return 1
+
 
 class MergeableStateAnnotation(StateAnnotation):
     """This class allows a base annotation class for annotations that

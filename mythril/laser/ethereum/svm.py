@@ -61,6 +61,7 @@ class LaserEVM:
         requires_statespace=True,
         iprof=None,
         use_reachability_check=True,
+        beam_width=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -81,9 +82,8 @@ class LaserEVM:
         self.dynamic_loader = dynamic_loader
         self.use_reachability_check = use_reachability_check
 
-        # TODO: What about using a deque here?
         self.work_list: List[GlobalState] = []
-        self.strategy = strategy(self.work_list, max_depth)
+        self.strategy = strategy(self.work_list, max_depth, beam_width=beam_width)
         self.max_depth = max_depth
         self.transaction_count = transaction_count
 
@@ -133,8 +133,8 @@ class LaserEVM:
         }
         log.info("LASER EVM initialized with dynamic loader: " + str(dynamic_loader))
 
-    def extend_strategy(self, extension: ABCMeta, *args) -> None:
-        self.strategy = extension(self.strategy, args)
+    def extend_strategy(self, extension: ABCMeta, **kwargs) -> None:
+        self.strategy = extension(self.strategy, **kwargs)
 
     def sym_exec(
         self,

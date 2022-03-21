@@ -438,6 +438,13 @@ def create_safe_functions_parser(parser: ArgumentParser):
         help="Symbolic execution strategy",
     )
     options.add_argument(
+        "--beam-search",
+        type=int,
+        default=None,
+        help="Beam search with with",
+    )
+
+    options.add_argument(
         "-b",
         "--loop-bound",
         type=int,
@@ -544,6 +551,12 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",
         help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "--beam-search",
+        type=int,
+        default=None,
+        help="Beam search with with",
     )
     options.add_argument(
         "-b",
@@ -670,6 +683,7 @@ def validate_args(args: Namespace):
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
             )
+
     if args.command in DISASSEMBLE_LIST and len(args.solidity_files) > 1:
         exit_with_error("text", "Only a single arg is supported for using disassemble")
 
@@ -783,6 +797,10 @@ def execute_command(
     :param args:
     :return:
     """
+    if args.__dict__.get("beam_search"):
+        strategy = f"beam-search: {args.beam_search}"
+    else:
+        strategy = args.__dict__.get("strategy")
 
     if args.command == "read-storage":
         storage = disassembler.get_state_variable_from_storage(
@@ -799,7 +817,7 @@ def execute_command(
 
     elif args.command == SAFE_FUNCTIONS_COMMAND:
         function_analyzer = MythrilAnalyzer(
-            strategy=args.strategy,
+            strategy=strategy,
             disassembler=disassembler,
             address=address,
             max_depth=args.max_depth,
@@ -834,7 +852,7 @@ def execute_command(
 
     elif args.command in ANALYZE_LIST:
         analyzer = MythrilAnalyzer(
-            strategy=args.strategy,
+            strategy=strategy,
             disassembler=disassembler,
             address=address,
             max_depth=args.max_depth,

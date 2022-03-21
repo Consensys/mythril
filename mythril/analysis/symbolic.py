@@ -13,7 +13,7 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
-
+from mythril.laser.ethereum.strategy.beam import BeamSearch
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 
@@ -82,7 +82,7 @@ class SymExecWrapper:
             address = symbol_factory.BitVecVal(int(address, 16), 256)
         if isinstance(address, int):
             address = symbol_factory.BitVecVal(address, 256)
-
+        beam_width = None
         if strategy == "dfs":
             s_strategy = DepthFirstSearchStrategy  # type: Type[BasicSearchStrategy]
         elif strategy == "bfs":
@@ -91,6 +91,9 @@ class SymExecWrapper:
             s_strategy = ReturnRandomNaivelyStrategy
         elif strategy == "weighted-random":
             s_strategy = ReturnWeightedRandomStrategy
+        elif "beam-search: " in strategy:
+            beam_width = int(strategy.split("beam-search: ")[1])
+            s_strategy = BeamSearch
         else:
             raise ValueError("Invalid strategy argument supplied")
 
@@ -121,10 +124,13 @@ class SymExecWrapper:
             create_timeout=create_timeout,
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
+            beam_width=beam_width,
         )
 
         if loop_bound is not None:
-            self.laser.extend_strategy(BoundedLoopsStrategy, loop_bound)
+            self.laser.extend_strategy(
+                BoundedLoopsStrategy, loop_bound=loop_bound, beam_width=beam_width
+            )
 
         plugin_loader = LaserPluginLoader()
         plugin_loader.load(CoveragePluginBuilder())
