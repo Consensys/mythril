@@ -3,6 +3,7 @@ from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.state.account import Storage
 from mythril.laser.smt import Expression
 from mythril.support.support_args import args
+
 BVV = symbol_factory.BitVecVal
 
 storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
