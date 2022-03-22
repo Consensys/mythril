@@ -193,7 +193,9 @@ def execute_contract_creation(
 
 
 def _setup_global_state_for_execution(
-    laser_evm, transaction: BaseTransaction, initial_constraints: Constraints = None
+    laser_evm,
+    transaction: BaseTransaction,
+    initial_constraints: Optional[List[Bool]] = None,
 ) -> None:
     """Sets up global state and cfg for a transactions execution.
 
