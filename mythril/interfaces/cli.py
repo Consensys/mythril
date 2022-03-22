@@ -13,6 +13,7 @@ import sys
 
 import coloredlogs
 import traceback
+from ast import literal_eval
 
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
@@ -411,122 +412,15 @@ def create_safe_functions_parser(parser: ArgumentParser):
     )
 
     options = parser.add_argument_group("options")
-
-    options.add_argument(
-        "-m",
-        "--modules",
-        help="Comma-separated list of security analysis modules",
-        metavar="MODULES",
-    )
-    options.add_argument(
-        "--max-depth",
-        type=int,
-        default=128,
-        help="Maximum recursion depth for symbolic execution",
-    )
-    options.add_argument(
-        "--call-depth-limit",
-        type=int,
-        default=10,
-        help="Maximum call depth limit for symbolic execution",
-    )
-
-    options.add_argument(
-        "--strategy",
-        choices=["dfs", "bfs", "naive-random", "weighted-random"],
-        default="bfs",
-        help="Symbolic execution strategy",
-    )
-    options.add_argument(
-        "--beam-search",
-        type=int,
-        default=None,
-        help="Beam search with with",
-    )
-
-    options.add_argument(
-        "-b",
-        "--loop-bound",
-        type=int,
-        default=5,
-        help="Bound loops at n iterations",
-        metavar="N",
-    )
-    options.add_argument(
-        "--execution-timeout",
-        type=int,
-        default=7200,
-        help="The amount of seconds to spend on symbolic execution",
-    )
-    options.add_argument(
-        "--solver-timeout",
-        type=int,
-        default=100000,
-        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
-    )
-    options.add_argument(
-        "--parallel-solving",
-        action="store_true",
-        help="Enable solving z3 queries in parallel",
-    )
-    options.add_argument(
-        "--solver-log",
-        help="Path to the directory for solver log",
-        metavar="SOLVER_LOG",
-    )
-
-    options.add_argument(
-        "-q",
-        "--query-signature",
-        action="store_true",
-        help="Lookup function signatures through www.4byte.directory",
-    )
-    options.add_argument(
-        "--create-timeout",
-        type=int,
-        default=10,
-        help="The amount of seconds to spend on the initial contract creation",
-    )
-
-    options.add_argument(
-        "--enable-iprof", action="store_true", help="enable the instruction profiler"
-    )
-    options.add_argument(
-        "--enable-coverage-strategy",
-        action="store_true",
-        help="enable coverage based search strategy",
-    )
-    options.add_argument(
-        "--custom-modules-directory",
-        help="designates a separate directory to search for custom analysis modules",
-        metavar="CUSTOM_MODULES_DIRECTORY",
-    )
-    options.add_argument(
-        "--attacker-address",
-        help="Designates a specific attacker address to use during analysis",
-        metavar="ATTACKER_ADDRESS",
-    )
-    options.add_argument(
-        "--creator-address",
-        help="Designates a specific creator address to use during analysis",
-        metavar="CREATOR_ADDRESS",
-    )
+    add_analysis_args(options)
 
 
-def create_analyzer_parser(analyzer_parser: ArgumentParser):
+def add_analysis_args(options):
+    """[summary]
+    Adds arguments for analysis
+    Args:
+        options ([type]): [description]
     """
-    Modify parser to handle analyze command
-    :param analyzer_parser:
-    :return:
-    """
-    analyzer_parser.add_argument(
-        "solidity_files",
-        nargs="*",
-        help="Inputs file name and contract name. \n"
-        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
-    )
-    add_graph_commands(analyzer_parser)
-    options = analyzer_parser.add_argument_group("options")
     options.add_argument(
         "-m",
         "--modules",
@@ -551,6 +445,14 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",
         help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "--transaction-sequences",
+        type=str,
+        default=None,
+        help="The possible transaction sequences to be executed. "
+        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where for the first transaction is constrained "
+        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3",
     )
     options.add_argument(
         "--beam-search",
@@ -659,6 +561,23 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     )
 
 
+def create_analyzer_parser(analyzer_parser: ArgumentParser):
+    """
+    Modify parser to handle analyze command
+    :param analyzer_parser:
+    :return:
+    """
+    analyzer_parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
+    add_graph_commands(analyzer_parser)
+    options = analyzer_parser.add_argument_group("options")
+    add_analysis_args(options)
+
+
 def validate_args(args: Namespace):
     """
     Validate cli args
@@ -686,6 +605,20 @@ def validate_args(args: Namespace):
 
     if args.command in DISASSEMBLE_LIST and len(args.solidity_files) > 1:
         exit_with_error("text", "Only a single arg is supported for using disassemble")
+
+    if args.__dict__.get("transaction_sequences", None):
+        try:
+            args.transaction_sequences = literal_eval(str(args.transaction_sequences))
+        except ValueError:
+            exit_with_error(
+                args.outform,
+                "The transaction sequence is in incorrect format, It should be "
+                "[list of possible function hashes in 1st transaction, "
+                "list of possible func hashes in 2nd tx, ..]"
+                "If any list is empty then all possible functions are considered for that transaction",
+            )
+        if len(args.transaction_sequences) != args.transaction_count:
+            args.transaction_count = len(args.transaction_sequences)
 
     if args.command in ANALYZE_LIST:
         if args.query_signature and sigs.ethereum_input_decoder is None:
@@ -816,26 +749,12 @@ def execute_command(
             print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
 
     elif args.command == SAFE_FUNCTIONS_COMMAND:
+        args.unconstrained_storage = True
+        args.sparse_pruning = False
+        args.disable_dependency_pruning = True
+        args.no_onchain_data = True
         function_analyzer = MythrilAnalyzer(
-            strategy=strategy,
-            disassembler=disassembler,
-            address=address,
-            max_depth=args.max_depth,
-            execution_timeout=args.execution_timeout,
-            loop_bound=args.loop_bound,
-            create_timeout=args.create_timeout,
-            enable_iprof=args.enable_iprof,
-            disable_dependency_pruning=True,
-            use_onchain_data=False,
-            solver_timeout=args.solver_timeout,
-            parallel_solving=args.parallel_solving,
-            custom_modules_directory=args.custom_modules_directory
-            if args.custom_modules_directory
-            else "",
-            call_depth_limit=args.call_depth_limit,
-            sparse_pruning=False,
-            unconstrained_storage=True,
-            solver_log=args.solver_log,
+            strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )
         try:
             report = function_analyzer.fire_lasers(
@@ -852,25 +771,7 @@ def execute_command(
 
     elif args.command in ANALYZE_LIST:
         analyzer = MythrilAnalyzer(
-            strategy=strategy,
-            disassembler=disassembler,
-            address=address,
-            max_depth=args.max_depth,
-            execution_timeout=args.execution_timeout,
-            loop_bound=args.loop_bound,
-            create_timeout=args.create_timeout,
-            enable_iprof=args.enable_iprof,
-            disable_dependency_pruning=args.disable_dependency_pruning,
-            use_onchain_data=not args.no_onchain_data,
-            solver_timeout=args.solver_timeout,
-            parallel_solving=args.parallel_solving,
-            custom_modules_directory=args.custom_modules_directory
-            if args.custom_modules_directory
-            else "",
-            call_depth_limit=args.call_depth_limit,
-            sparse_pruning=args.sparse_pruning,
-            unconstrained_storage=args.unconstrained_storage,
-            solver_log=args.solver_log,
+            strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )
 
         if not disassembler.contracts:

@@ -12,6 +12,7 @@ class Args:
         self.call_depth_limit = 3
         self.iprof = True
         self.solver_log = None
+        self.transaction_sequences: List[List[str]] = None
 
 
 args = Args()

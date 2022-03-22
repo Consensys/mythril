@@ -2,6 +2,7 @@ import pytest
 from mythril.laser.smt import symbol_factory
 from mythril.laser.ethereum.state.account import Storage
 from mythril.laser.smt import Expression
+from mythril.support.support_args import args
 
 BVV = symbol_factory.BitVecVal
 
@@ -11,6 +12,7 @@ storage_uninitialized_test_data = [({}, 1), ({1: 5}, 2), ({1: 5, 3: 10}, 2)]
 @pytest.mark.parametrize("initial_storage,key", storage_uninitialized_test_data)
 def test_concrete_storage_uninitialized_index(initial_storage, key):
     # Arrange
+    args.unconstrained_storage = False
     storage = Storage(concrete=True)
     for k, val in initial_storage.items():
         storage[BVV(k, 256)] = BVV(val, 256)
