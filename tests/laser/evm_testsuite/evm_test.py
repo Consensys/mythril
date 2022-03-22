@@ -6,6 +6,7 @@ from mythril.laser.ethereum.function_managers import keccak_function_manager
 from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.transaction.concolic import execute_message_call
 from mythril.laser.smt import Expression, BitVec, symbol_factory
+from mythril.support.support_args import args
 from datetime import datetime
 
 import binascii
@@ -119,7 +120,7 @@ def test_vmtest(
     if test_name in ignored_test_names:
         return
     world_state = WorldState()
-
+    args.unconstrained_storage = False
     for address, details in pre_condition.items():
         account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
