@@ -606,7 +606,7 @@ def validate_args(args: Namespace):
     if args.command in DISASSEMBLE_LIST and len(args.solidity_files) > 1:
         exit_with_error("text", "Only a single arg is supported for using disassemble")
 
-    if args.transaction_sequences:
+    if args.__dict__.get("transaction_sequences", None):
         try:
             args.transaction_sequences = literal_eval(str(args.transaction_sequences))
         except ValueError:
