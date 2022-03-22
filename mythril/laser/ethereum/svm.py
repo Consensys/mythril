@@ -229,11 +229,17 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
-
+            func_hashes = (
+                args.transaction_sequences[i] if args.transaction_sequences else None
+            )
+            if func_hashes:
+                func_hashes = [
+                    bytes.fromhex(hex(func_hash)[2:]) for func_hash in func_hashes
+                ]
             for hook in self._start_sym_trans_hooks:
                 hook()
 
-            execute_message_call(self, address)
+            execute_message_call(self, address, func_hashes=func_hashes)
 
             for hook in self._stop_sym_trans_hooks:
                 hook()
