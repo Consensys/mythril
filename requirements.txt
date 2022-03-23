@@ -32,7 +32,7 @@ rlp<3
 semantic_version
 transaction>=2.2.1
 typing-extensions<4,>=3.7.4
-z3-solver<4.8.15.0,>=4.8.8.0
+z3-solver>=4.8.8.0
 pysha3
 matplotlib
 pre-commit
