@@ -55,7 +55,6 @@ class ModuleLoader(object, metaclass=Singleton):
 
         :param entry_point: If specified: only return detection modules with this entry point
         :param white_list: If specified: only return whitelisted detection modules
-        :param black_list: If specified: removes black listed detection modules
         :return: The selected detection modules
         """
 
