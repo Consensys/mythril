@@ -111,4 +111,5 @@ def check_potential_issues(state: GlobalState) -> None:
                 transaction_sequence=transaction_sequence,
             )
         )
+        potential_issue.detector.update_cache()
     annotation.potential_issues = unsat_potential_issues

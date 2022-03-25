@@ -109,11 +109,6 @@ class IntegerArithmetics(DetectionModule):
         :return: Found issues
         """
 
-        address = _get_address_from_state(state)
-
-        if address in self.cache:
-            return
-
         opcode = state.get_current_instruction()["opcode"]
 
         funcs = {

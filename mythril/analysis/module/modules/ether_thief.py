@@ -46,8 +46,6 @@ class EtherThief(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
         potential_issues = self._analyze_state(state)
 
         annotation = get_potential_issues_annotation(state)

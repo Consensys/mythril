@@ -43,10 +43,7 @@ class UserAssertions(DetectionModule):
         :return:
         """
 
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
     def _analyze_state(self, state: GlobalState):
         """

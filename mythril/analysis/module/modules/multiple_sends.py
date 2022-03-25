@@ -34,12 +34,7 @@ class MultipleSends(DetectionModule):
     pre_hooks = ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE", "RETURN", "STOP"]
 
     def _execute(self, state: GlobalState) -> None:
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
     @staticmethod
     def _analyze_state(state: GlobalState):

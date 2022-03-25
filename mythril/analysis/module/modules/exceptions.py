@@ -37,21 +37,13 @@ class Exceptions(DetectionModule):
     entry_point = EntryPoint.CALLBACK
     pre_hooks = ["INVALID", "JUMP", "REVERT"]
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
         :return:
         """
-        if (
-            state.get_current_instruction()["address"],
-            state.environment.active_function_name,
-        ) in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add((issue.address, issue.function))
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
     @staticmethod
     def _analyze_state(state) -> List[Issue]:

@@ -46,18 +46,13 @@ class PredictableVariables(DetectionModule):
     pre_hooks = ["JUMPI", "BLOCKHASH"]
     post_hooks = ["BLOCKHASH"] + predictable_ops
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
     @staticmethod
     def _analyze_state(state: GlobalState) -> List[Issue]:

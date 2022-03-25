@@ -8,7 +8,7 @@ from typing import List, Set, Optional, Tuple, Union
 
 from mythril.analysis.report import Issue
 from mythril.laser.ethereum.state.global_state import GlobalState
-
+from mythril.support.support_utils import get_code_hash
 from abc import ABC, abstractmethod
 from enum import Enum
 
@@ -45,17 +45,26 @@ class DetectionModule(ABC):
     name = "Detection Module Name / Title"
     swc_id = "SWC-000"
     description = "Detection module description"
-    entry_point = EntryPoint.CALLBACK  # type: EntryPoint
-    pre_hooks = []  # type: List[str]
-    post_hooks = []  # type: List[str]
+    entry_point: EntryPoint = EntryPoint.CALLBACK
+    pre_hooks: List[str] = []
+    post_hooks: List[str] = []
 
     def __init__(self) -> None:
-        self.issues = []  # type: List[Issue]
-        self.cache = set()  # type: Set[Optional[Union[int, Tuple[int, str]]]]
+        self.issues: List[Issue] = []
+        self.cache: Set[Tuple[int, str]] = set()
 
     def reset_module(self):
         """Resets the storage of this module"""
         self.issues = []
+
+    def update_cache(self, issues=None):
+        """
+        Updates cache with param issues, updates against self.issues, if the param is None
+        - issues: The issues used to update the cache
+        """
+        issues = issues or self.issues
+        for issue in self.issues:
+            self.cache.add((issue.address, issue.bytecode_hash))
 
     def execute(self, target: GlobalState) -> Optional[List[Issue]]:
         """The entry point for execution, which is being called by Mythril.
@@ -66,9 +75,20 @@ class DetectionModule(ABC):
 
         log.debug("Entering analysis module: {}".format(self.__class__.__name__))
 
-        result = self._execute(target)
+        if (
+            target.get_current_instruction()["address"],
+            get_code_hash(target.environment.code.bytecode),
+        ) in self.cache:
+            log.info(
+                f"Issue in cache for the analysis module: {self.__class__.__name__}, address: {target.get_current_instruction()['address']}"
+            )
+            return []
 
+        result = self._execute(target)
         log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
+        if result:
+            self.update_cache(result)
+            self.issues += result
 
         return result
 
