@@ -1,4 +1,5 @@
 """This module contains utility functions for the Mythril support package."""
+from functools import lru_cache
 from typing import Dict
 import logging
 import _pysha3
@@ -26,6 +27,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
+@lru_cache(maxsize=2 ** 10)
 def get_code_hash(code) -> str:
     """
     :param code: bytecode

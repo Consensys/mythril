@@ -111,8 +111,6 @@ class StateChangeAfterCall(DetectionModule):
     pre_hooks = CALL_LIST + STATE_READ_WRITE_LIST
 
     def _execute(self, state: GlobalState) -> None:
-        if state.get_current_instruction()["address"] in self.cache:
-            return
         issues = self._analyze_state(state)
 
         annotation = get_potential_issues_annotation(state)

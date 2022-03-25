@@ -35,9 +35,7 @@ class ArbitraryJump(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        self.issues.extend(self._analyze_state(state))
+        return self._analyze_state(state)
 
     @staticmethod
     def _analyze_state(state):

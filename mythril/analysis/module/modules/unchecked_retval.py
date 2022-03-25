@@ -52,18 +52,13 @@ class UncheckedRetval(DetectionModule):
     pre_hooks = ["STOP", "RETURN"]
     post_hooks = ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
     def _analyze_state(self, state: GlobalState) -> list:
         instruction = state.get_current_instruction()
