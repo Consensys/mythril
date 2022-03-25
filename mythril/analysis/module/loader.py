@@ -50,11 +50,13 @@ class ModuleLoader(object, metaclass=Singleton):
         self,
         entry_point: Optional[EntryPoint] = None,
         white_list: Optional[List[str]] = None,
+        black_list: Optional[List[str]] = None,
     ) -> List[DetectionModule]:
         """Gets registered detection modules
 
         :param entry_point: If specified: only return detection modules with this entry point
         :param white_list: If specified: only return whitelisted detection modules
+        :param black_list: If specified: removes black listed detection modules
         :return: The selected detection modules
         """
 
@@ -74,6 +76,11 @@ class ModuleLoader(object, metaclass=Singleton):
 
             result = [
                 module for module in result if type(module).__name__ in white_list
+            ]
+        if black_list:
+
+            result = [
+                module for module in result if type(module).__name__ not in black_list
             ]
 
         if entry_point:

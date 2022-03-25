@@ -79,7 +79,7 @@ class DetectionModule(ABC):
             target.get_current_instruction()["address"],
             get_code_hash(target.environment.code.bytecode),
         ) in self.cache:
-            log.info(
+            log.debug(
                 f"Issue in cache for the analysis module: {self.__class__.__name__}, address: {target.get_current_instruction()['address']}"
             )
             return []
