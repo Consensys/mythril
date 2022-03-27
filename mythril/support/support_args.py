@@ -13,6 +13,7 @@ class Args:
         self.iprof = True
         self.solver_log = None
         self.transaction_sequences: List[List[str]] = None
+        self.use_integer_module = True
 
 
 args = Args()

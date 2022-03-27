@@ -1,5 +1,6 @@
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.support.support_utils import Singleton
+from mythril.support.support_args import args
 
 from mythril.analysis.module.modules.arbitrary_jump import ArbitraryJump
 from mythril.analysis.module.modules.arbitrary_write import ArbitraryStorage
@@ -75,7 +76,12 @@ class ModuleLoader(object, metaclass=Singleton):
             result = [
                 module for module in result if type(module).__name__ in white_list
             ]
-
+        if args.use_integer_module is False:
+            result = [
+                module
+                for module in result
+                if type(module).__name__ != "IntegerArithmetics"
+            ]
         if entry_point:
             result = [module for module in result if module.entry_point == entry_point]
 

@@ -13,8 +13,10 @@ from subprocess import PIPE, Popen
 from typing import Optional
 
 from json.decoder import JSONDecodeError
-from mythril.exceptions import CompilerError
 from semantic_version import Version, NpmSpec
+
+from mythril.exceptions import CompilerError
+from mythril.support.support_args import args
 
 import solcx
 
@@ -158,6 +160,9 @@ def extract_version(file: str) -> Optional[str]:
 def extract_binary(file: str) -> str:
     with open(file) as f:
         version = extract_version(f.read())
+    if version and NpmSpec("^0.8.0").match(Version(version)):
+        args.use_integer_module = False
+
     if version is None:
         return os.environ.get("SOLC") or "solc"
     return solc_exists(version)
