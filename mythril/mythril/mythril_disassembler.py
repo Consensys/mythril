@@ -4,13 +4,16 @@ import solc
 import sys
 import os
 
-from mythril.support.support_utils import sha3, zpad
+from semantic_version import Version, NpmSpec
 from typing import List, Tuple, Optional
+
+from mythril.support.support_utils import sha3, zpad
 from mythril.ethereum import util
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
 from mythril.exceptions import CriticalError, CompilerError, NoContractFoundError
 from mythril.support import signatures
 from mythril.support.support_utils import rzpad
+from mythril.support.support_args import args
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
@@ -62,7 +65,8 @@ class MythrilDisassembler:
 
         if version.startswith("v"):
             version = version[1:]
-
+        if version and NpmSpec("^0.8.0").match(Version(version)):
+            args.use_integer_module = False
         if version == main_version_number:
             log.info("Given version matches installed version")
             solc_binary = os.environ.get("SOLC") or "solc"
