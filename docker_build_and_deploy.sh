@@ -17,7 +17,7 @@ LATEST_TAG=${NAME}:latest
 docker build -t ${VERSION_TAG} .
 docker tag ${VERSION_TAG} ${LATEST_TAG}
 
-docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+echo "$DOCKERHUB_PASSWORD" | docker login -u $DOCKERHUB_USERNAME --password-stdin
 
 docker push ${VERSION_TAG}
 docker push ${LATEST_TAG}
