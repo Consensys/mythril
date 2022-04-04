@@ -4,10 +4,11 @@ This module includes an definition of the DetectionModule interface.
 DetectionModules implement different analysis rules to find weaknesses and vulnerabilities.
 """
 import logging
-from typing import List, Set, Optional, Tuple, Union
+from typing import List, Set, Optional, Tuple
 
 from mythril.analysis.report import Issue
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.support.support_args import args
 from mythril.support.support_utils import get_code_hash
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -86,7 +87,8 @@ class DetectionModule(ABC):
 
         result = self._execute(target)
         log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
-        if result:
+
+        if result and not args.use_issue_annotations:
             self.update_cache(result)
             self.issues += result
 

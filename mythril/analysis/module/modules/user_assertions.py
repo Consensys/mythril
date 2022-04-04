@@ -2,11 +2,12 @@
 calls."""
 
 from mythril.analysis import solver
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.potential_issues import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import Extract
+from mythril.laser.smt import Extract, And
 from mythril.exceptions import UnsatError
 import logging
 import eth_abi
@@ -109,6 +110,13 @@ class UserAssertions(DetectionModule):
                 bytecode=state.environment.code.bytecode,
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            )
+            state.annotate(
+                IssueAnnotation(
+                    detector=self,
+                    issue=issue,
+                    conditions=[And(*state.world_state.constraints)],
+                )
             )
             return [issue]
 

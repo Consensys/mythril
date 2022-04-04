@@ -2,11 +2,12 @@
 dependence."""
 import logging
 
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
 from mythril.analysis import solver
-from mythril.laser.smt import ULT, symbol_factory
+from mythril.laser.smt import And, ULT, symbol_factory
 from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
 from mythril.analysis.module.module_helpers import is_prehook
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -54,8 +55,7 @@ class PredictableVariables(DetectionModule):
         """
         return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state: GlobalState) -> List[Issue]:
+    def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
@@ -126,7 +126,13 @@ class PredictableVariables(DetectionModule):
                             ),
                             transaction_sequence=transaction_sequence,
                         )
-
+                        state.annotate(
+                            IssueAnnotation(
+                                conditions=[And(*constraints)],
+                                issue=issue,
+                                detector=self,
+                            )
+                        )
                         issues.append(issue)
 
             elif opcode == "BLOCKHASH":

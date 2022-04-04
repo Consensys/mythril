@@ -4,6 +4,7 @@ underflows."""
 from math import log2, ceil
 from typing import cast, List, Set
 from mythril.analysis import solver
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
@@ -102,7 +103,7 @@ class IntegerArithmetics(DetectionModule):
         self._ostates_satisfiable = set()
         self._ostates_unsatisfiable = set()
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """Executes analysis module for integer underflow and integer overflow.
 
         :param state: Statespace to analyse
@@ -122,8 +123,12 @@ class IntegerArithmetics(DetectionModule):
             "STOP": [self._handle_transaction_end],
             "EXP": [self._handle_exp],
         }
+        results = []
         for func in funcs[opcode]:
-            func(state)
+            result = func(state)
+            if result and len(result) > 0:
+                results += result
+        return results
 
     def _get_args(self, state):
         stack = state.mstate.stack
@@ -253,10 +258,10 @@ class IntegerArithmetics(DetectionModule):
                 if isinstance(annotation, OverUnderflowAnnotation):
                     state_annotation.overflowing_state_annotations.add(annotation)
 
-    def _handle_transaction_end(self, state: GlobalState) -> None:
+    def _handle_transaction_end(self, state: GlobalState) -> List[Issue]:
 
         state_annotation = _get_overflowunderflow_state_annotation(state)
-
+        issues = []
         for annotation in state_annotation.overflowing_state_annotations:
 
             ostate = annotation.overflowing_state
@@ -313,10 +318,13 @@ class IntegerArithmetics(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 transaction_sequence=transaction_sequence,
             )
-
-            address = _get_address_from_state(ostate)
-            self.cache.add(address)
-            self.issues.append(issue)
+            state.annotate(
+                IssueAnnotation(
+                    issue=issue, detector=self, conditions=[And(*constraints)]
+                )
+            )
+            issues.append(issue)
+        return issues
 
 
 detector = IntegerArithmetics()

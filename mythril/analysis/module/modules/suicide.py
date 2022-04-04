@@ -2,6 +2,7 @@ from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
@@ -49,8 +50,7 @@ class AccidentallyKillable(DetectionModule):
         """
         return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state):
+    def _analyze_state(self, state):
         log.info("Suicide module: Analyzing suicide instruction")
         instruction = state.get_current_instruction()
 
@@ -60,20 +60,22 @@ class AccidentallyKillable(DetectionModule):
 
         description_head = "Any sender can cause the contract to self-destruct."
 
-        constraints = []
+        attacker_constraints = []
 
         for tx in state.world_state.transaction_sequence:
             if not isinstance(tx, ContractCreationTransaction):
-                constraints.append(
+                attacker_constraints.append(
                     And(tx.caller == ACTORS.attacker, tx.caller == tx.origin)
                 )
         try:
             try:
-                transaction_sequence = solver.get_transaction_sequence(
-                    state,
+                constraints = (
                     state.world_state.constraints
-                    + constraints
-                    + [to == ACTORS.attacker],
+                    + [to == ACTORS.attacker]
+                    + attacker_constraints
+                )
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, constraints
                 )
 
                 description_tail = (
@@ -84,8 +86,9 @@ class AccidentallyKillable(DetectionModule):
                 )
 
             except UnsatError:
+                constraints = state.world_state.constraints + attacker_constraints
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.world_state.constraints + constraints
+                    state, constraints
                 )
                 description_tail = (
                     "Any sender can trigger execution of the SELFDESTRUCT instruction to destroy this "
@@ -106,6 +109,12 @@ class AccidentallyKillable(DetectionModule):
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+            state.annotate(
+                IssueAnnotation(
+                    conditions=[And(*constraints)], issue=issue, detector=self
+                )
+            )
+
             return [issue]
         except UnsatError:
             log.debug("No model found")
