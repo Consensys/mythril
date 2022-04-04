@@ -3,6 +3,7 @@ import logging
 
 from typing import List, cast
 from mythril.analysis import solver
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
@@ -10,6 +11,7 @@ from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
+from mythril.laser.smt import And
 
 log = logging.getLogger(__name__)
 
@@ -45,8 +47,7 @@ class Exceptions(DetectionModule):
         """
         return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state) -> List[Issue]:
+    def _analyze_state(self, state) -> List[Issue]:
         """
 
         :param state:
@@ -103,6 +104,14 @@ class Exceptions(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 source_location=annotations[0].last_jump,
             )
+            state.annotate(
+                IssueAnnotation(
+                    conditions=[And(*state.world_state.constraints)],
+                    issue=issue,
+                    detector=self,
+                )
+            )
+
             return [issue]
 
         except UnsatError:

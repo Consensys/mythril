@@ -1,9 +1,11 @@
 """This module contains the detection code for Arbitrary jumps."""
 import logging
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, Issue, EntryPoint
 from mythril.analysis.swc_data import ARBITRARY_JUMP
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import And
 
 log = logging.getLogger(__name__)
 
@@ -37,8 +39,7 @@ class ArbitraryJump(DetectionModule):
         """
         return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state):
+    def _analyze_state(self, state):
         """
 
         :param state:
@@ -70,6 +71,14 @@ class ArbitraryJump(DetectionModule):
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             transaction_sequence=transaction_sequence,
         )
+        state.annotate(
+            IssueAnnotation(
+                conditions=[And(*state.world_state.constraints)],
+                issue=issue,
+                detector=self,
+            )
+        )
+
         return [issue]
 
 

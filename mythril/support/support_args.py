@@ -1,4 +1,8 @@
-class Args:
+from typing import List
+from mythril.support.support_utils import Singleton
+
+
+class Args(object, metaclass=Singleton):
     """
     This module helps in preventing args being sent through multiple of classes to reach
     any analysis/laser module
@@ -14,6 +18,7 @@ class Args:
         self.solver_log = None
         self.transaction_sequences: List[List[str]] = None
         self.use_integer_module = True
+        self.use_issue_annotations = False
 
 
 args = Args()
