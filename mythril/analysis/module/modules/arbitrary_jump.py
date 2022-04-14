@@ -56,6 +56,7 @@ class ArbitraryJump(DetectionModule):
             )
         except UnsatError:
             return []
+        log.info("Detected arbitrary jump dest")
         issue = Issue(
             contract=state.environment.active_account.contract_name,
             function_name=state.environment.active_function_name,

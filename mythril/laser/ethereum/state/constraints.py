@@ -52,7 +52,7 @@ class Constraints(list):
         """
         :return: returns the list of constraints
         """
-        return self[:]
+        return self[:] + [keccak_function_manager.create_conditions()]
 
     def __copy__(self) -> "Constraints":
         """

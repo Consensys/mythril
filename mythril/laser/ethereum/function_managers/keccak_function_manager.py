@@ -127,7 +127,6 @@ class KeccakFunctionManager:
                 func(concrete_input) == concrete_hash,
                 inverse(func(concrete_input)) == concrete_input,
             )
-
         return condition
 
     def get_concrete_hash_data(self, model) -> Dict[int, List[Optional[int]]]:
