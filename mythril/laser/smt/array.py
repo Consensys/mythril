@@ -29,7 +29,7 @@ class BaseArray:
         """Sets an item in the array, key can be symbolic."""
         self.raw = z3.Store(self.raw, key.raw, value.raw)
 
-    def substitute(self, original_expression: "BaseArray", new_expression: "BaseArray"):
+    def substitute(self, original_expression, new_expression):
         """
 
         :param original_expression:

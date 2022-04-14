@@ -58,11 +58,8 @@ def get_transaction_sequence(
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
     """
-
     transaction_sequence = global_state.world_state.transaction_sequence
-
     concrete_transactions = []
-
     tx_constraints, minimize = _set_minimisation_constraints(
         transaction_sequence, constraints.copy(), [], 5000, global_state.world_state
     )

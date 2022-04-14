@@ -410,7 +410,12 @@ class LaserEVM:
             log.debug("Ending transaction %s.", transaction)
 
             for hook in self._transaction_end_hooks:
-                hook(global_state, transaction, return_global_state, end_signal.revert)
+                hook(
+                    end_signal.global_state,
+                    transaction,
+                    return_global_state,
+                    end_signal.revert,
+                )
 
             if return_global_state is None:
                 if (
