@@ -98,7 +98,6 @@ def check_potential_issues(state: GlobalState) -> None:
             unsat_potential_issues.append(potential_issue)
             continue
 
-        potential_issue.detector.cache.add(potential_issue.address)
         issue = Issue(
             contract=potential_issue.contract,
             function_name=potential_issue.function_name,
@@ -123,5 +122,5 @@ def check_potential_issues(state: GlobalState) -> None:
         )
         if args.use_issue_annotations is False:
             potential_issue.detector.issues.append(issue)
-            potential_issue.detector.update_cache()
+            potential_issue.detector.update_cache([issue])
     annotation.potential_issues = unsat_potential_issues

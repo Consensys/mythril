@@ -64,7 +64,7 @@ class DetectionModule(ABC):
         - issues: The issues used to update the cache
         """
         issues = issues or self.issues
-        for issue in self.issues:
+        for issue in issues:
             self.cache.add((issue.address, issue.bytecode_hash))
 
     def execute(self, target: GlobalState) -> Optional[List[Issue]]:

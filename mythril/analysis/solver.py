@@ -63,6 +63,7 @@ def get_transaction_sequence(
     tx_constraints, minimize = _set_minimisation_constraints(
         transaction_sequence, constraints.copy(), [], 5000, global_state.world_state
     )
+
     try:
         model = get_model(tx_constraints, minimize=minimize)
     except UnsatError:
