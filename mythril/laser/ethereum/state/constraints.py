@@ -28,7 +28,6 @@ class Constraints(list):
         """
         :return: True/False based on the existence of solution of constraints
         """
-
         try:
             get_model(self)
         except UnsatError:
