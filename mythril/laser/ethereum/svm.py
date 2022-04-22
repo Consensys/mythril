@@ -346,7 +346,6 @@ class LaserEVM:
             for hook in self._execute_state_hooks:
                 hook(global_state)
         except PluginSkipState:
-            self._add_world_state(global_state)
             return [], None
 
         instructions = global_state.environment.code.instruction_list
@@ -371,7 +370,6 @@ class LaserEVM:
         try:
             self._execute_pre_hook(op_code, global_state)
         except PluginSkipState:
-            self._add_world_state(global_state)
             return [], None
 
         try:

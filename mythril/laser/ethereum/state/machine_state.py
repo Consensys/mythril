@@ -154,11 +154,11 @@ class MachineState:
         # https://github.com/ethereum/pyethereum/blob/develop/ethereum/vm.py#L148
         oldsize = self.memory_size // 32
         old_totalfee = (
-            oldsize * GAS_MEMORY + oldsize ** 2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
+            oldsize * GAS_MEMORY + oldsize**2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
         )
         newsize = ceil32(start + size) // 32
         new_totalfee = (
-            newsize * GAS_MEMORY + newsize ** 2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
+            newsize * GAS_MEMORY + newsize**2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
         )
         return new_totalfee - old_totalfee
 

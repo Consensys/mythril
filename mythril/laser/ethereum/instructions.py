@@ -66,7 +66,7 @@ from mythril.support.loader import DynLoader
 log = logging.getLogger(__name__)
 
 TT256 = symbol_factory.BitVecVal(0, 256)
-TT256M1 = symbol_factory.BitVecVal(2 ** 256 - 1, 256)
+TT256M1 = symbol_factory.BitVecVal(2**256 - 1, 256)
 
 
 def transfer_ether(
@@ -1733,7 +1733,7 @@ class Instruction:
         if isinstance(size, BitVec):
             # Other size restriction checks handle this
             if size.symbolic:
-                size = 10 ** 5
+                size = 10**5
             else:
                 size = size.value
         for i in range(size):

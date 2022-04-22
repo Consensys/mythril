@@ -88,7 +88,7 @@ def is_sequence_match(pattern: list, instruction_list: list, index: int) -> bool
     return True
 
 
-lru_cache(maxsize=2 ** 10)
+lru_cache(maxsize=2**10)
 
 
 def disassemble(bytecode) -> list:
