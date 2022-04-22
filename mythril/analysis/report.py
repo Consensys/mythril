@@ -288,7 +288,7 @@ class Report:
                 title = SWC_TO_TITLE[issue.swc_id]
             except KeyError:
                 title = "Unspecified Security Issue"
-            extra = {"discoveryTime": int(issue.discovery_time * 10 ** 9)}
+            extra = {"discoveryTime": int(issue.discovery_time * 10**9)}
             if issue.transaction_sequence_jsonv2:
                 extra["testCases"] = [issue.transaction_sequence_jsonv2]
 
@@ -313,7 +313,7 @@ class Report:
 
         # Add execution info to meta
         analysis_duration = int(
-            round((time() - StartTime().global_start_time) * (10 ** 9))
+            round((time() - StartTime().global_start_time) * (10**9))
         )
         meta_data["mythril_execution_info"] = {"analysis_duration": analysis_duration}
         for execution_info in self.execution_info:

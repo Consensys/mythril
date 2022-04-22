@@ -16,9 +16,9 @@ from typing import Dict, Tuple, List, Optional
 import logging
 
 
-TOTAL_PARTS = 10 ** 40
-PART = (2 ** 256 - 1) // TOTAL_PARTS
-INTERVAL_DIFFERENCE = 10 ** 30
+TOTAL_PARTS = 10**40
+PART = (2**256 - 1) // TOTAL_PARTS
+INTERVAL_DIFFERENCE = 10**30
 log = logging.getLogger(__name__)
 
 

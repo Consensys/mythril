@@ -24,7 +24,7 @@ class ExponentFunctionManager:
         self.concrete_constraints = And(
             *[
                 power(NUMBER_256, symbol_factory.BitVecVal(i, 256))
-                == symbol_factory.BitVecVal(256 ** i, 256)
+                == symbol_factory.BitVecVal(256**i, 256)
                 for i in range(0, 32)
             ]
         )
@@ -42,7 +42,7 @@ class ExponentFunctionManager:
 
         if exponent.symbolic is False and base.symbolic is False:
             const_exponentiation = symbol_factory.BitVecVal(
-                pow(base.value, exponent.value, 2 ** 256),
+                pow(base.value, exponent.value, 2**256),
                 256,
                 annotations=base.annotations.union(exponent.annotations),
             )

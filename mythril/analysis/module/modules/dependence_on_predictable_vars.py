@@ -143,7 +143,7 @@ class PredictableVariables(DetectionModule):
                     ULT(param, state.environment.block_number),
                     ULT(
                         state.environment.block_number,
-                        symbol_factory.BitVecVal(2 ** 255, 256),
+                        symbol_factory.BitVecVal(2**255, 256),
                     ),
                 ]
 

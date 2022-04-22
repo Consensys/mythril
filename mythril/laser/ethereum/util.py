@@ -8,9 +8,9 @@ if TYPE_CHECKING:
 
 from mythril.laser.smt import BitVec, Bool, Expression, If, simplify, symbol_factory
 
-TT256 = 2 ** 256
-TT256M1 = 2 ** 256 - 1
-TT255 = 2 ** 255
+TT256 = 2**256
+TT256M1 = 2**256 - 1
+TT255 = 2**255
 
 
 def safe_decode(hex_encoded_string: str) -> bytes:

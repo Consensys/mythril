@@ -27,7 +27,7 @@ class Singleton(type):
         return cls._instances[cls]
 
 
-@lru_cache(maxsize=2 ** 10)
+@lru_cache(maxsize=2**10)
 def get_code_hash(code) -> str:
     """
     :param code: bytecode
