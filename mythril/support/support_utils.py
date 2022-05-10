@@ -2,7 +2,7 @@
 from functools import lru_cache
 from typing import Dict
 import logging
-import _pysha3
+import hashlib
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def get_code_hash(code) -> str:
 
     code = code[2:] if code[:2] == "0x" else code
     try:
-        keccak = _pysha3.keccak_256()
+        keccak = hashlib.sha3_256()
         keccak.update(bytes.fromhex(code))
         return "0x" + keccak.hexdigest()
     except ValueError:
@@ -48,7 +48,7 @@ def get_code_hash(code) -> str:
 
 
 def sha3(value):
-    keccak = _pysha3.keccak_256()
+    keccak = hashlib.sha3_256()
     if type(value) == str:
         if value[:2] == "0x":
             keccak.update(bytes.fromhex(value))
