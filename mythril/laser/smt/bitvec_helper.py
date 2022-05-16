@@ -59,11 +59,15 @@ def If(
     if isinstance(b, BaseArray) and isinstance(c, BaseArray):
         array = z3.If(a.raw, b.raw, c.raw)
         return _z3_array_converter(array)
-
+    default_sort_size = 256
+    if isinstance(b, BitVec):
+        default_sort_size = b.size()
+    if isinstance(c, BitVec):
+        default_sort_size = c.size()
     if not isinstance(b, BitVec):
-        b = BitVec(z3.BitVecVal(b, 256))
+        b = BitVec(z3.BitVecVal(b, default_sort_size))
     if not isinstance(c, BitVec):
-        c = BitVec(z3.BitVecVal(c, 256))
+        c = BitVec(z3.BitVecVal(c, default_sort_size))
     union = a.annotations.union(b.annotations).union(c.annotations)
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 

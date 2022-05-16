@@ -148,12 +148,20 @@ class BaseTransaction:
         raise NotImplementedError
 
     def __str__(self) -> str:
-        return "{} {} from {} to {:#42x}".format(
-            self.__class__.__name__,
-            self.id,
-            self.caller,
-            int(str(self.callee_account.address)) if self.callee_account else -1,
-        )
+        if self.callee_account is None or self.callee_account.address.symbolic is False:
+            return "{} {} from {} to {:#42x}".format(
+                self.__class__.__name__,
+                self.id,
+                self.caller,
+                int(str(self.callee_account.address)) if self.callee_account else -1,
+            )
+        else:
+            return "{} {} from {} to {}".format(
+                self.__class__.__name__,
+                self.id,
+                self.caller,
+                str(self.callee_account.address),
+            )
 
 
 class MessageCallTransaction(BaseTransaction):
@@ -258,11 +266,13 @@ class ContractCreationTransaction(BaseTransaction):
         :param revert:
         """
 
-        if return_data is None or len(return_data) == 0:
+        if return_data is None or return_data.size == 0:
             self.return_data = None
             raise TransactionEndSignal(global_state, revert=revert)
 
-        global_state.environment.active_account.code.assign_bytecode(tuple(return_data))
+        global_state.environment.active_account.code.assign_bytecode(
+            tuple(return_data.return_data)
+        )
         self.return_data = str(
             hex(global_state.environment.active_account.address.value)
         )
