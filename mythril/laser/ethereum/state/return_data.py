@@ -25,5 +25,8 @@ class ReturnData:
         """
         return self.return_data_size
 
-    def __index__(self, index):
-        return self.return_data[index]
+    def __getitem__(self, index):
+        if index < self.size:
+            return self.return_data[index]
+        else:
+            return 0

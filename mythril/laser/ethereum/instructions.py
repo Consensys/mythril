@@ -1355,8 +1355,10 @@ class Instruction:
         :param global_state:
         :return:
         """
-        global_state.mstate.stack.append(global_state.last_return_data.size)
-
+        if global_state.last_return_data:
+            global_state.mstate.stack.append(global_state.last_return_data.size)
+        else:
+            global_state.mstate.stack.append(0)
         return [global_state]
 
     @StateTransition()
@@ -1859,7 +1861,9 @@ class Instruction:
             state.mem_extend(offset, length)
             StateTransition.check_gas_usage_limit(global_state)
             return_data = state.memory[offset : offset + length]
-        global_state.current_transaction.end(global_state, return_data)
+        global_state.current_transaction.end(
+            global_state, ReturnData(return_data, length)
+        )
 
     @StateTransition(is_state_mutation_instruction=True)
     def selfdestruct_(self, global_state: GlobalState):
@@ -1900,7 +1904,7 @@ class Instruction:
         except TypeError:
             log.debug("Return with symbolic length or offset. Not supported")
         global_state.current_transaction.end(
-            global_state, return_data=return_data, revert=True
+            global_state, return_data=ReturnData(return_data, length), revert=True
         )
 
     @StateTransition()
@@ -2190,9 +2194,9 @@ class Instruction:
 
         # Copy memory
         global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
+            memory_out_offset, min(memory_out_size, global_state.last_return_data.size)
         )
-        for i in range(min(memory_out_size, len(global_state.last_return_data))):
+        for i in range(min(memory_out_size, global_state.last_return_data.size)):
             global_state.mstate.memory[
                 i + memory_out_offset
             ] = global_state.last_return_data[i]
@@ -2334,9 +2338,9 @@ class Instruction:
 
             # Copy memory
         global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
+            memory_out_offset, min(memory_out_size, global_state.last_return_data.size)
         )
-        for i in range(min(memory_out_size, len(global_state.last_return_data))):
+        for i in range(min(memory_out_size, global_state.last_return_data.size)):
             global_state.mstate.memory[
                 i + memory_out_offset
             ] = global_state.last_return_data[i]
@@ -2479,10 +2483,10 @@ class Instruction:
             return [global_state]
 
         global_state.mstate.mem_extend(
-            memory_out_offset, min(memory_out_size, len(global_state.last_return_data))
+            memory_out_offset, min(memory_out_size, global_state.last_return_data.size)
         )
 
-        for i in range(min(memory_out_size, len(global_state.last_return_data))):
+        for i in range(min(memory_out_size, global_state.last_return_data.size)):
             global_state.mstate.memory[
                 i + memory_out_offset
             ] = global_state.last_return_data[i]
