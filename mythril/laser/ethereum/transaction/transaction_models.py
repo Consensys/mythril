@@ -148,12 +148,20 @@ class BaseTransaction:
         raise NotImplementedError
 
     def __str__(self) -> str:
-        return "{} {} from {} to {:#42x}".format(
-            self.__class__.__name__,
-            self.id,
-            self.caller,
-            int(str(self.callee_account.address)) if self.callee_account else -1,
-        )
+        if self.callee_account is None or self.callee_account.address.symbolic is False:
+            return "{} {} from {} to {:#42x}".format(
+                self.__class__.__name__,
+                self.id,
+                self.caller,
+                int(str(self.callee_account.address)) if self.callee_account else -1,
+            )
+        else:
+            return "{} {} from {} to {}".format(
+                self.__class__.__name__,
+                self.id,
+                self.caller,
+                str(self.callee_account.address),
+            )
 
 
 class MessageCallTransaction(BaseTransaction):
