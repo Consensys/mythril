@@ -1549,7 +1549,6 @@ class Instruction:
 
         # manually set PC to destination
         new_state.mstate.pc = index
-        new_state.mstate.depth += 1
 
         return [new_state]
 
