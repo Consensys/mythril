@@ -1896,7 +1896,25 @@ class Instruction:
         """
         state = global_state.mstate
         offset, length = state.stack.pop(), state.stack.pop()
-        return_data = [global_state.new_bitvec("return_data", 8)]
+        if length.symbolic is False:
+            return_data = [
+                global_state.new_bitvec(
+                    f"{global_state.current_transaction.id}_return_data_{i}", 8
+                )
+                for i in range(length.value)
+            ]
+        else:
+            return_data = [
+                If(
+                    i < length,
+                    global_state.new_bitvec(
+                        f"{global_state.current_transaction.id}_return_data_{i}", 8
+                    ),
+                    0,
+                )
+                for i in range(300)
+            ]
+
         try:
             return_data = state.memory[
                 util.get_concrete_int(offset) : util.get_concrete_int(offset + length)
