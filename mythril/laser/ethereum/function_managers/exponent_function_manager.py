@@ -28,7 +28,6 @@ class ExponentFunctionManager:
                 for i in range(0, 32)
             ]
         )
-        self.concrete_constraints_sent = False
 
     def create_condition(self, base: BitVec, exponent: BitVec) -> Tuple[BitVec, Bool]:
         """
@@ -50,9 +49,7 @@ class ExponentFunctionManager:
             return const_exponentiation, constraint
 
         constraint = exponentiation > 0
-        if self.concrete_constraints_sent is False:
-            constraint = And(constraint, self.concrete_constraints)
-            self.concrete_constraints_sent = True
+        constraint = And(constraint, self.concrete_constraints)
         if base.value == 256:
             constraint = And(
                 constraint,
