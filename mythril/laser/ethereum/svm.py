@@ -283,6 +283,7 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
+
             if args.sparse_pruning is False:
                 new_states = [
                     state

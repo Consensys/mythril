@@ -1,5 +1,5 @@
 """This module contains a representation of the EVM's world state."""
-from copy import copy
+from copy import copy, deepcopy
 from random import randint
 from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
 from eth._utils.address import generate_contract_address
@@ -70,7 +70,7 @@ class WorldState:
         for account in self._accounts.values():
             new_world_state.put_account(copy(account))
         new_world_state.node = self.node
-        new_world_state.constraints = copy(self.constraints)
+        new_world_state.constraints = deepcopy(self.constraints)
         return new_world_state
 
     def accounts_exist_or_load(self, addr, dynamic_loader: DynLoader) -> Account:

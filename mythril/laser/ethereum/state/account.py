@@ -214,7 +214,7 @@ class Account:
             address=self.address,
             code=self.code,
             contract_name=self.contract_name,
-            balances=self._balances,
+            balances=deepcopy(self._balances),
             concrete_storage=self.concrete_storage,
             nonce=self.nonce,
         )
