@@ -83,7 +83,7 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
 
 
 def UGE(a: BitVec, b: BitVec) -> Bool:
-    """Create an unsigned greater or equals expression.
+    """Create an unsigned greater than or equal to expression.
 
     :param a:
     :param b:
@@ -103,7 +103,7 @@ def ULT(a: BitVec, b: BitVec) -> Bool:
 
 
 def ULE(a: BitVec, b: BitVec) -> Bool:
-    """Create an unsigned less than expression.
+    """Create an unsigned less than or equal to expression.
 
     :param a:
     :param b:
