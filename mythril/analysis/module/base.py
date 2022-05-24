@@ -53,6 +53,7 @@ class DetectionModule(ABC):
     def __init__(self) -> None:
         self.issues: List[Issue] = []
         self.cache: Set[Tuple[int, str]] = set()
+        self.auto_cache = True
 
     def reset_module(self):
         """Resets the storage of this module"""
@@ -79,7 +80,7 @@ class DetectionModule(ABC):
         if (
             target.get_current_instruction()["address"],
             get_code_hash(target.environment.code.bytecode),
-        ) in self.cache:
+        ) in self.cache and self.auto_cache:
             log.debug(
                 f"Issue in cache for the analysis module: {self.__class__.__name__}, address: {target.get_current_instruction()['address']}"
             )
@@ -89,7 +90,8 @@ class DetectionModule(ABC):
         log.debug("Exiting analysis module: {}".format(self.__class__.__name__))
 
         if result and not args.use_issue_annotations:
-            self.update_cache(result)
+            if self.auto_cache:
+                self.update_cache(result)
             self.issues += result
 
         return result
