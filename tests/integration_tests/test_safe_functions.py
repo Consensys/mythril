@@ -23,7 +23,6 @@ test_data = (
 )
 
 bytes_test_data = (
-    ("safe_funcs.sol.o", ["change_val()", "assert1()"]),
     ("suicide.sol.o", []),
     ("overflow.sol.o", ["balanceOf(address)", "totalSupply()"]),
     (

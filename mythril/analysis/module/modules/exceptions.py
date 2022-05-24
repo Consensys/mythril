@@ -8,10 +8,13 @@ from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import ASSERT_VIOLATION
 from mythril.exceptions import UnsatError
+
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum import util
 from mythril.laser.smt import And
+
+from mythril.support.support_utils import get_code_hash
 
 log = logging.getLogger(__name__)
 
@@ -39,13 +42,20 @@ class Exceptions(DetectionModule):
     entry_point = EntryPoint.CALLBACK
     pre_hooks = ["INVALID", "JUMP", "REVERT"]
 
+    def __init__(self):
+        super().__init__()
+        self.auto_cache = False
+
     def _execute(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
         :return:
         """
-        return self._analyze_state(state)
+        issues = self._analyze_state(state)
+        for issue in issues:
+            self.cache.add((issue.source_location, issue.bytecode_hash))
+        return issues
 
     def _analyze_state(self, state) -> List[Issue]:
         """
@@ -72,6 +82,13 @@ class Exceptions(DetectionModule):
             return []
 
         if opcode == "REVERT" and not is_assertion_failure(state):
+            return []
+
+        cache_address = annotations[0].last_jump
+        if (
+            cache_address,
+            get_code_hash(state.environment.code.bytecode),
+        ) in self.cache:
             return []
 
         log.debug(
@@ -102,7 +119,7 @@ class Exceptions(DetectionModule):
                 bytecode=state.environment.code.bytecode,
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                source_location=annotations[0].last_jump,
+                source_location=cache_address,
             )
             state.annotate(
                 IssueAnnotation(
