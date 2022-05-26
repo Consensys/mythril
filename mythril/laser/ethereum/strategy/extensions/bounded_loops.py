@@ -135,7 +135,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             # TODO: There's probably a nicer way to do this
             if isinstance(
                 state.current_transaction, ContractCreationTransaction
-            ) and count < max(8, self.bound):
+            ) and count < max(20, self.bound):
                 return state
 
             elif count > self.bound:

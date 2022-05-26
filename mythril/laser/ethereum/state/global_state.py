@@ -81,6 +81,26 @@ class GlobalState:
             annotations=[copy(a) for a in self._annotations],
         )
 
+    def __deepcopy__(self, _) -> "GlobalState":
+        """
+        Deepcopy is much slower than copy, since it deepcopies constraints.
+        :return:
+        """
+        world_state = deepcopy(self.world_state)
+        environment = copy(self.environment)
+        mstate = deepcopy(self.mstate)
+        transaction_stack = copy(self.transaction_stack)
+        environment.active_account = world_state[environment.active_account.address]
+        return GlobalState(
+            world_state,
+            environment,
+            self.node,
+            mstate,
+            transaction_stack=transaction_stack,
+            last_return_data=self.last_return_data,
+            annotations=[copy(a) for a in self._annotations],
+        )
+
     @property
     def accounts(self) -> Dict:
         """

@@ -22,6 +22,9 @@ from mythril.laser.smt import UGE, symbol_factory
 from mythril.support.model import get_model
 
 log = logging.getLogger(__name__)
+z3.set_option(
+    max_args=10000000, max_lines=1000000, max_depth=10000000, max_visited=1000000
+)
 
 
 def pretty_print_model(model):
