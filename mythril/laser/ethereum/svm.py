@@ -380,6 +380,13 @@ class LaserEVM:
             ).evaluate(global_state)
 
         except VmException as e:
+            for hook in self._transaction_end_hooks:
+                hook(
+                    global_state,
+                    global_state.current_transaction,
+                    None,
+                    False,
+                )
             new_global_states = self.handle_vm_exception(global_state, op_code, str(e))
 
         except TransactionStartSignal as start_signal:

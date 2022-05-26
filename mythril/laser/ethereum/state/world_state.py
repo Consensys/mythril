@@ -70,6 +70,24 @@ class WorldState:
         for account in self._accounts.values():
             new_world_state.put_account(copy(account))
         new_world_state.node = self.node
+        new_world_state.constraints = copy(self.constraints)
+        return new_world_state
+
+    def __deepcopy__(self, _) -> "WorldState":
+        """
+
+        :return:
+        """
+        new_annotations = [copy(a) for a in self._annotations]
+        new_world_state = WorldState(
+            transaction_sequence=self.transaction_sequence[:],
+            annotations=new_annotations,
+        )
+        new_world_state.balances = copy(self.balances)
+        new_world_state.starting_balances = copy(self.starting_balances)
+        for account in self._accounts.values():
+            new_world_state.put_account(copy(account))
+        new_world_state.node = self.node
         new_world_state.constraints = deepcopy(self.constraints)
         return new_world_state
 
