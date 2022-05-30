@@ -164,10 +164,12 @@ class SolidityContract(EVMContract):
             full_contract_src_maps = SolidityContract.get_full_contract_src_maps(
                 source["ast"]
             )
-            with open(source["ast"]["absolutePath"]) as f:
+            with open(source["ast"]["absolutePath"], "rb") as f:
                 code = f.read()
                 indices[source["id"]] = SolidityFile(
-                    source["ast"]["absolutePath"], code, full_contract_src_maps
+                    source["ast"]["absolutePath"],
+                    code.decode("utf-8"),
+                    full_contract_src_maps,
                 )
         return indices
 
