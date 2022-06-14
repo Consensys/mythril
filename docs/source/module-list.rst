@@ -35,7 +35,7 @@ The `exceptions module <https://github.com/ConsenSys/mythril/blob/develop/mythri
 External Calls
 **************
 
-The `external calls module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/external_calls.py>`_ warns about `SWC-117 (Reentrancy) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-107>`_ by detecting calls to external contracts.
+The `external calls module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/external_calls.py>`_ warns about `SWC-107 (Reentrancy) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-107>`_ by detecting calls to external contracts.
 
 *******
 Integer
