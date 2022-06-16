@@ -2213,7 +2213,11 @@ class Instruction:
         global_state.mstate.mem_extend(
             memory_out_offset, min(memory_out_size, global_state.last_return_data.size)
         )
-        for i in range(min(memory_out_size, global_state.last_return_data.size)):
+        if global_state.last_return_data.size.symbolic:
+            ret_size = 500
+        else:
+            ret_size = global_state.last_return_data.size
+        for i in range(min(memory_out_size, ret_size)):
             global_state.mstate.memory[
                 i + memory_out_offset
             ] = global_state.last_return_data[i]
@@ -2357,7 +2361,11 @@ class Instruction:
         global_state.mstate.mem_extend(
             memory_out_offset, min(memory_out_size, global_state.last_return_data.size)
         )
-        for i in range(min(memory_out_size, global_state.last_return_data.size)):
+        if global_state.last_return_data.size.symbolic:
+            ret_size = 500
+        else:
+            ret_size = global_state.last_return_data.size
+        for i in range(min(memory_out_size, ret_size)):
             global_state.mstate.memory[
                 i + memory_out_offset
             ] = global_state.last_return_data[i]
@@ -2502,8 +2510,11 @@ class Instruction:
         global_state.mstate.mem_extend(
             memory_out_offset, min(memory_out_size, global_state.last_return_data.size)
         )
-
-        for i in range(min(memory_out_size, global_state.last_return_data.size)):
+        if global_state.last_return_data.size.symbolic:
+            ret_size = 500
+        else:
+            ret_size = global_state.last_return_data.size
+        for i in range(min(memory_out_size, ret_size)):
             global_state.mstate.memory[
                 i + memory_out_offset
             ] = global_state.last_return_data[i]
