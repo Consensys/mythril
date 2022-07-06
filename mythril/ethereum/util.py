@@ -148,12 +148,12 @@ def extract_version(file: str) -> Optional[str]:
         break
     if version_line is None:
         return None
-    
+
     assert "pragma solidity" in version_line
     if version_line[-1] == ";":
         version_line = version_line[:-1]
     version_line = version_line.split(";")[0]
-    version = re.search("pragma solidity ([\d.^]*)", version_line).group(1)    
+    version = re.search("pragma solidity ([\d.^]*)", version_line).group(1)
 
     version_constraint = NpmSpec(version)
     for version in all_versions:
