@@ -1,4 +1,4 @@
-git+https://github.com/ethereum/blake2b-py.git@581cdb1#egg=blake2b-py
+-e git+https://github.com/ethereum/blake2b-py.git@581cdb1#egg=blake2b-py
 coloredlogs>=10.0
 coincurve>=13.0.0
 asn1crypto>=0.22.0
