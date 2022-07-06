@@ -7,6 +7,7 @@ import os
 import platform
 import logging
 import solc
+import re
 
 from pathlib import Path
 from subprocess import PIPE, Popen
@@ -147,10 +148,14 @@ def extract_version(file: str) -> Optional[str]:
         break
     if version_line is None:
         return None
+
+    assert "pragma solidity" in version_line
     if version_line[-1] == ";":
         version_line = version_line[:-1]
-    version_line = version_line.replace("pragma solidity", "").lstrip()
-    version_constraint = NpmSpec(version_line)
+    version_line = version_line.split(";")[0]
+    version = re.search("pragma solidity ([\d.^]*)", version_line).group(1)
+
+    version_constraint = NpmSpec(version)
     for version in all_versions:
         if version in version_constraint:
             return str(version)

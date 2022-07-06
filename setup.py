@@ -23,9 +23,32 @@ REQUIRES_PYTHON = ">=3.6.0"
 here = os.path.abspath(os.path.dirname(__file__))
 
 # What packages are required for this module to be executed?
-REQUIRED = (
-    io.open(os.path.join(here, "requirements.txt"), encoding="utf-8").read().split()
-)
+def get_requirements():
+    """
+    Return requirements as list.
+    Handles cases where git links are used.
+
+    """
+    with open(os.path.join(here, "requirements.txt")) as f:
+        packages = []
+        for line in f:
+            line = line.strip()
+            # let's also ignore empty lines and comments
+            if not line or line.startswith("#"):
+                continue
+            if "https://" not in line:
+                packages.append(line)
+                continue
+
+            rest, package_name = line.split("#egg=")[0], line.split("#egg=")[1]
+            if "-e" in rest:
+                rest = rest.split("-e")[1]
+            package_name = package_name + "@" + rest
+            packages.append(package_name)
+    return packages
+
+
+REQUIRED = get_requirements()
 
 TESTS_REQUIRE = ["mypy==0.782", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
 
