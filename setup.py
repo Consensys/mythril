@@ -22,10 +22,12 @@ AUTHOR_MAIL = None
 REQUIRES_PYTHON = ">=3.6.0"
 here = os.path.abspath(os.path.dirname(__file__))
 
-
+# What packages are required for this module to be executed?
 def get_requirements():
     """
     Return requirements as list.
+    Handles cases where git links are used.
+
     """
     with open(os.path.join(here, "requirements.txt")) as f:
         packages = []
@@ -34,11 +36,13 @@ def get_requirements():
             # let's also ignore empty lines and comments
             if not line or line.startswith("#"):
                 continue
-            if "https://" in line:
-                tail = line.rsplit("/", 1)[1]
-                tail = tail.split("#")[0]
-                line = tail.replace("@", "==").replace(".git", "")
-            packages.append(line)
+            if "https://" not in line:
+                packages.append(line)
+                continue
+
+            rest, package_name = line.split("#egg=")[0], line.split("#egg=")[1]
+            package_name = package_name + "@" + rest.split("-e")[1]
+            packages.append(package_name)
     return packages
 
 
