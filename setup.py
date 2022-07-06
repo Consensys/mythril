@@ -43,7 +43,7 @@ def get_requirements():
             rest, package_name = line.split("#egg=")[0], line.split("#egg=")[1]
             if "-e" in rest:
                 rest = rest.split("-e")[1]
-            package_name = package_name + "@" + rest.split("-e")[1]
+            package_name = package_name + "@" + rest
             packages.append(package_name)
     return packages
 
