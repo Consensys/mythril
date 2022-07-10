@@ -2,7 +2,7 @@
 from functools import lru_cache
 from typing import Dict
 import logging
-import _pysha3
+from eth_hash.auto import keccak
 
 log = logging.getLogger(__name__)
 
@@ -39,24 +39,22 @@ def get_code_hash(code) -> str:
 
     code = code[2:] if code[:2] == "0x" else code
     try:
-        keccak = _pysha3.keccak_256()
-        keccak.update(bytes.fromhex(code))
-        return "0x" + keccak.hexdigest()
+        hash_ = keccak(bytes.fromhex(code))
+        return "0x" + hash_.hex()
     except ValueError:
         log.debug("Unable to change the bytecode to bytes. Bytecode: {}".format(code))
         return ""
 
 
 def sha3(value):
-    keccak = _pysha3.keccak_256()
     if type(value) == str:
         if value[:2] == "0x":
-            keccak.update(bytes.fromhex(value))
+            new_hash = keccak(bytes.fromhex(value))
         else:
-            keccak.update(value.encode())
+            new_hash = keccak(value.encode())
     else:
-        keccak.update(value)
-    return keccak.digest()
+        new_hash = keccak(value)
+    return new_hash
 
 
 def zpad(x, l):
