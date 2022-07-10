@@ -37,8 +37,12 @@ class Storage:
         # Stores all keys set in the storage
         self.keys_set: Set[BitVec] = set()
 
+        # Stores all get keys in the storage
+        self.keys_get: Set[BitVec] = set()
+
     def __getitem__(self, item: BitVec) -> BitVec:
         storage = self._standard_storage
+        self.keys_get.add(item)
         if (
             self.address
             and self.address.value != 0
