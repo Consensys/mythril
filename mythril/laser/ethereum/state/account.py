@@ -94,7 +94,8 @@ class Storage:
         storage._standard_storage = deepcopy(self._standard_storage)
         storage.printable_storage = copy(self.printable_storage)
         storage.storage_keys_loaded = copy(self.storage_keys_loaded)
-        storage.keys_set = copy(self.keys_set)
+        storage.keys_set = deepcopy(self.keys_set)
+        storage.keys_get = deepcopy(self.keys_get)
         return storage
 
     def __str__(self) -> str:
