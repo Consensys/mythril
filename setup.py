@@ -54,7 +54,6 @@ TESTS_REQUIRE = ["mypy==0.782", "pytest>=3.6.0", "pytest_mock", "pytest-cov"]
 
 # What packages are optional?
 EXTRAS = {
-    "cython": ["cython"],
 }
 
 # If version is set to None then it will be fetched from __version__.py
