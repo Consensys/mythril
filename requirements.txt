@@ -35,3 +35,4 @@ z3-solver>=4.8.8.0
 matplotlib
 pre-commit
 certifi>=2020.06.20
+cytools<0.12.0
