@@ -53,5 +53,4 @@ test_data = (
 
 @pytest.mark.parametrize("call_data, signature, expected", test_data)
 def test_abi_decode(call_data, signature, expected):
-    print(Issue.add_signature(call_data, signature))
-    assert Issue.add_signature(call_data, signature) == expected
+    assert Issue.resolve_input(call_data, signature) == expected

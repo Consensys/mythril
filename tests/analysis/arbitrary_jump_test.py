@@ -55,7 +55,6 @@ def get_global_state(constraints):
             None,
         )
     )
-    print(state.world_state.transaction_sequence[0].call_data.calldatasize)
     state.mstate.stack = [symbol_factory.BitVecSym("jump_dest", 256)]
 
     state.world_state.constraints = Constraints(constraints)
