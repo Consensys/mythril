@@ -195,45 +195,34 @@ class Issue:
                 # TODO: Check other mythx tools for dependency before supporting multiple possible function names
                 if len(sig) > 0:
                     step["name"] = sig[0]
-                    step["resolved_input"] = Issue.resolve_input(step["calldata"], sig[0])
+                    step["resolved_input"] = Issue.resolve_input(
+                        step["calldata"], sig[0]
+                    )
                 else:
                     step["name"] = "unknown"
             except ValueError:
                 step["name"] = "unknown"
 
     @staticmethod
-    def add_signature(data, function_name):
+    def resolve_input(data, function_name):
         """
         Adds decoded calldate to the tx sequence.
         """
         data = data[10:]
-        type_info = re.search("\((.*?)\)", function_name).group(1).split(",")
-        type_info = [type.strip() for type in type_info]
-        call_data = [0] * len(type_info)
-        dynamic_list = []
-        for i, individual_type in enumerate(type_info):
-            index = 64 * i
-            if Issue.is_static_type(individual_type):
-                call_data[i] = decode_abi([individual_type], data[index: index + 64])[0]
-            else:
-                dynamic_list.append((i, data[2:][index: index + 64], individual_type))
-        for i in range(len(dynamic_list)):
-            start = int(dynamic_list[i][1], 16)
-            if i == len(dynamic_list) - 1:
-                call_data[dynamic_list[i][0]] = decode_abi([dynamic_list[i][2]], data[start: ])
-            else:
-                end = int(dynamic_list[i + 1][1], 16)
-                call_data[dynamic_list[i][0]] = decode_abi([dynamic_list[i][2]], data[start: end])
 
-        return call_data
-    
-    @staticmethod
-    def is_static_type(type_: str)
-        if type_ in ("bytes", "string"):
-            return True
-        if "[" in type_ and "]" in type_:
-            return True
-        return False
+        # Eliminates the first and last brackets
+        # Since signature such as func((bytes32,bytes32,uint8)[],(address[],uint32)) are valid
+        type_info = function_name[function_name.find("(") + 1 : -1]
+        type_info = re.split(r",\s*(?![^()]*\))", type_info)
+
+        if len(data) % 64 > 0:
+            data += "0" * (64 - len(data) % 64)
+        try:
+            decoded_output = decode_abi(type_info, bytes.fromhex(data))
+            return decoded_output
+        except Exception as e:
+            return None
+
 
 class Report:
     """A report containing the content of multiple issues."""

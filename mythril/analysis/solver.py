@@ -99,16 +99,11 @@ def get_transaction_sequence(
     else:
         _replace_with_actual_sha(concrete_transactions, model)
     _add_calldata_placeholder(concrete_transactions, transaction_sequence)
-    _add_signature(concrete_transactions)
     steps = {"initialState": concrete_initial_state, "steps": concrete_transactions}
 
     return steps
 
-def _add_signature(concrete_transactions):
-    print(concrete_transactions)
-    for tx in concrete_transactions:
-        if
-        tx["decoded_input"] = decode_calldata(tx["calldata"])
+
 def _add_calldata_placeholder(
     concrete_transactions: List[Dict[str, str]],
     transaction_sequence: List[BaseTransaction],
