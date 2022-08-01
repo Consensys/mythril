@@ -1,7 +1,9 @@
 """This module provides classes that make up an issue report."""
 import logging
+import re
 import json
 import operator
+from eth_abi import decode_abi
 from jinja2 import PackageLoader, Environment
 from typing import Dict, List, Any, Optional
 import hashlib
@@ -193,10 +195,33 @@ class Issue:
                 # TODO: Check other mythx tools for dependency before supporting multiple possible function names
                 if len(sig) > 0:
                     step["name"] = sig[0]
+                    step["resolved_input"] = Issue.resolve_input(
+                        step["calldata"], sig[0]
+                    )
                 else:
                     step["name"] = "unknown"
             except ValueError:
                 step["name"] = "unknown"
+
+    @staticmethod
+    def resolve_input(data, function_name):
+        """
+        Adds decoded calldate to the tx sequence.
+        """
+        data = data[10:]
+
+        # Eliminates the first and last brackets
+        # Since signature such as func((bytes32,bytes32,uint8)[],(address[],uint32)) are valid
+        type_info = function_name[function_name.find("(") + 1 : -1]
+        type_info = re.split(r",\s*(?![^()]*\))", type_info)
+
+        if len(data) % 64 > 0:
+            data += "0" * (64 - len(data) % 64)
+        try:
+            decoded_output = decode_abi(type_info, bytes.fromhex(data))
+            return decoded_output
+        except Exception as e:
+            return None
 
 
 class Report:
