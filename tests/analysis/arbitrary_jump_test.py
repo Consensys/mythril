@@ -37,7 +37,6 @@ def get_global_state(constraints):
     world_state = WorldState()
     world_state.put_account(active_account)
     state = GlobalState(world_state, environment, None, MachineState(gas_limit=8000000))
-    print(world_state.balances)
     state.world_state.transaction_sequence = [
         MessageCallTransaction(
             world_state=world_state,
