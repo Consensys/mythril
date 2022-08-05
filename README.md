@@ -26,7 +26,7 @@ Get it with [Docker](https://www.docker.com):
 $ docker pull mythril/myth
 ```
 
-Install from Pypi:
+Install from Pypi (Python 3.6-3.9):
 
 ```bash
 $ pip3 install mythril
