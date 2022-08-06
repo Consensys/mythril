@@ -1,6 +1,6 @@
 import pytest
 from eth._utils.numeric import ceil32
-from mythril.laser.smt import simplify, symbol_factory
+from mythril.laser.smt import simplify, symbol_factory, Concat, Extract
 
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
@@ -124,3 +124,21 @@ def test_memory_write():
     assert mem.get_word_at(200) == 0x12345
     assert simplify(a == mem.get_word_at(100))
     assert simplify(b == mem[12])
+
+
+def test_memory_symbolic():
+    # Arrange
+    mem = Memory()
+    mem.extend(200 + 32)
+
+    a = symbol_factory.BitVecSym("a", 256)
+    b = symbol_factory.BitVecSym("b", 256)
+
+    # Act
+    mem.write_word_at(a + symbol_factory.BitVecVal(1, 256), b)
+
+    # Assert
+    assert mem.get_word_at(a) == Concat(
+        symbol_factory.BitVecVal(1, 256), Extract(255, 8, b)
+    )
+    assert mem[a] == 0

@@ -130,12 +130,12 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     """
     # The following statement is used if a list is provided as an argument to concat
     if len(args) == 1 and isinstance(args[0], list):
-        bvs = args[0]  # type: List[BitVec]
+        bvs: List[BitVec] = args[0]
     else:
         bvs = cast(List[BitVec], args)
 
     nraw = z3.Concat([a.raw for a in bvs])
-    annotations = set()  # type: Annotations
+    annotations: Annotations = set()
 
     for bv in bvs:
         annotations = annotations.union(bv.annotations)
