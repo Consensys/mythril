@@ -9,8 +9,7 @@ from mythril.support.opcodes import OPCODES
 from mythril.analysis.potential_issues import check_potential_issues
 from mythril.laser.execution_info import ExecutionInfo
 from mythril.laser.ethereum.cfg import NodeFlags, Node, Edge, JumpType
-from mythril.laser.ethereum.evm_exceptions import StackUnderflowException
-from mythril.laser.ethereum.evm_exceptions import VmException
+from mythril.laser.ethereum.evm_exceptions import StackUnderflowException, VmException
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.instruction_data import get_required_stack_elements
 from mythril.laser.plugin.signals import PluginSkipWorldState, PluginSkipState
@@ -353,6 +352,7 @@ class LaserEVM:
         except IndexError:
             self._add_world_state(global_state)
             return [], None
+
         if len(global_state.mstate.stack) < get_required_stack_elements(op_code):
             error_msg = (
                 "Stack Underflow Exception due to insufficient "
@@ -494,15 +494,16 @@ class LaserEVM:
                 return_global_state.mstate.max_gas_used += (
                     global_state.mstate.max_gas_used
                 )
-
-        # Execute the post instruction handler
-        new_global_states = Instruction(
-            op_code,
-            self.dynamic_loader,
-            pre_hooks=self.instr_pre_hook[op_code],
-            post_hooks=self.instr_post_hook[op_code],
-        ).evaluate(return_global_state, True)
-
+        try:
+            # Execute the post instruction handler
+            new_global_states = Instruction(
+                op_code,
+                self.dynamic_loader,
+                pre_hooks=self.instr_pre_hook[op_code],
+                post_hooks=self.instr_post_hook[op_code],
+            ).evaluate(return_global_state, True)
+        except VmException:
+            new_global_states = []
         # In order to get a nice call graph we need to set the nodes here
         for state in new_global_states:
             state.node = global_state.node

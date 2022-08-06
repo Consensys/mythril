@@ -30,7 +30,6 @@ def is_unique_jumpdest(jump_dest: BitVec, state: GlobalState) -> bool:
     except UnsatError:
         return True
     concrete_jump_dest = model.eval(jump_dest.raw, model_completion=True)
-
     try:
         model = get_model(
             state.world_state.constraints
@@ -73,6 +72,7 @@ class ArbitraryJump(DetectionModule):
         """
 
         jump_dest = state.mstate.stack[-1]
+
         if jump_dest.symbolic is False:
             return []
 
