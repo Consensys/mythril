@@ -139,6 +139,6 @@ def test_memory_symbolic():
 
     # Assert
     assert mem.get_word_at(a) == Concat(
-        symbol_factory.BitVecVal(1, 256), Extract(255, 8, b)
+        symbol_factory.BitVecVal(0, 256), Extract(255, 8, b)
     )
     assert mem[a] == 0
