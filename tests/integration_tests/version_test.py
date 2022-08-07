@@ -2,8 +2,8 @@ import pytest
 import json
 import sys
 
-from subprocess import check_output
 from tests import PROJECT_DIR, TESTDATA
+from utils import output_of
 
 MYTH = str(PROJECT_DIR / "myth")
 test_data = (
@@ -23,7 +23,7 @@ def test_analysis(file_name, version, has_overflow):
         command = f"python3 {MYTH} analyze {file} --solv {version}"
     else:
         command = f"python3 {MYTH} analyze {file}"
-    output = check_output(command, shell=True).decode("UTF-8")
+    output = output_of(command)
     if has_overflow:
         assert f"SWC ID: 101" in output
     else:
