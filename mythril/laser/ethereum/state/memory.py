@@ -149,14 +149,12 @@ class Memory:
             if (bvstop - bvstart).symbolic:
                 symbolic_len = True
 
-            while simplify(bvstart + bvstep * itr != bvstop) and (
+            while simplify(bvstep * itr != simplify(bvstop - bvstart)) and (
                 not symbolic_len or itr <= APPROX_ITR
             ):
                 ret_lis.append(self[bvstart + bvstep * itr])
                 itr += 1
-
             return ret_lis
-
         item = simplify(convert_bv(item))
         return self._memory.get(item, 0)
 
@@ -191,7 +189,7 @@ class Memory:
             itr = symbol_factory.BitVecVal(0, 256)
             if (bvstop - bvstart).symbolic:
                 symbolic_len = True
-            while simplify(bvstart + bvstep * itr != bvstop) and (
+            while simplify(bvstep * itr != simplify(bvstop - bvstart)) and (
                 not symbolic_len or itr <= APPROX_ITR
             ):
                 self[bvstart + itr * bvstep] = cast(List[Union[int, BitVec]], value)[
