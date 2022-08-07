@@ -2,7 +2,12 @@
 code disassembly."""
 
 import re
-from collections.abc import Generator
+
+try:
+    from collections.abc import Generator
+except ImportError:
+    from collections import Generator
+
 from functools import lru_cache
 
 from mythril.ethereum import util
