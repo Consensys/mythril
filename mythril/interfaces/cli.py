@@ -835,6 +835,10 @@ def execute_command(
                     "markdown": report.as_markdown(),
                 }
                 print(outputs[args.outform])
+                if len(report.issues) > 0:
+                    exit(1)
+                else:
+                    exit(0)
             except DetectorNotFoundError as e:
                 exit_with_error(args.outform, format(e))
             except CriticalError as e:
