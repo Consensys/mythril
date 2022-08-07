@@ -2,6 +2,7 @@
 code disassembly."""
 
 import re
+
 try:
     from collections.abc import Generator
 except ImportError:
