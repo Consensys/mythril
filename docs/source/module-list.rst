@@ -13,11 +13,6 @@ Dependence on Predictable Variables
 
 The `predictable variables module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/dependence_on_predictable_vars.py>`_ detects `SWC-120 (Weak Randomness) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-120>`_ and `SWC-116 (Timestamp Dependence) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-116>`_.
 
-******************
-Deprecated Opcodes
-******************
-
-The `deprecated opcodes module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/deprecated_ops.py>`_ detects `SWC-111 (Use of Deprecated Functions) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-111>`_.
 
 ***********
 Ether Thief
@@ -68,15 +63,15 @@ Unchecked Retval
 
 The `unchecked retval module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/unchecked_retval.py>`_ detects `SWC-104 (Unchecked Call Return Value) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-104>`_.
 
-****************
+************************
 User Supplied assertion
-****************
+************************
 
 The `user supplied assertion module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/user_assertions.py>`_ detects `SWC-110 (Assert Violation) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-110>`_ for user-supplied assertions. User supplied assertions should be log messages of the form: :code:`emit AssertionFailed(string)`.
 
-****************
+************************
 Arbitrary Storage Write
-****************
+************************
 
 The `arbitrary storage write module <https://github.com/ConsenSys/mythril/blob/develop/mythril/analysis/module/modules/arbitrary_write.py>`_ detects `SWC-124 (Write to Arbitrary Storage Location) <https://smartcontractsecurity.github.io/SWC-registry/docs/SWC-124>`_.
 

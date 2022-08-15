@@ -9,6 +9,7 @@ Subpackages
     mythril.laser.ethereum.state
     mythril.laser.ethereum.strategy
     mythril.laser.ethereum.transaction
+    mythril.laser.ethereum.function_managers
 
 Submodules
 ----------
@@ -37,13 +38,6 @@ mythril.laser.ethereum.evm\_exceptions module
     :undoc-members:
     :show-inheritance:
 
-mythril.laser.ethereum.gas module
----------------------------------
-
-.. automodule:: mythril.laser.ethereum.gas
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 mythril.laser.ethereum.instructions module
 ------------------------------------------
@@ -53,13 +47,6 @@ mythril.laser.ethereum.instructions module
     :undoc-members:
     :show-inheritance:
 
-mythril.laser.ethereum.keccak module
-------------------------------------
-
-.. automodule:: mythril.laser.ethereum.keccak
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 mythril.laser.ethereum.natives module
 -------------------------------------
@@ -77,13 +64,6 @@ mythril.laser.ethereum.svm module
     :undoc-members:
     :show-inheritance:
 
-mythril.laser.ethereum.taint\_analysis module
----------------------------------------------
-
-.. automodule:: mythril.laser.ethereum.taint_analysis
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 mythril.laser.ethereum.util module
 ----------------------------------

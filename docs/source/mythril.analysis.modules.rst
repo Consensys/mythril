@@ -7,7 +7,7 @@ Submodules
 mythril.analysis.modules.base module
 ------------------------------------
 
-.. automodule:: mythril.analysis.modules.base
+.. automodule:: mythril.analysis.module.base
     :members:
     :undoc-members:
     :show-inheritance:
@@ -15,7 +15,7 @@ mythril.analysis.modules.base module
 mythril.analysis.modules.delegatecall module
 --------------------------------------------
 
-.. automodule:: mythril.analysis.modules.delegatecall
+.. automodule:: mythril.analysis.module.modules.delegatecall
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,23 +23,16 @@ mythril.analysis.modules.delegatecall module
 mythril.analysis.modules.dependence\_on\_predictable\_vars module
 -----------------------------------------------------------------
 
-.. automodule:: mythril.analysis.modules.dependence_on_predictable_vars
+.. automodule:: mythril.analysis.module.modules.dependence_on_predictable_vars
     :members:
     :undoc-members:
     :show-inheritance:
 
-mythril.analysis.modules.deprecated\_ops module
------------------------------------------------
-
-.. automodule:: mythril.analysis.modules.deprecated_ops
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 mythril.analysis.modules.ether\_thief module
 --------------------------------------------
 
-.. automodule:: mythril.analysis.modules.ether_thief
+.. automodule:: mythril.analysis.module.modules.ether_thief
     :members:
     :undoc-members:
     :show-inheritance:
@@ -47,7 +40,7 @@ mythril.analysis.modules.ether\_thief module
 mythril.analysis.modules.exceptions module
 ------------------------------------------
 
-.. automodule:: mythril.analysis.modules.exceptions
+.. automodule:: mythril.analysis.module.modules.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
@@ -55,7 +48,7 @@ mythril.analysis.modules.exceptions module
 mythril.analysis.modules.external\_calls module
 -----------------------------------------------
 
-.. automodule:: mythril.analysis.modules.external_calls
+.. automodule:: mythril.analysis.module.modules.external_calls
     :members:
     :undoc-members:
     :show-inheritance:
@@ -63,7 +56,7 @@ mythril.analysis.modules.external\_calls module
 mythril.analysis.modules.integer module
 ---------------------------------------
 
-.. automodule:: mythril.analysis.modules.integer
+.. automodule:: mythril.analysis.module.modules.integer
     :members:
     :undoc-members:
     :show-inheritance:
@@ -71,7 +64,7 @@ mythril.analysis.modules.integer module
 mythril.analysis.modules.multiple\_sends module
 -----------------------------------------------
 
-.. automodule:: mythril.analysis.modules.multiple_sends
+.. automodule:: mythril.analysis.module.modules.multiple_sends
     :members:
     :undoc-members:
     :show-inheritance:
@@ -79,23 +72,16 @@ mythril.analysis.modules.multiple\_sends module
 mythril.analysis.modules.suicide module
 ---------------------------------------
 
-.. automodule:: mythril.analysis.modules.suicide
+.. automodule:: mythril.analysis.module.modules.suicide
     :members:
     :undoc-members:
     :show-inheritance:
 
-mythril.analysis.modules.transaction\_order\_dependence module
---------------------------------------------------------------
-
-.. automodule:: mythril.analysis.modules.transaction_order_dependence
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 mythril.analysis.modules.unchecked\_retval module
 -------------------------------------------------
 
-.. automodule:: mythril.analysis.modules.unchecked_retval
+.. automodule:: mythril.analysis.module.modules.unchecked_retval
     :members:
     :undoc-members:
     :show-inheritance:
@@ -104,7 +90,7 @@ mythril.analysis.modules.unchecked\_retval module
 Module contents
 ---------------
 
-.. automodule:: mythril.analysis.modules
+.. automodule:: mythril.analysis.module.modules
     :members:
     :undoc-members:
     :show-inheritance:

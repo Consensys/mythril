@@ -28,14 +28,6 @@ mythril.support.support\_utils module
     :undoc-members:
     :show-inheritance:
 
-mythril.support.truffle module
-------------------------------
-
-.. automodule:: mythril.support.truffle
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

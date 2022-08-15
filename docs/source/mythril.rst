@@ -33,14 +33,6 @@ mythril.mythril module
     :undoc-members:
     :show-inheritance:
 
-mythril.version module
-----------------------
-
-.. automodule:: mythril.version
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -6,7 +6,6 @@ Subpackages
 
 .. toctree::
 
-    mythril.ethereum.interface.leveldb
     mythril.ethereum.interface.rpc
 
 Module contents
