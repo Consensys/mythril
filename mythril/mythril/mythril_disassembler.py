@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 class MythrilDisassembler:
     """
     The Mythril Disassembler class
-    Responsible for generating disassembly of smart contracts
+    Responsible for generating disassembly of smart contracts:
         - Compiles solc code from file/onchain
         - Can also be used to access onchain storage data
     """
@@ -239,9 +239,8 @@ class MythrilDisassembler:
         """
         Get variables from the storage
         :param address: The contract address
-        :param params: The list of parameters
-                        param types: [position, length] or ["mapping", position, key1, key2, ...  ]
-                        or [position, length, array]
+        :param params: The list of parameters param types: [position, length] or ["mapping", position, key1, key2, ...  ]
+                       or [position, length, array]
         :return: The corresponding storage slot and its value
         """
         params = params or []

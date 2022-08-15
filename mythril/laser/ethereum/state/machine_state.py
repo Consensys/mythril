@@ -32,6 +32,7 @@ class MachineStack(list):
         This function ensures the following properties when appending to a list:
             - Element appended to this list should be a BitVec
             - Ensures stack overflow bound
+
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """

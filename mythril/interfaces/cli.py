@@ -403,6 +403,7 @@ def add_graph_commands(parser: ArgumentParser):
 def create_safe_functions_parser(parser: ArgumentParser):
     """
     The duplication exists between safe-functions and analyze as some of them have different default values.
+    :param parser: Parser
     """
     parser.add_argument(
         "solidity_files",
@@ -416,11 +417,12 @@ def create_safe_functions_parser(parser: ArgumentParser):
 
 
 def add_analysis_args(options):
-    """[summary]
-    Adds arguments for analysis
-    Args:
-        options ([type]): [description]
     """
+    Adds arguments for analysis
+
+    :param options: Analysis Options
+    """
+
     options.add_argument(
         "-m",
         "--modules",

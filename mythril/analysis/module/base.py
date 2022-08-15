@@ -34,13 +34,14 @@ class DetectionModule(ABC):
     All custom-built detection modules must inherit from this class.
 
     There are several class properties that expose information about the detection modules
-    - name: The name of the detection module
-    - swc_id: The SWC ID associated with the weakness that the module detects
-    - description: A description of the detection module, and what it detects
-    - entry_point: Mythril can run callback style detection modules, or modules that search the statespace.
+
+    :param name: The name of the detection module
+    :param swc_id: The SWC ID associated with the weakness that the module detects
+    :param description: A description of the detection module, and what it detects
+    :param entry_point: Mythril can run callback style detection modules, or modules that search the statespace.
                 [IMPORTANT] POST entry points severely slow down the analysis, try to always use callback style modules
-    - pre_hooks: A list of instructions to hook the laser vm for (pre execution of the instruction)
-    - post_hooks: A list of instructions to hook the laser vm for (post execution of the instruction)
+    :param pre_hooks: A list of instructions to hook the laser vm for (pre execution of the instruction)
+    :param post_hooks: A list of instructions to hook the laser vm for (post execution of the instruction)
     """
 
     name = "Detection Module Name / Title"
@@ -62,7 +63,7 @@ class DetectionModule(ABC):
     def update_cache(self, issues=None):
         """
         Updates cache with param issues, updates against self.issues, if the param is None
-        - issues: The issues used to update the cache
+        :param issues: The issues used to update the cache
         """
         issues = issues or self.issues
         for issue in issues:
