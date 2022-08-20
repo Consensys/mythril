@@ -22,7 +22,7 @@ def test_statespace_dump():
             create_timeout=None,
             disable_dependency_pruning=False,
             custom_modules_directory=None,
-            sparse_pruning=True,
+            pruning_factor=0,
             parallel_solving=True,
             unconstrained_storage=True,
             call_depth_limit=3,

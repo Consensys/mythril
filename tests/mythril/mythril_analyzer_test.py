@@ -32,7 +32,7 @@ def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
         create_timeout=None,
         disable_dependency_pruning=False,
         custom_modules_directory=None,
-        sparse_pruning=True,
+        pruning_factor=0,
         parallel_solving=True,
         unconstrained_storage=True,
         call_depth_limit=3,
