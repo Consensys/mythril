@@ -1,6 +1,6 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
-from mythril.exceptions import UnsatError
+from mythril.exceptions import UnsatError, SolverTimeOutException
 from mythril.laser.smt import symbol_factory, simplify, Bool
 from mythril.support.model import get_model
 from mythril.laser.ethereum.function_managers import keccak_function_manager
@@ -25,13 +25,19 @@ class Constraints(list):
         constraint_list = self._get_smt_bool_list(constraint_list)
         super(Constraints, self).__init__(constraint_list)
 
-    @property
-    def is_possible(self) -> bool:
+    def is_possible(self, solver_timeout=None) -> bool:
         """
+        :param solver_timeout: The default timeout uses analysis timeout from args.solver_timeout
         :return: True/False based on the existence of solution of constraints
         """
         try:
-            get_model(self)
+            get_model(self, solver_timeout=solver_timeout)
+        except SolverTimeOutException:
+            # If it uses the long analysis solver timeout
+            if solver_timeout is None:
+                return False
+            # If it uses a short custom solver timeout
+            return True
         except UnsatError:
             return False
         return True

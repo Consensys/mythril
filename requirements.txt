@@ -16,6 +16,7 @@ eth-keys<0.4.0,>=0.2.1
 eth-rlp<0.3.0,>=0.1.0
 eth-typing<3.0.0,>=2.1.0
 eth-utils<2
+hexbytes<0.3.0
 jinja2>=2.9
 MarkupSafe<2.1.0
 mock

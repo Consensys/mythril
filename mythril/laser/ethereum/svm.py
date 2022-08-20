@@ -3,6 +3,7 @@ import logging
 from collections import defaultdict
 from copy import copy
 from datetime import datetime, timedelta
+import random
 from typing import Callable, Dict, DefaultDict, List, Tuple, Optional
 
 from mythril.support.opcodes import OPCODES
@@ -218,7 +219,9 @@ class LaserEVM:
             old_states_count = len(self.open_states)
             if self.use_reachability_check:
                 self.open_states = [
-                    state for state in self.open_states if state.constraints.is_possible
+                    state
+                    for state in self.open_states
+                    if state.constraints.is_possible()
                 ]
                 prune_count = old_states_count - len(self.open_states)
                 if prune_count:
@@ -282,11 +285,11 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-            if args.sparse_pruning is False:
+            if len(new_states) > 1 and random.uniform(0, 1) < args.pruning_factor:
                 new_states = [
                     state
                     for state in new_states
-                    if state.world_state.constraints.is_possible
+                    if state.world_state.constraints.is_possible()
                 ]
 
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?

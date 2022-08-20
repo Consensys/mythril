@@ -60,7 +60,7 @@ class MythrilAnalyzer:
             if cmd_args.custom_modules_directory
             else ""
         )
-        args.sparse_pruning = cmd_args.sparse_pruning
+        args.pruning_factor = cmd_args.pruning_factor
         args.solver_timeout = cmd_args.solver_timeout
         args.parallel_solving = cmd_args.parallel_solving
         args.unconstrained_storage = cmd_args.unconstrained_storage
