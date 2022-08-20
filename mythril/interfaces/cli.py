@@ -511,9 +511,10 @@ def add_analysis_args(options):
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
     )
     options.add_argument(
-        "--sparse-pruning",
-        action="store_true",
-        help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
+        "--pruning-factor",
+        type=float,
+        default=1,
+        help="Checks for reachability at the rate of <pruning-factor>. Where 1 means checks every execution",
     )
     options.add_argument(
         "--unconstrained-storage",
@@ -752,7 +753,7 @@ def execute_command(
 
     elif args.command == SAFE_FUNCTIONS_COMMAND:
         args.unconstrained_storage = True
-        args.sparse_pruning = False
+        args.pruning_factor = 1
         args.disable_dependency_pruning = True
         args.no_onchain_data = True
         function_analyzer = MythrilAnalyzer(

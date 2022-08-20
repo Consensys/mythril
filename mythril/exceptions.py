@@ -20,6 +20,13 @@ class UnsatError(MythrilBaseException):
     pass
 
 
+class SolverTimeOutException(UnsatError):
+    """A Mythril exception denoting the unsatisfiability of a series of
+    constraints."""
+
+    pass
+
+
 class NoContractFoundError(MythrilBaseException):
     """A Mythril exception denoting that a given contract file was not
     found."""
