@@ -1,7 +1,7 @@
 """This module contains the detection code for reachable exceptions."""
 import logging
 
-from typing import List, cast
+from typing import cast, List, Optional
 from mythril.analysis import solver
 from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
@@ -25,7 +25,7 @@ PANIC_SIGNATURE = [78, 72, 123, 113]
 class LastJumpAnnotation(StateAnnotation):
     """State Annotation used if an overflow is both possible and used in the annotated path"""
 
-    def __init__(self, last_jump: int = None) -> None:
+    def __init__(self, last_jump: Optional[int] = None) -> None:
         self.last_jump: int = last_jump
 
     def __copy__(self):
