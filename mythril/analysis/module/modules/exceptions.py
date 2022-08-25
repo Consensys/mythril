@@ -25,7 +25,7 @@ PANIC_SIGNATURE = [78, 72, 123, 113]
 class LastJumpAnnotation(StateAnnotation):
     """State Annotation used if an overflow is both possible and used in the annotated path"""
 
-    def __init__(self, last_jump: Optiona[int] = None) -> None:
+    def __init__(self, last_jump: Optional[int] = None) -> None:
         self.last_jump: int = last_jump
 
     def __copy__(self):
