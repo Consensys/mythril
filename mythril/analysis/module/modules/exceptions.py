@@ -1,7 +1,7 @@
 """This module contains the detection code for reachable exceptions."""
 import logging
 
-from typing import List, cast
+from typing import cast, List, Optional
 from mythril.analysis import solver
 from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
