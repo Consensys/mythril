@@ -2010,6 +2010,7 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = environment.active_account.address
                 receiver = callee_account.address
+
                 transfer_ether(global_state, sender, receiver, value)
                 self._write_symbolic_returndata(
                     global_state, memory_out_offset, memory_out_size
@@ -2254,11 +2255,11 @@ class Instruction:
                 log.debug("The call is related to ether transfer between accounts")
                 sender = global_state.environment.active_account.address
                 receiver = callee_account.address
+
                 transfer_ether(global_state, sender, receiver, value)
                 self._write_symbolic_returndata(
                     global_state, memory_out_offset, memory_out_size
                 )
-
                 global_state.mstate.stack.append(
                     global_state.new_bitvec("retval_" + str(instr["address"]), 256)
                 )
