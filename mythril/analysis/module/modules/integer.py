@@ -207,7 +207,6 @@ class IntegerArithmetics(DetectionModule):
             return
 
         state_annotation = _get_overflowunderflow_state_annotation(state)
-
         for annotation in value.annotations:
             if isinstance(annotation, OverUnderflowAnnotation):
                 state_annotation.overflowing_state_annotations.add(annotation)
