@@ -127,9 +127,13 @@ class UncheckedRetval(DetectionModule):
             return issues
         else:
             log.debug("End of call, extracting retval")
-            assert state.environment.code.instruction_list[state.mstate.pc - 1][
+
+            if state.environment.code.instruction_list[state.mstate.pc - 1][
                 "opcode"
-            ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
+            ] not in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
+                # Return is pointless with OOG. The pc does not get updated in such cases
+                return []
+
             return_value = state.mstate.stack[-1]
             retvals.append(
                 {"address": state.instruction["address"] - 1, "retval": return_value}

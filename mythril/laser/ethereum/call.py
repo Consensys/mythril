@@ -101,7 +101,6 @@ def get_callee_address(
         log.debug("Symbolic call encountered")
 
         match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
-        log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
             return symbolic_to_address
@@ -190,9 +189,7 @@ def get_call_data(
         ]
         return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
-        log.debug(
-            "Unsupported symbolic memory offset %s size %s", memory_start, memory_size
-        )
+        log.debug("Unsupported symbolic memory offset and size")
         return SymbolicCalldata(transaction_id)
 
 

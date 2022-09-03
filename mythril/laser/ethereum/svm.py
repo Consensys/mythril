@@ -435,6 +435,7 @@ class LaserEVM:
 
                 new_global_states = []
             else:
+
                 # First execute the post hook for the transaction ending instruction
                 self._execute_post_hook(op_code, [end_signal.global_state])
 
