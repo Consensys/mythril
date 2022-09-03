@@ -4,10 +4,11 @@ from typing import cast, Union, Tuple, List
 
 from typing import Any, Union
 
-from z3 import Model
+from z3 import Model, unsat, unknown
 from z3.z3types import Z3Exception
 
 from mythril.laser.ethereum.util import get_concrete_int
+
 from mythril.laser.smt import (
     Array,
     BitVec,
@@ -18,6 +19,7 @@ from mythril.laser.smt import (
     K,
     simplify,
     symbol_factory,
+    Solver,
 )
 
 
@@ -73,16 +75,22 @@ class BaseCalldata:
                     else symbol_factory.BitVecVal(start, 256)
                 )
                 parts = []
-                while simplify(current_index != stop):
+                while True:
+                    s = Solver()
+                    s.set_timeout(1000)
+                    s.add(current_index != stop)
+                    result = s.check()
+                    if result in (unsat, unknown):
+                        break
                     element = self._load(current_index)
                     if not isinstance(element, Expression):
                         element = symbol_factory.BitVecVal(element, 8)
 
                     parts.append(element)
                     current_index = simplify(current_index + step)
+
             except Z3Exception:
                 raise IndexError("Invalid Calldata Slice")
-
             return parts
 
         raise ValueError
