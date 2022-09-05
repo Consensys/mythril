@@ -4,8 +4,9 @@ from copy import copy
 from typing import cast, Sized, Union, Any, List, Dict, Optional
 
 from mythril.laser.smt import BitVec, Bool, If, Expression, symbol_factory
+from eth._utils.numeric import ceil32
 
-from ethereum import opcodes, utils
+from eth.constants import GAS_MEMORY, GAS_MEMORY_QUADRATIC_DENOMINATOR
 from mythril.laser.ethereum.evm_exceptions import (
     StackOverflowException,
     StackUnderflowException,
@@ -31,6 +32,7 @@ class MachineStack(list):
         This function ensures the following properties when appending to a list:
             - Element appended to this list should be a BitVec
             - Ensures stack overflow bound
+
         :param element: element to be appended to the list
         :function: appends the element to list if the size is less than STACK_LIMIT, else throws an error
         """
@@ -92,7 +94,7 @@ class MachineStack(list):
 
 class MachineState:
     """
-        MachineState represents current machine state also referenced to as \mu.
+    MachineState represents current machine state also referenced to as \mu.
     """
 
     def __init__(
@@ -106,7 +108,6 @@ class MachineState:
         depth=0,
         max_gas_used=0,
         min_gas_used=0,
-        prev_pc=-1,
     ) -> None:
         """Constructor for machineState.
 
@@ -118,9 +119,8 @@ class MachineState:
         :param depth:
         :param max_gas_used:
         :param min_gas_used:
-        :param prev_pc:
         """
-        self._pc = pc
+        self.pc = pc
         self.stack = MachineStack(stack)
         self.subroutine_stack = MachineStack(subroutine_stack)
         self.memory = memory or Memory()
@@ -128,7 +128,6 @@ class MachineState:
         self.min_gas_used = min_gas_used  # lower gas usage bound
         self.max_gas_used = max_gas_used  # upper gas usage bound
         self.depth = depth
-        self.prev_pc = prev_pc  # holds context of current pc
 
     def calculate_extension_size(self, start: int, size: int) -> int:
         """
@@ -141,7 +140,7 @@ class MachineState:
             return 0
 
         # The extension size is calculated based on the word length
-        new_size = utils.ceil32(start + size) // 32
+        new_size = ceil32(start + size) // 32
         old_size = self.memory_size // 32
 
         return (new_size - old_size) * 32
@@ -156,11 +155,11 @@ class MachineState:
         # https://github.com/ethereum/pyethereum/blob/develop/ethereum/vm.py#L148
         oldsize = self.memory_size // 32
         old_totalfee = (
-            oldsize * opcodes.GMEMORY + oldsize ** 2 // opcodes.GQUADRATICMEMDENOM
+            oldsize * GAS_MEMORY + oldsize**2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
         )
-        newsize = utils.ceil32(start + size) // 32
+        newsize = ceil32(start + size) // 32
         new_totalfee = (
-            newsize * opcodes.GMEMORY + newsize ** 2 // opcodes.GQUADRATICMEMDENOM
+            newsize * GAS_MEMORY + newsize**2 // GAS_MEMORY_QUADRATIC_DENOMINATOR
         )
         return new_totalfee - old_totalfee
 
@@ -224,11 +223,10 @@ class MachineState:
             gas_limit=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
-            pc=self._pc,
+            pc=self.pc,
             stack=copy(self.stack),
             memory=copy(self.memory),
             depth=self.depth,
-            prev_pc=self.prev_pc,
             subroutine_stack=copy(self.subroutine_stack),
         )
 
@@ -238,19 +236,6 @@ class MachineState:
         :return:
         """
         return str(self.as_dict)
-
-    @property
-    def pc(self) -> int:
-        """
-
-        :return:
-        """
-        return self._pc
-
-    @pc.setter
-    def pc(self, value):
-        self.prev_pc = self._pc
-        self._pc = value
 
     @property
     def memory_size(self) -> int:
@@ -267,7 +252,7 @@ class MachineState:
         :return:
         """
         return dict(
-            pc=self._pc,
+            pc=self.pc,
             stack=self.stack,
             subroutine_stack=self.subroutine_stack,
             memory=self.memory,
@@ -275,5 +260,4 @@ class MachineState:
             gas=self.gas_limit,
             max_gas_used=self.max_gas_used,
             min_gas_used=self.min_gas_used,
-            prev_pc=self.prev_pc,
         )

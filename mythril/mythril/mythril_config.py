@@ -1,7 +1,6 @@
 import codecs
 import logging
 import os
-import platform
 import re
 
 from pathlib import Path
@@ -11,7 +10,7 @@ from typing import Optional
 
 from mythril.exceptions import CriticalError
 from mythril.ethereum.interface.rpc.client import EthJsonRpc
-from mythril.ethereum.interface.leveldb.client import EthLevelDB
+from mythril.support.lock import LockFile
 
 log = logging.getLogger(__name__)
 
@@ -24,18 +23,16 @@ class MythrilConfig:
 
     def __init__(self):
         self.infura_id = os.getenv("INFURA_ID")  # type: str
-        self.mythril_dir = self._init_mythril_dir()
+        self.mythril_dir = self.init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
-        self.leveldb_dir = None
         self._init_config()
         self.eth = None  # type: Optional[EthJsonRpc]
-        self.eth_db = None  # type: Optional[EthLevelDB]
 
     def set_api_infura_id(self, id):
         self.infura_id = id
 
     @staticmethod
-    def _init_mythril_dir() -> str:
+    def init_mythril_dir() -> str:
         """
         Initializes the mythril dir and config.ini file
         :return: The mythril dir's path
@@ -63,12 +60,8 @@ class MythrilConfig:
     def _init_config(self):
         """If no config file exists, create it and add default options.
         Defaults:-
-            - Default LevelDB path is specified based on OS
             - dynamic loading is set to infura by default in the file
-        This function also sets self.leveldb_dir path
         """
-
-        leveldb_default_path = self._get_default_leveldb_path()
 
         if not os.path.exists(self.config_path):
             log.info("No config file found. Creating default: " + self.config_path)
@@ -77,48 +70,23 @@ class MythrilConfig:
         config = ConfigParser(allow_no_value=True)
 
         config.optionxform = str
-        config.read(self.config_path, "utf-8")
-        if "defaults" not in config.sections():
-            self._add_default_options(config)
+        with LockFile(self.config_path):
+            config.read(self.config_path, "utf-8")
 
-        if not config.has_option("defaults", "leveldb_dir"):
-            self._add_leveldb_option(config, leveldb_default_path)
+            if "defaults" not in config.sections():
+                self._add_default_options(config)
 
-        if not config.has_option("defaults", "dynamic_loading"):
-            self._add_dynamic_loading_option(config)
+            if not config.has_option("defaults", "dynamic_loading"):
+                self._add_dynamic_loading_option(config)
 
-        if not config.has_option("defaults", "infura_id"):
-            config.set("defaults", "infura_id", "")
+            if not config.has_option("defaults", "infura_id"):
+                config.set("defaults", "infura_id", "")
 
-        with codecs.open(self.config_path, "w", "utf-8") as fp:
-            config.write(fp)
+            with codecs.open(self.config_path, "w", "utf-8") as fp:
+                config.write(fp)
 
-        leveldb_dir = config.get(
-            "defaults", "leveldb_dir", fallback=leveldb_default_path
-        )
-        if not self.infura_id:
-            self.infura_id = config.get("defaults", "infura_id", fallback="")
-        self.leveldb_dir = os.path.expanduser(leveldb_dir)
-
-    @staticmethod
-    def _get_default_leveldb_path() -> str:
-        """
-        Returns the LevelDB path
-        :return: The LevelDB path
-        """
-        system = platform.system().lower()
-        leveldb_fallback_dir = os.path.expanduser("~")
-        if system.startswith("darwin"):
-            leveldb_fallback_dir = os.path.join(
-                leveldb_fallback_dir, "Library", "Ethereum"
-            )
-        elif system.startswith("windows"):
-            leveldb_fallback_dir = os.path.join(
-                leveldb_fallback_dir, "AppData", "Roaming", "Ethereum"
-            )
-        else:
-            leveldb_fallback_dir = os.path.join(leveldb_fallback_dir, ".ethereum")
-        return os.path.join(leveldb_fallback_dir, "geth", "chaindata")
+            if not self.infura_id:
+                self.infura_id = config.get("defaults", "infura_id", fallback="")
 
     @staticmethod
     def _add_default_options(config: ConfigParser) -> None:
@@ -128,24 +96,6 @@ class MythrilConfig:
         :return: None
         """
         config.add_section("defaults")
-
-    @staticmethod
-    def _add_leveldb_option(config: ConfigParser, leveldb_fallback_dir: str) -> None:
-        """
-        Sets a default leveldb path in .mythril/config.ini file
-        :param config: The config file object
-        :param leveldb_fallback_dir: The leveldb dir to use by default for searches
-        :return: None
-        """
-        config.set("defaults", "#Default chaindata locations:", "")
-        config.set("defaults", "#– Mac: ~/Library/Ethereum/geth/chaindata", "")
-        config.set("defaults", "#– Linux: ~/.ethereum/geth/chaindata", "")
-        config.set(
-            "defaults",
-            "#– Windows: %USERPROFILE%\\AppData\\Roaming\\Ethereum\\geth\\chaindata",
-            "",
-        )
-        config.set("defaults", "leveldb_dir", leveldb_fallback_dir)
 
     @staticmethod
     def _add_dynamic_loading_option(config: ConfigParser) -> None:
@@ -167,11 +117,6 @@ class MythrilConfig:
             "defaults", "#– To connect to local host use dynamic_loading: localhost", ""
         )
         config.set("defaults", "dynamic_loading", "infura")
-
-    def set_api_leveldb(self, leveldb_path: str) -> None:
-        """
-        """
-        self.eth_db = EthLevelDB(leveldb_path)
 
     def set_api_rpc_infura(self) -> None:
         """Set the RPC mode to INFURA on Mainnet."""

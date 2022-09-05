@@ -1,8 +1,11 @@
 from mythril.analysis.report import Issue
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.solver import get_transaction_sequence
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import And
+from mythril.support.support_args import args
 
 
 class PotentialIssue:
@@ -54,6 +57,10 @@ class PotentialIssuesAnnotation(StateAnnotation):
     def __init__(self):
         self.potential_issues = []
 
+    @property
+    def search_importance(self):
+        return 10 * len(self.potential_issues)
+
 
 def get_potential_issues_annotation(state: GlobalState) -> PotentialIssuesAnnotation:
     """
@@ -81,28 +88,39 @@ def check_potential_issues(state: GlobalState) -> None:
     :return:
     """
     annotation = get_potential_issues_annotation(state)
+    unsat_potential_issues = []
     for potential_issue in annotation.potential_issues:
         try:
             transaction_sequence = get_transaction_sequence(
                 state, state.world_state.constraints + potential_issue.constraints
             )
         except UnsatError:
+            unsat_potential_issues.append(potential_issue)
             continue
 
-        annotation.potential_issues.remove(potential_issue)
-        potential_issue.detector.cache.add(potential_issue.address)
-        potential_issue.detector.issues.append(
-            Issue(
-                contract=potential_issue.contract,
-                function_name=potential_issue.function_name,
-                address=potential_issue.address,
-                title=potential_issue.title,
-                bytecode=potential_issue.bytecode,
-                swc_id=potential_issue.swc_id,
-                gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
-                severity=potential_issue.severity,
-                description_head=potential_issue.description_head,
-                description_tail=potential_issue.description_tail,
-                transaction_sequence=transaction_sequence,
+        issue = Issue(
+            contract=potential_issue.contract,
+            function_name=potential_issue.function_name,
+            address=potential_issue.address,
+            title=potential_issue.title,
+            bytecode=potential_issue.bytecode,
+            swc_id=potential_issue.swc_id,
+            gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
+            severity=potential_issue.severity,
+            description_head=potential_issue.description_head,
+            description_tail=potential_issue.description_tail,
+            transaction_sequence=transaction_sequence,
+        )
+        state.annotate(
+            IssueAnnotation(
+                detector=potential_issue.detector,
+                issue=issue,
+                conditions=[
+                    And(*(state.world_state.constraints + potential_issue.constraints))
+                ],
             )
         )
+        if args.use_issue_annotations is False:
+            potential_issue.detector.issues.append(issue)
+            potential_issue.detector.update_cache([issue])
+    annotation.potential_issues = unsat_potential_issues

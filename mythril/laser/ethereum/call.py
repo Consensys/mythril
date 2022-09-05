@@ -4,8 +4,8 @@ parameters for the new global state."""
 
 import logging
 import re
-from typing import Union, List, cast, Callable, Optional
-from ethereum.opcodes import GSTIPEND
+from typing import Union, List, cast, Optional
+from eth.constants import GAS_CALLSTIPEND
 
 import mythril.laser.ethereum.util as util
 from mythril.laser.ethereum import natives
@@ -18,7 +18,7 @@ from mythril.laser.ethereum.state.calldata import (
     ConcreteCalldata,
 )
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import BitVec, is_true, If
+from mythril.laser.smt import BitVec, If
 from mythril.laser.smt import simplify, Expression, symbol_factory
 from mythril.support.loader import DynLoader
 
@@ -63,7 +63,7 @@ def get_call_parameters(
             global_state, callee_address, dynamic_loader
         )
 
-    gas = gas + If(value > 0, symbol_factory.BitVecVal(GSTIPEND, gas.size()), 0)
+    gas = gas + If(value > 0, symbol_factory.BitVecVal(GAS_CALLSTIPEND, gas.size()), 0)
     return (
         callee_address,
         callee_account,
@@ -101,7 +101,6 @@ def get_callee_address(
         log.debug("Symbolic call encountered")
 
         match = re.search(r"Storage\[(\d+)\]", str(simplify(symbolic_to_address)))
-        log.debug("CALL to: " + str(simplify(symbolic_to_address)))
 
         if match is None or dynamic_loader is None:
             return symbolic_to_address
@@ -179,6 +178,7 @@ def get_call_data(
             else memory_size
         ),
     )
+
     if memory_size.symbolic:
         memory_size = SYMBOLIC_CALLDATA_SIZE
     try:
@@ -189,9 +189,7 @@ def get_call_data(
         ]
         return ConcreteCalldata(transaction_id, calldata_from_mem)
     except TypeError:
-        log.debug(
-            "Unsupported symbolic memory offset %s size %s", memory_start, memory_size
-        )
+        log.debug("Unsupported symbolic memory offset and size")
         return SymbolicCalldata(transaction_id)
 
 

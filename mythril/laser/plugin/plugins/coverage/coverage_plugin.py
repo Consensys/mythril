@@ -49,11 +49,19 @@ class InstructionCoveragePlugin(LaserPlugin):
         def stop_sym_exec_hook():
             # Print results
             for code, code_cov in self.coverage.items():
-                cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
-
+                if sum(code_cov[1]) == 0 and code_cov[0] == 0:
+                    cov_percentage = 0
+                else:
+                    cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
+                string_code = code
+                if type(code) == tuple:
+                    try:
+                        string_code = bytearray(code).hex()
+                    except TypeError:
+                        string_code = "<symbolic code>"
                 log.info(
                     "Achieved {:.2f}% coverage for code: {}".format(
-                        cov_percentage, code
+                        cov_percentage, string_code
                     )
                 )
 
@@ -70,7 +78,10 @@ class InstructionCoveragePlugin(LaserPlugin):
                     number_of_instructions,
                     [False] * number_of_instructions,
                 )
-
+            if global_state.mstate.pc >= len(self.coverage[code][1]):
+                # Instruction beyond the instruction list are considered as STOP by EVM
+                # and can be ignored
+                return
             self.coverage[code][1][global_state.mstate.pc] = True
 
         @symbolic_vm.laser_hook("start_sym_trans")

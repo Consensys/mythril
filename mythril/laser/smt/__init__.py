@@ -129,7 +129,7 @@ class _Z3SymbolFactory(SymbolFactory[z3.BoolRef, z3.BitVecRef]):
 
     @staticmethod
     def Bool(value: "__builtins__.bool", annotations: Annotations = None) -> z3.BoolRef:
-        """ Creates a new bit vector with a concrete value """
+        """Creates a new bit vector with a concrete value"""
         return z3.BoolVal(value)
 
     @staticmethod

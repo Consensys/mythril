@@ -1,7 +1,9 @@
 """This module provides classes that make up an issue report."""
 import logging
+import re
 import json
 import operator
+from eth_abi import decode_abi
 from jinja2 import PackageLoader, Environment
 from typing import Dict, List, Any, Optional
 import hashlib
@@ -23,17 +25,18 @@ class Issue:
 
     def __init__(
         self,
-        contract,
-        function_name,
-        address,
-        swc_id,
-        title,
-        bytecode,
+        contract: str,
+        function_name: str,
+        address: int,
+        swc_id: str,
+        title: str,
+        bytecode: str,
         gas_used=(None, None),
         severity=None,
         description_head="",
         description_tail="",
         transaction_sequence=None,
+        source_location=None,
     ):
         """
 
@@ -66,15 +69,16 @@ class Issue:
         self.discovery_time = time() - StartTime().global_start_time
         self.bytecode_hash = get_code_hash(bytecode)
         self.transaction_sequence = transaction_sequence
+        self.source_location = source_location
 
     @property
     def transaction_sequence_users(self):
-        """ Returns the transaction sequence without pre-generated block data"""
+        """Returns the transaction sequence without pre-generated block data"""
         return self.transaction_sequence
 
     @property
     def transaction_sequence_jsonv2(self):
-        """ Returns the transaction sequence as a json string with pre-generated block data"""
+        """Returns the transaction sequence as a json string with pre-generated block data"""
         return (
             self.add_block_data(self.transaction_sequence)
             if self.transaction_sequence
@@ -83,7 +87,7 @@ class Issue:
 
     @staticmethod
     def add_block_data(transaction_sequence: Dict):
-        """ Adds sane block data to a transaction_sequence """
+        """Adds sane block data to a transaction_sequence"""
         for step in transaction_sequence["steps"]:
             step["gasLimit"] = "0x7d000"
             step["gasPrice"] = "0x773594000"
@@ -141,9 +145,22 @@ class Issue:
         :param contract:
         """
         if self.address and isinstance(contract, SolidityContract):
-            codeinfo = contract.get_source_info(
-                self.address, constructor=(self.function == "constructor")
-            )
+            is_constructor = False
+            if (
+                contract.creation_code
+                in self.transaction_sequence["steps"][-1]["input"]
+                and self.function == "constructor"
+            ):
+                is_constructor = True
+
+            if self.source_location:
+                codeinfo = contract.get_source_info(
+                    self.source_location, constructor=is_constructor
+                )
+            else:
+                codeinfo = contract.get_source_info(
+                    self.address, constructor=is_constructor
+                )
 
             if codeinfo is None:
                 self.source_mapping = self.address
@@ -160,7 +177,7 @@ class Issue:
             self.source_mapping = self.address
 
     def resolve_function_names(self):
-        """ Resolves function names for each step """
+        """Resolves function names for each step"""
 
         if (
             self.transaction_sequence is None
@@ -175,13 +192,36 @@ class Issue:
 
             try:
                 sig = signatures.get(_hash)
-
+                # TODO: Check other mythx tools for dependency before supporting multiple possible function names
                 if len(sig) > 0:
                     step["name"] = sig[0]
+                    step["resolved_input"] = Issue.resolve_input(
+                        step["calldata"], sig[0]
+                    )
                 else:
                     step["name"] = "unknown"
             except ValueError:
                 step["name"] = "unknown"
+
+    @staticmethod
+    def resolve_input(data, function_name):
+        """
+        Adds decoded calldate to the tx sequence.
+        """
+        data = data[10:]
+
+        # Eliminates the first and last brackets
+        # Since signature such as func((bytes32,bytes32,uint8)[],(address[],uint32)) are valid
+        type_info = function_name[function_name.find("(") + 1 : -1]
+        type_info = re.split(r",\s*(?![^()]*\))", type_info)
+
+        if len(data) % 64 > 0:
+            data += "0" * (64 - len(data) % 64)
+        try:
+            decoded_output = decode_abi(type_info, bytes.fromhex(data))
+            return decoded_output
+        except Exception as e:
+            return None
 
 
 class Report:
@@ -224,7 +264,11 @@ class Report:
         :param issue:
         """
         m = hashlib.md5()
-        m.update((issue.contract + str(issue.address) + issue.title).encode("utf-8"))
+        m.update(
+            (issue.contract + issue.function + str(issue.address) + issue.title).encode(
+                "utf-8"
+            )
+        )
         issue.resolve_function_names()
         self.issues[m.digest()] = issue
 
@@ -262,14 +306,14 @@ class Report:
         # Setup issues
         _issues = []
 
-        for key, issue in self.issues.items():
+        for _, issue in self.issues.items():
 
             idx = self.source.get_source_index(issue.bytecode_hash)
             try:
                 title = SWC_TO_TITLE[issue.swc_id]
             except KeyError:
                 title = "Unspecified Security Issue"
-            extra = {"discoveryTime": int(issue.discovery_time * 10 ** 9)}
+            extra = {"discoveryTime": int(issue.discovery_time * 10**9)}
             if issue.transaction_sequence_jsonv2:
                 extra["testCases"] = [issue.transaction_sequence_jsonv2]
 
@@ -294,7 +338,7 @@ class Report:
 
         # Add execution info to meta
         analysis_duration = int(
-            round((time() - StartTime().global_start_time) * (10 ** 9))
+            round((time() - StartTime().global_start_time) * (10**9))
         )
         meta_data["mythril_execution_info"] = {"analysis_duration": analysis_duration}
         for execution_info in self.execution_info:

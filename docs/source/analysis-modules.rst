@@ -1,7 +1,7 @@
 Analysis Modules
 ================
 
-Mythril's detection capabilities are written in modules in the `/analysis/modules <https://github.com/ConsenSys/mythril/tree/master/mythril/analysis/modules>`_ directory.
+Mythril's detection capabilities are written in modules in the `/analysis/module/modules <https://github.com/ConsenSys/mythril/tree/master/mythril/analysis/module/modules>`_ directory.
 
 
 .. toctree::

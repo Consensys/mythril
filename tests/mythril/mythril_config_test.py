@@ -41,14 +41,6 @@ def test_set_rpc(rpc_type, host, port, success):
             config._set_rpc(rpc_type)
 
 
-def test_leveldb_config_addition():
-    config = ConfigParser()
-    config.add_section("defaults")
-    MythrilConfig._add_leveldb_option(config, "test")
-    assert config.has_section("defaults")
-    assert config.get("defaults", "leveldb_dir") == "test"
-
-
 def test_dynld_config_addition():
     config = ConfigParser()
     config.add_section("defaults")

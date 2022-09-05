@@ -1,4 +1,4 @@
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 from tests import BaseTestCase, TESTDATA, PROJECT_DIR, TESTS_DIR
 from mock import patch
 
@@ -11,7 +11,10 @@ def output_of(command):
     :param command:
     :return:
     """
-    return check_output(command, shell=True).decode("UTF-8")
+    try:
+        return check_output(command, shell=True).decode("UTF-8")
+    except CalledProcessError as exc:
+        return exc.output.decode("UTF-8")
 
 
 class CommandLineToolTestCase(BaseTestCase):

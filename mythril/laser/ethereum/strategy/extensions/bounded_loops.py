@@ -29,11 +29,11 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
     Ignores JUMPI instruction if the destination was targeted >JUMPDEST_LIMIT times.
     """
 
-    def __init__(self, super_strategy: BasicSearchStrategy, *args) -> None:
+    def __init__(self, super_strategy: BasicSearchStrategy, **kwargs) -> None:
         """"""
 
         self.super_strategy = super_strategy
-        self.bound = args[0][0]
+        self.bound = kwargs["loop_bound"]
 
         log.info(
             "Loaded search strategy extension: Loop bounds (limit = {})".format(
@@ -42,7 +42,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         )
 
         BasicSearchStrategy.__init__(
-            self, super_strategy.work_list, super_strategy.max_depth
+            self, super_strategy.work_list, super_strategy.max_depth, **kwargs
         )
 
     @staticmethod
@@ -102,7 +102,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
         return count
 
     def get_strategic_global_state(self) -> GlobalState:
-        """ Returns the next state
+        """Returns the next state
 
         :return: Global state
         """
@@ -135,7 +135,7 @@ class BoundedLoopsStrategy(BasicSearchStrategy):
             # TODO: There's probably a nicer way to do this
             if isinstance(
                 state.current_transaction, ContractCreationTransaction
-            ) and count < max(8, self.bound):
+            ) and count < max(128, self.bound):
                 return state
 
             elif count > self.bound:

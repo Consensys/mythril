@@ -4,6 +4,7 @@ underflows."""
 from math import log2, ceil
 from typing import cast, List, Set
 from mythril.analysis import solver
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import INTEGER_OVERFLOW_AND_UNDERFLOW
 from mythril.exceptions import UnsatError
@@ -31,7 +32,7 @@ log = logging.getLogger(__name__)
 
 
 class OverUnderflowAnnotation:
-    """ Symbol Annotation used if a BitVector can overflow"""
+    """Symbol Annotation used if a BitVector can overflow"""
 
     def __init__(
         self, overflowing_state: GlobalState, operator: str, constraint: Bool
@@ -46,7 +47,7 @@ class OverUnderflowAnnotation:
 
 
 class OverUnderflowStateAnnotation(StateAnnotation):
-    """ State Annotation used if an overflow is both possible and used in the annotated path"""
+    """State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(self) -> None:
         self.overflowing_state_annotations = set()  # type: Set[OverUnderflowAnnotation]
@@ -102,17 +103,12 @@ class IntegerArithmetics(DetectionModule):
         self._ostates_satisfiable = set()
         self._ostates_unsatisfiable = set()
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """Executes analysis module for integer underflow and integer overflow.
 
         :param state: Statespace to analyse
         :return: Found issues
         """
-
-        address = _get_address_from_state(state)
-
-        if address in self.cache:
-            return
 
         opcode = state.get_current_instruction()["opcode"]
 
@@ -127,8 +123,12 @@ class IntegerArithmetics(DetectionModule):
             "STOP": [self._handle_transaction_end],
             "EXP": [self._handle_exp],
         }
+        results = []
         for func in funcs[opcode]:
-            func(state)
+            result = func(state)
+            if result and len(result) > 0:
+                results += result
+        return results
 
     def _get_args(self, state):
         stack = state.mstate.stack
@@ -161,25 +161,24 @@ class IntegerArithmetics(DetectionModule):
 
     def _handle_exp(self, state):
         op0, op1 = self._get_args(state)
+
+        if (op1.symbolic is False and op1.value == 0) or (
+            op0.symbolic is False and op0.value < 2
+        ):
+            return
         if op0.symbolic and op1.symbolic:
             constraint = And(
                 op1 > symbol_factory.BitVecVal(256, 256),
                 op0 > symbol_factory.BitVecVal(1, 256),
             )
-        elif op1.symbolic:
-            if op0.value < 2:
-                return
-            constraint = op1 >= symbol_factory.BitVecVal(
-                ceil(256 / log2(op0.value)), 256
-            )
         elif op0.symbolic:
-            if op1.value == 0:
-                return
             constraint = op0 >= symbol_factory.BitVecVal(
                 2 ** ceil(256 / op1.value), 256
             )
         else:
-            constraint = op0.value ** op1.value >= 2 ** 256
+            constraint = op1 >= symbol_factory.BitVecVal(
+                ceil(256 / log2(op0.value)), 256
+            )
 
         annotation = OverUnderflowAnnotation(state, "exponentiation", constraint)
         op0.annotate(annotation)
@@ -208,7 +207,6 @@ class IntegerArithmetics(DetectionModule):
             return
 
         state_annotation = _get_overflowunderflow_state_annotation(state)
-
         for annotation in value.annotations:
             if isinstance(annotation, OverUnderflowAnnotation):
                 state_annotation.overflowing_state_annotations.add(annotation)
@@ -259,10 +257,10 @@ class IntegerArithmetics(DetectionModule):
                 if isinstance(annotation, OverUnderflowAnnotation):
                     state_annotation.overflowing_state_annotations.add(annotation)
 
-    def _handle_transaction_end(self, state: GlobalState) -> None:
+    def _handle_transaction_end(self, state: GlobalState) -> List[Issue]:
 
         state_annotation = _get_overflowunderflow_state_annotation(state)
-
+        issues = []
         for annotation in state_annotation.overflowing_state_annotations:
 
             ostate = annotation.overflowing_state
@@ -319,10 +317,13 @@ class IntegerArithmetics(DetectionModule):
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                 transaction_sequence=transaction_sequence,
             )
-
-            address = _get_address_from_state(ostate)
-            self.cache.add(address)
-            self.issues.append(issue)
+            state.annotate(
+                IssueAnnotation(
+                    issue=issue, detector=self, conditions=[And(*constraints)]
+                )
+            )
+            issues.append(issue)
+        return issues
 
 
 detector = IntegerArithmetics()

@@ -26,7 +26,7 @@ Get it with [Docker](https://www.docker.com):
 $ docker pull mythril/myth
 ```
 
-Install from Pypi:
+Install from Pypi (Python 3.6-3.9):
 
 ```bash
 $ pip3 install mythril
@@ -48,7 +48,7 @@ Or:
 $ myth analyze -a <contract-address>
 ```
 
-Specify the maximum number of transaction to explore with `-t <number>`. You can also set a timeout with `--execution-timeout <seconds>`. Example ([source code](https://gist.github.com/b-mueller/2b251297ce88aa7628680f50f177a81a#file-killbilly-sol)):
+Specify the maximum number of transaction to explore with `-t <number>`. You can also set a timeout with `--execution-timeout <seconds>`.
 
 ```
 > myth a killbilly.sol -t 3

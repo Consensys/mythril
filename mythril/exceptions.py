@@ -20,6 +20,13 @@ class UnsatError(MythrilBaseException):
     pass
 
 
+class SolverTimeOutException(UnsatError):
+    """A Mythril exception denoting the unsatisfiability of a series of
+    constraints."""
+
+    pass
+
+
 class NoContractFoundError(MythrilBaseException):
     """A Mythril exception denoting that a given contract file was not
     found."""
@@ -34,15 +41,14 @@ class CriticalError(MythrilBaseException):
     pass
 
 
-class AddressNotFoundError(MythrilBaseException):
-    """A Mythril exception denoting the given smart contract address was not
-    found."""
+class DetectorNotFoundError(MythrilBaseException):
+    """A Mythril exception denoting attempted usage of a non-existant
+    detection module."""
 
     pass
 
 
-class DetectorNotFoundError(MythrilBaseException):
-    """A Mythril exception denoting attempted usage of a non-existant
-    detection module."""
+class IllegalArgumentError(ValueError):
+    """The argument used does not exist"""
 
     pass

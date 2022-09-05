@@ -29,10 +29,10 @@ import pytest
 )
 def test_keccak_basic(input1, input2, expected):
     s = Solver()
-
-    o1, c1 = keccak_function_manager.create_keccak(input1)
-    o2, c2 = keccak_function_manager.create_keccak(input2)
-    s.add(And(c1, c2))
+    keccak_function_manager.reset()
+    o1 = keccak_function_manager.create_keccak(input1)
+    o2 = keccak_function_manager.create_keccak(input2)
+    s.add(keccak_function_manager.create_conditions())
 
     s.add(o1 == o2)
     assert s.check() == expected
@@ -44,11 +44,13 @@ def test_keccak_symbol_and_val():
     :return:
     """
     s = Solver()
+    keccak_function_manager.reset()
     hundred = symbol_factory.BitVecVal(100, 256)
     n = symbol_factory.BitVecSym("n", 256)
-    o1, c1 = keccak_function_manager.create_keccak(hundred)
-    o2, c2 = keccak_function_manager.create_keccak(n)
-    s.add(And(c1, c2))
+    o1 = keccak_function_manager.create_keccak(hundred)
+    o2 = keccak_function_manager.create_keccak(n)
+
+    s.add(keccak_function_manager.create_conditions())
     s.add(o1 == o2)
     s.add(n == symbol_factory.BitVecVal(10, 256))
     assert s.check() == z3.unsat
@@ -59,19 +61,20 @@ def test_keccak_complex_eq():
     check for keccak(keccak(b)*2) == keccak(keccak(a)*2) && a != b
     :return:
     """
+    keccak_function_manager.reset()
     s = Solver()
     a = symbol_factory.BitVecSym("a", 160)
     b = symbol_factory.BitVecSym("b", 160)
-    o1, c1 = keccak_function_manager.create_keccak(a)
-    o2, c2 = keccak_function_manager.create_keccak(b)
-    s.add(And(c1, c2))
+    o1 = keccak_function_manager.create_keccak(a)
+    o2 = keccak_function_manager.create_keccak(b)
+
     two = symbol_factory.BitVecVal(2, 256)
     o1 = two * o1
     o2 = two * o2
-    o1, c1 = keccak_function_manager.create_keccak(o1)
-    o2, c2 = keccak_function_manager.create_keccak(o2)
+    o1 = keccak_function_manager.create_keccak(o1)
+    o2 = keccak_function_manager.create_keccak(o2)
 
-    s.add(And(c1, c2))
+    s.add(keccak_function_manager.create_conditions())
     s.add(o1 == o2)
     s.add(a != b)
 
@@ -85,19 +88,20 @@ def test_keccak_complex_eq2():
     (solution is literally the opposite of prev one) so it will take forever to solve.
     :return:
     """
+    keccak_function_manager.reset()
     s = Solver()
     a = symbol_factory.BitVecSym("a", 160)
     b = symbol_factory.BitVecSym("b", 160)
-    o1, c1 = keccak_function_manager.create_keccak(a)
-    o2, c2 = keccak_function_manager.create_keccak(b)
-    s.add(And(c1, c2))
+    o1 = keccak_function_manager.create_keccak(a)
+    o2 = keccak_function_manager.create_keccak(b)
+
     two = symbol_factory.BitVecVal(2, 256)
     o1 = two * o1
     o2 = two * o2
-    o1, c1 = keccak_function_manager.create_keccak(o1)
-    o2, c2 = keccak_function_manager.create_keccak(o2)
+    o1 = keccak_function_manager.create_keccak(o1)
+    o2 = keccak_function_manager.create_keccak(o2)
 
-    s.add(And(c1, c2))
+    s.add(keccak_function_manager.create_conditions())
     s.add(o1 == o2)
 
     assert s.check() == z3.sat
@@ -108,12 +112,13 @@ def test_keccak_simple_number():
     check for keccak(b) == 10
     :return:
     """
+    keccak_function_manager.reset()
     s = Solver()
     a = symbol_factory.BitVecSym("a", 160)
     ten = symbol_factory.BitVecVal(10, 256)
-    o, c = keccak_function_manager.create_keccak(a)
+    o = keccak_function_manager.create_keccak(a)
 
-    s.add(c)
+    s.add(keccak_function_manager.create_conditions())
     s.add(ten == o)
 
     assert s.check() == z3.unsat
@@ -124,15 +129,17 @@ def test_keccak_other_num():
     check keccak(keccak(a)*2) == b
     :return:
     """
+    keccak_function_manager.reset()
     s = Solver()
     a = symbol_factory.BitVecSym("a", 160)
     b = symbol_factory.BitVecSym("b", 256)
-    o, c = keccak_function_manager.create_keccak(a)
+    o = keccak_function_manager.create_keccak(a)
     two = symbol_factory.BitVecVal(2, 256)
     o = two * o
-    s.add(c)
-    o, c = keccak_function_manager.create_keccak(o)
-    s.add(c)
+
+    o = keccak_function_manager.create_keccak(o)
+
+    s.add(keccak_function_manager.create_conditions())
     s.add(b == o)
 
     assert s.check() == z3.sat

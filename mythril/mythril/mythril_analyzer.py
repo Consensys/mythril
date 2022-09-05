@@ -4,8 +4,8 @@
 import logging
 import traceback
 from typing import Optional, List
+from argparse import Namespace
 
-from mythril.laser.ethereum.iprof import InstructionProfiler
 from . import MythrilDisassembler
 from mythril.support.source_support import Source
 from mythril.support.loader import DynLoader
@@ -33,49 +33,41 @@ class MythrilAnalyzer:
     def __init__(
         self,
         disassembler: MythrilDisassembler,
-        requires_dynld: bool = False,
-        use_onchain_data: bool = True,
+        cmd_args: Namespace,
         strategy: str = "dfs",
         address: Optional[str] = None,
-        max_depth: Optional[int] = None,
-        execution_timeout: Optional[int] = None,
-        loop_bound: Optional[int] = None,
-        create_timeout: Optional[int] = None,
-        enable_iprof: bool = False,
-        disable_dependency_pruning: bool = False,
-        solver_timeout: Optional[int] = None,
-        custom_modules_directory: str = "",
-        sparse_pruning: bool = False,
-        unconstrained_storage: bool = False,
-        parallel_solving: bool = False,
-        call_depth_limit: int = 3,
-        solver_log: Optional[str] = None,
     ):
         """
 
         :param disassembler: The MythrilDisassembler class
-        :param requires_dynld: whether dynamic loading should be done or not
-        :param onchain_storage_access: Whether onchain access should be done or not
+        :param cmd_args: The command line args Namespace
+        :param strategy: Search strategy
+        :param address: Address of the contract
         """
         self.eth = disassembler.eth
         self.contracts = disassembler.contracts or []  # type: List[EVMContract]
         self.enable_online_lookup = disassembler.enable_online_lookup
-        self.use_onchain_data = use_onchain_data
+        self.use_onchain_data = not cmd_args.no_onchain_data
         self.strategy = strategy
         self.address = address
-        self.max_depth = max_depth
-        self.execution_timeout = execution_timeout
-        self.loop_bound = loop_bound
-        self.create_timeout = create_timeout
-        self.disable_dependency_pruning = disable_dependency_pruning
-        self.custom_modules_directory = custom_modules_directory
-        args.sparse_pruning = sparse_pruning
-        args.solver_timeout = solver_timeout
-        args.parallel_solving = parallel_solving
-        args.unconstrained_storage = unconstrained_storage
-        args.call_depth_limit = call_depth_limit
-        args.iprof = enable_iprof
-        args.solver_log = solver_log
+        self.max_depth = cmd_args.max_depth
+        self.execution_timeout = cmd_args.execution_timeout
+        self.loop_bound = cmd_args.loop_bound
+        self.create_timeout = cmd_args.create_timeout
+        self.disable_dependency_pruning = cmd_args.disable_dependency_pruning
+        self.custom_modules_directory = (
+            cmd_args.custom_modules_directory
+            if cmd_args.custom_modules_directory
+            else ""
+        )
+        args.pruning_factor = cmd_args.pruning_factor
+        args.solver_timeout = cmd_args.solver_timeout
+        args.parallel_solving = cmd_args.parallel_solving
+        args.unconstrained_storage = cmd_args.unconstrained_storage
+        args.call_depth_limit = cmd_args.call_depth_limit
+        args.iprof = cmd_args.enable_iprof
+        args.solver_log = cmd_args.solver_log
+        args.transaction_sequences = cmd_args.transaction_sequences
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """

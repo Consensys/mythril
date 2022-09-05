@@ -14,8 +14,8 @@ class Expression(Generic[T]):
     def __init__(self, raw: T, annotations: Optional[Annotations] = None):
         """
 
-        :param raw: 
-        :param annotations: 
+        :param raw:
+        :param annotations:
         """
         self.raw = raw
 

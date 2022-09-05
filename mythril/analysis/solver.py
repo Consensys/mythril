@@ -1,13 +1,14 @@
 """This module contains analysis module helpers to solve path constraints."""
-import logging
-from typing import Dict, List, Tuple, Union
+
+from typing import Dict, List, Tuple, Union, Any
 
 import z3
+import logging
+
 from z3 import FuncInterp
 
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.function_managers import (
-    exponent_function_manager,
     keccak_function_manager,
 )
 
@@ -21,10 +22,13 @@ from mythril.laser.smt import UGE, symbol_factory
 from mythril.support.model import get_model
 
 log = logging.getLogger(__name__)
+z3.set_option(
+    max_args=10000000, max_lines=1000000, max_depth=10000000, max_visited=1000000
+)
 
 
 def pretty_print_model(model):
-    """ Pretty prints a z3 model
+    """Pretty prints a z3 model
 
     :param model:
     :return:
@@ -49,34 +53,37 @@ def pretty_print_model(model):
 
 def get_transaction_sequence(
     global_state: GlobalState, constraints: Constraints
-) -> Dict:
+) -> Dict[str, Any]:
     """Generate concrete transaction sequence.
+    Note: This function only considers the constraints in constraint argument,
+    which in some cases is expected to differ from global_state's constraints
 
     :param global_state: GlobalState to generate transaction sequence for
     :param constraints: list of constraints used to generate transaction sequence
     """
-
     transaction_sequence = global_state.world_state.transaction_sequence
-
     concrete_transactions = []
-
     tx_constraints, minimize = _set_minimisation_constraints(
         transaction_sequence, constraints.copy(), [], 5000, global_state.world_state
     )
+
     try:
         model = get_model(tx_constraints, minimize=minimize)
     except UnsatError:
         raise UnsatError
-    # Include creation account in initial state
-    # Note: This contains the code, which should not exist until after the first tx
-    initial_world_state = transaction_sequence[0].world_state
+
+    if isinstance(transaction_sequence[0], ContractCreationTransaction):
+        initial_world_state = transaction_sequence[0].prev_world_state
+    else:
+        initial_world_state = transaction_sequence[0].world_state
+
     initial_accounts = initial_world_state.accounts
 
     for transaction in transaction_sequence:
         concrete_transaction = _get_concrete_transaction(model, transaction)
         concrete_transactions.append(concrete_transaction)
 
-    min_price_dict = {}  # type: Dict[str, int]
+    min_price_dict: Dict[str, int] = {}
     for address in initial_accounts.keys():
         min_price_dict[address] = model.eval(
             initial_world_state.starting_balances[
@@ -111,7 +118,11 @@ def _add_calldata_placeholder(
         tx["calldata"] = tx["input"]
     if not isinstance(transaction_sequence[0], ContractCreationTransaction):
         return
-    code_len = len(transaction_sequence[0].code.bytecode)
+
+    if type(transaction_sequence[0].code.bytecode) == tuple:
+        code_len = len(transaction_sequence[0].code.bytecode) * 2
+    else:
+        code_len = len(transaction_sequence[0].code.bytecode)
     concrete_transactions[0]["calldata"] = concrete_transactions[0]["input"][
         code_len + 2 :
     ]
@@ -156,15 +167,17 @@ def _replace_with_actual_sha(
             )
 
 
-def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
-    """ Gets a concrete state """
+def _get_concrete_state(
+    initial_accounts: Dict, min_price_dict: Dict[str, int]
+) -> Dict[str, Dict]:
+    """Gets a concrete state"""
     accounts = {}
     for address, account in initial_accounts.items():
         # Skip empty default account
 
-        data = dict()  # type: Dict[str, Union[int, str]]
+        data: Dict[str, Union[int, str]] = {}
         data["nonce"] = account.nonce
-        data["code"] = account.code.bytecode
+        data["code"] = account.serialised_code()
         data["storage"] = str(account.storage)
         data["balance"] = hex(min_price_dict.get(address, 0))
         accounts[hex(address)] = data
@@ -172,7 +185,7 @@ def _get_concrete_state(initial_accounts: Dict, min_price_dict: Dict[str, int]):
 
 
 def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
-    """ Gets a concrete transaction from a transaction and z3 model"""
+    """Gets a concrete transaction from a transaction and z3 model"""
     # Get concrete values from transaction
     address = hex(transaction.callee_account.address.value)
     value = model.eval(transaction.call_value.raw, model_completion=True).as_long()
@@ -206,7 +219,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
 def _set_minimisation_constraints(
     transaction_sequence, constraints, minimize, max_size, world_state
 ) -> Tuple[Constraints, tuple]:
-    """ Set constraints that minimise key transaction values
+    """Set constraints that minimise key transaction values
 
     Constraints generated:
     - Upper bound on calldata size

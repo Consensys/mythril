@@ -59,6 +59,7 @@ class ExternalCalls(DetectionModule):
         :param state:
         :return:
         """
+
         potential_issues = self._analyze_state(state)
 
         annotation = get_potential_issues_annotation(state)

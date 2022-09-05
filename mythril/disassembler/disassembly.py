@@ -23,8 +23,10 @@ class Disassembly(object):
         :param enable_online_lookup:
         """
         self.bytecode = code
-        self.instruction_list = asm.disassemble(util.safe_decode(code))
-
+        if type(code) == str:
+            self.instruction_list = asm.disassemble(util.safe_decode(code))
+        else:
+            self.instruction_list = asm.disassemble(code)
         self.func_hashes = []  # type: List[str]
         self.function_name_to_address = {}  # type: Dict[str, int]
         self.address_to_function_name = {}  # type: Dict[int, str]
@@ -36,7 +38,7 @@ class Disassembly(object):
         # open from default locations
         # control if you want to have online signature hash lookups
         signatures = SignatureDB(enable_online_lookup=self.enable_online_lookup)
-        self.instruction_list = asm.disassemble(util.safe_decode(bytecode))
+        self.instruction_list = asm.disassemble(bytecode)
         # Need to take from PUSH1 to PUSH4 because solc seems to remove excess 0s at the beginning for optimizing
         jump_table_indices = asm.find_op_code_sequence(
             [("PUSH1", "PUSH2", "PUSH3", "PUSH4"), ("EQ",)], self.instruction_list
@@ -82,16 +84,29 @@ def get_function_info(
     """
 
     # Append with missing 0s at the beginning
-    function_hash = "0x" + instruction_list[index]["argument"][2:].rjust(8, "0")
+    if type(instruction_list[index]["argument"]) == tuple:
+        try:
+            function_hash = "0x" + bytes(
+                instruction_list[index]["argument"]
+            ).hex().rjust(8, "0")
+        except AttributeError:
+            raise ValueError(
+                "Mythril currently does not support symbolic function signatures"
+            )
+    else:
+        function_hash = "0x" + instruction_list[index]["argument"][2:].rjust(8, "0")
+
     function_names = signature_database.get(function_hash)
 
     if len(function_names) > 0:
-        function_name = function_names[0]
+        function_name = " or ".join(set(function_names))
     else:
         function_name = "_function_" + function_hash
 
     try:
         offset = instruction_list[index + 2]["argument"]
+        if type(offset) == tuple:
+            offset = bytes(offset).hex()
         entry_point = int(offset, 16)
     except (KeyError, IndexError):
         return function_hash, None, None

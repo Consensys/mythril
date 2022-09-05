@@ -4,7 +4,7 @@ from typing import Union, List
 
 
 class Model:
-    """ The model class wraps a z3 model
+    """The model class wraps a z3 model
 
     This implementation allows for multiple internal models, this is required for the use of an independence solver
     which has models for multiple queries which need an uniform output.
@@ -25,10 +25,10 @@ class Model:
         return result
 
     def __getitem__(self, item) -> Union[None, z3.ExprRef]:
-        """ Get declaration from model
-         If item is an int, then the declaration at offset item is returned
-         If item is a declaration, then the interpretation is returned
-         """
+        """Get declaration from model
+        If item is an int, then the declaration at offset item is returned
+        If item is a declaration, then the interpretation is returned
+        """
         for internal_model in self.raw:
             is_last_model = self.raw.index(internal_model) == len(self.raw) - 1
 
@@ -45,7 +45,7 @@ class Model:
     def eval(
         self, expression: z3.ExprRef, model_completion: bool = False
     ) -> Union[None, z3.ExprRef]:
-        """ Evaluate the expression using this model
+        """Evaluate the expression using this model
 
         :param expression: The expression to evaluate
         :param model_completion: Use the default value if the model has no interpretation of the given expression

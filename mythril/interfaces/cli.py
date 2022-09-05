@@ -13,24 +13,23 @@ import sys
 
 import coloredlogs
 import traceback
+from ast import literal_eval
 
 import mythril.support.signatures as sigs
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
+from mythril.concolic import concolic_execution
 from mythril.exceptions import (
-    AddressNotFoundError,
     DetectorNotFoundError,
     CriticalError,
 )
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
+from mythril.plugin.discovery import PluginDiscovery
 from mythril.plugin.loader import MythrilPluginLoader
-from mythril.mythril import (
-    MythrilAnalyzer,
-    MythrilDisassembler,
-    MythrilConfig,
-    MythrilLevelDB,
-)
+
+from mythril.mythril import MythrilAnalyzer, MythrilDisassembler, MythrilConfig
 
 from mythril.analysis.module import ModuleLoader
+from mythril.analysis.report import Report
 
 from mythril.__version__ import __version__ as VERSION
 
@@ -40,19 +39,29 @@ _ = MythrilPluginLoader()
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
 
+CONCOLIC_LIST = ("concolic", "c")
+SAFE_FUNCTIONS_COMMAND = "safe-functions"
+READ_STORAGE_COMNAND = "read-storage"
+FUNCTION_TO_HASH_COMMAND = "function-to-hash"
+HASH_TO_ADDRESS_COMMAND = "hash-to-address"
+LIST_DETECTORS_COMMAND = "list-detectors"
+VERSION_COMMAND = "version"
+HELP_COMMAND = "help"
+
 log = logging.getLogger(__name__)
 
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
+    + CONCOLIC_LIST
     + (
-        "read-storage",
-        "leveldb-search",
-        "function-to-hash",
-        "hash-to-address",
-        "list-detectors",
-        "version",
-        "help",
+        READ_STORAGE_COMNAND,
+        SAFE_FUNCTIONS_COMMAND,
+        FUNCTION_TO_HASH_COMMAND,
+        HASH_TO_ADDRESS_COMMAND,
+        LIST_DETECTORS_COMMAND,
+        VERSION_COMMAND,
+        HELP_COMMAND,
     )
 )
 
@@ -124,6 +133,28 @@ def get_creation_input_parser() -> ArgumentParser:
     return parser
 
 
+def get_safe_functions_parser() -> ArgumentParser:
+    """
+    Returns Parser which handles checking for safe functions
+    :return: Parser which handles checking for safe functions
+    """
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument(
+        "-c",
+        "--code",
+        help='hex-encoded bytecode string ("6060604052...")',
+        metavar="BYTECODE",
+    )
+    parser.add_argument(
+        "-f",
+        "--codefile",
+        help="file containing hex-encoded bytecode string",
+        metavar="BYTECODEFILE",
+        type=argparse.FileType("r"),
+    )
+    return parser
+
+
 def get_output_parser() -> ArgumentParser:
     """
     Get parser which handles output
@@ -156,6 +187,8 @@ def get_rpc_parser() -> ArgumentParser:
     parser.add_argument(
         "--rpctls", type=bool, default=False, help="RPC connection over TLS"
     )
+    parser.add_argument("--infura-id", help="set infura id for onchain analysis")
+
     return parser
 
 
@@ -177,6 +210,29 @@ def get_utilities_parser() -> ArgumentParser:
     return parser
 
 
+def create_concolic_parser(parser: ArgumentParser) -> ArgumentParser:
+    """
+    Get parser which handles arguments for concolic branch flipping
+    """
+    parser.add_argument(
+        "input",
+        help="The input jsonv2 file with concrete data",
+    )
+    parser.add_argument(
+        "--branches",
+        help="branch addresses to be flipped. usage: --branches 34,6f8,16a",
+        required=True,
+        metavar="BRANCH",
+    )
+    parser.add_argument(
+        "--solver-timeout",
+        type=int,
+        default=100000,
+        help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
+    )
+    return parser
+
+
 def main() -> None:
     """The main CLI interface entry point."""
 
@@ -185,6 +241,7 @@ def main() -> None:
     runtime_input_parser = get_runtime_input_parser()
     creation_input_parser = get_creation_input_parser()
     output_parser = get_output_parser()
+
     parser = argparse.ArgumentParser(
         description="Security analysis of Ethereum smart contracts"
     )
@@ -194,6 +251,18 @@ def main() -> None:
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Commands")
+    safe_function_parser = subparsers.add_parser(
+        SAFE_FUNCTIONS_COMMAND,
+        help="Check functions which are completely safe using symbolic execution",
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            creation_input_parser,
+            runtime_input_parser,
+            output_parser,
+        ],
+        formatter_class=RawTextHelpFormatter,
+    )
     analyzer_parser = subparsers.add_parser(
         ANALYZE_LIST[0],
         help="Triggers the analysis of the smart contract",
@@ -207,6 +276,7 @@ def main() -> None:
         aliases=ANALYZE_LIST[1:],
         formatter_class=RawTextHelpFormatter,
     )
+    create_safe_functions_parser(safe_function_parser)
     create_analyzer_parser(analyzer_parser)
 
     disassemble_parser = subparsers.add_parser(
@@ -223,8 +293,18 @@ def main() -> None:
     )
     create_disassemble_parser(disassemble_parser)
 
+    if PluginDiscovery().is_installed("myth_concolic_execution"):
+        concolic_parser = subparsers.add_parser(
+            CONCOLIC_LIST[0],
+            help="Runs concolic execution to flip the desired branches",
+            aliases=CONCOLIC_LIST[1:],
+            parents=[],
+            formatter_class=RawTextHelpFormatter,
+        )
+        create_concolic_parser(concolic_parser)
+
     subparsers.add_parser(
-        "list-detectors",
+        LIST_DETECTORS_COMMAND,
         parents=[output_parser],
         help="Lists available detection modules",
     )
@@ -233,25 +313,21 @@ def main() -> None:
         help="Retrieves storage slots from a given address through rpc",
         parents=[rpc_parser],
     )
-    leveldb_search_parser = subparsers.add_parser(
-        "leveldb-search", help="Searches the code fragment in local leveldb"
-    )
     contract_func_to_hash = subparsers.add_parser(
-        "function-to-hash", help="Returns the hash signature of the function"
+        FUNCTION_TO_HASH_COMMAND, help="Returns the hash signature of the function"
     )
     contract_hash_to_addr = subparsers.add_parser(
-        "hash-to-address",
+        HASH_TO_ADDRESS_COMMAND,
         help="converts the hashes in the blockchain to ethereum address",
     )
     subparsers.add_parser(
-        "version", parents=[output_parser], help="Outputs the version"
+        VERSION_COMMAND, parents=[output_parser], help="Outputs the version"
     )
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
-    create_leveldb_parser(leveldb_search_parser)
 
-    subparsers.add_parser("help", add_help=False)
+    subparsers.add_parser(HELP_COMMAND, add_help=False)
 
     # Get config values
 
@@ -291,20 +367,6 @@ def create_read_storage_parser(read_storage_parser: ArgumentParser):
     )
 
 
-def create_leveldb_parser(parser: ArgumentParser):
-    """
-    Modify parser to handle leveldb-search
-    :param parser:
-    :return:
-    """
-    parser.add_argument("search")
-    parser.add_argument(
-        "--leveldb-dir",
-        help="specify leveldb directory for search or direct access operations",
-        metavar="LEVELDB_PATH",
-    )
-
-
 def create_func_to_hash_parser(parser: ArgumentParser):
     """
     Modify parser to handle func_to_hash command
@@ -325,26 +387,10 @@ def create_hash_to_addr_parser(hash_parser: ArgumentParser):
     hash_parser.add_argument(
         "hash", help="Find the address from hash", metavar="FUNCTION_NAME"
     )
-    hash_parser.add_argument(
-        "--leveldb-dir",
-        help="specify leveldb directory for search or direct access operations",
-        metavar="LEVELDB_PATH",
-    )
 
 
-def create_analyzer_parser(analyzer_parser: ArgumentParser):
-    """
-    Modify parser to handle analyze command
-    :param analyzer_parser:
-    :return:
-    """
-    analyzer_parser.add_argument(
-        "solidity_files",
-        nargs="*",
-        help="Inputs file name and contract name. \n"
-        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
-    )
-    commands = analyzer_parser.add_argument_group("commands")
+def add_graph_commands(parser: ArgumentParser):
+    commands = parser.add_argument_group("commands")
     commands.add_argument("-g", "--graph", help="generate a control flow graph")
     commands.add_argument(
         "-j",
@@ -352,9 +398,31 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="dumps the statespace json",
         metavar="OUTPUT_FILE",
     )
-    commands.add_argument("--infura-id", help="set infura id for onchain analysis")
 
-    options = analyzer_parser.add_argument_group("options")
+
+def create_safe_functions_parser(parser: ArgumentParser):
+    """
+    The duplication exists between safe-functions and analyze as some of them have different default values.
+    :param parser: Parser
+    """
+    parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
+
+    options = parser.add_argument_group("options")
+    add_analysis_args(options)
+
+
+def add_analysis_args(options):
+    """
+    Adds arguments for analysis
+
+    :param options: Analysis Options
+    """
+
     options.add_argument(
         "-m",
         "--modules",
@@ -379,6 +447,20 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         choices=["dfs", "bfs", "naive-random", "weighted-random"],
         default="bfs",
         help="Symbolic execution strategy",
+    )
+    options.add_argument(
+        "--transaction-sequences",
+        type=str,
+        default=None,
+        help="The possible transaction sequences to be executed. "
+        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where for the first transaction is constrained "
+        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3",
+    )
+    options.add_argument(
+        "--beam-search",
+        type=int,
+        default=None,
+        help="Beam search with with",
     )
     options.add_argument(
         "-b",
@@ -429,9 +511,10 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
         help="Don't attempt to retrieve contract code, variables and balances from the blockchain",
     )
     options.add_argument(
-        "--sparse-pruning",
-        action="store_true",
-        help="Checks for reachability after the end of tx. Recommended for short execution timeouts < 1 min",
+        "--pruning-factor",
+        type=float,
+        default=1,
+        help="Checks for reachability at the rate of <pruning-factor> (range 0-1.0). Where 1.0 would mean checking for every execution",
     )
     options.add_argument(
         "--unconstrained-storage",
@@ -481,6 +564,23 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     )
 
 
+def create_analyzer_parser(analyzer_parser: ArgumentParser):
+    """
+    Modify parser to handle analyze command
+    :param analyzer_parser:
+    :return:
+    """
+    analyzer_parser.add_argument(
+        "solidity_files",
+        nargs="*",
+        help="Inputs file name and contract name. \n"
+        "usage: file1.sol:OptionalContractName file2.sol file3.sol:OptionalContractName",
+    )
+    add_graph_commands(analyzer_parser)
+    options = analyzer_parser.add_argument_group("options")
+    add_analysis_args(options)
+
+
 def validate_args(args: Namespace):
     """
     Validate cli args
@@ -505,8 +605,23 @@ def validate_args(args: Namespace):
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
             )
+
     if args.command in DISASSEMBLE_LIST and len(args.solidity_files) > 1:
         exit_with_error("text", "Only a single arg is supported for using disassemble")
+
+    if args.__dict__.get("transaction_sequences", None):
+        try:
+            args.transaction_sequences = literal_eval(str(args.transaction_sequences))
+        except ValueError:
+            exit_with_error(
+                args.outform,
+                "The transaction sequence is in incorrect format, It should be "
+                "[list of possible function hashes in 1st transaction, "
+                "list of possible func hashes in 2nd tx, ..]"
+                "If any list is empty then all possible functions are considered for that transaction",
+            )
+        if len(args.transaction_sequences) != args.transaction_count:
+            args.transaction_count = len(args.transaction_sequences)
 
     if args.command in ANALYZE_LIST:
         if args.query_signature and sigs.ethereum_input_decoder is None:
@@ -539,37 +654,8 @@ def set_config(args: Namespace):
     if args.__dict__.get("rpc", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
-    if args.command in ("hash-to-address", "leveldb-search"):
-        # Open LevelDB if necessary
-        if not args.__dict__.get("leveldb_dir", None):
-            leveldb_dir = config.leveldb_dir
-        else:
-            leveldb_dir = args.leveldb_dir
-        config.set_api_leveldb(leveldb_dir)
+
     return config
-
-
-def leveldb_search(config: MythrilConfig, args: Namespace):
-    """
-    Handle leveldb search
-    :param config:
-    :param args:
-    :return:
-    """
-    if args.command in ("hash-to-address", "leveldb-search"):
-        leveldb_searcher = MythrilLevelDB(config.eth_db)
-        if args.command == "leveldb-search":
-            # Database search ops
-            leveldb_searcher.search_db(args.search)
-
-        else:
-            # search corresponding address
-            try:
-                leveldb_searcher.contract_hash_to_address(args.hash)
-            except AddressNotFoundError:
-                print("Address not found.")
-
-        sys.exit()
 
 
 def load_code(disassembler: MythrilDisassembler, args: Namespace):
@@ -610,6 +696,29 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
     return address
 
 
+def print_function_report(myth_disassembler: MythrilDisassembler, report: Report):
+    """
+    Prints the function report
+    :param report: Mythril's report
+    :return:
+    """
+    contract_data = {}
+    for contract in myth_disassembler.contracts:
+        contract_data[contract.name] = list(
+            set(contract.disassembly.address_to_function_name.values())
+        )
+
+    for issue in report.issues.values():
+        if issue.function in contract_data[issue.contract]:
+            contract_data[issue.contract].remove(issue.function)
+
+    for contract, function_list in contract_data.items():
+        print(f"Contract {contract}: \n")
+        print(
+            f"""{len(function_list)} functions are deemed safe in this contract: {", ".join(function_list)}\n\n"""
+        )
+
+
 def execute_command(
     disassembler: MythrilDisassembler,
     address: str,
@@ -624,6 +733,10 @@ def execute_command(
     :param args:
     :return:
     """
+    if args.__dict__.get("beam_search"):
+        strategy = f"beam-search: {args.beam_search}"
+    else:
+        strategy = args.__dict__.get("strategy")
 
     if args.command == "read-storage":
         storage = disassembler.get_state_variable_from_storage(
@@ -638,27 +751,30 @@ def execute_command(
         if disassembler.contracts[0].creation_code:
             print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
 
+    elif args.command == SAFE_FUNCTIONS_COMMAND:
+        args.unconstrained_storage = True
+        args.pruning_factor = 1
+        args.disable_dependency_pruning = True
+        args.no_onchain_data = True
+        function_analyzer = MythrilAnalyzer(
+            strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
+        )
+        try:
+            report = function_analyzer.fire_lasers(
+                modules=[m.strip() for m in args.modules.strip().split(",")]
+                if args.modules
+                else None,
+                transaction_count=1,
+            )
+            print_function_report(disassembler, report)
+        except DetectorNotFoundError as e:
+            exit_with_error("text", format(e))
+        except CriticalError as e:
+            exit_with_error("text", "Analysis error encountered: " + format(e))
+
     elif args.command in ANALYZE_LIST:
         analyzer = MythrilAnalyzer(
-            strategy=args.strategy,
-            disassembler=disassembler,
-            address=address,
-            max_depth=args.max_depth,
-            execution_timeout=args.execution_timeout,
-            loop_bound=args.loop_bound,
-            create_timeout=args.create_timeout,
-            enable_iprof=args.enable_iprof,
-            disable_dependency_pruning=args.disable_dependency_pruning,
-            use_onchain_data=not args.no_onchain_data,
-            solver_timeout=args.solver_timeout,
-            parallel_solving=args.parallel_solving,
-            custom_modules_directory=args.custom_modules_directory
-            if args.custom_modules_directory
-            else "",
-            call_depth_limit=args.call_depth_limit,
-            sparse_pruning=args.sparse_pruning,
-            unconstrained_storage=args.unconstrained_storage,
-            solver_log=args.solver_log,
+            strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )
 
         if not disassembler.contracts:
@@ -722,6 +838,10 @@ def execute_command(
                     "markdown": report.as_markdown(),
                 }
                 print(outputs[args.outform])
+                if len(report.issues) > 0:
+                    exit(1)
+                else:
+                    exit(0)
             except DetectorNotFoundError as e:
                 exit_with_error(args.outform, format(e))
             except CriticalError as e:
@@ -760,14 +880,14 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         parser.print_help()
         sys.exit()
 
-    if args.command == "version":
+    if args.command == VERSION_COMMAND:
         if args.outform == "json":
             print(json.dumps({"version_str": VERSION}))
         else:
             print("Mythril version {}".format(VERSION))
         sys.exit()
 
-    if args.command == "list-detectors":
+    if args.command == LIST_DETECTORS_COMMAND:
         modules = []
         for module in ModuleLoader().get_detection_modules():
             modules.append({"classname": type(module).__name__, "title": module.name})
@@ -778,17 +898,26 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
                 print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
 
-    if args.command == "help":
+    if args.command == HELP_COMMAND:
         parser.print_help()
+        sys.exit()
+
+    if args.command in CONCOLIC_LIST:
+        _ = MythrilConfig.init_mythril_dir()
+        with open(args.input) as f:
+            concrete_data = json.load(f)
+        output_list = concolic_execution(
+            concrete_data, args.branches.split(","), args.solver_timeout
+        )
+        json.dump(output_list, sys.stdout, indent=4)
         sys.exit()
 
     # Parse cmdline args
     validate_args(args)
     try:
-        if args.command == "function-to-hash":
+        if args.command == FUNCTION_TO_HASH_COMMAND:
             contract_hash_to_address(args)
         config = set_config(args)
-        leveldb_search(config, args)
         query_signature = args.__dict__.get("query_signature", None)
         solc_json = args.__dict__.get("solc_json", None)
         solv = args.__dict__.get("solv", None)

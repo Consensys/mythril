@@ -1,8 +1,11 @@
 """This module contains the class used to represent state-change constraints in
 the call graph."""
-from mythril.exceptions import UnsatError
-from mythril.laser.smt import Bool, simplify
+from mythril.exceptions import UnsatError, SolverTimeOutException
+from mythril.laser.smt import symbol_factory, simplify, Bool
 from mythril.support.model import get_model
+from mythril.laser.ethereum.function_managers import keccak_function_manager
+
+from copy import copy
 from typing import Iterable, List, Optional, Union
 
 
@@ -22,14 +25,19 @@ class Constraints(list):
         constraint_list = self._get_smt_bool_list(constraint_list)
         super(Constraints, self).__init__(constraint_list)
 
-    @property
-    def is_possible(self) -> bool:
+    def is_possible(self, solver_timeout=None) -> bool:
         """
+        :param solver_timeout: The default timeout uses analysis timeout from args.solver_timeout
         :return: True/False based on the existence of solution of constraints
         """
-
         try:
-            get_model(tuple(self[:]))
+            get_model(self, solver_timeout=solver_timeout)
+        except SolverTimeOutException:
+            # If it uses the long analysis solver timeout
+            if solver_timeout is None:
+                return False
+            # If it uses a short custom solver timeout
+            return True
         except UnsatError:
             return False
         return True
@@ -40,23 +48,18 @@ class Constraints(list):
         :param constraint: The constraint to be appended
         """
         constraint = (
-            simplify(constraint) if isinstance(constraint, Bool) else Bool(constraint)
+            simplify(constraint)
+            if isinstance(constraint, Bool)
+            else symbol_factory.Bool(constraint)
         )
         super(Constraints, self).append(constraint)
-
-    def pop(self, index: int = -1) -> None:
-        """
-
-        :param index: Index to be popped from the list
-        """
-        raise NotImplementedError
 
     @property
     def as_list(self) -> List[Bool]:
         """
         :return: returns the list of constraints
         """
-        return self[:]
+        return self[:] + [keccak_function_manager.create_conditions()]
 
     def __copy__(self) -> "Constraints":
         """
@@ -75,7 +78,10 @@ class Constraints(list):
         :param memodict:
         :return: The copied constraint List
         """
-        return self.__copy__()
+        new_constraints = Constraints()
+        for constraint in self:
+            new_constraints.append(copy(constraint))
+        return new_constraints
 
     def __add__(self, constraints: List[Union[bool, Bool]]) -> "Constraints":
         """
@@ -100,9 +106,14 @@ class Constraints(list):
     @staticmethod
     def _get_smt_bool_list(constraints: Iterable[Union[bool, Bool]]) -> List[Bool]:
         return [
-            constraint if isinstance(constraint, Bool) else Bool(constraint)
+            constraint
+            if isinstance(constraint, Bool)
+            else symbol_factory.Bool(constraint)
             for constraint in constraints
         ]
+
+    def get_all_constraints(self):
+        return self[:] + [keccak_function_manager.create_conditions()]
 
     def __hash__(self):
         return tuple(self[:]).__hash__()

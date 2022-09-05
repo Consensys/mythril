@@ -59,11 +59,15 @@ def If(
     if isinstance(b, BaseArray) and isinstance(c, BaseArray):
         array = z3.If(a.raw, b.raw, c.raw)
         return _z3_array_converter(array)
-
+    default_sort_size = 256
+    if isinstance(b, BitVec):
+        default_sort_size = b.size()
+    if isinstance(c, BitVec):
+        default_sort_size = c.size()
     if not isinstance(b, BitVec):
-        b = BitVec(z3.BitVecVal(b, 256))
+        b = BitVec(z3.BitVecVal(b, default_sort_size))
     if not isinstance(c, BitVec):
-        c = BitVec(z3.BitVecVal(c, 256))
+        c = BitVec(z3.BitVecVal(c, default_sort_size))
     union = a.annotations.union(b.annotations).union(c.annotations)
     return BitVec(z3.If(a.raw, b.raw, c.raw), union)
 
@@ -79,7 +83,7 @@ def UGT(a: BitVec, b: BitVec) -> Bool:
 
 
 def UGE(a: BitVec, b: BitVec) -> Bool:
-    """Create an unsigned greater or equals expression.
+    """Create an unsigned greater than or equal to expression.
 
     :param a:
     :param b:
@@ -99,7 +103,7 @@ def ULT(a: BitVec, b: BitVec) -> Bool:
 
 
 def ULE(a: BitVec, b: BitVec) -> Bool:
-    """Create an unsigned less than expression.
+    """Create an unsigned less than or equal to expression.
 
     :param a:
     :param b:
@@ -126,12 +130,12 @@ def Concat(*args: Union[BitVec, List[BitVec]]) -> BitVec:
     """
     # The following statement is used if a list is provided as an argument to concat
     if len(args) == 1 and isinstance(args[0], list):
-        bvs = args[0]  # type: List[BitVec]
+        bvs: List[BitVec] = args[0]
     else:
         bvs = cast(List[BitVec], args)
 
     nraw = z3.Concat([a.raw for a in bvs])
-    annotations = set()  # type: Annotations
+    annotations: Annotations = set()
 
     for bv in bvs:
         annotations = annotations.union(bv.annotations)

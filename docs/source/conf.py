@@ -132,7 +132,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "Mythril.tex", "Mythril Documentation", "Bernhard Mueller", "manual")
+    (
+        master_doc,
+        "Mythril.tex",
+        "Mythril Documentation",
+        "ConsenSys Dilligence",
+        "manual",
+    )
 ]
 
 

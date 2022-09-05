@@ -42,7 +42,7 @@ def wei_to_ether(wei):
     :param wei:
     :return:
     """
-    return 1.0 * wei / 10 ** 18
+    return 1.0 * wei / 10**18
 
 
 def ether_to_wei(ether):
@@ -51,4 +51,4 @@ def ether_to_wei(ether):
     :param ether:
     :return:
     """
-    return ether * 10 ** 18
+    return ether * 10**18

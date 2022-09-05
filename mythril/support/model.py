@@ -5,15 +5,21 @@ from pathlib import Path
 from mythril.support.support_args import args
 from mythril.laser.smt import Optimize
 from mythril.laser.ethereum.time_handler import time_handler
-from mythril.exceptions import UnsatError
+from mythril.exceptions import UnsatError, SolverTimeOutException
 import logging
 
 log = logging.getLogger(__name__)
 # LRU cache works great when used in powers of 2
 
 
-@lru_cache(maxsize=2 ** 23)
-def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True):
+@lru_cache(maxsize=2**23)
+def get_model(
+    constraints,
+    minimize=(),
+    maximize=(),
+    enforce_execution_time=True,
+    solver_timeout=None,
+):
     """
     Returns a model based on given constraints as a tuple
     :param constraints: Tuple of constraints
@@ -23,7 +29,7 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     :return:
     """
     s = Optimize()
-    timeout = args.solver_timeout
+    timeout = solver_timeout or args.solver_timeout
     if enforce_execution_time:
         timeout = min(timeout, time_handler.time_remaining() - 500)
         if timeout <= 0:
@@ -32,7 +38,8 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
     for constraint in constraints:
         if type(constraint) == bool and not constraint:
             raise UnsatError
-
+    if type(constraints) != tuple:
+        constraints = constraints.get_all_constraints()
     constraints = [constraint for constraint in constraints if type(constraint) != bool]
 
     for constraint in constraints:
@@ -59,4 +66,5 @@ def get_model(constraints, minimize=(), maximize=(), enforce_execution_time=True
         return s.model()
     elif result == unknown:
         log.debug("Timeout/Error encountered while solving expression using z3")
+        raise SolverTimeOutException
     raise UnsatError

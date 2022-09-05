@@ -2,6 +2,7 @@ from mythril.analysis import solver
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNPROTECTED_SELFDESTRUCT
 from mythril.exceptions import UnsatError
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
@@ -10,6 +11,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
     ContractCreationTransaction,
 )
 import logging
+from mythril.laser.ethereum.function_managers import keccak_function_manager
 
 
 log = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ class AccidentallyKillable(DetectionModule):
     swc_id = UNPROTECTED_SELFDESTRUCT
     description = DESCRIPTION
     entry_point = EntryPoint.CALLBACK
-    pre_hooks = ["SUICIDE"]
+    pre_hooks = ["SELFDESTRUCT"]
 
     def __init__(self):
         super().__init__()
@@ -47,38 +49,34 @@ class AccidentallyKillable(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state):
+    def _analyze_state(self, state):
         log.info("Suicide module: Analyzing suicide instruction")
         instruction = state.get_current_instruction()
 
         to = state.mstate.stack[-1]
 
-        log.debug("SUICIDE in function %s", state.environment.active_function_name)
+        log.debug("SELFDESTRUCT in function %s", state.environment.active_function_name)
 
         description_head = "Any sender can cause the contract to self-destruct."
 
-        constraints = []
+        attacker_constraints = []
 
         for tx in state.world_state.transaction_sequence:
             if not isinstance(tx, ContractCreationTransaction):
-                constraints.append(
+                attacker_constraints.append(
                     And(tx.caller == ACTORS.attacker, tx.caller == tx.origin)
                 )
         try:
             try:
-                transaction_sequence = solver.get_transaction_sequence(
-                    state,
+                constraints = (
                     state.world_state.constraints
-                    + constraints
-                    + [to == ACTORS.attacker],
+                    + [to == ACTORS.attacker]
+                    + attacker_constraints
+                )
+                transaction_sequence = solver.get_transaction_sequence(
+                    state, constraints
                 )
 
                 description_tail = (
@@ -89,8 +87,9 @@ class AccidentallyKillable(DetectionModule):
                 )
 
             except UnsatError:
+                constraints = state.world_state.constraints + attacker_constraints
                 transaction_sequence = solver.get_transaction_sequence(
-                    state, state.world_state.constraints + constraints
+                    state, constraints
                 )
                 description_tail = (
                     "Any sender can trigger execution of the SELFDESTRUCT instruction to destroy this "
@@ -111,6 +110,12 @@ class AccidentallyKillable(DetectionModule):
                 transaction_sequence=transaction_sequence,
                 gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             )
+            state.annotate(
+                IssueAnnotation(
+                    conditions=[And(*constraints)], issue=issue, detector=self
+                )
+            )
+
             return [issue]
         except UnsatError:
             log.debug("No model found")

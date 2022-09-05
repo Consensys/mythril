@@ -37,7 +37,7 @@ or perhaps:
 4. See error
 
 
-If there is a Solidity source code, a truffle project, or bytecode
+If there is a Solidity source code or a bytecode
 that is involved, please provide that or links to it.
 
 -->

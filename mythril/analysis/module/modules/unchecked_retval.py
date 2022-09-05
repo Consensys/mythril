@@ -1,26 +1,33 @@
 """This module contains detection code to find occurrences of calls whose
 return value remains unchecked."""
 from copy import copy
-from typing import cast, List, Union, Mapping
+from typing import cast, List
 
 from mythril.analysis import solver
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.report import Issue
 from mythril.analysis.swc_data import UNCHECKED_RET_VAL
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.exceptions import UnsatError
+from mythril.laser.smt import And
 from mythril.laser.smt.bitvec import BitVec
-
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
 
 import logging
+from typing_extensions import TypedDict
 
 log = logging.getLogger(__name__)
 
 
+class RetVal(TypedDict):
+    address: int
+    retval: BitVec
+
+
 class UncheckedRetvalAnnotation(StateAnnotation):
     def __init__(self) -> None:
-        self.retvals = []  # type: List[Mapping[str, Union[int, BitVec]]]
+        self.retvals: List[RetVal] = []
 
     def __copy__(self):
         result = UncheckedRetvalAnnotation()
@@ -46,18 +53,13 @@ class UncheckedRetval(DetectionModule):
     pre_hooks = ["STOP", "RETURN"]
     post_hooks = ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
     def _analyze_state(self, state: GlobalState) -> list:
         instruction = state.get_current_instruction()
@@ -111,15 +113,27 @@ class UncheckedRetval(DetectionModule):
                     gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                     transaction_sequence=transaction_sequence,
                 )
+                conditions = [
+                    And(*(state.world_state.constraints + [retval["retval"] == 1])),
+                    And(*(state.world_state.constraints + [retval["retval"] == 1])),
+                ]
+
+                state.annotate(
+                    IssueAnnotation(conditions=conditions, issue=issue, detector=self)
+                )
 
                 issues.append(issue)
 
             return issues
         else:
             log.debug("End of call, extracting retval")
-            assert state.environment.code.instruction_list[state.mstate.pc - 1][
+
+            if state.environment.code.instruction_list[state.mstate.pc - 1][
                 "opcode"
-            ] in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]
+            ] not in ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE"]:
+                # Return is pointless with OOG. The pc does not get updated in such cases
+                return []
+
             return_value = state.mstate.stack[-1]
             retvals.append(
                 {"address": state.instruction["address"] - 1, "retval": return_value}

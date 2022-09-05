@@ -1,11 +1,11 @@
 """This module contains a representation of the EVM's world state."""
-from copy import copy
+from copy import copy, deepcopy
 from random import randint
 from typing import Dict, List, Iterator, Optional, TYPE_CHECKING
+from eth._utils.address import generate_contract_address
 
 from mythril.support.loader import DynLoader
 from mythril.laser.smt import symbol_factory, Array, BitVec
-from ethereum.utils import mk_contract_address
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.constraints import Constraints
@@ -73,6 +73,24 @@ class WorldState:
         new_world_state.constraints = copy(self.constraints)
         return new_world_state
 
+    def __deepcopy__(self, _) -> "WorldState":
+        """
+
+        :return:
+        """
+        new_annotations = [copy(a) for a in self._annotations]
+        new_world_state = WorldState(
+            transaction_sequence=self.transaction_sequence[:],
+            annotations=new_annotations,
+        )
+        new_world_state.balances = copy(self.balances)
+        new_world_state.starting_balances = copy(self.starting_balances)
+        for account in self._accounts.values():
+            new_world_state.put_account(copy(account))
+        new_world_state.node = self.node
+        new_world_state.constraints = deepcopy(self.constraints)
+        return new_world_state
+
     def accounts_exist_or_load(self, addr, dynamic_loader: DynLoader) -> Account:
         """
         returns account if it exists, else it loads from the dynamic loader
@@ -104,15 +122,17 @@ class WorldState:
                     address=addr_bitvec.value,
                     dynamic_loader=dynamic_loader,
                     code=dynamic_loader.dynld(addr),
+                    concrete_storage=True,
                 )
-            except:
+            except ValueError:
                 # Initial balance will be a symbolic variable
                 pass
-
+        try:
+            code = dynamic_loader.dynld(addr)
+        except ValueError:
+            code = None
         return self.create_account(
-            address=addr_bitvec.value,
-            dynamic_loader=dynamic_loader,
-            code=dynamic_loader.dynld(addr),
+            address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code
         )
 
     def create_account(
@@ -123,6 +143,7 @@ class WorldState:
         dynamic_loader=None,
         creator=None,
         code=None,
+        nonce=0,
     ) -> Account:
         """Create non-contract account.
 
@@ -132,14 +153,21 @@ class WorldState:
         :param dynamic_loader: used for dynamically loading storage from the block chain
         :param creator: The address of the creator of the contract if it's a contract
         :param code: The code of the contract, if it's a contract
+        :param nonce: Nonce of the account
         :return: The new account
         """
+        if creator in self.accounts:
+            nonce = self.accounts[creator].nonce
+        elif creator:
+            self.create_account(address=creator)
+
         address = (
             symbol_factory.BitVecVal(address, 256)
-            if address
-            else self._generate_new_address(creator)
+            if address is not None
+            else self._generate_new_address(creator, nonce=self.accounts[creator].nonce)
         )
-
+        if creator:
+            self.accounts[creator].nonce += 1
         new_account = Account(
             address=address,
             balances=self.balances,
@@ -148,7 +176,7 @@ class WorldState:
         )
         if code:
             new_account.code = code
-
+        new_account.nonce = nonce
         new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
 
         self.put_account(new_account)
@@ -195,14 +223,14 @@ class WorldState:
         """
         return filter(lambda x: isinstance(x, annotation_type), self.annotations)
 
-    def _generate_new_address(self, creator=None) -> BitVec:
+    def _generate_new_address(self, creator=None, nonce=0) -> BitVec:
         """Generates a new address for the global state.
 
         :return:
         """
         if creator:
             # TODO: Use nounce
-            address = "0x" + str(mk_contract_address(creator, 0).hex())
+            address = "0x" + str(generate_contract_address(creator, nonce).hex())
             return symbol_factory.BitVecVal(int(address, 16), 256)
         while True:
             address = "0x" + "".join([str(hex(randint(0, 16)))[-1] for _ in range(40)])

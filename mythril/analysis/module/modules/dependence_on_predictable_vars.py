@@ -2,11 +2,12 @@
 dependence."""
 import logging
 
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.analysis.report import Issue
 from mythril.exceptions import UnsatError
 from mythril.analysis import solver
-from mythril.laser.smt import ULT, symbol_factory
+from mythril.laser.smt import And, ULT, symbol_factory
 from mythril.analysis.swc_data import TIMESTAMP_DEPENDENCE, WEAK_RANDOMNESS
 from mythril.analysis.module.module_helpers import is_prehook
 from mythril.laser.ethereum.state.global_state import GlobalState
@@ -46,21 +47,15 @@ class PredictableVariables(DetectionModule):
     pre_hooks = ["JUMPI", "BLOCKHASH"]
     post_hooks = ["BLOCKHASH"] + predictable_ops
 
-    def _execute(self, state: GlobalState) -> None:
+    def _execute(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state: GlobalState) -> list:
+    def _analyze_state(self, state: GlobalState) -> List[Issue]:
         """
 
         :param state:
@@ -131,7 +126,13 @@ class PredictableVariables(DetectionModule):
                             ),
                             transaction_sequence=transaction_sequence,
                         )
-
+                        state.annotate(
+                            IssueAnnotation(
+                                conditions=[And(*constraints)],
+                                issue=issue,
+                                detector=self,
+                            )
+                        )
                         issues.append(issue)
 
             elif opcode == "BLOCKHASH":
@@ -142,7 +143,7 @@ class PredictableVariables(DetectionModule):
                     ULT(param, state.environment.block_number),
                     ULT(
                         state.environment.block_number,
-                        symbol_factory.BitVecVal(2 ** 255, 256),
+                        symbol_factory.BitVecVal(2**255, 256),
                     ),
                 ]
 

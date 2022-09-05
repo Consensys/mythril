@@ -37,9 +37,12 @@ class DynLoader:
         if not self.eth:
             raise ValueError("Cannot load from the storage when eth is None")
 
-        return self.eth.eth_getStorageAt(
+        value = self.eth.eth_getStorageAt(
             contract_address, position=index, block="latest"
         )
+        if value == "0x":
+            value = "0x0000000000000000000000000000000000000000000000000000000000000000"
+        return value
 
     @functools.lru_cache(LRU_CACHE_SIZE)
     def read_balance(self, address: str) -> str:
@@ -51,7 +54,9 @@ class DynLoader:
         if not self.active:
             raise ValueError("Cannot load from storage when the loader is disabled")
         if not self.eth:
-            raise ValueError("Cannot load from the chain when eth is None")
+            raise ValueError(
+                "Cannot load from the chain when eth is None, please use rpc, or specify infura-id"
+            )
 
         return self.eth.eth_getBalance(address)
 
@@ -64,7 +69,9 @@ class DynLoader:
         if not self.active:
             raise ValueError("Loader is disabled")
         if not self.eth:
-            raise ValueError("Cannot load from the chain when eth is None")
+            raise ValueError(
+                "Cannot load from the chain when eth is None, please use rpc, or specify infura-id"
+            )
 
         log.debug("Dynld at contract %s", dependency_address)
 

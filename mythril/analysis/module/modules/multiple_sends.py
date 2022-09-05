@@ -2,13 +2,14 @@
 a single transaction."""
 from copy import copy
 from typing import cast, List
-
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.report import Issue
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
 from mythril.analysis.swc_data import MULTIPLE_SENDS
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.laser.ethereum.state.annotation import StateAnnotation
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import And
 import logging
 
 log = logging.getLogger(__name__)
@@ -34,15 +35,9 @@ class MultipleSends(DetectionModule):
     pre_hooks = ["CALL", "DELEGATECALL", "STATICCALL", "CALLCODE", "RETURN", "STOP"]
 
     def _execute(self, state: GlobalState) -> None:
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        issues = self._analyze_state(state)
-        for issue in issues:
-            self.cache.add(issue.address)
-        self.issues.extend(issues)
+        return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state: GlobalState):
+    def _analyze_state(self, state: GlobalState):
         """
         :param state: the current state
         :return: returns the issues for that corresponding state
@@ -95,7 +90,13 @@ class MultipleSends(DetectionModule):
                     gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
                     transaction_sequence=transaction_sequence,
                 )
-
+                state.annotate(
+                    IssueAnnotation(
+                        conditions=[And(*state.world_state.constraints)],
+                        issue=issue,
+                        detector=self,
+                    )
+                )
                 return [issue]
 
         return []

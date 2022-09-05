@@ -1,9 +1,16 @@
 """This module contains the detection code for Arbitrary jumps."""
 import logging
+
+from mythril.exceptions import UnsatError
+
 from mythril.analysis.solver import get_transaction_sequence, UnsatError
+from mythril.analysis.issue_annotation import IssueAnnotation
 from mythril.analysis.module.base import DetectionModule, Issue, EntryPoint
 from mythril.analysis.swc_data import ARBITRARY_JUMP
+
 from mythril.laser.ethereum.state.global_state import GlobalState
+from mythril.laser.smt import And, BitVec, symbol_factory
+from mythril.support.model import get_model
 
 log = logging.getLogger(__name__)
 
@@ -11,6 +18,26 @@ DESCRIPTION = """
 
 Search for jumps to arbitrary locations in the bytecode
 """
+
+
+def is_unique_jumpdest(jump_dest: BitVec, state: GlobalState) -> bool:
+    """
+    Handles cases where jump_dest evaluates to a single concrete value
+    """
+
+    try:
+        model = get_model(state.world_state.constraints)
+    except UnsatError:
+        return True
+    concrete_jump_dest = model.eval(jump_dest.raw, model_completion=True)
+    try:
+        model = get_model(
+            state.world_state.constraints
+            + [symbol_factory.BitVecVal(concrete_jump_dest.as_long(), 256) != jump_dest]
+        )
+    except UnsatError:
+        return True
+    return False
 
 
 class ArbitraryJump(DetectionModule):
@@ -35,12 +62,9 @@ class ArbitraryJump(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
-        self.issues.extend(self._analyze_state(state))
+        return self._analyze_state(state)
 
-    @staticmethod
-    def _analyze_state(state):
+    def _analyze_state(self, state):
         """
 
         :param state:
@@ -48,15 +72,20 @@ class ArbitraryJump(DetectionModule):
         """
 
         jump_dest = state.mstate.stack[-1]
+
         if jump_dest.symbolic is False:
             return []
-        # Most probably the jump destination can have multiple locations in these circumstances
+
+        if is_unique_jumpdest(jump_dest, state) is True:
+            return []
+
         try:
             transaction_sequence = get_transaction_sequence(
                 state, state.world_state.constraints
             )
         except UnsatError:
             return []
+        log.info("Detected arbitrary jump dest")
         issue = Issue(
             contract=state.environment.active_account.contract_name,
             function_name=state.environment.active_function_name,
@@ -72,6 +101,14 @@ class ArbitraryJump(DetectionModule):
             gas_used=(state.mstate.min_gas_used, state.mstate.max_gas_used),
             transaction_sequence=transaction_sequence,
         )
+        state.annotate(
+            IssueAnnotation(
+                conditions=[And(*state.world_state.constraints)],
+                issue=issue,
+                detector=self,
+            )
+        )
+
         return [issue]
 
 

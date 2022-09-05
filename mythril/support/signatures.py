@@ -1,17 +1,14 @@
 """The Mythril function signature database."""
 import functools
-import json
 import logging
 import multiprocessing
 import os
 import sqlite3
 import time
 from collections import defaultdict
-from subprocess import PIPE, Popen
 from typing import List, Set, DefaultDict, Dict
 
 from mythril.ethereum.util import get_solc_json
-from mythril.exceptions import CompilerError
 
 log = logging.getLogger(__name__)
 
@@ -96,7 +93,10 @@ class SQLiteDB(object):
 
         :return:
         """
-        self.conn = sqlite3.connect(self.path)
+        try:
+            self.conn = sqlite3.connect(self.path)
+        except sqlite3.OperationalError as e:
+            raise sqlite3.OperationalError(f"Unable to Connect to path {self.path}")
         self.cursor = self.conn.cursor()
         return self.cursor
 

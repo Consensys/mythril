@@ -24,18 +24,25 @@ class Storage:
         :param concrete: bool indicating whether to interpret uninitialized storage as concrete versus symbolic
         """
         if concrete and args.unconstrained_storage is False:
-            self._standard_storage = K(256, 256, 0)  # type: BaseArray
+            self._standard_storage: BaseArray = K(256, 256, 0)
         else:
             self._standard_storage = Array(f"Storage{address}", 256, 256)
 
-        self.printable_storage = {}  # type: Dict[BitVec, BitVec]
+        self.printable_storage: Dict[BitVec, BitVec] = {}
 
         self.dynld = dynamic_loader
-        self.storage_keys_loaded = set()  # type: Set[int]
+        self.storage_keys_loaded: Set[int] = set()
         self.address = address
+
+        # Stores all keys set in the storage
+        self.keys_set: Set[BitVec] = set()
+
+        # Stores all get keys in the storage
+        self.keys_get: Set[BitVec] = set()
 
     def __getitem__(self, item: BitVec) -> BitVec:
         storage = self._standard_storage
+        self.keys_get.add(item)
         if (
             self.address
             and self.address.value != 0
@@ -45,7 +52,7 @@ class Storage:
             and args.unconstrained_storage is False
         ):
             try:
-                storage[item] = symbol_factory.BitVecVal(
+                value = symbol_factory.BitVecVal(
                     int(
                         self.dynld.read_storage(
                             contract_address="0x{:040X}".format(self.address.value),
@@ -55,10 +62,16 @@ class Storage:
                     ),
                     256,
                 )
+
+                for key in self.keys_set:
+                    value = If(key == item, storage[item], value)
+
+                storage[item] = value
                 self.storage_keys_loaded.add(int(item.value))
                 self.printable_storage[item] = storage[item]
             except ValueError as e:
                 log.debug("Couldn't read storage at %s: %s", item, e)
+
         return simplify(storage[item])
 
     def __setitem__(self, key, value: Any) -> None:
@@ -67,6 +80,9 @@ class Storage:
 
         self.printable_storage[key] = value
         self._standard_storage[key] = value
+
+        self.keys_set.add(key)
+
         if key.symbolic is False:
             self.storage_keys_loaded.add(int(key.value))
 
@@ -78,6 +94,8 @@ class Storage:
         storage._standard_storage = deepcopy(self._standard_storage)
         storage.printable_storage = copy(self.printable_storage)
         storage.storage_keys_loaded = copy(self.storage_keys_loaded)
+        storage.keys_set = deepcopy(self.keys_set)
+        storage.keys_get = deepcopy(self.keys_get)
         return storage
 
     def __str__(self) -> str:
@@ -96,17 +114,18 @@ class Account:
         balances: Array = None,
         concrete_storage=False,
         dynamic_loader=None,
+        nonce=0,
     ) -> None:
         """Constructor for account.
 
         :param address: Address of the account
         :param code: The contract code of the account
         :param contract_name: The name associated with the account
-        :param balance: The balance for the account
+        :param balances: The balance for the account
         :param concrete_storage: Interpret storage as concrete
         """
         self.concrete_storage = concrete_storage
-        self.nonce = 0
+        self.nonce = nonce
         self.code = code or Disassembly("")
         self.address = (
             address
@@ -149,6 +168,16 @@ class Account:
         assert self._balances is not None
         self._balances[self.address] = balance
 
+    def set_storage(self, storage: Dict):
+        """
+        Sets concrete storage
+        """
+        for key, value in storage.items():
+            concrete_key, concrete_value = int(key, 16), int(value, 16)
+            self.storage[
+                symbol_factory.BitVecVal(concrete_key, 256)
+            ] = symbol_factory.BitVecVal(concrete_value, 256)
+
     def add_balance(self, balance: Union[int, BitVec]) -> None:
         """
 
@@ -169,18 +198,30 @@ class Account:
         """
         return {
             "nonce": self.nonce,
-            "code": self.code,
+            "code": self.serialised_code(),
             "balance": self.balance(),
             "storage": self.storage,
         }
+
+    def serialised_code(self):
+        if type(self.code.bytecode) == str:
+            return self.code.bytecode
+        new_code = "0x"
+        for byte in self.code.bytecode:
+            if type(byte) == int:
+                new_code += hex(byte)
+            else:
+                new_code += "<call_data>"
+        return new_code
 
     def __copy__(self, memodict={}):
         new_account = Account(
             address=self.address,
             code=self.code,
             contract_name=self.contract_name,
-            balances=self._balances,
+            balances=deepcopy(self._balances),
             concrete_storage=self.concrete_storage,
+            nonce=self.nonce,
         )
         new_account.storage = deepcopy(self.storage)
         new_account.code = self.code

@@ -2,6 +2,6 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: 21.12b0
     hooks:
     -   id: black

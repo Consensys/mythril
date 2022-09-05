@@ -14,7 +14,7 @@ from mythril.laser.ethereum.transaction.transaction_models import (
 from mythril.analysis.module.base import DetectionModule, EntryPoint
 from mythril.exceptions import UnsatError
 from mythril.laser.ethereum.state.global_state import GlobalState
-from mythril.laser.smt import symbol_factory, UGT
+from mythril.laser.smt import symbol_factory, UGT, Bool
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +34,6 @@ class ArbitraryDelegateCall(DetectionModule):
         :param state:
         :return:
         """
-        if state.get_current_instruction()["address"] in self.cache:
-            return
         potential_issues = self._analyze_state(state)
 
         annotation = get_potential_issues_annotation(state)
