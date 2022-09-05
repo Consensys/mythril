@@ -1838,7 +1838,7 @@ class Instruction:
             global_state.mstate.pop(3)
         if global_state.last_return_data:
             return_val = symbol_factory.BitVecVal(
-                int(global_state.last_return_data, 16), 256
+                int(global_state.last_return_data.return_data, 16), 256
             )
         else:
             return_val = symbol_factory.BitVecVal(0, 256)

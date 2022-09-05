@@ -8,6 +8,7 @@ from mythril.support.support_utils import Singleton
 from mythril.laser.ethereum.state.calldata import ConcreteCalldata
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.calldata import BaseCalldata, SymbolicCalldata
+from mythril.laser.ethereum.state.return_data import ReturnData
 from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
@@ -273,9 +274,8 @@ class ContractCreationTransaction(BaseTransaction):
         global_state.environment.active_account.code.assign_bytecode(
             tuple(return_data.return_data)
         )
-        self.return_data = str(
-            hex(global_state.environment.active_account.address.value)
-        )
+        return_data = str(hex(global_state.environment.active_account.address.value))
+        self.return_data = ReturnData(return_data, len(return_data) // 2)
         assert global_state.environment.active_account.code.instruction_list != []
 
         raise TransactionEndSignal(global_state, revert=revert)
