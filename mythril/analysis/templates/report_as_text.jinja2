@@ -33,9 +33,9 @@ Transaction Sequence:
 
 {% for step in issue.tx_sequence.steps %}
 {% if step == issue.tx_sequence.steps[0] and step.address == "" and step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}
-Caller: [CREATOR], calldata: {{ step.calldata }}, decoded_data: {{ step.resolved_input }}, value: {{ step.value }}
+Caller: [CREATOR], calldata: {{ step.calldata }}, {% if step.resolved_input is not none %}decoded_data: {{ step.resolved_input }}, {% endif %}value: {{ step.value }}
 {% else %}
-Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, function: {{ step.name }}, txdata: {{ step.input }}, decoded_data: {{ step.resolved_input }}, value: {{ step.value }}
+Caller: {% if step.origin == "0xaffeaffeaffeaffeaffeaffeaffeaffeaffeaffe" %}[CREATOR]{% elif step.origin == "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef" %}[ATTACKER]{% else %}[SOMEGUY]{% endif %}, function: {{ step.name }}, txdata: {{ step.input }}, {% if step.resolved_input is not none %}decoded_data: {{ step.resolved_input }}, {% endif %}value: {{ step.value }}
 {% endif %}
 {% endfor %}
 {% endif %}
