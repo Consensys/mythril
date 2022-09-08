@@ -50,6 +50,8 @@ $ myth analyze -a <contract-address>
 
 Specify the maximum number of transaction to explore with `-t <number>`. You can also set a timeout with `--execution-timeout <seconds>`.
 
+Here is an example of running Mythril on the file `killbilly.sol` which is in the `solidity_examples` directory for `3` transactions:
+
 ```
 > myth a killbilly.sol -t 3
 ==== Unprotected Selfdestruct ====
@@ -58,21 +60,27 @@ Severity: High
 Contract: KillBilly
 Function name: commencekilling()
 PC address: 354
-Estimated Gas Usage: 574 - 999
-The contract can be killed by anyone.
-Anyone can kill this contract and withdraw its balance to an arbitrary address.
+Estimated Gas Usage: 974 - 1399
+Any sender can cause the contract to self-destruct.
+Any sender can trigger execution of the SELFDESTRUCT instruction to destroy this contract account and withdraw its balance to an arbitrary address. Review the transaction trace generated for this issue and make sure that appropriate security controls are in place to prevent unrestricted access.
 --------------------
 In file: killbilly.sol:22
 
 selfdestruct(msg.sender)
 
 --------------------
+Initial State:
+
+Account: [CREATOR], balance: 0x2, nonce:0, storage:{}
+Account: [ATTACKER], balance: 0x1001, nonce:0, storage:{}
+
 Transaction Sequence:
 
-Caller: [CREATOR], data: [CONTRACT CREATION], value: 0x0
-Caller: [ATTACKER], function: killerize(address), txdata: 0x9fa299ccbebebebebebebebebebebebedeadbeefdeadbeefdeadbeefdeadbeefdeadbeef, value: 0x0
+Caller: [CREATOR], calldata: , decoded_data: , value: 0x0
+Caller: [ATTACKER], function: killerize(address), txdata: 0x9fa299cc000000000000000000000000deadbeefdeadbeefdeadbeefdeadbeefdeadbeef, decoded_data: ('0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',), value: 0x0
 Caller: [ATTACKER], function: activatekillability(), txdata: 0x84057065, value: 0x0
 Caller: [ATTACKER], function: commencekilling(), txdata: 0x7c11da20, value: 0x0
+
 ```
 
 
