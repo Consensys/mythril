@@ -198,6 +198,17 @@ class Issue:
                     step["resolved_input"] = Issue.resolve_input(
                         step["calldata"], sig[0]
                     )
+                    if step["resolved_input"] is not None:
+                        step["resolved_input"] = list(step["resolved_input"])
+                        for i, val in enumerate(step["resolved_input"]):
+                            if type(val) != bytes:
+                                continue
+                            # Some of the bytes violate UTF-8 and UTF-16 translates the input to Japanese
+                            # We cannot directly use bytes, as it's not serialisable using JSON, hence this hack.
+                            step["resolved_input"][i] = str(step["resolved_input"][i])
+
+                        step["resolved_input"] = tuple(step["resolved_input"])
+
                 else:
                     step["name"] = "unknown"
             except ValueError:
@@ -288,6 +299,7 @@ class Report:
         :return:
         """
         result = {"success": True, "error": None, "issues": self.sorted_issues()}
+
         return json.dumps(result, sort_keys=True)
 
     def _get_exception_data(self) -> dict:
