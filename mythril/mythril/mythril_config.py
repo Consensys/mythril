@@ -135,7 +135,7 @@ class MythrilConfig:
         else:
             m = re.match(r"infura-(.*)", rpc)
 
-            if m and m.group(1) in ["mainnet", "rinkeby", "kovan", "ropsten"]:
+            if m and m.group(1) in ["mainnet", "rinkeby", "kovan", "ropsten", "goerli"]:
                 if self.infura_id in (None, ""):
                     log.info(
                         "Infura key not provided, so onchain access is disabled. "
