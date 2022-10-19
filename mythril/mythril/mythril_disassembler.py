@@ -17,8 +17,9 @@ from mythril.support.support_args import args
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
 from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
-from eth_utils import int_to_big_endian
+from mythril.support.support_args import args
 
+from eth_utils import int_to_big_endian
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +38,9 @@ class MythrilDisassembler:
         solc_version: str = None,
         solc_settings_json: str = None,
         enable_online_lookup: bool = False,
+        solc_args=None,
     ) -> None:
+        args.solc_args = solc_args
         self.solc_binary = self._init_solc_binary(solc_version)
         self.solc_settings_json = solc_settings_json
         self.eth = eth

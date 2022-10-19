@@ -44,8 +44,11 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     :param solc_settings_json:
     :return:
     """
+    if args.solc_args is None:
+        cmd = [solc_binary, "--standard-json", "--allow-paths", ".,/"]
+    else:
+        cmd = [solc_binary, "--standard-json"] + args.solc_args.split()
 
-    cmd = [solc_binary, "--standard-json", "--allow-paths", ".,/"]
     settings = {}
     if solc_settings_json:
         with open(solc_settings_json) as f:
