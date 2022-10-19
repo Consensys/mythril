@@ -19,6 +19,7 @@ class Args(object, metaclass=Singleton):
         self.transaction_sequences: List[List[str]] = None
         self.use_integer_module = True
         self.use_issue_annotations = False
+        self.solc_args = None
 
 
 args = Args()
