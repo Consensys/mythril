@@ -139,7 +139,11 @@ def solc_exists(version):
     return solc_binary
 
 
-all_versions = solcx.get_installable_solc_versions()
+try:
+    all_versions = solcx.get_installable_solc_versions()
+except:
+    # No internet, trying to proceed with installed compilers
+    all_versions = solcx.get_installed_solc_versions()
 
 
 def extract_version(file: str) -> Optional[str]:
