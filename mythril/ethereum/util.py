@@ -10,6 +10,7 @@ import solc
 import re
 
 from pathlib import Path
+from requests.exceptions import ConnectionError
 from subprocess import PIPE, Popen
 from typing import Optional
 
@@ -141,7 +142,7 @@ def solc_exists(version):
 
 try:
     all_versions = solcx.get_installable_solc_versions()
-except:
+except ConnectionError:
     # No internet, trying to proceed with installed compilers
     all_versions = solcx.get_installed_solc_versions()
 
