@@ -222,7 +222,7 @@ class LaserEVM:
             hook()
 
         if self.executed_transactions is False:
-            execute_message_call(self, address, func_hashes=func_hashes)
+            self._execute_transactions(address)
 
         for hook in self._stop_exec_trans_hooks:
             hook()
