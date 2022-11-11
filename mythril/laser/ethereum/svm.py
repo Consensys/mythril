@@ -96,12 +96,16 @@ class LaserEVM:
             self.edges: List[Edge] = []
 
         self.time: datetime = None
+        self.executed_transactions: bool = False
 
         self.pre_hooks: DefaultDict[str, List[Callable]] = defaultdict(list)
         self.post_hooks: DefaultDict[str, List[Callable]] = defaultdict(list)
 
         self._add_world_state_hooks: List[Callable] = []
         self._execute_state_hooks: List[Callable] = []
+
+        self._start_exec_trans_hooks: List[Callable] = []
+        self._stop_exec_trans_hooks: List[Callable] = []
 
         self._start_sym_trans_hooks: List[Callable] = []
         self._stop_sym_trans_hooks: List[Callable] = []
@@ -121,6 +125,8 @@ class LaserEVM:
             self.instr_pre_hook[op] = []
             self.instr_post_hook[op] = []
         self.hook_type_map = {
+            "start_execute_transactions": self._start_exec_trans_hooks,
+            "stop_execute_transactions": self._stop_exec_trans_hooks,
             "add_world_state": self._add_world_state_hooks,
             "execute_state": self._execute_state_hooks,
             "start_sym_exec": self._start_sym_exec_hooks,
@@ -170,7 +176,7 @@ class LaserEVM:
         if pre_configuration_mode:
             self.open_states = [world_state]
             log.info("Starting message call transaction to {}".format(target_address))
-            self._execute_transactions(symbol_factory.BitVecVal(target_address, 256))
+            self.execute_transactions(symbol_factory.BitVecVal(target_address, 256))
 
         elif scratch_mode:
             log.info("Starting contract creation transaction")
@@ -191,7 +197,7 @@ class LaserEVM:
                     "Check whether the bytecode is indeed the creation code, otherwise use the --bin-runtime flag"
                 )
 
-            self._execute_transactions(created_account.address)
+            self.execute_transactions(created_account.address)
 
         log.info("Finished symbolic execution")
         if self.requires_statespace:
@@ -203,6 +209,22 @@ class LaserEVM:
             )
 
         for hook in self._stop_sym_exec_hooks:
+            hook()
+
+    def execute_transactions(self, address) -> None:
+        """This function helps runs plugins that can order transactions.
+        Such plugins should set self.executed_transactions as True after its execution
+
+        :param address: Address of the contract
+        :return: None
+        """
+        for hook in self._start_exec_trans_hooks:
+            hook()
+
+        if self.executed_transactions is False:
+            execute_message_call(self, address, func_hashes=func_hashes)
+
+        for hook in self._stop_exec_trans_hooks:
             hook()
 
     def _execute_transactions(self, address):
@@ -245,6 +267,8 @@ class LaserEVM:
 
             for hook in self._stop_sym_trans_hooks:
                 hook()
+
+        self.executed_transactions = True
 
     def _check_create_termination(self) -> bool:
         if len(self.open_states) != 0:
