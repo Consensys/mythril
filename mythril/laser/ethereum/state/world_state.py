@@ -31,7 +31,7 @@ class WorldState:
         """
         self._accounts = {}  # type: Dict[int, Account]
         self.balances = Array("balance", 256, 256)
-        self.starting_balances = copy(self.balances)
+        self.starting_balances = deepcopy(self.balances)
         self.constraints = constraints or Constraints()
 
         self.node = None  # type: Optional['Node']
