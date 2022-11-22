@@ -28,6 +28,9 @@ class TxIdManager(object, metaclass=Singleton):
 
     def restart_counter(self):
         self._next_transaction_id = 0
+    
+    def set_counter(self, tx_id):
+        self._next_transaction_id = tx_id
 
 
 tx_id_manager = TxIdManager()
