@@ -441,16 +441,9 @@ Consider the following contract:
                 }
             }
 
-            function nothing(string memory g_0, bytes3 g_1, bytes5 g_2, bytes5 g_3, bytes3 g_4, bytes3 g_5, bytes3 g_6, bytes3 g_7, bytes3 g_8, bytes3 g_9, bytes3 g_10, bytes3 g_11) public view returns (bool){
+            function nothing(string memory g_0, bytes3 g_5, bytes3 g_6, bytes3 g_7, bytes3 g_8, bytes3 g_9, bytes3 g_10, bytes3 g_11) public view returns (bool){
                 if (!stringCompare(g_0, x_0)) return false;
                         
-                if (g_1 != x_1) return false;
-                        
-                if (g_2 != x_2) return false;
-                        
-                if (g_3 != x_3) return false;
-                        
-                if (g_4 != x_4) return false;
                         
                 if (g_5 != x_5) return false;
                         
@@ -472,7 +465,7 @@ Consider the following contract:
         }
 
 
-When this contract is directly executed, by using the following command:
+When this contract is directly executed by using the following command:
 
     .. code-block:: bash
 
@@ -490,17 +483,20 @@ We encounter the following error:
         1 | import "@openzeppelin/contracts/token/PRC20/PRC20.sol";
         | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is because Mythril uses Solidity to compile the program, to circumvent this issue we can use the following solc-json file:
+This is because Mythril uses Solidity to compile the program. Solidity does not have access to the import locations. 
+This import information has to be explicitly provided to Solidity through Mythril. 
+We can do this by providing the remapping information to Mythril as follows:
 
     .. code-block:: json
 
         {
-        "remappings": [ "@openzeppelin/contracts/token/PRC20/=node_modules/PRC20" ],
+        "remappings": [ "@openzeppelin/contracts/token/PRC20/=node_modules/PRC20/"]
         }
 
-Here we are mapping the import ``@openzeppelin/contracts/token/PRC20/`` to the path which contains ``PRC20.sol`` which in this case
-is ``node_modules/PRC20``. This instructs the compiler to search for anything with the prefix ``@openzeppelin/contracts/token/PRC20/` `
-in the path ``node_modules/PRC20`` in our file system. We feed to file to Mythril using ``--solc-json`` argument.
+Here we are mapping the import ``@openzeppelin/contracts/token/PRC20/`` to the path which contains ``PRC20.sol``, which this example
+assumes as ``node_modules/PRC20``. This instructs the compiler to search for anything with the prefix ``@openzeppelin/contracts/token/PRC20/` `
+in the path ``node_modules/PRC20`` in our file system. We feed this file to Mythril using ``--solc-json`` argument, which 
+relays it to the solc compiler.
 
     .. code-block:: bash
 
