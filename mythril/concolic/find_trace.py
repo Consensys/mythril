@@ -11,6 +11,7 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.account import Account
+from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.transaction.concolic import execute_transaction
 from mythril.laser.plugin.loader import LaserPluginLoader
 from mythril.laser.smt import Expression, BitVec, symbol_factory
@@ -53,6 +54,7 @@ def concrete_execution(concrete_data: ConcreteData) -> Tuple[WorldState, List]:
     plugin_loader = LaserPluginLoader()
     assert PluginDiscovery().is_installed("myth_concolic_execution")
     trace_plugin = PluginDiscovery().installed_plugins["myth_concolic_execution"]()
+    time_handler.start_execution(laser_evm.execution_timeout)
 
     plugin_loader.load(trace_plugin)
     laser_evm.time = datetime.now()
