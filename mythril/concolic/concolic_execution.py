@@ -74,6 +74,7 @@ def concolic_execution(
     :param solver_timeout: Solver timeout
 
     """
+
     init_state, trace = concrete_execution(concrete_data)
     args.solver_timeout = solver_timeout
     output_list = flip_branches(

@@ -1587,7 +1587,8 @@ class Instruction:
         )
 
         if negated_cond:
-            new_state = copy(global_state)
+            # States have to be deep copied during a fork as summaries assume independence across states.
+            new_state = deepcopy(global_state)
             # add JUMPI gas cost
             new_state.mstate.min_gas_used += min_gas
             new_state.mstate.max_gas_used += max_gas
@@ -1612,7 +1613,7 @@ class Instruction:
 
         if instr["opcode"] == "JUMPDEST":
             if positive_cond:
-                new_state = copy(global_state)
+                new_state = deepcopy(global_state)
                 # add JUMPI gas cost
                 new_state.mstate.min_gas_used += min_gas
                 new_state.mstate.max_gas_used += max_gas

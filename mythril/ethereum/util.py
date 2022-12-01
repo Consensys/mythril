@@ -10,6 +10,7 @@ import solc
 import re
 
 from pathlib import Path
+from requests.exceptions import ConnectionError
 from subprocess import PIPE, Popen
 from typing import Optional
 
@@ -44,8 +45,11 @@ def get_solc_json(file, solc_binary="solc", solc_settings_json=None):
     :param solc_settings_json:
     :return:
     """
+    if args.solc_args is None:
+        cmd = [solc_binary, "--standard-json", "--allow-paths", ".,/"]
+    else:
+        cmd = [solc_binary, "--standard-json"] + args.solc_args.split()
 
-    cmd = [solc_binary, "--standard-json", "--allow-paths", ".,/"]
     settings = {}
     if solc_settings_json:
         with open(solc_settings_json) as f:
@@ -136,7 +140,11 @@ def solc_exists(version):
     return solc_binary
 
 
-all_versions = solcx.get_installable_solc_versions()
+try:
+    all_versions = solcx.get_installable_solc_versions()
+except ConnectionError:
+    # No internet, trying to proceed with installed compilers
+    all_versions = solcx.get_installed_solc_versions()
 
 
 def extract_version(file: str) -> Optional[str]:
