@@ -17,6 +17,7 @@ from mythril.laser.plugin.signals import PluginSkipWorldState, PluginSkipState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.strategy.basic import DepthFirstSearchStrategy
+from mythril.laser.ethereum.strategy.constraint_strategy import DelayConstraintStrategy
 from abc import ABCMeta
 from mythril.laser.ethereum.time_handler import time_handler
 
@@ -285,7 +286,10 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-            if len(new_states) > 1 and random.uniform(0, 1) < args.pruning_factor:
+            
+            if self.strategy.super_strategy.run_check() and (
+                len(new_states) > 1 and random.uniform(0, 1) < args.pruning_factor
+            ):
                 new_states = [
                     state
                     for state in new_states

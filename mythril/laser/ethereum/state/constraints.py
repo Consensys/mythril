@@ -42,6 +42,18 @@ class Constraints(list):
             return False
         return True
 
+    def get_model(self, solver_timeout=None) -> bool:
+        """
+        :param solver_timeout: The default timeout uses analysis timeout from args.solver_timeout
+        :return: True/False based on the existence of solution of constraints
+        """
+        try:
+            return get_model(self, solver_timeout=solver_timeout)
+        except SolverTimeOutException:
+            return None
+        except UnsatError:
+            return None
+
     def append(self, constraint: Union[bool, Bool]) -> None:
         """
 
