@@ -19,7 +19,7 @@ class BasicSearchStrategy(ABC):
     def get_strategic_global_state(self):
         """"""
         raise NotImplementedError("Must be implemented by a subclass")
-    
+
     def run_check(self):
         return True
 

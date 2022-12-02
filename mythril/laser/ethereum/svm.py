@@ -310,8 +310,8 @@ class LaserEVM:
             except NotImplementedError:
                 log.debug("Encountered unimplemented instruction")
                 continue
-            
-            if self.strategy.super_strategy.run_check() and (
+
+            if self.strategy.run_check() and (
                 len(new_states) > 1 and random.uniform(0, 1) < args.pruning_factor
             ):
                 new_states = [

@@ -1,8 +1,12 @@
 """This module contains utility functions for the Mythril support package."""
+
+from collections import OrderedDict
+from copy import deepcopy
+from eth_hash.auto import keccak
 from functools import lru_cache
 from typing import Dict
+from z3 import is_true, simplify, And
 import logging
-from eth_hash.auto import keccak
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +29,46 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
+
+
+class LRUCache:
+    def __init__(self, size):
+        self.size = size
+        self.lru_cache = OrderedDict()
+
+    def get(self, key):
+        try:
+            value = self.lru_cache.pop(key)
+            self.lru_cache[key] = value
+            return value
+        except KeyError:
+            return -1
+
+    def put(self, key, value):
+        try:
+            self.lru_cache.pop(key)
+        except KeyError:
+            if len(self.lru_cache) >= self.size:
+                self.lru_cache.popitem(last=False)
+        self.lru_cache[key] = value
+
+
+class ModelCache:
+    def __init__(self):
+        self.model_cache = LRUCache(size=100)
+
+    @lru_cache(maxsize=2**10)
+    def check_quick_sat(self, constraints) -> bool:
+        model_list = list(reversed(self.model_cache.lru_cache.keys()))
+        for model in reversed(self.model_cache.lru_cache.keys()):
+            model_copy = deepcopy(model)
+            if is_true(model_copy.eval(constraints, model_completion=True)):
+                self.model_cache.put(model, self.model_cache.get(model) + 1)
+                return model
+        return False
+
+    def put(self, key, value):
+        self.model_cache.put(key, value)
 
 
 @lru_cache(maxsize=2**10)

@@ -2,58 +2,22 @@ from functools import lru_cache
 from z3 import sat, unknown, is_true
 from pathlib import Path
 
+from mythril.support.support_utils import ModelCache
 from mythril.support.support_args import args
 from mythril.laser.smt import Optimize, simplify, And
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError, SolverTimeOutException
 import logging
 from collections import OrderedDict
+from copy import deepcopy
 from time import time
 
 log = logging.getLogger(__name__)
 
-class SimpleLRUCache:
-    def __init__(self, size):
-        self.size = size
-        self.lru_cache = OrderedDict()
-
-    def get(self, key):
-        try:
-            value = self.lru_cache.pop(key)
-            self.lru_cache[key] = value
-            return value
-        except KeyError:
-            return -1
-
-    def put(self, key, value):
-        try:
-            self.lru_cache.pop(key)
-        except KeyError:
-            if len(self.lru_cache) >= self.size:
-                self.lru_cache.popitem(last=False)
-        self.lru_cache[key] = value
-
-
-class ModelCache:
-    def __init__(self):
-        self.model_cache = SimpleLRUCache(size=100)
-
-    @lru_cache(maxsize=2**10)
-    def check_quick_sat(self, constraints) -> bool:
-        i = 0
-        return False
-        for model in reversed(self.model_cache.lru_cache.keys()):
-            i += 1
-            if is_true(model.eval(simplify(And(*constraints)).raw)):
-                self.model_cache.put(model, self.model_cache.get(model) + 1)
-                return model
-        return False
 
 model_cache = ModelCache()
-tot = 0
-a = 0
-f = 0
-t = 0
+
+
 @lru_cache(maxsize=2**23)
 def get_model(
     constraints,
@@ -83,19 +47,12 @@ def get_model(
     if type(constraints) != tuple:
         constraints = constraints.get_all_constraints()
     constraints = [constraint for constraint in constraints if type(constraint) != bool]
-    global tot, a,f, t
-    b = time()
+
     if len(maximize) + len(minimize) == 0:
-        t += 1
-        f += 1
-        ret_model = model_cache.check_quick_sat(tuple(constraints))
-        tot += time() - b
+        ret_model = model_cache.check_quick_sat(simplify(And(*constraints)).raw)
         if ret_model:
-            f -= 1
             return ret_model
-    a += 1
-    if a%200 ==0:
-        print(tot, f, t) 
+
     for constraint in constraints:
         s.add(constraint)
     for e in minimize:
