@@ -616,7 +616,6 @@ def validate_args(args: Namespace):
 
     if args.__dict__.get("transaction_sequences", None):
         try:
-            print(args.transaction_sequences, type(args.transaction_sequences))
             args.transaction_sequences = literal_eval(str(args.transaction_sequences))
         except ValueError:
             exit_with_error(
