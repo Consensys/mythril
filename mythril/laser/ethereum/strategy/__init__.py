@@ -20,6 +20,9 @@ class BasicSearchStrategy(ABC):
         """"""
         raise NotImplementedError("Must be implemented by a subclass")
 
+    def run_check(self):
+        return True
+
     def __next__(self):
         try:
             global_state = self.get_strategic_global_state()
@@ -43,7 +46,7 @@ class CriterionSearchStrategy(BasicSearchStrategy):
         if self._satisfied_criterion:
             raise StopIteration
         try:
-            global_state = self.get_strategic_global_state()
+            return self.get_strategic_global_state()
         except StopIteration:
             raise StopIteration
 

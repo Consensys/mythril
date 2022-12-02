@@ -13,6 +13,7 @@ from mythril.laser.ethereum.strategy.basic import (
     ReturnWeightedRandomStrategy,
     BasicSearchStrategy,
 )
+from mythril.laser.ethereum.strategy.constraint_strategy import DelayConstraintStrategy
 from mythril.laser.ethereum.strategy.beam import BeamSearch
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
@@ -94,6 +95,8 @@ class SymExecWrapper:
         elif "beam-search: " in strategy:
             beam_width = int(strategy.split("beam-search: ")[1])
             s_strategy = BeamSearch
+        elif "delayed" in strategy:
+            s_strategy = DelayConstraintStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
 

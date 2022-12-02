@@ -449,7 +449,7 @@ def add_analysis_args(options):
 
     options.add_argument(
         "--strategy",
-        choices=["dfs", "bfs", "naive-random", "weighted-random"],
+        choices=["dfs", "bfs", "naive-random", "weighted-random", "delayed"],
         default="bfs",
         help="Symbolic execution strategy",
     )
@@ -622,7 +622,7 @@ def validate_args(args: Namespace):
                 args.outform,
                 "The transaction sequence is in incorrect format, It should be "
                 "[list of possible function hashes in 1st transaction, "
-                "list of possible func hashes in 2nd tx, ..]"
+                "list of possible func hashes in 2nd tx, ...] "
                 "If any list is empty then all possible functions are considered for that transaction",
             )
         if len(args.transaction_sequences) != args.transaction_count:

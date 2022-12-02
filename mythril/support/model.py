@@ -1,15 +1,21 @@
 from functools import lru_cache
-from z3 import sat, unknown
+from z3 import sat, unknown, is_true
 from pathlib import Path
 
+from mythril.support.support_utils import ModelCache
 from mythril.support.support_args import args
-from mythril.laser.smt import Optimize
+from mythril.laser.smt import Optimize, simplify, And
 from mythril.laser.ethereum.time_handler import time_handler
 from mythril.exceptions import UnsatError, SolverTimeOutException
 import logging
+from collections import OrderedDict
+from copy import deepcopy
+from time import time
 
 log = logging.getLogger(__name__)
-# LRU cache works great when used in powers of 2
+
+
+model_cache = ModelCache()
 
 
 @lru_cache(maxsize=2**23)
@@ -42,6 +48,11 @@ def get_model(
         constraints = constraints.get_all_constraints()
     constraints = [constraint for constraint in constraints if type(constraint) != bool]
 
+    if len(maximize) + len(minimize) == 0:
+        ret_model = model_cache.check_quick_sat(simplify(And(*constraints)).raw)
+        if ret_model:
+            return ret_model
+
     for constraint in constraints:
         s.add(constraint)
     for e in minimize:
@@ -63,6 +74,7 @@ def get_model(
 
     result = s.check()
     if result == sat:
+        model_cache.model_cache.put(s.model(), 1)
         return s.model()
     elif result == unknown:
         log.debug("Timeout/Error encountered while solving expression using z3")

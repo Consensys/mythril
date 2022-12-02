@@ -19,6 +19,17 @@ class BeamSearch(BasicSearchStrategy):
         self.work_list.sort(key=lambda state: self.beam_priority(state), reverse=True)
         del self.work_list[self.beam_width :]
 
+    def view_strategic_global_state(self) -> GlobalState:
+        """
+
+        :return:
+        """
+        self.sort_and_eliminate_states()
+        if len(self.work_list) > 0:
+            return self.work_list[0]
+        else:
+            raise IndexError
+
     def get_strategic_global_state(self) -> GlobalState:
         """
 
