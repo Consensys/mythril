@@ -20,6 +20,8 @@ class Args(object, metaclass=Singleton):
         self.use_integer_module = True
         self.use_issue_annotations = False
         self.solc_args = None
+        self.enable_coverage_strategy = False
+        self.enable_mutation_pruner = False
 
 
 args = Args()

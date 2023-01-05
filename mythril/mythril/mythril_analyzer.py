@@ -68,6 +68,8 @@ class MythrilAnalyzer:
         args.iprof = cmd_args.enable_iprof
         args.solver_log = cmd_args.solver_log
         args.transaction_sequences = cmd_args.transaction_sequences
+        args.enable_coverage_strategy = cmd_args.enable_coverage_strategy
+        args.enable_mutation_pruner = cmd_args.enable_mutation_pruner
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """

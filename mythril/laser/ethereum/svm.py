@@ -259,7 +259,7 @@ class LaserEVM:
             )
             if func_hashes:
                 func_hashes = [
-                    bytes.fromhex(hex(func_hash)[2:]) for func_hash in func_hashes
+                    bytes.fromhex(func_hash[2:]) for func_hash in func_hashes
                 ]
             for hook in self._start_sym_trans_hooks:
                 hook()

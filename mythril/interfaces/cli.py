@@ -314,7 +314,7 @@ def main() -> None:
         help="Lists available detection modules",
     )
     read_storage_parser = subparsers.add_parser(
-        "read-storage",
+        READ_STORAGE_COMNAND,
         help="Retrieves storage slots from a given address through rpc",
         parents=[rpc_parser],
     )
@@ -553,6 +553,11 @@ def add_analysis_args(options):
         help="enable coverage based search strategy",
     )
     options.add_argument(
+        "--enable-mutation-pruner",
+        action="store_true",
+        help="enable mutation pruner",
+    )
+    options.add_argument(
         "--custom-modules-directory",
         help="designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",
@@ -743,7 +748,7 @@ def execute_command(
     else:
         strategy = args.__dict__.get("strategy")
 
-    if args.command == "read-storage":
+    if args.command == READ_STORAGE_COMNAND:
         storage = disassembler.get_state_variable_from_storage(
             address=address,
             params=[a.strip() for a in args.storage_slots.strip().split(",")],

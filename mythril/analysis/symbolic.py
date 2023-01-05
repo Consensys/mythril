@@ -136,10 +136,14 @@ class SymExecWrapper:
             )
 
         plugin_loader = LaserPluginLoader()
-        plugin_loader.load(CoveragePluginBuilder())
-        plugin_loader.load(MutationPrunerBuilder())
+        if args.enable_coverage_strategy:
+            plugin_loader.load(CoveragePluginBuilder())
+        if args.enable_mutation_pruner:
+            plugin_loader.load(MutationPrunerBuilder())
+        if args.iprof:
+            plugin_loader.load(InstructionProfilerBuilder())
+
         plugin_loader.load(CallDepthLimitBuilder())
-        plugin_loader.load(InstructionProfilerBuilder())
         plugin_loader.add_args(
             "call-depth-limit", call_depth_limit=args.call_depth_limit
         )

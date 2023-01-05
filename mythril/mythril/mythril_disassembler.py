@@ -233,7 +233,6 @@ class MythrilDisassembler:
         :param func: function name
         :return: Its hash signature
         """
-        print(sha3(func))
         return "0x%s" % sha3(func)[:4].hex()
 
     def get_state_variable_from_storage(
