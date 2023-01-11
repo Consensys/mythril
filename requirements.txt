@@ -5,7 +5,7 @@ cython
 cytoolz<0.12.0
 asn1crypto>=0.22.0
 configparser>=3.5.0
-coverage>6.0
+coverage<7.0,>6.0
 py_ecc<5.0.0,>=1.4.7
 eth_abi<3.0.0,>=2.0.0b4
 eth-account<0.6.0,>=0.5.6
