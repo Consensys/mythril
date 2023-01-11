@@ -240,6 +240,7 @@ class LaserEVM:
             if len(self.open_states) == 0:
                 break
             old_states_count = len(self.open_states)
+
             if self.use_reachability_check:
                 self.open_states = [
                     state
@@ -257,10 +258,14 @@ class LaserEVM:
             func_hashes = (
                 args.transaction_sequences[i] if args.transaction_sequences else None
             )
+
             if func_hashes:
-                func_hashes = [
-                    bytes.fromhex(hex(func_hash)[2:]) for func_hash in func_hashes
-                ]
+                for itr, func_hash in enumerate(func_hashes):
+                    if func_hash in (-1, -2):
+                        func_hashes[itr] = func_hash
+                    else:
+                        func_hashes[itr] = bytes.fromhex(hex(func_hash)[2:])
+
             for hook in self._start_sym_trans_hooks:
                 hook()
 
@@ -319,7 +324,6 @@ class LaserEVM:
                     for state in new_states
                     if state.world_state.constraints.is_possible()
                 ]
-
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states
