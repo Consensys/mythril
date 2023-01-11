@@ -89,9 +89,16 @@ def generate_function_constraints(
     for i in range(FUNCTION_HASH_BYTE_LENGTH):
         constraint = Bool(False)
         for func_hash in func_hashes:
-            constraint = Or(
-                constraint, calldata[i] == symbol_factory.BitVecVal(func_hash[i], 8)
-            )
+            if func_hash == -1:
+                # Fallback function without calldata
+                constraint = Or(constraint, calldata.size < 4)
+            elif func_hash == -2:
+                # Receive function
+                constraint = Or(constraint, calldata.size == 0)
+            else:
+                constraint = Or(
+                    constraint, calldata[i] == symbol_factory.BitVecVal(func_hash[i], 8)
+                )
         constraints.append(constraint)
     return constraints
 

@@ -458,8 +458,8 @@ def add_analysis_args(options):
         type=str,
         default=None,
         help="The possible transaction sequences to be executed. "
-        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where for the first transaction is constrained "
-        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3",
+        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where the first transaction is constrained "
+        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3. Use -1 as a proxy for fallback() function and -2 for receive() function.",
     )
     options.add_argument(
         "--beam-search",
@@ -615,6 +615,10 @@ def validate_args(args: Namespace):
         exit_with_error("text", "Only a single arg is supported for using disassemble")
 
     if args.__dict__.get("transaction_sequences", None):
+        if args.__dict__.get("disable_dependency_pruning", False) is False:
+            log.warning(
+                "It is advised to disable dependency pruning (use the flag --disable-dependency-pruning) when specifying transaction sequences."
+            )
         try:
             args.transaction_sequences = literal_eval(str(args.transaction_sequences))
         except ValueError:
@@ -623,7 +627,8 @@ def validate_args(args: Namespace):
                 "The transaction sequence is in incorrect format, It should be "
                 "[list of possible function hashes in 1st transaction, "
                 "list of possible func hashes in 2nd tx, ...] "
-                "If any list is empty then all possible functions are considered for that transaction",
+                "If any list is empty then all possible functions are considered for that transaction."
+                "Use -1 as a proxy for fallback() and -2 for receive() function.",
             )
         if len(args.transaction_sequences) != args.transaction_count:
             args.transaction_count = len(args.transaction_sequences)

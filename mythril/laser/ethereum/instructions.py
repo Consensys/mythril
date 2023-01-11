@@ -1571,6 +1571,7 @@ class Instruction:
             global_state.mstate.max_gas_used += max_gas
             return [global_state]
         # False case
+
         negated = (
             simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
