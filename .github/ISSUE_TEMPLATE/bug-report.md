@@ -60,7 +60,7 @@ If applicable, add screenshots to help explain your problem.
 
 Please modify for your setup
 
-- Mythril version: output from  `myth --version` or `pip show mythril`
+- Mythril version: output from  `myth version` or `pip show mythril`
 - Solidity compiler and version: `solc --version`
 - Python version: `python -V`
 - OS and Version: [e.g. Mac OS High Sierra]
