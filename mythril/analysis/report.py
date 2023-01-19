@@ -146,11 +146,7 @@ class Issue:
         """
         if self.address and isinstance(contract, SolidityContract):
             is_constructor = False
-            if (
-                contract.creation_code
-                in self.transaction_sequence["steps"][-1]["input"]
-                and self.function == "constructor"
-            ):
+            if self.function == "constructor":
                 is_constructor = True
 
             if self.source_location:
