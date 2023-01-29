@@ -114,6 +114,9 @@ class WorldState:
         if dynamic_loader is None:
             raise ValueError("dynamic_loader is None")
 
+        if dynamic_loader.active is False:
+            raise ValueError("Dynamic Loader is deactivated. Use a symbol.")
+
         if isinstance(addr, int):
             try:
                 balance = dynamic_loader.read_balance("{0:#0{1}x}".format(addr, 42))
@@ -131,6 +134,7 @@ class WorldState:
             code = dynamic_loader.dynld(addr)
         except ValueError:
             code = None
+
         return self.create_account(
             address=addr_bitvec.value, dynamic_loader=dynamic_loader, code=code
         )
