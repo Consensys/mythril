@@ -912,7 +912,7 @@ class Instruction:
         """
         state = global_state.mstate
         address = state.stack.pop()
-        if address.symbolic is False:
+        if address.symbolic is False and self.dynamic_loader.active:
             balance = global_state.world_state.accounts_exist_or_load(
                 address.value, self.dynamic_loader
             ).balance()
@@ -1561,7 +1561,7 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
-
+        log.debug(simplify(condition))
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:
