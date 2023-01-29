@@ -1561,7 +1561,7 @@ class Instruction:
         states = []
 
         op0, condition = state.stack.pop(), state.stack.pop()
-        log.debug(simplify(condition))
+
         try:
             jump_addr = util.get_concrete_int(op0)
         except TypeError:
