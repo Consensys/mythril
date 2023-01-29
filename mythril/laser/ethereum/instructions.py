@@ -912,11 +912,18 @@ class Instruction:
         """
         state = global_state.mstate
         address = state.stack.pop()
-        if address.symbolic is False and self.dynamic_loader.active:
-            balance = global_state.world_state.accounts_exist_or_load(
-                address.value, self.dynamic_loader
-            ).balance()
+        onchain_access = True
+        if address.symbolic is False:
+            try:
+                balance = global_state.world_state.accounts_exist_or_load(
+                    address.value, self.dynamic_loader
+                ).balance()
+            except ValueError:
+                onchain_access = False
         else:
+            onchain_access = False
+
+        if onchain_access is False:
             balance = symbol_factory.BitVecVal(0, 256)
             for account in global_state.world_state.accounts.values():
                 balance = If(address == account.address, account.balance(), balance)
