@@ -678,5 +678,5 @@ To successfully explore useful transaction sequences we can use Mythril's ``--tr
 
     $ myth analyze rubixi.sol -t 3 --transaction-sequences [["0x89b8ae9b"],[-1],["0x686f2c90","0xb4022950","0x4229616d"]]
 
-The first transaction is constrained on ``fallback()`` function, the second transaction is constrained on ``dynamicPyramid`` function, and finally the third transaction is constrained on ``collectAllFees()``, ``collectFeesInEther(uint256)`` and, ``collectPercentOfFees(uint256)``.
+The first transaction is constrained to the function ``dynamicPyramid()``, the second one to the ``fallback()`` function, and finally, the third transaction is constrained to``collectAllFees()``, ``collectFeesInEther(uint256)`` and ``collectPercentOfFees(uint256)``.
 Make sure to use ``-t 3`` argument, since the length of the transaction sequence should match with the transaction count argument.
