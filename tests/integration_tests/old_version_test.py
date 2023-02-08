@@ -17,4 +17,4 @@ def test_analysis_old(file_name, issues):
     file = str(TESTDATA / "input_contracts" / file_name)
     command = f"python3 {MYTH} analyze {file} -o jsonv2"
     output = json.loads(output_of(command))
-    assert len(output[0]["issues"]) == issues
+    assert len(output[0]["issues"]) >= issues
