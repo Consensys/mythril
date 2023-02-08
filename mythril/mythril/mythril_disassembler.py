@@ -64,7 +64,7 @@ class MythrilDisassembler:
             main_version = solc.get_solc_version_string()
         except:
             main_version = ""  # allow missing solc will download instead
-        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
+        main_version_number = re.search(r"\d+.\d+.\d+", main_version)
 
         if version.startswith("v"):
             version = version[1:]
