@@ -20,6 +20,7 @@ hexbytes<0.3.0
 jinja2>=2.9
 MarkupSafe<2.1.0
 mock
+mypy-extensions<1.0.0
 persistent>=4.2.0
 py-flags
 py-evm==0.5.0a1

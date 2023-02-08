@@ -11,6 +11,7 @@ test_data = (
     ("version_contract.sol", "v0.8.0", False),
     ("version_contract_0.8.0.sol", None, False),
     ("version_contract_0.7.0.sol", None, True),
+    ("version_chaos.sol", None, True),
     ("version_2.sol", None, True),
     ("version_3.sol", None, True),
 )

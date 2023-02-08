@@ -12,10 +12,11 @@ import re
 from pathlib import Path
 from requests.exceptions import ConnectionError
 from subprocess import PIPE, Popen
-from typing import Optional
 
 from json.decoder import JSONDecodeError
+import semantic_version as semver
 from semantic_version import Version, NpmSpec
+from pyparsing import Word, Group, Optional, ZeroOrMore, oneOf, Regex, Combine
 
 from mythril.exceptions import CompilerError
 from mythril.support.support_args import args
@@ -140,6 +141,31 @@ def solc_exists(version):
     return solc_binary
 
 
+def parse_pragma(solidity_code):
+    lt = Word("<")
+    gtr = Word(">")
+    eq = Word("=")
+    carrot = Word("^")
+    version = Regex(r"\s*[0-9]+\s*\.\s*[0-9]+\s*\.\s*[0-9]+")
+    inequality = Optional(
+        eq | (Combine(gtr + Optional(eq)) | Combine(lt + Optional(eq)))
+    )
+    min_version = Optional(carrot | inequality) + version
+    max_version = Optional(inequality + version)
+    pragma = Word("pragma") + Word("solidity") + min_version + Optional(max_version)
+    result = pragma.parseString(solidity_code)
+    min_inequality = result[2] if result[2] in [">", "<", ">=", "<="] else ""
+    min_carrot = result[2] if result[2] == "^" else ""
+    min_version = result[3] if min_carrot != "" or min_inequality != "" else result[2]
+    return {
+        "min_carrot": min_carrot,
+        "min_inequality": min_inequality,
+        "min_version": min_version,
+        "max_inequality": result[4] if len(result) > 4 else None,
+        "max_version": result[5] if len(result) > 5 else None,
+    }
+
+
 try:
     all_versions = solcx.get_installable_solc_versions()
 except ConnectionError:
@@ -147,7 +173,7 @@ except ConnectionError:
     all_versions = solcx.get_installed_solc_versions()
 
 
-def extract_version(file: str) -> Optional[str]:
+def extract_version(file: str):
     version_line = None
     for line in file.split("\n"):
         if "pragma solidity" not in line:
@@ -160,13 +186,35 @@ def extract_version(file: str) -> Optional[str]:
     assert "pragma solidity" in version_line
     if version_line[-1] == ";":
         version_line = version_line[:-1]
-    version_line = version_line.split(";")[0]
-    version = re.search("pragma solidity ([\d.^]*)", version_line).group(1)
+    version_line = version_line[version_line.find("pragma") :]
+    pragma_dict = parse_pragma(version_line)
 
-    version_constraint = NpmSpec(version)
+    min_inequality = pragma_dict.get("min_inequality", None)
+    max_inequality = pragma_dict.get("max_inequality", None)
+    min_version = pragma_dict.get("min_version", None)
+    if min_version is not None:
+        min_version = min_version.replace(" ", "").replace("\t", "")
+    max_version = pragma_dict.get("max_version", None)
+    if max_version is not None:
+        max_version = max_version.replace(" ", "").replace("\t", "")
+
+    version_spec = (
+        f"{min_inequality}{min_version},{max_inequality}{max_version}"
+        if max_version
+        else min_version
+    )
+    version_constraint = semver.SimpleSpec(version_spec)
+
     for version in all_versions:
         if version in version_constraint:
+            if "0.5.17" in str(version):
+                # Solidity 0.5.17 Does not compile in a lot of cases.
+                continue
             return str(version)
+
+    else:
+        return None
+
     return None
 
 
