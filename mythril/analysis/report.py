@@ -50,7 +50,7 @@ class Issue:
         :param severity: The severity of the issue
         :param description_head: The top part of description
         :param description_tail: The bottom part of the description
-        :param debug: The transaction sequence
+        :param transaction_sequence: The transaction sequence
         """
         self.title = title
         self.contract = contract
