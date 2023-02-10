@@ -109,7 +109,7 @@ def _add_calldata_placeholder(
     transaction_sequence: List[BaseTransaction],
 ):
     """
-    Add's a calldata placeholder into the concrete transactions
+    Adds a calldata placeholder into the concrete transactions
     :param concrete_transactions:
     :param transaction_sequence:
     :return:
