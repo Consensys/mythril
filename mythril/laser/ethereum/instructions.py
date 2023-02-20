@@ -1349,7 +1349,7 @@ class Instruction:
         for i in range(concrete_size):
             global_state.mstate.memory[concrete_memory_offset + i] = (
                 global_state.last_return_data[concrete_return_offset + i]
-                if i < global_state.last_return_data.size
+                if concrete_return_offset + i < global_state.last_return_data.size
                 else 0
             )
 
