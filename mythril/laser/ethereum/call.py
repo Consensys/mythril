@@ -220,6 +220,7 @@ def native_call(
         mem_out_start = util.get_concrete_int(memory_out_offset)
         mem_out_sz = util.get_concrete_int(memory_out_size)
     except TypeError:
+        insert_ret_val(global_state)
         log.debug("CALL with symbolic start or offset not supported")
         return [global_state]
 
