@@ -22,6 +22,7 @@ from mythril.exceptions import (
     DetectorNotFoundError,
     CriticalError,
 )
+from mythril.interfaces.foundry import analyze_foundry_project
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.plugin.discovery import PluginDiscovery
 from mythril.plugin.loader import MythrilPluginLoader
@@ -38,6 +39,7 @@ _ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
+FOUNDRY_LIST = ("foundry", "f")
 
 CONCOLIC_LIST = ("concolic", "c")
 SAFE_FUNCTIONS_COMMAND = "safe-functions"
@@ -53,6 +55,7 @@ log = logging.getLogger(__name__)
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
+    + FOUNDRY_LIST
     + CONCOLIC_LIST
     + (
         READ_STORAGE_COMNAND,
@@ -309,6 +312,14 @@ def main() -> None:
         create_concolic_parser(concolic_parser)
 
     subparsers.add_parser(
+        FOUNDRY_LIST[0],
+        help="Triggers the analysis of the smart contract",
+        parents=[],
+        aliases=FOUNDRY_LIST[1:],
+        formatter_class=RawTextHelpFormatter,
+    )
+
+    foundry_parser = subparsers.add_parser(
         LIST_DETECTORS_COMMAND,
         parents=[output_parser],
         help="Lists available detection modules",
@@ -328,6 +339,7 @@ def main() -> None:
     subparsers.add_parser(
         VERSION_COMMAND, parents=[output_parser], help="Outputs the version"
     )
+
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
@@ -907,6 +919,9 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             for module_data in modules:
                 print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
+
+    if args.command in FOUNDRY_LIST:
+        analyze_foundry_project(args)
 
     if args.command == HELP_COMMAND:
         parser.print_help()
