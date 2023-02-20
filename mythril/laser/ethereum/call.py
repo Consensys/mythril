@@ -37,6 +37,7 @@ def get_call_parameters(
     """Gets call parameters from global state Pops the values from the stack
     and determines output parameters.
 
+
     :param global_state: state to look in
     :param dynamic_loader: dynamic loader to use
     :param with_value: whether to pop the value argument from the stack

@@ -243,8 +243,12 @@ class SignatureDB(object, metaclass=Singleton):
         :return:
         """
         solc_json = get_solc_json(file_path, solc_binary, solc_settings_json)
+        self.add_sigs(file_path, solc_json)
 
+    def add_sigs(self, file_path: str, solc_json):
         for contract in solc_json["contracts"][file_path].values():
+            if "methodIdentifiers" not in contract["evm"]:
+                continue
             for name, hash_ in contract["evm"]["methodIdentifiers"].items():
                 sig = "0x{}".format(hash_)
                 if sig in self.solidity_sigs:
