@@ -22,7 +22,6 @@ from mythril.exceptions import (
     DetectorNotFoundError,
     CriticalError,
 )
-from mythril.interfaces.foundry import analyze_foundry_project
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
 from mythril.plugin.discovery import PluginDiscovery
 from mythril.plugin.loader import MythrilPluginLoader
@@ -311,15 +310,19 @@ def main() -> None:
         )
         create_concolic_parser(concolic_parser)
 
-    subparsers.add_parser(
+    foundry_parser = subparsers.add_parser(
         FOUNDRY_LIST[0],
         help="Triggers the analysis of the smart contract",
-        parents=[],
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            output_parser,
+        ],
         aliases=FOUNDRY_LIST[1:],
         formatter_class=RawTextHelpFormatter,
     )
 
-    foundry_parser = subparsers.add_parser(
+    list_detectors_parser = subparsers.add_parser(
         LIST_DETECTORS_COMMAND,
         parents=[output_parser],
         help="Lists available detection modules",
@@ -343,7 +346,7 @@ def main() -> None:
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
-
+    create_foundry_parser(foundry_parser)
     subparsers.add_parser(HELP_COMMAND, add_help=False)
 
     # Get config values
@@ -598,6 +601,12 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     add_analysis_args(options)
 
 
+def create_foundry_parser(foundry_parser: ArgumentParser):
+    add_graph_commands(foundry_parser)
+    options = foundry_parser.add_argument_group("options")
+    add_analysis_args(options)
+
+
 def validate_args(args: Namespace):
     """
     Validate cli args
@@ -710,6 +719,9 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
         address, _ = disassembler.load_from_solidity(
             args.solidity_files
         )  # list of files
+    elif args.command in FOUNDRY_LIST:
+        address, _ = disassembler.load_from_foundry()
+
     else:
         exit_with_error(
             args.__dict__.get("outform", "text"),
@@ -794,7 +806,7 @@ def execute_command(
         except CriticalError as e:
             exit_with_error("text", "Analysis error encountered: " + format(e))
 
-    elif args.command in ANALYZE_LIST:
+    elif args.command in ANALYZE_LIST + FOUNDRY_LIST:
         analyzer = MythrilAnalyzer(
             strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )
@@ -919,9 +931,6 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             for module_data in modules:
                 print("{}: {}".format(module_data["classname"], module_data["title"]))
         sys.exit()
-
-    if args.command in FOUNDRY_LIST:
-        analyze_foundry_project(args)
 
     if args.command == HELP_COMMAND:
         parser.print_help()

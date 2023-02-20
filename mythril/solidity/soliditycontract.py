@@ -136,15 +136,55 @@ def get_contracts_from_file(input_file, solc_settings_json=None, solc_binary="so
             )
 
 
+def get_contracts_from_foundry(input_file, foundry_json):
+    """
+
+    :param input_file:
+    :param solc_settings_json:
+    :param solc_binary:
+    """
+
+    try:
+        contract_names = foundry_json["contracts"][input_file].keys()
+    except KeyError:
+        raise NoContractFoundError
+
+    for contract_name in contract_names:
+        if len(
+            foundry_json["contracts"][input_file][contract_name]["evm"][
+                "deployedBytecode"
+            ]["object"]
+        ):
+
+            yield SolidityContract(
+                input_file=input_file,
+                name=contract_name,
+                solc_settings_json=None,
+                solc_binary=None,
+                solc_data=foundry_json,
+            )
+
+
 class SolidityContract(EVMContract):
     """Representation of a Solidity contract."""
 
     def __init__(
-        self, input_file, name=None, solc_settings_json=None, solc_binary="solc"
+        self,
+        input_file,
+        name=None,
+        solc_settings_json=None,
+        solc_binary="solc",
+        solc_data=None,
     ):
-        data = get_solc_json(
-            input_file, solc_settings_json=solc_settings_json, solc_binary=solc_binary
-        )
+
+        if solc_data is None:
+            data = get_solc_json(
+                input_file,
+                solc_settings_json=solc_settings_json,
+                solc_binary=solc_binary,
+            )
+        else:
+            data = solc_data
 
         self.solc_indices = self.get_solc_indices(input_file, data)
         self.solc_json = data
@@ -268,6 +308,7 @@ class SolidityContract(EVMContract):
         disassembly = self.creation_disassembly if constructor else self.disassembly
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
+
         file_index = mappings[index].solidity_file_idx
 
         if file_index == -1:
