@@ -23,13 +23,14 @@ from mythril.support.loader import DynLoader
 class hevm_cheat_code:
     # https://github.com/dapphub/ds-test/blob/cd98eff28324bfac652e63a239a60632a761790b/src/test.sol
 
-    address = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
-    
+    address = 0x7109709ECFA91A80626FF3989D68F67F5B1DD12D
+
     fail_payload = int(
-        '70ca10bb' +
-        '0000000000000000000000007109709ecfa91a80626ff3989d68f67f5b1dd12d' +
-        '6661696c65640000000000000000000000000000000000000000000000000000' +
-        '0000000000000000000000000000000000000000000000000000000000000001', 16
+        "70ca10bb"
+        + "0000000000000000000000007109709ecfa91a80626ff3989d68f67f5b1dd12d"
+        + "6661696c65640000000000000000000000000000000000000000000000000000"
+        + "0000000000000000000000000000000000000000000000000000000000000001",
+        16,
     )
 
     assume_sig = 0x4C63E562
@@ -41,6 +42,7 @@ class hevm_cheat_code:
         if int(address, 16) != int("0x72c68108a82e82617b93d1be0d7975d762035015", 16):
             return True
         return False
+
 
 def handle_cheat_codes(
     global_state: GlobalState,

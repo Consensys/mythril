@@ -196,9 +196,6 @@ def get_call_data(
         return SymbolicCalldata(transaction_id)
 
 
-
-
-
 def native_call(
     global_state: GlobalState,
     callee_address: Union[str, BitVec],
@@ -207,15 +204,16 @@ def native_call(
     memory_out_size: Union[int, Expression],
 ) -> Optional[List[GlobalState]]:
 
-    if (
-        isinstance(callee_address, BitVec)
-        or not (0 < int(callee_address, 16) <= PRECOMPILE_COUNT or 
-        hevm_cheat_code.is_cheat_address(callee_address) )
+    if isinstance(callee_address, BitVec) or not (
+        0 < int(callee_address, 16) <= PRECOMPILE_COUNT
+        or hevm_cheat_code.is_cheat_address(callee_address)
     ):
         return None
     if hevm_cheat_code.is_cheat_address(callee_address):
         log.info("HEVM cheat code address triggered")
-        handle_cheat_codes(global_state, callee_address, call_data, memory_out_offset, memory_out_size)
+        handle_cheat_codes(
+            global_state, callee_address, call_data, memory_out_offset, memory_out_size
+        )
         return [global_state]
 
     log.debug("Native contract called: " + callee_address)

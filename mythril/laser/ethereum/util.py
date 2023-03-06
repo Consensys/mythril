@@ -24,6 +24,7 @@ def safe_decode(hex_encoded_string: str) -> bytes:
     else:
         return bytes.fromhex(hex_encoded_string)
 
+
 def insert_ret_val(global_state: "GlobalState"):
     retval = global_state.new_bitvec(
         "retval_" + str(global_state.get_current_instruction()["address"]), 256
