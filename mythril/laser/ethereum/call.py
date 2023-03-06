@@ -206,7 +206,6 @@ def native_call(
     memory_out_offset: Union[int, Expression],
     memory_out_size: Union[int, Expression],
 ) -> Optional[List[GlobalState]]:
-    print(int(callee_address, 16), int("0x7109709ECfa91a80626fF3989D68f67F5b1DD12D", 16))
 
     if (
         isinstance(callee_address, BitVec)
