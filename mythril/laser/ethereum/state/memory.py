@@ -200,7 +200,7 @@ class Memory:
         else:
             bv_key = simplify(convert_bv(key))
             if bv_key >= len(self):
-                assert False, "Error: Memory not extendedg"
+                return
             if isinstance(value, int):
                 assert 0 <= value <= 0xFF
             if isinstance(value, BitVec):
