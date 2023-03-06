@@ -37,9 +37,9 @@ class hevm_cheat_code:
 
     @staticmethod
     def is_cheat_address(address):
-        if int(address, 16) != int("0x7109709ECfa91a80626fF3989D68f67F5b1DD12D", 16):
+        if int(address, 16) == int("0x7109709ECfa91a80626fF3989D68f67F5b1DD12D", 16):
             return True
-        if int(address, 16) != int("0x72c68108a82e82617b93d1be0d7975d762035015", 16):
+        if int(address, 16) == int("0x72c68108a82e82617b93d1be0d7975d762035015", 16):
             return True
         return False
 
