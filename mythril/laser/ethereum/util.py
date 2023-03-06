@@ -5,7 +5,7 @@ from typing import Dict, List, Union, TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from mythril.laser.ethereum.state.machine_state import MachineState
-
+    from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.smt import BitVec, Bool, Expression, If, simplify, symbol_factory
 
 TT256 = 2**256
@@ -23,6 +23,14 @@ def safe_decode(hex_encoded_string: str) -> bytes:
         return bytes.fromhex(hex_encoded_string[2:])
     else:
         return bytes.fromhex(hex_encoded_string)
+
+
+def insert_ret_val(global_state: "GlobalState"):
+    retval = global_state.new_bitvec(
+        "retval_" + str(global_state.get_current_instruction()["address"]), 256
+    )
+    global_state.mstate.stack.append(retval)
+    global_state.world_state.constraints.append(retval == 1)
 
 
 def to_signed(i: int) -> int:

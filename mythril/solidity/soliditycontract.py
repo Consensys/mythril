@@ -286,7 +286,6 @@ class SolidityContract(EVMContract):
         :param ast: AST of the contract
         :return: The source maps
         """
-        print
         source_maps = set()
         if ast.node_type == "SourceUnit":
             for child in ast.nodes:

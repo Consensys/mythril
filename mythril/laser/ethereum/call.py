@@ -8,7 +8,9 @@ from typing import Union, List, cast, Optional
 from eth.constants import GAS_CALLSTIPEND
 
 import mythril.laser.ethereum.util as util
+from mythril.laser.ethereum.util import insert_ret_val
 from mythril.laser.ethereum import natives
+from mythril.laser.ethereum.cheat_code import handle_cheat_codes, hevm_cheat_code
 from mythril.laser.ethereum.instruction_data import calculate_native_gas
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT, PRECOMPILE_FUNCTIONS
@@ -194,14 +196,6 @@ def get_call_data(
         return SymbolicCalldata(transaction_id)
 
 
-def insert_ret_val(global_state: GlobalState):
-    retval = global_state.new_bitvec(
-        "retval_" + str(global_state.get_current_instruction()["address"]), 256
-    )
-    global_state.mstate.stack.append(retval)
-    global_state.world_state.constraints.append(retval == 1)
-
-
 def native_call(
     global_state: GlobalState,
     callee_address: Union[str, BitVec],
@@ -210,11 +204,17 @@ def native_call(
     memory_out_size: Union[int, Expression],
 ) -> Optional[List[GlobalState]]:
 
-    if (
-        isinstance(callee_address, BitVec)
-        or not 0 < int(callee_address, 16) <= PRECOMPILE_COUNT
+    if isinstance(callee_address, BitVec) or not (
+        0 < int(callee_address, 16) <= PRECOMPILE_COUNT
+        or hevm_cheat_code.is_cheat_address(callee_address)
     ):
         return None
+    if hevm_cheat_code.is_cheat_address(callee_address):
+        log.info("HEVM cheat code address triggered")
+        handle_cheat_codes(
+            global_state, callee_address, call_data, memory_out_offset, memory_out_size
+        )
+        return [global_state]
 
     log.debug("Native contract called: " + callee_address)
     try:
