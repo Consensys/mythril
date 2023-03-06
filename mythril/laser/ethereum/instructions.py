@@ -1982,6 +1982,8 @@ class Instruction:
                 8,
             )
             return_data.append(data)
+
+        global_state.mstate.mem_extend(memory_out_offset, memory_out_size)
         for i in range(memory_out_size.value):
             global_state.mstate.memory[memory_out_offset + i] = If(
                 i <= return_data_size,
@@ -2433,6 +2435,7 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+
             return [global_state]
 
         native_result = native_call(
