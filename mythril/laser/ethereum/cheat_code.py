@@ -36,12 +36,9 @@ class hevm_cheat_code:
 
     @staticmethod
     def is_cheat_address(address):
-        print(address)
         if int(address, 16) != int("0x7109709ECfa91a80626fF3989D68f67F5b1DD12D", 16):
-            print("SAT")
             return True
         if int(address, 16) != int("0x72c68108a82e82617b93d1be0d7975d762035015", 16):
-            print("SAT")
             return True
         return False
 
@@ -53,7 +50,5 @@ def handle_cheat_codes(
     memory_out_size: Union[int, Expression],
 ):
 
-        insert_ret_val(global_state)
-        print(call_data.concrete, hevm_cheat_code.fail_payload)
-        if call_data.concrete == hevm_cheat_code.fail_payload:
-            print("HOLA")
+    insert_ret_val(global_state)
+    pass
