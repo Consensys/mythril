@@ -162,13 +162,13 @@ class MythrilConfig:
                     return
                 if network in layer_one:
                     rpcconfig = (
-                        f"https://{network}.infura.io/v3/{self.infura_id}",
+                        f"{network}.infura.io/v3/{self.infura_id}",
                         None,
                         True,
                     )
                 else:
                     rpcconfig = (
-                        f"https://{network}-mainnet.infura.io/v3/{self.infura_id}",
+                        f"{network}-mainnet.infura.io/v3/{self.infura_id}",
                         None,
                         True,
                     )
