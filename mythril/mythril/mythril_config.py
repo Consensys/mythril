@@ -128,14 +128,29 @@ class MythrilConfig:
     def set_api_rpc(self, rpc: str = None, rpctls: bool = False) -> None:
         """
         Sets the RPC mode to either of ganache or infura
-        :param rpc: either of the strings - ganache, infura-mainnet, infura-rinkeby, infura-kovan, infura-ropsten
+        :param rpc: either of the strings - ganache, infura-mainnet, infura-rinkeby, infura-kovan, infura-ropsten,
+        infura-goerli, avalanche, arbitrum, bsc, optimism, polygon
         """
+
         if rpc == "ganache":
             rpcconfig = ("localhost", 7545, False)
-        else:
-            m = re.match(r"infura-(.*)", rpc)
 
-            if m and m.group(1) in ["mainnet", "rinkeby", "kovan", "ropsten", "goerli"]:
+        elif rpc.startswith("infura-"):
+            network = rpc.replace("infura-", "")
+            layer_one = ["mainnet", "rinkeby", "kovan", "ropsten", "goerli", "sepolia"]
+            layer_two = [
+                "avalanche",
+                "arbitrum",
+                "bsc",
+                "optimism",
+                "polygon",
+                "celo",
+                "starknet",
+                "aurora",
+                "near",
+                "palm",
+            ]
+            if network in layer_one + layer_two:
                 if self.infura_id in (None, ""):
                     log.info(
                         "Infura key not provided, so onchain access is disabled. "
@@ -145,20 +160,30 @@ class MythrilConfig:
                     )
                     self.eth = None
                     return
-
-                rpcconfig = (
-                    "{}.infura.io/v3/{}".format(m.group(1), self.infura_id),
-                    None,
-                    True,
-                )
-            else:
-                try:
-                    host, port = rpc.split(":")
-                    rpcconfig = (host, int(port), rpctls)
-                except ValueError:
-                    raise CriticalError(
-                        "Invalid RPC argument, use 'ganache', 'infura-[network]' or 'HOST:PORT'"
+                if network in layer_one:
+                    rpcconfig = (
+                        f"https://{network}.infura.io/v3/{self.infura_id}",
+                        None,
+                        True,
                     )
+                else:
+                    rpcconfig = (
+                        f"https://{network}-mainnet.infura.io/v3/{self.infura_id}",
+                        None,
+                        True,
+                    )
+            else:
+                raise CriticalError(
+                    f"Invalid network {network}, use 'mainnet', 'rinkeby', 'kovan', 'ropsten', 'goerli', 'avalanche', 'arbitrum', 'optimism', or 'polygon'"
+                )
+        else:
+            try:
+                host, port = rpc.split(":")
+                rpcconfig = (host, int(port), rpctls)
+            except ValueError:
+                raise CriticalError(
+                    "Invalid RPC argument, use 'ganache', 'infura-[network]', or 'HOST:PORT'"
+                )
 
         if rpcconfig:
             log.info("Using RPC settings: %s" % str(rpcconfig))
