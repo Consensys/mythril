@@ -865,6 +865,7 @@ def execute_command(
                     else None,
                     transaction_count=args.transaction_count,
                 )
+                print(report.as_text())
                 outputs = {
                     "json": report.as_json(),
                     "jsonv2": report.as_swc_standard_format(),
