@@ -172,6 +172,15 @@ class Issue:
         else:
             self.source_mapping = self.address
 
+    @staticmethod
+    def decode_bytes(val):
+        if isinstance(val, bytes):
+            return val.decode()
+        elif isinstance(val, list) or isinstance(val, tuple):
+            return [Issue.decode_bytes(x) for x in val]
+        else:
+            return val
+
     def resolve_function_names(self):
         """Resolves function names for each step"""
 
@@ -197,11 +206,7 @@ class Issue:
                     if step["resolved_input"] is not None:
                         step["resolved_input"] = list(step["resolved_input"])
                         for i, val in enumerate(step["resolved_input"]):
-                            if type(val) != bytes:
-                                continue
-                            # Some of the bytes violate UTF-8 and UTF-16 translates the input to Japanese
-                            # We cannot directly use bytes, as it's not serialisable using JSON, hence this hack.
-                            step["resolved_input"][i] = str(step["resolved_input"][i])
+                            step["resolved_input"][i] = Issue.decode_bytes(val)
 
                         step["resolved_input"] = tuple(step["resolved_input"])
 
