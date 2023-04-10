@@ -8,10 +8,12 @@ import platform
 import logging
 import solc
 import re
+import typing
 
 from pathlib import Path
 from requests.exceptions import ConnectionError
 from subprocess import PIPE, Popen
+
 
 from json.decoder import JSONDecodeError
 import semantic_version as semver
@@ -173,7 +175,9 @@ except ConnectionError:
     all_versions = solcx.get_installed_solc_versions()
 
 
-def extract_version(file: str):
+def extract_version(file: typing.Optional[str]):
+    if file is None:
+        return None
     version_line = None
     for line in file.split("\n"):
         if "pragma solidity" not in line:
@@ -219,9 +223,16 @@ def extract_version(file: str):
 
 
 def extract_binary(file: str) -> str:
+    file_data = None
     with open(file) as f:
-        version = extract_version(f.read())
-    if version and NpmSpec("^0.8.0").match(Version(version)):
+        file_data = f.read()
+
+    version = extract_version(file_data)
+    if (
+        version
+        and NpmSpec("^0.8.0").match(Version(version))
+        and "unchecked" not in file_data
+    ):
         args.use_integer_module = False
 
     if version is None:
