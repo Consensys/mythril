@@ -7,6 +7,8 @@ from mythril.exceptions import UnsatError, SolverTimeOutException
 import logging
 import os
 import signal
+import sys
+
 from collections import OrderedDict
 from copy import deepcopy
 from functools import lru_cache
@@ -33,6 +35,7 @@ def solver_worker(
     :param constraints: Tuple of constraints
     :param minimize: Tuple of minimization conditions
     :param maximize: Tuple of maximization conditions
+    :param solver_timeout: The timeout for solver
     :return:
     """
     s = Optimize()
@@ -103,12 +106,18 @@ def get_model(
             result, s = thread_result.get(solver_timeout)
         except TimeoutError:
             log.debug("Timeout/Error encountered while solving expression using z3")
-            raise SolverTimeOutException
+            result = unknown
         except Exception:
             log.warning("Encountered an exception while solving expression using z3")
-            raise UnsatError
+            result = unknown
     finally:
+        # This is to prevent any segmentation faults from being displayed from z3
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
         pool.terminate()
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
     if result == sat:
         model_cache.model_cache.put(s.model(), 1)
         return s.model()
