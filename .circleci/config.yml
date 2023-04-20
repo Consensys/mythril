@@ -1,4 +1,5 @@
-defaults: &defaults
+defaults:
+  &defaults
   docker:
     # TODO: Try to replace this with `mythril/mythx-ci` image. That image is
     # used for new integration testing, and it is build on top of the previous
@@ -18,7 +19,6 @@ jobs:
       # Uncomment, for local testing with circleci command, as it ignores
       # path param in checkout command, and this symlink compenstates for that.
       # - run: ln -s /root/project /home/mythril
-
       - restore-cache:
           keys:
             - tox-env-{{ checksum "/home/mythril/setup.py" }}
@@ -33,7 +33,7 @@ jobs:
 
       - save_cache:
           key: tox-env-{{ checksum "/home/mythril/setup.py" }}
-          paths: 
+          paths:
             - .tox/py*
             - /root/.cache/pip/wheels/
 
@@ -71,53 +71,58 @@ jobs:
 
       - run:
           name: Sonar analysis
-          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then if [ -z "$CIRCLE_TAG" ]; then sonar-scanner -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.organization=$SONAR_ORGANIZATION -Dsonar.branch.name=$CIRCLE_BRANCH -Dsonar.projectBaseDir=/home/mythril -Dsonar.sources=mythril -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.tests=/home/mythril/tests -Dsonar.login=$SONAR_LOGIN; fi; fi
-
+          command: if [ -z "$CIRCLE_PR_NUMBER" ]; then if [ -z "$CIRCLE_TAG" ]; then
+            sonar-scanner -Dsonar.projectKey=$SONAR_PROJECT_KEY
+            -Dsonar.organization=$SONAR_ORGANIZATION
+            -Dsonar.branch.name=$CIRCLE_BRANCH
+            -Dsonar.projectBaseDir=/home/mythril -Dsonar.sources=mythril
+            -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.tests=/home/mythril/tests
+            -Dsonar.login=$SONAR_LOGIN; fi; fi
       # - run:
       #     name: Integration tests
       #     command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
       #     working_directory: /home
-
-#  integration_tests:
-#    docker:
-#      - image: circleci/python:3.6.4
-#    working_directory: ~/project
-#    steps:
-#      - checkout
-#      - setup_remote_docker
-#      - run:
-#          name: Clone Edelweiss
-#          command: git clone --recurse-submodules https://$GITHUB_TOKEN@github.com/Consensys/Edelweiss.git
-#      - run:
-#          name: Update SWC-registry
-#          working_directory: ~/project/Edelweiss
-#          command: git submodule update --recursive --remote
-#      - run:
-#          name: Build Edelweiss
-#          command: |
-#              docker build \
-#                --build-arg AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
-#                --build-arg AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
-#                --build-arg AWS_DEFAULT_REGION=us-east-1 --rm -t "edelweiss-mythril:latest" . -f Edelweiss/dockerfiles/mythril/Dockerfile
-#      - run:
-#          name: Run Edelweiss
-#          command: |
-#              docker run \
-#                -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
-#                -e CIRCLE_SHA1=$CIRCLE_SHA1 \
-#                -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
-#                -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
-#                -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
-#                -e MONGO_URL=$MONGO_URL \
-#                --rm edelweiss-mythril:latest \
-#                --timeout 90 \
-#                --output-dir /opt/edelweiss \
-#                --s3 \
-#                --dynamodb \
-#                --circle-ci CircleCI/mythril.csv \
-#                --ignore-false-positives $IGNORE_FALSE_POSITIVES \
-#                --ignore-regressions $IGNORE_REGRESSIONS
-
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
+  #  integration_tests:
+  #    docker:
+  #      - image: circleci/python:3.6.4
+  #    working_directory: ~/project
+  #    steps:
+  #      - checkout
+  #      - setup_remote_docker
+  #      - run:
+  #          name: Clone Edelweiss
+  #          command: git clone --recurse-submodules https://$GITHUB_TOKEN@github.com/Consensys/Edelweiss.git
+  #      - run:
+  #          name: Update SWC-registry
+  #          working_directory: ~/project/Edelweiss
+  #          command: git submodule update --recursive --remote
+  #      - run:
+  #          name: Build Edelweiss
+  #          command: |
+  #              docker build \
+  #                --build-arg AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
+  #                --build-arg AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
+  #                --build-arg AWS_DEFAULT_REGION=us-east-1 --rm -t "edelweiss-mythril:latest" . -f Edelweiss/dockerfiles/mythril/Dockerfile
+  #      - run:
+  #          name: Run Edelweiss
+  #          command: |
+  #              docker run \
+  #                -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
+  #                -e CIRCLE_SHA1=$CIRCLE_SHA1 \
+  #                -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
+  #                -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
+  #                -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
+  #                -e MONGO_URL=$MONGO_URL \
+  #                --rm edelweiss-mythril:latest \
+  #                --timeout 90 \
+  #                --output-dir /opt/edelweiss \
+  #                --s3 \
+  #                --dynamodb \
+  #                --circle-ci CircleCI/mythril.csv \
+  #                --ignore-false-positives $IGNORE_FALSE_POSITIVES \
+  #                --ignore-regressions $IGNORE_REGRESSIONS
   pypi_release:
     <<: *defaults
     steps:
