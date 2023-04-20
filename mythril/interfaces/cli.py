@@ -626,7 +626,6 @@ def validate_args(args: Namespace):
             coloredlogs.install(
                 fmt="%(name)s [%(levelname)s]: %(message)s", level=log_levels[args.v]
             )
-            logging.getLogger("mythril").setLevel(log_levels[args.v])
         else:
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
