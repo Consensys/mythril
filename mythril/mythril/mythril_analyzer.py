@@ -23,6 +23,8 @@ from mythril.laser.execution_info import ExecutionInfo
 
 log = logging.getLogger(__name__)
 
+LARGE_TIME = 300
+
 
 class MythrilAnalyzer:
     """
@@ -68,6 +70,12 @@ class MythrilAnalyzer:
         args.iprof = cmd_args.enable_iprof
         args.solver_log = cmd_args.solver_log
         args.transaction_sequences = cmd_args.transaction_sequences
+
+        if args.pruning_factor is None:
+            if self.execution_timeout > LARGE_TIME:
+                args.pruning_factor = 1
+            else:
+                args.pruning_factor = 0
 
     def dump_statespace(self, contract: EVMContract = None) -> str:
         """

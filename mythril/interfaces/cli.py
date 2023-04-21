@@ -533,7 +533,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--pruning-factor",
         type=float,
-        default=1,
+        default=None,
         help="Checks for reachability at the rate of <pruning-factor> (range 0-1.0). Where 1.0 would mean checking for every execution",
     )
     options.add_argument(
