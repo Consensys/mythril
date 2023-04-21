@@ -10,7 +10,7 @@ class Args(object, metaclass=Singleton):
 
     def __init__(self):
         self.solver_timeout = 10000
-        self.pruning_factor = None
+        self.pruning_factor = 1
         self.unconstrained_storage = False
         self.parallel_solving = False
         self.call_depth_limit = 3
