@@ -200,7 +200,10 @@ class BasicConcreteCalldata(BaseCalldata):
         :param model:
         :return:
         """
-        return self._calldata
+        concrete_calldata = []
+        for data in self._calldata:
+            concrete_calldata.append(model.eval(data, model_completion=True))
+        return concrete_calldata
 
     @property
     def size(self) -> int:
