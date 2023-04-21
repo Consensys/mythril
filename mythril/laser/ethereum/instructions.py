@@ -1811,6 +1811,7 @@ class Instruction:
             call_value=call_value,
             contract_address=contract_address,
         )
+        log.info("Raise transaction start signal")
         raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition(is_state_mutation_instruction=True)
