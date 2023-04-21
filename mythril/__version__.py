@@ -4,4 +4,4 @@ This file is suitable for sourcing inside POSIX shell, e.g. bash as well
 as for importing into Python.
 """
 
-__version__ = "v0.23.20"
+__version__ = "v0.23.21"
