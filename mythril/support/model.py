@@ -8,7 +8,6 @@ import logging
 import os
 import signal
 import sys
-import threading
 
 from collections import OrderedDict
 from copy import deepcopy
@@ -97,6 +96,7 @@ def get_model(
         ret_model = model_cache.check_quick_sat(simplify(And(*constraints)).raw)
         if ret_model:
             return ret_model
+    
     pool = ThreadPool(1)
     try:
         thread_result = pool.apply_async(
