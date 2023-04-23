@@ -5,6 +5,7 @@ import logging
 from copy import copy, deepcopy
 from typing import cast, Callable, List, Union, Tuple
 
+from mythril.exceptions import UnsatError
 from mythril.laser.smt import (
     Extract,
     Expression,
@@ -1742,7 +1743,10 @@ class Instruction:
                 size = size.value
         code_raw = []
         constraints = global_state.world_state.constraints
-        model = get_model(constraints)
+        try:
+            model = get_model(constraints)
+        except UnsatError:
+            model = None
         if isinstance(call_data, ConcreteCalldata):
             for element in call_data.concrete(model):
                 if isinstance(element, BitVec) and element.symbolic:
