@@ -105,6 +105,7 @@ def get_model(
         try:
             result, s = thread_result.get(solver_timeout)
         except TimeoutError:
+            log.debug("Timeout/Error encountered while solving expression using z3")
             result = unknown
         except Exception:
             log.warning("Encountered an exception while solving expression using z3")
