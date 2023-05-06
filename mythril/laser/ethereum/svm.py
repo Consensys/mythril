@@ -28,7 +28,7 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import And, symbol_factory, simplify
 from mythril.support.support_args import args
 
 log = logging.getLogger(__name__)
@@ -242,12 +242,22 @@ class LaserEVM:
             old_states_count = len(self.open_states)
 
             if self.use_reachability_check:
-                self.open_states = [
-                    state
-                    for state in self.open_states
-                    if state.constraints.is_possible()
-                ]
-                prune_count = old_states_count - len(self.open_states)
+                if isinstance(self.strategy, DelayConstraintStrategy):
+                    open_states = []
+                    for state in self.open_states:
+                        c_val = self.strategy.model_cache.check_quick_sat(simplify(And(*state.world_state.constraints)).raw)
+                        if c_val:
+                            open_states.append(self.open_states)
+                        else:
+                            self.strategy.pending_worklist.append(state)
+
+                else:
+                    self.open_states = [
+                        state
+                        for state in self.open_states
+                        if state.constraints.is_possible()
+                    ]
+                    prune_count = old_states_count - len(self.open_states)
                 if prune_count:
                     log.info("Pruned {} unreachable states".format(prune_count))
             log.info(

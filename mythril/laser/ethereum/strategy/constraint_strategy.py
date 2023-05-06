@@ -29,19 +29,11 @@ class DelayConstraintStrategy(BasicSearchStrategy):
         :return: Global state
         """
         while True:
-            if len(self.work_list) == 0:
+            while len(self.work_list) == 0:
                 state = self.pending_worklist.pop(0)
                 model = state.world_state.constraints.get_model()
                 if model is not None:
                     self.model_cache.put(model, 1)
-                    return state
-            else:
-                state = self.work_list[0]
-                c_val = self.model_cache.check_quick_sat(
-                    simplify(And(*state.world_state.constraints)).raw
-                )
-                if c_val == False:
-                    self.pending_worklist.append(state)
-                    self.work_list.pop(0)
-                else:
-                    return self.work_list.pop(0)
+                    self.work_list.append(state)
+            state = self.work_list[0]
+            return state
