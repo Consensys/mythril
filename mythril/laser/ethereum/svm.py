@@ -245,7 +245,9 @@ class LaserEVM:
                 if isinstance(self.strategy, DelayConstraintStrategy):
                     open_states = []
                     for state in self.open_states:
-                        c_val = self.strategy.model_cache.check_quick_sat(simplify(And(*state.world_state.constraints)).raw)
+                        c_val = self.strategy.model_cache.check_quick_sat(
+                            simplify(And(*state.world_state.constraints)).raw
+                        )
                         if c_val:
                             open_states.append(self.open_states)
                         else:
