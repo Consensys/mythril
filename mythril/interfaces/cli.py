@@ -464,7 +464,7 @@ def add_analysis_args(options):
 
     options.add_argument(
         "--strategy",
-        choices=["dfs", "bfs", "naive-random", "weighted-random", "delayed"],
+        choices=["dfs", "bfs", "naive-random", "weighted-random", "pending"],
         default="bfs",
         help="Symbolic execution strategy",
     )
