@@ -506,7 +506,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--solver-timeout",
         type=int,
-        default=10000,
+        default=25000,
         help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
     )
     options.add_argument(
