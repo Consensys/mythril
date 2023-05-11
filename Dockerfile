@@ -21,8 +21,20 @@ ENV PATH=/root/.cargo/bin:$PATH
 # building it in a separate stage helps parallelise the build and helps it stay
 # in the build cache.
 FROM python-wheel AS python-wheel-z3-solver
+RUN pip install auditwheel
 RUN --mount=source=requirements.txt,target=/run/requirements.txt \
   pip wheel "$(grep z3-solver /run/requirements.txt)"
+# The wheel z3-solver builds does not install in arm64 because it generates
+# incorrect platform compatibility metadata for arm64 builds. (It uses the
+# platform manylinux1_aarch64 but manylinux1 is only defined for x86 systems,
+# not arm: https://peps.python.org/pep-0600/#legacy-manylinux-tags). To work
+# around this, we use pypa's auditwheel tool to infer and apply a compatible
+# platform tag.
+RUN ( auditwheel addtag ./z3_solver-* \
+      # replace incorrect wheel with the re-tagged one
+      && rm ./z3_solver-* && mv wheelhouse/z3_solver-* . ) \
+    # addtag exits with status 1 if no tags need adding, which is fine
+    || true
 
 
 FROM python-wheel-with-cargo AS python-wheel-blake2b
@@ -69,16 +81,7 @@ ARG INSTALLED_SOLC_VERSIONS
 COPY --from=solidity-compiler-version-manager /svm-rs/bin/* /usr/local/bin/
 
 RUN --mount=from=mythril-wheels,source=/wheels,target=/wheels \
-  export PYTHONDONTWRITEBYTECODE=1 \
-  && find /wheels -name '*.whl' -not -name "z3_solver-*-manylinux1_$(uname -m).whl" \
-    -exec pip install --no-cache-dir --no-deps {} + \
-  # z3-solver builds a wheel tagged with platform manylinux1, which pip does not
-  # report supporting, so it refuses to install it, despite it being built for
-  # this platform. Work around by overriding the platform to manylinux1
-  && find /wheels -name "z3_solver-*-manylinux1_$(uname -m).whl" \
-    -exec pip install --no-cache-dir --no-deps \
-    --target "/usr/local/lib/python${PYTHON_VERSION:?}/site-packages" \
-    --platform "manylinux1_$(uname -m)" {} \;
+  export PYTHONDONTWRITEBYTECODE=1 && pip install /wheels/*.whl
 
 RUN adduser --disabled-password mythril
 USER mythril
