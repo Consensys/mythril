@@ -1,23 +1,29 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eo pipefail
 
 NAME=$1
 
-if [ ! -z $CIRCLE_TAG ];
+if [[ ! $NAME =~ ^mythril/myth(-dev)?$ ]];
 then
-  VERSION=${CIRCLE_TAG#?}
-else
-  VERSION=${CIRCLE_SHA1}
+  echo "Error: unknown image name: $NAME" >&2
+  exit 1
 fi
 
-VERSION_TAG=${NAME}:${VERSION}
-LATEST_TAG=${NAME}:latest
+if [ ! -z $CIRCLE_TAG ];
+then
+  GIT_VERSION=${CIRCLE_TAG#?}
+else
+  GIT_VERSION=${CIRCLE_SHA1}
+fi
 
-docker build -t ${VERSION_TAG} .
-docker tag ${VERSION_TAG} ${LATEST_TAG}
+# Build and test all versions of the image. (The result will stay in the cache,
+# so the next build should be almost instant.)
+docker buildx bake myth-smoke-test
 
 echo "$DOCKERHUB_PASSWORD" | docker login -u $DOCKERHUB_USERNAME --password-stdin
 
-docker push ${VERSION_TAG}
-docker push ${LATEST_TAG}
+# strip mythril/ from NAME, e.g. myth or myth-dev
+BAKE_TARGET="${NAME#mythril/}"
+
+VERSION="${GIT_VERSION:?},latest" docker buildx bake --push "${BAKE_TARGET:?}"
