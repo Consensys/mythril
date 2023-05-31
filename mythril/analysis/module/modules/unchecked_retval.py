@@ -115,7 +115,7 @@ class UncheckedRetval(DetectionModule):
                 )
                 conditions = [
                     And(*(state.world_state.constraints + [retval["retval"] == 1])),
-                    And(*(state.world_state.constraints + [retval["retval"] == 1])),
+                    And(*(state.world_state.constraints + [retval["retval"] == 0])),
                 ]
 
                 state.annotate(

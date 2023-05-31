@@ -38,6 +38,7 @@ _ = MythrilPluginLoader()
 
 ANALYZE_LIST = ("analyze", "a")
 DISASSEMBLE_LIST = ("disassemble", "d")
+FOUNDRY_LIST = ("foundry", "f")
 
 CONCOLIC_LIST = ("concolic", "c")
 SAFE_FUNCTIONS_COMMAND = "safe-functions"
@@ -53,6 +54,7 @@ log = logging.getLogger(__name__)
 COMMAND_LIST = (
     ANALYZE_LIST
     + DISASSEMBLE_LIST
+    + FOUNDRY_LIST
     + CONCOLIC_LIST
     + (
         READ_STORAGE_COMNAND,
@@ -308,7 +310,19 @@ def main() -> None:
         )
         create_concolic_parser(concolic_parser)
 
-    subparsers.add_parser(
+    foundry_parser = subparsers.add_parser(
+        FOUNDRY_LIST[0],
+        help="Triggers the analysis of the smart contract",
+        parents=[
+            rpc_parser,
+            utilities_parser,
+            output_parser,
+        ],
+        aliases=FOUNDRY_LIST[1:],
+        formatter_class=RawTextHelpFormatter,
+    )
+
+    list_detectors_parser = subparsers.add_parser(
         LIST_DETECTORS_COMMAND,
         parents=[output_parser],
         help="Lists available detection modules",
@@ -328,10 +342,11 @@ def main() -> None:
     subparsers.add_parser(
         VERSION_COMMAND, parents=[output_parser], help="Outputs the version"
     )
+
     create_read_storage_parser(read_storage_parser)
     create_hash_to_addr_parser(contract_hash_to_addr)
     create_func_to_hash_parser(contract_func_to_hash)
-
+    create_foundry_parser(foundry_parser)
     subparsers.add_parser(HELP_COMMAND, add_help=False)
 
     # Get config values
@@ -449,7 +464,7 @@ def add_analysis_args(options):
 
     options.add_argument(
         "--strategy",
-        choices=["dfs", "bfs", "naive-random", "weighted-random", "delayed"],
+        choices=["dfs", "bfs", "naive-random", "weighted-random", "pending"],
         default="bfs",
         help="Symbolic execution strategy",
     )
@@ -458,8 +473,8 @@ def add_analysis_args(options):
         type=str,
         default=None,
         help="The possible transaction sequences to be executed. "
-        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where for the first transaction is constrained "
-        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3",
+        "Like [[func_hash1, func_hash2], [func_hash2, func_hash3]] where the first transaction is constrained "
+        "with func_hash1 and func_hash2, and the second tx is constrained with func_hash2 and func_hash3. Use -1 as a proxy for fallback() function and -2 for receive() function.",
     )
     options.add_argument(
         "--beam-search",
@@ -491,7 +506,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--solver-timeout",
         type=int,
-        default=10000,
+        default=25000,
         help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
     )
     options.add_argument(
@@ -518,7 +533,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--pruning-factor",
         type=float,
-        default=1,
+        default=None,
         help="Checks for reachability at the rate of <pruning-factor> (range 0-1.0). Where 1.0 would mean checking for every execution",
     )
     options.add_argument(
@@ -591,6 +606,12 @@ def create_analyzer_parser(analyzer_parser: ArgumentParser):
     add_analysis_args(options)
 
 
+def create_foundry_parser(foundry_parser: ArgumentParser):
+    add_graph_commands(foundry_parser)
+    options = foundry_parser.add_argument_group("options")
+    add_analysis_args(options)
+
+
 def validate_args(args: Namespace):
     """
     Validate cli args
@@ -610,7 +631,6 @@ def validate_args(args: Namespace):
             coloredlogs.install(
                 fmt="%(name)s [%(levelname)s]: %(message)s", level=log_levels[args.v]
             )
-            logging.getLogger("mythril").setLevel(log_levels[args.v])
         else:
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
@@ -620,6 +640,10 @@ def validate_args(args: Namespace):
         exit_with_error("text", "Only a single arg is supported for using disassemble")
 
     if args.__dict__.get("transaction_sequences", None):
+        if args.__dict__.get("disable_dependency_pruning", False) is False:
+            log.warning(
+                "It is advised to disable dependency pruning (use the flag --disable-dependency-pruning) when specifying transaction sequences."
+            )
         try:
             args.transaction_sequences = literal_eval(str(args.transaction_sequences))
         except ValueError:
@@ -628,7 +652,8 @@ def validate_args(args: Namespace):
                 "The transaction sequence is in incorrect format, It should be "
                 "[list of possible function hashes in 1st transaction, "
                 "list of possible func hashes in 2nd tx, ...] "
-                "If any list is empty then all possible functions are considered for that transaction",
+                "If any list is empty then all possible functions are considered for that transaction."
+                "Use -1 as a proxy for fallback() and -2 for receive() function.",
             )
         if len(args.transaction_sequences) != args.transaction_count:
             args.transaction_count = len(args.transaction_sequences)
@@ -698,6 +723,9 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
         address, _ = disassembler.load_from_solidity(
             args.solidity_files
         )  # list of files
+    elif args.command in FOUNDRY_LIST:
+        address, _ = disassembler.load_from_foundry()
+
     else:
         exit_with_error(
             args.__dict__.get("outform", "text"),
@@ -782,7 +810,7 @@ def execute_command(
         except CriticalError as e:
             exit_with_error("text", "Analysis error encountered: " + format(e))
 
-    elif args.command in ANALYZE_LIST:
+    elif args.command in ANALYZE_LIST + FOUNDRY_LIST:
         analyzer = MythrilAnalyzer(
             strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )
@@ -841,6 +869,7 @@ def execute_command(
                     else None,
                     transaction_count=args.transaction_count,
                 )
+
                 outputs = {
                     "json": report.as_json(),
                     "jsonv2": report.as_swc_standard_format(),

@@ -5,7 +5,7 @@ cython
 cytoolz<0.12.0
 asn1crypto>=0.22.0
 configparser>=3.5.0
-coverage>6.0
+coverage<7.0,>6.0
 py_ecc<5.0.0,>=1.4.7
 eth_abi<3.0.0,>=2.0.0b4
 eth-account<0.6.0,>=0.5.6
@@ -20,6 +20,7 @@ hexbytes<0.3.0
 jinja2>=2.9
 MarkupSafe<2.1.0
 mock
+mypy-extensions<1.0.0
 persistent>=4.2.0
 py-flags
 py-evm==0.5.0a1
@@ -34,7 +35,7 @@ rlp<3
 semantic_version
 transaction>=2.2.1
 typing-extensions<4,>=3.7.4
-z3-solver>=4.8.8.0
+z3-solver<4.12.2.0,>=4.8.8.0
 matplotlib
 pre-commit<2.21.0
 certifi>=2020.06.20

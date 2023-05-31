@@ -57,6 +57,34 @@ test_data = (
         }""",
         [f"0.4.{x}" for x in range(11, 27)] + [f"0.5.{x}" for x in range(0, 18)],
     ),
+    (
+        """
+        pragma solidity >= 0.5.0 < 0.6.0;
+        ;contract SimpleStorage {
+            uint storedData;
+            function set(uint x) public {
+                storedData = x;
+            }
+            function get() public view returns (uint) {
+                return storedData;
+            }
+        }""",
+        [f"0.5.{x}" for x in range(0, 18)],
+    ),
+    (
+        """
+        pragma solidity   >=   0  .  4  .0 <  0  .  6  .         0
+        ;contract SimpleStorage {
+            uint storedData;
+            function set(uint x) public {
+                storedData = x;
+            }
+            function get() public view returns (uint) {
+                return storedData;
+            }
+        }""",
+        [f"0.4.{x}" for x in range(11, 27)] + [f"0.5.{x}" for x in range(0, 18)],
+    ),
 )
 
 

@@ -95,7 +95,7 @@ class SymExecWrapper:
         elif "beam-search: " in strategy:
             beam_width = int(strategy.split("beam-search: ")[1])
             s_strategy = BeamSearch
-        elif "delayed" in strategy:
+        elif "pending" in strategy:
             s_strategy = DelayConstraintStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")

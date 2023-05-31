@@ -5,6 +5,7 @@ import logging
 from copy import copy, deepcopy
 from typing import cast, Callable, List, Union, Tuple
 
+from mythril.exceptions import UnsatError
 from mythril.laser.smt import (
     Extract,
     Expression,
@@ -60,7 +61,7 @@ from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     tx_id_manager,
 )
-
+from mythril.support.model import get_model
 from mythril.support.support_utils import get_code_hash
 
 from mythril.support.loader import DynLoader
@@ -912,11 +913,18 @@ class Instruction:
         """
         state = global_state.mstate
         address = state.stack.pop()
+        onchain_access = True
         if address.symbolic is False:
-            balance = global_state.world_state.accounts_exist_or_load(
-                address.value, self.dynamic_loader
-            ).balance()
+            try:
+                balance = global_state.world_state.accounts_exist_or_load(
+                    address.value, self.dynamic_loader
+                ).balance()
+            except ValueError:
+                onchain_access = False
         else:
+            onchain_access = False
+
+        if onchain_access is False:
             balance = symbol_factory.BitVecVal(0, 256)
             for account in global_state.world_state.accounts.values():
                 balance = If(address == account.address, account.balance(), balance)
@@ -1342,7 +1350,7 @@ class Instruction:
         for i in range(concrete_size):
             global_state.mstate.memory[concrete_memory_offset + i] = (
                 global_state.last_return_data[concrete_return_offset + i]
-                if i < global_state.last_return_data.size
+                if concrete_return_offset + i < global_state.last_return_data.size
                 else 0
             )
 
@@ -1571,6 +1579,7 @@ class Instruction:
             global_state.mstate.max_gas_used += max_gas
             return [global_state]
         # False case
+
         negated = (
             simplify(Not(condition)) if isinstance(condition, Bool) else condition == 0
         )
@@ -1725,17 +1734,27 @@ class Instruction:
         code_raw = []
         code_end = call_data.size
         size = call_data.size
+
         if isinstance(size, BitVec):
             # Other size restriction checks handle this
             if size.symbolic:
-                size = 10**5
+                size = 10**4
             else:
                 size = size.value
-        for i in range(size):
-            if call_data[i].symbolic:
-                code_end = i
-                break
-            code_raw.append(call_data[i].value)
+        code_raw = []
+        constraints = global_state.world_state.constraints
+        try:
+            model = get_model(constraints)
+        except UnsatError:
+            model = None
+        if isinstance(call_data, ConcreteCalldata):
+            for element in call_data.concrete(model):
+                if isinstance(element, BitVec) and element.symbolic:
+                    break
+                if isinstance(element, BitVec):
+                    code_raw.append(element.value)
+                else:
+                    code_raw.append(element)
 
         if len(code_raw) < 1:
             global_state.mstate.stack.append(1)
@@ -1796,6 +1815,7 @@ class Instruction:
             call_value=call_value,
             contract_address=contract_address,
         )
+        log.info("Raise transaction start signal")
         raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition(is_state_mutation_instruction=True)
@@ -1974,6 +1994,8 @@ class Instruction:
                 8,
             )
             return_data.append(data)
+
+        global_state.mstate.mem_extend(memory_out_offset, memory_out_size)
         for i in range(memory_out_size.value):
             global_state.mstate.memory[memory_out_offset + i] = If(
                 i <= return_data_size,
@@ -2425,6 +2447,7 @@ class Instruction:
             global_state.mstate.stack.append(
                 global_state.new_bitvec("retval_" + str(instr["address"]), 256)
             )
+
             return [global_state]
 
         native_result = native_call(

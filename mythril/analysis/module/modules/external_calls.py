@@ -71,6 +71,9 @@ class ExternalCalls(DetectionModule):
         :param state:
         :return:
         """
+        if state.environment.active_function_name == "constructor":
+            return []
+
         gas = state.mstate.stack[-1]
         to = state.mstate.stack[-2]
 

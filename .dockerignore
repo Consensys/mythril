@@ -1,0 +1,4 @@
+/.*
+/build
+/docker-bake.hcl
+/Dockerfile

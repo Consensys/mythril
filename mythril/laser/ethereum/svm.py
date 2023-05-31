@@ -28,7 +28,7 @@ from mythril.laser.ethereum.transaction import (
     execute_contract_creation,
     execute_message_call,
 )
-from mythril.laser.smt import symbol_factory
+from mythril.laser.smt import And, symbol_factory, simplify
 from mythril.support.support_args import args
 
 log = logging.getLogger(__name__)
@@ -240,13 +240,26 @@ class LaserEVM:
             if len(self.open_states) == 0:
                 break
             old_states_count = len(self.open_states)
+
             if self.use_reachability_check:
-                self.open_states = [
-                    state
-                    for state in self.open_states
-                    if state.constraints.is_possible()
-                ]
-                prune_count = old_states_count - len(self.open_states)
+                if isinstance(self.strategy, DelayConstraintStrategy):
+                    open_states = []
+                    for state in self.open_states:
+                        c_val = self.strategy.model_cache.check_quick_sat(
+                            simplify(And(*state.world_state.constraints)).raw
+                        )
+                        if c_val:
+                            open_states.append(self.open_states)
+                        else:
+                            self.strategy.pending_worklist.append(state)
+
+                else:
+                    self.open_states = [
+                        state
+                        for state in self.open_states
+                        if state.constraints.is_possible()
+                    ]
+                    prune_count = old_states_count - len(self.open_states)
                 if prune_count:
                     log.info("Pruned {} unreachable states".format(prune_count))
             log.info(
@@ -257,10 +270,14 @@ class LaserEVM:
             func_hashes = (
                 args.transaction_sequences[i] if args.transaction_sequences else None
             )
+
             if func_hashes:
-                func_hashes = [
-                    bytes.fromhex(func_hash[2:]) for func_hash in func_hashes
-                ]
+                for itr, func_hash in enumerate(func_hashes):
+                    if func_hash in (-1, -2):
+                        func_hashes[itr] = func_hash
+                    else:
+                        func_hashes[itr] = bytes.fromhex(hex(func_hash)[2:].zfill(8))
+
             for hook in self._start_sym_trans_hooks:
                 hook()
 
@@ -319,7 +336,6 @@ class LaserEVM:
                     for state in new_states
                     if state.world_state.constraints.is_possible()
                 ]
-
             self.manage_cfg(op_code, new_states)  # TODO: What about op_code is None?
             if new_states:
                 self.work_list += new_states

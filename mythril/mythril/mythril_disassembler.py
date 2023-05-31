@@ -1,11 +1,17 @@
+import json
 import logging
-import re
-import solc
-import sys
 import os
+from pathlib import Path
+import re
+import shutil
+import solc
+import subprocess
+import sys
+import warnings
 
+from eth_utils import int_to_big_endian
 from semantic_version import Version, NpmSpec
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, TYPE_CHECKING
 
 from mythril.support.support_utils import sha3, zpad
 from mythril.ethereum import util
@@ -16,10 +22,20 @@ from mythril.support.support_utils import rzpad
 from mythril.support.support_args import args
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.interface.rpc.exceptions import ConnectionError
-from mythril.solidity.soliditycontract import SolidityContract, get_contracts_from_file
+from mythril.solidity.soliditycontract import (
+    SolidityContract,
+    get_contracts_from_file,
+    get_contracts_from_foundry,
+)
 from mythril.support.support_args import args
 
-from eth_utils import int_to_big_endian
+
+def format_Warning(message, category, filename, lineno, line=""):
+    return "{}: {}\n\n".format(str(filename), str(message))
+
+
+warnings.formatwarning = format_Warning
+
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +80,7 @@ class MythrilDisassembler:
             main_version = solc.get_solc_version_string()
         except:
             main_version = ""  # allow missing solc will download instead
-        main_version_number = re.match(r"\d+.\d+.\d+", main_version)
+        main_version_number = re.search(r"\d+.\d+.\d+", main_version)
 
         if version.startswith("v"):
             version = version[1:]
@@ -151,6 +167,70 @@ class MythrilDisassembler:
                 )
             )
         return address, self.contracts[-1]  # return address and contract object
+
+    def load_from_foundry(self):
+        project_root = os.getcwd()
+
+        cmd = ["forge", "build", "--build-info", "--force"]
+
+        with subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=project_root,
+            executable=shutil.which(cmd[0]),
+        ) as p:
+
+            stdout, stderr = p.communicate()
+            stdout, stderr = (stdout.decode(), stderr.decode())
+            if stderr:
+                log.error(stderr)
+
+            build_dir = Path(project_root, "artifacts", "contracts", "build-info")
+
+        build_dir = os.path.join(project_root, "artifacts", "contracts", "build-info")
+
+        files = os.listdir(build_dir)
+        address = util.get_indexed_address(0)
+
+        files = sorted(
+            os.listdir(build_dir), key=lambda x: os.path.getmtime(Path(build_dir, x))
+        )
+
+        files = [str(f) for f in files if str(f).endswith(".json")]
+        if not files:
+            txt = f"`compile` failed. Can you run it?\n{build_dir} is empty"
+            raise Exception(txt)
+        contracts = []
+        for file in files:
+            build_info = Path(build_dir, file)
+
+            uniq_id = file if ".json" not in file else file[0:-5]
+
+            with open(build_info, encoding="utf8") as file_desc:
+                loaded_json = json.load(file_desc)
+
+                targets_json = loaded_json["output"]
+
+                version_from_config = loaded_json["solcVersion"]
+                input_json = loaded_json["input"]
+                compiler = "solc" if input_json["language"] == "Solidity" else "vyper"
+                optimizer = input_json["settings"]["optimizer"]["enabled"]
+
+                if compiler == "vyper":
+                    raise NotImplementedError("Support for Vyper is not implemented.")
+
+                if "contracts" in targets_json:
+                    for original_filename, contracts_info in targets_json[
+                        "contracts"
+                    ].items():
+                        for contract in get_contracts_from_foundry(
+                            original_filename, targets_json
+                        ):
+                            self.contracts.append(contract)
+                            contracts.append(contract)
+                            self.sigs.add_sigs(original_filename, targets_json)
+        return address, contracts
 
     def load_from_solidity(
         self, solidity_files: List[str]
