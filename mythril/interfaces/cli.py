@@ -546,7 +546,7 @@ def add_analysis_args(options):
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
     options.add_argument(
-        "--enable-physics", action="store_true", help="enable graph physics simulation"
+        "--enable-physics", action="store_true", help="Enable graph physics simulation"
     )
     options.add_argument(
         "-q",
@@ -555,7 +555,7 @@ def add_analysis_args(options):
         help="Lookup function signatures through www.4byte.directory",
     )
     options.add_argument(
-        "--enable-iprof", action="store_true", help="enable the instruction profiler"
+        "--disable-iprof", action="store_true", help="Disable the instruction profiler"
     )
     options.add_argument(
         "--disable-dependency-pruning",
@@ -563,18 +563,18 @@ def add_analysis_args(options):
         help="Deactivate dependency-based pruning",
     )
     options.add_argument(
-        "--enable-coverage-strategy",
+        "--disable-coverage-strategy",
         action="store_true",
-        help="enable coverage based search strategy",
+        help="Disable coverage based search strategy",
     )
     options.add_argument(
-        "--enable-mutation-pruner",
+        "--disable-mutation-pruner",
         action="store_true",
-        help="enable mutation pruner",
+        help="Disable mutation pruner",
     )
     options.add_argument(
         "--custom-modules-directory",
-        help="designates a separate directory to search for custom analysis modules",
+        help="Designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",
     )
     options.add_argument(
@@ -663,12 +663,6 @@ def validate_args(args: Namespace):
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
-            )
-
-        if args.enable_iprof and args.v < 4:
-            exit_with_error(
-                args.outform,
-                "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
             )
 
 

@@ -56,7 +56,7 @@ class CommandLineToolTestCase(BaseTestCase):
 
     def test_invalid_args_iprof(self):
         solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
-        command = "python3 {} analyze {} --enable-iprof -o json".format(
+        command = "python3 {} analyze {} --disable-iprof -o json".format(
             MYTH, solidity_file
         )
         self.assertIn(""""success": false""", output_of(command))

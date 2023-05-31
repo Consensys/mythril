@@ -14,14 +14,14 @@ class Args(object, metaclass=Singleton):
         self.unconstrained_storage = False
         self.parallel_solving = False
         self.call_depth_limit = 3
-        self.iprof = True
+        self.disable_iprof = False
         self.solver_log = None
         self.transaction_sequences: List[List[str]] = None
         self.use_integer_module = True
         self.use_issue_annotations = False
         self.solc_args = None
-        self.enable_coverage_strategy = False
-        self.enable_mutation_pruner = False
+        self.disable_coverage_strategy = False
+        self.disable_mutation_pruner = False
 
 
 args = Args()

@@ -136,11 +136,11 @@ class SymExecWrapper:
             )
 
         plugin_loader = LaserPluginLoader()
-        if args.enable_coverage_strategy:
+        if not args.disable_coverage_strategy:
             plugin_loader.load(CoveragePluginBuilder())
-        if args.enable_mutation_pruner:
+        if not args.disable_mutation_pruner:
             plugin_loader.load(MutationPrunerBuilder())
-        if args.iprof:
+        if not args.disable_iprof:
             plugin_loader.load(InstructionProfilerBuilder())
 
         plugin_loader.load(CallDepthLimitBuilder())
