@@ -26,9 +26,11 @@ def test_statespace_dump():
             parallel_solving=True,
             unconstrained_storage=True,
             call_depth_limit=3,
-            enable_iprof=False,
+            disable_iprof=True,
             solver_log=None,
             transaction_sequences=None,
+            disable_coverage_strategy=False,
+            disable_mutation_pruner=False,
         )
         analyzer = MythrilAnalyzer(
             disassembler=disassembler,

@@ -1,4 +1,4 @@
-from subprocess import check_output, CalledProcessError
+from subprocess import check_output, CalledProcessError, STDOUT
 from tests import BaseTestCase, TESTDATA, PROJECT_DIR, TESTS_DIR
 from mock import patch
 
@@ -13,6 +13,13 @@ def output_of(command):
     """
     try:
         return check_output(command, shell=True).decode("UTF-8")
+    except CalledProcessError as exc:
+        return exc.output.decode("UTF-8")
+
+
+def total_output(command):
+    try:
+        return check_output(command, shell=True, stderr=STDOUT).decode("UTF-8")
     except CalledProcessError as exc:
         return exc.output.decode("UTF-8")
 
@@ -56,10 +63,10 @@ class CommandLineToolTestCase(BaseTestCase):
 
     def test_invalid_args_iprof(self):
         solidity_file = str(TESTDATA / "input_contracts" / "origin.sol")
-        command = "python3 {} analyze {} --disable-iprof -o json".format(
+        command = "python3 {} analyze {} --enable-iprof -o json".format(
             MYTH, solidity_file
         )
-        self.assertIn(""""success": false""", output_of(command))
+        self.assertIn("""unrecognized arguments""", total_output(command))
 
     def test_only_epic(self):
         command = "python3 {} --epic".format(MYTH)
