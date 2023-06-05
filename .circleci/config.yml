@@ -145,10 +145,13 @@ jobs:
   # container.
   dockerhub_release:
     docker:
-      - image: ubuntu:kinetic
+      - image: docker:latest
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Install bash
+          command: apk add --no-cache bash
       - run:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth
@@ -156,10 +159,13 @@ jobs:
   # Release of the latest development version as mythril/myth-dev container.
   dockerhub_dev_release:
     docker:
-      - image: ubuntu:kinetic
+      - image: docker:latest
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Install bash
+          command: apk add --no-cache bash
       - run:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth-dev
