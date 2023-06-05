@@ -17,6 +17,8 @@ else
   GIT_VERSION=${CIRCLE_SHA1}
 fi
 
+docker buildx create --use
+
 # Build and test all versions of the image. (The result will stay in the cache,
 # so the next build should be almost instant.)
 docker buildx bake myth-smoke-test
