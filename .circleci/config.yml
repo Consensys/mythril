@@ -162,7 +162,7 @@ jobs:
       - setup_remote_docker
       - run:
           name: Building Docker Image
-          command: ./docker_build_and_deploy.sh mythril/myth-dev
+          command: /bin/bash ./docker_build_and_deploy.sh mythril/myth-dev
 
 workflows:
   version: 2
