@@ -145,7 +145,7 @@ jobs:
   # container.
   dockerhub_release:
     docker:
-      - image: docker:stable
+      - image: ubuntu:kinetic
     steps:
       - checkout
       - setup_remote_docker
@@ -156,13 +156,13 @@ jobs:
   # Release of the latest development version as mythril/myth-dev container.
   dockerhub_dev_release:
     docker:
-      - image: docker:stable
+      - image: ubuntu:kinetic
     steps:
       - checkout
       - setup_remote_docker
       - run:
           name: Building Docker Image
-          command: /bin/bash ./docker_build_and_deploy.sh mythril/myth-dev
+          command: ./docker_build_and_deploy.sh mythril/myth-dev
 
 workflows:
   version: 2
