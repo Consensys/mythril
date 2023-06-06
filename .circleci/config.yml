@@ -145,10 +145,13 @@ jobs:
   # container.
   dockerhub_release:
     docker:
-      - image: docker:stable
+      - image: docker:latest
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Install bash
+          command: apk add --no-cache bash
       - run:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth
@@ -156,13 +159,18 @@ jobs:
   # Release of the latest development version as mythril/myth-dev container.
   dockerhub_dev_release:
     docker:
-      - image: docker:stable
+      - image: docker:latest
     steps:
       - checkout
       - setup_remote_docker
       - run:
+          name: Install bash
+          command: apk add --no-cache bash
+      - run:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth-dev
+    # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
+    resource_class: large
 
 workflows:
   version: 2
