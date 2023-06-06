@@ -155,7 +155,7 @@ jobs:
       - run:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth
-    resource_class: arm.large
+    resource_class: large
 
   # Release of the latest development version as mythril/myth-dev container.
   dockerhub_dev_release:
@@ -171,7 +171,7 @@ jobs:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth-dev
     # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
-    resource_class: arm.large
+    resource_class: large
 
 workflows:
   version: 2
