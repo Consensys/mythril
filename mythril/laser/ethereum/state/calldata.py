@@ -200,7 +200,15 @@ class BasicConcreteCalldata(BaseCalldata):
         :param model:
         :return:
         """
-        return self._calldata
+        concrete_calldata = []
+        for data in self._calldata:
+            if isinstance(data, BitVec) and data.symbolic and model is not None:
+                concrete_calldata.append(model.eval(data, model_completion=True))
+            elif isinstance(data, BitVec) and data.symbolic is False:
+                concrete_calldata.append(data)
+            else:
+                break
+        return concrete_calldata
 
     @property
     def size(self) -> int:

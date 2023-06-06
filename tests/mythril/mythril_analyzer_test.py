@@ -36,9 +36,11 @@ def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
         parallel_solving=True,
         unconstrained_storage=True,
         call_depth_limit=3,
-        enable_iprof=False,
+        disable_iprof=True,
         solver_log=None,
         transaction_sequences=None,
+        disable_coverage_strategy=False,
+        disable_mutation_pruner=False,
     )
     analyzer = MythrilAnalyzer(disassembler, cmd_args=args)
 

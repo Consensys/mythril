@@ -328,7 +328,7 @@ def main() -> None:
         help="Lists available detection modules",
     )
     read_storage_parser = subparsers.add_parser(
-        "read-storage",
+        READ_STORAGE_COMNAND,
         help="Retrieves storage slots from a given address through rpc",
         parents=[rpc_parser],
     )
@@ -464,7 +464,7 @@ def add_analysis_args(options):
 
     options.add_argument(
         "--strategy",
-        choices=["dfs", "bfs", "naive-random", "weighted-random", "delayed"],
+        choices=["dfs", "bfs", "naive-random", "weighted-random", "pending"],
         default="bfs",
         help="Symbolic execution strategy",
     )
@@ -506,7 +506,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--solver-timeout",
         type=int,
-        default=10000,
+        default=25000,
         help="The maximum amount of time(in milli seconds) the solver spends for queries from analysis modules",
     )
     options.add_argument(
@@ -533,7 +533,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--pruning-factor",
         type=float,
-        default=1,
+        default=None,
         help="Checks for reachability at the rate of <pruning-factor> (range 0-1.0). Where 1.0 would mean checking for every execution",
     )
     options.add_argument(
@@ -546,7 +546,7 @@ def add_analysis_args(options):
         "--phrack", action="store_true", help="Phrack-style call graph"
     )
     options.add_argument(
-        "--enable-physics", action="store_true", help="enable graph physics simulation"
+        "--enable-physics", action="store_true", help="Enable graph physics simulation"
     )
     options.add_argument(
         "-q",
@@ -555,7 +555,7 @@ def add_analysis_args(options):
         help="Lookup function signatures through www.4byte.directory",
     )
     options.add_argument(
-        "--enable-iprof", action="store_true", help="enable the instruction profiler"
+        "--disable-iprof", action="store_true", help="Disable the instruction profiler"
     )
     options.add_argument(
         "--disable-dependency-pruning",
@@ -563,13 +563,18 @@ def add_analysis_args(options):
         help="Deactivate dependency-based pruning",
     )
     options.add_argument(
-        "--enable-coverage-strategy",
+        "--disable-coverage-strategy",
         action="store_true",
-        help="enable coverage based search strategy",
+        help="Disable coverage based search strategy",
+    )
+    options.add_argument(
+        "--disable-mutation-pruner",
+        action="store_true",
+        help="Disable mutation pruner",
     )
     options.add_argument(
         "--custom-modules-directory",
-        help="designates a separate directory to search for custom analysis modules",
+        help="Designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",
     )
     options.add_argument(
@@ -626,7 +631,6 @@ def validate_args(args: Namespace):
             coloredlogs.install(
                 fmt="%(name)s [%(levelname)s]: %(message)s", level=log_levels[args.v]
             )
-            logging.getLogger("mythril").setLevel(log_levels[args.v])
         else:
             exit_with_error(
                 args.outform, "Invalid -v value, you can find valid values in usage"
@@ -659,12 +663,6 @@ def validate_args(args: Namespace):
             exit_with_error(
                 args.outform,
                 "The --query-signature function requires the python package ethereum-input-decoder",
-            )
-
-        if args.enable_iprof and args.v < 4:
-            exit_with_error(
-                args.outform,
-                "--enable-iprof must be used with -v LOG_LEVEL where LOG_LEVEL >= 4",
             )
 
 
@@ -772,7 +770,7 @@ def execute_command(
     else:
         strategy = args.__dict__.get("strategy")
 
-    if args.command == "read-storage":
+    if args.command == READ_STORAGE_COMNAND:
         storage = disassembler.get_state_variable_from_storage(
             address=address,
             params=[a.strip() for a in args.storage_slots.strip().split(",")],

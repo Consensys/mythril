@@ -5,6 +5,7 @@ import logging
 from copy import copy, deepcopy
 from typing import cast, Callable, List, Union, Tuple
 
+from mythril.exceptions import UnsatError
 from mythril.laser.smt import (
     Extract,
     Expression,
@@ -60,7 +61,7 @@ from mythril.laser.ethereum.transaction import (
     ContractCreationTransaction,
     tx_id_manager,
 )
-
+from mythril.support.model import get_model
 from mythril.support.support_utils import get_code_hash
 
 from mythril.support.loader import DynLoader
@@ -1733,17 +1734,27 @@ class Instruction:
         code_raw = []
         code_end = call_data.size
         size = call_data.size
+
         if isinstance(size, BitVec):
             # Other size restriction checks handle this
             if size.symbolic:
-                size = 10**5
+                size = 10**4
             else:
                 size = size.value
-        for i in range(size):
-            if call_data[i].symbolic:
-                code_end = i
-                break
-            code_raw.append(call_data[i].value)
+        code_raw = []
+        constraints = global_state.world_state.constraints
+        try:
+            model = get_model(constraints)
+        except UnsatError:
+            model = None
+        if isinstance(call_data, ConcreteCalldata):
+            for element in call_data.concrete(model):
+                if isinstance(element, BitVec) and element.symbolic:
+                    break
+                if isinstance(element, BitVec):
+                    code_raw.append(element.value)
+                else:
+                    code_raw.append(element)
 
         if len(code_raw) < 1:
             global_state.mstate.stack.append(1)
@@ -1804,6 +1815,7 @@ class Instruction:
             call_value=call_value,
             contract_address=contract_address,
         )
+        log.info("Raise transaction start signal")
         raise TransactionStartSignal(transaction, self.op_code, global_state)
 
     @StateTransition(is_state_mutation_instruction=True)

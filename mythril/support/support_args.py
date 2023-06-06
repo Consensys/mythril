@@ -10,16 +10,18 @@ class Args(object, metaclass=Singleton):
 
     def __init__(self):
         self.solver_timeout = 10000
-        self.pruning_factor = 1
+        self.pruning_factor = None
         self.unconstrained_storage = False
         self.parallel_solving = False
         self.call_depth_limit = 3
-        self.iprof = True
+        self.disable_iprof = False
         self.solver_log = None
         self.transaction_sequences: List[List[str]] = None
         self.use_integer_module = True
         self.use_issue_annotations = False
         self.solc_args = None
+        self.disable_coverage_strategy = False
+        self.disable_mutation_pruner = False
 
 
 args = Args()

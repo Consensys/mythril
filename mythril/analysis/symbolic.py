@@ -95,7 +95,7 @@ class SymExecWrapper:
         elif "beam-search: " in strategy:
             beam_width = int(strategy.split("beam-search: ")[1])
             s_strategy = BeamSearch
-        elif "delayed" in strategy:
+        elif "pending" in strategy:
             s_strategy = DelayConstraintStrategy
         else:
             raise ValueError("Invalid strategy argument supplied")
@@ -136,10 +136,14 @@ class SymExecWrapper:
             )
 
         plugin_loader = LaserPluginLoader()
-        plugin_loader.load(CoveragePluginBuilder())
-        plugin_loader.load(MutationPrunerBuilder())
+        if not args.disable_coverage_strategy:
+            plugin_loader.load(CoveragePluginBuilder())
+        if not args.disable_mutation_pruner:
+            plugin_loader.load(MutationPrunerBuilder())
+        if not args.disable_iprof:
+            plugin_loader.load(InstructionProfilerBuilder())
+
         plugin_loader.load(CallDepthLimitBuilder())
-        plugin_loader.load(InstructionProfilerBuilder())
         plugin_loader.add_args(
             "call-depth-limit", call_depth_limit=args.call_depth_limit
         )

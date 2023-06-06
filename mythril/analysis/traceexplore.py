@@ -149,7 +149,6 @@ def get_serializable_statespace(statespace):
         label = re.sub(
             "([^_])([\d]{2}\d+)", lambda m: m.group(1) + hex(int(m.group(2))), label
         )
-        code = re.sub("([0-9a-f]{8})[0-9a-f]+", lambda m: m.group(1) + "(...)", code)
 
         s_edge = {
             "from": str(edge.as_dict["from"]),

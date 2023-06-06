@@ -309,9 +309,9 @@ class SolidityContract(EVMContract):
         mappings = self.constructor_mappings if constructor else self.mappings
         index = helper.get_instruction_index(disassembly.instruction_list, address)
 
-        if index >= len(mappings):
-            # TODO: Find why this scenario happens.
-            mappings = self.constructor_mappings if not constructor else self.mappings
+        if index is None or index >= len(mappings):
+            # TODO: Find why this scenario happens. Possibly an external call
+            return None
 
         file_index = mappings[index].solidity_file_idx
 
