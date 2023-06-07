@@ -86,7 +86,7 @@ jobs:
       #     command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
       #     working_directory: /home
     # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
-    resource_class: arm.large
+    resource_class: large
   #  integration_tests:
   #    docker:
   #      - image: circleci/python:3.6.4
@@ -158,7 +158,7 @@ jobs:
       - run:
           name: Building Docker Image
           command: ./docker_build_and_deploy.sh mythril/myth
-    resource_class: large
+    resource_class: arm.large
 
   # Release of the latest development version as mythril/myth-dev container.
   dockerhub_dev_release:
