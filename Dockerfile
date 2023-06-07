@@ -123,9 +123,9 @@ print("\n".join(str(v) for v in solcx.get_installed_solc_versions()))
 # Check myth can run
 myth version
 myth function-to-hash 'function transfer(address _to, uint256 _value) public returns (bool success)'
-myth analyze /solidity_examples/timelock.sol > timelock.log || true
-grep 'SWC ID: 116' timelock.log || {
-  error "Failed to detect SWC ID: 116 in timelock.sol";
+myth analyze /solidity_examples/origin.sol -t 1 > origin.log || true
+grep 'SWC ID: 115' origin.log || {
+  error "Failed to detect SWC ID: 115 in origin.sol";
   exit 1
 }
 

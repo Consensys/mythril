@@ -12,6 +12,7 @@ jobs:
   # Basic testing of a new commit to any branch.
   test:
     <<: *defaults
+    parallelism: 4
     steps:
       - checkout:
           path: /home/mythril
@@ -50,7 +51,9 @@ jobs:
 
       - run:
           name: Unit-testing
-          command: tox
+          command: |
+            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=timings)
+            tox -- $TESTFILES
           working_directory: /home/mythril
           no_output_timeout: 10m
           environment:
