@@ -41,7 +41,7 @@ def test_get_function_info_multiple_names(mocker):
     )
 
     # Assert
-    assert function_name == "**ambiguous** function_name"
+    assert function_name == "function_name or another_name"
 
 
 def test_get_function_info_no_names(mocker):

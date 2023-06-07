@@ -4,6 +4,7 @@ from mythril.laser.ethereum.state.environment import Environment
 from mythril.laser.ethereum.state.machine_state import MachineState
 from mythril.laser.ethereum.state.global_state import GlobalState
 from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.laser.ethereum.time_handler import time_handler
 from mythril.laser.ethereum.instructions import Instruction
 from mythril.laser.ethereum.transaction.transaction_models import (
     MessageCallTransaction,
@@ -57,6 +58,7 @@ def test_create2():
     ]
     og_state.mstate.memory.extend(100)
     og_state.mstate.memory[0:6] = [96] * 6
+    time_handler.start_execution(10)
     instruction = Instruction("create2", dynamic_loader=None)
     # Act + Assert
     with pytest.raises(TransactionStartSignal) as t:

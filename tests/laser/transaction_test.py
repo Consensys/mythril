@@ -2,6 +2,7 @@ from mythril.disassembler.disassembly import Disassembly
 from mythril.laser.ethereum import svm
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.state.world_state import WorldState
+from mythril.support.support_args import args
 
 import mythril.laser.ethereum.cfg as cfg
 
@@ -24,7 +25,7 @@ def test_intercontract_call():
     callee_account = Account(callee_address, callee_code, contract_name="Callee")
     world_state.put_account(callee_account)
     world_state.put_account(caller_account)
-
+    args.pruning_factor = 1
     laser = svm.LaserEVM()
 
     # Act
