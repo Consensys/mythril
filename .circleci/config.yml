@@ -52,7 +52,7 @@ jobs:
       - run:
           name: Unit-testing
           command: |
-            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=timings)
+            TESTFILES=$(circleci tests glob tests/**/*test.py | circleci tests split --split-by=timings)
             tox -- $TESTFILES
           working_directory: /home/mythril
           no_output_timeout: 10m
