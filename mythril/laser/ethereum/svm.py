@@ -626,25 +626,28 @@ class LaserEVM:
 
         environment = state.environment
         disassembly = environment.code
-        if isinstance(
-            state.world_state.transaction_sequence[-1], ContractCreationTransaction
-        ):
-            environment.active_function_name = "constructor"
-        elif address in disassembly.address_to_function_name:
-            # Enter a new function
-            environment.active_function_name = disassembly.address_to_function_name[
-                address
-            ]
-            new_node.flags |= NodeFlags.FUNC_ENTRY
 
-            log.debug(
-                "- Entering function "
-                + environment.active_account.contract_name
-                + ":"
-                + new_node.function_name
-            )
-        elif address == 0:
-            environment.active_function_name = "fallback"
+        # Only set when encountering new JUMPI
+        if edge_type == JumpType.CONDITIONAL:
+            if isinstance(
+                state.world_state.transaction_sequence[-1], ContractCreationTransaction
+            ):
+                environment.active_function_name = "constructor"
+            elif address in disassembly.address_to_function_name:
+                # Enter a new function
+                environment.active_function_name = disassembly.address_to_function_name[
+                    address
+                ]
+                new_node.flags |= NodeFlags.FUNC_ENTRY
+
+                log.debug(
+                    "- Entering function "
+                    + environment.active_account.contract_name
+                    + ":"
+                    + new_node.function_name
+                )
+            elif address == 0:
+                environment.active_function_name = "fallback"
 
         new_node.function_name = environment.active_function_name
 
