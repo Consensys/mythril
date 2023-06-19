@@ -512,7 +512,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--create-timeout",
         type=int,
-        default=10,
+        default=30,
         help="The amount of seconds to spend on the initial contract creation",
     )
     options.add_argument(
@@ -618,7 +618,7 @@ def validate_args(args: Namespace):
     :param args:
     :return:
     """
-    if args.__dict__.get("v", False):
+    if hasattr(args, "v"):
         if 0 <= args.v < 6:
             log_levels = [
                 logging.NOTSET,
@@ -639,8 +639,8 @@ def validate_args(args: Namespace):
     if args.command in DISASSEMBLE_LIST and len(args.solidity_files) > 1:
         exit_with_error("text", "Only a single arg is supported for using disassemble")
 
-    if args.__dict__.get("transaction_sequences", None):
-        if args.__dict__.get("disable_dependency_pruning", False) is False:
+    if getattr(args, "transaction_sequences", None):
+        if getattr(args, "disable_dependency_pruning", False) is False:
             log.warning(
                 "It is advised to disable dependency pruning (use the flag --disable-dependency-pruning) when specifying transaction sequences."
             )
@@ -673,14 +673,14 @@ def set_config(args: Namespace):
     :return: modified config
     """
     config = MythrilConfig()
-    if args.__dict__.get("infura_id", None):
+    if getattr(args, "infura_id", None):
         config.set_api_infura_id(args.infura_id)
     if (args.command in ANALYZE_LIST and not args.no_onchain_data) and not (
         args.rpc or args.i
     ):
         config.set_api_from_config_path()
 
-    if args.__dict__.get("rpc", None):
+    if getattr(args, "rpc", None):
         # Establish RPC connection if necessary
         config.set_api_rpc(rpc=args.rpc, rpctls=args.rpctls)
 
@@ -696,18 +696,18 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
     """
 
     address = None
-    if args.__dict__.get("code", False):
+    if getattr(args, "code", None):
         # Load from bytecode
         code = args.code[2:] if args.code.startswith("0x") else args.code
         address, _ = disassembler.load_from_bytecode(code, args.bin_runtime)
-    elif args.__dict__.get("codefile", False):
+    elif getattr(args, "codefile", None):
         bytecode = "".join([l.strip() for l in args.codefile if len(l.strip()) > 0])
         bytecode = bytecode[2:] if bytecode.startswith("0x") else bytecode
         address, _ = disassembler.load_from_bytecode(bytecode, args.bin_runtime)
-    elif args.__dict__.get("address", False):
+    elif getattr(args, "address", None):
         # Get bytecode from a contract address
         address, _ = disassembler.load_from_address(args.address)
-    elif args.__dict__.get("solidity_files", False):
+    elif getattr(args, "solidity_files", None):
         # Compile Solidity source file(s)
         if args.command in ANALYZE_LIST and args.graph and len(args.solidity_files) > 1:
             exit_with_error(
@@ -722,7 +722,7 @@ def load_code(disassembler: MythrilDisassembler, args: Namespace):
 
     else:
         exit_with_error(
-            args.__dict__.get("outform", "text"),
+            getattr(args, "outform", "text"),
             "No input bytecode. Please provide EVM code via -c BYTECODE, -a ADDRESS, -f BYTECODE_FILE or <SOLIDITY_FILE>",
         )
     return address
@@ -765,10 +765,10 @@ def execute_command(
     :param args:
     :return:
     """
-    if args.__dict__.get("beam_search"):
+    if getattr(args, "beam_search", None):
         strategy = f"beam-search: {args.beam_search}"
     else:
-        strategy = args.__dict__.get("strategy")
+        strategy = getattr(args, "strategy", "dfs")
 
     if args.command == READ_STORAGE_COMNAND:
         storage = disassembler.get_state_variable_from_storage(
@@ -951,10 +951,10 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
         if args.command == FUNCTION_TO_HASH_COMMAND:
             contract_hash_to_address(args)
         config = set_config(args)
-        query_signature = args.__dict__.get("query_signature", None)
-        solc_json = args.__dict__.get("solc_json", None)
-        solv = args.__dict__.get("solv", None)
-        solc_args = args.__dict__.get("solc_args", None)
+        query_signature = getattr(args, "query_signature", None)
+        solc_json = getattr(args, "solc_json", None)
+        solv = getattr(args, "solv", None)
+        solc_args = getattr(args, "solc_args", None)
         disassembler = MythrilDisassembler(
             eth=config.eth,
             solc_version=solv,
@@ -968,9 +968,9 @@ def parse_args_and_execute(parser: ArgumentParser, args: Namespace) -> None:
             disassembler=disassembler, address=address, parser=parser, args=args
         )
     except CriticalError as ce:
-        exit_with_error(args.__dict__.get("outform", "text"), str(ce))
+        exit_with_error(getattr(args, "outform", "text"), str(ce))
     except Exception:
-        exit_with_error(args.__dict__.get("outform", "text"), traceback.format_exc())
+        exit_with_error(getattr(args, "outform", "text"), traceback.format_exc())
 
 
 if __name__ == "__main__":
