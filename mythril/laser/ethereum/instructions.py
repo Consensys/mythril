@@ -285,12 +285,15 @@ class Instruction:
         """
         push_instruction = global_state.get_current_instruction()
         push_value = push_instruction["argument"]
+
         try:
             length_of_value = 2 * int(push_instruction["opcode"][4:])
         except ValueError:
             raise VmException("Invalid Push instruction")
-
-        if type(push_value) == tuple:
+        print(length_of_value)
+        if length_of_value == 0:
+            global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
+        elif type(push_value) == tuple:
             if type(push_value[0]) == int:
                 new_value = symbol_factory.BitVecVal(push_value[0], 8)
             else:
