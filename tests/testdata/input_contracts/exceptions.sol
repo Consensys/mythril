@@ -16,7 +16,9 @@ contract Exceptions {
     }
 
     function assert3(uint256 input) public pure {
-        assert(input != 23);
+        if (input > 10) {
+            assert(input != 23);
+        }
     }
 
     function requireisfine(uint256 input) public pure {

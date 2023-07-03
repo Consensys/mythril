@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 
-contract D {
+contract Kcalls {
     uint public n;
     address public sender;
 
