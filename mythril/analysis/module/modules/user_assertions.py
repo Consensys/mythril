@@ -76,7 +76,7 @@ class UserAssertions(DetectionModule):
                                 mem_start.value + 32 : mem_start.value + size.value
                             ]
                         ),
-                    ).decode("utf8")
+                    )
                 except:
                     pass
         try:
