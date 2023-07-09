@@ -148,7 +148,7 @@ def parse_pragma(solidity_code):
     gtr = Word(">")
     eq = Word("=")
     carrot = Word("^")
-    version = Regex(r"\s*[0-9]+\s*\.\s*[0-9]+\s*\.\s*[0-9]+")
+    version = Regex(r"\s*[0-9]+\s*\.\s*[0-9]+\s*(\.\s*[0-9]+)?")
     inequality = Optional(
         eq | (Combine(gtr + Optional(eq)) | Combine(lt + Optional(eq)))
     )
