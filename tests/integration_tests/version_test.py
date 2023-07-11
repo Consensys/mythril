@@ -14,6 +14,7 @@ test_data = (
     ("version_chaos.sol", None, True),
     ("version_2.sol", None, True),
     ("version_3.sol", None, True),
+    ("version_patch.sol", None, False),
 )
 
 
