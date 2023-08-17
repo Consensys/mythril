@@ -33,4 +33,5 @@ typing-extensions<4,>=3.7.4
 z3-solver>=4.8.8.0
 matplotlib
 pre-commit<2.21.0
-certifi>=2020.06.20
+certifi>=2022.12.07
+
