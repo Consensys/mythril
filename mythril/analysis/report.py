@@ -3,7 +3,7 @@ import logging
 import re
 import json
 import operator
-from eth_abi import decode_abi
+from eth_abi import decode
 from jinja2 import PackageLoader, Environment
 from typing import Dict, List, Any, Optional
 import hashlib

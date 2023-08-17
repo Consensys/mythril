@@ -17,8 +17,6 @@ class SolidityFeatureExtractor:
                 self.find_variables_in_if(modifier_node)
             )
 
-        print(modifier_vars)
-
         for node in function_nodes:
             function_name = self.get_function_name(node)
             contains_selfdestruct = self.contains_selfdestruct(node)
@@ -28,7 +26,6 @@ class SolidityFeatureExtractor:
             contains_staticcall = self.contains_staticcall(node)
             all_require_vars = self.find_variables_in_require(node)
             ether_vars = self.extract_address_variable(node)
-            print(ether_vars)
             for modifier in node.get("modifiers", []):
                 all_require_vars.update(modifier_vars[modifier["modifierName"]["name"]])
             is_payable = self.is_function_payable(node)
@@ -218,7 +215,6 @@ class SolidityFeatureExtractor:
                     expression["nodeType"] == "MemberAccess"
                     and expression["memberName"] in TRANSFER_METHODS
                 ):
-                    print(expression)
                     address_variable = expression["expression"].get("name")
                     if address_variable:
                         transfer_vars.update(set([address_variable]))
