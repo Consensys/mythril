@@ -7,14 +7,26 @@ import coincurve
 
 from typing import List
 
-from py_ecc.secp256k1 import N as secp256k1n
-from py_ecc.secp256k1 import ecdsa_raw_recover
 import py_ecc.optimized_bn128 as bn128
 
 from rlp.utils import ALL_BYTES
 from eth_utils import ValidationError
 from eth._utils.blake2.coders import extract_blake2b_parameters
 from eth._utils.bn128 import validate_point
+from eth.validation import (
+    validate_gte,
+    validate_lt_secpk1n,
+    validate_lte,
+)
+from eth_keys import (
+    keys,
+)
+from eth_keys.exceptions import (
+    BadSignature,
+)
+from eth._utils.padding import (
+    pad32,
+)
 
 from mythril.support.support_utils import sha3, zpad
 from mythril.laser.ethereum.state.calldata import BaseCalldata, ConcreteCalldata
@@ -43,29 +55,6 @@ def int_to_32bytearray(i):
     return o
 
 
-def ecrecover_to_pub(rawhash, v, r, s):
-    if hasattr(coincurve, "PublicKey"):
-        try:
-            pk = coincurve.PublicKey.from_signature_and_message(
-                zpad(bytes(int_to_32bytearray(r)), 32)
-                + zpad(bytes(int_to_32bytearray(s)), 32)
-                + ALL_BYTES[v - 27],
-                rawhash,
-                hasher=None,
-            )
-            pub = pk.format(compressed=False)[1:]
-        except BaseException:
-            pub = b"\x00" * 64
-    else:
-        result = ecdsa_raw_recover(rawhash, (v, r, s))
-        if result:
-            x, y = result
-            pub = encode_int32(x) + encode_int32(y)
-        else:
-            raise ValueError("Invalid VRS")
-    assert len(pub) == 64
-    return pub
-
 
 class NativeContractException(Exception):
     """An exception denoting an error during a native call."""
@@ -82,22 +71,30 @@ def ecrecover(data: List[int]) -> List[int]:
     # TODO: Add type hints
     try:
         bytes_data = bytearray(data)
+        message = b"".join([ALL_BYTES[x] for x in bytes_data[0:32]])
         v = extract32(bytes_data, 32)
         r = extract32(bytes_data, 64)
         s = extract32(bytes_data, 96)
     except TypeError:
         raise NativeContractException
-
-    message = b"".join([ALL_BYTES[x] for x in bytes_data[0:32]])
-    if r >= secp256k1n or s >= secp256k1n or v < 27 or v > 28:
-        return []
     try:
-        pub = ecrecover_to_pub(message, v, r, s)
-    except Exception as e:
-        log.debug("An error has occured while extracting public key: " + str(e))
+        validate_lt_secpk1n(r, title="ECRecover: R")
+        validate_lt_secpk1n(s, title="ECRecover: S")
+        validate_lte(v, 28, title="ECRecover: V")
+        validate_gte(v, 27, title="ECRecover: V")
+    except ValidationError:
         return []
-    o = [0] * 12 + [x for x in sha3(pub)[-20:]]
-    return list(bytearray(o))
+
+    canonical_v = v - 27
+
+    try:
+        signature = keys.Signature(vrs=(canonical_v, r, s))
+        public_key = signature.recover_public_key_from_msg_hash(message)
+    except BadSignature:
+        return []
+    address = public_key.to_canonical_address()
+    padded_address = pad32(address)
+    return list(padded_address)
 
 
 def sha256(data: List[int]) -> List[int]:

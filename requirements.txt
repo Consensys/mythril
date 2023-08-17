@@ -1,4 +1,5 @@
 blake2b-py
+py-ecc>=1.4.7,<7.0.0
 py-evm==0.7.0a4
 coloredlogs>=10.0
 coincurve>=13.0.0
@@ -6,8 +7,7 @@ cython
 asn1crypto>=0.22.0
 configparser>=3.5.0
 coverage<7.0,>6.0
-py_ecc>=5.0.0
-eth_abi>=3.0.0
+eth-abi>=3.0.0
 eth-account>=0.6.0
 ethereum-input-decoder>=0.2.2
 eth-rlp>=0.3.0

@@ -120,6 +120,7 @@ def test_vmtest(
     if test_name in ignored_test_names:
         return
     world_state = WorldState()
+    args.pruning_factor = 1
     args.unconstrained_storage = False
     for address, details in pre_condition.items():
         account = Account(address, concrete_storage=True)
