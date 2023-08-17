@@ -8,10 +8,19 @@ publish to pypi w/o having to convert Readme.md to RST:
     2) #> twine upload dist/*   #<specify bdist_wheel version to upload>; #optional --repository <testpypi> or  --repository-url <testpypi-url>
 """
 from setuptools import setup, find_packages
-from setuptools.command.install import install
+from setuptools.command.install import install as _install
+from subprocess import check_call
+
 import sys
 import os
 import io
+
+
+class InstallCommand(_install):
+    def run(self):
+        check_call([sys.executable, "-m", "pip", "install", "cython"])
+        _install.run(self)
+
 
 # Package meta-data.
 NAME = "mythril"
@@ -80,7 +89,7 @@ else:
 
 # Package version (vX.Y.Z). It must match git tag being used for CircleCI
 # deployment; otherwise the build will failed.
-class VerifyVersionCommand(install):
+class VerifyVersionCommand(_install):
     """Custom command to verify that the git tag matches our version."""
 
     description = "verify that the git tag matches our version"
@@ -126,5 +135,5 @@ setup(
     package_data={"mythril.analysis.templates": ["*"], "mythril.support.assets": ["*"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
-    cmdclass={"verify": VerifyVersionCommand},
+    cmdclass={"install": InstallCommand, "verify": VerifyVersionCommand},
 )
