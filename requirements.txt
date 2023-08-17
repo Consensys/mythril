@@ -10,7 +10,7 @@ coverage<7.0,>6.0
 eth-utils>=2.0.0,<3.0.0
 eth-account>=0.6.0
 ethereum-input-decoder>=0.2.2
-eth-rlp>=0.3.0
+eth-rlp>=0.2.0
 eth-abi>=2.0.0
 eth-typing>=3.3.0
 eth-utils>=2.0.0
