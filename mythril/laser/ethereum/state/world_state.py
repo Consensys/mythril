@@ -29,12 +29,12 @@ class WorldState:
         :param transaction_sequence:
         :param annotations:
         """
-        self._accounts = {}  # type: Dict[int, Account]
+        self._accounts: Dict[int, Account] = {}
         self.balances = Array("balance", 256, 256)
         self.starting_balances = deepcopy(self.balances)
         self.constraints = constraints or Constraints()
 
-        self.node = None  # type: Optional['Node']
+        self.node: Optional["Node"] = None
         self.transaction_sequence = transaction_sequence or []
         self._annotations = annotations or []
 

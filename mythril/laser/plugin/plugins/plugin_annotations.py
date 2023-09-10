@@ -31,11 +31,11 @@ class DependencyAnnotation(MergeableStateAnnotation):
     """
 
     def __init__(self):
-        self.storage_loaded = set()  # type: Set
-        self.storage_written = {}  # type: Dict[int, Set]
-        self.has_call = False  # type: bool
-        self.path = [0]  # type: List
-        self.blocks_seen = set()  # type: Set[int]
+        self.storage_loaded: Set = set()
+        self.storage_written: Dict[int, Set] = {}
+        self.has_call: bool = False
+        self.path: List = [0]
+        self.blocks_seen: Set[int] = set()
 
     def __copy__(self):
         result = DependencyAnnotation()

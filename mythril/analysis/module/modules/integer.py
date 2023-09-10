@@ -50,7 +50,7 @@ class OverUnderflowStateAnnotation(StateAnnotation):
     """State Annotation used if an overflow is both possible and used in the annotated path"""
 
     def __init__(self) -> None:
-        self.overflowing_state_annotations = set()  # type: Set[OverUnderflowAnnotation]
+        self.overflowing_state_annotations: Set[OverUnderflowAnnotation] = set()
 
     def __copy__(self):
         new_annotation = OverUnderflowStateAnnotation()
@@ -91,8 +91,8 @@ class IntegerArithmetics(DetectionModule):
         """
         super().__init__()
 
-        self._ostates_satisfiable = set()  # type: Set[GlobalState]
-        self._ostates_unsatisfiable = set()  # type: Set[GlobalState]
+        self._ostates_satisfiable: Set[GlobalState] = set()
+        self._ostates_unsatisfiable: Set[GlobalState] = set()
 
     def reset_module(self):
         """

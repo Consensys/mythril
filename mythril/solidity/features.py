@@ -203,7 +203,7 @@ class SolidityFeatureExtractor:
         return variables
 
     def extract_address_variable(self, node):
-        if type(node) == int:
+        if isinstance(node, int):
             return set([])
         transfer_vars = set([])
         if (
@@ -211,15 +211,13 @@ class SolidityFeatureExtractor:
             and node.get("expression", {}).get("nodeType") == "FunctionCall"
         ):
             expression = node["expression"].get("expression", None)
-            if expression is not None:
-                if (
-                    expression["nodeType"] == "MemberAccess"
-                    and expression["memberName"] in TRANSFER_METHODS
-                ):
-                    print(expression)
-                    address_variable = expression["expression"].get("name")
-                    if address_variable:
-                        transfer_vars.update(set([address_variable]))
+            if expression is not None and (
+                expression["nodeType"] == "MemberAccess"
+                and expression["memberName"] in TRANSFER_METHODS
+            ):
+                address_variable = expression["expression"].get("name")
+                if address_variable:
+                    transfer_vars.update(set([address_variable]))
 
         for key, value in node.items():
             if isinstance(value, dict):

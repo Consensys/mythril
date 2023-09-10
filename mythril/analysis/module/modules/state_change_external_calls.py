@@ -29,7 +29,7 @@ STATE_READ_WRITE_LIST = ["SSTORE", "SLOAD", "CREATE", "CREATE2"]
 class StateChangeCallsAnnotation(StateAnnotation):
     def __init__(self, call_state: GlobalState, user_defined_address: bool) -> None:
         self.call_state = call_state
-        self.state_change_states = []  # type: List[GlobalState]
+        self.state_change_states: List[GlobalState] = []
         self.user_defined_address = user_defined_address
 
     def __copy__(self):
@@ -165,7 +165,7 @@ class StateChangeAfterCall(DetectionModule):
 
         # Record state changes following from a transfer of ether
         if op_code in CALL_LIST:
-            value = global_state.mstate.stack[-3]  # type: BitVec
+            value: BitVec = global_state.mstate.stack[-3]
             if StateChangeAfterCall._balance_change(value, global_state):
                 for annotation in annotations:
                     annotation.state_change_states.append(global_state)

@@ -12,7 +12,7 @@ class PluginDiscovery(object, metaclass=Singleton):
     """
 
     # Installed plugins structure. Retrieves all modules that have an entry point for mythril.plugins
-    _installed_plugins = None  # type: Optional[Dict[str, Any]]
+    _installed_plugins: Optional[Dict[str, Any]] = None
 
     def init_installed_plugins(self):
         self._installed_plugins = {

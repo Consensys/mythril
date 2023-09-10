@@ -95,10 +95,10 @@ class DependencyPruner(LaserPlugin):
 
     def _reset(self):
         self.iteration = 0
-        self.calls_on_path = {}  # type: Dict[int, bool]
-        self.sloads_on_path = {}  # type: Dict[int, List[object]]
-        self.sstores_on_path = {}  # type: Dict[int, List[object]]
-        self.storage_accessed_global = set()  # type: Set
+        self.calls_on_path: Dict[int, bool] = {}
+        self.sloads_on_path: Dict[int, List[object]] = {}
+        self.sstores_on_path: Dict[int, List[object]] = {}
+        self.storage_accessed_global: Set = set()
 
     def update_sloads(self, path: List[int], target_location: object) -> None:
         """Update the dependency map for the block offsets on the given path.

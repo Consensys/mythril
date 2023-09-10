@@ -61,7 +61,6 @@ test_cases = [
 def test_feature_selfdestruct(file_name, num_funcs, func_name, field, expected_value):
     input_file = TEST_FILES / file_name
     name = file_name.split(".")[0]
-    print(name, name.capitalize())
     if name[0].islower():
         name = name.capitalize()
     contract = SolidityContract(str(input_file), name=name, solc_binary=solc_binary)

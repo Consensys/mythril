@@ -14,8 +14,8 @@ class JumpdestCountAnnotation(StateAnnotation):
     """State annotation that counts the number of jumps per destination."""
 
     def __init__(self) -> None:
-        self._reached_count = {}  # type: Dict[int, int]
-        self.trace = []  # type: List[int]
+        self._reached_count: Dict[int, int] = {}
+        self.trace: List[int] = []
 
     def __copy__(self):
         result = JumpdestCountAnnotation()

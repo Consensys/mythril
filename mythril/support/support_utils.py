@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
 
-    _instances = {}  # type: Dict
+    _instances: Dict = {}
 
     def __call__(cls, *args, **kwargs):
         """Delegate the call to an existing resource or a a new one.
@@ -59,7 +59,6 @@ class ModelCache:
 
     @lru_cache(maxsize=2**10)
     def check_quick_sat(self, constraints) -> bool:
-        model_list = list(reversed(self.model_cache.lru_cache.keys()))
         for model in reversed(self.model_cache.lru_cache.keys()):
             model_copy = deepcopy(model)
             if is_true(model_copy.eval(constraints, model_completion=True)):
@@ -77,11 +76,11 @@ def get_code_hash(code) -> str:
     :param code: bytecode
     :return: Returns hash of the given bytecode
     """
-    if type(code) == tuple:
+    if isinstance(code, tuple):
         # Temporary hack, since we cannot find symbols of sha3
         return str(hash(code))
 
-    code = code[2:] if code[:2] == "0x" else code
+    code = code[2:] if code.startswith("0x") else code
     try:
         hash_ = keccak(bytes.fromhex(code))
         return "0x" + hash_.hex()
@@ -91,8 +90,8 @@ def get_code_hash(code) -> str:
 
 
 def sha3(value):
-    if type(value) == str:
-        if value[:2] == "0x":
+    if isinstance(value, str):
+        if value.startswith("0x"):
             new_hash = keccak(bytes.fromhex(value))
         else:
             new_hash = keccak(value.encode())

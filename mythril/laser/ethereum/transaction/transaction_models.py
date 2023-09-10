@@ -105,7 +105,7 @@ class BaseTransaction:
         self.caller = caller
         self.callee_account = callee_account
         if call_data is None and init_call_data:
-            self.call_data = SymbolicCalldata(self.id)  # type: BaseCalldata
+            self.call_data: BaseCalldata = SymbolicCalldata(self.id)
         else:
             self.call_data = (
                 call_data
@@ -119,7 +119,7 @@ class BaseTransaction:
             else symbol_factory.BitVecSym(f"callvalue{identifier}", 256)
         )
         self.static = static
-        self.return_data = None  # type: str
+        self.return_data: Optional[ReturnData] = None
 
     def initial_global_state_from_environment(self, environment, active_function):
         """
@@ -278,7 +278,9 @@ class ContractCreationTransaction(BaseTransaction):
             tuple(return_data.return_data)
         )
         return_data = str(hex(global_state.environment.active_account.address.value))
-        self.return_data = ReturnData(return_data, len(return_data) // 2)
+        self.return_data: Optional[ReturnData] = ReturnData(
+            return_data, symbol_factory.BitVecVal(len(return_data) // 2, 256)
+        )
         assert global_state.environment.active_account.code.instruction_list != []
 
         raise TransactionEndSignal(global_state, revert=revert)

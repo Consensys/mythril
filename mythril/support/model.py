@@ -86,12 +86,16 @@ def get_model(
     if solver_timeout <= 0:
         raise SolverTimeOutException
     for constraint in constraints:
-        if type(constraint) == bool and not constraint:
+        if isinstance(constraint, bool) and not constraint:
             raise UnsatError
 
-    if type(constraints) != tuple:
+    if isinstance(constraints, tuple) is False:
         constraints = constraints.get_all_constraints()
-    constraints = [constraint for constraint in constraints if type(constraint) != bool]
+    constraints = [
+        constraint
+        for constraint in constraints
+        if isinstance(constraint, bool) is False
+    ]
 
     if len(maximize) + len(minimize) == 0:
         ret_model = model_cache.check_quick_sat(simplify(And(*constraints)).raw)

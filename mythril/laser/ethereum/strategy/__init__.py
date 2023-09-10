@@ -9,8 +9,8 @@ class BasicSearchStrategy(ABC):
     """
 
     def __init__(self, work_list, max_depth, **kwargs):
-        self.work_list = work_list  # type: List[GlobalState]
-        self.max_depth = max_depth
+        self.work_list: List[GlobalState] = work_list
+        self.max_depth: int = max_depth
 
     def __iter__(self):
         return self

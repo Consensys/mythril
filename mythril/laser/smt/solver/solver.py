@@ -28,18 +28,18 @@ class BaseSolver(Generic[T]):
         """
         self.raw.set(timeout=timeout)
 
-    def add(self, *constraints: List[Bool]) -> None:
+    def add(self, *constraints: Bool) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:
         :return:
         """
-        z3_constraints = [
+        z3_constraints: Sequence[z3.BoolRef] = [
             c.raw for c in cast(List[Bool], constraints)
-        ]  # type: Sequence[z3.BoolRef]
+        ]
         self.raw.add(z3_constraints)
 
-    def append(self, *constraints: List[Bool]) -> None:
+    def append(self, *constraints: Bool) -> None:
         """Adds the constraints to this solver.
 
         :param constraints:

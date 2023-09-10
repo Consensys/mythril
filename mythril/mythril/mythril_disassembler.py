@@ -30,11 +30,11 @@ from mythril.solidity.soliditycontract import (
 from mythril.support.support_args import args
 
 
-def format_Warning(message, category, filename, lineno, line=""):
+def format_warning(message, category, filename, lineno, line=""):
     return "{}: {}\n\n".format(str(filename), str(message))
 
 
-warnings.formatwarning = format_Warning
+warnings.formatwarning = format_warning
 
 
 log = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class MythrilDisassembler:
         self.eth = eth
         self.enable_online_lookup = enable_online_lookup
         self.sigs = signatures.SignatureDB(enable_online_lookup=enable_online_lookup)
-        self.contracts = []  # type: List[EVMContract]
+        self.contracts: List[EVMContract] = []
 
     @staticmethod
     def _init_solc_binary(version: str) -> Optional[str]:
@@ -190,7 +190,6 @@ class MythrilDisassembler:
 
         build_dir = os.path.join(project_root, "artifacts", "contracts", "build-info")
 
-        files = os.listdir(build_dir)
         address = util.get_indexed_address(0)
 
         files = sorted(

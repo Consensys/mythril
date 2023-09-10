@@ -238,7 +238,7 @@ class LaserEVM:
         for hook in self._stop_exec_trans_hooks:
             hook()
 
-    def _execute_transactions_ordered(self, address):
+    def _execute_transactions_non_ordered(self, address):
         """
         This function executes multiple transactions non-incrementally, using some type priority ordering
 
@@ -327,7 +327,7 @@ class LaserEVM:
         :param track_gas:
         :return:
         """
-        final_states = []  # type: List[GlobalState]
+        final_states: List[GlobalState] = []
         for hook in self._start_exec_hooks:
             hook()
 
@@ -387,7 +387,7 @@ class LaserEVM:
             #  exceptional halt all changes should be discarded, and this world state would not provide us with a
             #  previously unseen world state
             log.debug("Encountered a VmException, ending path: `{}`".format(error_msg))
-            new_global_states = []  # type: List[GlobalState]
+            new_global_states: List[GlobalState] = []
         else:
             # First execute the post hook for the transaction ending instruction
             self._execute_post_hook(op_code, [global_state])

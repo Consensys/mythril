@@ -27,8 +27,8 @@ Search for external calls with unrestricted gas to a user-specified address.
 
 
 def _is_precompile_call(global_state: GlobalState):
-    to = global_state.mstate.stack[-2]  # type: BitVec
-    constraints = copy(global_state.world_state.constraints)
+    to: BitVec = global_state.mstate.stack[-2]
+    constraints: Constraints = copy(global_state.world_state.constraints)
     constraints += [
         Or(
             to < symbol_factory.BitVecVal(1, 256),

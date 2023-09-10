@@ -106,7 +106,7 @@ def disassemble(bytecode) -> list:
     address = 0
     length = len(bytecode)
 
-    if type(bytecode) == str:
+    if isinstance(bytecode, str):
         bytecode = util.safe_decode(bytecode)
         length = len(bytecode)
         part_code = bytecode[-43:]
@@ -135,7 +135,7 @@ def disassemble(bytecode) -> list:
         match = re.search(regex_PUSH, op_code)
         if match:
             argument_bytes = bytecode[address + 1 : address + 1 + int(match.group(1))]
-            if type(argument_bytes) == bytes:
+            if isinstance(argument_bytes, bytes):
                 current_instruction.argument = "0x" + argument_bytes.hex()
             else:
                 current_instruction.argument = argument_bytes
