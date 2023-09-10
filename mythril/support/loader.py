@@ -40,7 +40,7 @@ class DynLoader:
         value = self.eth.eth_getStorageAt(
             contract_address, position=index, block="latest"
         )
-        if value == "0x":
+        if value.startswith("0x"):
             value = "0x0000000000000000000000000000000000000000000000000000000000000000"
         return value
 
@@ -96,7 +96,7 @@ class DynLoader:
 
         code = self.eth.eth_getCode(dependency_address)
 
-        if code == "0x":
+        if code.startswith("0x"):
             return None
         else:
             return Disassembly(code)

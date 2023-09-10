@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 def retrieve_callback_issues(white_list: Optional[List[str]] = None) -> List[Issue]:
     """Get the issues discovered by callback type detection modules"""
-    issues = []  # type: List[Issue]
+    issues: List[Issue] = []
     for module in ModuleLoader().get_detection_modules(
         entry_point=EntryPoint.CALLBACK, white_list=white_list
     ):
@@ -34,7 +34,7 @@ def fire_lasers(statespace, white_list: Optional[List[str]] = None) -> List[Issu
     """
     log.info("Starting analysis")
 
-    issues = []  # type: List[Issue]
+    issues: List[Issue] = []
     for module in ModuleLoader().get_detection_modules(
         entry_point=EntryPoint.POST, white_list=white_list
     ):

@@ -322,7 +322,7 @@ def main() -> None:
         formatter_class=RawTextHelpFormatter,
     )
 
-    list_detectors_parser = subparsers.add_parser(
+    _ = subparsers.add_parser(
         LIST_DETECTORS_COMMAND,
         parents=[output_parser],
         help="Lists available detection modules",

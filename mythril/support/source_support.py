@@ -38,7 +38,7 @@ class Source:
             self.source_format = "evm-byzantium-bytecode"
             self.source_type = (
                 "ethereum-address"
-                if len(contracts[0].name) == 42 and contracts[0].name[0:2] == "0x"
+                if len(contracts[0].name) == 42 and contracts[0].name.startswith("0x")
                 else "raw-bytecode"
             )
             for contract in contracts:

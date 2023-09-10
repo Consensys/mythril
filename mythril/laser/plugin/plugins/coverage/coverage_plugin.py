@@ -30,7 +30,7 @@ class InstructionCoveragePlugin(LaserPlugin):
     """
 
     def __init__(self):
-        self.coverage = {}  # type: Dict[str, Tuple[int, List[bool]]]
+        self.coverage: Dict[str, Tuple[int, List[bool]]] = {}
         self.initial_coverage = 0
         self.tx_id = 0
 
@@ -54,7 +54,7 @@ class InstructionCoveragePlugin(LaserPlugin):
                 else:
                     cov_percentage = sum(code_cov[1]) / float(code_cov[0]) * 100
                 string_code = code
-                if type(code) == tuple:
+                if isinstance(code, tuple):
                     try:
                         string_code = bytearray(code).hex()
                     except TypeError:

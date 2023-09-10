@@ -293,14 +293,14 @@ class Instruction:
 
         if length_of_value == 0:
             global_state.mstate.stack.append(symbol_factory.BitVecVal(0, 256))
-        elif type(push_value) == tuple:
-            if type(push_value[0]) == int:
+        elif isinstance(push_value, tuple):
+            if isinstance(push_value[0], int):
                 new_value = symbol_factory.BitVecVal(push_value[0], 8)
             else:
                 new_value = push_value[0]
             if len(push_value) > 1:
                 for val in push_value[1:]:
-                    if type(val) == int:
+                    if isinstance(val, int):
                         new_value = Concat(new_value, symbol_factory.BitVecVal(val, 8))
                     else:
                         new_value = Concat(new_value, val)
@@ -442,12 +442,12 @@ class Instruction:
             index = util.get_concrete_int(op0)
             offset = (31 - index) * 8
             if offset >= 0:
-                result = simplify(
+                result: Union[int, Expression] = simplify(
                     Concat(
                         symbol_factory.BitVecVal(0, 248),
                         Extract(offset + 7, offset, op1),
                     )
-                )  # type: Union[int, Expression]
+                )
             else:
                 result = 0
         except TypeError:
@@ -818,13 +818,13 @@ class Instruction:
             return [global_state]
 
         try:
-            dstart = util.get_concrete_int(dstart)  # type: Union[int, BitVec]
+            dstart: Union[int, BitVec] = util.get_concrete_int(dstart)
         except TypeError:
             log.debug("Unsupported symbolic calldata offset in CALLDATACOPY")
             dstart = simplify(dstart)
 
         try:
-            size = util.get_concrete_int(size)  # type: Union[int, BitVec]
+            size: Union[int, BitVec] = util.get_concrete_int(size)
         except TypeError:
             log.debug("Unsupported symbolic size in CALLDATACOPY")
             size = SYMBOLIC_CALLDATA_SIZE  # The excess size will get overwritten
@@ -1087,7 +1087,7 @@ class Instruction:
             global_state.mstate.stack.pop(),
         )
         code = global_state.environment.code.bytecode
-        if code[0:2] == "0x":
+        if code.startswith("0x"):
             code = code[2:]
         code_size = len(code) // 2
         if isinstance(global_state.current_transaction, ContractCreationTransaction):
@@ -1227,7 +1227,7 @@ class Instruction:
                 )
             return [global_state]
 
-        if code[0:2] == "0x":
+        if isinstance(code, str) and code.startswith("0x"):
             code = code[2:]
 
         for i in range(concrete_size):
@@ -1486,9 +1486,7 @@ class Instruction:
         state.mem_extend(offset, 1)
 
         try:
-            value_to_write = (
-                util.get_concrete_int(value) % 256
-            )  # type: Union[int, BitVec]
+            value_to_write: Union[int, BitVec] = util.get_concrete_int(value) % 256
         except TypeError:  # BitVec
             value_to_write = Extract(7, 0, value)
 
@@ -1591,10 +1589,10 @@ class Instruction:
         condi = simplify(condition) if isinstance(condition, Bool) else condition != 0
         condi.simplify()
 
-        negated_cond = (type(negated) == bool and negated) or (
+        negated_cond = (isinstance(negated, bool) and negated) or (
             isinstance(negated, Bool) and not is_false(negated)
         )
-        positive_cond = (type(condi) == bool and condi) or (
+        positive_cond = (isinstance(condi, bool) and condi) or (
             isinstance(condi, Bool) and not is_false(condi)
         )
 
@@ -1734,7 +1732,7 @@ class Instruction:
         world_state = global_state.world_state
 
         call_data = get_call_data(global_state, mem_offset, mem_offset + mem_size)
-        code_raw = []
+        code_raw: List[int] = []
         code_end = call_data.size
         size = call_data.size
 
@@ -1776,7 +1774,7 @@ class Instruction:
         gas_price = environment.gasprice
         origin = environment.origin
 
-        contract_address = None  # type: Union[BitVec, int]
+        contract_address: Union[BitVec, int] = None
         Instruction._sha3_gas_helper(global_state, len(code_str[2:]) // 2)
 
         if create2_salt:

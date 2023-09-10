@@ -254,9 +254,9 @@ class Report:
         :param contracts:
         :param exceptions:
         """
-        self.issues = {}  # type: Dict[bytes, Issue]
+        self.issues: Dict[bytes, Issue] = {}
         self.solc_version = ""
-        self.meta = {}  # type: Dict[str, Any]
+        self.meta: Dict[str, Any] = {}
         self.source = Source()
         self.source.get_source_from_contracts_list(contracts)
         self.exceptions = exceptions or []
@@ -306,7 +306,7 @@ class Report:
     def _get_exception_data(self) -> dict:
         if not self.exceptions:
             return {}
-        logs = []  # type: List[Dict]
+        logs: List[Dict] = []
         for exception in self.exceptions:
             logs += [{"level": "error", "hidden": True, "msg": exception}]
         return {"logs": logs}

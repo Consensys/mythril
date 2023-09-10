@@ -182,8 +182,8 @@ def test_vmtest(
                     actual = actual.value
                     actual = 1 if actual is True else 0 if actual is False else actual
                 else:
-                    if type(actual) == bytes:
+                    if isinstance(actual, bytes):
                         actual = int(binascii.b2a_hex(actual), 16)
-                    elif type(actual) == str:
+                    elif isinstance(actual, str):
                         actual = int(actual, 16)
                 assert actual == expected

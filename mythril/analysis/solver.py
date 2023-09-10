@@ -36,7 +36,7 @@ def pretty_print_model(model):
     ret = ""
 
     for d in model.decls():
-        if type(model[d]) == FuncInterp:
+        if isinstance(model[d], FuncInterp):
             condition = model[d].as_list()
             ret += "%s: %s\n" % (d.name(), condition)
             continue
@@ -119,7 +119,7 @@ def _add_calldata_placeholder(
     if not isinstance(transaction_sequence[0], ContractCreationTransaction):
         return
 
-    if type(transaction_sequence[0].code.bytecode) == tuple:
+    if isinstance(transaction_sequence[0].code.bytecode, tuple):
         code_len = len(transaction_sequence[0].code.bytecode) * 2
     else:
         code_len = len(transaction_sequence[0].code.bytecode)
@@ -206,7 +206,7 @@ def _get_concrete_transaction(model: z3.Model, transaction: BaseTransaction):
     )
 
     # Create concrete transaction dict
-    concrete_transaction = dict()  # type: Dict[str, str]
+    concrete_transaction: Dict[str, str] = dict()
     concrete_transaction["input"] = "0x" + input_
     concrete_transaction["value"] = "0x%x" % value
     # Fixme: base origin assignment on origin symbol

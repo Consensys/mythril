@@ -31,7 +31,7 @@ class Memory:
     def __init__(self):
         """"""
         self._msize = 0
-        self._memory = {}  # type: Dict[BitVec, Union[int, BitVec]]
+        self._memory: Dict[BitVec, Union[int, BitVec]] = {}
 
     def __len__(self):
         """
@@ -179,7 +179,7 @@ class Memory:
                 step = 1
             else:
                 assert False, "Currently mentioning step size is not supported"
-            assert type(value) == list
+            assert isinstance(value, list)
             bvstart, bvstop, bvstep = (
                 convert_bv(start),
                 convert_bv(stop),

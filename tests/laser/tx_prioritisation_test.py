@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch, mock_open
 
 
 def mock_predict_proba(X):
-    print(X)
     if X[0][-1] == 1:
         return np.array([[0.1, 0.7, 0.1, 0.1]])
     elif X[0][-1] == 2:

@@ -216,11 +216,6 @@ def extract_version(file: typing.Optional[str]):
                 continue
             return str(version)
 
-    else:
-        return None
-
-    return None
-
 
 def extract_binary(file: str) -> str:
     file_data = None

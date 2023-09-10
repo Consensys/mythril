@@ -143,7 +143,7 @@ def concrete_int_to_bytes(val):
     :return:
     """
     # logging.debug("concrete_int_to_bytes " + str(val))
-    if type(val) == int:
+    if isinstance(val, int):
         return val.to_bytes(32, byteorder="big")
     return simplify(val).value.to_bytes(32, byteorder="big")
 

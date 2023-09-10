@@ -85,7 +85,7 @@ class SymExecWrapper:
             address = symbol_factory.BitVecVal(address, 256)
         beam_width = None
         if strategy == "dfs":
-            s_strategy = DepthFirstSearchStrategy  # type: Type[BasicSearchStrategy]
+            s_strategy: Type[BasicSearchStrategy] = DepthFirstSearchStrategy
         elif strategy == "bfs":
             s_strategy = BreadthFirstSearchStrategy
         elif strategy == "naive-random":
@@ -240,7 +240,7 @@ class SymExecWrapper:
 
         # Parse calls to make them easily accessible
 
-        self.calls = []  # type: List[Call]
+        self.calls: List[Call] = []
 
         for key in self.nodes:
 

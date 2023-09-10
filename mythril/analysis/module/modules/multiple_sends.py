@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 class MultipleSendsAnnotation(StateAnnotation):
     def __init__(self) -> None:
-        self.call_offsets = []  # type: List[int]
+        self.call_offsets: List[int] = []
 
     def __copy__(self):
         result = MultipleSendsAnnotation()

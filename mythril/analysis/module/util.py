@@ -19,7 +19,7 @@ def get_detection_module_hooks(
     :param hook_type: The type  of hooks to retrieve (default: "pre")
     :return: Dictionary with discovered hooks
     """
-    hook_dict = defaultdict(list)  # type: Mapping[str, List[Callable]]
+    hook_dict: Mapping[str, List[Callable]] = defaultdict(list)
     for module in modules:
 
         hooks = module.pre_hooks if hook_type == "pre" else module.post_hooks

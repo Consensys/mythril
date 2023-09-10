@@ -48,7 +48,7 @@ class Node:
         constraints = constraints if constraints else Constraints()
         self.contract_name = contract_name
         self.start_addr = start_addr
-        self.states = []  # type: List[GlobalState]
+        self.states: List[GlobalState] = []
         self.constraints = constraints
         self.function_name = function_name
         self.flags = NodeFlags()

@@ -204,11 +204,11 @@ class Account:
         }
 
     def serialised_code(self):
-        if type(self.code.bytecode) == str:
+        if isinstance(self.code.bytecode, str):
             return self.code.bytecode
         new_code = "0x"
         for byte in self.code.bytecode:
-            if type(byte) == int:
+            if isinstance(byte, int):
                 new_code += hex(byte)
             else:
                 new_code += "<call_data>"

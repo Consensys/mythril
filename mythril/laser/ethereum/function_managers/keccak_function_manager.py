@@ -135,7 +135,7 @@ class KeccakFunctionManager:
         :param model: The z3 model to query for concrete values
         :return: A dictionary with concrete hashes { <hash_input_size> : [<concrete_hash>, <concrete_hash>]}
         """
-        concrete_hashes = {}  # type: Dict[int, List[Optional[int]]]
+        concrete_hashes: Dict[int, List[Optional[int]]] = {}
         for size in self.hash_result_store:
             concrete_hashes[size] = []
             for val in self.hash_result_store[size]:

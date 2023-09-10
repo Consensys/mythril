@@ -31,8 +31,8 @@ class DependenceBucket:
         :param variables: Variables contained in the conditions
         :param conditions: The conditions that are dependent on each other
         """
-        self.variables = variables or []  # type: List[z3.ExprRef]
-        self.conditions = conditions or []  # type: List[z3.ExprRef]
+        self.variables: List[z3.ExprRef] = variables or []
+        self.conditions: List[z3.ExprRef] = conditions or []
 
 
 class DependenceMap:
@@ -40,8 +40,8 @@ class DependenceMap:
 
     def __init__(self):
         """Initializes a DependenceMap object"""
-        self.buckets = []  # type: List[DependenceBucket]
-        self.variable_map = {}  # type: Dict[str, DependenceBucket]
+        self.buckets: List[DependenceBucket] = []
+        self.variable_map: Dict[str, DependenceBucket] = {}
 
     def add_condition(self, condition: z3.BoolRef) -> None:
         """
@@ -70,8 +70,8 @@ class DependenceMap:
 
     def _merge_buckets(self, bucket_list: Set[DependenceBucket]) -> DependenceBucket:
         """Merges the buckets in bucket list"""
-        variables = []  # type: List[str]
-        conditions = []  # type: List[z3.BoolRef]
+        variables: List[str] = []
+        conditions: List[z3.BoolRef] = []
         for bucket in bucket_list:
             self.buckets.remove(bucket)
             variables += bucket.variables
@@ -100,14 +100,14 @@ class IndependenceSolver:
         """
         self.raw.set(timeout=timeout)
 
-    def add(self, *constraints: Tuple[Bool]) -> None:
+    def add(self, *constraints: Bool) -> None:
         """Adds the constraints to this solver.
 
         :param constraints: constraints to add
         """
-        raw_constraints = [
+        raw_constraints: List[z3.BoolRef] = [
             c.raw for c in cast(Tuple[Bool], constraints)
-        ]  # type: List[z3.BoolRef]
+        ]
         self.constraints.extend(raw_constraints)
 
     def append(self, *constraints: Tuple[Bool]) -> None:
@@ -115,9 +115,9 @@ class IndependenceSolver:
 
         :param constraints: constraints to add
         """
-        raw_constraints = [
+        raw_constraints: List[z3.BoolRef] = [
             c.raw for c in cast(Tuple[Bool], constraints)
-        ]  # type: List[z3.BoolRef]
+        ]
         self.constraints.extend(raw_constraints)
 
     @stat_smt_query

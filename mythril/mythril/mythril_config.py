@@ -22,11 +22,11 @@ class MythrilConfig:
     """
 
     def __init__(self):
-        self.infura_id = os.getenv("INFURA_ID")  # type: str
+        self.infura_id: str = os.getenv("INFURA_ID")
         self.mythril_dir = self.init_mythril_dir()
         self.config_path = os.path.join(self.mythril_dir, "config.ini")
         self._init_config()
-        self.eth = None  # type: Optional[EthJsonRpc]
+        self.eth: Optional[EthJsonRpc] = None
 
     def set_api_infura_id(self, id):
         self.infura_id = id

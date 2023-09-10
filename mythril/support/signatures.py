@@ -44,7 +44,7 @@ def synchronized(sync_lock):
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
 
-    _instances = dict()  # type: Dict[Singleton, Singleton]
+    _instances: Dict[Singleton, Singleton] = dict()
 
     @synchronized(lock)
     def __call__(cls, *args, **kwargs):
@@ -123,12 +123,12 @@ class SignatureDB(object, metaclass=Singleton):
         :param path:
         """
         self.enable_online_lookup = enable_online_lookup
-        self.online_lookup_miss = set()  # type: Set[str]
+        self.online_lookup_miss: Set[str] = set()
         self.online_lookup_timeout = 0
 
         # if we're analysing a Solidity file, store its hashes
         # here to prevent unnecessary lookups
-        self.solidity_sigs = defaultdict(list)  # type: DefaultDict[str, List[str]]
+        self.solidity_sigs: DefaultDict[str, List[str]] = defaultdict(list)
         if path is None:
             self.path = os.environ.get("MYTHRIL_DIR") or os.path.join(
                 os.path.expanduser("~"), ".mythril"

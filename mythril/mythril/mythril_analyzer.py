@@ -47,7 +47,7 @@ class MythrilAnalyzer:
         :param address: Address of the contract
         """
         self.eth = disassembler.eth
-        self.contracts = disassembler.contracts or []  # type: List[EVMContract]
+        self.contracts: List[EVMContract] = disassembler.contracts or []
         self.enable_online_lookup = disassembler.enable_online_lookup
         self.use_onchain_data = not cmd_args.no_onchain_data
         self.strategy = strategy
@@ -141,10 +141,10 @@ class MythrilAnalyzer:
         :param transaction_count: The amount of transactions to be executed
         :return: The Report class which contains the all the issues/vulnerabilities
         """
-        all_issues = []  # type: List[Issue]
+        all_issues: List[Issue] = []
         SolverStatistics().enabled = True
         exceptions = []
-        execution_info = None  # type: Optional[List[ExecutionInfo]]
+        execution_info: Optional[List[ExecutionInfo]] = None
         for contract in self.contracts:
             StartTime()  # Reinitialize start time for new contracts
             try:

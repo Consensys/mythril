@@ -30,7 +30,7 @@ def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
         account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
         account.nonce = details["nonce"]
-        if type(details["storage"]) == str:
+        if isinstance(type(details["storage"]), str):
             details["storage"] = eval(details["storage"])  # type: ignore
         for key, value in details["storage"].items():
             key_bitvec = symbol_factory.BitVecVal(int(key, 16), 256)

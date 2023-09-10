@@ -4,7 +4,7 @@ from mythril.exceptions import UnsatError, SolverTimeOutException
 from mythril.laser.smt import symbol_factory, simplify, Bool
 from mythril.support.model import get_model
 from mythril.laser.ethereum.function_managers import keccak_function_manager
-
+from mythril.laser.smt.model import Model
 from copy import copy
 from typing import Iterable, List, Optional, Union
 
@@ -42,7 +42,7 @@ class Constraints(list):
             return False
         return True
 
-    def get_model(self, solver_timeout=None) -> bool:
+    def get_model(self, solver_timeout=None) -> Optional[Model]:
         """
         :param solver_timeout: The default timeout uses analysis timeout from args.solver_timeout
         :return: True/False based on the existence of solution of constraints

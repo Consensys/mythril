@@ -278,14 +278,14 @@ class BasicSymbolicCalldata(BaseCalldata):
 
         :param tx_id: Id of the transaction that the calldata is for.
         """
-        self._reads = []  # type: List[Tuple[Union[int, BitVec], BitVec]]
+        self._reads: List[Tuple[Union[int, BitVec], BitVec]] = []
         self._size = symbol_factory.BitVecSym(str(tx_id) + "_calldatasize", 256)
         super().__init__(tx_id)
 
     def _load(self, item: Union[int, BitVec], clean=False) -> Any:
-        expr_item = (
+        expr_item: BitVec = (
             symbol_factory.BitVecVal(item, 256) if isinstance(item, int) else item
-        )  # type: BitVec
+        )
 
         symbolic_base_value = If(
             expr_item >= self._size,
