@@ -7,6 +7,7 @@ import mythril.laser.ethereum.util as helper
 from mythril.ethereum.evmcontract import EVMContract
 from mythril.ethereum.util import get_solc_json
 from mythril.exceptions import NoContractFoundError
+from mythril.solidity.features import SolidityFeatureExtractor
 
 log = logging.getLogger(__name__)
 
@@ -189,6 +190,13 @@ class SolidityContract(EVMContract):
         self.solc_indices = self.get_solc_indices(input_file, data)
         self.solc_json = data
         self.input_file = input_file
+        if "ast" in data["sources"][str(input_file)]:
+            # Not available in old solidity versions, around ~0.4.11
+            self.features = SolidityFeatureExtractor(
+                data["sources"][str(input_file)]["ast"]
+            ).extract_features()
+        else:
+            self.features = None
         has_contract = False
 
         # If a contract name has been specified, find the bytecode of that specific contract
