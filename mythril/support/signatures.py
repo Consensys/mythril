@@ -44,7 +44,7 @@ def synchronized(sync_lock):
 class Singleton(type):
     """A metaclass type implementing the singleton pattern."""
 
-    _instances: Dict[Singleton, Singleton] = dict()
+    _instances: Dict["Singleton", "Singleton"] = dict()
 
     @synchronized(lock)
     def __call__(cls, *args, **kwargs):
