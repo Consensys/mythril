@@ -63,6 +63,7 @@ class LaserEVM:
         iprof=None,
         use_reachability_check=True,
         beam_width=None,
+        tx_strategy=None,
     ) -> None:
         """
         Initializes the laser evm object
@@ -75,6 +76,9 @@ class LaserEVM:
         :param transaction_count: The amount of transactions to execute
         :param requires_statespace: Variable indicating whether the statespace should be recorded
         :param iprof: Instruction Profiler
+        :param use_reachability_check: Runs reachability check by solving constraints
+        :param beam_width: The beam width for search strategies
+        :param tx_strategy: A global tx prioritisation strategy
         """
         self.execution_info: List[ExecutionInfo] = []
 
@@ -87,6 +91,7 @@ class LaserEVM:
         self.strategy = strategy(self.work_list, max_depth, beam_width=beam_width)
         self.max_depth = max_depth
         self.transaction_count = transaction_count
+        self.tx_strategy = tx_strategy
 
         self.execution_timeout = execution_timeout or 0
         self.create_timeout = create_timeout or 0
@@ -221,20 +226,35 @@ class LaserEVM:
         """
         for hook in self._start_exec_trans_hooks:
             hook()
-
-        if self.executed_transactions is False:
-            self._execute_transactions(address)
-
+        if self.tx_strategy is None:
+            if self.executed_transactions is False:
+                self.time = datetime.now()
+                self._execute_transactions_incremental(
+                    address, txs=args.transaction_sequences
+                )
+        else:
+            self.time = datetime.now()
+            self._execute_transactions_non_ordered(address)
         for hook in self._stop_exec_trans_hooks:
             hook()
 
-    def _execute_transactions(self, address):
-        """This function executes multiple transactions on the address
+    def _execute_transactions_ordered(self, address):
+        """
+        This function executes multiple transactions non-incrementally, using some type priority ordering
 
         :param address: Address of the contract
         :return:
         """
-        self.time = datetime.now()
+        for txs in self.strategy:
+            log.info(f"Executing the sequence: {txs}")
+            self._execute_transactions_incremental(address, txs=tx)
+
+    def _execute_transactions_incremental(self, address, txs=None):
+        """This function executes multiple transactions incrementally on the address
+
+        :param address: Address of the contract
+        :return:
+        """
 
         for i in range(self.transaction_count):
             if len(self.open_states) == 0:
@@ -267,9 +287,7 @@ class LaserEVM:
                     i, len(self.open_states)
                 )
             )
-            func_hashes = (
-                args.transaction_sequences[i] if args.transaction_sequences else None
-            )
+            func_hashes = txs[i] if txs else None
 
             if func_hashes:
                 for itr, func_hash in enumerate(func_hashes):

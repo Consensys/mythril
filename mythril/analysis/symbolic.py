@@ -17,7 +17,7 @@ from mythril.laser.ethereum.strategy.constraint_strategy import DelayConstraintS
 from mythril.laser.ethereum.strategy.beam import BeamSearch
 from mythril.laser.ethereum.natives import PRECOMPILE_COUNT
 from mythril.laser.ethereum.transaction.symbolic import ACTORS
-
+from mythril.laser.ethereum.tx_prioritiser import RfTxPrioritiser
 
 from mythril.laser.plugin.loader import LaserPluginLoader
 from mythril.laser.plugin.plugins import (
@@ -100,6 +100,11 @@ class SymExecWrapper:
         else:
             raise ValueError("Invalid strategy argument supplied")
 
+        if args.incremental_txs is False:
+            tx_strategy = RfTxPrioritiser(contract)
+        else:
+            tx_strategy = None
+
         creator_account = Account(
             hex(ACTORS.creator.value), "", dynamic_loader=None, contract_name=None
         )
@@ -128,6 +133,7 @@ class SymExecWrapper:
             transaction_count=transaction_count,
             requires_statespace=requires_statespace,
             beam_width=beam_width,
+            tx_strategy=tx_strategy,
         )
 
         if loop_bound is not None:
