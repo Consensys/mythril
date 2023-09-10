@@ -16,7 +16,11 @@ class RfTxPrioritiser:
 
         with open(model_path, "rb") as file:
             self.model = pickle.load(file)
-
+        if self.contract.features is None:
+            log.info(
+                "There are no available features. Rf based Tx Prioritisation turned off."
+            )
+            return None
         self.preprocessed_features = self.preprocess_features(self.contract.features)
         self.recent_predictions = []
 

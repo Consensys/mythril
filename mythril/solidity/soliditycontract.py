@@ -190,10 +190,13 @@ class SolidityContract(EVMContract):
         self.solc_indices = self.get_solc_indices(input_file, data)
         self.solc_json = data
         self.input_file = input_file
-        self.features = SolidityFeatureExtractor(
-            data["sources"][str(input_file)]["ast"]
-        ).extract_features()
-
+        if "ast" in data["sources"][str(input_file)]:
+            # Not available in old solidity versions, around ~0.4.11
+            self.features = SolidityFeatureExtractor(
+                data["sources"][str(input_file)]["ast"]
+            ).extract_features()
+        else:
+            self.features = None
         has_contract = False
 
         # If a contract name has been specified, find the bytecode of that specific contract
