@@ -269,7 +269,6 @@ class MythrilDisassembler:
             solc_binary = self.solc_binary
             if solc_binary is None:
                 solc_binary, self.solc_version = util.extract_binary(file)
-            print(solc_binary)
             if self.check_run_integer_module(file) is False:
                 args.use_integer_module = False
             try:
