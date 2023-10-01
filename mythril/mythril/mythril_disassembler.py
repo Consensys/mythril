@@ -57,6 +57,7 @@ class MythrilDisassembler:
         solc_args=None,
     ) -> None:
         args.solc_args = solc_args
+        self.solc_version = solc_version
         self.solc_binary = self._init_solc_binary(solc_version)
         self.solc_settings_json = solc_settings_json
         self.eth = eth
@@ -68,8 +69,9 @@ class MythrilDisassembler:
     def _init_solc_binary(version: str) -> Optional[str]:
         """
         Only proper versions are supported. No nightlies, commits etc (such as available in remix).
+        This functions extracts
         :param version: Version of the solc binary required
-        :return: The solc binary of the corresponding version
+        :return: AThe solc binary of the corresponding version
         """
 
         if not version:
@@ -84,8 +86,6 @@ class MythrilDisassembler:
 
         if version.startswith("v"):
             version = version[1:]
-        if version and NpmSpec("^0.8.0").match(Version(version)):
-            args.use_integer_module = False
         if version == main_version_number:
             log.info("Given version matches installed version")
             solc_binary = os.environ.get("SOLC") or "solc"
@@ -231,6 +231,24 @@ class MythrilDisassembler:
                             self.sigs.add_sigs(original_filename, targets_json)
         return address, contracts
 
+    def check_run_integer_module(self, source_file):
+        # Strip leading 'v' from version if it's there
+        normalized_version = self.solc_version.lstrip("v")
+
+        # Check if solc_version is not provided or doesn't match the required version
+        # As post 0.8.0 solc versions automatically add assertions to sanity check arithmetic
+        if not self.solc_version or not NpmSpec("^0.8.0").match(
+            Version(normalized_version)
+        ):
+            return True
+
+        with open(source_file, "r") as f:
+            for line in f:
+                if "unchecked" in line:
+                    return True
+
+        return False
+
     def load_from_solidity(
         self, solidity_files: List[str]
     ) -> Tuple[str, List[SolidityContract]]:
@@ -248,7 +266,11 @@ class MythrilDisassembler:
                 contract_name = None
 
             file = os.path.expanduser(file)
-            solc_binary = self.solc_binary or util.extract_binary(file)
+            solc_binary = self.solc_binary
+            if solc_binary is None:
+                solc_binary, self.solc_version = util.extract_binary(file)
+            if self.check_run_integer_module(file) is False:
+                args.use_integer_module = False
             try:
                 # import signatures from solidity source
                 self.sigs.import_solidity_file(

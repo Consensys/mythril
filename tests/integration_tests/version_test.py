@@ -15,6 +15,8 @@ test_data = (
     ("version_2.sol", None, True),
     ("version_3.sol", None, True),
     ("version_patch.sol", None, False),
+    ("integer_edge_case.sol", None, True),
+    ("integer_edge_case.sol", "v0.8.19", True),
 )
 
 

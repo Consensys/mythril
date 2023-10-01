@@ -13,7 +13,7 @@ import typing
 from pathlib import Path
 from requests.exceptions import ConnectionError
 from subprocess import PIPE, Popen
-
+from typing import Tuple
 
 from json.decoder import JSONDecodeError
 import semantic_version as semver
@@ -217,19 +217,13 @@ def extract_version(file: typing.Optional[str]):
             return str(version)
 
 
-def extract_binary(file: str) -> str:
+def extract_binary(file: str) -> Tuple[str, str]:
     file_data = None
     with open(file) as f:
         file_data = f.read()
 
     version = extract_version(file_data)
-    if (
-        version
-        and NpmSpec("^0.8.0").match(Version(version))
-        and "unchecked" not in file_data
-    ):
-        args.use_integer_module = False
 
     if version is None:
-        return os.environ.get("SOLC") or "solc"
-    return solc_exists(version)
+        return os.environ.get("SOLC") or "solc", version
+    return solc_exists(version), version
