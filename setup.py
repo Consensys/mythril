@@ -16,8 +16,6 @@ import os
 import io
 
 
-
-
 # Package meta-data.
 NAME = "mythril"
 DESCRIPTION = "Security analysis tool for Ethereum smart contracts"
