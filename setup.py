@@ -28,7 +28,7 @@ DESCRIPTION = "Security analysis tool for Ethereum smart contracts"
 URL = "https://github.com/ConsenSys/mythril"
 AUTHOR = "ConsenSys Dilligence"
 AUTHOR_MAIL = None
-REQUIRES_PYTHON = ">=3.6.0"
+REQUIRES_PYTHON = ">=3.7.0"
 here = os.path.abspath(os.path.dirname(__file__))
 
 # What packages are required for this module to be executed?
