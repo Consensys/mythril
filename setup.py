@@ -16,10 +16,6 @@ import os
 import io
 
 
-class InstallCommand(_install):
-    def run(self):
-        check_call([sys.executable, "-m", "pip", "install", "cython"])
-        _install.run(self)
 
 
 # Package meta-data.
@@ -135,5 +131,5 @@ setup(
     package_data={"mythril.analysis.templates": ["*"], "mythril.support.assets": ["*"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
-    cmdclass={"install": InstallCommand, "verify": VerifyVersionCommand},
+    cmdclass={"verify": VerifyVersionCommand},
 )

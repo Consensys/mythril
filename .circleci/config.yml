@@ -47,7 +47,7 @@ jobs:
       - run:
           background: true
           name: Launch of background geth instance
-          command: geth --syncmode full --http --http.api="db,eth,net,web3,personal" --shh
+          command: geth --syncmode full --http --http.api="db,eth,net,web3,personal"
 
       - run:
           name: Unit-testing
@@ -69,7 +69,7 @@ jobs:
 
       - run:
           name: Ensuring that setup script is functional
-          command: python3 setup.py install
+          command: python3 -m build
           working_directory: /home/mythril
 
       - run:
