@@ -16,19 +16,13 @@ import os
 import io
 
 
-class InstallCommand(_install):
-    def run(self):
-        check_call([sys.executable, "-m", "pip", "install", "cython"])
-        _install.run(self)
-
-
 # Package meta-data.
 NAME = "mythril"
 DESCRIPTION = "Security analysis tool for Ethereum smart contracts"
 URL = "https://github.com/ConsenSys/mythril"
 AUTHOR = "ConsenSys Dilligence"
 AUTHOR_MAIL = None
-REQUIRES_PYTHON = ">=3.6.0"
+REQUIRES_PYTHON = ">=3.7.0"
 here = os.path.abspath(os.path.dirname(__file__))
 
 # What packages are required for this module to be executed?
@@ -135,5 +129,5 @@ setup(
     package_data={"mythril.analysis.templates": ["*"], "mythril.support.assets": ["*"]},
     include_package_data=True,
     entry_points={"console_scripts": ["myth=mythril.interfaces.cli:main"]},
-    cmdclass={"install": InstallCommand, "verify": VerifyVersionCommand},
+    cmdclass={"verify": VerifyVersionCommand},
 )
