@@ -37,11 +37,11 @@ jobs:
           paths:
             - .tox/py*
             - /root/.cache/pip/wheels/
-
+      # TODO: Remove all --break-system-packages here in and mythril-ci image
       - run:
           name: Black style check
           command: |
-            pip3 install --user black==22.3.0
+            pip3 install --user black==22.3.0 --break-system-packages
             python3 -m black --check /home/mythril/
 
       - run:
