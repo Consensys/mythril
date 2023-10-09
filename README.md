@@ -4,9 +4,9 @@
 	<img src="/static/mythril_new.png" height="320px"/>
 </p>
 
-[![Discord](https://img.shields.io/discord/481002907366588416.svg)](https://discord.gg/E3YrVtG)
+[![Discord](https://img.shields.io/discord/697535391594446898)](https://discord.com/channels/697535391594446898/712829485350649886)
 [![PyPI](https://badge.fury.io/py/mythril.svg)](https://pypi.python.org/pypi/mythril)
-[![Read the Docs](https://readthedocs.org/projects/mythril-classic/badge/?version=master)](https://mythril-classic.readthedocs.io/en/master/)
+[![Read the Docs](https://readthedocs.org/projects/mythril-classic/badge/?version=master)](https://mythril-classic.readthedocs.io/en/develop/)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/Consensys/mythril/tree/develop.svg?style=shield&circle-token=fd6738fd235f6c2d8e10234259090e3b05190d0e)](https://dl.circleci.com/status-badge/redirect/gh/Consensys/mythril/tree/develop)
 [![Sonarcloud - Maintainability](https://sonarcloud.io/api/project_badges/measure?project=mythril&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=mythril)
 [![Pypi Installs](https://static.pepy.tech/badge/mythril)](https://pepy.tech/project/mythril)
@@ -16,7 +16,7 @@ Mythril is a security analysis tool for EVM bytecode. It detects security vulner
 
 If you are a smart contract developer, we recommend using [MythX tools](https://github.com/b-mueller/awesome-mythx-smart-contract-security-tools) which are optimized for usability and cover a wider range of security issues.
 
-Whether you want to contribute, need support, or want to learn what we have cooking for the future, our [Discord server](https://discord.gg/E3YrVtG) will serve your needs.
+Whether you want to contribute, need support, or want to learn what we have cooking for the future, you can checkout diligence-mythx channel in [ConsenSys Discord server](https://discord.gg/consensys).
 
 ## Installation and setup
 
@@ -84,7 +84,7 @@ Caller: [ATTACKER], function: commencekilling(), txdata: 0x7c11da20, value: 0x0
 ```
 
 
-Instructions for using Mythril are found on the [docs](https://mythril-classic.readthedocs.io/en/master/). 
+Instructions for using Mythril are found on the [docs](https://mythril-classic.readthedocs.io/en/develop/). 
 
 For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
 
