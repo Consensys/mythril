@@ -5,7 +5,7 @@ defaults:
     # used for new integration testing, and it is build on top of the previous
     # `mythril/dev_test_environment:0.0.43`, though a bit newer versions, thus
     # there is a chance that it breaks some small things.
-    - image: mythril/mythril-ci
+    - image: norhh/mythril-ci
 
 version: 2
 jobs:
@@ -37,17 +37,17 @@ jobs:
           paths:
             - .tox/py*
             - /root/.cache/pip/wheels/
-
+      # TODO: Remove all --break-system-packages here in and mythril-ci image
       - run:
           name: Black style check
           command: |
-            pip3 install --user black==22.3.0
+            pip3 install --user black==22.3.0 --break-system-packages
             python3 -m black --check /home/mythril/
 
       - run:
           background: true
           name: Launch of background geth instance
-          command: geth --syncmode full --http --http.api="db,eth,net,web3,personal" --shh
+          command: geth --syncmode full --http --http.api="db,eth,net,web3,personal"
 
       - run:
           name: Unit-testing
@@ -69,7 +69,7 @@ jobs:
 
       - run:
           name: Ensuring that setup script is functional
-          command: python3 setup.py install
+          command: python3 -m build
           working_directory: /home/mythril
 
       - run:
