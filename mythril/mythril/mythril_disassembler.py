@@ -232,6 +232,17 @@ class MythrilDisassembler:
         return address, contracts
 
     def check_run_integer_module(self, source_file):
+
+        with open(source_file, "r") as f:
+            for line in f:
+                if "unchecked" in line:
+                    return True
+
+        if self.solc_version is None:
+            # Runs the version installed in the system (likely 0.8.0+)
+            # Post 0.8.0 versions automatically add assertions to sanity check arithmetic
+            return False
+
         # Strip leading 'v' from version if it's there
         normalized_version = self.solc_version.lstrip("v")
 
@@ -241,11 +252,6 @@ class MythrilDisassembler:
             Version(normalized_version)
         ):
             return True
-
-        with open(source_file, "r") as f:
-            for line in f:
-                if "unchecked" in line:
-                    return True
 
         return False
 
