@@ -203,7 +203,7 @@ class SolidityFeatureExtractor:
         return variables
 
     def extract_address_variable(self, node):
-        if isinstance(node, int):
+        if node is None or isinstance(node, (int, str)):
             return set([])
         transfer_vars = set([])
         if (
