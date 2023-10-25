@@ -86,7 +86,7 @@ Caller: [ATTACKER], function: commencekilling(), txdata: 0x7c11da20, value: 0x0
 
 Instructions for using Mythril are found on the [docs](https://mythril-classic.readthedocs.io/en/develop/). 
 
-For support or general discussions please join the Mythril community on [Discord](https://discord.gg/E3YrVtG).
+For support or general discussions please checkout [diligence-mythx channel](https://discord.com/channels/697535391594446898/712829485350649886) in [ConsenSys Discord server](https://discord.gg/consensys)..
 
 ## Building the Documentation
 Mythril's documentation is contained in the `docs` folder and is published to [Read the Docs](https://mythril-classic.readthedocs.io/en/develop/). It is based on Sphinx and can be built using the Makefile contained in the subdirectory:
