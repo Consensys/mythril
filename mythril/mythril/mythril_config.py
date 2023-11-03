@@ -199,7 +199,7 @@ class MythrilConfig:
     def set_api_from_config_path(self) -> None:
         """Set the RPC mode based on a given config file."""
         config = ConfigParser(allow_no_value=False)
-        config.optionxform = str  # type:ignore
+        config.optionxform = str
         config.read(self.config_path, "utf-8")
         if config.has_option("defaults", "dynamic_loading"):
             dynamic_loading = config.get("defaults", "dynamic_loading")
