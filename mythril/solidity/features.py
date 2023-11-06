@@ -27,8 +27,12 @@ class SolidityFeatureExtractor:
             all_require_vars = self.find_variables_in_require(node)
             ether_vars = self.extract_address_variable(node)
 
-            for modifier in node.get("modifiers", []):
-                all_require_vars.update(modifier_vars[modifier["modifierName"]["name"]])
+            for potential_modifier in node.get("modifiers", []):
+                # Issues with AST, sometimes, non-modifiers pop up here
+                if potential_modifier["modifierName"]["name"] in modifier_vars:
+                    all_require_vars.update(
+                        modifier_vars[potential_modifier["modifierName"]["name"]]
+                    )
             is_payable = self.is_function_payable(node)
             has_isowner_modifier = self.has_isowner_modifier(node)
             contains_assert = self.contains_assert(node)

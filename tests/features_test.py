@@ -7,6 +7,7 @@ from mythril.solidity.soliditycontract import SolidityContract, SolcAST
 TEST_FILES = Path(__file__).parent / "testdata/input_contracts"
 solc_binary_5 = MythrilDisassembler._init_solc_binary("v0.5.0")
 solc_binary_8 = MythrilDisassembler._init_solc_binary("v0.8.0")
+solc_binary_82 = MythrilDisassembler._init_solc_binary("v0.8.20")
 
 
 test_cases = [
@@ -100,6 +101,16 @@ test_cases = [
         "all_require_vars",
         set(["userBalances", "msg", "_to", "_amount"]),
         solc_binary_8,
+    ),
+    ("SecureVault.sol", 11, "withdraw", "has_owner_modifier", True, solc_binary_82),
+    ("SecureVault.sol", 11, "deposit", "has_owner_modifier", False, solc_binary_82),
+    (
+        "SecureVault.sol",
+        11,
+        "withdraw",
+        "all_require_vars",
+        set(["amount", "this"]),
+        solc_binary_82,
     ),
 ]
 
