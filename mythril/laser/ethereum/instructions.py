@@ -1087,6 +1087,10 @@ class Instruction:
             global_state.mstate.stack.pop(),
         )
         code = global_state.environment.code.bytecode
+        if isinstance(code, tuple):
+            log.debug("unsupported symbolic code for CODECOPY")
+            return [global_state]
+
         if code.startswith("0x"):
             code = code[2:]
         code_size = len(code) // 2
