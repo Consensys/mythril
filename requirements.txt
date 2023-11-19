@@ -22,7 +22,7 @@ numpy
 persistent>=4.2.0
 py-flags
 py-evm==0.7.0a1
-py-solc-x
+py-solc-x<2.0.0
 py-solc
 pytest>=3.6.0
 pyparsing<3,>=2.0.2
