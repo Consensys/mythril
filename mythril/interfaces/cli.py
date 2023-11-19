@@ -500,7 +500,7 @@ def add_analysis_args(options):
     options.add_argument(
         "--execution-timeout",
         type=int,
-        default=86400,
+        default=3600,
         help="The amount of seconds to spend on symbolic execution",
     )
     options.add_argument(
