@@ -47,7 +47,7 @@ class MutationPruner(LaserPlugin):
             global_state.annotate(MutationAnnotation())
 
         """FIXME: Check for changes in world_state.balances instead of adding MutationAnnotation for all calls.
-           Requires world_state.starting_balances to be initalized at every tx start *after* call value has been added.
+           Requires world_state.starting_balances to be initialized at every tx start *after* call value has been added.
         """
 
         @symbolic_vm.pre_hook("CALL")

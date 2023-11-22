@@ -79,7 +79,7 @@ class Node:
 
 
 class Edge:
-    """The respresentation of a call graph edge."""
+    """The representation of a call graph edge."""
 
     def __init__(
         self,
