@@ -9,7 +9,7 @@ from copy import deepcopy
 class IssueAnnotation(StateAnnotation):
     def __init__(self, conditions: List[Bool], issue: Issue, detector):
         """
-        Issue Annotation to propogate issues
+        Issue Annotation to propagate issues
         - conditions: A list of independent conditions [a, b, c, ...]
                       Each of these have to be independently be satisfied
         - issue: The issue of the annotation
