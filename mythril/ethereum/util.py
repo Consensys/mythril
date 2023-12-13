@@ -156,7 +156,7 @@ def parse_pragma(solidity_code):
     max_version = Optional(inequality + version)
     pragma = Word("pragma") + Word("solidity") + min_version + Optional(max_version)
     result = pragma.parseString(solidity_code)
-    min_inequality = result[2] if result[2] in [">", "<", ">=", "<="] else ""
+    min_inequality = result[2] if result[2] in [">", "<", ">=", "<=", "="] else ""
     min_carrot = result[2] if result[2] == "^" else ""
     min_version = result[3] if min_carrot != "" or min_inequality != "" else result[2]
     return {
