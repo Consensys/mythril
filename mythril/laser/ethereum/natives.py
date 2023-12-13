@@ -94,7 +94,7 @@ def ecrecover(data: List[int]) -> List[int]:
     try:
         pub = ecrecover_to_pub(message, v, r, s)
     except Exception as e:
-        log.debug("An error has occured while extracting public key: " + str(e))
+        log.debug("An error has occurred while extracting public key: " + str(e))
         return []
     o = [0] * 12 + [x for x in sha3(pub)[-20:]]
     return list(bytearray(o))

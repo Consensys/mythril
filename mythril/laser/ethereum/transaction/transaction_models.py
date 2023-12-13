@@ -1,4 +1,4 @@
-"""This module contians the transaction models used throughout LASER's symbolic
+"""This module contains the transaction models used throughout LASER's symbolic
 execution."""
 
 from copy import deepcopy

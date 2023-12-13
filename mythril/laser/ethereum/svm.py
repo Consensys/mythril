@@ -711,7 +711,7 @@ class LaserEVM:
                 self.instr_post_hook[opcode].append(hook)
 
     def instr_hook(self, hook_type, opcode) -> Callable:
-        """Registers the annoted function with register_instr_hooks
+        """Registers the annotated function with register_instr_hooks
 
         :param hook_type: Type of hook pre/post
         :param opcode: The opcode related to the function
