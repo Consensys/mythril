@@ -5,6 +5,7 @@ from mythril.ethereum.util import extract_version
 
 test_data = (
     ("pragma solidity 0.5.0\n", ["0.5.0"]),
+    ("pragma solidity =0.5.0\n", ["0.5.0"]),
     ("pragma solidity ^0.4.26\n", ["0.4.26"]),
     ("pragma solidity ^0.6.3;\n", [f"0.6.{x}" for x in range(3, 13)]),
     ("pragma solidity ^0.6.3              ;\n", [f"0.6.{x}" for x in range(3, 13)]),
