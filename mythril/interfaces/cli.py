@@ -754,7 +754,6 @@ def execute_command(
     elif args.command == SAFE_FUNCTIONS_COMMAND:
         args.no_onchain_data = args.disable_dependency_pruning = args.unconstrained_storage = True
         args.pruning_factor = 1
-        
         function_analyzer = MythrilAnalyzer(
             strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )
