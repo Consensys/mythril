@@ -573,6 +573,11 @@ def add_analysis_args(options):
         help="Disable mutation pruner",
     )
     options.add_argument(
+        "--enable-summaries",
+        action="store_true",
+        help="Enable using symbolic summaries",
+    )
+    options.add_argument(
         "--custom-modules-directory",
         help="Designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",
@@ -784,10 +789,10 @@ def execute_command(
             print("Disassembly: \n" + disassembler.contracts[0].get_creation_easm())
 
     elif args.command == SAFE_FUNCTIONS_COMMAND:
-        args.unconstrained_storage = True
+        args.no_onchain_data = (
+            args.disable_dependency_pruning
+        ) = args.unconstrained_storage = True
         args.pruning_factor = 1
-        args.disable_dependency_pruning = True
-        args.no_onchain_data = True
         function_analyzer = MythrilAnalyzer(
             strategy=strategy, disassembler=disassembler, address=address, cmd_args=args
         )

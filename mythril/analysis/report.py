@@ -1,4 +1,5 @@
 """This module provides classes that make up an issue report."""
+import base64
 import logging
 import re
 import json
@@ -236,9 +237,25 @@ class Issue:
             data += "0" * (64 - len(data) % 64)
         try:
             decoded_output = decode(type_info, bytes.fromhex(data))
+            decoded_output = tuple(
+                convert_bytes(item) if isinstance(item, bytes) else item
+                for item in decoded_output
+            )
             return decoded_output
         except Exception as e:
             return None
+
+
+def convert_bytes(item):
+    """
+    Converts bytes to a serializable format.
+    """
+    try:
+        # Attempt to decode as UTF-8 text
+        return item.decode("utf-8")
+    except UnicodeDecodeError:
+        # If it fails, encode as base64
+        return base64.b64encode(item).decode("utf-8")
 
 
 class Report:

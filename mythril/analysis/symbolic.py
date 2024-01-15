@@ -26,6 +26,7 @@ from mythril.laser.plugin.plugins import (
     CoveragePluginBuilder,
     CallDepthLimitBuilder,
     InstructionProfilerBuilder,
+    SymbolicSummaryPluginBuilder,
 )
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
@@ -148,6 +149,8 @@ class SymExecWrapper:
             plugin_loader.load(MutationPrunerBuilder())
         if not args.disable_iprof:
             plugin_loader.load(InstructionProfilerBuilder())
+        if args.enable_summaries:
+            plugin_loader.load(SymbolicSummaryPluginBuilder())
 
         plugin_loader.load(CallDepthLimitBuilder())
         plugin_loader.add_args(
