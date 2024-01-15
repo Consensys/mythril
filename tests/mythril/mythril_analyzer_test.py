@@ -41,6 +41,7 @@ def test_fire_lasers(mock_sym, mock_fire_lasers, mock_code_info):
         transaction_sequences=None,
         disable_coverage_strategy=False,
         disable_mutation_pruner=False,
+        enable_summaries=False,
     )
     analyzer = MythrilAnalyzer(disassembler, cmd_args=args)
 

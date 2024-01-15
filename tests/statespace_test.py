@@ -31,6 +31,7 @@ def test_statespace_dump():
             transaction_sequences=None,
             disable_coverage_strategy=False,
             disable_mutation_pruner=False,
+            enable_summaries=False,
         )
         analyzer = MythrilAnalyzer(
             disassembler=disassembler,
