@@ -11,7 +11,7 @@ except ImportError:
     from eth_abi import decode_abi as decode
 
 from jinja2 import PackageLoader, Environment
-from typing import Dict, List, Any, Optional
+from typing import Dict, Iterable, List, Any, Optional
 import hashlib
 
 from mythril.laser.execution_info import ExecutionInfo
@@ -238,7 +238,7 @@ class Issue:
         try:
             decoded_output = decode(type_info, bytes.fromhex(data))
             decoded_output = tuple(
-                convert_bytes(item) if isinstance(item, bytes) else item
+                convert_bytes(item) if isinstance(item, (bytes, Iterable)) else item
                 for item in decoded_output
             )
             return decoded_output
@@ -248,14 +248,15 @@ class Issue:
 
 def convert_bytes(item):
     """
-    Converts bytes to a serializable format.
+    Converts bytes to a serializable format. Handles nested iterables.
     """
-    try:
-        # Attempt to decode as UTF-8 text
-        return item.decode("utf-8")
-    except UnicodeDecodeError:
-        # If it fails, encode as base64
-        return base64.b64encode(item).decode("utf-8")
+    if isinstance(item, bytes):
+        return item.hex()
+    elif isinstance(item, Iterable) and not isinstance(item, (str, bytes)):
+        # Recursively apply convert_bytes to each item in the iterable
+        return type(item)(convert_bytes(subitem) for subitem in item)
+    else:
+        return item
 
 
 class Report:
