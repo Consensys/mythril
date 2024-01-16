@@ -573,6 +573,11 @@ def add_analysis_args(options):
         help="Disable mutation pruner",
     )
     options.add_argument(
+        "--enable-summaries",
+        action="store_true",
+        help="Enable using symbolic summaries",
+    )
+    options.add_argument(
         "--custom-modules-directory",
         help="Designates a separate directory to search for custom analysis modules",
         metavar="CUSTOM_MODULES_DIRECTORY",

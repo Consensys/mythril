@@ -23,6 +23,7 @@ class Args(object, metaclass=Singleton):
         self.disable_coverage_strategy = False
         self.disable_mutation_pruner = False
         self.incremental_txs = True
+        self.enable_summaries = False
 
 
 args = Args()
