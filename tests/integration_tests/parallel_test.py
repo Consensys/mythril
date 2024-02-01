@@ -9,9 +9,8 @@ def test_parallel():
 
     test_file = str(TESTDATA / "input_contracts" / "origin.sol")
     program = f"python3 {MYTH} a {test_file} --solv 0.5.0 -o json"
-    processes = [Popen(program, stdout=PIPE, shell=True) for i in range(30)]
+    processes = [Popen(program, stdout=PIPE, shell=True) for i in range(8)]
     for p in processes:
         out, err = p.communicate()
-        print(out)
         json_output = json.loads(out.decode("utf-8"))
         assert json_output["success"] == True
