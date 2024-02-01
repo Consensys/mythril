@@ -96,7 +96,7 @@ OPCODES: Dict = {
     "MSTORE8": {GAS: (3, 98), STACK: (2, 0), ADDRESS: 0x53},
     # assume 64 byte r/w cost as upper bound
     "SLOAD": {GAS: (800, 800), STACK: UN_OPERATOR_TUPLE, ADDRESS: 0x54},
-    "SSTORE": {GAS: (5000, 25000), STACK: (1, 0), ADDRESS: 0x55},
+    "SSTORE": {GAS: (5000, 25000), STACK: (2, 0), ADDRESS: 0x55},
     "JUMP": {GAS: (8, 8), STACK: (1, 0), ADDRESS: 0x56},
     "JUMPI": {GAS: (10, 10), STACK: (2, 0), ADDRESS: 0x57},
     "PC": {GAS: (2, 2), STACK: Z_OPERATOR_TUPLE, ADDRESS: 0x58},
