@@ -592,11 +592,6 @@ class LaserEVM:
                 self._new_node_state(
                     state, JumpType.CONDITIONAL, state.world_state.constraints[-1]
                 )
-        elif opcode in ("SLOAD", "SSTORE") and len(new_states) > 1:
-            for state in new_states:
-                self._new_node_state(
-                    state, JumpType.CONDITIONAL, state.world_state.constraints[-1]
-                )
         elif opcode == "RETURN":
             for state in new_states:
                 self._new_node_state(state, JumpType.RETURN)
