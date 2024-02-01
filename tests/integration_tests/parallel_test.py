@@ -12,5 +12,6 @@ def test_parallel():
     processes = [Popen(program, stdout=PIPE, shell=True) for i in range(30)]
     for p in processes:
         out, err = p.communicate()
+        print(out)
         json_output = json.loads(out.decode("utf-8"))
         assert json_output["success"] == True
