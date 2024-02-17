@@ -80,3 +80,20 @@ def test_analysis_pending(file_name, tx_data, calldata):
             0
         ]
         assert test_case["steps"][tx_data["TX_OUTPUT"]]["input"] == calldata
+
+
+test_data_code = [
+    ("114", f"{TESTDATA}/input_contracts/tx.sol", True),
+    ("123", f"{TESTDATA}/input_contracts/requirements_violation_pos.sol", True),
+    ("123", f"{TESTDATA}/input_contracts/requirements_violation_neg.sol", False),
+    ("132", f"{TESTDATA}/input_contracts/unexpected_ether_pos.sol", True),
+    ("132", f"{TESTDATA}/input_contracts/unexpected_ether_neg.sol", False),
+]
+
+
+@pytest.mark.parametrize("swc, file_path, exists", test_data_code)
+def test_analysis_code(swc, file_path, exists):
+    assert (
+        "SWC ID: {}".format(swc)
+        in output_of(f"python3 {MYTH} a {file_path} --solver-timeout 5000")
+    ) == exists
