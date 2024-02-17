@@ -206,16 +206,17 @@ def native_call(
 
     if isinstance(callee_address, BitVec) or not (
         0 < int(callee_address, 16) <= PRECOMPILE_COUNT
-        or hevm_cheat_code.is_cheat_address(callee_address)
     ):
         return None
+    # Disabled due to issues with how multi contract calls are handled with some older solc versions
+    """
     if hevm_cheat_code.is_cheat_address(callee_address):
         log.info("HEVM cheat code address triggered")
         handle_cheat_codes(
             global_state, callee_address, call_data, memory_out_offset, memory_out_size
         )
         return [global_state]
-
+    """
     log.debug("Native contract called: " + callee_address)
     try:
         mem_out_start = util.get_concrete_int(memory_out_offset)

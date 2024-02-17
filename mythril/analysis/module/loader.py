@@ -14,12 +14,17 @@ from mythril.analysis.module.modules.exceptions import Exceptions
 from mythril.analysis.module.modules.external_calls import ExternalCalls
 from mythril.analysis.module.modules.integer import IntegerArithmetics
 from mythril.analysis.module.modules.multiple_sends import MultipleSends
+from mythril.analysis.module.modules.requirements_violation import RequirementsViolation
 from mythril.analysis.module.modules.state_change_external_calls import (
     StateChangeAfterCall,
 )
 from mythril.analysis.module.modules.suicide import AccidentallyKillable
+from mythril.analysis.module.modules.transaction_order_dependence import (
+    TransactionOrderDependence,
+)
 from mythril.analysis.module.modules.unchecked_retval import UncheckedRetval
 from mythril.analysis.module.modules.user_assertions import UserAssertions
+from mythril.analysis.module.modules.unexpected_ether import UnexpectedEther
 
 from mythril.analysis.module.base import EntryPoint
 
@@ -90,19 +95,22 @@ class ModuleLoader(object, metaclass=Singleton):
     def _register_mythril_modules(self):
         self._modules.extend(
             [
+                AccidentallyKillable(),
                 ArbitraryJump(),
                 ArbitraryStorage(),
                 ArbitraryDelegateCall(),
-                PredictableVariables(),
-                TxOrigin(),
                 EtherThief(),
                 Exceptions(),
                 ExternalCalls(),
                 IntegerArithmetics(),
                 MultipleSends(),
+                PredictableVariables(),
+                RequirementsViolation(),
                 StateChangeAfterCall(),
-                AccidentallyKillable(),
+                TransactionOrderDependence(),
+                TxOrigin(),
                 UncheckedRetval(),
+                UnexpectedEther(),
                 UserAssertions(),
             ]
         )
