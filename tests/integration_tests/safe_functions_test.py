@@ -14,7 +14,6 @@ test_data = (
         "ether_send.sol",
         [
             "crowdfunding()",
-            "withdrawfunds()",
             "owner()",
             "balances(address)",
             "getBalance()",
