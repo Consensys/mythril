@@ -300,15 +300,14 @@ def main() -> None:
     )
     create_disassemble_parser(disassemble_parser)
 
-    if PluginDiscovery().is_installed("myth_concolic_execution"):
-        concolic_parser = subparsers.add_parser(
-            CONCOLIC_LIST[0],
-            help="Runs concolic execution to flip the desired branches",
-            aliases=CONCOLIC_LIST[1:],
-            parents=[],
-            formatter_class=RawTextHelpFormatter,
-        )
-        create_concolic_parser(concolic_parser)
+    concolic_parser = subparsers.add_parser(
+        CONCOLIC_LIST[0],
+        help="Runs concolic execution to flip the desired branches",
+        aliases=CONCOLIC_LIST[1:],
+        parents=[],
+        formatter_class=RawTextHelpFormatter,
+    )
+    create_concolic_parser(concolic_parser)
 
     foundry_parser = subparsers.add_parser(
         FOUNDRY_LIST[0],
