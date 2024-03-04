@@ -24,6 +24,7 @@ from mythril.laser.plugin.plugins import (
     MutationPrunerBuilder,
     DependencyPrunerBuilder,
     CoveragePluginBuilder,
+    CoverageMetricsPluginBuilder,
     CallDepthLimitBuilder,
     InstructionProfilerBuilder,
     SymbolicSummaryPluginBuilder,
@@ -143,6 +144,7 @@ class SymExecWrapper:
             )
 
         plugin_loader = LaserPluginLoader()
+        plugin_loader.load(CoverageMetricsPluginBuilder())
         if not args.disable_coverage_strategy:
             plugin_loader.load(CoveragePluginBuilder())
         if not args.disable_mutation_pruner:

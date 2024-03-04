@@ -12,11 +12,13 @@ from mythril.laser.ethereum.svm import LaserEVM
 from mythril.laser.ethereum.state.world_state import WorldState
 from mythril.laser.ethereum.state.account import Account
 from mythril.laser.ethereum.time_handler import time_handler
+from mythril.laser.plugin.plugins import TraceFinderBuilder
 from mythril.laser.ethereum.transaction.concolic import execute_transaction
 from mythril.laser.plugin.loader import LaserPluginLoader
 from mythril.laser.smt import Expression, BitVec, symbol_factory
 from mythril.laser.ethereum.transaction.transaction_models import tx_id_manager
 from mythril.plugin.discovery import PluginDiscovery
+from mythril.support.support_args import args
 
 
 def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
@@ -30,12 +32,11 @@ def setup_concrete_initial_state(concrete_data: ConcreteData) -> WorldState:
         account = Account(address, concrete_storage=True)
         account.code = Disassembly(details["code"][2:])
         account.nonce = details["nonce"]
-        if isinstance(type(details["storage"]), str):
+        if isinstance(details["storage"], str):
             details["storage"] = eval(details["storage"])  # type: ignore
         for key, value in details["storage"].items():
             key_bitvec = symbol_factory.BitVecVal(int(key, 16), 256)
             account.storage[key_bitvec] = symbol_factory.BitVecVal(int(value, 16), 256)
-
         world_state.put_account(account)
         account.set_balance(int(details["balance"], 16))
     return world_state
@@ -47,16 +48,15 @@ def concrete_execution(concrete_data: ConcreteData) -> Tuple[WorldState, List]:
     :param concrete_data: Concrete data
     :return: path trace
     """
+    args.pruning_factor = 1
     tx_id_manager.restart_counter()
     init_state = setup_concrete_initial_state(concrete_data)
     laser_evm = LaserEVM(execution_timeout=1000)
     laser_evm.open_states = [deepcopy(init_state)]
     plugin_loader = LaserPluginLoader()
-    assert PluginDiscovery().is_installed("myth_concolic_execution")
-    trace_plugin = PluginDiscovery().installed_plugins["myth_concolic_execution"]()
+    plugin_loader.load(TraceFinderBuilder())
     time_handler.start_execution(laser_evm.execution_timeout)
 
-    plugin_loader.load(trace_plugin)
     laser_evm.time = datetime.now()
     plugin_loader.instrument_virtual_machine(laser_evm, None)
     for transaction in concrete_data["steps"]:
