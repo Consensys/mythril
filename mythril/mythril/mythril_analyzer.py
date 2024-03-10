@@ -73,6 +73,7 @@ class MythrilAnalyzer:
         args.disable_coverage_strategy = cmd_args.disable_coverage_strategy
         args.disable_mutation_pruner = cmd_args.disable_mutation_pruner
         args.enable_summaries = cmd_args.enable_summaries
+        args.enable_state_merge = cmd_args.enable_state_merging
 
         if args.pruning_factor is None:
             if self.execution_timeout > LARGE_TIME:

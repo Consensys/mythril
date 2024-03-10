@@ -572,6 +572,11 @@ def add_analysis_args(options):
         help="Disable mutation pruner",
     )
     options.add_argument(
+        "--enable-state-merging",
+        action="store_true",
+        help="Enable State Merging",
+    )
+    options.add_argument(
         "--enable-summaries",
         action="store_true",
         help="Enable using symbolic summaries",
