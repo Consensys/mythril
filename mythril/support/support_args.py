@@ -24,6 +24,7 @@ class Args(object, metaclass=Singleton):
         self.disable_mutation_pruner = False
         self.incremental_txs = True
         self.enable_summaries = False
+        self.enable_state_merge = False
 
 
 args = Args()

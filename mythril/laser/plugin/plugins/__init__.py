@@ -6,11 +6,12 @@ This module contains the implementation of some features
 - pruning
 """
 from mythril.laser.plugin.plugins.benchmark import BenchmarkPluginBuilder
-from mythril.laser.plugin.plugins.coverage.coverage_plugin import CoveragePluginBuilder
-from mythril.laser.plugin.plugins.dependency_pruner import DependencyPrunerBuilder
-from mythril.laser.plugin.plugins.mutation_pruner import MutationPrunerBuilder
 from mythril.laser.plugin.plugins.call_depth_limiter import CallDepthLimitBuilder
+from mythril.laser.plugin.plugins.coverage.coverage_plugin import CoveragePluginBuilder
+from mythril.laser.plugin.plugins.coverage_metrics import CoverageMetricsPluginBuilder
+from mythril.laser.plugin.plugins.dependency_pruner import DependencyPrunerBuilder
 from mythril.laser.plugin.plugins.instruction_profiler import InstructionProfilerBuilder
+from mythril.laser.plugin.plugins.mutation_pruner import MutationPrunerBuilder
+from mythril.laser.plugin.plugins.state_merge import StateMergePluginBuilder
 from mythril.laser.plugin.plugins.summary import SymbolicSummaryPluginBuilder
 from mythril.laser.plugin.plugins.trace import TraceFinderBuilder
-from mythril.laser.plugin.plugins.coverage_metrics import CoverageMetricsPluginBuilder

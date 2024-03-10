@@ -35,6 +35,7 @@ def test_generate_graph():
             disable_coverage_strategy=False,
             disable_mutation_pruner=False,
             enable_summaries=False,
+            enable_state_merge=False,
         )
         analyzer = MythrilAnalyzer(
             disassembler=disassembler,

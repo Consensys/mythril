@@ -21,17 +21,19 @@ from mythril.laser.ethereum.tx_prioritiser import RfTxPrioritiser
 
 from mythril.laser.plugin.loader import LaserPluginLoader
 from mythril.laser.plugin.plugins import (
-    MutationPrunerBuilder,
-    DependencyPrunerBuilder,
+    CallDepthLimitBuilder,
     CoveragePluginBuilder,
     CoverageMetricsPluginBuilder,
-    CallDepthLimitBuilder,
+    DependencyPrunerBuilder,
     InstructionProfilerBuilder,
+    MutationPrunerBuilder,
+    StateMergePluginBuilder,
     SymbolicSummaryPluginBuilder,
 )
 from mythril.laser.ethereum.strategy.extensions.bounded_loops import (
     BoundedLoopsStrategy,
 )
+from mythril.laser.plugin.plugins.state_merge.state_merge_plugin import StateMergePlugin
 from mythril.laser.smt import symbol_factory, BitVec
 from mythril.support.support_args import args
 from typing import Union, List, Type, Optional
@@ -145,6 +147,8 @@ class SymExecWrapper:
 
         plugin_loader = LaserPluginLoader()
         plugin_loader.load(CoverageMetricsPluginBuilder())
+        if args.enable_state_merge:
+            plugin_loader.load(StateMergePluginBuilder())
         if not args.disable_coverage_strategy:
             plugin_loader.load(CoveragePluginBuilder())
         if not args.disable_mutation_pruner:

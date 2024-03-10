@@ -4,21 +4,9 @@ import sys
 import os
 
 from tests import PROJECT_DIR, TESTDATA
-from subprocess import check_output, CalledProcessError
+from utils import output_of
 
 MYTH = str(PROJECT_DIR / "myth")
-
-
-def output_of(command):
-    """
-
-    :param command:
-    :return:
-    """
-    try:
-        return check_output(command, shell=True).decode("UTF-8")
-    except CalledProcessError as exc:
-        return exc.output.decode("UTF-8")
 
 
 test_data = (

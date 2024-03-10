@@ -32,3 +32,16 @@ class IssueAnnotation(StateAnnotation):
             issue=self.issue,
             detector=self.detector,
         )
+
+    def check_merge_annotation(self, annotation: "IssueAnnotation") -> bool:
+        if self.conditions == annotation.conditions:
+            return False
+        if self.issue.address != annotation.issue.address:
+            return False
+        if type(self.detector) != type(annotation.detector):
+            return False
+
+        return True
+
+    def merge_annotation(self, annotation: "IssueAnnotation") -> "IssueAnnotation":
+        return self
