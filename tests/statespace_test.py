@@ -32,7 +32,7 @@ def test_statespace_dump():
             disable_coverage_strategy=False,
             disable_mutation_pruner=False,
             enable_summaries=False,
-            enable_state_merge=False,
+            enable_state_merging=False,
         )
         analyzer = MythrilAnalyzer(
             disassembler=disassembler,
