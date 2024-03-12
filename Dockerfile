@@ -39,7 +39,7 @@ RUN ( auditwheel addtag ./z3_solver-* \
 
 FROM python-wheel-with-cargo AS python-wheel-blake2b
 # blake2b-py doesn't publish ARM builds, and also don't publish source packages
-# on PyPI (other than the old 0.1.3 version) so we need to build from from a git
+# on PyPI (other than the old 0.1.3 version) so we need to build from a git
 # tag. They do publish binaries for linux amd64, but their binaries only support
 # certain platform versions and the amd64 python image isn't supported, so we
 # have to build from src for that as well.
