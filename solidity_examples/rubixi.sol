@@ -140,7 +140,7 @@ contract Rubixi {
         balance += (msg.value * (100 - _fee)) / 100;
         collectedFees += (msg.value * _fee) / 100;
 
-        //Pays earlier participiants if balance sufficient
+        //Pays earlier participants if balance sufficient
         while (balance > participants[payoutOrder].payout) {
             uint payoutToSend = participants[payoutOrder].payout;
             participants[payoutOrder].etherAddress.transfer(payoutToSend);
