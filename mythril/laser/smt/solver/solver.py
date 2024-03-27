@@ -28,6 +28,15 @@ class BaseSolver(Generic[T]):
         """
         self.raw.set(timeout=timeout)
 
+    def set_unsat_core(self) -> None:
+        """
+        Enables the generation of unsatisfiable cores in the solver. This option must be activated
+        if you intend to identify and extract the minimal set of conflicting constraints that make
+        a problem unsolvable. Useful for diagnosing and debugging unsatisfiable conditions within
+        constraint sets.
+        """
+        self.raw.set(unsat_core=True)
+
     def add(self, *constraints: Bool) -> None:
         """Adds the constraints to this solver.
 
@@ -38,6 +47,17 @@ class BaseSolver(Generic[T]):
             c.raw for c in cast(List[Bool], constraints)
         ]
         self.raw.add(z3_constraints)
+
+    def assert_and_track(self, constraints: Bool, name: str) -> None:
+        """
+        Adds a constraint to the solver with an associated name, allowing the constraint to be tracked.
+        This is particularly useful for identifying specific constraints contributing to an unsat.
+
+        :param constraints: The constraints.
+        :param name: A unique identifier for the constraint, used for tracking purposes in unsat core extraction.
+        :return: None
+        """
+        self.raw.assert_and_track(constraints.raw, name)
 
     def append(self, *constraints: Bool) -> None:
         """Adds the constraints to this solver.

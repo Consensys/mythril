@@ -181,7 +181,8 @@ class WorldState:
         if code:
             new_account.code = code
         new_account.nonce = nonce
-        new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
+        if balance is not None:
+            new_account.set_balance(symbol_factory.BitVecVal(balance, 256))
 
         self.put_account(new_account)
         return new_account
