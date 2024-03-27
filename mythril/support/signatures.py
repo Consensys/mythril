@@ -48,7 +48,7 @@ class Singleton(type):
 
     @synchronized(lock)
     def __call__(cls, *args, **kwargs):
-        """Delegate the call to an existing resource or a a new one.
+        """Delegate the call to an existing resource or a new one.
 
         This is not thread- or process-safe by default. It must be protected with
         a lock.
